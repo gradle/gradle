@@ -46,15 +46,15 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         }
 
         then:
-        def resultA = findFailureByBuildIdentity(rootDirA)
+        def resultA = findFailureByBuildIdentifier(rootDirA)
         assertFailure(resultA.failure,
             "Could not fetch models of type 'EclipseProject'",
             "A problem occurred evaluating root project 'A'.",
             "Failure in A")
 
-        assertSingleEclipseProject(findModelsByProjectIdentity(rootDirB, ':'), 'B', ':')
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirB, ':'), 'B', ':')
 
-        def resultC = findFailureByBuildIdentity(rootDirC)
+        def resultC = findFailureByBuildIdentifier(rootDirC)
         assertFailure(resultC.failure,
             "Could not fetch models of type 'EclipseProject'",
             "A problem occurred evaluating root project 'C'.",
@@ -77,15 +77,15 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
         then:
         // when the build cannot be configured, we return only a failure for the root project
-        def resultA = findFailureByBuildIdentity(rootDirA)
+        def resultA = findFailureByBuildIdentifier(rootDirA)
         assertFailure(resultA.failure,
             "Could not fetch models of type 'EclipseProject'",
             "A problem occurred evaluating project ':ax'.",
             "Failure in A::ax")
         // No models are returned
-        findModelsByBuildIdentity(rootDirA) == []
+        findModelsByBuildIdentifier(rootDirA) == []
 
-        assertContainsEclipseProjects(findModelsByBuildIdentity(rootDirB), "B", ":", ":bx", ":by")
+        assertContainsEclipseProjects(findModelsByBuildIdentifier(rootDirB), "B", ":", ":bx", ":by")
     }
 
     def "can correlate models in a single project, single participant composite"() {
@@ -99,10 +99,10 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
             ideaProjects = it.getModels(IdeaProject)*.model
         }
         then:
-        // We can locate the root project by its project identity
-        assertSingleEclipseProject(findModelsByProjectIdentity(rootDirA, ':'), "A", ":")
-        // We can locate all projects (just one in this case) by the build identity for the participant
-        assertSingleEclipseProject(findModelsByBuildIdentity(rootDirA), "A", ":")
+        // We can locate the root project by its project identifier
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirA, ':'), "A", ":")
+        // We can locate all projects (just one in this case) by the build identifier for the participant
+        assertSingleEclipseProject(findModelsByBuildIdentifier(rootDirA), "A", ":")
 
         and:
         ideaProjects.size() == 1
@@ -125,13 +125,13 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         }
 
         then:
-        // We can locate each project by its project identity
-        assertSingleEclipseProject(findModelsByProjectIdentity(rootDirA, ':'), "A", ":")
-        assertSingleEclipseProject(findModelsByProjectIdentity(rootDirA, ':x'), "A", ":x")
-        assertSingleEclipseProject(findModelsByProjectIdentity(rootDirA, ':y'), "A", ":y")
+        // We can locate each project by its project identifier
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirA, ':'), "A", ":")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirA, ':x'), "A", ":x")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirA, ':y'), "A", ":y")
 
-        // We can locate all projects by the build identity for the participant
-        assertContainsEclipseProjects(findModelsByBuildIdentity(rootDirA), "A", ":", ":x", ":y")
+        // We can locate all projects by the build identifier for the participant
+        assertContainsEclipseProjects(findModelsByBuildIdentifier(rootDirA), "A", ":", ":x", ":y")
 
         and:
         containSameIdentifiers(otherHierarchicalModelResults)
@@ -159,13 +159,13 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         }
 
         then:
-        assertSingleEclipseProject(findModelsByProjectIdentity(rootDirA, ':'), "A", ":")
-        assertSingleEclipseProject(findModelsByProjectIdentity(rootDirB, ':'), "B", ":")
-        assertSingleEclipseProject(findModelsByProjectIdentity(rootDirB, ':x'), "B", ":x")
-        assertSingleEclipseProject(findModelsByProjectIdentity(rootDirB, ':y'), "B", ":y")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirA, ':'), "A", ":")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirB, ':'), "B", ":")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirB, ':x'), "B", ":x")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirB, ':y'), "B", ":y")
 
-        assertContainsEclipseProjects(findModelsByBuildIdentity(rootDirA), "A", ":")
-        assertContainsEclipseProjects(findModelsByBuildIdentity(rootDirB), "B", ":", ":x", ":y")
+        assertContainsEclipseProjects(findModelsByBuildIdentifier(rootDirA), "A", ":")
+        assertContainsEclipseProjects(findModelsByBuildIdentifier(rootDirB), "B", ":", ":x", ":y")
 
         and:
         containSameIdentifiers(otherHierarchicalModelResults)
@@ -194,21 +194,21 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         }
     }
 
-    private findModelsByProjectIdentity(File rootDir, String projectPath) {
-        def projectIdentity = new DefaultProjectIdentifier(new DefaultBuildIdentifier(rootDir), projectPath)
-        def results = modelResults.findAll { it.failure == null && projectIdentity.equals(it.model.gradleProject.identifier) }
+    private findModelsByProjectIdentifier(File rootDir, String projectPath) {
+        def projectIdentifier = new DefaultProjectIdentifier(new DefaultBuildIdentifier(rootDir), projectPath)
+        def results = modelResults.findAll { it.failure == null && projectIdentifier.equals(it.model.gradleProject.identifier) }
         return results*.model
     }
 
-    private findModelsByBuildIdentity(File rootDir) {
-        BuildIdentifier buildIdentity = new DefaultBuildIdentifier(rootDir)
-        def results = modelResults.findAll { it.failure == null && buildIdentity.equals(it.model.gradleProject.identifier.buildIdentifier) }
+    private findModelsByBuildIdentifier(File rootDir) {
+        BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(rootDir)
+        def results = modelResults.findAll { it.failure == null && buildIdentifier.equals(it.model.gradleProject.identifier.buildIdentifier) }
         return results*.model
     }
 
-    private findFailureByBuildIdentity(File rootDir) {
-        BuildIdentifier buildIdentity = new DefaultBuildIdentifier(rootDir)
-        def failures = modelResults.findAll { it instanceof FailedModelResult && buildIdentity.equals(it.buildIdentifier) }
+    private findFailureByBuildIdentifier(File rootDir) {
+        BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(rootDir)
+        def failures = modelResults.findAll { it instanceof FailedModelResult && buildIdentifier.equals(it.buildIdentifier) }
         return CollectionUtils.single(failures)
     }
 

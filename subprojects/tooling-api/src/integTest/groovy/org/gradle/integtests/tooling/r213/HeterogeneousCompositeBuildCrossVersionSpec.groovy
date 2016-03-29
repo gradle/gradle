@@ -158,14 +158,8 @@ class CustomPlugin implements Plugin<Project> {
     }
 
     ModelResult findFailureResult(Iterable<ModelResult> modelResults, File rootDir) {
-        BuildIdentifier buildIdentity = new DefaultBuildIdentifier(rootDir)
-        def results = modelResults.findAll { it instanceof FailedModelResult && buildIdentity.equals(it.buildIdentifier)}
+        BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(rootDir)
+        def results = modelResults.findAll { it instanceof FailedModelResult && buildIdentifier.equals(it.buildIdentifier)}
         return CollectionUtils.single(results)
-    }
-
-    ModelResult findModelResult(ModelResults modelResults, BuildIdentifier buildIdentity) {
-        CollectionUtils.single(modelResults.findAll { ModelResult modelResult ->
-            modelResult.model.identifier.getBuildIdentifier.equals(buildIdentity)
-        })
     }
 }

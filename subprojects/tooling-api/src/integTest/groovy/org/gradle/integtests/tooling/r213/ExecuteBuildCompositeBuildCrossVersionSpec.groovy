@@ -186,7 +186,7 @@ task hello {
         withCompositeConnection([build1, build2, build3]) { connection ->
             Task task
             connection.getModels(modelType).each { modelresult ->
-                def identifier = getBuildIdentity(modelresult, modelType)
+                def identifier = getBuildIdentifier(modelresult, modelType)
                 if (identifier == new DefaultBuildIdentifier(build1)) {
                     task = modelresult.model.getTasks().find { it.name == 'hello' }
                 }
@@ -250,7 +250,7 @@ task hello {
         e.message == "Must specify build root directory when executing tasks by name on a GradleConnection: see `CompositeBuildLauncherInternal.forTasks(File, String)`."
     }
 
-    private BuildIdentifier getBuildIdentity(ModelResult<?> result, Class<?> type) {
+    private BuildIdentifier getBuildIdentifier(ModelResult<?> result, Class<?> type) {
         if (type == GradleProject) {
             return ((GradleProject) result.model).identifier.buildIdentifier
         }
