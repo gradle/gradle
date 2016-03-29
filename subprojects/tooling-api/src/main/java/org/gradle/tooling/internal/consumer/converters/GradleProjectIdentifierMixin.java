@@ -28,6 +28,6 @@ public class GradleProjectIdentifierMixin {
     }
 
     public ProjectIdentifier getIdentifier() {
-        return new DefaultProjectIdentifier(gradleProject.getIdentifier().getBuild(), gradleProject.getPath());
+        return new DefaultProjectIdentifier(gradleProject.getIdentifier().getBuildIdentifier(), gradleProject.getPath());
     }
 }

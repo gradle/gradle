@@ -35,7 +35,7 @@ public class DefaultProjectIdentifier implements ProjectIdentifier, Serializable
         this(new DefaultBuildIdentifier(rootDir), projectPath);
     }
 
-    public BuildIdentifier getBuild() {
+    public BuildIdentifier getBuildIdentifier() {
         return build;
     }
 

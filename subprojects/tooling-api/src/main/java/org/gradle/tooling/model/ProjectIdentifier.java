@@ -33,5 +33,5 @@ public interface ProjectIdentifier {
      * Identifier of the build this project is a member of.
      * @return build identifier, never null.
      */
-    BuildIdentifier getBuild();
+    BuildIdentifier getBuildIdentifier();
 }

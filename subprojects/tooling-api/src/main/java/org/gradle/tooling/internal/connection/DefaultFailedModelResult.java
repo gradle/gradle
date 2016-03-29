@@ -35,7 +35,7 @@ public class DefaultFailedModelResult<T> implements FailedModelResult<T> {
 
     public DefaultFailedModelResult(ProjectIdentifier projectIdentifier, GradleConnectionException failure) {
         this.failure = failure;
-        this.buildIdentifier = projectIdentifier.getBuild();
+        this.buildIdentifier = projectIdentifier.getBuildIdentifier();
         this.projectIdentifier = projectIdentifier;
     }
 

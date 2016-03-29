@@ -165,7 +165,7 @@ class CustomPlugin implements Plugin<Project> {
 
     ModelResult findModelResult(ModelResults modelResults, BuildIdentifier buildIdentity) {
         CollectionUtils.single(modelResults.findAll { ModelResult modelResult ->
-            modelResult.model.identifier.build.equals(buildIdentity)
+            modelResult.model.identifier.getBuildIdentifier.equals(buildIdentity)
         })
     }
 }

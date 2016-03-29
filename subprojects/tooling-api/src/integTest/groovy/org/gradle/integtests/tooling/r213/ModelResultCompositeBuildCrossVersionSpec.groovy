@@ -202,7 +202,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     private findModelsByBuildIdentity(File rootDir) {
         BuildIdentifier buildIdentity = new DefaultBuildIdentifier(rootDir)
-        def results = modelResults.findAll { it.failure == null && buildIdentity.equals(it.model.gradleProject.identifier.build) }
+        def results = modelResults.findAll { it.failure == null && buildIdentity.equals(it.model.gradleProject.identifier.buildIdentifier) }
         return results*.model
     }
 
@@ -225,8 +225,8 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         def otherProjectIdentities = otherModelResults.collect { it }
         assert projectIdentities.containsAll(otherProjectIdentities)
 
-        def buildIdentities = modelResults*.model.collect { it.gradleProject.identifier.build }
-        def otherBuildIdentities = otherModelResults.collect { it.build }
+        def buildIdentities = modelResults*.model.collect { it.gradleProject.identifier.buildIdentifier }
+        def otherBuildIdentities = otherModelResults.collect { it.buildIdentifier }
         assert buildIdentities.containsAll(otherBuildIdentities)
     }
 }
