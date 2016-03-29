@@ -22,13 +22,11 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Ignore
 
 class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
-    @Ignore
     @UsesSample('compositeBuild')
     def "can define composite build and execute task"() {
         given:
