@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.connection;
 
-import org.gradle.tooling.connection.internal.BuildIdentityInternal;
+import org.gradle.tooling.model.BuildIdentifier;
 
 import java.io.File;
 import java.io.Serializable;
 
-public class DefaultBuildIdentity implements BuildIdentityInternal, Serializable {
+public class DefaultBuildIdentifier implements BuildIdentifier, Serializable {
     private final File rootDir;
 
-    public DefaultBuildIdentity(File rootDir) {
+    public DefaultBuildIdentifier(File rootDir) {
         this.rootDir = rootDir.getAbsoluteFile();
     }
 
@@ -46,7 +46,7 @@ public class DefaultBuildIdentity implements BuildIdentityInternal, Serializable
             return false;
         }
 
-        DefaultBuildIdentity that = (DefaultBuildIdentity) o;
+        DefaultBuildIdentifier that = (DefaultBuildIdentifier) o;
 
         return rootDir.equals(that.rootDir);
 
@@ -55,10 +55,5 @@ public class DefaultBuildIdentity implements BuildIdentityInternal, Serializable
     @Override
     public int hashCode() {
         return rootDir.hashCode();
-    }
-
-    @Override
-    public File getRootDirectory() {
-        return rootDir;
     }
 }

@@ -17,17 +17,21 @@
 package org.gradle.tooling.internal.connection;
 
 import com.google.common.collect.Lists;
+import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.*;
 import org.gradle.tooling.connection.ModelResult;
-import org.gradle.tooling.connection.ProjectIdentity;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.converters.BuildInvocationsConverter;
 import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.model.*;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.HasGradleProject;
+import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.tooling.model.eclipse.EclipseProject;
-import org.gradle.tooling.model.gradle.*;
-import org.gradle.tooling.model.idea.IdeaProject;
+import org.gradle.tooling.model.gradle.BasicGradleProject;
+import org.gradle.tooling.model.gradle.BuildInvocations;
+import org.gradle.tooling.model.gradle.ProjectPublications;
 import org.gradle.util.GradleVersion;
 
 import java.util.HashMap;
@@ -41,16 +45,15 @@ public class ToolingClientCompositeModelBuilder<T> {
     private final ToolingClientCompositeUtil util;
     private final Class<T> modelType;
     private final List<CompositeModelResultsBuilder> builders = Lists.newArrayList();
+    private final ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter();
 
     ToolingClientCompositeModelBuilder(final Class<T> modelType, ConsumerOperationParameters operationParameters) {
         this.modelType = modelType;
 
-        builders.add(new GradleBuildModelResultsBuilder());
-        builders.add(new BuildEnvironmentModelResultsBuilder());
-        builders.add(new IdeaProjectModelResultsBuilder());
         builders.add(new HierarchicalModelResultsBuilder());
-        builders.add(new CustomActionModelResultsBuilder());
-        builders.add(new BruteForceModelResultsBuilder());
+        builders.add(new BuildInvocationsModelResultsBuilder());
+        builders.add(new ProjectPublicationsModelResultBuilder());
+        builders.add(new PerBuildModelResultsBuilder());
         this.util = new ToolingClientCompositeUtil(operationParameters);
         this.operationParameters = operationParameters;
     }
@@ -58,13 +61,14 @@ public class ToolingClientCompositeModelBuilder<T> {
     public Iterable<ModelResult<T>> get() throws GradleConnectionException, IllegalStateException {
         final List<ModelResult<T>> results = Lists.newArrayList();
 
-        for (GradleConnectionParticipant participant : operationParameters.getBuilds()) {
+        for (GradleParticipantBuild participant : operationParameters.getBuilds()) {
+            ParticipantConnector participantConnector = util.createParticipantConnector(participant);
             try {
-                final List<ModelResult<T>> participantResults = buildResultsForParticipant(util.createParticipantConnector(participant));
+                final List<ModelResult<T>> participantResults = buildResultsForParticipant(participantConnector);
                 results.addAll(participantResults);
             } catch (GradleConnectionException e) {
                 String message = String.format("Could not fetch models of type '%s' using client-side composite connection.", modelType.getSimpleName());
-                results.add(new DefaultModelResult<T>(participant.toProjectIdentity(":"), new GradleConnectionException(message, e)));
+                results.add(new DefaultFailedModelResult<T>(participantConnector.toBuildIdentifier(), new GradleConnectionException(message, e)));
             }
         }
         return results;
@@ -86,8 +90,8 @@ public class ToolingClientCompositeModelBuilder<T> {
 
         public abstract void addModelResults(ParticipantConnector participant, List<ModelResult<T>> results);
 
-        protected DefaultModelResult<T> createModelResult(ParticipantConnector participant, String projectPath, T value) {
-            return new DefaultModelResult<T>(participant.toProjectIdentity(projectPath), value);
+        protected DefaultModelResult<T> createModelResult(T value) {
+            return new DefaultModelResult<T>(value);
         }
 
         protected <V> V getProjectModel(ParticipantConnector build, Class<V> modelType) throws GradleConnectionException {
@@ -103,80 +107,26 @@ public class ToolingClientCompositeModelBuilder<T> {
     }
 
     /**
-     * Builds results for a 'per-build' model, using `GradleBuild` to determine the project structure and
-     * creating a result for each project using the same model instance.
+     * Builds results for a 'per-build' model, simply requesting the model from the root project.
      */
-    private abstract class PerBuildModelResultsBuilder extends CompositeModelResultsBuilder {
+    private class PerBuildModelResultsBuilder extends CompositeModelResultsBuilder {
+        @Override
+        public boolean canBuild(ParticipantConnector participant) {
+            // This is the fallback for any unknown model, and also for GradleBuild, IdeaProject and BuildInvocations
+            return true;
+        }
+
         @Override
         public void addModelResults(ParticipantConnector participant, List<ModelResult<T>> modelResults) {
-            GradleBuild gradleBuild = getProjectModel(participant, GradleBuild.class);
-            Object model = getModel(participant, gradleBuild);
-            addPerBuildModelResult(participant, gradleBuild.getRootProject(), model, modelResults);
-        }
-
-        protected abstract Object getModel(ParticipantConnector participant, GradleBuild gradleBuild);
-
-        private void addPerBuildModelResult(ParticipantConnector participant, BasicGradleProject project, Object value, List<ModelResult<T>> results) {
-            results.add(createModelResult(participant, project.getPath(), (T) value));
-
-            for (BasicGradleProject childProject : project.getChildren()) {
-                addPerBuildModelResult(participant, childProject, value, results);
-            }
-        }
-    }
-
-    /**
-     * Adds the same `GradleBuild` result for every subproject.
-     */
-    private class GradleBuildModelResultsBuilder extends PerBuildModelResultsBuilder {
-        @Override
-        public boolean canBuild(ParticipantConnector participant) {
-            return GradleBuild.class.isAssignableFrom(modelType);
-        }
-
-        @Override
-        protected Object getModel(ParticipantConnector participant, GradleBuild gradleBuild) {
-            return gradleBuild;
-        }
-    }
-
-    /**
-     * Adds the same `BuildEnvironment` result for every subproject.
-     */
-    private class BuildEnvironmentModelResultsBuilder extends PerBuildModelResultsBuilder {
-        @Override
-        public boolean canBuild(ParticipantConnector participant) {
-            return BuildEnvironment.class.isAssignableFrom(modelType);
-        }
-
-        @Override
-        protected Object getModel(ParticipantConnector participant, GradleBuild gradleBuild) {
-            return getProjectModel(participant, BuildEnvironment.class);
-        }
-    }
-
-    /**
-     * Adds the same `IdeaProject` result for every subproject.
-     *
-     * TODO: This could be more efficient, since the IdeaProject inherently contains the project structure.
-     * However, we might be better off simply supporting `IdeaModule` as a model type.
-     */
-    private class IdeaProjectModelResultsBuilder extends PerBuildModelResultsBuilder {
-        @Override
-        public boolean canBuild(ParticipantConnector participant) {
-            return IdeaProject.class.isAssignableFrom(modelType);
-        }
-
-        @Override
-        protected Object getModel(ParticipantConnector participant, GradleBuild gradleBuild) {
-            return getProjectModel(participant, modelType);
+            T model = getProjectModel(participant, modelType);
+            modelResults.add(createModelResult(model));
         }
     }
 
     /**
      * Builds results for a 'hierarchical' model, that provides both the Gradle project structure and the model for each subproject.
      */
-    private class HierarchicalModelResultsBuilder extends GradleBuildModelResultsBuilder {
+    private class HierarchicalModelResultsBuilder extends CompositeModelResultsBuilder {
         @Override
         public boolean canBuild(ParticipantConnector participant) {
             return hasProjectHierarchy(modelType);
@@ -193,69 +143,39 @@ public class ToolingClientCompositeModelBuilder<T> {
         }
 
         private void addResultsFromHierarchicalModel(ParticipantConnector participant, List<ModelResult<T>> results) {
-            try {
-                T model = getProjectModel(participant, modelType);
-                addHierarchicalModel(model, participant, results);
-            } catch (GradleConnectionException e) {
-                String message = String.format("Could not fetch models of type '%s' using client-side composite connection.", modelType.getSimpleName());
-                DefaultModelResult<T> failureResult = new DefaultModelResult<T>(participant.toProjectIdentity(":"), new GradleConnectionException(message, e));
-                results.add(failureResult);
-            }
+            T model = getProjectModel(participant, modelType);
+            addHierarchicalModel(model, results);
         }
 
-        private void addHierarchicalModel(T model, ParticipantConnector participant, List<ModelResult<T>> results) {
-            String projectPath = getGradleProject(model).getPath();
-            ModelResult<T> result = createModelResult(participant, projectPath, model);
+        private void addHierarchicalModel(T model, List<ModelResult<T>> results) {
+            ModelResult<T> result = createModelResult(model);
             results.add(result);
 
             for (HierarchicalElement child : ((HierarchicalElement) model).getChildren()) {
-                addHierarchicalModel((T) child, participant, results);
+                addHierarchicalModel((T) child, results);
             }
-        }
-
-        private GradleProject getGradleProject(T model) {
-            assert hasProjectHierarchy(modelType);
-            if (GradleProject.class.isAssignableFrom(modelType)) {
-                return (GradleProject) model;
-            }
-            return ((HasGradleProject) model).getGradleProject();
         }
     }
 
     /**
      * Adds results using a custom model action.
      */
-    private class CustomActionModelResultsBuilder extends GradleBuildModelResultsBuilder {
-        @Override
-        public boolean canBuild(ParticipantConnector participant) {
-            return ProjectPublications.class.isAssignableFrom(modelType)
-                || BuildInvocations.class.isAssignableFrom(modelType);
-        }
-
+    private abstract class CustomActionModelResultsBuilder extends CompositeModelResultsBuilder {
         protected boolean canUseCustomModelAction(ParticipantConnector participant) {
             BuildEnvironment buildEnvironment = getProjectModel(participant, BuildEnvironment.class);
             GradleVersion gradleVersion = GradleVersion.version(buildEnvironment.getGradle().getGradleVersion());
             return gradleVersion.compareTo(USE_CUSTOM_MODEL_ACTION_VERSION) >= 0;
         }
 
-        @Override
-        public void addModelResults(ParticipantConnector participant, List<ModelResult<T>> modelResults) {
-            if (canUseCustomModelAction(participant)) {
-                addResultsUsingModelAction(participant, modelResults);
-            } else {
-                addResultsUsingSeparateProjectConnections(participant, modelResults);
-            }
-        }
-
-        private void addResultsUsingModelAction(ParticipantConnector participant, List<ModelResult<T>> results) {
+        protected void addResultsUsingModelAction(ParticipantConnector participant, List<ModelResult<T>> results) {
             ProjectConnection projectConnection = participant.connect();
             try {
                 BuildActionExecuter<Map<String, T>> actionExecuter = projectConnection.action(new FetchPerProjectModelAction<T>(modelType));
                 util.configureRequest(actionExecuter);
                 Map<String, T> actionResults = actionExecuter.run();
                 for (final String projectPath : actionResults.keySet()) {
-                    T identified = transformWithProjectIdentity(participant.toProjectIdentity(projectPath), actionResults.get(projectPath));
-                    ModelResult<T> result = createModelResult(participant, projectPath, identified);
+                    T identified = unpackAndTransform(participant.toProjectIdentifier(projectPath), actionResults.get(projectPath));
+                    ModelResult<T> result = createModelResult(identified);
                     results.add(result);
                 }
             } finally {
@@ -263,62 +183,59 @@ public class ToolingClientCompositeModelBuilder<T> {
             }
         }
 
-        private void addResultsUsingSeparateProjectConnections(ParticipantConnector participant, List<ModelResult<T>> modelResults) {
-            EclipseProject rootProject = getProjectModel(participant, EclipseProject.class);
-            buildResultsWithSeparateProjectConnections(participant, rootProject, modelResults);
-        }
-
-        private void buildResultsWithSeparateProjectConnections(ParticipantConnector participant, EclipseProject project, List<ModelResult<T>> results) {
-            ParticipantConnector childBuild = participant.withProjectDirectory(project.getProjectDirectory());
-            T model = getProjectModel(childBuild, modelType);
-            String projectPath = project.getGradleProject().getPath();
-            model = transformWithProjectIdentity(participant.toProjectIdentity(projectPath), model);
-            ModelResult<T> result = createModelResult(participant, projectPath, model);
-            results.add(result);
-
-            for (EclipseProject childProject : project.getChildren()) {
-                buildResultsWithSeparateProjectConnections(participant, childProject, results);
-            }
-        }
-
-        protected T transformWithProjectIdentity(ProjectIdentity projectIdentity, T t) {
-            ProtocolToModelAdapter protocolToModelAdapter = new ProtocolToModelAdapter();
+        protected T unpackAndTransform(ProjectIdentifier projectIdentifier, T t) {
             Object sourceObject = protocolToModelAdapter.unpack(t);
             // TODO:DAZ This should be done in the BuildControllerAdapter, then we wouldn't need to adapt here
-            return protocolToModelAdapter.adapt(modelType, sourceObject, new FixedBuildIdentifierProvider(projectIdentity));
+            return transform(projectIdentifier, sourceObject);
+        }
+
+        protected T transform(ProjectIdentifier projectIdentifier, Object sourceObject) {
+            return protocolToModelAdapter.adapt(modelType, sourceObject, new FixedBuildIdentifierProvider(projectIdentifier));
         }
     }
 
     /**
-     * Adds results using 'brute force': uses `EclipseProject` to determine the project structure, and opens a `ProjectConnection`
-     * for every subproject to get the associated model instance.
-     *
-     * Currently used for: BuildInvocations/ProjectPublications with Gradle < 1.12
-     *
-     * TODO: Currently fails badly when subproject directory does not exist.
-     * TODO: Could use {@link org.gradle.tooling.internal.consumer.connection.BuildInvocationsAdapterProducer} to create BuildInvocations for Gradle < 1.12.
-     * TODO: Could directly construct failures for `ProjectPublications` in Gradle < 1.12, rather than connecting to each project.
+     * Adds results using a custom model action.
      */
-    private class BruteForceModelResultsBuilder extends GradleBuildModelResultsBuilder {
+    private class ProjectPublicationsModelResultBuilder extends CustomActionModelResultsBuilder {
         @Override
         public boolean canBuild(ParticipantConnector participant) {
-            return true;
+            return ProjectPublications.class.isAssignableFrom(modelType) && canUseCustomModelAction(participant);
         }
 
         @Override
         public void addModelResults(ParticipantConnector participant, List<ModelResult<T>> modelResults) {
-            EclipseProject rootProject = getProjectModel(participant, EclipseProject.class);
-            buildResultsWithSeparateProjectConnections(participant, rootProject, modelResults);
+            addResultsUsingModelAction(participant, modelResults);
+        }
+    }
+
+    /**
+     * Adds results using a custom model action.
+     */
+    private class BuildInvocationsModelResultsBuilder extends CustomActionModelResultsBuilder {
+        @Override
+        public boolean canBuild(ParticipantConnector participant) {
+            return BuildInvocations.class.isAssignableFrom(modelType);
         }
 
-        private void buildResultsWithSeparateProjectConnections(ParticipantConnector participant, EclipseProject project, List<ModelResult<T>> results) {
-            ParticipantConnector childBuild = participant.withProjectDirectory(project.getProjectDirectory());
-            T model = getProjectModel(childBuild, modelType);
-            ModelResult<T> result = createModelResult(participant, project.getGradleProject().getPath(), model);
+        @Override
+        public void addModelResults(ParticipantConnector participant, List<ModelResult<T>> modelResults) {
+            if (canUseCustomModelAction(participant)) {
+                addResultsUsingModelAction(participant, modelResults);
+            } else {
+                GradleProject rootProject = getProjectModel(participant, GradleProject.class);
+                constructBuildInvocationsFromGradleProject(participant, rootProject, modelResults);
+            }
+        }
+
+        private void constructBuildInvocationsFromGradleProject(ParticipantConnector participant, GradleProject project, List<ModelResult<T>> results) {
+            Object buildInvocations = new BuildInvocationsConverter().convertSingleProject(project);
+            T model = transform(participant.toProjectIdentifier(project.getPath()), buildInvocations);
+            ModelResult<T> result = createModelResult(model);
             results.add(result);
 
-            for (EclipseProject childProject : project.getChildren()) {
-                buildResultsWithSeparateProjectConnections(participant, childProject, results);
+            for (GradleProject childProject : project.getChildren()) {
+                constructBuildInvocationsFromGradleProject(participant, childProject, results);
             }
         }
     }

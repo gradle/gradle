@@ -15,11 +15,9 @@
  */
 
 package org.gradle.integtests.tooling.fixture
-
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.connection.BuildIdentity
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.connection.ModelResult
@@ -52,8 +50,8 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         return toolingApi.createCompositeBuilder()
     }
 
-    BuildIdentity addCompositeParticipant(GradleConnectionBuilder builder, File rootDir) {
-        return toolingApi.addCompositeParticipant(builder, rootDir)
+    void addCompositeParticipant(GradleConnectionBuilder builder, File rootDir) {
+        toolingApi.addCompositeParticipant(builder, rootDir)
     }
 
     def <T> T withCompositeConnection(File rootProjectDir, Closure<T> c) {
@@ -64,22 +62,6 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         GradleConnection connection = createComposite(rootProjectDirectories)
         try {
             return c(connection)
-        } finally {
-            connection?.close()
-        }
-    }
-
-    def <T> T withCompositeBuildParticipants(List<File> rootProjectDirectories, Closure<T> c) {
-        GradleConnectionBuilder builder = createCompositeBuilder()
-        def buildIds = []
-
-        rootProjectDirectories.each {
-            buildIds << addCompositeParticipant(builder, it)
-        }
-
-        GradleConnection connection = builder.build()
-        try {
-            return c(connection, buildIds)
         } finally {
             connection?.close()
         }
@@ -99,14 +81,13 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         project
     }
 
-    def singleProjectJavaBuild(String projectName, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
+    def singleProjectBuild(String projectName, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
         def project = populate(projectName) {
             settingsFile << """
                 rootProject.name = '${rootProjectName}'
             """
 
             buildFile << """
-                apply plugin: 'java'
                 group = 'org.A'
                 version = '1.0'
             """
@@ -115,7 +96,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         return project
     }
 
-    def multiProjectJavaBuild(String projectName, List<String> subprojects, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
         String subprojectList = subprojects.collect({"'$it'"}).join(',')
         def rootMulti = populate(projectName) {
             settingsFile << """
@@ -125,7 +106,6 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
 
             buildFile << """
                 allprojects {
-                    apply plugin: 'java'
                     group = 'org.B'
                     version = '1.0'
                 }

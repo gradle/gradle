@@ -47,9 +47,9 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
 
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
-            BuildLauncher buildLauncher = connection.newBuild()
-            buildLauncher.forTasks("run")
+        withCompositeConnection(builds) { connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks(builds[0], "run")
             buildLauncher.withArguments("-PprojectProperty=foo")
             buildLauncher.run()
         }
@@ -80,9 +80,9 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
 
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
+        withCompositeConnection(builds) { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
-            buildLauncher.forTasks("run")
+            buildLauncher.forTasks(builds[0], "run")
             buildLauncher.withArguments("-DsystemProperty=foo")
             buildLauncher.run()
         }
@@ -113,9 +113,9 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
 
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
+        withCompositeConnection(builds) { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
-            buildLauncher.forTasks("run")
+            buildLauncher.forTasks(builds[0], "run")
             buildLauncher.setJvmArguments("-DsystemProperty=foo")
             buildLauncher.run()
         }
@@ -160,11 +160,11 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         File javaHome = findJavaHome()
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
+        withCompositeConnection(builds) { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.withArguments("-PprintJavaHome")
             buildLauncher.setJavaHome(javaHome)
-            buildLauncher.forTasks("run")
+            buildLauncher.forTasks(builds[0], "run")
             buildLauncher.run()
         }
         then:

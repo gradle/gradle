@@ -17,47 +17,63 @@
 package org.gradle.tooling.internal.connection;
 
 import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.connection.BuildIdentity;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
 import org.gradle.tooling.internal.gradle.ConsumerProvidedTask;
-import org.gradle.tooling.internal.protocol.DefaultBuildIdentity;
-import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
+import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implements BuildLauncher, CompositeBuildLauncherInternal {
+
+
     public GradleConnectionBuildLauncher(AsyncConsumerActionExecutor connection, CompositeConnectionParameters parameters) {
         super(connection, parameters);
     }
 
     @Override
-    public void preprocessLaunchables(Iterable<? extends Launchable> launchables) {
-        BuildIdentity targetBuildIdentity = null;
-        for (Launchable launchable : launchables) {
-            BuildIdentity launchableBuildIdentity = launchable.getGradleProjectIdentifier().getBuild();
-            if (targetBuildIdentity == null) {
-                targetBuildIdentity = launchableBuildIdentity;
-            } else if (!targetBuildIdentity.equals(launchableBuildIdentity)) {
-                throw new IllegalArgumentException("All Launchables must originate from the same build.");
-            }
-        }
-        operationParamsBuilder.setBuildIdentity(targetBuildIdentity);
+    public BuildLauncher forTasks(String... tasks) {
+        throw new UnsupportedOperationException(
+            "Must specify build root directory when executing tasks by name on a GradleConnection: see `CompositeBuildLauncherInternal.forTasks(File, String)`.");
     }
 
     @Override
-    public Task targetTask(String task, File buildDirectory) {
+    protected void preprocessLaunchables(Iterable<? extends Launchable> launchables) {
+        BuildIdentifier targetBuildIdentifier = null;
+        for (Launchable launchable : launchables) {
+            BuildIdentifier launchableBuildIdentifier = launchable.getGradleProjectIdentifier().getBuild();
+            if (targetBuildIdentifier == null) {
+                targetBuildIdentifier = launchableBuildIdentifier;
+            } else if (!targetBuildIdentifier.equals(launchableBuildIdentifier)) {
+                throw new IllegalArgumentException("All Launchables must originate from the same build.");
+            }
+        }
+        operationParamsBuilder.setBuildIdentifier(targetBuildIdentifier);
+    }
+
+    @Override
+    public BuildLauncher forTasks(File buildDirectory, String... tasks) {
+        List<Task> taskList = new ArrayList<Task>(tasks.length);
+        for (String task : tasks) {
+            taskList.add(targetTask(task, buildDirectory));
+        }
+        return forTasks(taskList);
+    }
+
+    private Task targetTask(String task, File buildDirectory) {
         ConsumerProvidedTask taskObject = new ConsumerProvidedTask()
             .setName(task)
             .setPath(task)
             .setDescription("Task " + task)
             .setDisplayName("Task " + task);
-        FixedBuildIdentifierProvider buildIdentifierProvider = new FixedBuildIdentifierProvider(new DefaultProjectIdentity(new DefaultBuildIdentity(buildDirectory), ":"));
+        FixedBuildIdentifierProvider buildIdentifierProvider = new FixedBuildIdentifierProvider(new DefaultProjectIdentifier(new DefaultBuildIdentifier(buildDirectory), ":"));
         return new ProtocolToModelAdapter().adapt(Task.class, taskObject, buildIdentifierProvider);
     }
 }

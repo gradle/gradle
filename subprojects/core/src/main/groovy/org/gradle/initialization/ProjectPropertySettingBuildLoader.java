@@ -68,6 +68,9 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             LOGGER.debug("project property file does not exists. We continue!");
         }
 
+        // this should really be <String, Object>, however properties loader signature expects a <String, String>
+        // even if in practice it was never enforced (one can pass other property types, such as boolean) an
+        // fixing the method signature would be a binary breaking change in a public API.
         Map<String, String> mergedProperties = propertiesLoader.mergeProperties(new HashMap(projectProperties));
         for (Map.Entry<String, String> entry : mergedProperties.entrySet()) {
             applicator.configureProperty(project, entry.getKey(), entry.getValue());
@@ -82,7 +85,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         private final Map<String, PropertyMutator> mutators = Maps.newHashMap();
         private Class<? extends Project> projectClazz;
 
-        void configureProperty(Project project, String name, String value) {
+        void configureProperty(Project project, String name, Object value) {
             Class<? extends Project> clazz = project.getClass();
             if (clazz != projectClazz) {
                 mutators.clear();

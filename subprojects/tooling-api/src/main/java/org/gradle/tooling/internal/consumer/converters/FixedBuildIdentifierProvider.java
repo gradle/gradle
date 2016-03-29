@@ -17,8 +17,8 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.api.Action;
-import org.gradle.tooling.connection.BuildIdentity;
-import org.gradle.tooling.connection.ProjectIdentity;
+import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.internal.adapter.MethodInvocation;
 import org.gradle.tooling.internal.adapter.MethodInvoker;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
@@ -26,20 +26,20 @@ import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import java.io.Serializable;
 
 public class FixedBuildIdentifierProvider implements MethodInvoker, Serializable, Action<SourceObjectMapping> {
-    private final BuildIdentity buildIdentity;
-    private final ProjectIdentity projectIdentity;
+    private final BuildIdentifier buildIdentifier;
+    private final ProjectIdentifier projectIdentifier;
 
-    public FixedBuildIdentifierProvider(ProjectIdentity projectIdentity) {
-        this.buildIdentity = projectIdentity.getBuild();
-        this.projectIdentity = projectIdentity;
+    public FixedBuildIdentifierProvider(ProjectIdentifier projectIdentifier) {
+        this.buildIdentifier = projectIdentifier.getBuild();
+        this.projectIdentifier = projectIdentifier;
     }
 
     public void invoke(MethodInvocation invocation) throws Throwable {
-        if (BuildIdentity.class.isAssignableFrom(invocation.getReturnType())) {
-            invocation.setResult(buildIdentity);
+        if (BuildIdentifier.class.isAssignableFrom(invocation.getReturnType())) {
+            invocation.setResult(buildIdentifier);
         }
-        if (ProjectIdentity.class.isAssignableFrom(invocation.getReturnType())) {
-            invocation.setResult(projectIdentity);
+        if (ProjectIdentifier.class.isAssignableFrom(invocation.getReturnType())) {
+            invocation.setResult(projectIdentifier);
         }
     }
 

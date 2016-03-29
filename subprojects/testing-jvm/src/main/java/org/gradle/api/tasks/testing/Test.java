@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeElementComparator;
 import org.gradle.api.internal.file.FileTreeElementHasher;
@@ -206,6 +207,11 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     @Inject
     protected BuildOperationProcessor getBuildOperationProcessor() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ModuleRegistry getModuleRegistry() {
         throw new UnsupportedOperationException();
     }
 
@@ -563,7 +569,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
 
         if (testExecuter == null) {
-            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory());
+            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry());
         }
 
         try {

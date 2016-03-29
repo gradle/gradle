@@ -17,15 +17,30 @@
 package org.gradle.tooling.connection;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
+import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.model.ProjectIdentifier;
 
 /**
- * Identifies a Gradle build.
- * <p>
- *     A Gradle Build is a collection of one or more projects.
- * </p>
+ * The result of a failed model request.
  *
+ * @param <T> Type of model in the result
  * @since 2.13
  */
 @Incubating
-public interface BuildIdentity {
+public interface FailedModelResult<T> extends ModelResult<T> {
+    /**
+     * Identifier of the build that originated this failure.
+     *
+     * @return the build identifier, never null.
+     */
+    BuildIdentifier getBuildIdentifier();
+
+    /**
+     * Identifier of the project that originated this failure, if any.
+     *
+     * @return the project identifier, or null if this failure did not originate from a particular project.
+     */
+    @Nullable
+    ProjectIdentifier getProjectIdentifier();
 }

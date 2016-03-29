@@ -15,13 +15,12 @@
  */
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
-import org.gradle.tooling.internal.protocol.DefaultBuildIdentity
-import org.gradle.tooling.internal.protocol.DefaultProjectIdentity
+import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
+import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.HasGradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -29,8 +28,6 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.IdeaProject
 
-// TODO:DAZ Test and fix on earlier versions
-@TargetGradleVersion(">=2.6")
 class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecification {
     static projectScopedModels = [GradleProject, EclipseProject, HierarchicalEclipseProject]
     static buildScopedModels = [GradleBuild, IdeaProject]
@@ -38,8 +35,8 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
     TestFile rootMulti
 
     TestFile setup() {
-        rootSingle = singleProjectJavaBuild("A")
-        rootMulti = multiProjectJavaBuild("B", ['x', 'y'])
+        rootSingle = singleProjectBuild("A")
+        rootMulti = multiProjectBuild("B", ['x', 'y'])
     }
 
     def "ProjectConnection provides identified GradleBuild"() {
@@ -47,7 +44,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
         def gradleBuild = getModelWithProjectConnection(rootMulti, GradleBuild)
 
         then:
-        gradleBuild.identifier == new DefaultBuildIdentity(rootMulti)
+        gradleBuild.identifier == new DefaultBuildIdentifier(rootMulti)
     }
 
     def "GradleConnection provides identified GradleBuild for each build"() {
@@ -56,12 +53,11 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
             def modelBuilder = connection.models(GradleBuild)
             modelBuilder.get()
         }.asList()*.model
-        def singleProjectBuild = gradleBuilds.find {it.rootProject.projectDirectory == rootSingle}
-        def multiProjectBuild = gradleBuilds.find {it.rootProject.projectDirectory == rootMulti}
 
         then:
-        singleProjectBuild.identifier == new DefaultBuildIdentity(rootSingle)
-        multiProjectBuild.identifier == new DefaultBuildIdentity(rootMulti)
+        gradleBuilds.size() == 2
+        gradleBuilds.find { it.identifier == new DefaultBuildIdentifier(rootSingle) }
+        gradleBuilds.find { it.identifier == new DefaultBuildIdentifier(rootMulti) }
     }
 
     def "GradleConnection provides GradleProjects for single project build"() {
@@ -223,13 +219,14 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
         } else {
             assert project.parent.path == parentPath
         }
-        assert project.children*.path == childPaths
-        assert project.identifier == new DefaultProjectIdentity(new DefaultBuildIdentity(rootDir), path)
+        // Order of children is not guaranteed for Gradle < 2.0
+        assert project.children*.path as Set == childPaths as Set
+        assert project.identifier == new DefaultProjectIdentifier(new DefaultBuildIdentifier(rootDir), path)
     }
 
     private GradleProject getGradleProjectWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
         GradleConnector connector = connector()
-        connector.forProjectDirectory(rootDir)
+        connector.forProjectDirectory(rootDir.absoluteFile)
         ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
         def model = withConnection(connector) { it.getModel(modelType) }
         return toGradleProject(model)
@@ -237,7 +234,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
 
     private <T> T getModelWithProjectConnection(TestFile rootDir, Class<T> modelType) {
         GradleConnector connector = connector()
-        connector.forProjectDirectory(rootDir)
+        connector.forProjectDirectory(rootDir.absoluteFile)
         return withConnection(connector) { it.getModel(modelType) }
     }
 
@@ -261,7 +258,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
 
     private getGradleProjectsWithProjectConnectionUsingBuildModel(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
         GradleConnector connector = connector()
-        connector.forProjectDirectory(rootDir)
+        connector.forProjectDirectory(rootDir.absoluteFile)
         ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
         def buildModel = withConnection(connector) { it.getModel(modelType) }
         return toGradleProjects(buildModel)

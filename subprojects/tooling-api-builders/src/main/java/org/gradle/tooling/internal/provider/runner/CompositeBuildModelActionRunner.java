@@ -33,11 +33,11 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.connection.BuildIdentity;
+import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.connection.InternalBuildActionAdapter;
-import org.gradle.tooling.internal.protocol.DefaultBuildIdentity;
-import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
+import org.gradle.tooling.internal.connection.DefaultBuildIdentifier;
+import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.provider.*;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
@@ -77,7 +77,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
 
         boolean buildFound = false;
         for (GradleParticipantBuild participant : participantBuilds) {
-            // TODO:DAZ  We are no longer targeting the correct build
+            // TODO  We are no longer targeting the correct build
 //            if (!participant.getProjectDir().getAbsolutePath().equals(compositeParameters.getCompositeTargetBuildRootDir().getAbsolutePath())) {
 //                continue;
 //            }
@@ -112,7 +112,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         }
     }
 
-    // TODO:DAZ Need to fix this for `BuildEnvironment`
+    // TODO Need to fix this for `BuildEnvironment`
     private <T> Map<Object, Object> fetchCompositeModelsInProcess(BuildModelAction modelAction, Class<T> modelType, BuildRequestContext buildRequestContext,
                                                                   List<GradleParticipantBuild> participantBuilds,
                                                                   ServiceRegistry sharedServices) {
@@ -123,7 +123,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
 
         BuildActionRunner runner = new SubscribableBuildActionRunner(new ClientProvidedBuildActionRunner());
         org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, runner);
-        // TODO: Need to consider how to handle builds in parallel when sharing event consumers/output streams
+        // TODO Need to consider how to handle builds in parallel when sharing event consumers/output streams
         DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()),
             buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(),
             buildRequestContext.getErrorListener());
@@ -155,21 +155,21 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
                 } else {
                     Throwable failure = (Throwable) payloadSerializer.deserialize(result.failure);
                     File rootDir = participant.getProjectDir();
-                    BuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir);
-                    results.put(new DefaultProjectIdentity(buildIdentity, ":"), failure);
+                    BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(rootDir);
+                    results.put(new DefaultProjectIdentifier(buildIdentifier, ":"), failure);
                 }
             } catch (Exception e) {
                 File rootDir = participant.getProjectDir();
-                BuildIdentity buildIdentity = new DefaultBuildIdentity(rootDir);
-                results.put(new DefaultProjectIdentity(buildIdentity, ":"), e);
+                BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(rootDir);
+                results.put(new DefaultProjectIdentifier(buildIdentifier, ":"), e);
             }
 
         }
         return results;
     }
 
-    private DefaultProjectIdentity convertToProjectIdentity(InternalProjectIdentity internalProjectIdentity) {
-        return new DefaultProjectIdentity(new DefaultBuildIdentity(internalProjectIdentity.rootDir), internalProjectIdentity.projectPath);
+    private DefaultProjectIdentifier convertToProjectIdentity(InternalProjectIdentity internalProjectIdentity) {
+        return new DefaultProjectIdentifier(new DefaultBuildIdentifier(internalProjectIdentity.rootDir), internalProjectIdentity.projectPath);
     }
 
     private static final class FetchPerProjectModelAction implements org.gradle.tooling.BuildAction<Map<Object, Object>> {

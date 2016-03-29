@@ -14,23 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.connection;
 
-import org.gradle.tooling.connection.BuildIdentity;
-import org.gradle.tooling.connection.ProjectIdentity;
+import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.model.ProjectIdentifier;
 
+import java.io.File;
 import java.io.Serializable;
 
-public class DefaultProjectIdentity implements ProjectIdentity, Serializable {
-    private final BuildIdentity build;
+public class DefaultProjectIdentifier implements ProjectIdentifier, Serializable {
+    private final BuildIdentifier build;
     private final String projectPath;
 
-    public DefaultProjectIdentity(BuildIdentity build, String projectPath) {
+    public DefaultProjectIdentifier(BuildIdentifier build, String projectPath) {
         this.build = build;
         this.projectPath = projectPath;
     }
 
-    public BuildIdentity getBuild() {
+    public DefaultProjectIdentifier(File rootDir, String projectPath) {
+        this(new DefaultBuildIdentifier(rootDir), projectPath);
+    }
+
+    public BuildIdentifier getBuild() {
         return build;
     }
 
@@ -48,7 +53,7 @@ public class DefaultProjectIdentity implements ProjectIdentity, Serializable {
             return false;
         }
 
-        DefaultProjectIdentity that = (DefaultProjectIdentity) o;
+        DefaultProjectIdentifier that = (DefaultProjectIdentifier) o;
 
         if (!build.equals(that.build)) {
             return false;

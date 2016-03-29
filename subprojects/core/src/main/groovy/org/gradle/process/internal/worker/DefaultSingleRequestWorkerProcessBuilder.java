@@ -42,7 +42,7 @@ class DefaultSingleRequestWorkerProcessBuilder<T> implements SingleRequestWorker
         this.workerImplementation = workerImplementation;
         this.builder = builder;
         builder.worker(new WorkerAction(workerImplementation));
-        builder.setImplementationClassPath(ClasspathUtil.getClasspath(workerImplementation.getClassLoader()));
+        builder.setImplementationClasspath(ClasspathUtil.getClasspath(workerImplementation.getClassLoader()));
     }
 
     @Override

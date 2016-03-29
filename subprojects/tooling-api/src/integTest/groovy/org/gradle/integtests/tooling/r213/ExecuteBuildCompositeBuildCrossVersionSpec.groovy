@@ -15,13 +15,18 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.connection.ModelResult
+import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
+import org.gradle.tooling.model.BuildIdentifier
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.Task
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
+
 /**
  * Tooling client can define a composite and execute tasks
  */
@@ -29,7 +34,7 @@ class ExecuteBuildCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
     def "executes tasks in composite containing one single-project build"() {
         given:
-        def build1 = singleProjectJavaBuild("build1") {
+        def build1 = singleProjectBuild("build1") {
             buildFile << """
 task hello {
   doLast {
@@ -46,7 +51,7 @@ task goodbye {
         when:
         withCompositeConnection(build1) { connection ->
             def buildLauncher = connection.newBuild()
-            buildLauncher.forTasks("hello", "goodbye")
+            buildLauncher.forTasks(build1, "hello", "goodbye")
             buildLauncher.run()
         }
         then:
@@ -55,7 +60,7 @@ task goodbye {
 
     def "executes tasks in composite containing one multi-project build"() {
         given:
-        def build1 = multiProjectJavaBuild("build1", ['a', 'b']) {
+        def build1 = multiProjectBuild("build1", ['a', 'b']) {
             buildFile << """
 allprojects {
     task hello {
@@ -74,7 +79,7 @@ project(':a') {
         when:
         withCompositeConnection(build1) { connection ->
             def buildLauncher = connection.newBuild()
-            buildLauncher.forTasks("hello", "helloA")
+            buildLauncher.forTasks(build1, "hello", "helloA")
             buildLauncher.run()
         }
         then:
@@ -84,10 +89,10 @@ project(':a') {
         build1.file('b/hello.txt').assertExists().text == 'Hello world from :b'
     }
 
-
+    @Ignore("No support yet for executing tasks in multiple builds")
     def "executes tasks for all builds in composite"() {
         given:
-        def singleProjectBuild = singleProjectJavaBuild("single-project") {
+        def singleProjectBuild = singleProjectBuild("single-project") {
             buildFile << """
 task hello {
   doLast {
@@ -96,7 +101,7 @@ task hello {
 }
 """
         }
-        def multiProjectBuild = multiProjectJavaBuild("multi-project", ['a', 'b']) {
+        def multiProjectBuild = multiProjectBuild("multi-project", ['a', 'b']) {
             buildFile << """
 allprojects {
     task hello {
@@ -142,8 +147,7 @@ task hello {
         when:
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
-            Task task = buildLauncher.targetTask("hello", build1)
-            buildLauncher.forTasks(task)
+            buildLauncher.forTasks(build1, "hello")
             buildLauncher.setStandardOutput(System.out)
             buildLauncher.run()
         }
@@ -156,7 +160,51 @@ task hello {
         numberOfOtherBuilds << [0, 3]
     }
 
-    def "throws exception when task executed on build that doesn't exist in the composite"() {
+    def "executes task in single project selected with Launchable"() {
+        given:
+        def build1 = singleProjectBuild("build1") {
+            buildFile << """
+task hello {
+  doLast {
+     file('hello.txt').text = "Hello world from \${project.name}"
+  }
+}
+"""
+        }
+        def build2 = singleProjectBuild("build2") {
+            buildFile << """
+task hello {
+  doLast {
+     file('hello.txt').text = "Hello world from \${project.path}"
+  }
+}
+"""
+        }
+        def build3 = singleProjectBuild("build3")
+
+        when:
+        withCompositeConnection([build1, build2, build3]) { connection ->
+            Task task
+            connection.getModels(modelType).each { modelresult ->
+                def identifier = getBuildIdentity(modelresult, modelType)
+                if (identifier == new DefaultBuildIdentifier(build1)) {
+                    task = modelresult.model.getTasks().find { it.name == 'hello' }
+                }
+            }
+            assert task != null
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks(task)
+            buildLauncher.run()
+        }
+        then:
+        build1.file('hello.txt').assertExists().text == 'Hello world from build1'
+        build2.file('hello.txt').assertDoesNotExist()
+
+        where:
+        modelType << launchableSources()
+    }
+
+    def "throws exception when invoking launchable obtained from another GradleConnection"() {
         given:
         def build1 = populate("build1") {
             buildFile << "apply plugin: 'java'"
@@ -184,50 +232,29 @@ task hello {
         e.cause.message == "Build not part of composite"
     }
 
-    // TODO:DAZ Test and fix on earlier versions
-    @TargetGradleVersion(">=2.6")
-    def "executes task in single project selected with Launchable"() {
+    def "throws exception when attempting to execute task by name"() {
         given:
-        def build1 = singleProjectJavaBuild("build1") {
-            buildFile << """
-task hello {
-  doLast {
-     file('hello.txt').text = "Hello world from \${project.name}"
-  }
-}
-"""
+        def build1 = populate("build1") {
+            buildFile << "apply plugin: 'java'"
         }
-        def build2 = singleProjectJavaBuild("build2") {
-            buildFile << """
-task hello {
-  doLast {
-     file('hello.txt').text = "Hello world from \${project.path}"
-  }
-}
-"""
+        def build2 = populate("build2") {
+            buildFile << "apply plugin: 'java'"
         }
-        def build3 = singleProjectJavaBuild("build3")
-
         when:
-        withCompositeBuildParticipants([build1, build2, build3]) { connection, List buildIds ->
-            def build1Id = buildIds[0]
-            def task
-            connection.getModels(modelType).each { modelresult ->
-                if (modelresult.projectIdentity.build == build1Id) {
-                    task = modelresult.model.getTasks().find { it.name == 'hello' }
-                }
-            }
-            assert task != null
+        withCompositeConnection([build1, build2]) { connection ->
             def buildLauncher = connection.newBuild()
-            buildLauncher.forTasks(task)
-            buildLauncher.run()
+            buildLauncher.forTasks("jar")
         }
         then:
-        build1.file('hello.txt').assertExists().text == 'Hello world from build1'
-        build2.file('hello.txt').assertDoesNotExist()
+        def e = thrown(UnsupportedOperationException)
+        e.message == "Must specify build root directory when executing tasks by name on a GradleConnection: see `CompositeBuildLauncherInternal.forTasks(File, String)`."
+    }
 
-        where:
-        modelType << launchableSources()
+    private BuildIdentifier getBuildIdentity(ModelResult<?> result, Class<?> type) {
+        if (type == GradleProject) {
+            return ((GradleProject) result.model).identifier.build
+        }
+        return ((BuildInvocations) result.model).gradleProjectIdentifier.build
     }
 
     private static List<Class<?>> launchableSources() {
@@ -239,5 +266,4 @@ task hello {
         }
         return launchableSources
     }
-
 }

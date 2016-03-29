@@ -44,6 +44,31 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         executer.withEnvironmentVars(GRADLE_USER_HOME: executer.gradleUserHomeDir.absolutePath)
     }
 
+    def "Gradle API is not generated if not declared by build"() {
+        given:
+        requireOwnGradleUserHomeDir()
+        buildFile << applyJavaPlugin()
+
+        when:
+        succeeds 'build'
+
+        then:
+        assertNoGenerationOutput(output, API_JAR_GENERATION_OUTPUT_REGEX)
+    }
+
+    def "buildSrc project implicitly forces generation of Gradle API JAR"() {
+        given:
+        requireOwnGradleUserHomeDir()
+        buildFile << applyJavaPlugin()
+        temporaryFolder.createFile('buildSrc/src/main/groovy/MyPlugin.groovy') << customGroovyPlugin()
+
+        when:
+        succeeds 'build'
+
+        then:
+        assertSingleGenerationOutput(output, API_JAR_GENERATION_OUTPUT_REGEX)
+    }
+
     def "Gradle API dependency resolves the expected JAR files"() {
         expect:
         buildFile << """
@@ -52,7 +77,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                deps fatGradleApi()
+                deps gradleApi()
             }
 
             task resolveDependencyArtifacts {
@@ -295,8 +320,9 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
                 def projectBuildFile = file("$projectDirName/build.gradle")
                 projectBuildFile << resolveGradleApiAndTestKitDependencies()
 
-                def executionResult = executer.inDirectory(file("project$count")).withTasks('resolveDependencies').run()
-                outputs << executionResult.output
+                def gradleHandle = executer.inDirectory(file("project$count")).withTasks('resolveDependencies').start()
+                gradleHandle.waitForFinish()
+                outputs << gradleHandle.standardOutput
             }
         }
 
@@ -325,11 +351,11 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         args('--parallel')
-        def result = succeeds 'resolveDependencies'
+        succeeds 'resolveDependencies'
 
         then:
-        assertApiGenerationOutput(result.output)
-        assertTestKitGenerationOutput(result.output)
+        assertApiGenerationOutput(output)
+        assertTestKitGenerationOutput(output)
     }
 
     def "Gradle API and TestKit dependencies are not duplicative"() {
@@ -340,7 +366,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                gradleImplDeps fatGradleApi(), fatGradleTestKit()
+                gradleImplDeps gradleApi(), gradleTestKit()
             }
 
             task resolveDependencyArtifacts {
@@ -411,9 +437,35 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'build'
 
         where:
-        dependencyPermutations << [new GradleDependency('Gradle API', 'compile', 'dependencies.fatGradleApi()'),
-                                   new GradleDependency('TestKit', 'testCompile', 'dependencies.fatGradleTestKit()'),
+        dependencyPermutations << [new GradleDependency('Gradle API', 'compile', 'dependencies.gradleApi()'),
+                                   new GradleDependency('TestKit', 'testCompile', 'dependencies.gradleTestKit()'),
                                    new GradleDependency('Tooling API', 'compile', "project.files('${normaliseFileAndLineSeparators(buildContext.fatToolingApiJar.absolutePath)}')")].permutations()
+    }
+
+    def "Gradle API JAR is generated in an acceptable time frame"() {
+        requireOwnGradleUserHomeDir()
+        buildFile << """
+            configurations {
+                deps
+            }
+
+            dependencies {
+                deps gradleApi()
+            }
+
+            task resolveDependencies {
+                doLast {
+                    def timeStart = new Date()
+                    configurations.deps.resolve()
+                    def timeStop = new Date()
+                    def duration = groovy.time.TimeCategory.minus(timeStop, timeStart)
+                    assert duration.toMilliseconds() < 5000
+                }
+            }
+        """
+
+        expect:
+        succeeds 'resolveDependencies'
     }
 
     static String applyJavaPlugin() {
@@ -443,7 +495,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     static String gradleApiDependency() {
         """
             dependencies {
-                compile fatGradleApi()
+                compile gradleApi()
             }
         """
     }
@@ -451,7 +503,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
     static String testKitDependency() {
         """
             dependencies {
-                testCompile fatGradleTestKit()
+                testCompile gradleTestKit()
             }
         """
     }
@@ -495,7 +547,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                gradleImplDeps fatGradleApi(), fatGradleTestKit()
+                gradleImplDeps gradleApi(), gradleTestKit()
             }
 
             task resolveDependencies {
@@ -539,5 +591,11 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         def pattern = /\b${regex}\b/
         def matcher = output =~ pattern
         assert matcher.count == 1
+    }
+
+    static void assertNoGenerationOutput(String output, String regex) {
+        def pattern = /\b${regex}\b/
+        def matcher = output =~ pattern
+        assert matcher.count == 0
     }
 }

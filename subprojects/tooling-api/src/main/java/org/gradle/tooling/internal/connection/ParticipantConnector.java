@@ -16,28 +16,29 @@
 
 package org.gradle.tooling.internal.connection;
 
+import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
-import org.gradle.tooling.connection.ProjectIdentity;
+import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector;
-import org.gradle.tooling.internal.protocol.DefaultProjectIdentity;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 class ParticipantConnector {
-    private final GradleConnectionParticipant build;
+    private final GradleParticipantBuild build;
     private final File gradleUserHome;
     private final File projectDirectory;
     private final File daemonBaseDir;
     private final Integer daemonMaxIdleTimeValue;
     private final TimeUnit daemonMaxIdleTimeUnits;
 
-    public ParticipantConnector(GradleConnectionParticipant build, File gradleUserHome, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
+    public ParticipantConnector(GradleParticipantBuild build, File gradleUserHome, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
         this(build, build.getProjectDir(), gradleUserHome, daemonBaseDir, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
     }
 
-    private ParticipantConnector(GradleConnectionParticipant build, File projectDirectory, File gradleUserHome, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
+    private ParticipantConnector(GradleParticipantBuild build, File projectDirectory, File gradleUserHome, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
         this.build = build;
         this.projectDirectory = projectDirectory;
         this.gradleUserHome = gradleUserHome;
@@ -46,12 +47,12 @@ class ParticipantConnector {
         this.daemonMaxIdleTimeUnits = daemonMaxIdleTimeUnits;
     }
 
-    public ParticipantConnector withProjectDirectory(File projectDirectory) {
-        return new ParticipantConnector(build, projectDirectory, gradleUserHome, daemonBaseDir, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
+    public BuildIdentifier toBuildIdentifier() {
+        return new DefaultBuildIdentifier(build.getProjectDir());
     }
 
-    public ProjectIdentity toProjectIdentity(String projectPath) {
-        return new DefaultProjectIdentity(build.toBuildIdentity(), projectPath);
+    public ProjectIdentifier toProjectIdentifier(String projectPath) {
+        return new DefaultProjectIdentifier(build.getProjectDir(), projectPath);
     }
 
     public ProjectConnection connect() {

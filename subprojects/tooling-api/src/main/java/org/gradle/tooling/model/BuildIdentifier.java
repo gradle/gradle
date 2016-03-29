@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.connection.internal;
+package org.gradle.tooling.model;
 
-import org.gradle.tooling.connection.BuildIdentity;
+import org.gradle.api.Incubating;
 
-import java.io.File;
-
-public interface BuildIdentityInternal extends BuildIdentity {
-    File getRootDirectory();
+/**
+ * Identifies a Gradle build.
+ * <p>
+ *     A Gradle Build is a collection of one or more projects.
+ * </p>
+ *
+ * @since 2.13
+ */
+@Incubating
+public interface BuildIdentifier {
 }

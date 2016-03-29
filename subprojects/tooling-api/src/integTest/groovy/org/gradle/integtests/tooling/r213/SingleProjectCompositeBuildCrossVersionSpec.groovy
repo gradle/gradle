@@ -24,7 +24,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def "can create composite of a single multi-project build"() {
         given:
-        def singleBuild = multiProjectJavaBuild("single-build", ['a', 'b', 'c'])
+        def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])
         when:
         def models = withCompositeConnection(singleBuild) { connection ->
             unwrap(connection.getModels(EclipseProject))
@@ -37,7 +37,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
     def "can create composite of a single single-project build"() {
         given:
-        def singleBuild = singleProjectJavaBuild("single-build")
+        def singleBuild = singleProjectBuild("single-build")
         when:
         def models = withCompositeConnection(singleBuild) { connection ->
             unwrap(connection.getModels(EclipseProject))
@@ -50,7 +50,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
     def "participant is always treated as root of a build"() {
         given:
-        def badParentDir = multiProjectJavaBuild("bad-parent", ['a', 'b', 'c']) {
+        def badParentDir = multiProjectBuild("bad-parent", ['a', 'b', 'c']) {
             buildFile << """
                 allprojects {
                     throw new RuntimeException("Badly configured project")
@@ -75,7 +75,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
     def "sees changes to composite build when projects are added"() {
         given:
-        def singleBuild = singleProjectJavaBuild("single-build")
+        def singleBuild = singleProjectBuild("single-build")
         def composite = createComposite(singleBuild)
 
         when:

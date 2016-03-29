@@ -31,6 +31,30 @@ import org.gradle.tooling.ResultHandler;
  *
  * <p>Operations (fetching models, executing tasks, etc) are performed across all Gradle projects in a composite.</p>
  *
+ * <pre autoTested=''>
+ * GradleConnectionBuilder builder = GradleConnector.newGradleConnection();
+ * builder.addParticipant(new File("someFolder"));
+ * GradleConnection connection = builder.build();
+ *
+ * try {
+ *    // obtain some information from the build
+ *    ModelResults<BuildInvocations> invocations = connection.models(BuildInvocations.class)
+ *      .get();
+ *
+ *    // run some tasks
+ *    BuildInvocations firstBuild = invocations.iterator().next().getModel();
+ *    TaskSelector taskToRun = firstBuild.getTaskSelectors().getAt(0);
+ *
+ *    connection.newBuild()
+ *      .forLaunchables(taskToRun)
+ *      .setStandardOutput(System.out)
+ *      .run();
+ *
+ * } finally {
+ *    connection.close();
+ * }
+ * </pre>
+ *
  * @since 2.13
  */
 @Incubating
@@ -94,7 +118,6 @@ public interface GradleConnection {
      * @param <T>
      */
     <T> ModelBuilder<ModelResults<T>> models(Class<T> modelType);
-
 
     /**
      * Creates a launcher which can be used to execute a build.

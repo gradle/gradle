@@ -36,7 +36,7 @@ import java.lang.reflect.Proxy
 /**
  * Tooling client requests arbitrary model type for every project in a composite
  */
-// TODO:DAZ Consolidate this with ModelsWithXXXCrossVersionSpecs
+// TODO:DAZ Consolidate this with ModelsWithXXXCrossVersionSpec and ModelResultCompositeBuildCrossVersionSpec
 class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     private static final List<Class<?>> HIERARCHICAL_MODELS = [EclipseProject, HierarchicalEclipseProject, GradleProject]
     private static final List<Class<?>> HIERARCHICAL_IDEA_MODELS = [IdeaProject, BasicIdeaProject]
@@ -186,7 +186,11 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
 
         int getExpectedNumberOfModelResults() {
-            getNumberOfProjects()
+            if (BUILD_MODELS.contains(modelType) || HIERARCHICAL_IDEA_MODELS.contains(modelType)) {
+                getNumberOfBuilds()
+            } else {
+                getNumberOfProjects()
+            }
         }
 
         int getNumberOfBuilds() {

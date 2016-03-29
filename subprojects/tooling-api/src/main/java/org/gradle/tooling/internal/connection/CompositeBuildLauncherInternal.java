@@ -16,10 +16,10 @@
 
 package org.gradle.tooling.internal.connection;
 
-import org.gradle.tooling.model.Task;
+import org.gradle.tooling.BuildLauncher;
 
 import java.io.File;
 
-public interface CompositeBuildLauncherInternal {
-    Task targetTask(String task, File buildDirectory);
+public interface CompositeBuildLauncherInternal extends BuildLauncher {
+    BuildLauncher forTasks(File buildDirectory, String... tasks);
 }

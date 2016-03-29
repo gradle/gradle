@@ -19,11 +19,12 @@ import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.CancellationToken;
-import org.gradle.tooling.connection.BuildIdentity;
+import org.gradle.tooling.internal.connection.DefaultBuildIdentifier;
+import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.connection.GradleConnectionParticipant;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
@@ -66,7 +67,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         private List<String> tasks;
         private List<InternalLaunchable> launchables;
         private ClassPath injectedPluginClasspath = ClassPath.EMPTY;
-        private BuildIdentity buildIdentity;
+        private BuildIdentifier buildIdentifier;
 
         private Builder() {
         }
@@ -173,12 +174,12 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         }
 
         public Builder setRootDirectory(File rootDirectory) {
-            this.buildIdentity = new DefaultBuildIdentity(rootDirectory);
+            this.buildIdentifier = new DefaultBuildIdentifier(rootDirectory);
             return this;
         }
 
-        public Builder setBuildIdentity(BuildIdentity buildIdentity) {
-            this.buildIdentity = buildIdentity;
+        public Builder setBuildIdentifier(BuildIdentifier buildIdentifier) {
+            this.buildIdentifier = buildIdentifier;
             return this;
         }
 
@@ -188,7 +189,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             }
 
             return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, arguments, tasks, launchables, injectedPluginClasspath,
-                legacyProgressListeners, testProgressListeners, taskProgressListeners, buildOperationProgressListeners, cancellationToken, buildIdentity);
+                legacyProgressListeners, testProgressListeners, taskProgressListeners, buildOperationProgressListeners, cancellationToken, buildIdentifier);
         }
 
         public void copyFrom(ConsumerOperationParameters operationParameters) {
@@ -228,7 +229,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private final List<String> tasks;
     private final List<InternalLaunchable> launchables;
     private final ClassPath injectedPluginClasspath;
-    private final BuildIdentity buildIdentity;
+    private final BuildIdentifier buildIdentifier;
 
     private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners;
     private final List<ProgressListener> testProgressListeners;
@@ -238,7 +239,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     private ConsumerOperationParameters(String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
                                         File javaHome, List<String> jvmArguments, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
                                         List<org.gradle.tooling.ProgressListener> legacyProgressListeners, List<ProgressListener> testProgressListeners, List<ProgressListener> taskProgressListeners,
-                                        List<ProgressListener> buildOperationProgressListeners, CancellationToken cancellationToken, BuildIdentity buildIdentity) {
+                                        List<ProgressListener> buildOperationProgressListeners, CancellationToken cancellationToken, BuildIdentifier buildIdentifier) {
         this.entryPointName = entryPointName;
         this.parameters = parameters;
         this.stdout = stdout;
@@ -252,7 +253,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         this.launchables = launchables;
         this.injectedPluginClasspath = injectedPluginClasspath;
         this.cancellationToken = cancellationToken;
-        this.buildIdentity = buildIdentity;
+        this.buildIdentifier = buildIdentifier;
         this.legacyProgressListeners = legacyProgressListeners;
         this.testProgressListeners = testProgressListeners;
         this.taskProgressListeners = taskProgressListeners;
@@ -412,11 +413,11 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return ((CancellationTokenInternal) cancellationToken).getToken();
     }
 
-    public List<GradleConnectionParticipant> getBuilds() {
+    public List<GradleParticipantBuild> getBuilds() {
         return parameters instanceof CompositeConnectionParameters ? ((CompositeConnectionParameters) parameters).getBuilds() : null;
     }
 
-    public BuildIdentity getBuildIdentity() {
-        return buildIdentity;
+    public BuildIdentifier getBuildIdentifier() {
+        return buildIdentifier;
     }
 }

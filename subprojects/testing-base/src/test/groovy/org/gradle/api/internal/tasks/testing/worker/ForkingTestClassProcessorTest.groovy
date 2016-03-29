@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.worker
 
 import org.gradle.api.Action
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.process.JavaForkOptions
@@ -26,7 +27,7 @@ import spock.lang.Subject
 
 class ForkingTestClassProcessorTest extends Specification {
 
-    @Subject processor = Spy(ForkingTestClassProcessor, constructorArgs: [Mock(WorkerProcessFactory), Mock(WorkerTestClassProcessorFactory), Mock(JavaForkOptions), [new File("classpath.jar")], Mock(Action)])
+    @Subject processor = Spy(ForkingTestClassProcessor, constructorArgs: [Mock(WorkerProcessFactory), Mock(WorkerTestClassProcessorFactory), Mock(JavaForkOptions), [new File("classpath.jar")], Mock(Action), Mock(ModuleRegistry)])
 
     def "starts worker process on first test"() {
         def test1 = Mock(TestClassRunInfo)

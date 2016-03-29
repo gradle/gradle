@@ -161,26 +161,26 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
     }
 
     private void executeFirstBuild(List<File> builds) {
-        withCompositeBuildParticipants(builds) { connection, List buildIds ->
-            runBuild(connection.newBuild(), progressListenerForComposite)
+        withCompositeConnection(builds) { connection ->
+            BuildLauncher buildLauncher = connection.newBuild()
+            buildLauncher.forTasks(builds[0], "jar")
+            buildLauncher.addProgressListener(progressListenerForComposite)
+            buildLauncher.run()
         }
 
         GradleConnector connector = toolingApi.connector()
         connector.forProjectDirectory(builds[0].absoluteFile)
         toolingApi.withConnection(connector) { ProjectConnection connection ->
-            runBuild(connection.newBuild(), progressListenerForRegularBuild)
+            BuildLauncher buildLauncher = connection.newBuild()
+            buildLauncher.forTasks("jar")
+            buildLauncher.addProgressListener(progressListenerForRegularBuild)
+            buildLauncher.run()
         }
     }
 
     private def getModels(ModelBuilder modelBuilder, progressListener) {
         modelBuilder.addProgressListener(progressListener)
         modelBuilder.get()
-    }
-
-    private void runBuild(BuildLauncher buildLauncher, progressListener) {
-        buildLauncher.forTasks("jar")
-        buildLauncher.addProgressListener(progressListener)
-        buildLauncher.run()
     }
 
     static abstract class AbstractCapturingProgressListener {

@@ -14,16 +14,5 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.connection;
-
-import org.gradle.internal.composite.GradleParticipantBuild;
-import org.gradle.tooling.connection.BuildIdentity;
-import org.gradle.tooling.connection.ProjectIdentity;
-
-public interface GradleConnectionParticipant extends GradleParticipantBuild {
-    String getDisplayName();
-
-    BuildIdentity toBuildIdentity();
-
-    ProjectIdentity toProjectIdentity(String projectPath);
-}
+rootProject.name = 'project1'
+include '1a', '1b', '1c'

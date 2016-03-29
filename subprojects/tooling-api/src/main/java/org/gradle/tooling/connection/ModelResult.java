@@ -17,23 +17,17 @@
 package org.gradle.tooling.connection;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.tooling.GradleConnectionException;
 
 /**
- * A model with the identity of the project it was produced from.
+ * The result of a model request.
  *
  * @param <T> Type of model in the result
  * @since 2.13
  */
 @Incubating
 public interface ModelResult<T> {
-    /**
-     * Identity of the project this model was produced from.
-     *
-     * @return the project identity, never null.
-     */
-    ProjectIdentity getProjectIdentity();
-
     /**
      * Model produced
      *
@@ -44,8 +38,10 @@ public interface ModelResult<T> {
 
     /**
      * The failure retrieving the model.
+     * If this value is not null, further details can be obtained by casting to {@link FailedModelResult}.
      *
-     * @return the failure.
+     * @return the failure, or null if the result was successful.
      */
+    @Nullable
     GradleConnectionException getFailure();
 }

@@ -133,10 +133,9 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         when:
         def cancellationToken = GradleConnector.newCancellationTokenSource()
         def resultHandler = new ResultCollector()
-        def build1Participant = createGradleBuildParticipant(build1)
-        withCompositeBuildParticipants([build1, build2, build3]) { connection, buildIds ->
-            def buildLauncher = connection.newBuild(buildIds[0])
-            buildLauncher.forTasks("run")
+        withCompositeConnection([build1, build2, build3]) { connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks(build1, "run")
             buildLauncher.withCancellationToken(cancellationToken.token())
             // async ask for results
             buildLauncher.run(resultHandler)

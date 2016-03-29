@@ -89,9 +89,9 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
             Collection<File> classpath = classPathRegistry.getClassPath(notation.name()).getAsFiles();
             boolean runningFromInstallation = currentGradleInstallation.getInstallation() != null;
             FileCollectionInternal files;
-            if (runningFromInstallation && notation.equals(FAT_GRADLE_API)) {
+            if (runningFromInstallation && notation.equals(GRADLE_API)) {
                 files = gradleApiFileCollection(classpath);
-            } else if (runningFromInstallation && notation.equals(FAT_GRADLE_TEST_KIT)) {
+            } else if (runningFromInstallation && notation.equals(GRADLE_TEST_KIT)) {
                 files = gradleTestKitFileCollection(classpath);
             } else {
                 files = fileResolver.resolveFiles(classpath);
@@ -107,7 +107,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         List<File> groovyImpl = classPathRegistry.getClassPath(LOCAL_GROOVY.name()).getAsFiles();
         apiClasspath.removeAll(groovyImpl);
 
-        return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "fatGradleApi()", "api")
+        return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "gradleApi()", "api")
             .plus(fileResolver.resolveFiles(
                 groovyImpl,
                 classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles())
@@ -118,7 +118,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         List<File> gradleApi = classPathRegistry.getClassPath(GRADLE_API.name()).getAsFiles();
         testKitClasspath.removeAll(gradleApi);
 
-        return (FileCollectionInternal) relocatedDepsJar(testKitClasspath, "fatGradleTestKit()", "test-kit")
+        return (FileCollectionInternal) relocatedDepsJar(testKitClasspath, "gradleTestKit()", "test-kit")
             .plus(gradleApiFileCollection(gradleApi));
     }
 

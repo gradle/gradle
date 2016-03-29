@@ -19,8 +19,8 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.connection.ModelResult;
-import org.gradle.tooling.connection.ProjectIdentity;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.connection.DefaultFailedModelResult;
 import org.gradle.tooling.internal.connection.DefaultModelResult;
 import org.gradle.tooling.internal.consumer.ExceptionTransformer;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
@@ -31,6 +31,7 @@ import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalCompositeAwareConnection;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
 import java.util.LinkedList;
@@ -74,13 +75,13 @@ public class CompositeAwareModelProducer extends HasCompatibilityMapperAction im
             final List<ModelResult<T>> models = new LinkedList<ModelResult<T>>();
             Map<Object, Object> resultMap = (Map) result.getModel();
             for (Map.Entry<Object, Object> entry : resultMap.entrySet()) {
-                ProjectIdentity projectIdentity = adapter.adapt(ProjectIdentity.class, entry.getKey(), getCompatibilityMapperAction());
+                ProjectIdentifier projectIdentifier = adapter.adapt(ProjectIdentifier.class, entry.getKey());
                 if (entry.getValue() instanceof Throwable) {
                     GradleConnectionException failure = exceptionTransformer.transform((Throwable) entry.getValue());
-                    models.add(new DefaultModelResult<T>(projectIdentity, failure));
+                    models.add(new DefaultFailedModelResult<T>(projectIdentifier, failure));
                 } else {
-                    T modelResult = adapter.adapt(elementType, entry.getValue(), getCompatibilityMapperAction());
-                    models.add(new DefaultModelResult<T>(projectIdentity, modelResult));
+                    T modelResult = adapter.adapt(elementType, entry.getValue(), getCompatibilityMapperAction(projectIdentifier));
+                    models.add(new DefaultModelResult<T>(modelResult));
                 }
             }
             return models;

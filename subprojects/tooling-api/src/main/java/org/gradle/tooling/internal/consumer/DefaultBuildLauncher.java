@@ -68,8 +68,7 @@ public class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBu
         return this;
     }
 
-    public void preprocessLaunchables(Iterable<? extends Launchable> launchables) {
-
+    protected void preprocessLaunchables(Iterable<? extends Launchable> launchables) {
     }
 
     public void run() {

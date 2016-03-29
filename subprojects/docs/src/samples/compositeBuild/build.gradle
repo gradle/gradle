@@ -1,0 +1,21 @@
+import org.gradle.tooling.GradleConnector
+
+task buildProject << {
+    def project1 = file("projects/project1")
+    def project2 = file("projects/project2")
+    def project3 = file("projects/project3")
+
+    def builder = GradleConnector.newGradleConnection()
+    builder.addParticipant(project1)
+    builder.addParticipant(project2)
+    builder.addParticipant(project3)
+    def connection = builder.build()
+
+    logger.lifecycle("Running build tasks in target project: ${project3.name}")
+    def buildLauncher = connection.newBuild()
+    buildLauncher.forTasks(project3, "build")
+    buildLauncher.standardOutput = System.out
+    buildLauncher.standardError = System.err
+    buildLauncher.run()
+    connection.close()
+}

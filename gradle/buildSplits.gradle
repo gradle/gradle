@@ -19,16 +19,16 @@ def buckets = [
         ":ivy", ":platformBase", ":jacoco", ":announce", ":internalIntegTesting",
         ":diagnostics", ":jetty", ":cli", ":reporting", ":toolingApiBuilders", ":openApi"],
 
-    "2": [":toolingApi", ":dependencyManagement", ":testKit", ":distributions",
+    "2": [":toolingApi", ":core", ":codeQuality", ":distributions",
         ":pluginUse",  ":buildInit", ":languageGroovy", ":internalTesting",
         ":languageJvm", ":performance", ":publish", ":resources", ":baseServicesGroovy", ":resourcesHttp",
         ":pluginDevelopment", ":osgi"],
 
-    "3": [":launcher", ":plugins", ":codeQuality", ":languageJava", ":testingBase", ":testingJvm",
+    "3": [":launcher", ":plugins", ":testKit", ":languageJava", ":testingBase", ":testingJvm",
         ":ui", ":javascript", ":antlr", ":messaging", ":ear",
         ":resourcesS3", ":wrapper", ":resourcesSftp", ":signing", ":modelGroovy", ":baseServices"],
 
-    "4": [":docs", ":integTest", ":core", ":languageNative", ":ide", ":platformJvm", ":platformNative",
+    "4": [":docs", ":integTest", ":dependencyManagement", ":languageNative", ":ide", ":platformJvm", ":platformNative",
           ":modelCore", ":sonar", ":maven", ":testingNative", ":ideNative", ":native", ":installationBeacon"]
 ]
 

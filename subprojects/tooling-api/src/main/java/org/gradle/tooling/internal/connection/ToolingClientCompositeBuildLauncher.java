@@ -16,9 +16,11 @@
 
 package org.gradle.tooling.internal.connection;
 
+import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
 public class ToolingClientCompositeBuildLauncher {
@@ -33,9 +35,10 @@ public class ToolingClientCompositeBuildLauncher {
 
     public void run() {
         boolean built = false;
-        for (GradleConnectionParticipant gradleBuildInternal : operationParameters.getBuilds()) {
-            if (operationParameters.getBuildIdentity() == null
-                || operationParameters.getBuildIdentity().equals(gradleBuildInternal.toBuildIdentity())) {
+        for (GradleParticipantBuild gradleBuildInternal : operationParameters.getBuilds()) {
+            BuildIdentifier participantIdentifier = new DefaultBuildIdentifier(gradleBuildInternal.getProjectDir());
+            if (operationParameters.getBuildIdentifier() == null
+                || operationParameters.getBuildIdentifier().equals(participantIdentifier)) {
                 ProjectConnection connection = null;
                 try {
                     connection = util.createParticipantConnector(gradleBuildInternal).connect();
@@ -52,7 +55,7 @@ public class ToolingClientCompositeBuildLauncher {
             }
         }
         if (!built) {
-            throw new GradleConnectionException("Not a valid build: " + operationParameters.getBuildIdentity(), new IllegalStateException("Build not part of composite"));
+            throw new GradleConnectionException("Not a valid build: " + operationParameters.getBuildIdentifier(), new IllegalStateException("Build not part of composite"));
         }
     }
 }

@@ -25,8 +25,8 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def "can create composite of a two multi-project builds"() {
         given:
-        def multiBuild1 = multiProjectJavaBuild("multi-build-1", ['a1', 'b1', 'c1'])
-        def multiBuild2 = multiProjectJavaBuild("multi-build-2", ['a2', 'b2', 'c2'])
+        def multiBuild1 = multiProjectBuild("multi-build-1", ['a1', 'b1', 'c1'])
+        def multiBuild2 = multiProjectBuild("multi-build-2", ['a2', 'b2', 'c2'])
 
         when:
         def models = withCompositeConnection([ multiBuild1, multiBuild2 ]) { connection ->
@@ -40,8 +40,8 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
     def "failures from multiple builds is still seen as a single failure of the composite"() {
         given:
-        def singleBuild1 = singleProjectJavaBuild("single-build-1")
-        def singleBuild2 = singleProjectJavaBuild("single-build-2")
+        def singleBuild1 = singleProjectBuild("single-build-1")
+        def singleBuild2 = singleProjectBuild("single-build-2")
 
         when:
         def models = withCompositeConnection([ singleBuild1, singleBuild2 ]) { connection ->
@@ -57,8 +57,8 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
     @NotYetImplemented
     def "fails when two projects becoming overlapping projects"() {
         given:
-        def singleBuild1 = singleProjectJavaBuild("single-build-1")
-        def singleBuild2 = singleProjectJavaBuild("single-build-2")
+        def singleBuild1 = singleProjectBuild("single-build-1")
+        def singleBuild2 = singleProjectBuild("single-build-2")
 
         def connection = createComposite(singleBuild1, singleBuild2)
 
@@ -87,8 +87,8 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
     def "can create composite of a single-project and multi-project builds"() {
         given:
-        def singleBuild = singleProjectJavaBuild("single-build-1")
-        def multiBuild = multiProjectJavaBuild("multi-build-1", ['a1', 'b1', 'c1'])
+        def singleBuild = singleProjectBuild("single-build-1")
+        def multiBuild = multiProjectBuild("multi-build-1", ['a1', 'b1', 'c1'])
 
         when:
         def models = withCompositeConnection([ singleBuild, multiBuild ]) { connection ->
@@ -102,8 +102,8 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
 
     def "sees changes to composite build when projects are added"() {
         given:
-        def singleBuild = singleProjectJavaBuild("single-build")
-        def multiBuild = multiProjectJavaBuild("multi-build-1", ['a1', 'b1', 'c1'])
+        def singleBuild = singleProjectBuild("single-build")
+        def multiBuild = multiProjectBuild("multi-build-1", ['a1', 'b1', 'c1'])
         def composite = createComposite(singleBuild, multiBuild)
 
         when:

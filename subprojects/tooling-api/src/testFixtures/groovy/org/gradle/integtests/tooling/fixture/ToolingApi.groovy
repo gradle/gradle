@@ -211,7 +211,7 @@ class ToolingApi implements TestRule {
         builder
     }
 
-    def addCompositeParticipant(def builder, File rootDir) {
-        builder.newParticipant(rootDir.absoluteFile).useInstallation(dist.gradleHomeDir.absoluteFile).create()
+    void addCompositeParticipant(def builder, File rootDir) {
+        builder.addParticipant(rootDir.absoluteFile).useInstallation(dist.gradleHomeDir.absoluteFile)
     }
 }

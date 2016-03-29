@@ -26,18 +26,16 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
+import org.gradle.util.GradleVersion
 import spock.lang.Ignore
 
-// TODO:DAZ Test and fix on earlier versions
-@TargetGradleVersion(">=2.6")
 class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeToolingApiSpecification {
-    static modelsHavingGradleProjectIdentifier = [BuildInvocations, ProjectPublications]
     TestFile rootSingle
     TestFile rootMulti
 
     TestFile setup() {
-        rootSingle = singleProjectJavaBuild("A")
-        rootMulti = multiProjectJavaBuild("B", ['x', 'y'])
+        rootSingle = singleProjectBuild("A")
+        rootMulti = multiProjectBuild("B", ['x', 'y'])
     }
 
     def "GradleConnection provides identified models for single project build"() {
@@ -131,5 +129,13 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
         connector.forProjectDirectory(rootDir)
         ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
         return withConnection(connector) { it.getModel(modelType) }
+    }
+
+    private static getModelsHavingGradleProjectIdentifier() {
+        List<Class<?>> models = [BuildInvocations]
+        if (getTargetDistVersion() >= GradleVersion.version("1.12")) {
+            models += ProjectPublications
+        }
+        return models
     }
 }
