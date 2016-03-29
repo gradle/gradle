@@ -23,6 +23,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
+import java.util.regex.Matcher
+
 class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
@@ -48,9 +50,9 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
         def buildContext = new IntegrationTestBuildContext()
 
-        def gradleHomePath = TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath)
-        def gradleUserHomePath = TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath)
-        def daemonBaseDirPath = TextUtil.escapeString(projectDir.file("daemon").absolutePath)
+        def gradleHomePath = Matcher.quoteReplacement(TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath))
+        def gradleUserHomePath = Matcher.quoteReplacement(TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath))
+        def daemonBaseDirPath = Matcher.quoteReplacement(TextUtil.escapeString(projectDir.file("daemon").absolutePath))
 
         def buildScript = buildFile.text
         buildScript = buildScript.replaceFirst(
