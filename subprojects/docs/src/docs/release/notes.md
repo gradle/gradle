@@ -44,7 +44,8 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-- [Igor Melnichenko](https://githbug.com/Myllyenko) - fixed Groovydoc up-to-date checks ([GRADLE-3349](https://issues.gradle.org/browse/GRADLE-3349))
+- [Igor Melnichenko](https://github.com/Myllyenko) - fixed Groovydoc up-to-date checks ([GRADLE-3349](https://issues.gradle.org/browse/GRADLE-3349))
+- [Sandu Turcan](https://github.com/idlsoft) - add wildcard exclusion for non-transitive dependencies in POM ([GRADLE-1574](https://issues.gradle.org/browse/GRADLE-1574))
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
