@@ -28,11 +28,9 @@ In other words prioritize by type first and by version second.
 To that extent a new class `ProjectDependencyForcingResolver` is introduced. It implements `ModuleConflictResolver`,
 and is chained in front of `LatestModuleConflictResolver` by `DefaultArtifactDependencyResolver`.
 
-There is also a new method `ResolutionStrategy.disableProjectPriority`, which reverts to the old behavior.
-
 # Unit tests
 
 A change to `DependencySubstitutionRulesIntegrationTest` is made to account for the new behavior.
 
 A new test is added to `DependencyResolveRulesIntegrationTest` in order to test the various permutations of
-versions, forced dependencies and `disableProjectPriority` settings.
+versions, and forced dependencies settings.
