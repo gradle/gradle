@@ -125,7 +125,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
-    public void setImplementationClassPath(List<URL> implementationClassPath) {
+    public void setImplementationClasspath(List<URL> implementationClassPath) {
         this.implementationClassPath = implementationClassPath;
     }
 

@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 
 import java.io.File;
+import java.net.URL;
+import java.util.List;
 
 /**
  * <p>A builder which configures and creates a {@link WorkerProcess} instance.</p>
@@ -47,6 +49,8 @@ public interface WorkerProcessBuilder extends WorkerProcessSettings {
     WorkerProcessBuilder sharedPackages(String... packages);
 
     Action<? super WorkerProcessContext> getWorker();
+
+    void setImplementationClasspath(List<URL> implementationClasspath);
 
     /**
      * Creates the worker process. The process is not started until {@link WorkerProcess#start()} is called.

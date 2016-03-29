@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.detection
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.tasks.testing.Test
@@ -33,6 +34,7 @@ class DefaultTestExecuterTest extends Specification {
     Test testTask = Mock()
     ActorFactory actorFactory = Mock()
     WorkerProcessFactory workerFactory = Mock()
+    ModuleRegistry moduleRegistry = Mock()
     TestFramework testFramework = Mock()
     TestResultProcessor resultProcessor = Mock()
     Actor resultProcessorActor = Mock()
@@ -41,7 +43,7 @@ class DefaultTestExecuterTest extends Specification {
     FileCollection testClasspath = Mock()
     Project project = Mock()
 
-    DefaultTestExecuter executer = new DefaultTestExecuter(workerFactory, actorFactory)
+    DefaultTestExecuter executer = new DefaultTestExecuter(workerFactory, actorFactory, moduleRegistry)
 
     def setup() {
         _ * testTask.testFramework >> testFramework

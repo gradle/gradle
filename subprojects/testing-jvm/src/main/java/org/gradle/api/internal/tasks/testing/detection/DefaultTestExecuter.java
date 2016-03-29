@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.detection;
 
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -38,10 +39,12 @@ import org.gradle.process.internal.WorkerProcessFactory;
 public class DefaultTestExecuter implements TestExecuter {
     private final WorkerProcessFactory workerFactory;
     private final ActorFactory actorFactory;
+    private final ModuleRegistry moduleRegistry;
 
-    public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory) {
+    public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactory, ModuleRegistry moduleRegistry) {
         this.workerFactory = workerFactory;
         this.actorFactory = actorFactory;
+        this.moduleRegistry = moduleRegistry;
     }
 
     @Override
@@ -51,7 +54,7 @@ public class DefaultTestExecuter implements TestExecuter {
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(workerFactory, testInstanceFactory, testTask,
-                    testTask.getClasspath(), testFramework.getWorkerConfigurationAction());
+                    testTask.getClasspath(), testFramework.getWorkerConfigurationAction(), moduleRegistry);
             }
         };
         Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {
