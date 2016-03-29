@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-allprojects {
-	apply plugin: 'java'
-	sourceCompatibility = 1.6
+package org.b2;
+
+public interface Api {
+    void printAnswer();
 }
+

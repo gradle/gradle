@@ -14,5 +14,18 @@
  * limitations under the License.
  */
 
-rootProject.name = 'project1'
-include '1a', '1b', '1c'
+package org.a;
+
+import org.b1.Util;
+import org.b2.Api;
+
+public class Main implements Api {
+
+    public static void main(String... args) {
+        new Main().printAnswer();
+    }
+
+    public void printAnswer() {
+        System.out.println("Answer is " + Util.getAnswer());
+    }
+}
