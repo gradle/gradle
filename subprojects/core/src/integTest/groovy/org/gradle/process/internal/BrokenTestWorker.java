@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal;
 
-public class BrokenTestWorker implements TestWorkInterface {
+public class BrokenTestWorker implements TestProtocol {
     @Override
     public String convert(String param1, long param2) {
         throw new IllegalArgumentException(String.format("Could not convert [%s, %s]", param1, param2));

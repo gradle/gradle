@@ -36,7 +36,7 @@ public class DefaultRhinoWorkerHandleFactory implements RhinoWorkerHandleFactory
 
     @Override
     public <T> T create(Iterable<File> rhinoClasspath, Class<T> protocolType, Class<? extends T> workerImplementationType, LogLevel logLevel, Action<JavaExecSpec> javaExecSpecAction) {
-        SingleRequestWorkerProcessBuilder<T> builder = workerProcessBuilderFactory.create(protocolType, workerImplementationType);
+        SingleRequestWorkerProcessBuilder<T> builder = workerProcessBuilderFactory.singleRequestWorker(protocolType, workerImplementationType);
         builder.setBaseName("Gradle Rhino Worker");
         builder.setLogLevel(logLevel);
         builder.applicationClasspath(rhinoClasspath);

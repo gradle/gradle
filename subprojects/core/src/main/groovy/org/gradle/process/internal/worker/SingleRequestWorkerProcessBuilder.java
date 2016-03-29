@@ -19,9 +19,9 @@ package org.gradle.process.internal.worker;
 /**
  * Configures and builds single request workers. A single request worker runs each request in a separate forked worker process.
  *
- * <p>This builder produces instances of type {@link T}. Each method call on the returned object will start a worker process, run the method in the worker, stop the worker process and return the result.
+ * <p>This builder produces instances of type {@link T}. Each method call on the returned object will start a worker process, run the method in the worker, stop the worker process and return the result to the caller.
  *
- * <p>The worker process runs the request using an instance of the implementation type specified as a parameter to {@link WorkerProcessFactory#create(Class, Class)}.</p>
+ * <p>The worker process executes the request using an instance of the implementation type specified as a parameter to {@link WorkerProcessFactory#singleRequestWorker(Class, Class)}.</p>
  */
 public interface SingleRequestWorkerProcessBuilder<T> extends WorkerProcessSettings {
     /**

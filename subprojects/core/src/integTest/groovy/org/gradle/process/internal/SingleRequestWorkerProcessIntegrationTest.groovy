@@ -27,7 +27,7 @@ import spock.lang.Timeout
 class SingleRequestWorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec {
     def "runs method in worker process and returns the result"() {
         when:
-        def builder = workerFactory.create(TestWorkInterface.class, TestWorker.class)
+        def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
         def worker = builder.build()
         def result = worker.convert("abc", 12)
 
@@ -38,8 +38,8 @@ class SingleRequestWorkerProcessIntegrationTest extends AbstractWorkerProcessInt
     def "infers worker implementation classpath"() {
         given:
         def cl = compileToDirectoryAndLoad("CustomTestWorker", """
-import ${TestWorkInterface.name}
-class CustomTestWorker implements TestWorkInterface {
+import ${TestProtocol.name}
+class CustomTestWorker implements TestProtocol {
     Object convert(String param1, long param2) { return new CustomResult() }
     void doSomething() { }
 }
@@ -50,7 +50,7 @@ class CustomResult implements Serializable {
 """)
 
         when:
-        def builder = workerFactory.create(TestWorkInterface.class, cl)
+        def builder = workerFactory.singleRequestWorker(TestProtocol.class, cl)
         def worker = builder.build()
         def result = worker.convert("abc", 12)
 
@@ -60,7 +60,7 @@ class CustomResult implements Serializable {
 
     def "runs method in worker process and returns null"() {
         when:
-        def builder = workerFactory.create(TestWorkInterface.class, TestWorker.class)
+        def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
         def worker = builder.build()
         def result = worker.convert(null, 12)
 
@@ -70,7 +70,7 @@ class CustomResult implements Serializable {
 
     def "runs method in worker process and returns void result"() {
         when:
-        def builder = workerFactory.create(TestWorkInterface.class, TestWorker.class)
+        def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
         def worker = builder.build()
         worker.doSomething()
 
@@ -80,7 +80,7 @@ class CustomResult implements Serializable {
 
     def "propagates failure thrown by method in worker process"() {
         when:
-        def builder = workerFactory.create(TestWorkInterface.class, BrokenTestWorker.class)
+        def builder = workerFactory.singleRequestWorker(TestProtocol.class, BrokenTestWorker.class)
         def worker = builder.build()
         worker.convert("abc", 12)
 
@@ -92,7 +92,7 @@ class CustomResult implements Serializable {
     @Ignore
     def "can reuse worker proxy to run multiple worker processes"() {
         when:
-        def builder = workerFactory.create(TestWorkInterface.class, TestWorker.class)
+        def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
         def worker = builder.build()
         def result1 = worker.convert("abc", 12)
         def result2 = worker.convert(null, 12)
@@ -106,7 +106,7 @@ class CustomResult implements Serializable {
 
     def "propagates failure to instantiate worker implementation"() {
         when:
-        def builder = workerFactory.create(TestWorkInterface.class, TestWorkInterface.class)
+        def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestProtocol.class)
         builder.baseName = 'broken worker'
         def worker = builder.build()
         worker.convert("abc", 12)

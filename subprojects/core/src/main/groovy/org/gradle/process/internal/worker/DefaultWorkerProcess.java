@@ -177,7 +177,6 @@ public class DefaultWorkerProcess implements WorkerProcess {
         } finally {
             this.connection = null;
             this.acceptor = null;
-            this.execHandle = null;
             lock.unlock();
         }
         stoppable.stop();

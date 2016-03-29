@@ -20,14 +20,26 @@ import org.gradle.api.Action;
 
 public interface WorkerProcessFactory {
     /**
-     * Creates a builder for a worker that will run the given worker action. The worker action is serialized to the worker process and executed.
+     * Creates a builder for workers that will run the given action. The worker action is serialized to the worker process and executed.
      *
      * <p>The worker process is not started until {@link WorkerProcess#start()} is called.</p>
      */
     WorkerProcessBuilder create(Action<? super WorkerProcessContext> workerAction);
 
     /**
-     * Creates a build for a worker that will run a single action using the given worker implementation.
+     * Creates a builder for workers that will handle requests using the given worker implementation, with each request executed in a separate worker process.
+     *
+     * <p>The worker process is not started until a method on the return value of {@link SingleRequestWorkerProcessBuilder#build()} is called.</p>
      */
-    <T> SingleRequestWorkerProcessBuilder<T> create(Class<T> protocolType, Class<? extends T> workerImplementation);
+    <P> SingleRequestWorkerProcessBuilder<P> singleRequestWorker(Class<P> protocolType, Class<? extends P> workerImplementation);
+
+    /**
+     * Creates a builder for workers that will handle requests using the given worker implementation, with a worker process handling zero or more requests.
+     * A worker process handles a single request at a time.
+     *
+     * <p>The worker process is not started until {@link WorkerControl#start()} is called.</p>
+     */
+    <P, W extends P> MultiRequestWorkerProcessBuilder<W> multiRequestWorker(Class<W> workerType,
+                                                                            Class<P> protocolType,
+                                                                            Class<? extends P> workerImplementation);
 }

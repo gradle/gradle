@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal;
+package org.gradle.process.internal.worker;
 
-public interface TestWorkInterface {
-    Object convert(String param1, long param2);
+import org.gradle.process.ExecResult;
 
-    void doSomething();
+public interface WorkerControl {
+    /**
+     * Starts the worker process, blocking until successfully started.
+     */
+    WorkerProcess start();
+
+    /**
+     * Requests that the worker complete all work and stop. Blocks until the worker process has stopped.
+     */
+    ExecResult stop();
 }

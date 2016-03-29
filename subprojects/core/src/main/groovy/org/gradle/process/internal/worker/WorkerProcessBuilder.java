@@ -24,9 +24,9 @@ import java.net.URL;
 import java.util.List;
 
 /**
- * <p>A builder which configures and creates a {@link WorkerProcess} instance.</p>
+ * <p>A builder which configures and creates worker processes.</p>
  *
- * <p>A worker process is specified using an {@link Action}. The given action instance is serialized across into the worker process and executed.
+ * <p>A worker process runs an {@link Action} instance. The given action instance is serialized across into the worker process and executed.
  * The worker action is supplied with a {@link WorkerProcessContext} which it can use to receive messages from and send messages to the server process (ie this process).
  * </p>
  *

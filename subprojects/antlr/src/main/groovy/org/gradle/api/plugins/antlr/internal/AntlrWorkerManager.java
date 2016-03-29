@@ -32,7 +32,7 @@ public class AntlrWorkerManager {
     }
 
     private AntlrWorker createWorkerProcess(File workingDir, WorkerProcessFactory workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
-        SingleRequestWorkerProcessBuilder<AntlrWorker> builder = workerFactory.create(AntlrWorker.class, AntlrExecuter.class);
+        SingleRequestWorkerProcessBuilder<AntlrWorker> builder = workerFactory.singleRequestWorker(AntlrWorker.class, AntlrExecuter.class);
         builder.setBaseName("Gradle ANTLR Worker");
 
         if (antlrClasspath != null) {

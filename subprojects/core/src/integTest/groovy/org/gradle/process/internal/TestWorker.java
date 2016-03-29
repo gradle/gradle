@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal;
 
-public class TestWorker implements TestWorkInterface {
+public class TestWorker implements TestProtocol {
     @Override
     public String convert(String param1, long param2) {
         if (param1 == null) {

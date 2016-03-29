@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.worker;
+package org.gradle.process.internal.worker.request;
 
-import org.gradle.messaging.remote.ObjectConnection;
-import org.gradle.process.ExecResult;
+public interface ResponseProtocol {
+    void completed(Object result);
 
-/**
- * A child JVM that performs some worker action. You can send and receive messages to/from the worker action
- * using a supplied {@link org.gradle.messaging.remote.ObjectConnection}.
- */
-public interface WorkerProcess {
-    WorkerProcess start();
+    // Called when the method throws an exception
+    void failed(Throwable failure);
 
-    /**
-     * The connection to the worker. Call {@link org.gradle.messaging.remote.ObjectConnection#connect()} to complete the connection.
-     */
-    ObjectConnection getConnection();
-
-    ExecResult waitForStop();
+    // Called when some other problem occurs
+    void infrastructureFailed(Throwable failure);
 }
