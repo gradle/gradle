@@ -1,4 +1,4 @@
-rootProject.name = 'y'
+rootProject.name = 'B'
 
-include ':y'
-include ':z'
+include ':b1'
+include ':b2'
