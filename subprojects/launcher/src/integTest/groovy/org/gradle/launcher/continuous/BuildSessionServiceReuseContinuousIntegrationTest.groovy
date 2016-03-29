@@ -16,6 +16,9 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.cache.CacheRepository
+import org.gradle.process.internal.worker.WorkerProcessFactory
+import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
 import spock.lang.Unroll
 
 
@@ -31,10 +34,9 @@ class BuildSessionServiceReuseContinuousIntegrationTest extends Java7RequiringCo
         def idFileName = "build/${service}.id"
         def idFile = file(idFileName).createFile()
         buildFile << """
-            import org.gradle.cache.CacheRepository
-            import org.gradle.api.internal.ClassPathRegistry
-            import org.gradle.process.internal.child.WorkerProcessClassPathProvider
-            import org.gradle.process.internal.WorkerProcessFactory
+            import ${CacheRepository.name}
+            import ${WorkerProcessClassPathProvider.name}
+            import ${WorkerProcessFactory.name}
 
             task captureService {
                 inputs.file file("$triggerFileName")
