@@ -73,7 +73,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
         // If we have no caching options, just get the thing directly
         if (cached == null && (localCandidates == null || localCandidates.isNone())) {
-            return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location));
+            return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location, false));
         }
 
         // We might be able to use a cached/locally available version
@@ -81,8 +81,11 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             return new DefaultLocallyAvailableExternalResource(location, new DefaultLocallyAvailableResource(cached.getCachedFile()), cached.getExternalResourceMetaData());
         }
 
+        // We have a cached version, but it might be out of date, so we tell the upstreams to revalidate too
+        final boolean revalidate = true;
+
         // Get the metadata first to see if it's there
-        final ExternalResourceMetaData remoteMetaData = delegate.getResourceMetaData(location);
+        final ExternalResourceMetaData remoteMetaData = delegate.getResourceMetaData(location, revalidate);
         if (remoteMetaData == null) {
             return null;
         }
@@ -112,7 +115,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             HashValue remoteChecksum = remoteMetaData.getSha1();
 
             if (remoteChecksum == null) {
-                remoteChecksum = getResourceSha1(location);
+                remoteChecksum = getResourceSha1(location, revalidate);
             }
 
             if (remoteChecksum != null) {
@@ -129,13 +132,13 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         }
 
         // All local/cached options failed, get directly
-        return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location));
+        return copyToCache(location, fileStore, delegate.withProgressLogging().getResource(location, revalidate));
     }
 
-    private HashValue getResourceSha1(URI location) {
+    private HashValue getResourceSha1(URI location, boolean revalidate) {
         try {
             URI sha1Location = new URI(location.toASCIIString() + ".sha1");
-            ExternalResource resource = delegate.getResource(sha1Location);
+            ExternalResource resource = delegate.getResource(sha1Location, revalidate);
             if (resource == null) {
                 return null;
             }

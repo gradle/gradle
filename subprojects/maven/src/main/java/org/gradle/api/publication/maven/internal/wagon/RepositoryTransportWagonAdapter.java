@@ -37,7 +37,7 @@ public class RepositoryTransportWagonAdapter {
 
     public boolean getRemoteFile(File destination, String resourceName) throws ResourceException {
         URI uriForResource = getUriForResource(resourceName);
-        ExternalResource resource = transport.getRepository().getResource(uriForResource);
+        ExternalResource resource = transport.getRepository().getResource(uriForResource, false);
         if (resource == null) {
             return false;
         }

@@ -71,7 +71,7 @@ public class FileResourceConnector implements ExternalResourceRepository {
         }
     }
 
-    public LocallyAvailableExternalResource getResource(URI uri) {
+    public LocallyAvailableExternalResource getResource(URI uri, boolean revalidate) {
         File localFile = getFile(uri);
         if (!localFile.exists()) {
             return null;
@@ -79,8 +79,8 @@ public class FileResourceConnector implements ExternalResourceRepository {
         return new DefaultLocallyAvailableExternalResource(uri, new DefaultLocallyAvailableResource(localFile));
     }
 
-    public ExternalResourceMetaData getResourceMetaData(URI location) {
-        ExternalResource resource = getResource(location);
+    public ExternalResourceMetaData getResourceMetaData(URI location, boolean revalidate) {
+        ExternalResource resource = getResource(location, revalidate);
         return resource == null ? null : resource.getMetaData();
     }
 

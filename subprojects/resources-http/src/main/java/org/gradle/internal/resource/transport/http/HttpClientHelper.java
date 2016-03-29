@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http;
 
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -46,25 +47,27 @@ public class HttpClientHelper implements Closeable {
         this.settings = settings;
     }
 
-    public HttpResponse performRawHead(String source) {
-        return performRequest(new HttpHead(source));
+    public HttpResponse performRawHead(String source, boolean revalidate) {
+        return performRequest(new HttpHead(source), revalidate);
     }
 
-    public HttpResponse performHead(String source) {
-        return processResponse(source, "HEAD", performRawHead(source));
+    public HttpResponse performHead(String source, boolean revalidate) {
+        return processResponse(source, "HEAD", performRawHead(source, revalidate));
     }
 
-    public HttpResponse performRawGet(String source) {
-        return performRequest(new HttpGet(source));
+    public HttpResponse performRawGet(String source, boolean revalidate) {
+        return performRequest(new HttpGet(source), revalidate);
     }
 
-    public HttpResponse performGet(String source) {
-        return processResponse(source, "GET", performRawGet(source));
+    public HttpResponse performGet(String source, boolean revalidate) {
+        return processResponse(source, "GET", performRawGet(source, revalidate));
     }
 
-    public HttpResponse performRequest(HttpRequestBase request) {
+    public HttpResponse performRequest(HttpRequestBase request, boolean revalidate) {
         String method = request.getMethod();
-
+        if (revalidate) {
+            request.addHeader(HttpHeaders.CACHE_CONTROL, "max-age=0");
+        }
         HttpResponse response;
         try {
             response = executeGetOrHead(request);
@@ -77,7 +80,7 @@ public class HttpClientHelper implements Closeable {
 
     protected HttpResponse executeGetOrHead(HttpRequestBase method) throws IOException {
         HttpResponse httpResponse = performHttpRequest(method);
-        // Consume content for non-successful, responses. This avoids the connection being left open.
+                // Consume content for non-successful, responses. This avoids the connection being left open.
         if (!wasSuccessful(httpResponse)) {
             EntityUtils.consume(httpResponse.getEntity());
             return httpResponse;

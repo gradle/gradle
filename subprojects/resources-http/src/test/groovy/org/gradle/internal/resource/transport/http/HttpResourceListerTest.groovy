@@ -27,7 +27,7 @@ class HttpResourceListerTest extends Specification {
 
     def "consumeExternalResource closes resource after reading into stream"() {
         setup:
-        accessorMock.openResource(new URI("http://testrepo/")) >> externalResource;
+        accessorMock.openResource(new URI("http://testrepo/"), true) >> externalResource;
         when:
         lister.list(new URI("http://testrepo/"))
         then:
@@ -39,7 +39,7 @@ class HttpResourceListerTest extends Specification {
 
     def "list returns null if HttpAccessor returns null"(){
         setup:
-        accessorMock.openResource(new URI("http://testrepo/"))  >> null
+        accessorMock.openResource(new URI("http://testrepo/"), true)  >> null
         expect:
         null == lister.list(new URI("http://testrepo"))
     }

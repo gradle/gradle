@@ -59,13 +59,13 @@ public class DefaultExternalResourceRepository implements ExternalResourceReposi
         return new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, lister, loggingAccessor, loggingUploader);
     }
 
-    public ExternalResource getResource(URI source) {
-        ExternalResourceReadResponse response = accessor.openResource(source);
+    public ExternalResource getResource(URI source, boolean revalidate) {
+        ExternalResourceReadResponse response = accessor.openResource(source, revalidate);
         return response == null ? null : new DefaultExternalResource(source, response);
     }
 
-    public ExternalResourceMetaData getResourceMetaData(URI source) {
-        return accessor.getMetaData(source);
+    public ExternalResourceMetaData getResourceMetaData(URI source, boolean revalidate) {
+        return accessor.getMetaData(source, revalidate);
     }
 
     public void put(LocalResource source, URI destination) throws IOException {
