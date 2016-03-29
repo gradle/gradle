@@ -61,6 +61,8 @@ public class TestNGOptions extends TestFrameworkOptions {
 
     private boolean useDefaultListeners;
 
+    private boolean testReportEnabled = true;
+
     private String suiteName = "Gradle suite";
 
     private String testName = "Gradle test";
@@ -185,6 +187,16 @@ public class TestNGOptions extends TestFrameworkOptions {
 
     public TestNGOptions useDefaultListeners(boolean useDefaultListeners) {
         this.useDefaultListeners = useDefaultListeners;
+        return this;
+    }
+
+    public TestNGOptions testReportEnabled() {
+        testReportEnabled = true;
+        return this;
+    }
+
+    public TestNGOptions testReportEnabled(boolean testReportEnabled) {
+        this.testReportEnabled = testReportEnabled;
         return this;
     }
 
@@ -354,6 +366,17 @@ public class TestNGOptions extends TestFrameworkOptions {
 
     public void setUseDefaultListeners(boolean useDefaultListeners) {
         this.useDefaultListeners = useDefaultListeners;
+    }
+
+    /**
+     * This option allows to turn off Gradle test listener. The default value is true, which means that the listener is enabled.
+     */
+    public boolean getTestReportEnabled() {
+        return testReportEnabled;
+    }
+
+    public void setTestReportEnabled(boolean testReportEnabled) {
+        this.testReportEnabled = testReportEnabled;
     }
 
     /**

@@ -34,6 +34,7 @@ public class TestNGSpec implements Serializable {
     private final boolean javadocAnnotations;
     private final List testResources;
     private final boolean useDefaultListener;
+    private final boolean testReportEnabled;
     private final Set<String> includeGroups;
     private final Set<String> excludeGroups;
     private final Set<String> listeners;
@@ -58,6 +59,7 @@ public class TestNGSpec implements Serializable {
         this.configFailurePolicy = options.getConfigFailurePolicy();
         this.preserveOrder = options.getPreserveOrder();
         this.groupByInstances = options.getGroupByInstances();
+        this.testReportEnabled = options.getTestReportEnabled();
     }
 
     public Set<String> getListeners() {
@@ -74,6 +76,10 @@ public class TestNGSpec implements Serializable {
 
     public boolean getUseDefaultListeners() {
         return useDefaultListener;
+    }
+
+    public boolean getTestReportEnabled() {
+        return testReportEnabled;
     }
 
     public List getTestResources() {
