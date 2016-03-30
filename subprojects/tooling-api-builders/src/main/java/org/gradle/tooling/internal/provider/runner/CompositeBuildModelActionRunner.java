@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.GradleLauncherMetaData;
@@ -31,16 +32,11 @@ import org.gradle.launcher.daemon.configuration.DaemonUsage;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
-import org.gradle.tooling.internal.connection.DefaultBuildIdentifier;
-import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
-import org.gradle.tooling.model.BuildIdentifier;
 
-import java.io.File;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +46,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             return;
         }
         BuildModelAction buildModelAction = (BuildModelAction) action;
-        Map<Object, Object> results = null;
+        List<Object> results = null;
         if (isModelRequest(buildModelAction)) {
             results = fetchCompositeModelsInProcess(buildModelAction, requestContext, actionParameters.getCompositeParameters().getBuilds(), buildController.getBuildScopeServices());
         } else {
@@ -89,10 +85,9 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         return !requestedModelName.equals(Void.class.getName());
     }
 
-    private Map<Object, Object> fetchCompositeModelsInProcess(BuildModelAction modelAction, BuildRequestContext buildRequestContext,
-                                                              List<GradleParticipantBuild> participantBuilds,
-                                                              ServiceRegistry sharedServices) {
-        final Map<Object, Object> results = new HashMap<Object, Object>();
+    private List<Object> fetchCompositeModelsInProcess(BuildModelAction modelAction, BuildRequestContext buildRequestContext,
+                                                                     List<GradleParticipantBuild> participantBuilds,
+                                                                     ServiceRegistry sharedServices) {
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
 
         BuildActionRunner runner = new SubscribableBuildActionRunner(new BuildModelsActionRunner());
@@ -102,6 +97,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(),
             buildRequestContext.getErrorListener());
 
+        final List<Object> results = Lists.newArrayList();
         for (GradleParticipantBuild participant : participantBuilds) {
             DefaultBuildActionParameters actionParameters = new DefaultBuildActionParameters(Collections.EMPTY_MAP, Collections.<String, String>emptyMap(), participant.getProjectDir(), LogLevel.INFO, DaemonUsage.EXPLICITLY_DISABLED, false, true, ClassPath.EMPTY);
 
@@ -114,16 +110,18 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             try {
                 Map<String, Object> result = Cast.uncheckedCast(buildActionExecuter.execute(participantAction, requestContext, actionParameters, buildScopedServices));
                 for (Map.Entry<String, Object> e : result.entrySet()) {
-                    DefaultProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(participant.getProjectDir(), e.getKey());
+                    String projectPath = e.getKey();
                     Object modelValue = e.getValue();
-                    results.put(projectIdentifier, modelValue);
+                    results.add(compositeModelResult(participant, projectPath, modelValue));
                 }
             } catch (Exception e) {
-                File rootDir = participant.getProjectDir();
-                BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(rootDir);
-                results.put(new DefaultProjectIdentifier(buildIdentifier, ":"), e);
+                results.add(compositeModelResult(participant, null, e));
             }
         }
         return results;
+    }
+
+    private Object compositeModelResult(GradleParticipantBuild participant, String projectPath, Object modelValue) {
+        return new Object[]{participant.getProjectDir(), projectPath, modelValue};
     }
 }

@@ -22,6 +22,7 @@ import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.connection.DefaultFailedModelResult;
 import org.gradle.tooling.internal.connection.DefaultModelResult;
+import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.consumer.ExceptionTransformer;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -34,9 +35,9 @@ import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public class CompositeAwareModelProducer extends HasCompatibilityMapperAction implements MultiModelProducer {
     private final ModelProducer delegate;
@@ -64,7 +65,7 @@ public class CompositeAwareModelProducer extends HasCompatibilityMapperAction im
     @Override
     public <T> Iterable<ModelResult<T>> produceModels(final Class<T> elementType, ConsumerOperationParameters operationParameters) {
         BuildResult<?> result = buildModels(elementType, operationParameters);
-        if (result.getModel() instanceof Map) {
+        if (result.getModel() instanceof List) {
             ExceptionTransformer exceptionTransformer = new ExceptionTransformer(new Transformer<String, Throwable>() {
                 @Override
                 public String transform(Throwable throwable) {
@@ -73,14 +74,16 @@ public class CompositeAwareModelProducer extends HasCompatibilityMapperAction im
                 }
             });
             final List<ModelResult<T>> models = new LinkedList<ModelResult<T>>();
-            Map<Object, Object> resultMap = (Map) result.getModel();
-            for (Map.Entry<Object, Object> entry : resultMap.entrySet()) {
-                ProjectIdentifier projectIdentifier = adapter.adapt(ProjectIdentifier.class, entry.getKey());
-                if (entry.getValue() instanceof Throwable) {
-                    GradleConnectionException failure = exceptionTransformer.transform((Throwable) entry.getValue());
+            List resultMap = (List) result.getModel();
+            for (Object modelValueTriple : resultMap) {
+                Object[] t = (Object[]) modelValueTriple;
+                ProjectIdentifier projectIdentifier = new DefaultProjectIdentifier((File) t[0], (String) t[1]);
+                Object modelValue = t[2];
+                if (modelValue instanceof Throwable) {
+                    GradleConnectionException failure = exceptionTransformer.transform((Throwable) modelValue);
                     models.add(new DefaultFailedModelResult<T>(projectIdentifier, failure));
                 } else {
-                    T modelResult = adapter.adapt(elementType, entry.getValue(), getCompatibilityMapperAction(projectIdentifier));
+                    T modelResult = adapter.adapt(elementType, modelValue, getCompatibilityMapperAction(projectIdentifier));
                     models.add(new DefaultModelResult<T>(modelResult));
                 }
             }
