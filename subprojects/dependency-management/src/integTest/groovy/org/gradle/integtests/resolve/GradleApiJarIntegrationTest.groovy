@@ -20,13 +20,18 @@ import com.google.common.collect.Maps
 import groovy.transform.TupleConstructor
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.ErroringAction
+import org.gradle.internal.IoActions
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Unroll
 
-import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+
+import static org.gradle.util.TextUtil.normaliseFileSeparators
 
 class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
 
@@ -337,17 +342,65 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         assertTestKitGenerationOutput(testKitGenerationOutputs[0])
     }
 
-    def "Gradle API and TestKit dependency can be resolved by concurrent tasks within one build"() {
+    def "Gradle API and TestKit dependency can be resolved and used by concurrent tasks within one build"() {
         given:
         requireOwnGradleUserHomeDir()
 
-        buildFile << """
-            subprojects {
-                ${resolveGradleApiAndTestKitDependencies()}
-            }
-        """
+        def projectCount = 10
+        (1..projectCount).each { count ->
+            def subprojectBuildFile = file("sub$count/build.gradle")
+            subprojectBuildFile << testableGroovyProject()
+            file("sub$count/src/test/groovy/MyTest.groovy") << """
+                class MyTest extends groovy.util.GroovyTestCase {
 
-        file('settings.gradle') << "include ${(1..10).collect { "'sub$it'" }.join(',')}"
+                    void testUsageOfGradleApiAndTestKitClasses() {
+                        def classLoader = getClass().classLoader
+                        classLoader.loadClass('org.gradle.api.Plugin')
+                        classLoader.loadClass('org.gradle.testkit.runner.GradleRunner')
+                    }
+                }
+            """
+        }
+
+        file('settings.gradle') << "include ${(1..projectCount).collect { "'sub$it'" }.join(',')}"
+
+        when:
+        args('--parallel')
+        succeeds 'test'
+
+        then:
+        assertApiGenerationOutput(output)
+        assertTestKitGenerationOutput(output)
+    }
+
+    def "Gradle API and TestKit dependency JAR files are the same when run by concurrent tasks within one build"() {
+        given:
+        requireOwnGradleUserHomeDir()
+
+        def projectCount = 10
+        (1..projectCount).each { count ->
+            def subprojectBuildFile = file("sub$count/build.gradle")
+            subprojectBuildFile << """
+                configurations {
+                    gradleImplDeps
+                }
+
+                dependencies {
+                    gradleImplDeps gradleApi(), gradleTestKit()
+                }
+
+                task resolveDependencies {
+                    doLast {
+                        def files = configurations.gradleImplDeps.resolve()
+                        file('deps.txt').text = files.collect {
+                            java.security.MessageDigest.getInstance('MD5').digest(it.bytes).encodeHex().toString()
+                        }.join(',')
+                    }
+                }
+            """
+        }
+
+        file('settings.gradle') << "include ${(1..projectCount).collect { "'sub$it'" }.join(',')}"
 
         when:
         args('--parallel')
@@ -356,30 +409,80 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         then:
         assertApiGenerationOutput(output)
         assertTestKitGenerationOutput(output)
+
+        and:
+        def checksums = (1..projectCount).collect { count ->
+            def projectDirName = file("sub$count").name
+            file("$projectDirName/deps.txt").text.split(',') as Set
+        }
+
+        def singleChecksum = checksums.first()
+        checksums.findAll { it == singleChecksum }.size() == projectCount
     }
 
-    def "Gradle API and TestKit dependencies are not duplicative"() {
-        when:
+    def "TestKit dependency artifacts contain Gradle API artifact"() {
+        given:
         buildFile << """
             configurations {
-                gradleImplDeps
+                gradleApi
+                testKit
             }
 
             dependencies {
-                gradleImplDeps gradleApi(), gradleTestKit()
+                gradleApi gradleApi()
+                testKit gradleTestKit()
             }
 
             task resolveDependencyArtifacts {
                 doLast {
-                    def resolvedArtifacts = configurations.gradleImplDeps.incoming.files.files
-                    def uniqueResolvedArtifacts = resolvedArtifacts.unique()
-                    assert resolvedArtifacts == uniqueResolvedArtifacts
+                    def resolvedGradleApiArtifacts = configurations.gradleApi.resolve()
+                    def resolvedTestKitArtifacts = configurations.testKit.resolve()
+                    def gradleApiJar = resolvedTestKitArtifacts.find { it.name.startsWith('gradle-api-') }
+                    assert gradleApiJar != null
+                    assert resolvedGradleApiArtifacts.contains(gradleApiJar)
                 }
             }
         """
 
-        then:
+        expect:
         succeeds 'resolveDependencyArtifacts'
+    }
+
+    def "Gradle API dependency artifact does not contain any of TestKit's classes"() {
+        given:
+        buildFile << """
+            configurations {
+                gradleApi
+                testKit
+            }
+
+            dependencies {
+                gradleApi gradleApi()
+                testKit gradleTestKit()
+            }
+
+            task resolveDependencyArtifacts {
+                doLast {
+                    copy {
+                        into 'build'
+                        from configurations.gradleApi.resolve().find { it.name.startsWith('gradle-api-') }
+                        from configurations.testKit.resolve().find { it.name.startsWith('gradle-test-kit-') }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'resolveDependencyArtifacts'
+
+        then:
+        def outputDir = temporaryFolder.testDirectory.file('build')
+        def jarFiles = outputDir.listFiles()
+        jarFiles.size() == 2
+        def gradleApiJar = jarFiles.find { it.name.startsWith('gradle-api-') }
+        def testKitJar = jarFiles.find { it.name.startsWith('gradle-test-kit-') }
+        def testKitClassNames = parseClassNamesFromZipFile(testKitJar)
+        assertNoDuplicateClassFilenames(gradleApiJar, testKitClassNames)
     }
 
     @Unroll
@@ -439,7 +542,7 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         where:
         dependencyPermutations << [new GradleDependency('Gradle API', 'compile', 'dependencies.gradleApi()'),
                                    new GradleDependency('TestKit', 'testCompile', 'dependencies.gradleTestKit()'),
-                                   new GradleDependency('Tooling API', 'compile', "project.files('${normaliseFileAndLineSeparators(buildContext.fatToolingApiJar.absolutePath)}')")].permutations()
+                                   new GradleDependency('Tooling API', 'compile', "project.files('${normaliseFileSeparators(buildContext.fatToolingApiJar.absolutePath)}')")].permutations()
     }
 
     def "Gradle API JAR is generated in an acceptable time frame"() {
@@ -597,5 +700,38 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         def pattern = /\b${regex}\b/
         def matcher = output =~ pattern
         assert matcher.count == 0
+    }
+
+    static List<String> parseClassNamesFromZipFile(File zip) {
+        def classNames = []
+
+        handleClassFilenameInZip(zip) { classFilename ->
+            classNames << classFilename
+        }
+
+        classNames
+    }
+
+    static void assertNoDuplicateClassFilenames(File zip, List<String> givenClassFilenames) {
+        handleClassFilenameInZip(zip) { classFilename ->
+            assert !givenClassFilenames.contains(classFilename)
+        }
+    }
+
+    static void handleClassFilenameInZip(File zip, Closure c) {
+        IoActions.withResource(new ZipInputStream(new FileInputStream(zip)), new ErroringAction<ZipInputStream>() {
+            protected void doExecute(ZipInputStream inputStream) throws Exception {
+                ZipEntry zipEntry = inputStream.getNextEntry()
+                while (zipEntry != null) {
+                    String name = zipEntry.name
+
+                    if (name.endsWith('.class')) {
+                        c(name)
+                    }
+
+                    zipEntry = inputStream.getNextEntry()
+                }
+            }
+        })
     }
 }
