@@ -26,6 +26,7 @@ import org.gradle.util.GradleVersion
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
 @TargetGradleVersion(">=1.0")
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
+    boolean integratedComposite
 
     static GradleVersion getTargetDistVersion() {
         // Create a copy to work around classloader issues
@@ -47,7 +48,9 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     }
 
     GradleConnectionBuilder createCompositeBuilder() {
-        return toolingApi.createCompositeBuilder()
+        def builder = toolingApi.createCompositeBuilder()
+        builder.integratedComposite(integratedComposite)
+        return builder
     }
 
     void addCompositeParticipant(GradleConnectionBuilder builder, File rootDir) {

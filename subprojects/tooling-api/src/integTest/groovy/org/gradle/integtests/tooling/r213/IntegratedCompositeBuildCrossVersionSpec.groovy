@@ -19,11 +19,9 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.GradleBuild
-
 /**
  * Tooling models for an integrated composite are produced by a single daemon instance.
  * We only do this for target gradle versions that support integrated composite build.
@@ -33,7 +31,6 @@ import org.gradle.tooling.model.gradle.GradleBuild
 class IntegratedCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     TestFile rootSingle
     TestFile rootMulti
-    GradleConnectionBuilder connectionBuilder
 
     def setup() {
         rootSingle = singleProjectBuild("A") {
@@ -57,11 +54,7 @@ allprojects {
 """
         }
 
-        def builder = createCompositeBuilder()
-        addCompositeParticipant(builder, rootSingle)
-        addCompositeParticipant(builder, rootMulti)
-        builder.integratedComposite(true)
-        connectionBuilder = builder
+        integratedComposite = true
     }
 
     def "can retrieve models from integrated composite"() {
@@ -69,7 +62,7 @@ allprojects {
         def gradleProjects = []
         def gradleBuilds = []
         def eclipseProjects = []
-        withCompositeConnection(connectionBuilder) { connection ->
+        withCompositeConnection([rootSingle, rootMulti]) { connection ->
             gradleProjects = unwrap(connection.getModels(GradleProject))
             gradleBuilds = unwrap(connection.getModels(GradleBuild))
             eclipseProjects = unwrap(connection.getModels(EclipseProject))
@@ -90,7 +83,7 @@ allprojects {
 
     def "can execute task in integrated composite"() {
         when:
-        withCompositeConnection(connectionBuilder) { connection ->
+        withCompositeConnection([rootSingle, rootMulti]) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(rootSingle, "helloA")
             buildLauncher.run()
@@ -101,7 +94,7 @@ allprojects {
         rootMulti.file('hello.txt').assertDoesNotExist()
 
         when:
-        withCompositeConnection(connectionBuilder) { connection ->
+        withCompositeConnection([rootSingle, rootMulti]) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(rootMulti, "helloB")
             buildLauncher.run()

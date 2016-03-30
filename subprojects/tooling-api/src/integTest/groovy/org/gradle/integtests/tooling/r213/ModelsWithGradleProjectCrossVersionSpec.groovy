@@ -34,7 +34,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
     TestFile rootSingle
     TestFile rootMulti
 
-    TestFile setup() {
+    void setup() {
         rootSingle = singleProjectBuild("A")
         rootMulti = multiProjectBuild("B", ['x', 'y'])
     }
