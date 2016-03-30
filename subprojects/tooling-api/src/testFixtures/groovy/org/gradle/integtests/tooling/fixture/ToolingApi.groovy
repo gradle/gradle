@@ -203,11 +203,6 @@ class ToolingApi implements TestRule {
         builder.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
         builder.daemonBaseDir(new File(daemonBaseDir.path))
         builder.daemonMaxIdleTime(120, TimeUnit.SECONDS)
-        builder.embeddedCoordinator(embedded)
-        builder.useInstallation(dist.gradleHomeDir.absoluteFile)
-//        if (useClasspathImplementation) {
-//            builder.useClasspathDistribution()
-//        }
         builder
     }
 
