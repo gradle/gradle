@@ -105,6 +105,12 @@ public class ProtocolToModelAdapter implements Serializable {
      * @param mapper An action that is invoked for each source object in the graph that is to be adapted. The action can influence how the source object is adapted via the provided {@link
      * SourceObjectMapping}.
      */
+    /**
+     * Adapts the source object to a view object.
+     *
+     * @param mapper An action that is invoked for each source object in the graph that is to be adapted. The action can influence how the source object is adapted via the provided
+     * {@link SourceObjectMapping}.
+     */
     public <T, S> T adapt(Class<T> targetType, S sourceObject, Action<? super SourceObjectMapping> mapper) {
         if (sourceObject == null) {
             return null;
@@ -116,20 +122,30 @@ public class ProtocolToModelAdapter implements Serializable {
         if (wrapperType.isInstance(sourceObject)) {
             return wrapperType.cast(sourceObject);
         }
-        MethodInvoker overrideMethodInvoker = mapping.overrideInvoker;
-        MixInMethodInvoker mixInMethodInvoker = null;
-        if (mapping.mixInType != null) {
-            mixInMethodInvoker = new MixInMethodInvoker(mapping.mixInType, new AdaptingMethodInvoker(mapper, new ReflectionMethodInvoker()));
-            overrideMethodInvoker = mixInMethodInvoker;
-        }
         if (targetType.isEnum()) {
             return adaptToEnum(targetType, sourceObject);
         }
-        Object proxy = Proxy.newProxyInstance(wrapperType.getClassLoader(), new Class<?>[]{wrapperType}, new InvocationHandlerImpl(sourceObject, overrideMethodInvoker, mapper));
+
+        MixInMethodInvoker mixInMethodInvoker = null;
+        if (mapping.mixInType != null) {
+            mixInMethodInvoker = new MixInMethodInvoker(mapping.mixInType, new AdaptingMethodInvoker(mapper, new ReflectionMethodInvoker()));
+        }
+        MethodInvoker overrideInvoker = chainInvokers(mixInMethodInvoker, mapping.overrideInvoker);
+        Object proxy = Proxy.newProxyInstance(wrapperType.getClassLoader(), new Class<?>[]{wrapperType}, new InvocationHandlerImpl(sourceObject, overrideInvoker, mapper));
         if (mixInMethodInvoker != null) {
             mixInMethodInvoker.setProxy(proxy);
         }
         return wrapperType.cast(proxy);
+    }
+
+    private MethodInvoker chainInvokers(MixInMethodInvoker mixInMethodInvoker, MethodInvoker overrideInvoker) {
+        if (mixInMethodInvoker == null) {
+            return overrideInvoker;
+        }
+        if (overrideInvoker == NO_OP_HANDLER) {
+            return mixInMethodInvoker;
+        }
+        return new ChainedMethodInvoker(mixInMethodInvoker, overrideInvoker);
     }
 
     private static <T, S> T adaptToEnum(Class<T> targetType, S sourceObject) {
