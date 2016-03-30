@@ -1,6 +1,17 @@
-The Gradle team is pleased to announce Gradle 2.13. This release brings ...
+The Gradle team is pleased to announce Gradle 2.13. This release brings many exciting execution performance improvements, community PRs and a new feature for Tooling API users.
 
-Our commitment to improving the developer experience with each release continues. For Gradle 2.13, we targeted performance improvements during Gradle's execution phase, where we have seen 10-25% improvements in our performance tests.
+Our commitment to improving the developer experience with each release continues. For Gradle 2.13, we've targeted performance improvements during Gradle's execution phase, where we have measured **10-25%** improvements to build time in our performance tests. No changes to your build script are necessary to start taking advantage of these improvements.
+
+We've improved [Gradle TestKit](userguide/test_kit.html), so that plugin authors no longer need to add boilerplate to their build scripts. The [development plugin](userguide/javaGradle_plugin.html) automatically adds the necessary configuration to make it easier to test Gradle plugins.
+
+The [Gradle Community](you) has contributed many fixes and new features in this release.  The Checkstyle and FindBugs plugins now allow you to customize their HTML reports with stylesheets.
+The [Signing plugin](userguide/signing_plugin.html) supports OpenPGP subkeys, so you can keep your master signing keys safely off your CI server. These are just some of the great contributions we've received.
+
+[As we announced on our forums](https://discuss.gradle.org/t/exciting-new-buildship-features-coming-up/14728), we're introducing a new way of putting multiple Gradle builds together with [Eclipse Buildship](http://projects.eclipse.org/projects/tools.buildship). We're calling this feature **Composite Build**.
+A composite build allows you to combine multiple Gradle builds and replace external binary dependencies with project dependencies as if you were using a single multi-project build. For projects that use multiple distinct Gradle builds, this will allow you to mix and match your separate builds into one build in a very flexible way.
+Eventually, composite builds will allow you to use different versions of Gradle in each build and execute tasks across projects in the composite from the command-line.  Gradle 2.13 has an initial implementation, so Tooling API users (i.e., IDEs) can start building upon it.
+
+Upgrade to Gradle 2.13 and let us know what you think.
 
 ## New and noteworthy
 
@@ -41,7 +52,19 @@ See the [TestKit chapter in the Gradle User Guide](userguide/test_kit.html#sub:t
 
 ### Initial support for creating Composite Builds
 
-TBD
+Up until this release, the only way to retrieve models and execute tasks from the Tooling API was through the [ProjectConnection API](javadoc/org/gradle/tooling/ProjectConnection.html).
+This API was limited to a single connection to a single project in a build (regardless if the build was multi-project or single-project). This makes it difficult and expensive to retrieve information
+about each project in a build.
+
+For Composite Build, we need a way to retrieve multiple models from a group of Gradle builds (each of which may be a single project or multiple projects). We also need a way to execute tasks in the context of a
+composite.  In the future, we'll use the composite context to identify dependency substitutions that should be made and correctly wire together task dependencies.
+
+We have introduced a new [GradleConnection API](javadoc/org/gradle/tooling/connection/GradleConnection.html), which will eventually replace `ProjectConnection`.
+
+We have also introduced [ProjectIdentifier](javadoc/org/gradle/tooling/model/ProjectIdentifier.html) and [BuildIdentifier](javadoc/org/gradle/tooling/model/BuildIdentifier.html) model types. These types will be used
+to correlate results from a `GradleConnection` back to the appropriate Gradle build or Gradle project.
+
+`GradleConnector` remains the main entry point into the Tooling API. Samples of using the `GradleConnection` API are available in the Gradle distribution (`samples/tooling-api/composite-.*`) and in the Javadoc for `GradleConnection`.
 
 ### Customized HTML reports for Checkstyle and FindBugs
 
@@ -83,6 +106,7 @@ You only need the subkey for signature operations, which allows you to deploy on
 
 The [Signing plugin](userguide/signing_plugin.html#sec:subkeys) now supports subkeys, see the documentation for more details.
 
+<!--
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -90,7 +114,6 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
 ### Example promoted
 -->
 
@@ -251,6 +274,7 @@ For some properties that have unusual capitalization, you may need to use a diff
 Input properties are now addressed with the same names in validation error messages, DSL and through `getInputs().getProperties()`.
 
 For example:
+
 - If you have a getter named `getcFlags` and you have marked it as an `@Input`,
     - This property would be named `cFlags` according to the JavaBean specification.
     - You can reference this as `cFlags` or `getcFlags()` in the DSL.
@@ -290,6 +314,27 @@ With this version of Gradle proper class relocation has been implemented
  conflict anymore with classes from third party dependencies used by
  the Gradle runtime.
 
+### JaCoCo version upgrade to 0.7.6
+
+The [JaCoCo plugin](userguide/jacoco_plugin.html) uses [JaCoCo 0.7.6](http://eclemma.org/jacoco/trunk/doc/changes.html) by default.
+
+To downgrade to the previous version:
+
+    jacoco {
+        toolVersion = "0.7.1.201405082137"
+    }
+
+### Apache Commons Collections upgrade to 3.2.2
+
+Gradle now bundles [Apache Commons Collections 3.2.2](https://commons.apache.org/proper/commons-collections/release_3_2_2.html).
+
+This is an internal dependency, but `buildSrc` plugins may inadvertently use classes from this dependency.
+
+This was upgraded to fix a security vulnerability.
+
+### Apache Ant upgrade to 1.9.6
+
+Gradle now bundles [Apache Ant 1.9.6](https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.6.html) instead of Apache Ant 1.9.3.
 
 ## External contributions
 
