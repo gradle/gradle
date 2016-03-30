@@ -1,6 +1,5 @@
 
 apply plugin: 'java'
-apply plugin: 'idea'
 
 repositories {
     jcenter()
