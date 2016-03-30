@@ -67,6 +67,15 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         }
     }
 
+    def <T> T withCompositeConnection(GradleConnectionBuilder builder, @ClosureParams(value = SimpleType, options = [ "org.gradle.tooling.connection.GradleConnection" ]) Closure<T> c) {
+        GradleConnection connection = builder.build()
+        try {
+            return c(connection)
+        } finally {
+            connection?.close()
+        }
+    }
+
     TestFile getRootDir() {
         temporaryFolder.testDirectory
     }

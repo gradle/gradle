@@ -204,7 +204,7 @@ class ToolingApi implements TestRule {
         builder.daemonBaseDir(new File(daemonBaseDir.path))
         builder.daemonMaxIdleTime(120, TimeUnit.SECONDS)
 
-        // These settings are currently ignored, because we are not enabling an integrated composite
+        // These settings are ignored unless the test calls `builder.integratedComposite(true)`
         builder.useInstallation(dist.gradleHomeDir.absoluteFile) // For now, just use the target gradle distribution
         builder.embeddedCoordinator(embedded)
         if (useClasspathImplementation) {
