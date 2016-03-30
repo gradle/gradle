@@ -11,7 +11,8 @@ Add-->
 -->
 
 ### Faster Gradle builds
-Gradle is now faster than ever.  A number of performance improvements targeted at "execution time" (i.e. the part of the build lifecycle
+
+Gradle is now faster than ever. A number of performance improvements targeted at "execution time" (i.e. the part of the build lifecycle
 where Gradle is actually performing the actions of the build) have been introduced with this release:
 
 * Messages are logged to the console more efficiently.
@@ -63,11 +64,12 @@ The flags are ignored for versions of Groovy prior to 2.4.6.
 
 ### Signing with OpenPGP subkeys
 
-OpenPGP supports subkeys, which are like the normal keys, except they're bound to a master key pair.
-One useful feature of OpenPGP subkeys is that they can be revoked independently of the master keys which makes key management easier.
-Another feature is that you only need the subkey for signature operations. This means you can deploy only your signing subkey to a CI server, for example.
+OpenPGP supports subkeys, which are like normal keys, except they're bound to a master key pair.
 
-A limitation in the previous versions of the signing plugin prevented to use of subkeys. Starting with Gradle 2.13, they are supported out of the box.
+One useful feature of OpenPGP subkeys is that they can be revoked independently of the master keys which makes key management easier.
+You only need the subkey for signature operations, which lets you deploy only your signing subkey to a CI server.
+
+A limitation in the previous versions of the signing plugin prevented the use of subkeys.
 See the documentation for the [Signing](userguide/signing_plugin.html) plugin for more details.
 
 ## Promoted features
@@ -100,11 +102,14 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example breaking change
 -->
 
-### Deleting no longer follows symlinks.
+### Deleting no longer follows symlinks
 
-The Delete task will no longer follow symlinks by default and project.delete() will not follow symlinks at all. Previous versions of Gradle would follow-symlinks during deletions. If you need the Delete
-task to follow symlinks set `followSymlinks = true`. If you need `project.delete()` to follow symlinks, replace it with `ant.delete()`. This was done to prevent issues where Gradle would attempt to delete files
-outside of Gradle's build directory (e.g. NPM installed in a user-writeable location.).
+The [Delete](current/dsl/org.gradle.api.tasks.Delete.html) task will no longer follow symlinks by default and
+<a href="current/dsl/org.gradle.api.Project.html#org.gradle.api.Project:delete(java.lang.Object[])">project.delete(paths)</a> will not follow symlinks at all.
+This was done to prevent issues where Gradle would attempt to delete files outside of Gradle's build directory (e.g. NPM installed in a user-writeable location).
+
+Previous versions of Gradle would follow symlinks when deleting files. If you need the `Delete` task to follow symlinks set `followSymlinks = true`.
+If you need `project.delete()` to follow symlinks, replace it with [ant.delete()](https://ant.apache.org/manual/Tasks/delete.html).
 
 ### Project Dependencies now include classifiers and all artifacts in generated POM files
 
@@ -145,7 +150,7 @@ test jar.
         uploadArchives {
             repositories {
                 mavenDeployer {
-	                repository(url: "file:///$rootProject.projectDir/maven-repo")
+                    repository(url: "file:///$rootProject.projectDir/maven-repo")
                 }
             }
         }
@@ -195,7 +200,7 @@ In the previous version of Gradle, the resulting `project1-1.9.pom` would have i
     </dependencies>
     ...
 
-In this version of Gradle, the resulting `project-1.9.pom` will include the following dependencies:
+In this version of Gradle, the POM file for `project1` would have included this dependency:
 
     ...
     <dependencies>
@@ -263,29 +268,27 @@ With this version of Gradle proper class relocation has been implemented
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 * [Alexander Afanasyev](https://github.com/cawka) - allow configuring java.util.logging in tests ([GRADLE-2524](https://issues.gradle.org/browse/GRADLE-2524))
-* [Evgeny Mandrikov](https://github.com/Godin) - upgrade default JaCoCo version to 0.7.6
 * [Randall Becker](https://github.com/rsbecker) - bypass ulimit in NONSTOP os
-* [Endre Fejese](htts://github.com/fejese) - fix a typo in a javadoc comment
+* [Bryan Bess](https://github.com/squarejaw) - fix documentation layout for scala and groovy plugins
 * [Thomas Broyer](https://github.com/tbroyer) - add design doc for better/built-in Java annotation processing support
+* [Schalk Cronjé](https://github.com/ysb33r) - update docs about `getFile()` and filters
+* [Jeffrey Crowell](https://github.com/crowell) - upgrade Apache Commons Collections to v3.2.2
+* [Ryan Ernst](https://github.com/rjernst) - support system properties from the command-line for buildSrc builds ([GRADLE-2475](https://issues.gradle.org/browse/GRADLE-2475))
+* [Endre Fejese](htts://github.com/fejese) - fix a typo in a javadoc comment
 * [Ethan Hall](https://github.com/ethankhall) - make Delete tasks not follow symlinks ([GRADLE-2892](https://issues.gradle.org/browse/GRADLE-2892))
 * [Alpha Hinex](https://github.com/alphahinex) - upgrade to Ant 1.9.6
-* [Denis Krapenko](https://github.com/dkrapenko) - support multiple values for some command-line options
-* [P. P.](https://github.com/pepoirot) - support for stylesheets with FindBugs and Checkstyle
-* [Maciej Kowalski](https://github.com/fkowal) - move `DEFAULT_JVM_OPTS` after `APP_HOME` in application plugin
+* [Jeremie Jost](https://github.com/jjst) - fix a typo in the application plugin documentation
 * [Paul King](https://github.com/paulk-asert) - support groovydoc's `noTimestamp` and `noVersionStamp` properties
-* [Schalk Cronjé](https://github.com/ysb33r) - update docs about `getFile()` and filters
+* [Maciej Kowalski](https://github.com/fkowal) - move `DEFAULT_JVM_OPTS` after `APP_HOME` in application plugin
+* [Denis Krapenko](https://github.com/dkrapenko) - support multiple values for some command-line options
+* [Guillaume Laforge](https://github.com/glaforge) - remove extraneous `public` keywords from build.gradle
+* [Evgeny Mandrikov](https://github.com/Godin) - upgrade default JaCoCo version to 0.7.6
+* [Raymond Navarette](https://github.com/rnavarette) - add classifiers for project dependencies in generated POM files ([GRADLE-3030](https://issues.gradle.org/browse/GRADLE-3030))
+* [Pierre-Etienne Poirot](https://github.com/pepoirot) - support for stylesheets with FindBugs and Checkstyle
 * [Oliver Reissig](https://github.com/oreissig) - improve error message when `tools.jar` is not found
 * [Andrew Reitz](https://github.com/pieces029) - fix a broken link to the groovy documentation
-* [Bryan Bess](https://github.com/squarejaw) - fix documentation layout for scala and groovy plugins
-* [Jeffrey Crowell](https://github.com/crowell) - upgrade Apache Commons Collections to v3.2.2
-* [Guillaume Laforge](https://github.com/glaforge) - remove extraneous `public` keywords from build.gradle
-* [Jeremie Jost](https://github.com/jjst) - fix a typo in the application plugin documentation
-* [Marcin Zajączkowski](https://github.com/szpak) - add Project.findProperty method
-* [Marcin Zajączkowski](https://github.com/szpak) - fix a test which was failing against the OpenJDK
-* [Raymond Navarette](https://github.com/rnavarette) - add classifiers for project dependencies in generated POM files ([GRADLE-3030](https://issues.gradle.org/browse/GRADLE-3030))
-* [Ryan Ernst](https://github.com/rjernst) - support system properties from the command-line for buildSrc builds ([GRADLE-2475](https://issues.gradle.org/browse/GRADLE-2475))
 * [Baruch Sadogursky](https://github.com/jbaruch) - add jcenter repository example to the userguide
-* [Marcin Zajączkowski](https://github.com/szpak) - support for OpenPGP subkeys in the signing plugin
+* [Marcin Zajączkowski](https://github.com/szpak) - Support for OpenPGP subkeys in the signing plugin, add Project.findProperty method, fix a test which was failing against the OpenJDK
 
 <!--
 * [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
