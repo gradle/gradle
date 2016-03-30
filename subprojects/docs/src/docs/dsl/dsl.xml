@@ -184,18 +184,6 @@
                 <td>org.gradle.api.publish.PublishingExtension</td>
             </tr>
             <tr>
-                <td>org.gradle.api.reporting.Report</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.reporting.Reporting</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.reporting.ReportContainer</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.reporting.ReportingExtension</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.publish.ivy.IvyPublication</td>
             </tr>
             <tr>
@@ -456,6 +444,38 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.bundling.Zip</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Reporting types</title>
+        <para>Listed below are some of the types which are used when generating reports:</para>
+        <table>
+            <title>Reporting types</title>
+            <tr>
+                <td>org.gradle.api.plugins.quality.CustomizableHtmlReport</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.reporting.SingleFileReport</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.reporting.DirectoryReport</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.plugins.quality.FindBugsXmlReport</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.reporting.Report</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.reporting.Reporting</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.reporting.ReportContainer</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.reporting.ReportingExtension</td>
             </tr>
         </table>
     </section>

@@ -24,7 +24,7 @@ import org.gradle.api.resources.TextResource;
  * A HTML Report whose generation can be customized with a XSLT stylesheet.
  */
 @Incubating
-public interface CustomizableHTMLReport extends SingleFileReport {
+public interface CustomizableHtmlReport extends SingleFileReport {
 
     /**
      * The stylesheet to use to generate the HTML report.
