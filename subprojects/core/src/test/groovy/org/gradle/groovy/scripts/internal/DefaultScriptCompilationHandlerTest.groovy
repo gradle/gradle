@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.scripts.internal
 
+import groovy.transform.NotYetImplemented
 import org.codehaus.groovy.ast.ClassHelper
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.CodeVisitorSupport
@@ -380,6 +381,18 @@ println 'hi'
 
         and:
         checkScriptCacheEmpty()
+    }
+
+    @Issue('GRADLE-3423')
+    @NotYetImplemented
+    def testCompileWithInnerClassReference() {
+        ScriptSource source = new StringScriptSource("script.gradle", "Map.Entry entry = null")
+
+        when:
+        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
+
+        then:
+        noExceptionThrown()
     }
 
     private void checkScriptClassesInCache(boolean empty = false) {
