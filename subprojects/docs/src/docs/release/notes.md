@@ -34,7 +34,10 @@ The TestKit has improved and matured with subsequent Gradle releases.
 The [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html) now makes the plugin-under-test's implementation classpath discoverable at test time automatically.
 This means you need less manual build configuration in order to test your plugin.
 
-See the [TestKit chapter in the Gradle User Guide](userguide/test_kit.html#sub:test-kit-automatic-classpath-injection) for more information about this new feature.
+If you build your plugin with Gradle 2.13, you no longer need to manually inject your plugin's classpath in tests if you are testing against Gradle 2.8 or newer.
+If you need to test against a version of Gradle older than 2.8, you will still need to include your plugin's classpath in the `buildscript {}` block.
+
+See the [TestKit chapter in the Gradle User Guide](userguide/test_kit.html#sub:test-kit-automatic-classpath-injection) for more information and examples of using this new feature.
 
 ### Initial support for creating Composite Builds
 
@@ -73,13 +76,12 @@ The flags are ignored for older versions of Groovy prior to 2.4.6.
 
 ### Signing with OpenPGP subkeys
 
-OpenPGP supports subkeys, which are like normal keys, except they're bound to a master key pair.
+OpenPGP supports a type of subkey, which are like normal keys, except they're bound to a master key pair.
 
-One useful feature of OpenPGP subkeys is that they can be revoked independently of the master keys which makes key management easier.
-You only need the subkey for signature operations, which lets you deploy only your signing subkey to a CI server.
+These subkeys can be stored independently of master keys. OpenPGP subkeys can also be revoked independently of the master keys, which makes key management easier.
+You only need the subkey for signature operations, which allows you to deploy only your signing subkey to a CI server.
 
-A limitation in the previous versions of the signing plugin prevented the use of subkeys.
-See the documentation for the [Signing](userguide/signing_plugin.html) plugin for more details.
+The [Signing plugin](userguide/signing_plugin.html#sec:subkeys) now supports subkeys, see the documentation for more details.
 
 ## Promoted features
 
@@ -111,7 +113,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example breaking change
 -->
 
-### Deleting no longer follows symlinks
+### Delete no longer follows symlinks
 
 The [Delete](dsl/org.gradle.api.tasks.Delete.html) task will no longer follow symlinks by default and
 <a href="dsl/org.gradle.api.Project.html#org.gradle.api.Project:delete(java.lang.Object[])">project.delete(paths)</a> will not follow symlinks at all.
@@ -121,6 +123,8 @@ Previous versions of Gradle would follow symlinks when deleting files. If you ne
 If you need `project.delete()` to follow symlinks, replace it with [ant.delete()](https://ant.apache.org/manual/Tasks/delete.html).
 
 ### Project Dependencies now include classifiers and all artifacts in generated POM files
+
+TODO: Review
 
 Previously, dependencies between projects in a multi-project gradle build, would not respect classifiers when generating `pom` files for publishing to maven
 repositories. It is possible that this caused gradle users to create workarounds and post-processing of `pom` files before archiving them. If the `pom` files
@@ -240,15 +244,30 @@ In this version of Gradle, the POM file for `project1` would have included this 
 This improved behavior may mean you no longer need workarounds in your build scripts, but you might have to change those same build scripts so that the existing
 workarounds don't break the `pom` or add duplicate entries.
 
-### Task input properties names now follow the JavaBean specification
+### Task input property names now follow the JavaBean specification
 
-Task input properties now follow the JavaBean specification and thus are on par with Groovy. This means that:
+Task input properties now correctly follow the JavaBean specification. For most properties, this will have no effect.
+For some properties that have unusual capitalization, you may need to use a different name when accessing the property from the Map of input properties.
+Input properties are now addressed with the same names in validation error messages, DSL and through `getInputs().getProperties()`.
 
-- Input properties are now addressed with coherent names in validation error messages, the DSL and through `task.getInputs().getProperties()`.
-- Input properties with getters like `getCFlags()` are now addressable through `task.getInputs().getProperties()` via `CFlags` instead of the erroneous `cFlags`.
-- Input properties with getters like `getURL()` are now addressable through `task.getInputs().getProperties()` via `URL` instead of the erroneous `uRL`.
+For example:
+- If you have a getter named `getcFlags` and you have marked it as an `@Input`,
+    - This property would be named `cFlags` according to the JavaBean specification.
+    - You can reference this as `cFlags` or `getcFlags()` in the DSL.
+    - It will also be available from the Map of input properties as `getInputs().getProperties().get("cFlags")` or `inputs.properties.cFlags`.
+    - This behavior has not changed.
+- If you have a getter named `getCFlags` and you have marked it as an `@Input`,
+    - This property would be named `CFlags` according to the JavaBean specification.
+    - You can reference this as `CFlags` or `getCFlags()` in the DSL.
+    - It will also be available from the Map of input properties as `getInputs().getProperties().get("CFlags")` or `inputs.properties.CFlags`.
+    - **This behavior is different.** Previously, the property would have been found with `getInputs().getProperties().get("cFlags")` or `inputs.properties.cFlags`.
+- Input properties with getters like `getURL()` are now found with `getInputs().getProperties().get("URL")` or `inputs.properties.URL` instead of the erroneous `uRL`.
+
+Most builds are unlikely to be using the names of the properties available from `getInputs().getProperties()`.
 
 ### Gradle implementation dependencies are not visible to plugins at development time
+
+TODO: Review
 
 Implementing a Gradle plugin requires the declaration of `gradleApi()`
 to the `compile` configuration. The resolved dependency encompasses the
