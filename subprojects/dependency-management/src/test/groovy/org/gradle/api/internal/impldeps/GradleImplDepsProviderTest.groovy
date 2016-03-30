@@ -87,12 +87,11 @@ class GradleImplDepsProviderTest extends Specification {
         1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
-        1 * cache.useCache("Checking $jarFile.name", _) >> false
         1 * cache.useCache("Generating $jarFile.name", _)
         jarFile == resolvedFile
 
         where:
-        name << GradleImplDepsProvider.VALID_JAR_NAMES
+        name << GradleImplDepsProvider.GradleImplDepsJar.allIdentifiers
     }
 
     def "reuses existing JAR file if existent"() {
@@ -112,7 +111,6 @@ class GradleImplDepsProviderTest extends Specification {
         1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
-        1 * cache.useCache("Checking $jarFile.name", _) >> false
         1 * cache.useCache("Generating $jarFile.name", _)
         jarFile == resolvedFile
 
@@ -126,7 +124,6 @@ class GradleImplDepsProviderTest extends Specification {
         0 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         0 * cacheBuilder.open() >> { cache }
         _ * cache.getBaseDir() >> cacheDir
-        1 * cache.useCache("Checking $jarFile.name", _) >> true
         0 * cache.useCache("Generating $jarFile.name", _)
         jarFile == resolvedFile
     }

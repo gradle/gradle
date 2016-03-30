@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.impldeps;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.internal.Factory;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +26,8 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.File;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -35,7 +35,6 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class GradleImplDepsProvider implements Closeable {
     public static final String CACHE_KEY = "generated-gradle-jars";
     public static final String CACHE_DISPLAY_NAME = "Generated Gradle JARs cache";
-    public static final Set<String> VALID_JAR_NAMES = ImmutableSet.of("api", "test-kit");
     private static final Logger LOGGER = LoggerFactory.getLogger(GradleImplDepsProvider.class);
     private final String gradleVersion;
     private PersistentCache cache;
@@ -52,20 +51,15 @@ public class GradleImplDepsProvider implements Closeable {
     }
 
     public File getFile(final Collection<File> classpath, String name) {
-        if (VALID_JAR_NAMES.contains(name)) {
+        if (GradleImplDepsJar.isValidIdentifier(name)) {
             final File implDepsJarFile = jarFile(cache, name);
 
-            Boolean existsInCache = cache.useCache(String.format("Checking %s", implDepsJarFile.getName()), new Factory<Boolean>() {
-                @Override
-                public Boolean create() {
-                    return implDepsJarFile.exists();
-                }
-            });
-
-            if (!existsInCache) {
+            if (!implDepsJarFile.exists()) {
                 cache.useCache(String.format("Generating %s", implDepsJarFile.getName()), new Runnable() {
                     public void run() {
-                        relocatedJarCreator.create(implDepsJarFile, classpath);
+                        if (!implDepsJarFile.exists()) {
+                            relocatedJarCreator.create(implDepsJarFile, classpath);
+                        }
                     }
                 });
             }
@@ -84,5 +78,36 @@ public class GradleImplDepsProvider implements Closeable {
 
     private File jarFile(PersistentCache cache, String name) {
         return new File(cache.getBaseDir(), String.format("gradle-%s-%s.jar", name, gradleVersion));
+    }
+
+    enum GradleImplDepsJar {
+        API("api"), TEST_KIT("test-kit");
+
+        private static final Map<String, GradleImplDepsJar> IDENTIFIER_MAPPING;
+        private final String identifier;
+
+        static {
+            IDENTIFIER_MAPPING = new HashMap<String, GradleImplDepsJar>();
+
+            for(GradleImplDepsJar jar : values()) {
+                IDENTIFIER_MAPPING.put(jar.getIdentifier(), jar);
+            }
+        }
+
+        GradleImplDepsJar(String identifier) {
+            this.identifier = identifier;
+        }
+
+        String getIdentifier() {
+            return identifier;
+        }
+
+        static boolean isValidIdentifier(String identifier) {
+            return IDENTIFIER_MAPPING.containsKey(identifier);
+        }
+
+        static Set<String> getAllIdentifiers() {
+            return IDENTIFIER_MAPPING.keySet();
+        }
     }
 }
