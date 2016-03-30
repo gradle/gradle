@@ -33,13 +33,13 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.tooling.BuildController;
-import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.connection.InternalBuildActionAdapter;
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
+import org.gradle.tooling.internal.consumer.connection.InternalBuildActionAdapter;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.provider.*;
+import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 
 import java.io.File;
@@ -72,34 +72,22 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
 
     private void executeTasksInProcess(StartParameter parentStartParam, CompositeBuildActionParameters actionParameters, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
         CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
-        List<GradleParticipantBuild> participantBuilds = compositeParameters.getBuilds();
         GradleLauncherFactory launcherFactory = sharedServices.get(GradleLauncherFactory.class);
 
-        boolean buildFound = false;
-        for (GradleParticipantBuild participant : participantBuilds) {
-            // TODO  We are no longer targeting the correct build
-//            if (!participant.getProjectDir().getAbsolutePath().equals(compositeParameters.getCompositeTargetBuildRootDir().getAbsolutePath())) {
-//                continue;
-//            }
-            buildFound = true;
-            if (buildRequestContext.getCancellationToken().isCancellationRequested()) {
-                break;
-            }
-            StartParameter startParameter = parentStartParam.newInstance();
-            startParameter.setProjectDir(participant.getProjectDir());
-            startParameter.setSearchUpwards(false);
+        GradleParticipantBuild participant = compositeParameters.getTargetBuild();
+        StartParameter startParameter = parentStartParam.newInstance();
+        startParameter.setProjectDir(participant.getProjectDir());
+        startParameter.setSearchUpwards(false);
 
-            DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), System.currentTimeMillis()),
-                buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(), buildRequestContext.getErrorListener());
-            GradleLauncher launcher = launcherFactory.newInstance(startParameter, requestContext, sharedServices);
-            try {
-                launcher.run();
-            } finally {
-                launcher.stop();
-            }
-        }
-        if (!buildFound) {
-            throw new IllegalStateException("Build not part of composite");
+        ServiceRegistry buildScopedServices = new BuildSessionScopeServices(sharedServices, startParameter, ClassPath.EMPTY);
+
+        DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), System.currentTimeMillis()), buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(), buildRequestContext.getErrorListener());
+        GradleLauncher launcher = launcherFactory.newInstance(startParameter, requestContext, buildScopedServices);
+
+        try {
+            launcher.run();
+        } finally {
+            launcher.stop();
         }
     }
 

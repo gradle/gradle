@@ -56,6 +56,8 @@ allprojects {
 
         def builder = createCompositeBuilder()
         addCompositeParticipant(builder, rootSingle)
+
+        // Models are not yet built properly for multi-project build
 //        addCompositeParticipant(builder, rootMulti)
         builder.integratedComposite(true)
         connectionBuilder = builder
@@ -74,6 +76,8 @@ allprojects {
     }
 
     def "can execute task in integrated composite"() {
+        addCompositeParticipant(connectionBuilder, rootMulti)
+
         when:
         withCompositeConnection(connectionBuilder) { connection ->
             def buildLauncher = connection.newBuild()
@@ -84,7 +88,6 @@ allprojects {
         then:
         rootSingle.file('hello.txt').assertExists().text == 'Hello world from :'
         rootMulti.file('hello.txt').assertDoesNotExist()
-/*
 
         when:
         withCompositeConnection(connectionBuilder) { connection ->
@@ -97,6 +100,5 @@ allprojects {
         rootMulti.file('hello.txt').assertExists().text == 'Hello world from :'
         rootMulti.file('x/hello.txt').assertExists().text == 'Hello world from :x'
         rootMulti.file('y/hello.txt').assertExists().text == 'Hello world from :y'
-*/
     }
 }

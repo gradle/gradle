@@ -21,26 +21,23 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.CancellationToken;
-import org.gradle.tooling.internal.connection.DefaultBuildIdentifier;
-import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.connection.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.ProjectConnectionParameters;
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable;
 import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class ConsumerOperationParameters implements BuildOperationParametersVersion1, BuildParametersVersion1, BuildParameters {
@@ -414,7 +411,20 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
     }
 
     public List<GradleParticipantBuild> getBuilds() {
-        return parameters instanceof CompositeConnectionParameters ? ((CompositeConnectionParameters) parameters).getBuilds() : null;
+        if (!(parameters instanceof CompositeConnectionParameters)) {
+            return null;
+        }
+        List<GradleParticipantBuild> unorderedBuilds = ((CompositeConnectionParameters) parameters).getBuilds();
+        List<GradleParticipantBuild> builds = new LinkedList<GradleParticipantBuild>();
+        for (GradleParticipantBuild build : unorderedBuilds) {
+            BuildIdentifier participantIdentifier = new DefaultBuildIdentifier(build.getProjectDir());
+            if (participantIdentifier.equals(buildIdentifier)) {
+                builds.add(0, build);
+            } else {
+                builds.add(build);
+            }
+        }
+        return builds;
     }
 
     public BuildIdentifier getBuildIdentifier() {
