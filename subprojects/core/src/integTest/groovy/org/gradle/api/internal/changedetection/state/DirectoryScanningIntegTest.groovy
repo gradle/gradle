@@ -41,24 +41,25 @@ class DirectoryScanningIntegTest extends DaemonIntegrationSpec {
 
     // read serialized counts from file and transform paths to relative paths
     private Map<String, Integer> loadDirectoryScanCounts() {
-        Map<File, Integer> scanCounts
-        file('countDirectoryScans.ser').withInputStream {
-            scanCounts = new ObjectInputStream(it).readObject()
-        }
+        Map<File, Integer> scanCounts = readSerializedFile('countDirectoryScans.ser')
         // transform into relative paths
         scanCounts.collectEntries { File dir, Integer count ->
             [GFileUtils.relativePath(testDirectory, dir), count]
         }
     }
 
-    private Map<File, List<Exception>> loadDirectoryScanLocations() {
-        def file = file('directoryScanLocations.ser')
+    private Object readSerializedFile(String fileName) {
+        def file = file(fileName)
         if (file.exists()) {
             return file.withInputStream {
                 new ObjectInputStream(it).readObject()
             }
         }
         null
+    }
+
+    private Map<File, List<Exception>> loadDirectoryScanLocations() {
+        readSerializedFile('directoryScanLocations.ser')
     }
 
     private void printDirectoryScanLocations() {
@@ -150,7 +151,21 @@ public class HelloTest {
     private void checkDirectoryScanning(int maxScans = 3) {
         def scanCounts = loadDirectoryScanCounts()
         if (printCounts) {
-            println "Directory scanning report:\n${scanCounts.sort { a, b -> a.value.compareTo(b.value) }.collect { k, v -> "$k\t$v times"}.join('\n')}"
+            def valueSort = { a, b -> a.value.compareTo(b.value) }
+            def mapReport = { it.sort(valueSort).collect { k, v -> "$k\t$v times" }.join('\n') }
+            println "Directory scanning report:\n${mapReport(scanCounts)}"
+            def cacheMisses = readSerializedFile('cacheMisses.ser')
+            if (cacheMisses) {
+                println "Cache misses:\n${mapReport(cacheMisses)}"
+            } else {
+                println "No cache misses."
+            }
+            def cacheHits = readSerializedFile('cacheHits.ser')
+            if (cacheHits) {
+                println "Cache hits:\n${mapReport(cacheHits)}"
+            } else {
+                println "No cache hits."
+            }
         }
         if (trackLocations) {
             printDirectoryScanLocations()

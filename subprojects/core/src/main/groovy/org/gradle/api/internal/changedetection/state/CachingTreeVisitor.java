@@ -24,12 +24,15 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import java.util.Collection;
 import java.util.concurrent.ConcurrentMap;
 
 // Visits a FileTreeInternal for snapshotting, caches some directory scans
 public class CachingTreeVisitor {
+    private final static Logger LOG = Logging.getLogger(CachingTreeVisitor.class);
     private ConcurrentMap<String, Collection<FileTreeElement>> cachedTrees = new MapMaker().weakValues().makeMap();
 
     public Collection<FileTreeElement> visitTreeForSnapshotting(FileTreeInternal fileTree, boolean allowReuse) {
@@ -39,8 +42,10 @@ public class CachingTreeVisitor {
                 final String absolutePath = directoryFileTree.getDir().getAbsolutePath();
                 Collection<FileTreeElement> cachedTree = allowReuse ? cachedTrees.get(absolutePath) : null;
                 if (cachedTree != null) {
+                    recordCacheHit(directoryFileTree);
                     return cachedTree;
                 } else {
+                    recordCacheMiss(directoryFileTree, allowReuse);
                     cachedTree = doVisitTree(fileTree);
                     cachedTrees.put(absolutePath, cachedTree);
                     return cachedTree;
@@ -48,6 +53,20 @@ public class CachingTreeVisitor {
             }
         }
         return doVisitTree(fileTree);
+    }
+
+    protected void recordCacheHit(DirectoryFileTree directoryFileTree) {
+        // method added also for interception with bytebuddy in integtest
+        LOG.debug("Cache hit {}", directoryFileTree);
+    }
+
+    protected void recordCacheMiss(DirectoryFileTree directoryFileTree, boolean allowReuse) {
+        // method added also for interception with bytebuddy in integtest
+        if (allowReuse) {
+            LOG.debug("Cache miss {}", directoryFileTree);
+        } else {
+            LOG.debug("Visiting {}", directoryFileTree);
+        }
     }
 
     private boolean isEligibleForCaching(DirectoryFileTree directoryFileTree) {

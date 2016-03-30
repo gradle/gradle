@@ -12,5 +12,14 @@ gradle.buildFinished {
        }
    }
    countDirectoryScans.reset()
+   
+   def countCacheUsage = Gradle.class.getClassLoader().loadClass("gradle.advice.CountCacheStats")
+   file('cacheHits.ser').withOutputStream {
+      new ObjectOutputStream(it).writeObject(countCacheUsage.HITS)
+   }
+   file('cacheMisses.ser').withOutputStream {
+      new ObjectOutputStream(it).writeObject(countCacheUsage.MISSES)
+   }
+   countCacheUsage.reset()
 }
 Gradle.class.getClassLoader().loadClass("gradle.advice.CountDirectoryScans").TRACK_LOCATIONS = project.hasProperty('trackLocations')
