@@ -30,7 +30,6 @@ import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
 
 import java.lang.reflect.Proxy
 /**
@@ -122,7 +121,6 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         testScenario << createTestScenarios([CustomModel ])
     }
 
-    @Ignore("Need to support custom types from the client")
     @TargetGradleVersion(">=1.6")
     def "check errors returned for unknown models in a composite when participant supports custom models"(TestScenario testScenario) {
         given:

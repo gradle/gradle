@@ -68,6 +68,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
     }
 
     @TargetGradleVersion(">=2.3")
+    @Ignore("We do not support forTasks(String) on a composite connection for now")
     def "can colorize output with model requests"() {
         given:
         OutputStream stdOut = new ByteArrayOutputStream()
@@ -109,7 +110,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
 
     // Standard input sort of works, but the first build gobbles up all of the input
     // so none of the other participants see anything
-    @Ignore
+    @Ignore("setStandardInput unsupported by ModelBuilder and BuildLauncher")
     def "can provide standard input to composite when executing tasks"() {
         given:
         OutputStream stdOut = new ByteArrayOutputStream()
@@ -130,7 +131,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         numberOfParticipants << [ 1, 3 ]
     }
 
-    @Ignore
+    @Ignore("setStandardInput unsupported by ModelBuilder and BuildLauncher")
     def "can provide standard input to composite when requesting models"() {
         given:
         OutputStream stdOut = new ByteArrayOutputStream()

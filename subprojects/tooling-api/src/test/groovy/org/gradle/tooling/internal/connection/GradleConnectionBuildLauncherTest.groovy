@@ -14,12 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.tooling.internal.connection
 
-import org.gradle.StartParameter;
+import spock.lang.Specification
 
-public class BuildModelsAction extends BuildModelAction {
-    public BuildModelsAction(StartParameter startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
-        super(startParameter, modelName, runTasks, clientSubscriptions);
+class GradleConnectionBuildLauncherTest extends Specification {
+    def buildLauncher = new GradleConnectionBuildLauncher(null, null)
+
+    def "forTasks is unsupported"() {
+        when:
+        buildLauncher.forTasks("test")
+        then:
+        thrown(UnsupportedOperationException)
+    }
+
+    def "setStandardInput is unsupported"() {
+        when:
+        buildLauncher.setStandardInput(Mock(InputStream))
+        then:
+        thrown(UnsupportedOperationException)
     }
 }

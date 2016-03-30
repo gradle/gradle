@@ -22,13 +22,13 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Ignore
+
+import java.util.regex.Matcher
 
 class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
-    @Ignore
     @UsesSample('compositeBuild')
     def "can define composite build and execute task"() {
         given:
@@ -50,9 +50,9 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
         def buildContext = new IntegrationTestBuildContext()
 
-        def gradleHomePath = TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath)
-        def gradleUserHomePath = TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath)
-        def daemonBaseDirPath = TextUtil.escapeString(projectDir.file("daemon").absolutePath)
+        def gradleHomePath = Matcher.quoteReplacement(TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath))
+        def daemonBaseDirPath = Matcher.quoteReplacement(TextUtil.escapeString(buildContext.daemonBaseDir.absolutePath))
+        def gradleUserHomePath = Matcher.quoteReplacement(TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath))
 
         def buildScript = buildFile.text
         buildScript = buildScript.replaceFirst(

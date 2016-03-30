@@ -30,7 +30,7 @@ public class FixedBuildIdentifierProvider implements MethodInvoker, Serializable
     private final ProjectIdentifier projectIdentifier;
 
     public FixedBuildIdentifierProvider(ProjectIdentifier projectIdentifier) {
-        this.buildIdentifier = projectIdentifier.getBuild();
+        this.buildIdentifier = projectIdentifier.getBuildIdentifier();
         this.projectIdentifier = projectIdentifier;
     }
 

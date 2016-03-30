@@ -28,11 +28,11 @@ import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implements BuildLauncher, CompositeBuildLauncherInternal {
-
 
     public GradleConnectionBuildLauncher(AsyncConsumerActionExecutor connection, CompositeConnectionParameters parameters) {
         super(connection, parameters);
@@ -45,10 +45,15 @@ public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implemen
     }
 
     @Override
+    public DefaultBuildLauncher setStandardInput(InputStream inputStream) {
+        throw new UnsupportedOperationException("This is unsupported for composite models from GradleConnections at this time.");
+    }
+
+    @Override
     protected void preprocessLaunchables(Iterable<? extends Launchable> launchables) {
         BuildIdentifier targetBuildIdentifier = null;
         for (Launchable launchable : launchables) {
-            BuildIdentifier launchableBuildIdentifier = launchable.getGradleProjectIdentifier().getBuild();
+            BuildIdentifier launchableBuildIdentifier = launchable.getGradleProjectIdentifier().getBuildIdentifier();
             if (targetBuildIdentifier == null) {
                 targetBuildIdentifier = launchableBuildIdentifier;
             } else if (!targetBuildIdentifier.equals(launchableBuildIdentifier)) {
