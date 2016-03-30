@@ -50,10 +50,24 @@ public class ProtocolToModelAdapter implements Serializable {
     };
     private static final Object[] EMPTY = new Object[0];
     private static final Pattern IS_SUPPORT_METHOD = Pattern.compile("is(\\w+)Supported");
-    private static final Pattern GETTER_METHOD = Pattern.compile("get(\\w+)");
-    private static final Pattern IS_METHOD = Pattern.compile("is(\\w+)");
     private final TargetTypeProvider targetTypeProvider;
     private final CollectionMapper collectionMapper = new CollectionMapper();
+
+    private static final Method EQUALS_METHOD;
+    private static final Method HASHCODE_METHOD;
+
+    static {
+        Method equalsMethod;
+        Method hashCodeMethod;
+        try {
+            equalsMethod = Object.class.getMethod("equals", Object.class);
+            hashCodeMethod = Object.class.getMethod("hashCode");
+        } catch (NoSuchMethodException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+        EQUALS_METHOD = equalsMethod;
+        HASHCODE_METHOD = hashCodeMethod;
+    }
 
     public ProtocolToModelAdapter() {
         this(IDENTITY_TYPE_PROVIDER);
@@ -257,8 +271,6 @@ public class ProtocolToModelAdapter implements Serializable {
         private final Object delegate;
         private final MethodInvoker overrideMethodInvoker;
         private final Action<? super SourceObjectMapping> mapper;
-        private transient Method equalsMethod;
-        private transient Method hashCodeMethod;
         private transient MethodInvoker invoker;
 
         public InvocationHandlerImpl(Object delegate, MethodInvoker overrideMethodInvoker, Action<? super SourceObjectMapping> mapper) {
@@ -282,12 +294,6 @@ public class ProtocolToModelAdapter implements Serializable {
                             new ChainedMethodInvoker(
                                 overrideMethodInvoker,
                                 new ReflectionMethodInvoker())))));
-            try {
-                equalsMethod = Object.class.getMethod("equals", Object.class);
-                hashCodeMethod = Object.class.getMethod("hashCode");
-            } catch (NoSuchMethodException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
         }
 
         @Override
@@ -309,14 +315,14 @@ public class ProtocolToModelAdapter implements Serializable {
         }
 
         public Object invoke(Object target, Method method, Object[] params) throws Throwable {
-            if (method.equals(equalsMethod)) {
+            if (EQUALS_METHOD.equals(method)) {
                 Object param = params[0];
                 if (param == null || !Proxy.isProxyClass(param.getClass())) {
                     return false;
                 }
                 InvocationHandler other = Proxy.getInvocationHandler(param);
                 return equals(other);
-            } else if (method.equals(hashCodeMethod)) {
+            } else if (HASHCODE_METHOD.equals(method)) {
                 return hashCode();
             }
 
@@ -440,7 +446,7 @@ public class ProtocolToModelAdapter implements Serializable {
         }
 
         private static Optional<Method> lookup(MethodInvocationKey key) {
-           Class<?> sourceClass = key.lookupClass;
+            Class<?> sourceClass = key.lookupClass;
             Method match;
             try {
                 match = sourceClass.getMethod(key.methodName, key.parameterTypes);
@@ -479,7 +485,7 @@ public class ProtocolToModelAdapter implements Serializable {
         }
 
         public void invoke(MethodInvocation method) throws Throwable {
-            if ((GETTER_METHOD.matcher(method.getName()).matches() || IS_METHOD.matcher(method.getName()).matches()) && method.getParameterTypes().length == 0) {
+            if (method.isGetter()) {
                 if (properties.containsKey(method.getName())) {
                     method.setResult(properties.get(method.getName()));
                     return;
@@ -517,7 +523,7 @@ public class ProtocolToModelAdapter implements Serializable {
                 return;
             }
 
-            if (!GETTER_METHOD.matcher(invocation.getName()).matches() && !IS_METHOD.matcher(invocation.getName()).matches()) {
+            if (!invocation.isIsOrGet()) {
                 return;
             }
 

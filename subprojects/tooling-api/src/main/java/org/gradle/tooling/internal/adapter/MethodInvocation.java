@@ -24,6 +24,7 @@ public class MethodInvocation {
     private final Type genericReturnType;
     private final String name;
     private final Class<?>[] parameterTypes;
+
     private Object result;
     private boolean found;
     private Object delegate;
@@ -35,6 +36,14 @@ public class MethodInvocation {
         this.parameterTypes = parameterTypes;
         this.delegate = delegate;
         this.parameters = parameters;
+    }
+
+    public boolean isGetter() {
+        return parameterTypes.length == 0 && isIsOrGet();
+    }
+
+    public boolean isIsOrGet() {
+        return (name.startsWith("get") && name.length() > 3) || (name.startsWith("is") && name.length() > 2);
     }
 
     public Object[] getParameters() {
