@@ -56,9 +56,7 @@ allprojects {
 
         def builder = createCompositeBuilder()
         addCompositeParticipant(builder, rootSingle)
-
-        // Models are not yet built properly for multi-project build
-//        addCompositeParticipant(builder, rootMulti)
+        addCompositeParticipant(builder, rootMulti)
         builder.integratedComposite(true)
         connectionBuilder = builder
     }
@@ -70,14 +68,12 @@ allprojects {
         }
 
         then:
-        models.size() == 1 // 4
-        models*.name.containsAll(['A'])//, 'B', 'x', 'y'])
-        models*.path.containsAll([':'])//, ':x', ':y'])
+        models.size() == 4
+        models*.name.containsAll(['A', 'B', 'x', 'y'])
+        models*.path.containsAll([':', ':x', ':y'])
     }
 
     def "can execute task in integrated composite"() {
-        addCompositeParticipant(connectionBuilder, rootMulti)
-
         when:
         withCompositeConnection(connectionBuilder) { connection ->
             def buildLauncher = connection.newBuild()
