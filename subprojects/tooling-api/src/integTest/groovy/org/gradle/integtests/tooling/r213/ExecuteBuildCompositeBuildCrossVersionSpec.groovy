@@ -250,6 +250,114 @@ task hello {
         e.message == "Must specify build root directory when executing tasks by name on a GradleConnection: see `CompositeBuildLauncherInternal.forTasks(File, String)`."
     }
 
+    def "throws exception when attempting to execute task that does not exist"() {
+        given:
+        def build1 = populate("build1") {
+            buildFile << """
+task hello {
+  doLast {
+     file('hello.txt').text = "Hello world"
+  }
+}
+"""
+        }
+        def builds = [build1]
+        if(numberOfOtherBuilds > 0) {
+            builds.addAll([2..(numberOfOtherBuilds+1)].collect {
+                populate("build${it}") {
+                    buildFile << "apply plugin: 'java'"
+                }
+            })
+        }
+        when:
+        withCompositeConnection(builds) { connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks(build1, "doesnotexist")
+            buildLauncher.setStandardOutput(System.out)
+            buildLauncher.setStandardOutput(System.err)
+            buildLauncher.run()
+        }
+        then:
+        def e = thrown(GradleConnectionException)
+        assertFailure(e, "Task 'doesnotexist' not found in root project 'build1'.")
+
+        where:
+        numberOfOtherBuilds << [0, 3]
+    }
+
+    def "throws exception when task fails"() {
+        given:
+        def build1 = populate("build1") {
+            buildFile << """
+task hello {
+  doLast {
+     throw new GradleException("boom!")
+  }
+}
+"""
+        }
+        def builds = [build1]
+        if(numberOfOtherBuilds > 0) {
+            builds.addAll([2..(numberOfOtherBuilds+1)].collect {
+                populate("build${it}") {
+                    buildFile << "apply plugin: 'java'"
+                }
+            })
+        }
+        when:
+        withCompositeConnection(builds) { connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks(build1, "hello")
+            buildLauncher.setStandardOutput(System.out)
+            buildLauncher.setStandardOutput(System.err)
+            buildLauncher.run()
+        }
+        then:
+        def e = thrown(GradleConnectionException)
+        assertFailure(e, "Execution failed for task ':hello'.")
+        assertFailure(e, "boom!")
+
+        where:
+        numberOfOtherBuilds << [0, 3]
+    }
+
+    def "throws exception when build cannot be configured"() {
+        given:
+        def build1 = populate("build1") {
+            buildFile << """
+throw new GradleException("boom!")
+task hello {
+  doLast {
+     println "hello!"
+  }
+}
+"""
+        }
+        def builds = [build1]
+        if(numberOfOtherBuilds > 0) {
+            builds.addAll([2..(numberOfOtherBuilds+1)].collect {
+                populate("build${it}") {
+                    buildFile << "apply plugin: 'java'"
+                }
+            })
+        }
+        when:
+        withCompositeConnection(builds) { connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks(build1, "hello")
+            buildLauncher.setStandardOutput(System.out)
+            buildLauncher.setStandardOutput(System.err)
+            buildLauncher.run()
+        }
+        then:
+        def e = thrown(GradleConnectionException)
+        assertFailure(e, "A problem occurred evaluating root project 'build1'.")
+        assertFailure(e, "boom!")
+
+        where:
+        numberOfOtherBuilds << [0, 3]
+    }
+
     private BuildIdentifier getBuildIdentifier(ModelResult<?> result, Class<?> type) {
         if (type == GradleProject) {
             return ((GradleProject) result.model).identifier.buildIdentifier
