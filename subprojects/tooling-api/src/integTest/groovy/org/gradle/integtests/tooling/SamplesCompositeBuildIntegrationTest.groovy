@@ -51,8 +51,8 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         def buildContext = new IntegrationTestBuildContext()
 
         def gradleHomePath = Matcher.quoteReplacement(TextUtil.escapeString(buildContext.gradleHomeDir.absolutePath))
+        def daemonBaseDirPath = Matcher.quoteReplacement(TextUtil.escapeString(buildContext.daemonBaseDir.absolutePath))
         def gradleUserHomePath = Matcher.quoteReplacement(TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath))
-        def daemonBaseDirPath = Matcher.quoteReplacement(TextUtil.escapeString(projectDir.file("daemon").absolutePath))
 
         def buildScript = buildFile.text
         buildScript = buildScript.replaceFirst(
