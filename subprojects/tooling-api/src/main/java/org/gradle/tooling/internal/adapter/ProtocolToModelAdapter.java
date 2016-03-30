@@ -15,6 +15,10 @@
  */
 package org.gradle.tooling.internal.adapter;
 
+import com.google.common.base.Optional;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -84,8 +88,8 @@ public class ProtocolToModelAdapter implements Serializable {
     /**
      * Adapts the source object to a view object.
      *
-     * @param mapper An action that is invoked for each source object in the graph that is to be adapted. The action can influence how the source object is adapted via the provided
-     * {@link SourceObjectMapping}.
+     * @param mapper An action that is invoked for each source object in the graph that is to be adapted. The action can influence how the source object is adapted via the provided {@link
+     * SourceObjectMapping}.
      */
     public <T, S> T adapt(Class<T> targetType, S sourceObject, Action<? super SourceObjectMapping> mapper) {
         if (sourceObject == null) {
@@ -98,30 +102,20 @@ public class ProtocolToModelAdapter implements Serializable {
         if (wrapperType.isInstance(sourceObject)) {
             return wrapperType.cast(sourceObject);
         }
-        if (targetType.isEnum()) {
-            return adaptToEnum(targetType, sourceObject);
-        }
-
+        MethodInvoker overrideMethodInvoker = mapping.overrideInvoker;
         MixInMethodInvoker mixInMethodInvoker = null;
         if (mapping.mixInType != null) {
             mixInMethodInvoker = new MixInMethodInvoker(mapping.mixInType, new AdaptingMethodInvoker(mapper, new ReflectionMethodInvoker()));
+            overrideMethodInvoker = mixInMethodInvoker;
         }
-        MethodInvoker overrideInvoker = chainInvokers(mixInMethodInvoker, mapping.overrideInvoker);
-        Object proxy = Proxy.newProxyInstance(wrapperType.getClassLoader(), new Class<?>[]{wrapperType}, new InvocationHandlerImpl(sourceObject, overrideInvoker, mapper));
+        if (targetType.isEnum()) {
+            return adaptToEnum(targetType, sourceObject);
+        }
+        Object proxy = Proxy.newProxyInstance(wrapperType.getClassLoader(), new Class<?>[]{wrapperType}, new InvocationHandlerImpl(sourceObject, overrideMethodInvoker, mapper));
         if (mixInMethodInvoker != null) {
             mixInMethodInvoker.setProxy(proxy);
         }
         return wrapperType.cast(proxy);
-    }
-
-    private MethodInvoker chainInvokers(MixInMethodInvoker mixInMethodInvoker, MethodInvoker overrideInvoker) {
-        if (mixInMethodInvoker == null) {
-            return overrideInvoker;
-        }
-        if (overrideInvoker == NO_OP_HANDLER) {
-            return mixInMethodInvoker;
-        }
-        return new ChainedMethodInvoker(mixInMethodInvoker, overrideInvoker);
     }
 
     private static <T, S> T adaptToEnum(Class<T> targetType, S sourceObject) {
@@ -275,19 +269,19 @@ public class ProtocolToModelAdapter implements Serializable {
         }
 
         private void readObject(java.io.ObjectInputStream in)
-             throws IOException, ClassNotFoundException {
+            throws IOException, ClassNotFoundException {
             in.defaultReadObject();
             setup();
         }
 
         private void setup() {
             invoker = new SupportedPropertyInvoker(
-                    new SafeMethodInvoker(
-                            new PropertyCachingMethodInvoker(
-                                    new AdaptingMethodInvoker(mapper,
-                                            new ChainedMethodInvoker(
-                                                    overrideMethodInvoker,
-                                                    new ReflectionMethodInvoker())))));
+                new SafeMethodInvoker(
+                    new PropertyCachingMethodInvoker(
+                        new AdaptingMethodInvoker(mapper,
+                            new ChainedMethodInvoker(
+                                overrideMethodInvoker,
+                                new ReflectionMethodInvoker())))));
             try {
                 equalsMethod = Object.class.getMethod("equals", Object.class);
                 hashCodeMethod = Object.class.getMethod("hashCode");
@@ -336,7 +330,7 @@ public class ProtocolToModelAdapter implements Serializable {
         }
     }
 
-    private static class ChainedMethodInvoker implements MethodInvoker, Serializable {
+    private static class ChainedMethodInvoker implements MethodInvoker {
         private final MethodInvoker[] invokers;
 
         private ChainedMethodInvoker(MethodInvoker... invokers) {
@@ -368,9 +362,64 @@ public class ProtocolToModelAdapter implements Serializable {
         }
     }
 
-    private class ReflectionMethodInvoker implements MethodInvoker {
+    private static class ReflectionMethodInvoker implements MethodInvoker {
+        private final static LoadingCache<MethodInvocationKey, Optional<Method>> LOOKUP_CACHE = CacheBuilder.newBuilder()
+            .initialCapacity(512)
+            .maximumSize(4096)
+            .recordStats()
+            .build(new CacheLoader<MethodInvocationKey, Optional<Method>>() {
+                @Override
+                public Optional<Method> load(MethodInvocationKey key) throws Exception {
+                    return lookup(key);
+                }
+            });
+
+        private static class MethodInvocationKey {
+            private final Class<?> lookupClass;
+            private final String methodName;
+            private final Class<?>[] parameterTypes;
+            private final int hashCode;
+
+            private MethodInvocationKey(Class<?> lookupClass, String methodName, Class<?>[] parameterTypes) {
+                this.lookupClass = lookupClass;
+                this.methodName = methodName;
+                this.parameterTypes = parameterTypes;
+                // hashcode will always be used, so we precompute it in order to make sure we
+                // won't compute it multiple times during comparisons
+                int result = lookupClass != null ? lookupClass.hashCode() : 0;
+                result = 31 * result + (methodName != null ? methodName.hashCode() : 0);
+                result = 31 * result + Arrays.hashCode(parameterTypes);
+                this.hashCode = result;
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) {
+                    return true;
+                }
+                if (o == null || getClass() != o.getClass()) {
+                    return false;
+                }
+
+                MethodInvocationKey that = (MethodInvocationKey) o;
+
+                if (lookupClass != null ? !lookupClass.equals(that.lookupClass) : that.lookupClass != null) {
+                    return false;
+                }
+                if (methodName != null ? !methodName.equals(that.methodName) : that.methodName != null) {
+                    return false;
+                }
+                return Arrays.equals(parameterTypes, that.parameterTypes);
+
+            }
+
+            @Override
+            public int hashCode() {
+                return hashCode;
+            }
+        }
+
         public void invoke(MethodInvocation invocation) throws Throwable {
-            // TODO - cache method lookup
             Method targetMethod = locateMethod(invocation);
             if (targetMethod == null) {
                 return;
@@ -386,13 +435,17 @@ public class ProtocolToModelAdapter implements Serializable {
             invocation.setResult(returnValue);
         }
 
-        private Method locateMethod(MethodInvocation invocation) {
-            Class<?> sourceClass = invocation.getDelegate().getClass();
+        private static Method locateMethod(MethodInvocation invocation) {
+            return LOOKUP_CACHE.getUnchecked(new MethodInvocationKey(invocation.getDelegate().getClass(), invocation.getName(), invocation.getParameterTypes())).orNull();
+        }
+
+        private static Optional<Method> lookup(MethodInvocationKey key) {
+           Class<?> sourceClass = key.lookupClass;
             Method match;
             try {
-                match = sourceClass.getMethod(invocation.getName(), invocation.getParameterTypes());
+                match = sourceClass.getMethod(key.methodName, key.parameterTypes);
             } catch (NoSuchMethodException e) {
-                return null;
+                return Optional.absent();
             }
 
             LinkedList<Class<?>> queue = new LinkedList<Class<?>>();
@@ -400,7 +453,7 @@ public class ProtocolToModelAdapter implements Serializable {
             while (!queue.isEmpty()) {
                 Class<?> c = queue.removeFirst();
                 try {
-                    match = c.getMethod(invocation.getName(), invocation.getParameterTypes());
+                    match = c.getMethod(key.methodName, key.parameterTypes);
                 } catch (NoSuchMethodException e) {
                     // ignore
                 }
@@ -412,7 +465,7 @@ public class ProtocolToModelAdapter implements Serializable {
                 }
             }
             match.setAccessible(true);
-            return match;
+            return Optional.of(match);
         }
     }
 
@@ -451,6 +504,7 @@ public class ProtocolToModelAdapter implements Serializable {
     }
 
     private static class SafeMethodInvoker implements MethodInvoker {
+        private static final Class[] EMPTY_CLASS_ARRAY = new Class[0];
         private final MethodInvoker next;
 
         private SafeMethodInvoker(MethodInvoker next) {
@@ -467,7 +521,7 @@ public class ProtocolToModelAdapter implements Serializable {
                 return;
             }
 
-            MethodInvocation getterInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), new Class[0], invocation.getDelegate(), EMPTY);
+            MethodInvocation getterInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), EMPTY_CLASS_ARRAY, invocation.getDelegate(), EMPTY);
             next.invoke(getterInvocation);
             if (getterInvocation.found() && getterInvocation.getResult() != null) {
                 invocation.setResult(getterInvocation.getResult());
