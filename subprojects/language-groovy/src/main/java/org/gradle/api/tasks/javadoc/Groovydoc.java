@@ -308,6 +308,8 @@ public class Groovydoc extends SourceTask {
 
     /**
      * Sets a HTML text to be used for overview documentation (optional).
+     * <p>
+     * <b>Example:</b> {@code overviewText = TextResourceFactory.fromFile("/overview.html")}
      */
     public void setOverviewText(TextResource overviewText) {
         this.overview = overviewText;
