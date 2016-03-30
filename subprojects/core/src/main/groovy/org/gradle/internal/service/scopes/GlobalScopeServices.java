@@ -30,7 +30,10 @@ import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultHasher;
-import org.gradle.api.internal.initialization.loadercache.*;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter;
+import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
 import org.gradle.api.tasks.util.internal.PatternSets;
@@ -44,6 +47,7 @@ import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -56,6 +60,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleFatJar;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -76,8 +81,9 @@ import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.process.internal.DefaultExecActionFactory;
-import org.gradle.util.GradleVersion;
 
+import java.io.File;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.List;
@@ -158,8 +164,15 @@ public class GlobalScopeServices {
         CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
         if (codeSource != null) {
             URL location = codeSource.getLocation();
-            if (location.getProtocol().equals("file") && location.getPath().endsWith("gradle-api-" + GradleVersion.current().getVersion() + ".jar")) {
-                return new FlatClassLoaderRegistry(getClass().getClassLoader());
+
+            if (location.getProtocol().equals("file") && location.getPath().endsWith(".jar")) {
+                try {
+                    if (GradleFatJar.containsMarkerFile(new File(location.toURI()))) {
+                        return new FlatClassLoaderRegistry(getClass().getClassLoader());
+                    }
+                } catch (URISyntaxException e) {
+                    UncheckedException.throwAsUncheckedException(e);
+                }
             }
         }
 
