@@ -24,13 +24,13 @@ import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.model.internal.ProjectToolingModelBuilder;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.*;
 
-public class EclipseModelBuilder implements ToolingModelBuilder {
+public class EclipseModelBuilder implements ProjectToolingModelBuilder {
     private final GradleProjectBuilder gradleProjectBuilder;
 
     private boolean projectDependenciesOnly;
@@ -47,6 +47,19 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject")
             || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
+    }
+
+    @Override
+    public void addModels(String modelName, Project project, Map<String, Object> models) {
+        DefaultEclipseProject eclipseProject = buildAll(modelName, project);
+        addModels(eclipseProject, models);
+    }
+
+    private void addModels(DefaultEclipseProject eclipseProject, Map<String, Object> models) {
+        models.put(eclipseProject.getPath(), eclipseProject);
+        for (DefaultEclipseProject childProject : eclipseProject.getChildren()) {
+            addModels(childProject, models);
+        }
     }
 
     public DefaultEclipseProject buildAll(String modelName, Project project) {

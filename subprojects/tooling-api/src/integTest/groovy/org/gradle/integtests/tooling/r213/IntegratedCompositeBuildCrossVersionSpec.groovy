@@ -21,6 +21,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.gradle.GradleBuild
+
 /**
  * Tooling models for an integrated composite are produced by a single daemon instance.
  * We only do this for target gradle versions that support integrated composite build.
@@ -63,14 +66,26 @@ allprojects {
 
     def "can retrieve models from integrated composite"() {
         when:
-        def models = withCompositeConnection(connectionBuilder) { connection ->
-            unwrap(connection.getModels(GradleProject))
+        def gradleProjects = []
+        def gradleBuilds = []
+        def eclipseProjects = []
+        withCompositeConnection(connectionBuilder) { connection ->
+            gradleProjects = unwrap(connection.getModels(GradleProject))
+            gradleBuilds = unwrap(connection.getModels(GradleBuild))
+            eclipseProjects = unwrap(connection.getModels(EclipseProject))
         }
 
         then:
-        models.size() == 4
-        models*.name.containsAll(['A', 'B', 'x', 'y'])
-        models*.path.containsAll([':', ':x', ':y'])
+        gradleProjects.size() == 4
+        gradleProjects*.name.containsAll(['A', 'B', 'x', 'y'])
+        gradleProjects*.path.containsAll([':', ':x', ':y'])
+
+        gradleBuilds.size() == 2
+        gradleBuilds*.rootProject.name.containsAll(['A', 'B'])
+
+        eclipseProjects.size() == 4
+        eclipseProjects*.name.containsAll(['A', 'B', 'x', 'y'])
+        eclipseProjects*.gradleProject.path.containsAll([':', ':x', ':y'])
     }
 
     def "can execute task in integrated composite"() {
