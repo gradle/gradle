@@ -2,42 +2,60 @@
 
 ## Feature: Expire daemons in a smarter way
 
-### Story: Expire daemons from least recently used builds based on total number of daemons
+### Story: Stop Daemon after finishing execution if more than N daemons currently busy.
 
-A very simple expiration strategy by limiting the the number of daemon processes running in parallel on a machine.
+When a daemon finishes execution and there are > n daemons currently busy, then exit.
 
 #### Implementation
 
-- Define max number of daemons (can be referenced by internal system property ('org.gradle.daemon.expiration.maxnumber', defaulting to __2__).
-- Track last daemon usage in daemon registry.
-- When requesting daemon process number > threshold, stop the least recently used daemon process
-    1. iterate over idle daemons and stop least recently used ones till threshold is met.
-    2. iterate over busy daemons and request graceful stop of least recently used ones till threshold is met.
+- Define max number of busy daemons (can be referenced by internal system property ('org.gradle.daemon.expiration.maxcount', defaulting to __3__).
+- When Daemon finishes build verify expiration strategy
+    1. check number of busy daemons
+    2. exit daemon process if busy daemons hits threshold.
 
 ##### Test Coverage
 
-- Running two daemons alternately on a build multiple times does not expire daemons
-- Initiating a third daemon process stops the oldest idling daemon process.
-- TBD.
+- Daemon process stops when finishing build and other daemons are busy
+- threshold is configurable and respected by daemons.
 
-##### Open questions
+### Story: Daemon quits when daemon registry not available
 
-- What to do if already max number of daemons are _Busy_ running a build.
-    possible Options:
-    - warn and stop current build
-    - stop initiated daemon after the build (no long running process)
-    - run build and request graceful stop of _oldest_ daemon
+#### Implementation
 
-### Story: Expire daemons from least recently used builds based on accumulated total heap size
+- Introduce concept `DaemonExpirationStrategy` for Daemons to re-consider whether it should still be running.
+- let idle daemon sleep for 60 seconds and then reevaluate its registered `DaemonExpirationStrategy`s.
+- register `DaemonExpirationStrategy` to exit daemon if daemon registry can not be found.
+
+##### Test Coverage
+
+- all daemons stop when their registry is deleted.
+- starting new build recreates registry.
+
+### Story: least recently used daemon quits when more than N daemons available
+
+#### Implementation
+
+- register `DaemonExpirationStrategy` with strategy:
+    - if more than N daemons available and I'm the least recently used, exit daemon.
+
+##### Test Coverage
+
+- starting > N daemons let least recently one exit within 60 seconds.
+- 'org.gradle.daemon.expiration.maxcount' systemproperty is respected.
+
+### Story: Expire least recently daemons exists if accumulated total heap size hits threshold
 
 #### Implementation
 
 - Define total max heap memory used by daemons (can be referenced by internal system property ('org.gradle.daemon.expiration.totalheapsize', defaulting to __4096m__).
-- When invoking daemon process and memory threshold is reached
+- register `DaemonExpirationStrategy` with strategy:
+    - if more than max defined heap size is used and I'm the least recently used, exit daemon.
 
 ##### Test Coverage
 
-- TBD
+- starting daemon that causes the total heap size to exceed does stop least recently used daemon
+- exceeding total heap size is possible for parallel running (`busy`) daemons.
+- 'org.gradle.daemon.expiration.totalheapsize' systemproperty is respected.
 
 ### Story: Expire daemons from least recently used builds based on accumulated total percentage of available heap size
 
@@ -45,7 +63,7 @@ A very simple expiration strategy by limiting the the number of daemon processes
 
 ##### Open questions
 
-- How to gather these Statistics of current machine
+- How to gather these Statistics of current machine? (Add logic to native platform)
 
 ### Story: Apply expiration metrics across daemons from all versions >= 2.14)
 
