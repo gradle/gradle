@@ -39,21 +39,17 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     private final GradleConnectionFactory gradleConnectionFactory;
     private final DistributionFactory distributionFactory;
     private File gradleUserHomeDir;
-    private Boolean embeddedCoordinator;
     private Integer daemonMaxIdleTimeValue;
     private TimeUnit daemonMaxIdleTimeUnits;
     private File daemonBaseDir;
+
+    private boolean integrated;
+    private boolean embeddedCoordinator;
     private Distribution coordinatorDistribution;
 
     public DefaultGradleConnectionBuilder(GradleConnectionFactory gradleConnectionFactory, DistributionFactory distributionFactory) {
         this.gradleConnectionFactory = gradleConnectionFactory;
         this.distributionFactory = distributionFactory;
-    }
-
-    @Override
-    public GradleConnectionBuilder useGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir;
-        return this;
     }
 
     @Override
@@ -88,16 +84,22 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
 
         DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
 
-        Distribution distribution = coordinatorDistribution;
-        if (distribution == null) {
-            distribution = distributionFactory.getDistribution(GradleVersion.current().getVersion());
+        if (integrated) {
+            // TODO:DAZ Log a warning here about participant settings being ignored
+            Distribution distribution = coordinatorDistribution;
+            if (distribution == null) {
+                distribution = distributionFactory.getDistribution(GradleVersion.current().getVersion());
+            }
+            return gradleConnectionFactory.create(distribution, connectionParameters, true);
+        } else {
+            // The distribution is effectively ignored
+            return gradleConnectionFactory.create(distributionFactory.getClasspathDistribution(), connectionParameters, false);
         }
-        return gradleConnectionFactory.create(distribution, connectionParameters, false);
     }
 
     @Override
-    public GradleConnectionBuilderInternal embeddedCoordinator(boolean embedded) {
-        this.embeddedCoordinator = embedded;
+    public GradleConnectionBuilder useGradleUserHomeDir(File gradleUserHomeDir) {
+        this.gradleUserHomeDir = gradleUserHomeDir;
         return this;
     }
 
@@ -115,8 +117,14 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     }
 
     @Override
-    public GradleConnectionBuilderInternal useClasspathDistribution() {
-        this.coordinatorDistribution = distributionFactory.getClasspathDistribution();
+    public GradleConnectionBuilderInternal integratedComposite(boolean integrated) {
+        this.integrated = integrated;
+        return this;
+    }
+
+    @Override
+    public GradleConnectionBuilderInternal embeddedCoordinator(boolean embedded) {
+        this.embeddedCoordinator = embedded;
         return this;
     }
 
@@ -127,14 +135,8 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     }
 
     @Override
-    public GradleConnectionBuilder useDistribution(URI gradleDistribution) {
-        this.coordinatorDistribution = distributionFactory.getDistribution(gradleDistribution);
-        return this;
-    }
-
-    @Override
-    public GradleConnectionBuilder useGradleVersion(String gradleVersion) {
-        this.coordinatorDistribution = distributionFactory.getDistribution(gradleVersion);
+    public GradleConnectionBuilderInternal useClasspathDistribution() {
+        this.coordinatorDistribution = distributionFactory.getClasspathDistribution();
         return this;
     }
 
