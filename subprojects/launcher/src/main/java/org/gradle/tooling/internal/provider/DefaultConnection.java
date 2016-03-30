@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 
 public class DefaultConnection implements InternalConnection, BuildActionRunner,
-    ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection {
+    ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection, InternalCompositeAwareConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private ProtocolToModelAdapter adapter;
     private ServiceRegistry services;
@@ -166,6 +166,17 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object result = connection.run(modelIdentifier.getName(), buildCancellationToken, providerParameters);
+        return new ProviderBuildResult<Object>(result);
+    }
+
+    /**
+     * This is used by consumers 2.13-rc-1 and later
+     */
+    public BuildResult<?> getModels(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedModelException, InternalUnsupportedBuildArgumentException, IllegalStateException {
+        validateCanRun();
+        ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
+        BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
+        Object result = connection.buildModels(modelIdentifier.getName(), buildCancellationToken, providerParameters);
         return new ProviderBuildResult<Object>(result);
     }
 

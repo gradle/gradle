@@ -53,6 +53,31 @@ public interface GradleConnectionBuilder {
     GradleConnectionBuilder useGradleUserHomeDir(File gradleUserHomeDir);
 
     /**
+     * Specifies the Gradle distribution for the coordinator to use.
+     *
+     * @param gradleHome The Gradle installation directory.
+     * @return this
+     */
+    GradleConnectionBuilder useInstallation(File gradleHome);
+
+    /**
+     * Specifies the version of Gradle for the coordinator to use.
+     *
+     * @param gradleVersion The version to use.
+     * @return this
+     */
+    GradleConnectionBuilder useGradleVersion(String gradleVersion);
+
+    /**
+     * Specifies the Gradle distribution for the coordinator to use.
+     *
+     * @param gradleDistribution The distribution to use.
+     *
+     * @return this
+     */
+    GradleConnectionBuilder useDistribution(URI gradleDistribution);
+
+    /**
      * Creates a new participant builder instance for creating Gradle composite participants.
      *
      * @param projectDirectory The root project directory for the participant.

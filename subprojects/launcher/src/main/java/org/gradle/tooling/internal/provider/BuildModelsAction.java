@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.connection;
+package org.gradle.tooling.internal.provider;
 
-import org.gradle.tooling.connection.GradleConnectionBuilder;
+import org.gradle.StartParameter;
 
-import java.io.File;
-import java.util.concurrent.TimeUnit;
-
-public interface GradleConnectionBuilderInternal extends GradleConnectionBuilder {
-    GradleConnectionBuilderInternal embeddedCoordinator(boolean embedded);
-
-    GradleConnectionBuilderInternal daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits);
-
-    GradleConnectionBuilderInternal daemonBaseDir(File daemonBaseDir);
-
-    GradleConnectionBuilderInternal useClasspathDistribution();
+public class BuildModelsAction extends BuildModelAction {
+    public BuildModelsAction(StartParameter startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
+        super(startParameter, modelName, runTasks, clientSubscriptions);
+    }
 }

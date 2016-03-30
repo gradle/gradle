@@ -39,9 +39,11 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     private final GradleConnectionFactory gradleConnectionFactory;
     private final DistributionFactory distributionFactory;
     private File gradleUserHomeDir;
+    private Boolean embeddedCoordinator;
     private Integer daemonMaxIdleTimeValue;
     private TimeUnit daemonMaxIdleTimeUnits;
     private File daemonBaseDir;
+    private Distribution coordinatorDistribution;
 
     public DefaultGradleConnectionBuilder(GradleConnectionFactory gradleConnectionFactory, DistributionFactory distributionFactory) {
         this.gradleConnectionFactory = gradleConnectionFactory;
@@ -79,14 +81,24 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
         DefaultCompositeConnectionParameters.Builder compositeConnectionParametersBuilder = DefaultCompositeConnectionParameters.builder();
         compositeConnectionParametersBuilder.setBuilds(participants);
         compositeConnectionParametersBuilder.setGradleUserHomeDir(gradleUserHomeDir);
+        compositeConnectionParametersBuilder.setEmbedded(embeddedCoordinator);
         compositeConnectionParametersBuilder.setDaemonMaxIdleTimeValue(daemonMaxIdleTimeValue);
         compositeConnectionParametersBuilder.setDaemonMaxIdleTimeUnits(daemonMaxIdleTimeUnits);
         compositeConnectionParametersBuilder.setDaemonBaseDir(daemonBaseDir);
 
         DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
 
-        Distribution distribution = distributionFactory.getDistribution(GradleVersion.current().getVersion());
+        Distribution distribution = coordinatorDistribution;
+        if (distribution == null) {
+            distribution = distributionFactory.getDistribution(GradleVersion.current().getVersion());
+        }
         return gradleConnectionFactory.create(distribution, connectionParameters, false);
+    }
+
+    @Override
+    public GradleConnectionBuilderInternal embeddedCoordinator(boolean embedded) {
+        this.embeddedCoordinator = embedded;
+        return this;
     }
 
     @Override
@@ -99,6 +111,30 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     @Override
     public GradleConnectionBuilderInternal daemonBaseDir(File daemonBaseDir) {
         this.daemonBaseDir = daemonBaseDir;
+        return this;
+    }
+
+    @Override
+    public GradleConnectionBuilderInternal useClasspathDistribution() {
+        this.coordinatorDistribution = distributionFactory.getClasspathDistribution();
+        return this;
+    }
+
+    @Override
+    public GradleConnectionBuilder useInstallation(File gradleHome) {
+        this.coordinatorDistribution = distributionFactory.getDistribution(gradleHome);
+        return this;
+    }
+
+    @Override
+    public GradleConnectionBuilder useDistribution(URI gradleDistribution) {
+        this.coordinatorDistribution = distributionFactory.getDistribution(gradleDistribution);
+        return this;
+    }
+
+    @Override
+    public GradleConnectionBuilder useGradleVersion(String gradleVersion) {
+        this.coordinatorDistribution = distributionFactory.getDistribution(gradleVersion);
         return this;
     }
 
