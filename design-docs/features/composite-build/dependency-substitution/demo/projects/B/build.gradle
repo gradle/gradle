@@ -1,6 +1,7 @@
 subprojects {
     apply plugin: 'java'
     apply plugin: 'maven'
+    apply plugin: 'idea'
 
     group = 'org'
     version = '1.0'
