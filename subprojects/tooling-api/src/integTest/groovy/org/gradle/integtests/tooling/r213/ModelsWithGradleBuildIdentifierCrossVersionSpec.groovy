@@ -17,6 +17,7 @@
 
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.model.build.BuildEnvironment
@@ -26,9 +27,11 @@ class ModelsWithGradleBuildIdentifierCrossVersionSpec extends CompositeToolingAp
     TestFile rootSingle
     TestFile rootMulti
 
-    void setup() {
+    def setup() {
         rootSingle = singleProjectBuild("A")
         rootMulti = multiProjectBuild("B", ['x', 'y'])
+
+        testIntegratedComposite = true
     }
 
     def "GradleConnection provides identified model for single project build"() {

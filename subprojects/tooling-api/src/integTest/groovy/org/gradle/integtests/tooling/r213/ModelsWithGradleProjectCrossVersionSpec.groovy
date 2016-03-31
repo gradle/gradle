@@ -18,9 +18,9 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.connection.GradleConnection
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.HasGradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -37,6 +37,8 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
     void setup() {
         rootSingle = singleProjectBuild("A")
         rootMulti = multiProjectBuild("B", ['x', 'y'])
+
+        testIntegratedComposite = true
     }
 
     def "ProjectConnection provides identified GradleBuild"() {

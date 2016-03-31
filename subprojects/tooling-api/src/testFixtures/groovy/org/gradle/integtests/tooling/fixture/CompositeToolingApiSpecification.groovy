@@ -26,7 +26,7 @@ import org.gradle.util.GradleVersion
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
 @TargetGradleVersion(">=1.0")
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
-    boolean integratedComposite
+    boolean testIntegratedComposite
 
     static GradleVersion getTargetDistVersion() {
         // Create a copy to work around classloader issues
@@ -49,7 +49,11 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
 
     GradleConnectionBuilder createCompositeBuilder() {
         def builder = toolingApi.createCompositeBuilder()
-        builder.integratedComposite(integratedComposite)
+
+        // TODO:DAZ This isn't quite right: we should be performing _both_ integrated and non-integrated tests for this version
+        if (testIntegratedComposite && targetDist.version == GradleVersion.current()) {
+            builder.integratedComposite(true)
+        }
         return builder
     }
 

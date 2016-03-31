@@ -24,6 +24,10 @@ import spock.lang.Ignore
 
 @Ignore("We do not support forTasks(String) on a composite connection for now")
 class ExecuteTaskModelBuilderCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+    def setup() {
+        testIntegratedComposite = true
+    }
+
     @TargetGradleVersion(">=1.2")
     def "can call tasks before building composite model"() {
         given:

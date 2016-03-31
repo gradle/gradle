@@ -36,6 +36,8 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
     void setup() {
         rootSingle = singleProjectBuild("A")
         rootMulti = multiProjectBuild("B", ['x', 'y'])
+
+        testIntegratedComposite = true
     }
 
     def "GradleConnection provides identified models for single project build"() {
