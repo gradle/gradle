@@ -67,6 +67,10 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
         services.close()
     }
 
+    Class<?> compileWithoutClasspath(String className, String classText) {
+        return new GroovyClassLoader(getClass().classLoader).parseClass(classText, className)
+    }
+
     Class<?> compileToDirectoryAndLoad(String className, String classText) {
         def classesDir = tmpDir.createDir("classes/$className")
         def compilationUnit = new CompilationUnit(new GroovyClassLoader(getClass().classLoader))

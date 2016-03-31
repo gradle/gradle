@@ -27,20 +27,22 @@ import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 
 public class WorkerAction implements Action<WorkerProcessContext>, Serializable, RequestProtocol {
-    private final Class<?> workerImplementation;
-    private CountDownLatch completed;
-    private ResponseProtocol responder;
-    private Object implementation;
-    private Throwable failure;
+    private final String workerImplementationName;
+    private transient CountDownLatch completed;
+    private transient ResponseProtocol responder;
+    private transient Throwable failure;
+    private transient Class<?> workerImplementation;
+    private transient Object implementation;
 
     public WorkerAction(Class<?> workerImplementation) {
-        this.workerImplementation = workerImplementation;
+        this.workerImplementationName = workerImplementation.getName();
     }
 
     @Override
     public void execute(WorkerProcessContext workerProcessContext) {
         completed = new CountDownLatch(1);
         try {
+            workerImplementation = Class.forName(workerImplementationName);
             implementation = workerImplementation.newInstance();
         } catch (Throwable e) {
             failure = e;

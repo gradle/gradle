@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal.worker;
+package org.gradle.process.internal;
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.Contextual;
-
-@Contextual
-public class WorkerProcessException extends GradleException {
-    public WorkerProcessException(String message, Throwable cause) {
-        super(message, cause);
+public class CrashingWorker implements TestProtocol {
+    @Override
+    public Object convert(String param1, long param2) {
+        if (param1.equals("halt")) {
+            Runtime.getRuntime().halt((int) param2);
+        } else {
+            System.exit((int) param2);
+        }
+        throw new UnsupportedOperationException();
     }
 
-    public static WorkerProcessException runFailed(String workerDisplayName, Throwable failure) {
-        return new WorkerProcessException(String.format("Failed to run %s", workerDisplayName), failure);
+    @Override
+    public void doSomething() {
+        throw new UnsupportedOperationException();
     }
 }

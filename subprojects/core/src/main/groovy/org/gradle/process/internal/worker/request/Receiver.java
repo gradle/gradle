@@ -17,27 +17,55 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.messaging.dispatch.StreamCompletion;
 import org.gradle.process.internal.worker.WorkerProcessException;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public class Receiver implements ResponseProtocol {
+public class Receiver implements ResponseProtocol, StreamCompletion {
     private static final Object NULL = new Object();
+    private static final Object END = new Object();
     private final BlockingQueue<Object> received = new ArrayBlockingQueue<Object>(1);
     private final String baseName;
+    private Object next;
 
     public Receiver(String baseName) {
         this.baseName = baseName;
     }
 
+    public boolean awaitNextResult() {
+        try {
+            if (next == null) {
+                next = received.take();
+            }
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+        return next != END;
+    }
+
     public Object getNextResult() throws Throwable {
-        Object next = received.take();
+        awaitNextResult();
+        Object next = this.next;
+        if (next == END) {
+            throw new IllegalStateException("No response received.");
+        }
+        this.next = null;
         if (next instanceof Failure) {
             Failure failure = (Failure) next;
             throw failure.failure;
         }
         return next == NULL ? null : next;
+    }
+
+    @Override
+    public void endStream() {
+        try {
+            received.put(END);
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     @Override
@@ -51,7 +79,7 @@ public class Receiver implements ResponseProtocol {
 
     @Override
     public void infrastructureFailed(Throwable failure) {
-        failed(new WorkerProcessException(String.format("Failed to run %s", baseName), failure));
+        failed(WorkerProcessException.runFailed(baseName, failure));
     }
 
     @Override

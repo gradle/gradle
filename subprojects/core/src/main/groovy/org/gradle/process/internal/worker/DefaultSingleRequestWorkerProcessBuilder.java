@@ -104,16 +104,25 @@ class DefaultSingleRequestWorkerProcessBuilder<PROTOCOL> implements SingleReques
         return protocolType.cast(Proxy.newProxyInstance(protocolType.getClassLoader(), new Class[]{protocolType}, new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                WorkerProcess workerProcess = builder.build();
-                workerProcess.start();
-                ObjectConnection connection = workerProcess.getConnection();
-                RequestProtocol requestProtocol = connection.addOutgoing(RequestProtocol.class);
                 Receiver receiver = new Receiver(getBaseName());
-                connection.addIncoming(ResponseProtocol.class, receiver);
-                connection.useJavaSerializationForParameters(workerImplementation.getClassLoader());
-                connection.connect();
-                requestProtocol.runThenStop(method.getName(), method.getParameterTypes(), args);
-                workerProcess.waitForStop();
+                try {
+                    WorkerProcess workerProcess = builder.build();
+                    workerProcess.start();
+                    ObjectConnection connection = workerProcess.getConnection();
+                    RequestProtocol requestProtocol = connection.addOutgoing(RequestProtocol.class);
+                    connection.addIncoming(ResponseProtocol.class, receiver);
+                    connection.useJavaSerializationForParameters(workerImplementation.getClassLoader());
+                    connection.connect();
+                    requestProtocol.runThenStop(method.getName(), method.getParameterTypes(), args);
+                    boolean hasResult = receiver.awaitNextResult();
+                    workerProcess.waitForStop();
+                    if (!hasResult) {
+                        // Reached the end of input, worker has exited without failing
+                        throw new IllegalStateException(String.format("No response was received from %s but the worker process has finished.", getBaseName()));
+                    }
+                } catch (Exception e) {
+                    throw WorkerProcessException.runFailed(getBaseName(), e);
+                }
                 return receiver.getNextResult();
             }
         }));

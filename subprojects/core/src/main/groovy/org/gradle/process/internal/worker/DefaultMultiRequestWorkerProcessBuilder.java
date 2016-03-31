@@ -52,7 +52,7 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
         this.workerImplementation = workerImplementation;
         this.workerProcessBuilder = workerProcessBuilder;
         workerProcessBuilder.worker(new WorkerAction(workerImplementation));
-        workerProcessBuilder.setImplementationClassPath(ClasspathUtil.getClasspath(workerImplementation.getClassLoader()));
+        workerProcessBuilder.setImplementationClasspath(ClasspathUtil.getClasspath(workerImplementation.getClassLoader()));
     }
 
     @Override
@@ -120,7 +120,11 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 if (method.equals(START_METHOD)) {
-                    workerProcess.start();
+                    try {
+                        workerProcess.start();
+                    } catch (Exception e) {
+                        throw WorkerProcessException.runFailed(getBaseName(), e);
+                    }
                     workerProcess.getConnection().addIncoming(ResponseProtocol.class, receiver);
                     workerProcess.getConnection().useJavaSerializationForParameters(workerImplementation.getClassLoader());
                     requestProtocol = workerProcess.getConnection().addOutgoing(RequestProtocol.class);
@@ -138,6 +142,18 @@ class DefaultMultiRequestWorkerProcessBuilder<WORKER> implements MultiRequestWor
                     }
                 }
                 requestProtocol.run(method.getName(), method.getParameterTypes(), args);
+                boolean hasResult = receiver.awaitNextResult();
+                if (!hasResult) {
+                    try {
+                        // Reached the end of input, worker has crashed or exited
+                        requestProtocol = null;
+                        workerProcess.waitForStop();
+                        // Worker didn't crash
+                        throw new IllegalStateException(String.format("No response was received from %s but the worker process has finished.", getBaseName()));
+                    } catch (Exception e) {
+                        throw WorkerProcessException.runFailed(getBaseName(), e);
+                    }
+                }
                 return receiver.getNextResult();
             }
         }));

@@ -16,6 +16,9 @@
 
 package org.gradle.process.internal
 
+import org.gradle.process.internal.worker.WorkerControl
+import org.gradle.process.internal.worker.WorkerProcessException
+import spock.lang.Ignore
 import spock.lang.Timeout
 
 @Timeout(120)
@@ -36,6 +39,28 @@ class MultiRequestWorkerProcessIntegrationTest extends AbstractWorkerProcessInte
         result1 == "value:1"
         result2 == "value:2"
         result3 == "value:3"
+
+        cleanup:
+        worker?.stop()
+    }
+
+    def "propagates failure thrown by method in worker process"() {
+        when:
+        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, BrokenTestWorker.class)
+        def worker = builder.build()
+        worker.start()
+        worker.convert("abc", 12)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Could not convert [abc, 12]'
+
+        when:
+        worker.doSomething()
+
+        then:
+        def f = thrown(UnsupportedOperationException)
+        f.message == 'Not implemented'
 
         cleanup:
         worker?.stop()
@@ -69,4 +94,118 @@ class CustomResult implements Serializable {
         worker?.stop()
     }
 
+    def "propagates failure to load worker implementation class"() {
+        given:
+        def cl = compileWithoutClasspath("CustomTestWorker", """
+import ${TestProtocol.name}
+class CustomTestWorker implements TestProtocol {
+    Object convert(String param1, long param2) { return param1 + ":" + param2 }
+    void doSomething() { }
+}
+""")
+
+        when:
+        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, cl)
+        builder.baseName = 'broken worker'
+        def worker = builder.build()
+        worker.start()
+        worker.convert("abc", 12)
+
+        then:
+        def e = thrown(WorkerProcessException)
+        e.message == 'Failed to run broken worker'
+        e.cause instanceof ClassNotFoundException
+
+        cleanup:
+        worker?.stop()
+    }
+
+    def "propagates failure to instantiate worker implementation instance"() {
+        when:
+        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, TestProtocol.class)
+        builder.baseName = 'broken worker'
+        def worker = builder.build()
+        worker.start()
+        worker.convert("abc", 12)
+
+        then:
+        def e = thrown(WorkerProcessException)
+        e.message == 'Failed to run broken worker'
+        e.cause instanceof InstantiationException
+
+        cleanup:
+        worker?.stop()
+    }
+
+    def "propagates failure to start worker process"() {
+        when:
+        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, StatefulTestWorker.class)
+        builder.baseName = 'broken worker'
+        builder.javaCommand.jvmArgs("-broken")
+        def worker = builder.build()
+        worker.start()
+
+        then:
+        def e = thrown(WorkerProcessException)
+        e.message == 'Failed to run broken worker'
+        e.cause instanceof ExecException
+        e.cause.message.matches("Process 'broken worker 1' finished with non-zero exit value \\d+")
+
+        cleanup:
+        stopBroken(worker)
+    }
+
+    def "reports failure when worker halts handling request"() {
+        when:
+        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, CrashingWorker.class)
+        builder.baseName = 'broken worker'
+        def worker = builder.build()
+        worker.start()
+        worker.convert("halt", 0)
+
+        then:
+        def e = thrown(WorkerProcessException)
+        e.message == 'Failed to run broken worker'
+        e.cause instanceof IllegalStateException
+        e.cause.message == "No response was received from broken worker but the worker process has finished."
+
+        cleanup:
+        worker?.stop()
+    }
+
+    def "reports failure when worker crashes handling request"() {
+        when:
+        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, CrashingWorker.class)
+        builder.baseName = 'broken worker'
+        def worker = builder.build()
+        worker.start()
+        worker.convert("halt", 12)
+
+        then:
+        def e = thrown(WorkerProcessException)
+        e.message == 'Failed to run broken worker'
+        e.cause instanceof ExecException
+        e.cause.message == "Process 'broken worker 1' finished with non-zero exit value 12"
+
+        cleanup:
+        stopBroken(worker)
+    }
+
+    @Ignore
+    def "cannot invoke method when not running"() {
+        expect: false
+    }
+
+    @Ignore
+    def "cannot invoke method after process crashes"() {
+        expect: false
+    }
+
+    def stopBroken(WorkerControl workerControl) {
+        try {
+            workerControl?.stop()
+        } catch (ExecException e) {
+            // Ignore
+        }
+    }
 }

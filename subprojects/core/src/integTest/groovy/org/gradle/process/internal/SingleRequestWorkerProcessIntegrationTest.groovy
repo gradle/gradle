@@ -102,7 +102,29 @@ class CustomResult implements Serializable {
         result3 == "[d 11]"
     }
 
-    def "propagates failure to instantiate worker implementation"() {
+    def "propagates failure to load worker implementation class"() {
+        given:
+        def cl = compileWithoutClasspath("CustomTestWorker", """
+import ${TestProtocol.name}
+class CustomTestWorker implements TestProtocol {
+    Object convert(String param1, long param2) { return param1 + ":" + param2 }
+    void doSomething() { }
+}
+""")
+
+        when:
+        def builder = workerFactory.singleRequestWorker(TestProtocol.class, cl)
+        builder.baseName = 'broken worker'
+        def worker = builder.build()
+        worker.convert("abc", 12)
+
+        then:
+        def e = thrown(WorkerProcessException)
+        e.message == 'Failed to run broken worker'
+        e.cause instanceof ClassNotFoundException
+    }
+
+    def "propagates failure to instantiate worker implementation instance"() {
         when:
         def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestProtocol.class)
         builder.baseName = 'broken worker'
@@ -115,14 +137,47 @@ class CustomResult implements Serializable {
         e.cause instanceof InstantiationException
     }
 
-    @Ignore
     def "propagates failure to start worker process"() {
-        expect: false
+        when:
+        def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
+        builder.baseName = 'broken worker'
+        builder.javaCommand.jvmArgs("-broken")
+        def worker = builder.build()
+        worker.convert("abc", 12)
+
+        then:
+        def e = thrown(WorkerProcessException)
+        e.message == 'Failed to run broken worker'
+        e.cause instanceof ExecException
+        e.cause.message.matches("Process 'broken worker 1' finished with non-zero exit value \\d+")
     }
 
-    @Ignore
+    def "reports failure when worker halts handling request"() {
+        when:
+        def builder = workerFactory.singleRequestWorker(TestProtocol.class, CrashingWorker.class)
+        builder.baseName = 'broken worker'
+        def worker = builder.build()
+        worker.convert("halt", 0)
+
+        then:
+        def e = thrown(WorkerProcessException)
+        e.message == 'Failed to run broken worker'
+        e.cause instanceof IllegalStateException
+        e.cause.message == "No response was received from broken worker but the worker process has finished."
+    }
+
     def "reports failure when worker crashes handling request"() {
-        expect: false
+        when:
+        def builder = workerFactory.singleRequestWorker(TestProtocol.class, CrashingWorker.class)
+        builder.baseName = 'broken worker'
+        def worker = builder.build()
+        worker.convert("halt", 12)
+
+        then:
+        def e = thrown(WorkerProcessException)
+        e.message == 'Failed to run broken worker'
+        e.cause instanceof ExecException
+        e.cause.message == "Process 'broken worker 1' finished with non-zero exit value 12"
     }
 
     @Ignore
