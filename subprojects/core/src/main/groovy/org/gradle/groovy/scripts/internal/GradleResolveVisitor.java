@@ -447,9 +447,11 @@ public class GradleResolveVisitor extends ResolveVisitor {
 
     private static String replaceLastPoint(String name) {
         int lastPoint = name.lastIndexOf('.');
-        name = name.substring(0, lastPoint)
-            + "$"
-            + name.substring(lastPoint + 1);
+        if (lastPoint>0) {
+            name = name.substring(0, lastPoint)
+                + "$"
+                + name.substring(lastPoint + 1);
+        }
         return name;
     }
 
