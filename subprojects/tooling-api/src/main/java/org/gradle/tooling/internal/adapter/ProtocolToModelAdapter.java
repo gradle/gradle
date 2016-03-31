@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+  http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,9 +16,6 @@
 package org.gradle.tooling.internal.adapter;
 
 import com.google.common.base.Optional;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -32,8 +29,10 @@ import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -108,8 +107,8 @@ public class ProtocolToModelAdapter implements Serializable {
     /**
      * Adapts the source object to a view object.
      *
-     * @param mapper An action that is invoked for each source object in the graph that is to be adapted. The action can influence how the source object is adapted via the provided
-     * {@link SourceObjectMapping}.
+     * @param mapper An action that is invoked for each source object in the graph that is to be adapted. The action can influence how the source object is adapted via the provided {@link
+     * SourceObjectMapping}.
      */
     public <T, S> T adapt(Class<T> targetType, S sourceObject, Action<? super SourceObjectMapping> mapper) {
         if (sourceObject == null) {
@@ -384,34 +383,38 @@ public class ProtocolToModelAdapter implements Serializable {
         }
     }
 
-    private static class ReflectionMethodInvoker implements MethodInvoker {
-        private final static LoadingCache<MethodInvocationKey, Optional<Method>> LOOKUP_CACHE = CacheBuilder.newBuilder()
-            .initialCapacity(512)
-            .maximumSize(4096)
-            .recordStats()
-            .build(new CacheLoader<MethodInvocationKey, Optional<Method>>() {
-                @Override
-                public Optional<Method> load(MethodInvocationKey key) throws Exception {
-                    return lookup(key);
-                }
-            });
+    private static class MethodInvocationCache {
+        private final Map<MethodInvocationKey, Optional<Method>> store = new HashMap<MethodInvocationKey, Optional<Method>>();
+        private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+        private final static long MINIMAL_CLEANUP_INTERVAL = 30000;
+
+        // For stats we don't really care about thread safety
+        private int cacheMiss;
+        private int cacheHit;
+        private int evict;
+
+        private long lastCleanup = System.currentTimeMillis();
 
         private static class MethodInvocationKey {
-            private final Class<?> lookupClass;
+            private final SoftReference<Class<?>> lookupClass;
             private final String methodName;
-            private final Class<?>[] parameterTypes;
+            private final SoftReference<Class<?>[]> parameterTypes;
             private final int hashCode;
 
             private MethodInvocationKey(Class<?> lookupClass, String methodName, Class<?>[] parameterTypes) {
-                this.lookupClass = lookupClass;
+                this.lookupClass = new SoftReference<Class<?>>(lookupClass);
                 this.methodName = methodName;
-                this.parameterTypes = parameterTypes;
+                this.parameterTypes = new SoftReference<Class<?>[]>(parameterTypes);
                 // hashcode will always be used, so we precompute it in order to make sure we
                 // won't compute it multiple times during comparisons
                 int result = lookupClass != null ? lookupClass.hashCode() : 0;
                 result = 31 * result + (methodName != null ? methodName.hashCode() : 0);
                 result = 31 * result + Arrays.hashCode(parameterTypes);
                 this.hashCode = result;
+            }
+
+            public boolean isDirty() {
+                return lookupClass.get() == null || parameterTypes.get() == null;
             }
 
             @Override
@@ -425,14 +428,33 @@ public class ProtocolToModelAdapter implements Serializable {
 
                 MethodInvocationKey that = (MethodInvocationKey) o;
 
-                if (lookupClass != null ? !lookupClass.equals(that.lookupClass) : that.lookupClass != null) {
+                if (isDirty() && that.isDirty()) {
+                    return true;
+                }
+                if (!eq(lookupClass, that.lookupClass)) {
                     return false;
                 }
-                if (methodName != null ? !methodName.equals(that.methodName) : that.methodName != null) {
+                if (!methodName.equals(that.methodName)) {
                     return false;
                 }
-                return Arrays.equals(parameterTypes, that.parameterTypes);
+                return eq(parameterTypes, that.parameterTypes);
 
+            }
+
+            private static boolean eq(SoftReference<?> aRef, SoftReference<?> bRef) {
+                Object a = aRef.get();
+                Object b = bRef.get();
+                return eq(a, b);
+            }
+
+            private static boolean eq(Object a, Object b) {
+                if (a == b) {
+                    return true;
+                }
+                if (a.getClass().isArray()) {
+                    return Arrays.equals((Object[]) a, (Object[]) b);
+                }
+                return a.equals(b);
             }
 
             @Override
@@ -440,6 +462,104 @@ public class ProtocolToModelAdapter implements Serializable {
                 return hashCode;
             }
         }
+
+        public Method get(MethodInvocation invocation) {
+            Class<?> owner = invocation.getDelegate().getClass();
+            String name = invocation.getName();
+            Class<?>[] parameterTypes = invocation.getParameterTypes();
+            MethodInvocationKey key = new MethodInvocationKey(
+                owner,
+                name,
+                parameterTypes
+            );
+            lock.readLock().lock();
+            Optional<Method> cached = store.get(key);
+            if (cached == null) {
+                cacheMiss++;
+                lock.readLock().unlock();
+                lock.writeLock().lock();
+                try {
+                    cached = store.get(key);
+                    if (cached == null) {
+                        cached = lookup(owner, name, parameterTypes);
+                        if (cacheMiss % 10 == 0) {
+                            removeDirtyEntries();
+                        }
+                        store.put(key, cached);
+                    }
+                    lock.readLock().lock();
+                } finally {
+                    lock.writeLock().unlock();
+                }
+            } else {
+                cacheHit++;
+            }
+            try {
+                return cached.orNull();
+            } finally {
+                lock.readLock().unlock();
+            }
+        }
+
+        /**
+         * Removes dirty entries from the cache. Calling System.currentTimeMillis() is costly so we should try to limit calls to this method. This method will only trigger cleanup at most once per
+         * 30s.
+         */
+        private void removeDirtyEntries() {
+            long now = System.currentTimeMillis();
+            if (now - lastCleanup < MINIMAL_CLEANUP_INTERVAL) {
+                return;
+            }
+            lock.writeLock().lock();
+            try {
+                for (MethodInvocationKey key : new LinkedList<MethodInvocationKey>(store.keySet())) {
+                    if (key.isDirty()) {
+                        evict++;
+                        store.remove(key);
+                    }
+                }
+            } finally {
+                lastCleanup = now;
+                lock.writeLock().unlock();
+            }
+        }
+
+        private static Optional<Method> lookup(Class<?> sourceClass, String methodName, Class<?>[] parameterTypes) {
+            Method match;
+            try {
+                match = sourceClass.getMethod(methodName, parameterTypes);
+            } catch (NoSuchMethodException e) {
+                return Optional.absent();
+            }
+
+            LinkedList<Class<?>> queue = new LinkedList<Class<?>>();
+            queue.add(sourceClass);
+            while (!queue.isEmpty()) {
+                Class<?> c = queue.removeFirst();
+                try {
+                    match = c.getMethod(methodName, parameterTypes);
+                } catch (NoSuchMethodException e) {
+                    // ignore
+                }
+                for (Class<?> interfaceType : c.getInterfaces()) {
+                    queue.addFirst(interfaceType);
+                }
+                if (c.getSuperclass() != null) {
+                    queue.addFirst(c.getSuperclass());
+                }
+            }
+            match.setAccessible(true);
+            return Optional.of(match);
+        }
+
+        @Override
+        public String toString() {
+            return "Cache size: " + store.size() + " Hits: " + cacheHit + " Miss: " + cacheMiss + " Evicted: " + evict;
+        }
+    }
+
+    private static class ReflectionMethodInvoker implements MethodInvoker {
+        private final static MethodInvocationCache LOOKUP_CACHE = new MethodInvocationCache();
 
         public void invoke(MethodInvocation invocation) throws Throwable {
             Method targetMethod = locateMethod(invocation);
@@ -458,37 +578,9 @@ public class ProtocolToModelAdapter implements Serializable {
         }
 
         private static Method locateMethod(MethodInvocation invocation) {
-            return LOOKUP_CACHE.getUnchecked(new MethodInvocationKey(invocation.getDelegate().getClass(), invocation.getName(), invocation.getParameterTypes())).orNull();
+            return LOOKUP_CACHE.get(invocation);
         }
 
-        private static Optional<Method> lookup(MethodInvocationKey key) {
-            Class<?> sourceClass = key.lookupClass;
-            Method match;
-            try {
-                match = sourceClass.getMethod(key.methodName, key.parameterTypes);
-            } catch (NoSuchMethodException e) {
-                return Optional.absent();
-            }
-
-            LinkedList<Class<?>> queue = new LinkedList<Class<?>>();
-            queue.add(sourceClass);
-            while (!queue.isEmpty()) {
-                Class<?> c = queue.removeFirst();
-                try {
-                    match = c.getMethod(key.methodName, key.parameterTypes);
-                } catch (NoSuchMethodException e) {
-                    // ignore
-                }
-                for (Class<?> interfaceType : c.getInterfaces()) {
-                    queue.addFirst(interfaceType);
-                }
-                if (c.getSuperclass() != null) {
-                    queue.addFirst(c.getSuperclass());
-                }
-            }
-            match.setAccessible(true);
-            return Optional.of(match);
-        }
     }
 
     private static class PropertyCachingMethodInvoker implements MethodInvoker {
