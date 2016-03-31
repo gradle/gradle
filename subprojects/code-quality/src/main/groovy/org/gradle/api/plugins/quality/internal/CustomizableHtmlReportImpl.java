@@ -17,15 +17,15 @@
 package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.Task;
-import org.gradle.api.plugins.quality.CustomizableHTMLReport;
+import org.gradle.api.plugins.quality.CustomizableHtmlReport;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.resources.TextResource;
 
-public class CustomizableHTMLReportImpl extends TaskGeneratedSingleFileReport implements CustomizableHTMLReport {
+public class CustomizableHtmlReportImpl extends TaskGeneratedSingleFileReport implements CustomizableHtmlReport {
 
     private TextResource stylesheet;
 
-    public CustomizableHTMLReportImpl(String name, Task task) {
+    public CustomizableHtmlReportImpl(String name, Task task) {
         super(name, task);
     }
 

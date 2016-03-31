@@ -22,6 +22,7 @@ import com.google.common.util.concurrent.*;
 import org.gradle.internal.UncheckedException;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
@@ -36,18 +37,17 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     private String logLocation;
 
-    private boolean waitingForCompletion;
-
+    private final AtomicBoolean waitingForCompletion = new AtomicBoolean();
     private final AtomicBoolean canceled = new AtomicBoolean();
 
     DefaultBuildOperationQueue(ExecutorService executor, BuildOperationWorker<T> worker) {
         this.executor = MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
-        this.operations = Lists.newLinkedList();
+        this.operations = Collections.synchronizedList(Lists.<QueuedOperation>newArrayList());
     }
 
     public void add(final T operation) {
-        if (waitingForCompletion) {
+        if (waitingForCompletion.get()) {
             throw new IllegalStateException("BuildOperationQueue cannot be reused once it has started completion.");
         }
         OperationHolder operationHolder = new OperationHolder(operation);
@@ -71,7 +71,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     }
 
     public void waitForCompletion() throws MultipleBuildOperationFailures {
-        waitingForCompletion = true;
+        waitingForCompletion.set(true);
 
         CountDownLatch finished = new CountDownLatch(operations.size());
         Queue<Throwable> failures = Queues.newConcurrentLinkedQueue();

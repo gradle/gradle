@@ -24,6 +24,7 @@ import org.gradle.api.GradleException;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.installation.GradleFatJar;
 import org.gradle.internal.progress.PercentageProgressFormatter;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
@@ -46,6 +47,7 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
 
     private static final int BUFFER_SIZE = 8192;
     private static final String SERVICES_DIR_PREFIX = "META-INF/services/";
+    private static final int ADDITIONAL_PROGRESS_STEPS = 2;
     private static final GradleImplDepsRelocator REMAPPER = new GradleImplDepsRelocator();
     private final ProgressLoggerFactory progressLoggerFactory;
 
@@ -99,7 +101,7 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
 
     private void processFiles(ZipOutputStream outputStream, Iterable<? extends File> files, byte[] buffer, HashSet<String> seenPaths, Map<String, List<String>> services,
                               ProgressLogger progressLogger) throws Exception {
-        PercentageProgressFormatter progressFormatter = new PercentageProgressFormatter("Generating", Iterables.size(files));
+        PercentageProgressFormatter progressFormatter = new PercentageProgressFormatter("Generating", Iterables.size(files) + ADDITIONAL_PROGRESS_STEPS);
 
         for (File file : files) {
             progressLogger.progress(progressFormatter.getProgress());
@@ -113,10 +115,22 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
             progressFormatter.incrementAndGetProgress();
         }
 
+        writeServiceFiles(outputStream, services);
+        progressFormatter.incrementAndGetProgress();
+
+        writeMarkerFile(outputStream);
+        progressFormatter.incrementAndGetProgress();
+    }
+
+    private void writeServiceFiles(ZipOutputStream outputStream, Map<String, List<String>> services) throws IOException {
         for (Map.Entry<String, List<String>> service : services.entrySet()) {
             String allProviders = Joiner.on("\n").join(service.getValue());
             writeEntry(outputStream, SERVICES_DIR_PREFIX + service.getKey(), allProviders.getBytes(Charsets.UTF_8));
         }
+    }
+
+    private void writeMarkerFile(ZipOutputStream outputStream) throws IOException {
+        writeEntry(outputStream, GradleFatJar.MARKER_FILENAME, new byte[0]);
     }
 
     private void processJarFile(final ZipOutputStream outputStream, File file, final byte[] buffer, final HashSet<String> seenPaths, final Map<String, List<String>> services) throws IOException {

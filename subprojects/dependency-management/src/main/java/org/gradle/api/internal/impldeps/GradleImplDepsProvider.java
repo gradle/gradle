@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.impldeps;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.internal.Factory;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,14 +26,12 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.File;
 import java.util.Collection;
-import java.util.Set;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class GradleImplDepsProvider implements Closeable {
     public static final String CACHE_KEY = "generated-gradle-jars";
     public static final String CACHE_DISPLAY_NAME = "Generated Gradle JARs cache";
-    public static final Set<String> VALID_JAR_NAMES = ImmutableSet.of("api", "test-kit");
     private static final Logger LOGGER = LoggerFactory.getLogger(GradleImplDepsProvider.class);
     private final String gradleVersion;
     private PersistentCache cache;
@@ -51,21 +47,16 @@ public class GradleImplDepsProvider implements Closeable {
                 .open();
     }
 
-    public File getFile(final Collection<File> classpath, String name) {
-        if (VALID_JAR_NAMES.contains(name)) {
-            final File implDepsJarFile = jarFile(cache, name);
+    public File getFile(final Collection<File> classpath, GradleImplDepsJarType gradleImplDepsJarType) {
+        if (gradleImplDepsJarType != null) {
+            final File implDepsJarFile = jarFile(cache, gradleImplDepsJarType.getIdentifier());
 
-            Boolean existsInCache = cache.useCache(String.format("Checking %s", implDepsJarFile.getName()), new Factory<Boolean>() {
-                @Override
-                public Boolean create() {
-                    return implDepsJarFile.exists();
-                }
-            });
-
-            if (!existsInCache) {
+            if (!implDepsJarFile.exists()) {
                 cache.useCache(String.format("Generating %s", implDepsJarFile.getName()), new Runnable() {
                     public void run() {
-                        relocatedJarCreator.create(implDepsJarFile, classpath);
+                        if (!implDepsJarFile.exists()) {
+                            relocatedJarCreator.create(implDepsJarFile, classpath);
+                        }
                     }
                 });
             }
@@ -74,7 +65,6 @@ public class GradleImplDepsProvider implements Closeable {
             return implDepsJarFile;
         }
 
-        LOGGER.warn("The provided name {} does not refer to a valid Gradle impl deps JAR", name);
         return null;
     }
 

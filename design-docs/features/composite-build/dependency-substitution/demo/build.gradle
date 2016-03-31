@@ -24,7 +24,7 @@ task printModel << {
 
     def publicationResults = connection.getModels(org.gradle.tooling.model.gradle.ProjectPublications).collect {it.model}
     publicationResults.each { publicationResult ->
-        println "Pubs: " + publicationResult.gradleProjectIdentifier + " :: " + publicationResult.publications*.id
+        println "Pubs: " + publicationResult.projectIdentifier + " :: " + publicationResult.publications*.id
     }
 
     def buildEnvironments = connection.getModels(org.gradle.tooling.model.build.BuildEnvironment).collect { it.model }

@@ -32,7 +32,7 @@ public class FindBugsReportsImpl extends TaskReportContainer<SingleFileReport> i
         super(SingleFileReport.class, task);
 
         add(FindBugsXmlReportImpl.class, "xml", task);
-        add(CustomizableHTMLReportImpl.class, "html", task);
+        add(CustomizableHtmlReportImpl.class, "html", task);
         add(TaskGeneratedSingleFileReport.class, "text", task);
         add(TaskGeneratedSingleFileReport.class, "emacs", task);
     }
@@ -44,11 +44,11 @@ public class FindBugsReportsImpl extends TaskReportContainer<SingleFileReport> i
     public SingleFileReport getHtml() {
         return getByName("html");
     }
-    
+
     public SingleFileReport getText() {
         return getByName("text");
     }
-    
+
     public SingleFileReport getEmacs() {
         return getByName("emacs");
     }

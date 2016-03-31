@@ -32,7 +32,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implements BuildLauncher, CompositeBuildLauncherInternal {
+public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implements BuildLauncher, CompositeBuildLauncher {
 
     public GradleConnectionBuildLauncher(AsyncConsumerActionExecutor connection, CompositeConnectionParameters parameters) {
         super(connection, parameters);
@@ -41,7 +41,7 @@ public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implemen
     @Override
     public BuildLauncher forTasks(String... tasks) {
         throw new UnsupportedOperationException(
-            "Must specify build root directory when executing tasks by name on a GradleConnection: see `CompositeBuildLauncherInternal.forTasks(File, String)`.");
+            "Must specify build root directory when executing tasks by name on a GradleConnection: see `CompositeBuildLauncher.forTasks(File, String)`.");
     }
 
     @Override
@@ -53,7 +53,7 @@ public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implemen
     protected void preprocessLaunchables(Iterable<? extends Launchable> launchables) {
         BuildIdentifier targetBuildIdentifier = null;
         for (Launchable launchable : launchables) {
-            BuildIdentifier launchableBuildIdentifier = launchable.getGradleProjectIdentifier().getBuildIdentifier();
+            BuildIdentifier launchableBuildIdentifier = launchable.getProjectIdentifier().getBuildIdentifier();
             if (targetBuildIdentifier == null) {
                 targetBuildIdentifier = launchableBuildIdentifier;
             } else if (!targetBuildIdentifier.equals(launchableBuildIdentifier)) {

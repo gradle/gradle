@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.DeleteAction;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
@@ -59,8 +60,8 @@ public class Delete extends ConventionTask {
 
     @TaskAction
     protected void clean() {
-        DeleteActionImpl deleteAction = new DeleteActionImpl(getFileResolver(), getFileSystem());
-        setDidWork(deleteAction.doDelete(followSymlinks, delete));
+        DeleteAction deleteAction = new DeleteActionImpl(getFileResolver(), getFileSystem(), followSymlinks);
+        setDidWork(deleteAction.delete(delete));
     }
 
     /**

@@ -34,7 +34,7 @@ public interface GradleBuild extends Model {
      * @since 2.13
      */
     @Incubating
-    BuildIdentifier getIdentifier();
+    BuildIdentifier getBuildIdentifier();
 
     /**
      * Returns the root project for this build.

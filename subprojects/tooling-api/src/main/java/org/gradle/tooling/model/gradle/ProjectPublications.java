@@ -35,7 +35,7 @@ public interface ProjectPublications extends Model {
      * @since 2.13
      */
     @Incubating
-    ProjectIdentifier getGradleProjectIdentifier();
+    ProjectIdentifier getProjectIdentifier();
 
     /**
      * Returns the publications for this project.

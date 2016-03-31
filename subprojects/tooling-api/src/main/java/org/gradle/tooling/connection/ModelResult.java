@@ -29,7 +29,7 @@ import org.gradle.tooling.GradleConnectionException;
 @Incubating
 public interface ModelResult<T> {
     /**
-     * Model produced
+     * Returns the model produced.
      *
      * @return the model, never null.
      * @throws GradleConnectionException if the model could not be retrieved.

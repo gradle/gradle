@@ -119,8 +119,8 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         def ideaProjects = []
         withCompositeConnection([rootDirA]) {
             modelResults = it.getModels(EclipseProject)
-            otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.identifier
-            otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.gradleProjectIdentifier
+            otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.projectIdentifier
+            otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.projectIdentifier
             ideaProjects = it.getModels(IdeaProject)*.model
         }
 
@@ -153,8 +153,8 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         def ideaProjects = []
         withCompositeConnection([rootDirA, rootDirB]) {
             modelResults = it.getModels(EclipseProject)
-            otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.identifier
-            otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.gradleProjectIdentifier
+            otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.projectIdentifier
+            otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.projectIdentifier
             ideaProjects = it.getModels(IdeaProject)*.model
         }
 
@@ -196,13 +196,13 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     private findModelsByProjectIdentifier(File rootDir, String projectPath) {
         def projectIdentifier = new DefaultProjectIdentifier(new DefaultBuildIdentifier(rootDir), projectPath)
-        def results = modelResults.findAll { it.failure == null && projectIdentifier.equals(it.model.gradleProject.identifier) }
+        def results = modelResults.findAll { it.failure == null && projectIdentifier.equals(it.model.gradleProject.projectIdentifier) }
         return results*.model
     }
 
     private findModelsByBuildIdentifier(File rootDir) {
         BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(rootDir)
-        def results = modelResults.findAll { it.failure == null && buildIdentifier.equals(it.model.gradleProject.identifier.buildIdentifier) }
+        def results = modelResults.findAll { it.failure == null && buildIdentifier.equals(it.model.gradleProject.projectIdentifier.buildIdentifier) }
         return results*.model
     }
 
@@ -214,18 +214,18 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     private ideaModuleProjectIdentifiers(Iterable<IdeaProject> ideaProject) {
         def modules = ideaProject*.modules.flatten()
-        return modules.collect { it.gradleProject.identifier }
+        return modules.collect { it.gradleProject.projectIdentifier }
     }
 
     void containSameIdentifiers(Iterable<ProjectIdentifier> otherModelResults) {
         // should contain the same number of results
         assert otherModelResults.size() == modelResults.size()
 
-        def projectIdentities = modelResults*.model.collect { it.gradleProject.identifier }
+        def projectIdentities = modelResults*.model.collect { it.gradleProject.projectIdentifier }
         def otherProjectIdentities = otherModelResults.collect { it }
         assert projectIdentities.containsAll(otherProjectIdentities)
 
-        def buildIdentities = modelResults*.model.collect { it.gradleProject.identifier.buildIdentifier }
+        def buildIdentities = modelResults*.model.collect { it.gradleProject.projectIdentifier.buildIdentifier }
         def otherBuildIdentities = otherModelResults.collect { it.buildIdentifier }
         assert buildIdentities.containsAll(otherBuildIdentities)
     }

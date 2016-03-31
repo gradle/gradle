@@ -55,7 +55,6 @@ class BuildOperationProcessorIntegrationTest extends AbstractIntegrationSpec {
                 @Override
                 public void run() {
                     startedLatch.countDown()
-                    Thread.sleep(1000);
                     throw new Exception("operation failure")
                 }
             }

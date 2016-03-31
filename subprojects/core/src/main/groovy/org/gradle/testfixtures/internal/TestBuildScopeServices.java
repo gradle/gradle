@@ -21,13 +21,18 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
-public class TestBuildScopeServices extends BuildScopeServices {
+import java.io.File;
 
-    public TestBuildScopeServices(ServiceRegistry parent, StartParameter startParameter) {
+public class TestBuildScopeServices extends BuildScopeServices {
+    private final File homeDir;
+
+    public TestBuildScopeServices(ServiceRegistry parent, StartParameter startParameter, File homeDir) {
         super(parent, startParameter);
+        this.homeDir = homeDir;
     }
 
     protected BuildCancellationToken createBuildCancellationToken() {
@@ -39,6 +44,6 @@ public class TestBuildScopeServices extends BuildScopeServices {
     }
 
     protected CurrentGradleInstallation createCurrentGradleInstallation() {
-        return new CurrentGradleInstallation(null);
+        return new CurrentGradleInstallation(new GradleInstallation(homeDir));
     }
 }

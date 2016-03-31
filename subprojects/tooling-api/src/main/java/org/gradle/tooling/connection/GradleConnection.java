@@ -65,10 +65,10 @@ public interface GradleConnection {
      *
      * <p>This method is simply a convenience for calling {@code models(modelType).get()}</p>
      *
-     * @param modelType
-     * @param <T>
-     * @throws GradleConnectionException
-     * @throws IllegalStateException
+     * @param modelType The model type.
+     * @param <T> The model type.
+     * @throws GradleConnectionException On failure using the connection.
+     * @throws IllegalStateException When this connection has been closed or is closing.
      */
     <T> ModelResults<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
 
@@ -84,10 +84,10 @@ public interface GradleConnection {
      *
      * <p>This method is simply a convenience for calling {@code models(modelType).get(handler)}</p>
      *
-     * @param modelType
-     * @param handler
-     * @param <T>
-     * @throws IllegalStateException
+     * @param modelType The model type.
+     * @param handler The handler that will be notified of results.
+     * @param <T> The model type.
+     * @throws IllegalStateException When this connection has been closed or is closing.
      */
     <T> void getModels(Class<T> modelType, ResultHandler<? super ModelResults<T>> handler) throws IllegalStateException;
 
@@ -114,8 +114,8 @@ public interface GradleConnection {
      *
      * <p>A build may also expose additional custom tooling models. You can use this method to query these models.
      *
-     * @param modelType
-     * @param <T>
+     * @param modelType The model type.
+     * @param <T> The model type.
      */
     <T> ModelBuilder<ModelResults<T>> models(Class<T> modelType);
 

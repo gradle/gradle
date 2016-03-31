@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing.worker;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
@@ -89,23 +88,21 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     }
 
     List<URL> getTestWorkerImplementationClasspath() {
-        return Lists.newArrayList(
-            CollectionUtils.flattenCollections(URL.class,
-                moduleRegistry.getModule("gradle-core").getImplementationClasspath().getAsURLs(),
-                moduleRegistry.getModule("gradle-messaging").getImplementationClasspath().getAsURLs(),
-                moduleRegistry.getModule("gradle-base-services").getImplementationClasspath().getAsURLs(),
-                moduleRegistry.getModule("gradle-cli").getImplementationClasspath().getAsURLs(),
-                moduleRegistry.getModule("gradle-native").getImplementationClasspath().getAsURLs(),
-                moduleRegistry.getModule("gradle-testing-base").getImplementationClasspath().getAsURLs(),
-                moduleRegistry.getModule("gradle-testing-jvm").getImplementationClasspath().getAsURLs(),
-                moduleRegistry.getExternalModule("guava-jdk5").getImplementationClasspath().getAsURLs(),
-                moduleRegistry.getExternalModule("slf4j-api").getImplementationClasspath().getAsURLs(),
-                moduleRegistry.getExternalModule("jul-to-slf4j").getImplementationClasspath().getAsURLs(),
-                moduleRegistry.getExternalModule("native-platform").getImplementationClasspath().getAsURLs(),
-                moduleRegistry.getExternalModule("kryo").getImplementationClasspath().getAsURLs(),
-                moduleRegistry.getExternalModule("commons-lang").getImplementationClasspath().getAsURLs(),
-                moduleRegistry.getExternalModule("junit").getImplementationClasspath().getAsURLs()
-            )
+        return CollectionUtils.flattenCollections(URL.class,
+            moduleRegistry.getModule("gradle-core").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-messaging").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-base-services").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-cli").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-native").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-testing-base").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getModule("gradle-testing-jvm").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("guava-jdk5").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("slf4j-api").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("jul-to-slf4j").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("native-platform").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("kryo").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("commons-lang").getImplementationClasspath().getAsURLs(),
+            moduleRegistry.getExternalModule("junit").getImplementationClasspath().getAsURLs()
         );
     }
 

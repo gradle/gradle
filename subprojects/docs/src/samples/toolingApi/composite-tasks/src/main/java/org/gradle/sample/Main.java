@@ -85,7 +85,7 @@ public class Main {
         for (ModelResult<GradleProject> gradleProjectModelResult : gradleProjects) {
             GradleProject gradleProject = gradleProjectModelResult.getModel();
             if (gradleProject.getProjectDirectory().equals(interestingProjectDir)) {
-                buildIdentifier = gradleProject.getIdentifier().getBuildIdentifier();
+                buildIdentifier = gradleProject.getProjectIdentifier().getBuildIdentifier();
             }
         }
         return buildIdentifier;
@@ -93,7 +93,7 @@ public class Main {
 
     private static boolean interestedInProject(GradleProject gradleProject, BuildIdentifier buildIdentifier) {
         // Gradle project is a member of the build we're interested in
-        return gradleProject.getIdentifier().getBuildIdentifier().equals(buildIdentifier);
+        return gradleProject.getProjectIdentifier().getBuildIdentifier().equals(buildIdentifier);
     }
 
     private static List<Launchable> getBuildTasksFromGradleProject(GradleProject gradleProject) {

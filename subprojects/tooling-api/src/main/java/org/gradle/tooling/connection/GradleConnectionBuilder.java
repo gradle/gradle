@@ -53,7 +53,7 @@ public interface GradleConnectionBuilder {
     GradleConnectionBuilder useGradleUserHomeDir(File gradleUserHomeDir);
 
     /**
-     * Creates a new participant builder instance for creating Gradle composite participants.
+     * Adds a new participant build to this connection, returning a build for further configuration.
      *
      * @param projectDirectory The root project directory for the participant.
      *

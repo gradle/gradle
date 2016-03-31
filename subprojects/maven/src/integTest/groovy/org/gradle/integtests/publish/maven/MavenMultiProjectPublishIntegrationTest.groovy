@@ -314,6 +314,39 @@ project(":project2") {
     }
 
     @Issue("GRADLE-3030")
+    def "dependency on testRuntime, includes classifier on jar"() {
+        createBuildScripts("""
+project(":project1") {
+    dependencies {
+        compile project(":project2")
+        testCompile project(path: ":project2", configuration: "testRuntime")
+    }
+}
+
+project(":project2") {
+    task testJar(type:Jar) {
+        from sourceSets.test.output
+        classifier = "tests"
+    }
+
+    artifacts {
+        testRuntime  testJar
+    }
+}
+        """)
+
+        when:
+        run(":project1:uploadArchives")
+
+        then:
+        def pom = mavenModule.parsedPom
+        pom.scopes.compile.assertDependsOn("org.gradle.test:project2:1.9")
+        pom.scopes.test.assertDependsOn(
+            "org.gradle.test:project2:1.9",        // Because testRuntime extends from compile
+            "org.gradle.test:project2:1.9:tests")  // Because project2 declares it as a testRuntime artifact
+    }
+
+    @Issue("GRADLE-3030")
     def "project dependency correctly reflected in POM when configuration is extending other configurations"() {
         createBuildScripts("""
 project(":project1") {

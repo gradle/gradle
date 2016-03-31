@@ -88,7 +88,7 @@ gradle.taskGraph.whenReady { taskGraph ->
     }
 }
         </programlisting>
-        <section>
+        <section id="sec:subkeys">
             <title>Using OpenPGP subkeys</title>
             <para>
                 OpenPGP supports subkeys, which are like the normal keys, except they're bound to a master key pair.

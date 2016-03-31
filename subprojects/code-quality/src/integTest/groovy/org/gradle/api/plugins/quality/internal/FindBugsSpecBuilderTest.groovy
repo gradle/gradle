@@ -159,7 +159,7 @@ class FindBugsSpecBuilderTest extends Specification {
 
     def "with html with custom stylesheet"() {
         setup:
-        CustomizableHTMLReportImpl singleReport = Mock()
+        CustomizableHtmlReportImpl singleReport = Mock()
         File destination = Mock()
         NamedDomainObjectSet enabledReportSet = Mock()
         FindBugsReportsImpl report = Mock()

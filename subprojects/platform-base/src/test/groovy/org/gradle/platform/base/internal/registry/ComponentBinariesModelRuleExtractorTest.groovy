@@ -20,7 +20,7 @@ import org.gradle.language.base.plugins.ComponentModelBasePlugin
 import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.core.ModelActionRole
-import org.gradle.model.internal.core.MutableModelNode
+import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentBinaries
 import org.gradle.platform.base.GeneralComponentSpec
@@ -42,7 +42,7 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
 
     @Unroll
     def "applies ComponentModelBasePlugin and creates componentBinary rule #descr"() {
-        def node = Mock(MutableModelNode)
+        def registry = Mock(ModelRegistry)
 
         when:
         def registration = extract(ruleDefinitionForMethod(ruleName))
@@ -51,12 +51,10 @@ class ComponentBinariesModelRuleExtractorTest extends AbstractAnnotationModelRul
         registration.ruleDependencies == [ComponentModelBasePlugin]
 
         when:
-        apply(registration, node)
+        apply(registration, registry)
 
         then:
-        1 * node.applyTo(_, ModelActionRole.Finalize, _) >> {
-
-        }
+        1 * registry.configureMatching(_, ModelActionRole.Finalize, _)
         0 * _
 
         where:
