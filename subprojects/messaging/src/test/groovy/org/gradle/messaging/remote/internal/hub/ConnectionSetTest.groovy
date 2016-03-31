@@ -17,7 +17,10 @@
 package org.gradle.messaging.remote.internal.hub
 
 import org.gradle.messaging.remote.internal.RemoteConnection
-import org.gradle.messaging.remote.internal.hub.protocol.*
+import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier
+import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
+import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream
+import org.gradle.messaging.remote.internal.hub.protocol.RejectedMessage
 import org.gradle.messaging.remote.internal.hub.queue.AbstractQueueTest
 
 class ConnectionSetTest extends AbstractQueueTest {
@@ -34,7 +37,7 @@ class ConnectionSetTest extends AbstractQueueTest {
         outgoingQueue.dispatch(outgoingMessage)
 
         when:
-        connections.requestStop()
+        connections.noFurtherConnections()
         def messages = []
         incoming.take(messages)
 
@@ -48,20 +51,22 @@ class ConnectionSetTest extends AbstractQueueTest {
     def "does not discard queued outgoing messages when stop requested until all connections finished"() {
         def channel = new ChannelIdentifier("channel")
         def message = new ChannelMessage(channel, "payload")
+        def sentinel = new ChannelMessage(channel, "payload")
 
         given:
         def incoming = incomingQueue.getChannel(channel).newEndpoint()
         def connection = connections.add(Mock(RemoteConnection))
         outgoingQueue.dispatch(message)
+        incomingQueue.queue(sentinel)
 
         when:
-        connections.requestStop()
+        connections.noFurtherConnections()
         def messages = []
         incoming.take(messages)
 
         then:
         messages.size() == 1
-        messages[0] instanceof ConnectionEstablished
+        messages == [sentinel]
 
         when:
         messages = []
@@ -70,10 +75,9 @@ class ConnectionSetTest extends AbstractQueueTest {
         incoming.take(messages)
 
         then:
-        messages.size() == 3
-        messages[0] instanceof ConnectionClosed
-        messages[1] instanceof RejectedMessage
-        messages[1].payload == "payload"
-        messages[2] instanceof EndOfStream
+        messages.size() == 2
+        messages[0] instanceof RejectedMessage
+        messages[0].payload == "payload"
+        messages[1] instanceof EndOfStream
     }
 }

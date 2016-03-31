@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.messaging.remote.internal.hub;
+package org.gradle.messaging.dispatch;
 
 /**
- * A listener that is notified of changes in the state of a message hub.
+ * A sink for a bounded stream of messages.
+ *
+ * <p>Implementations are not required to be thread-safe.
  */
-public interface HubStateListener {
+public interface BoundedDispatch<T> extends Dispatch<T>, StreamCompletion {
     /**
-     * Called when a connection is attached to the hub.
+     * Signals the end of the stream of messages. No further messages should be dispatched using the {@link Dispatch#dispatch(Object)} method after this method is called.
      */
-    void onConnect();
-
-    /**
-     * Called when a connection is detached from the hub.
-     */
-    void onDisconnect();
+    void endStream();
 }

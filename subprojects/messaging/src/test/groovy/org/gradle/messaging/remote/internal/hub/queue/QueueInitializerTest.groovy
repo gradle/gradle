@@ -17,9 +17,6 @@
 package org.gradle.messaging.remote.internal.hub.queue
 
 import org.gradle.messaging.dispatch.Dispatch
-import org.gradle.messaging.remote.internal.Connection
-import org.gradle.messaging.remote.internal.hub.protocol.ConnectionClosed
-import org.gradle.messaging.remote.internal.hub.protocol.ConnectionEstablished
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage
 
@@ -35,46 +32,10 @@ class QueueInitializerTest extends AbstractQueueTest {
         0 * queue._
     }
 
-    def "initialises queue with any ConnectionEstablished messages received"() {
-        given:
-        def message1 = new ConnectionEstablished(Mock(Connection))
-        def message2 = new ConnectionEstablished(Mock(Connection))
-
-        initializer.onStatefulMessage(message1)
-        initializer.onStatefulMessage(message2)
-
-        when:
-        initializer.onQueueAdded(queue)
-
-        then:
-        1 * queue.dispatch(message1)
-        1 * queue.dispatch(message2)
-        0 * queue._
-    }
-
-    def "discards ConnectionEstablished message for which a corresponding ConnectionClosed message received"() {
-        given:
-        def message1 = new ConnectionEstablished(Mock(Connection))
-        def message2 = new ConnectionEstablished(Mock(Connection))
-
-        initializer.onStatefulMessage(message1)
-        initializer.onStatefulMessage(message2)
-        initializer.onStatefulMessage(new ConnectionClosed(message2.connection))
-
-        when:
-        initializer.onQueueAdded(queue)
-
-        then:
-        1 * queue.dispatch(message1)
-        0 * queue._
-    }
-
     def "discards message on end of stream received"() {
         given:
         def closed = new EndOfStream()
 
-        initializer.onStatefulMessage(new ConnectionEstablished(Mock(Connection)))
-        initializer.onStatefulMessage(new ConnectionEstablished(Mock(Connection)))
         initializer.onStatefulMessage(closed)
 
         when:

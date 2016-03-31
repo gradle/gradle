@@ -33,6 +33,11 @@ public interface ObjectConnectionBuilder {
      * Registers a handler for incoming messages on the given type. The provided handler is not required to be
      * thread-safe. Messages are delivered to the handler by a single thread.
      *
+     * <p>A handler instance may also implement {@link org.gradle.messaging.dispatch.StreamCompletion}, in which case it will be notified when no further messages will be forwarded to it.
+     * This may happen because the peer has signalled that it has finished sending messages, or closes the connection, or crashes. It may also happen when
+     * this side of the connection is closed using {@link ObjectConnection#stop()}.
+     * </p>
+     *
      * <p>Method invocations are called on the given instance in the order that they were called on the transmitter object.</p>
      *
      * @param type The type.
@@ -40,6 +45,9 @@ public interface ObjectConnectionBuilder {
      */
     <T> void addIncoming(Class<T> type, T instance);
 
+    /**
+     * Use Java serialization for method parameters for method invocations sent between peers.
+     */
     void useJavaSerializationForParameters(ClassLoader incomingMessageClassLoader);
 
     /**

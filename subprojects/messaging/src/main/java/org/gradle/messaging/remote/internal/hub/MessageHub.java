@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.messaging.dispatch.BoundedDispatch;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.remote.internal.Connection;
 import org.gradle.messaging.remote.internal.RemoteConnection;
@@ -37,6 +38,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Use {@link #getOutgoing(String, Class)} to create a {@link Dispatch} to send unicast messages on a given channel.
  * Use {@link #addHandler(String, Object)} to create a worker for incoming messages on a given channel.
  * Use {@link #addConnection(RemoteConnection)} to attach another router to this router.
+ *
  */
 public class MessageHub implements AsyncStoppable {
     private enum State {Running, Stopping, Stopped}
@@ -86,7 +88,7 @@ public class MessageHub implements AsyncStoppable {
      *
      * <li>{@link RejectedMessageListener} to receive notifications of outgoing messages that cannot be sent on the given channel.</li>
      *
-     * <li>{@link HubStateListener} to receive notifications of state changes to this hub.</li>
+     * <li>{@link BoundedDispatch} to receive notifications of the end of incoming messages.</li>
      *
      * </ul>
      *
@@ -111,15 +113,15 @@ public class MessageHub implements AsyncStoppable {
             } else {
                 dispatch = DISCARD;
             }
-            HubStateListener stateListener;
-            if (handler instanceof HubStateListener) {
-                stateListener = (HubStateListener) handler;
+            BoundedDispatch<Object> boundedDispatch;
+            if (dispatch instanceof BoundedDispatch) {
+                boundedDispatch = (BoundedDispatch) dispatch;
             } else {
-                stateListener = DISCARD;
+                boundedDispatch = DISCARD;
             }
             ChannelIdentifier identifier = new ChannelIdentifier(channelName);
             EndPointQueue queue = incomingQueue.getChannel(identifier).newEndpoint();
-            workers.execute(new Handler(queue, dispatch, rejectedMessageListener, stateListener));
+            workers.execute(new Handler(queue, dispatch, boundedDispatch, rejectedMessageListener));
         } finally {
             lock.unlock();
         }
@@ -137,6 +139,18 @@ public class MessageHub implements AsyncStoppable {
             ConnectionState connectionState = connections.add(connection);
             workers.execute(new ConnectionDispatch(connectionState));
             workers.execute(new ConnectionReceive(connectionState));
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Signals that no further connections will be added.
+     */
+    public void noFurtherConnections() {
+        lock.lock();
+        try {
+            connections.noFurtherConnections();
         } finally {
             lock.unlock();
         }
@@ -167,7 +181,7 @@ public class MessageHub implements AsyncStoppable {
             }
             try {
                 outgoingQueue.endOutput();
-                connections.requestStop();
+                connections.noFurtherConnections();
             } finally {
                 state = State.Stopping;
             }
@@ -208,17 +222,15 @@ public class MessageHub implements AsyncStoppable {
         }
     }
 
-    private static class Discard implements Dispatch<Object>, RejectedMessageListener, HubStateListener {
+    private static class Discard implements BoundedDispatch<Object>, RejectedMessageListener {
         public void dispatch(Object message) {
         }
 
+        @Override
+        public void endStream() {
+        }
+
         public void messageDiscarded(Object message) {
-        }
-
-        public void onConnect() {
-        }
-
-        public void onDisconnect() {
         }
     }
 
@@ -334,14 +346,14 @@ public class MessageHub implements AsyncStoppable {
     private class Handler implements Runnable {
         private final EndPointQueue queue;
         private final Dispatch<Object> dispatch;
+        private final BoundedDispatch<Object> boundedDispatch;
         private final RejectedMessageListener listener;
-        private final HubStateListener stateListener;
 
-        public Handler(EndPointQueue queue, Dispatch<Object> dispatch, RejectedMessageListener listener, HubStateListener stateListener) {
+        public Handler(EndPointQueue queue, Dispatch<Object> dispatch, BoundedDispatch<Object> boundedDispatch, RejectedMessageListener listener) {
             this.queue = queue;
             this.dispatch = dispatch;
+            this.boundedDispatch = boundedDispatch;
             this.listener = listener;
-            this.stateListener = stateListener;
         }
 
         public void run() {
@@ -357,6 +369,7 @@ public class MessageHub implements AsyncStoppable {
                         }
                         for (InterHubMessage message : messages) {
                             if (message instanceof EndOfStream) {
+                                boundedDispatch.endStream();
                                 return;
                             }
                             if (message instanceof ChannelMessage) {
@@ -365,10 +378,6 @@ public class MessageHub implements AsyncStoppable {
                             } else if (message instanceof RejectedMessage) {
                                 RejectedMessage rejectedMessage = (RejectedMessage) message;
                                 listener.messageDiscarded(rejectedMessage.getPayload());
-                            } else if (message instanceof ConnectionEstablished) {
-                                stateListener.onConnect();
-                            } else if (message instanceof ConnectionClosed) {
-                                stateListener.onDisconnect();
                             } else {
                                 throw new IllegalArgumentException(String.format("Don't know how to handle message %s", message));
                             }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.dispatch;
 
-/**
- * A general purpose sink for a stream of messages.
- *
- * <p>Implementations are not required to be thread-safe.
- */
-public interface Dispatch<T> {
+public interface StreamCompletion {
     /**
-     * Dispatches the next message. Blocks until the messages has been accepted but generally does not wait for the
-     * message to be processed. Delivery guarantees are implementation specific.
-     *
-     * @param message The message.
+     * Signals the end of the stream of messages.
      */
-    void dispatch(T message);
+    void endStream();
 }

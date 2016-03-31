@@ -17,8 +17,6 @@
 package org.gradle.messaging.remote.internal.hub;
 
 import org.gradle.messaging.remote.internal.RemoteConnection;
-import org.gradle.messaging.remote.internal.hub.protocol.ConnectionClosed;
-import org.gradle.messaging.remote.internal.hub.protocol.ConnectionEstablished;
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
 import org.gradle.messaging.remote.internal.hub.queue.EndPointQueue;
@@ -37,23 +35,30 @@ class ConnectionSet {
         this.outgoingQueue = outgoingQueue;
     }
 
+    /**
+     * Adds a new incoming connection.
+     */
     public ConnectionState add(RemoteConnection<InterHubMessage> connection) {
-        incomingQueue.queue(new ConnectionEstablished(connection));
         EndPointQueue queue = outgoingQueue.newEndpoint();
         ConnectionState state = new ConnectionState(this, connection, queue);
         connections.add(state);
         return state;
     }
 
+    /**
+     * Called when all dispatch and receive has completed on the given connection.
+     */
     public void finished(ConnectionState connectionState) {
-        incomingQueue.queue(new ConnectionClosed(connectionState.getConnection()));
         connections.remove(connectionState);
         if (stopping) {
             maybeStop();
         }
     }
 
-    public void requestStop() {
+    /**
+     * Called when no further incoming connections will be added.
+     */
+    public void noFurtherConnections() {
         stopping = true;
         maybeStop();
     }

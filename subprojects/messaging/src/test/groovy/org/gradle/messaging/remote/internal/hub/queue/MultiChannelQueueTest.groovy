@@ -16,10 +16,9 @@
 
 package org.gradle.messaging.remote.internal.hub.queue
 
-import org.gradle.messaging.remote.internal.Connection
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
-import org.gradle.messaging.remote.internal.hub.protocol.ConnectionEstablished
+import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream
 
 class MultiChannelQueueTest extends AbstractQueueTest {
     final MultiChannelQueue queue = new MultiChannelQueue(lock)
@@ -107,26 +106,25 @@ class MultiChannelQueueTest extends AbstractQueueTest {
 
     def "forwards most recent stateful broadcast messages to all new queues"() {
         def id1 = new ChannelIdentifier("channel1")
-        def message1 = new ConnectionEstablished(Mock(Connection))
-        def message2 = new ChannelMessage(id1, "message 2")
-        def message3 = new ConnectionEstablished(Mock(Connection))
+        def message1 = broadcast()
+        def message2 = broadcast()
+        def message3 = new EndOfStream()
 
         given:
         queue.queue(message1)
         queue.queue(message2)
+        queue.queue(message3)
 
         when:
         def endpoint1 = queue.getChannel(id1).newEndpoint()
-        queue.queue(message3)
         def endpoint2 = queue.getChannel(id1).newEndpoint()
         def messages1 = []
         def messages2 = []
         endpoint1.take(messages1)
-        endpoint1.take(messages1)
         endpoint2.take(messages2)
 
         then:
-        messages1 == [message1, message2, message3]
-        messages2 == [message1, message3]
+        messages1 == [message3]
+        messages2 == [message3]
     }
 }

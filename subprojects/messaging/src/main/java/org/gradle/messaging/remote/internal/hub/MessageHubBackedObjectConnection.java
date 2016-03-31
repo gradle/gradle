@@ -23,9 +23,7 @@ import org.gradle.internal.concurrent.ThreadSafe;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.internal.serialize.StatefulSerializer;
 import org.gradle.internal.serialize.kryo.TypeSafeSerializer;
-import org.gradle.messaging.dispatch.MethodInvocation;
-import org.gradle.messaging.dispatch.ProxyDispatchAdapter;
-import org.gradle.messaging.dispatch.ReflectionDispatch;
+import org.gradle.messaging.dispatch.*;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.internal.ConnectCompletion;
 import org.gradle.messaging.remote.internal.RemoteConnection;
@@ -55,11 +53,15 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
         methodParamClassLoader = incomingMessageClassLoader;
     }
 
-    public <T> void addIncoming(Class<T> type, T instance) {
+    public <T> void addIncoming(Class<T> type, final T instance) {
         if (methodParamClassLoader == null) {
             methodParamClassLoader = type.getClassLoader();
         }
-        hub.addHandler(type.getName(), new ReflectionDispatch(instance));
+        Dispatch<MethodInvocation> handler = new ReflectionDispatch(instance);
+        if (instance instanceof StreamCompletion) {
+            handler = new BoundedDispatchWrapper((StreamCompletion) instance, handler);
+        }
+        hub.addHandler(type.getName(), handler);
     }
 
     public <T> T addOutgoing(Class<T> type) {
@@ -94,6 +96,7 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
 
         connection = completion.create(serializer);
         hub.addConnection(connection);
+        hub.noFurtherConnections();
         completion = null;
     }
 
@@ -104,5 +107,25 @@ public class MessageHubBackedObjectConnection implements ObjectConnection {
     public void stop() {
         // TODO:ADAM - need to cleanup completion too, if not used
         CompositeStoppable.stoppable(hub, connection).stop();
+    }
+
+    private static class BoundedDispatchWrapper implements BoundedDispatch<MethodInvocation> {
+        private final StreamCompletion instance;
+        private final Dispatch<MethodInvocation> handler;
+
+        BoundedDispatchWrapper(StreamCompletion instance, Dispatch<MethodInvocation> handler) {
+            this.instance = instance;
+            this.handler = handler;
+        }
+
+        @Override
+        public void endStream() {
+            instance.endStream();
+        }
+
+        @Override
+        public void dispatch(MethodInvocation message) {
+            handler.dispatch(message);
+        }
     }
 }

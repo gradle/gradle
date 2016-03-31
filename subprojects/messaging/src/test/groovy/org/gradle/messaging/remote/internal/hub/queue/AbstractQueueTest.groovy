@@ -37,6 +37,13 @@ abstract class AbstractQueueTest extends Specification {
         return message
     }
 
+    def stateful() {
+        InterHubMessage message = Stub() {
+            getDelivery() >> InterHubMessage.Delivery.Stateful
+        }
+        return message
+    }
+
     def broadcast() {
         InterHubMessage message = Stub() {
             getDelivery() >> InterHubMessage.Delivery.AllHandlers

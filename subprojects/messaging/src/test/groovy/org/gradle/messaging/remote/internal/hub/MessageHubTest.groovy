@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package org.gradle.messaging.remote.internal.hub
 
 import org.gradle.api.Action
+import org.gradle.messaging.dispatch.BoundedDispatch
 import org.gradle.messaging.dispatch.Dispatch
 import org.gradle.messaging.remote.internal.RemoteConnection
+import org.gradle.messaging.remote.internal.TestConnection
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelIdentifier
 import org.gradle.messaging.remote.internal.hub.protocol.ChannelMessage
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream
@@ -506,72 +508,134 @@ class MessageHubTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def "notifies HubStateListener asynchronously when connection added and when end-of-stream reached for each connection"() {
-        HubStateListener listener1 = Mock()
-        HubStateListener listener2 = Mock()
-        def connection1 = new TestConnection()
-        def connection2 = new TestConnection()
+    def "notifies handler that the end of incoming messages has been reached when stop requested and no connections"() {
+        BoundedDispatch<String> handler = Mock()
 
         given:
-        hub.addHandler("channel", listener1)
+        hub.addHandler("channel", handler)
 
         when:
-        hub.addConnection(connection1)
-        hub.addConnection(connection2)
-        hub.addHandler("channel", listener2)
-        thread.blockUntil.listener1Connect
-        thread.blockUntil.listener2Connect
+        operation.request {
+            hub.requestStop()
+        }
+        thread.blockUntil.notified
 
         then:
-        1 * listener1.onConnect()
-        1 * listener1.onConnect() >> { instant.listener1Connect }
-        1 * listener2.onConnect()
-        1 * listener2.onConnect() >> { instant.listener2Connect }
+        1 * handler.endStream() >> {
+            thread.blockUntil.request
+            instant.notified
+        }
         0 * _._
-
-        when:
-        connection1.stop()
-        thread.blockUntil.listener1Disconnect
-        thread.blockUntil.listener2Disconnect
-
-        then:
-        1 * listener1.onDisconnect() >> { instant.listener1Disconnect }
-        1 * listener2.onDisconnect() >> { instant.listener2Disconnect }
-        0 * _._
-
-        cleanup:
-        connection1.stop()
-        connection2.stop()
     }
 
-    def "stop blocks until hub state listeners notified"() {
-        HubStateListener listener = Mock()
+    def "notifies handler that the end of incoming messages has been reached when no connections added and no further connections signalled"() {
+        BoundedDispatch<String> handler = Mock()
+
+        given:
+        hub.addHandler("channel", handler)
+
+        when:
+        operation.signal {
+            hub.noFurtherConnections()
+        }
+        thread.blockUntil.notified
+
+        then:
+        1 * handler.endStream() >> {
+            thread.blockUntil.signal
+            instant.notified
+        }
+        0 * _._
+    }
+
+    def "notifies handler that the end of incoming messages has been reached when stop requested and end-of-stream reached for all connections"() {
+        BoundedDispatch<String> handler = Mock()
         def connection1 = new TestConnection()
         def connection2 = new TestConnection()
 
         given:
-        hub.addHandler("channel", listener)
-
-        when:
+        hub.addHandler("channel", handler)
         hub.addConnection(connection1)
         hub.addConnection(connection2)
-        connection1.stop()
-        connection2.stop()
-        operation.stop {
+
+        when:
+        operation.request {
+            connection1.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel"), "message 1"))
+            connection1.stop()
+            hub.requestStop()
+            thread.block()
+            connection2.stop()
+        }
+        thread.blockUntil.notified
+
+        then:
+        1 * handler.dispatch("message 1")
+
+        then:
+        1 * handler.endStream() >> {
+            thread.blockUntil.request
+            instant.notified
+        }
+        0 * _._
+    }
+
+    def "notifies handler that the end of incoming messages has been reached when end-of-stream reached for all connections and no further connections signalled"() {
+        BoundedDispatch<String> handler = Mock()
+        def connection1 = new TestConnection()
+        def connection2 = new TestConnection()
+
+        given:
+        hub.addHandler("channel", handler)
+        hub.addConnection(connection1)
+        hub.addConnection(connection2)
+
+        when:
+        operation.request {
+            connection1.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel"), "message 1"))
+            connection1.stop()
+            hub.noFurtherConnections()
+            thread.block()
+            connection2.stop()
+        }
+        thread.blockUntil.notified
+
+        then:
+        1 * handler.dispatch("message 1")
+
+        then:
+        1 * handler.endStream() >> {
+            thread.blockUntil.request
+            instant.notified
+        }
+        0 * _._
+    }
+
+    def "stop blocks until handle has finished processing end of incoming messages"() {
+        BoundedDispatch<String> handler = Mock()
+        def connection = new TestConnection()
+
+        given:
+        hub.addHandler("channel", handler)
+        hub.addConnection(connection)
+
+        when:
+        connection.queueIncoming(new ChannelMessage(new ChannelIdentifier("channel"), "message 1"))
+        connection.stop()
+
+        operation.request {
             hub.stop()
         }
 
         then:
-        2 * listener.onConnect()
-        1 * listener.onDisconnect()
-        1 * listener.onDisconnect() >> {
-            thread.block()
-            instant.listenerNotified
-        }
-        0 * _._
+        operation.request.end > instant.notified
 
         and:
-        operation.stop.end > instant.listenerNotified
+        1 * handler.dispatch("message 1")
+        1 * handler.endStream() >> {
+            thread.block()
+            instant.notified
+        }
+        0 * _._
     }
 
     def "cannot dispatch outgoing messages after stop requested"() {
@@ -651,37 +715,6 @@ class MessageHubTest extends ConcurrentSpec {
             return incoming.take()
         }
 
-        void stop() {
-            incoming.put(new EndOfStream())
-        }
-    }
-
-    private static class TestConnection implements RemoteConnection<InterHubMessage> {
-        private final BlockingQueue<InterHubMessage> incoming = new LinkedBlockingQueue<>()
-        private final BlockingQueue<InterHubMessage> outgoing = new LinkedBlockingQueue<>()
-        private final BlockingQueue<InterHubMessage> outgoingBuffered = new LinkedBlockingQueue<>()
-
-        @Override
-        void dispatch(InterHubMessage message) {
-            outgoingBuffered.put(message)
-        }
-
-        @Override
-        void flush() {
-            outgoingBuffered.drainTo(outgoing)
-        }
-
-        @Override
-        InterHubMessage receive() {
-            def message = incoming.take()
-            return message instanceof EndOfStream ? null : message
-        }
-
-        void queueIncoming(InterHubMessage message) {
-            incoming.put(message)
-        }
-
-        @Override
         void stop() {
             incoming.put(new EndOfStream())
         }

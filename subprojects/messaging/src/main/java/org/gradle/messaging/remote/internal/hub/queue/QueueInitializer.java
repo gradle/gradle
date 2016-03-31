@@ -17,28 +17,14 @@
 package org.gradle.messaging.remote.internal.hub.queue;
 
 import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.hub.protocol.ConnectionClosed;
-import org.gradle.messaging.remote.internal.hub.protocol.ConnectionEstablished;
 import org.gradle.messaging.remote.internal.hub.protocol.EndOfStream;
 import org.gradle.messaging.remote.internal.hub.protocol.InterHubMessage;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 public class QueueInitializer {
     private EndOfStream endOfStream;
-    private Map<Connection<?>, ConnectionEstablished> queued = new LinkedHashMap<Connection<?>, ConnectionEstablished>();
 
     void onStatefulMessage(InterHubMessage message) {
-        if (message instanceof ConnectionEstablished) {
-            ConnectionEstablished connectionEstablished = (ConnectionEstablished) message;
-            queued.put(connectionEstablished.getConnection(), connectionEstablished);
-        } else if (message instanceof ConnectionClosed) {
-            ConnectionClosed connectionClosed = (ConnectionClosed) message;
-            queued.remove(connectionClosed.getConnection());
-        } else if (message instanceof EndOfStream) {
-            queued.clear();
+        if (message instanceof EndOfStream) {
             endOfStream = (EndOfStream) message;
         } else {
             throw new UnsupportedOperationException(String.format("Received unexpected stateful message: %s", message));
@@ -46,9 +32,6 @@ public class QueueInitializer {
     }
 
     void onQueueAdded(Dispatch<InterHubMessage> queue) {
-        for (ConnectionEstablished connectionEstablished : queued.values()) {
-            queue.dispatch(connectionEstablished);
-        }
         if (endOfStream != null) {
             queue.dispatch(endOfStream);
         }
