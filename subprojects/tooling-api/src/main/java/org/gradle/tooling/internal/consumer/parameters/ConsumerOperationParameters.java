@@ -419,7 +419,7 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         if (buildIdentifier == null) {
             return unorderedBuilds;
         }
-        
+
         GradleParticipantBuild targetBuild = null;
         List<GradleParticipantBuild> builds = new LinkedList<GradleParticipantBuild>();
         for (GradleParticipantBuild build : unorderedBuilds) {

@@ -65,14 +65,9 @@ public class CompositeAwareModelProducer extends HasCompatibilityMapperAction im
     @Override
     public <T> Iterable<ModelResult<T>> produceModels(final Class<T> elementType, ConsumerOperationParameters operationParameters) {
         BuildResult<?> result = buildModels(elementType, operationParameters);
+        ExceptionTransformer exceptionTransformer = new CompositeExceptionTransformer(elementType);
+
         if (result.getModel() instanceof List) {
-            ExceptionTransformer exceptionTransformer = new ExceptionTransformer(new Transformer<String, Throwable>() {
-                @Override
-                public String transform(Throwable throwable) {
-                    // TODO:DAZ The installation in this message isn't going to be right
-                    return String.format("Could not fetch models of type '%s' using Gradle daemon composite connection.", elementType.getSimpleName());
-                }
-            });
             final List<ModelResult<T>> models = new LinkedList<ModelResult<T>>();
             List resultMap = (List) result.getModel();
             for (Object modelValueTriple : resultMap) {
@@ -107,6 +102,32 @@ public class CompositeAwareModelProducer extends HasCompatibilityMapperAction im
             throw exceptionTransformer.transform(e);
         }
         return result;
+    }
+
+    private static class CompositeExceptionTransformer extends ExceptionTransformer {
+        private final Class<?> modelType;
+
+        public CompositeExceptionTransformer(Class<?> modelType) {
+            super(createConnectionTransformer(modelType));
+            this.modelType = modelType;
+        }
+
+        @Override
+        public GradleConnectionException transform(Throwable failure) {
+            if (failure instanceof InternalUnsupportedModelException) {
+                return Exceptions.unknownModel(modelType, (InternalUnsupportedModelException) failure);
+            }
+            return super.transform(failure);
+        }
+
+        private static Transformer<String, Throwable> createConnectionTransformer(final Class<?> type) {
+            return new Transformer<String, Throwable>() {
+                @Override
+                public String transform(Throwable throwable) {
+                    return String.format("Could not fetch models of type '%s' using Gradle daemon composite connection.", type.getSimpleName());
+                }
+            };
+        }
     }
 
 }
