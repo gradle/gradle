@@ -122,7 +122,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
             if (redirect() != this) {
                 return super.hasPackageName();
             }
-            return className.indexOf('.') != -1;
+            return getName().indexOf('.') != -1;
         }
 
         public String setName(String name) {

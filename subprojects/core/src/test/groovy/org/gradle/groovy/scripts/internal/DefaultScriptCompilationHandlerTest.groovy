@@ -382,6 +382,17 @@ println 'hi'
         checkScriptCacheEmpty()
     }
 
+    @Issue('GRADLE-3423')
+    def testCompileWithInnerClassReference() {
+        ScriptSource source = new StringScriptSource("script.gradle", "Map.Entry entry = null")
+
+        when:
+        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
+
+        then:
+        noExceptionThrown()
+    }
+
     private void checkScriptClassesInCache(boolean empty = false) {
         assertTrue(scriptCacheDir.isDirectory())
         assertTrue(cachedFile.isFile())
