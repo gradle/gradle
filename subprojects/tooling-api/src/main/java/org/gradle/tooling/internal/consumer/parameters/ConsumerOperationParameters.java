@@ -21,6 +21,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.CancellationToken;
+import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier;
@@ -415,15 +416,26 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
             return null;
         }
         List<GradleParticipantBuild> unorderedBuilds = ((CompositeConnectionParameters) parameters).getBuilds();
+        if (buildIdentifier == null) {
+            return unorderedBuilds;
+        }
+        
+        GradleParticipantBuild targetBuild = null;
         List<GradleParticipantBuild> builds = new LinkedList<GradleParticipantBuild>();
         for (GradleParticipantBuild build : unorderedBuilds) {
             BuildIdentifier participantIdentifier = new DefaultBuildIdentifier(build.getProjectDir());
             if (participantIdentifier.equals(buildIdentifier)) {
-                builds.add(0, build);
+                targetBuild = build;
             } else {
                 builds.add(build);
             }
         }
+        if (targetBuild == null) {
+            throw new GradleConnectionException("Not a valid build: " + buildIdentifier, new IllegalStateException("Build not part of composite"));
+        } else {
+            builds.add(0, targetBuild);
+        }
+
         return builds;
     }
 
