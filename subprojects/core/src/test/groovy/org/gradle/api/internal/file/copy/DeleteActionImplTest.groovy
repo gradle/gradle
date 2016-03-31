@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.file.copy
 
+import org.gradle.api.file.DeleteAction
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -26,11 +28,15 @@ import spock.lang.Specification
 import static org.gradle.api.internal.file.TestFiles.fileSystem
 
 class DeleteActionImplTest extends Specification {
+    static final boolean FOLLOW_SYMLINKS = true;
+
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    DeleteActionImpl delete = new DeleteActionImpl(TestFiles.resolver(tmpDir.testDirectory), fileSystem())
+    FileResolver resolver = TestFiles.resolver(tmpDir.testDirectory)
 
     def deletesDirectory() {
+        given:
+        DeleteAction delete = new DeleteActionImpl(resolver, fileSystem())
         TestFile dir = tmpDir.getTestDirectory();
         dir.file("somefile").createFile();
 
@@ -43,6 +49,8 @@ class DeleteActionImplTest extends Specification {
     }
 
     def deletesFile() {
+        given:
+        DeleteAction delete = new DeleteActionImpl(resolver, fileSystem())
         TestFile dir = tmpDir.getTestDirectory();
         TestFile file = dir.file("somefile");
         file.createFile();
@@ -56,6 +64,8 @@ class DeleteActionImplTest extends Specification {
     }
 
     def deletesFileByPath() {
+        given:
+        DeleteAction delete = new DeleteActionImpl(resolver, fileSystem())
         TestFile dir = tmpDir.getTestDirectory();
         TestFile file = dir.file("somefile");
         file.createFile();
@@ -69,6 +79,8 @@ class DeleteActionImplTest extends Specification {
     }
 
     def deletesMultipleTargets() {
+        given:
+        DeleteAction delete = new DeleteActionImpl(resolver, fileSystem())
         TestFile file = tmpDir.getTestDirectory().file("somefile").createFile();
         TestFile dir = tmpDir.getTestDirectory().file("somedir").createDir();
         dir.file("sub/child").createFile();
@@ -83,6 +95,8 @@ class DeleteActionImplTest extends Specification {
     }
 
     def didWorkIsFalseWhenNothingDeleted() {
+        given:
+        DeleteAction delete = new DeleteActionImpl(resolver, fileSystem())
         TestFile dir = tmpDir.file("unknown");
         dir.assertDoesNotExist();
 
@@ -95,6 +109,8 @@ class DeleteActionImplTest extends Specification {
 
     @Requires([TestPrecondition.UNIX_DERIVATIVE, TestPrecondition.JDK7_OR_LATER])
     def doesNotDeleteFilesInsideSymlinkDir() {
+        given:
+        DeleteAction delete = new DeleteActionImpl(resolver, fileSystem())
         def keepTxt = tmpDir.createFile("originalDir", "keep.txt")
         def originalDir = keepTxt.parentFile
         def link = new File(tmpDir.getTestDirectory(), "link")
@@ -117,6 +133,8 @@ class DeleteActionImplTest extends Specification {
 
     @Requires([TestPrecondition.UNIX_DERIVATIVE, TestPrecondition.JDK7_OR_LATER])
     def deletesFilesInsideSymlinkDirWhenNeeded() {
+        given:
+        DeleteAction delete = new DeleteActionImpl(resolver, fileSystem(), FOLLOW_SYMLINKS)
         def keepTxt = tmpDir.createFile("originalDir", "keep.txt")
         def originalDir = keepTxt.parentFile
         def link = new File(tmpDir.getTestDirectory(), "link")
@@ -128,7 +146,7 @@ class DeleteActionImplTest extends Specification {
         link.exists()
 
         when:
-        boolean didWork = delete.doDelete(true, link)
+        boolean didWork = delete.delete(link)
 
         then:
         !link.exists()
