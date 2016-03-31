@@ -18,11 +18,14 @@ package org.gradle.internal.installation
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
 import org.junit.Rule
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
 import spock.lang.Specification
+
+import static org.gradle.util.TestPrecondition.JDK7_OR_LATER
 
 class GradleFatJarTest extends Specification {
 
@@ -47,6 +50,7 @@ class GradleFatJarTest extends Specification {
         !GradleFatJar.containsMarkerFile(String.class)
     }
 
+    @Requires(JDK7_OR_LATER)
     def "can find marker file contained in fat JAR"() {
         given:
         createJarWithMarkerFile(jarFile)
@@ -56,6 +60,7 @@ class GradleFatJarTest extends Specification {
         GradleFatJar.containsMarkerFile(clazz)
     }
 
+    @Requires(JDK7_OR_LATER)
     def "cannot find marker file in standard JAR file"() {
         given:
         createJarWithoutMarkerFile(jarFile)
@@ -73,6 +78,7 @@ class GradleFatJarTest extends Specification {
             classLoader.loadClass(CLASS_NAME.replace('/', '.'))
         } finally {
             if (classLoader) {
+                // method only exists for JDK 7 or later
                 classLoader.close()
             }
         }
