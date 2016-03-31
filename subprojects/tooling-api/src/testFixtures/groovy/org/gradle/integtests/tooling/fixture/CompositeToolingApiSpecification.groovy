@@ -177,15 +177,15 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         }
     }
 
-    void assertFailureHasCause(Throwable failure, Class<Throwable> cause) {
+    void assertFailureHasCause(Throwable failure, Class<Throwable> expectedType) {
         assert failure != null
         Throwable throwable = failure
         List causes = []
         while (throwable != null) {
-            causes << throwable
+            causes << throwable.getClass().getCanonicalName()
             throwable = throwable.cause
         }
-        assert causes.any { it.getClass().getCanonicalName().equals(cause.getCanonicalName()) }
+        assert causes.contains(expectedType.getCanonicalName())
     }
 
     private static String getCauses(Throwable throwable) {

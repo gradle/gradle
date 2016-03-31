@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
+import org.gradle.api.BuildCancelledException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.*;
@@ -32,6 +33,8 @@ import org.gradle.launcher.daemon.configuration.DaemonUsage;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
+import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
@@ -114,11 +117,27 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
                     Object modelValue = e.getValue();
                     results.add(compositeModelResult(participant, projectPath, modelValue));
                 }
+            } catch (BuildCancelledException e) {
+                InternalBuildCancelledException buildCancelledException = new InternalBuildCancelledException(e.getCause());
+                results.add(compositeModelResult(participant, null, buildCancelledException));
+            } catch (ReportedException e) {
+                results.add(compositeModelResult(participant, null, unwrap(e)));
             } catch (Exception e) {
                 results.add(compositeModelResult(participant, null, e));
             }
         }
         return results;
+    }
+
+    private Exception unwrap(ReportedException e) {
+        Throwable t = e.getCause();
+        while (t != null) {
+            if (t instanceof BuildCancelledException) {
+                return new InternalBuildCancelledException(e.getCause());
+            }
+            t = t.getCause();
+        }
+        return new BuildExceptionVersion1(e.getCause());
     }
 
     private Object compositeModelResult(GradleParticipantBuild participant, String projectPath, Object modelValue) {
