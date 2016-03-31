@@ -16,12 +16,15 @@
 
 package org.gradle.util;
 
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FilterOutputStream;
+import java.io.OutputStream;
 import java.io.PrintStream;
 
 /**
@@ -31,10 +34,12 @@ import java.io.PrintStream;
 public class RedirectStdOutAndErr implements MethodRule {
     private PrintStream originalStdOut;
     private PrintStream originalStdErr;
-    private ByteArrayOutputStream stdoutContent;
-    private ByteArrayOutputStream stderrContent;
-    private PrintStream stdOutPrintStream;
-    private PrintStream stdErrPrintStream;
+    private ByteArrayOutputStream stdoutContent = new ByteArrayOutputStream();
+    private ByteArrayOutputStream stderrContent = new ByteArrayOutputStream();
+    private RedirectingOutputStream stdOutRouter = new RedirectingOutputStream(new NullOutputStream());
+    private RedirectingOutputStream stdErrRouter = new RedirectingOutputStream(new NullOutputStream());
+    private PrintStream stdOutPrintStream = new PrintStream(new TeeOutputStream(stdoutContent, stdOutRouter));
+    private PrintStream stdErrPrintStream = new PrintStream(new TeeOutputStream(stderrContent, stdErrRouter));
 
     public Statement apply(final Statement base, FrameworkMethod method, Object target) {
         return new Statement() {
@@ -42,10 +47,8 @@ public class RedirectStdOutAndErr implements MethodRule {
             public void evaluate() throws Throwable {
                 originalStdOut = System.out;
                 originalStdErr = System.err;
-                stdoutContent = new ByteArrayOutputStream();
-                stderrContent = new ByteArrayOutputStream();
-                stdOutPrintStream = new PrintStream(new TeeOutputStream(stdoutContent, originalStdOut));
-                stdErrPrintStream = new PrintStream(new TeeOutputStream(stderrContent, originalStdErr));
+                stdOutRouter.setOut(originalStdOut);
+                stdErrRouter.setOut(originalStdErr);
                 try {
                     System.setOut(stdOutPrintStream);
                     System.setErr(stdErrPrintStream);
@@ -53,6 +56,8 @@ public class RedirectStdOutAndErr implements MethodRule {
                 } finally {
                     System.setOut(originalStdOut);
                     System.setErr(originalStdErr);
+                    stdOutRouter = null;
+                    stdErrRouter = null;
                     stdOutPrintStream = null;
                     stdErrPrintStream = null;
                     stdoutContent = null;
@@ -76,5 +81,15 @@ public class RedirectStdOutAndErr implements MethodRule {
 
     public String getStdOut() {
         return stdoutContent.toString();
+    }
+
+    private static class RedirectingOutputStream extends FilterOutputStream {
+        RedirectingOutputStream(OutputStream out) {
+            super(out);
+        }
+
+        void setOut(OutputStream out) {
+            this.out = out;
+        }
     }
 }
