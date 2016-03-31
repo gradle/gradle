@@ -284,7 +284,7 @@ For example:
     - This property would be named `CFlags` according to the JavaBean specification.
     - You can reference this as `CFlags` or `getCFlags()` in the DSL.
     - It will also be available from the Map of input properties as `getInputs().getProperties().get("CFlags")` or `inputs.properties.CFlags`.
-    - **This behavior is different.** Previously, the property would have been found with `getInputs().getProperties().get("cFlags")` or `inputs.properties.cFlags`.
+    - **This behavior is different.** Previously, the property would have been found with the name `cFlags` (e.g., `getInputs().getProperties().get("cFlags")` or `inputs.properties.cFlags`).
 - Input properties with getters like `getURL()` are now found with `getInputs().getProperties().get("URL")` or `inputs.properties.URL` instead of the erroneous `uRL`.
 
 Most builds are unlikely to be using the names of the properties available from `getInputs().getProperties()`.
