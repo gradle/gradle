@@ -2,22 +2,6 @@
 
 ## Feature: Expire daemons in a smarter way
 
-### Story: Stop Daemon after finishing execution if more than N daemons currently busy.
-
-When a daemon finishes execution and there are > n daemons currently busy, then exit.
-
-#### Implementation
-
-- Define max number of busy daemons (can be referenced by internal system property ('org.gradle.daemon.expiration.maxcount', defaulting to __3__).
-- When Daemon finishes build verify expiration strategy
-    1. check number of busy daemons
-    2. exit daemon process if busy daemons hits threshold.
-
-##### Test Coverage
-
-- Daemon process stops when finishing build and other daemons are busy
-- threshold is configurable and respected by daemons.
-
 ### Story: Daemon quits when daemon registry not available
 
 #### Implementation
@@ -31,23 +15,11 @@ When a daemon finishes execution and there are > n daemons currently busy, then 
 - all daemons stop when their registry is deleted.
 - starting new build recreates registry.
 
-### Story: least recently used daemon quits when more than N daemons available
-
-#### Implementation
-
-- register `DaemonExpirationStrategy` with strategy:
-    - if more than N daemons available and I'm the least recently used, exit daemon.
-
-##### Test Coverage
-
-- starting > N daemons let least recently one exit within 60 seconds.
-- 'org.gradle.daemon.expiration.maxcount' systemproperty is respected.
-
 ### Story: Expire least recently daemons exists if accumulated total heap size hits threshold
 
 #### Implementation
 
-- Define total max heap memory used by daemons (can be referenced by internal system property ('org.gradle.daemon.expiration.totalheapsize', defaulting to __4096m__).
+- Define total max heap memory used by daemons (can be referenced by internal system property ('org.gradle.daemon.expiration.hint.totalheapsize', defaulting to __4096m__).
 - register `DaemonExpirationStrategy` with strategy:
     - if more than max defined heap size is used and I'm the least recently used, exit daemon.
 
@@ -55,7 +27,24 @@ When a daemon finishes execution and there are > n daemons currently busy, then 
 
 - starting daemon that causes the total heap size to exceed does stop least recently used daemon
 - exceeding total heap size is possible for parallel running (`busy`) daemons.
-- 'org.gradle.daemon.expiration.totalheapsize' systemproperty is respected.
+- 'org.gradle.daemon.expiration.hint.totalheapsize' systemproperty is respected.
+
+### Story: Expire least recently daemons exists if accumulated total heap size hits threshold
+
+### Story: Apply expiration metrics across daemons from all versions >= 2.14)
+
+#### Implementation
+
+- TBD.
+- Note from planning meeting: Use shared store.
+
+### Story: Expire daemons lest recently used to run a particular build
+
+If the daemon was used for a build and another daemon has ran the same build more recently, exit the daemon.
+
+#### Implementation
+
+TBD.
 
 ### Story: Expire daemons from least recently used builds based on accumulated total percentage of available heap size
 
@@ -64,11 +53,6 @@ When a daemon finishes execution and there are > n daemons currently busy, then 
 ##### Open questions
 
 - How to gather these Statistics of current machine? (Add logic to native platform)
-
-### Story: Apply expiration metrics across daemons from all versions >= 2.14)
-
-#### Implementation
-
 
 ## Feature: Reduce wasted heap in the daemon
 

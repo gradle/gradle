@@ -34,4 +34,6 @@ Also deprecate changing the log level from build logic. This kind of global stat
 
 ### Story - Build logic prompts user for password
 
+(out of scope for enabling daemon by default)
+
 Replacement for `System.console` [GRADLE-2310](https://issues.gradle.org/browse/GRADLE-2310)
