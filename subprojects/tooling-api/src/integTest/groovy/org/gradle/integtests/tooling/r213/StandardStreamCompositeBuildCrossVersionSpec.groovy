@@ -24,10 +24,6 @@ import spock.lang.Ignore
 class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def escapeHeader = "\u001b["
 
-    def setup() {
-        skipIntegratedComposite()
-    }
-
     def "can receive stdout and stderr with model requests"() {
         given:
         OutputStream stdOut = new ByteArrayOutputStream()
@@ -42,8 +38,8 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         }
         then:
         !stdOut.toString().contains(escapeHeader)
-        stdOut.toString().count("This is standard out") == numberOfParticipants
-        stdErr.toString().count("This is standard err") == numberOfParticipants
+        stdOut.toString().count("Stdout from configuration") == numberOfParticipants
+        stdErr.toString().count("Stderr from configuration") == numberOfParticipants
 
         where:
         numberOfParticipants << [ 1, 3 ]
@@ -64,8 +60,10 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         }
         then:
         !stdOut.toString().contains(escapeHeader)
-        stdOut.toString().count("This is standard out") == 1
-        stdErr.toString().count("This is standard err") == 1
+        stdOut.toString().count("Stdout from configuration") == 1
+        stdErr.toString().count("Stderr from configuration") == 1
+        stdOut.toString().count("Stdout from task execution") == 1
+        stdErr.toString().count("Stderr from task execution") == 1
 
         where:
         numberOfParticipants << [ 1, 3 ]
@@ -100,7 +98,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         when:
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
-            buildLauncher.forTasks(builds[0], "log")
+            buildLauncher.forTasks(builds[0], "alwaysUpToDate")
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.colorOutput = true
             buildLauncher.run()
@@ -163,11 +161,17 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         createBuilds(numberOfParticipants,
 """
         task log {
+            doLast {
+                System.out.println("Stdout from task execution")
+                System.err.println("Stderr from task execution")
+            }
+        }
+        task alwaysUpToDate {
             outputs.upToDateWhen { true }
         }
 
-        System.out.println("This is standard out")
-        System.err.println("This is standard err")
+        System.out.println("Stdout from configuration")
+        System.err.println("Stderr from configuration")
 """)
     }
 
