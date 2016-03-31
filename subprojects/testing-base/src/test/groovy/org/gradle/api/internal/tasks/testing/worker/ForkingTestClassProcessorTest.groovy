@@ -55,15 +55,15 @@ class ForkingTestClassProcessorTest extends Specification {
     }
 
     def "starts process with a limited implementation classpath" () {
-        when:
-        processor.forkProcess()
-
-        then:
+        setup:
         1 * workerProcessFactory.create(_) >> workerProcessBuilder
         1 * workerProcessBuilder.build() >> workerProcess
         1 * workerProcess.getConnection() >> Stub(ObjectConnection) { addOutgoing(_) >> Stub(RemoteTestClassProcessor) }
 
-        and:
+        when:
+        processor.forkProcess()
+
+        then:
         7 * moduleRegistry.getModule(_) >> { module(it[0]) }
         7 * moduleRegistry.getExternalModule(_) >> { module(it[0]) }
         1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 14 }
