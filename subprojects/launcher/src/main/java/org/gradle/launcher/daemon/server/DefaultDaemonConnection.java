@@ -62,23 +62,25 @@ public class DefaultDaemonConnection implements DaemonConnection {
                         try {
                             message = connection.receive();
                         } catch (Exception e) {
-                            LOGGER.debug("Could not receive message from client.", e);
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug(String.format("thread %s: Could not receive message from client.", Thread.currentThread().getId()), e);
+                            }
                             failure = e;
                             return;
                         }
                         if (message == null) {
-                            LOGGER.debug("Received end-of-input from client.");
+                            LOGGER.debug("thread {}: Received end-of-input from client.", Thread.currentThread().getId());
                             return;
                         }
 
                         if (message instanceof InputMessage) {
-                            LOGGER.debug("Received IO message from client: {}", message);
+                            LOGGER.debug("thread {}: Received IO message from client: {}", Thread.currentThread().getId(), message);
                             stdinQueue.add((InputMessage) message);
                         } else if (message instanceof Cancel) {
-                            LOGGER.debug("Received cancel message from client: {}", message);
+                            LOGGER.debug("thread {}: Received cancel message from client: {}", Thread.currentThread().getId(), message);
                             cancelQueue.add((Cancel) message);
                         } else {
-                            LOGGER.debug("Received non-IO message from client: {}", message);
+                            LOGGER.debug("thread {}: Received non-IO message from client: {}", Thread.currentThread().getId(), message);
                             receiveQueue.add(message);
                         }
                     }
