@@ -96,7 +96,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
         }
     }
 
-    private synchronized Iterable<File> getCurrentWatchPoints() {
+    private Iterable<File> getCurrentWatchPoints() {
         List<File> currentWatchPoints = new LinkedList<File>();
         for (Map.Entry<Path, WatchKey> entry : watchKeys.entrySet()) {
             if (entry.getValue().isValid()) {
@@ -106,7 +106,7 @@ class WatchServiceRegistrar implements FileWatcherListener {
         return currentWatchPoints;
     }
 
-    protected synchronized void watchDir(Path dir) throws IOException {
+    protected void watchDir(Path dir) throws IOException {
         LOG.debug("Registering watch for {}", dir);
         if (Thread.currentThread().isInterrupted()) {
             LOG.debug("Skipping adding watch since current thread is interrupted.");
