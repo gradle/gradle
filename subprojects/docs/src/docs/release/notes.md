@@ -1,4 +1,4 @@
-The Gradle team is pleased to announce Gradle 2.13. This release brings many exciting execution performance improvements, community PRs and a new feature for Tooling API users.
+The Gradle team is pleased to announce Gradle 2.13. This release brings many exciting execution performance improvements, community contributions and a new feature for Tooling API users.
 
 Our commitment to improving the developer experience with each release continues. For Gradle 2.13, we've targeted performance improvements during Gradle's execution phase, where we have measured **10-25%** improvements to build time in our performance tests. No changes to your build script are necessary to start taking advantage of these improvements.
 
@@ -9,7 +9,6 @@ The [Signing plugin](userguide/signing_plugin.html) supports OpenPGP subkeys, so
 
 [As we announced on our forums](https://discuss.gradle.org/t/exciting-new-buildship-features-coming-up/14728), we're introducing a new way of putting multiple Gradle builds together with [Eclipse Buildship](http://projects.eclipse.org/projects/tools.buildship). We're calling this feature **Composite Build**.
 A composite build allows you to combine multiple Gradle builds and replace external binary dependencies with project dependencies as if you were using a single multi-project build. For projects that use multiple distinct Gradle builds, this will allow you to mix and match your separate builds into one build in a very flexible way.
-Eventually, composite builds will allow you to use different versions of Gradle in each build and execute tasks across projects in the composite from the command-line.  Gradle 2.13 has an initial implementation, so Tooling API users (i.e., IDEs) can start building upon it.
 
 Upgrade to Gradle 2.13 and let us know what you think.
 
@@ -50,14 +49,15 @@ If you need to test against a version of Gradle older than 2.8, you will still n
 
 See the [TestKit chapter in the Gradle User Guide](userguide/test_kit.html#sub:test-kit-automatic-classpath-injection) for more information and examples of using this new feature.
 
-### Initial support for creating Composite Builds
+### Tooling API support for creating Composite Builds
 
 Up until this release, the only way to retrieve models and execute tasks from the Tooling API was through the [ProjectConnection API](javadoc/org/gradle/tooling/ProjectConnection.html).
 This API was limited to a single connection to a single project in a build (regardless if the build was multi-project or single-project). This makes it difficult and expensive to retrieve information
 about each project in a build.
 
 For Composite Build, we need a way to retrieve multiple models from a group of Gradle builds (each of which may be a single project or multiple projects). We also need a way to execute tasks in the context of a
-composite.  In the future, we'll use the composite context to identify dependency substitutions that should be made and correctly wire together task dependencies.
+composite.  In the future, we'll use the composite context to identify dependency substitutions that should be made and correctly wire together task dependencies. Eventually, composite builds will allow you to use
+different versions of Gradle in each build and execute tasks across projects in the composite from the command-line.
 
 We have introduced a new [GradleConnection API](javadoc/org/gradle/tooling/connection/GradleConnection.html), which will eventually replace `ProjectConnection`.
 
@@ -76,6 +76,8 @@ Sample stylesheets are available from each tool's website.
 - [FindBugs XSL](https://github.com/findbugsproject/findbugs/tree/master/findbugs/src/xsl)
 
 See the documentation for the [Checkstyle](userguide/checkstyle_plugin.html#sec:customize_xsl) and [FindBugs](userguide/findbugs_plugin.html#sec:customize_xsl) plugins for more details.
+
+This was contributed by [Pierre-Etienne Poirot](https://github.com/pepoirot).
 
 ### Support for new Groovydoc flags
 
@@ -97,6 +99,8 @@ You must be using Groovy 2.4.6 to use these flags. When using the [`groovy` plug
 
 The flags are ignored for older versions of Groovy prior to 2.4.6.
 
+This was contributed by [Paul King](https://github.com/paulk-asert).
+
 ### Signing with OpenPGP subkeys
 
 OpenPGP supports a type of subkey, which are like normal keys, except they're bound to a master key pair.
@@ -105,6 +109,8 @@ These subkeys can be stored independently of master keys. OpenPGP subkeys can al
 You only need the subkey for signature operations, which allows you to deploy only your signing subkey to a CI server.
 
 The [Signing plugin](userguide/signing_plugin.html#sec:subkeys) now supports subkeys, see the documentation for more details.
+
+This was contributed by [Marcin Zajączkowski](https://github.com/szpak).
 
 <!--
 ## Promoted features
@@ -144,6 +150,8 @@ This was done to prevent issues where Gradle would attempt to delete files outsi
 
 Previous versions of Gradle would follow symlinks when deleting files. If you need the `Delete` task to follow symlinks set `followSymlinks = true`.
 If you need `project.delete()` to follow symlinks, replace it with [ant.delete()](https://ant.apache.org/manual/Tasks/delete.html).
+
+This was contributed by [Ethan Hall](https://github.com/ethankhall).
 
 ### Project Dependencies now include classifiers and all artifacts in generated POM files
 
@@ -267,6 +275,8 @@ In this version of Gradle, the POM file for `project1` would have included this 
 This improved behavior may mean you no longer need workarounds in your build scripts, but you might have to change those same build scripts so that the existing
 workarounds don't break the `pom` or add duplicate entries.
 
+This was contributed by [Raymond Navarette](https://github.com/rnavarette).
+
 ### Task input property names now follow the JavaBean specification
 
 Task input properties now correctly follow the JavaBean specification. For most properties, this will have no effect.
@@ -299,6 +309,8 @@ To downgrade to the previous version:
         toolVersion = "0.7.1.201405082137"
     }
 
+This was contributed by [Evgeny Mandrikov](https://github.com/Godin).
+
 ### Apache Commons Collections upgrade to 3.2.2
 
 Gradle now bundles [Apache Commons Collections 3.2.2](https://commons.apache.org/proper/commons-collections/release_3_2_2.html).
@@ -307,9 +319,13 @@ This is an internal dependency, but `buildSrc` plugins may inadvertently use cla
 
 This was upgraded to fix a security vulnerability.
 
+This was contributed by [Jeffrey Crowell](https://github.com/crowell).
+
 ### Apache Ant upgrade to 1.9.6
 
 Gradle now bundles [Apache Ant 1.9.6](https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.6.html) instead of Apache Ant 1.9.3.
+
+This was contributed by [Alpha Hinex](https://github.com/alphahinex).
 
 ## External contributions
 
