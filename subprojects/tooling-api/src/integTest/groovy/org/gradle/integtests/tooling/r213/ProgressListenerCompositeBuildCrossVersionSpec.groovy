@@ -29,6 +29,10 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
     AbstractCapturingProgressListener progressListenerForComposite
     AbstractCapturingProgressListener progressListenerForRegularBuild
 
+    def setup() {
+        skipIntegratedComposite()
+    }
+
     def "compare old listener events from a composite build and a regular build with single build"() {
         given:
         def builds = createBuilds(1)

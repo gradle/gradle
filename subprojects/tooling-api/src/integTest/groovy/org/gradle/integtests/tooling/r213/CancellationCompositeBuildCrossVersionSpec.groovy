@@ -33,6 +33,10 @@ import org.junit.Rule
 class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
+    def setup() {
+        skipIntegratedComposite()
+    }
+
     def cancellationHookText(File cancelledFile, File executedAfterCancellingFile) {
         """
         import org.gradle.initialization.BuildCancellationToken

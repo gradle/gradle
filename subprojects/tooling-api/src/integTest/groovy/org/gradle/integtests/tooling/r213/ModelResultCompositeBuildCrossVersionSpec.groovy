@@ -31,10 +31,6 @@ import org.gradle.util.CollectionUtils
 class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     private ModelResults<EclipseProject> modelResults
 
-    def setup() {
-        testIntegratedComposite = true
-    }
-
     def "can correlate exceptions in composite with multiple single-project participants"() {
         given:
         def rootDirA = singleProjectBuild("A") {

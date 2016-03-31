@@ -41,6 +41,8 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
     TestFile fixedBuildRoot
 
     def setup() {
+        skipIntegratedComposite()
+
         varyingBuildRoot = singleProjectBuild("project")
         fixedBuildRoot = singleProjectBuild("project_fixed")
    }

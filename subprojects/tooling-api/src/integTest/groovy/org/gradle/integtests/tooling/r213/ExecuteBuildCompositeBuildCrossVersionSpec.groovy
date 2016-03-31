@@ -32,10 +32,6 @@ import spock.lang.Ignore
  */
 class ExecuteBuildCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
 
-    def setup() {
-        testIntegratedComposite = true
-    }
-
     def "executes tasks in composite containing one single-project build"() {
         given:
         def build1 = singleProjectBuild("build1") {

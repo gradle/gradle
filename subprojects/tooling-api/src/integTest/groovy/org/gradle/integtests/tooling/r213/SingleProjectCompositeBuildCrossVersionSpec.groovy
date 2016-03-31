@@ -22,10 +22,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject
  * Builds a composite with a single project.
  */
 class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
-    def setup() {
-        testIntegratedComposite = true
-    }
-
     def "can create composite of a single multi-project build"() {
         given:
         def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])

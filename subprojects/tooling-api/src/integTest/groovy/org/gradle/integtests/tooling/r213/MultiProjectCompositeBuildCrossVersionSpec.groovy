@@ -23,10 +23,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject
  * Tests composites with multiple participants.  All participants have the same version.
  */
 class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
-    def setup() {
-        testIntegratedComposite = true
-    }
-
     def "can create composite of a two multi-project builds"() {
         given:
         def multiBuild1 = multiProjectBuild("multi-build-1", ['a1', 'b1', 'c1'])

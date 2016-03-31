@@ -53,8 +53,6 @@ allprojects {
 }
 """
         }
-
-        testIntegratedComposite = true
     }
 
     def "can retrieve models from integrated composite"() {

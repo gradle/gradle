@@ -26,6 +26,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
 
     def setup() {
         toolingApi.requireDaemons()
+        skipIntegratedComposite()
     }
 
     def "can pass additional command-line arguments for project properties"() {

@@ -24,6 +24,10 @@ import spock.lang.Ignore
 class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def escapeHeader = "\u001b["
 
+    def setup() {
+        skipIntegratedComposite()
+    }
+
     def "can receive stdout and stderr with model requests"() {
         given:
         OutputStream stdOut = new ByteArrayOutputStream()

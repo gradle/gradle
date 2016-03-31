@@ -37,8 +37,6 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
     void setup() {
         rootSingle = singleProjectBuild("A")
         rootMulti = multiProjectBuild("B", ['x', 'y'])
-
-        testIntegratedComposite = true
     }
 
     def "ProjectConnection provides identified GradleBuild"() {

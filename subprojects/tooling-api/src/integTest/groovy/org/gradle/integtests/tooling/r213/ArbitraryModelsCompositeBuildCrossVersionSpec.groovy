@@ -41,6 +41,10 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
     private static final List<Class<?>> HIERARCHICAL_IDEA_MODELS = [IdeaProject, BasicIdeaProject]
     private static final List<Class<?>> BUILD_MODELS = [BuildEnvironment, GradleBuild]
 
+    def setup() {
+        skipIntegratedComposite()
+    }
+
     def "check that all models are returned for composite"(TestScenario testScenario) {
         given:
         def builds = testScenario.createBuilds(this.&createBuilds)
