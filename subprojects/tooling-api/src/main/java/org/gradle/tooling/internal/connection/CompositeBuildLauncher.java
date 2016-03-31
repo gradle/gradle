@@ -20,6 +20,6 @@ import org.gradle.tooling.BuildLauncher;
 
 import java.io.File;
 
-public interface CompositeBuildLauncherInternal extends BuildLauncher {
+public interface CompositeBuildLauncher extends BuildLauncher {
     BuildLauncher forTasks(File buildDirectory, String... tasks);
 }

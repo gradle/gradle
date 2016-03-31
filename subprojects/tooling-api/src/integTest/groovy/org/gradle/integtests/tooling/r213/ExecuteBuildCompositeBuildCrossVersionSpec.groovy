@@ -247,7 +247,7 @@ task hello {
         }
         then:
         def e = thrown(UnsupportedOperationException)
-        e.message == "Must specify build root directory when executing tasks by name on a GradleConnection: see `CompositeBuildLauncherInternal.forTasks(File, String)`."
+        e.message == "Must specify build root directory when executing tasks by name on a GradleConnection: see `CompositeBuildLauncher.forTasks(File, String)`."
     }
 
     def "throws exception when attempting to execute task that does not exist"() {
