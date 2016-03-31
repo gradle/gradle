@@ -51,7 +51,9 @@ class GradleFatJarTest extends Specification {
     }
 
     private void createJarWithoutMarkerFile(TestFile jar) {
-        handleAsJarFile(jar)
+        handleAsJarFile(jar) { contents ->
+            contents.createFile('content.txt')
+        }
     }
 
     private void handleAsJarFile(TestFile jar, Closure c = {}) {
