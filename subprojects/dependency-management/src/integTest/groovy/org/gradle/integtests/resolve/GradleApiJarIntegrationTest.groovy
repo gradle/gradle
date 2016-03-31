@@ -312,21 +312,22 @@ class GradleApiJarIntegrationTest extends AbstractIntegrationSpec {
         requireOwnGradleUserHomeDir()
 
         when:
-        def outputs = []
-
         5.times { count ->
-            concurrent.start {
-                def projectDirName = file("project$count").name
-                def projectBuildFile = file("$projectDirName/build.gradle")
-                projectBuildFile << resolveGradleApiAndTestKitDependencies()
-
-                def gradleHandle = executer.inDirectory(file("project$count")).withTasks('resolveDependencies').start()
-                gradleHandle.waitForFinish()
-                outputs << gradleHandle.standardOutput
-            }
+            def projectDirName = file("project$count").name
+            def projectBuildFile = file("$projectDirName/build.gradle")
+            projectBuildFile << resolveGradleApiAndTestKitDependencies()
         }
 
-        concurrent.finished()
+        def handles = []
+        5.times { count ->
+            handles << executer.inDirectory(file("project$count")).withTasks('resolveDependencies').start()
+        }
+
+        def outputs = []
+        handles.each {
+            it.waitForFinish()
+            outputs << it.standardOutput
+        }
 
         then:
         def apiGenerationOutputs = outputs.findAll { it =~ /$API_JAR_GENERATION_OUTPUT_REGEX/ }
