@@ -90,7 +90,6 @@ public class DependencyClassPathNotationConverterTest extends Specification {
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
         1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
-        1 * cache.useCache(_, _)
         out.is dependency
 
         when: // same instance is reused

@@ -36,7 +36,7 @@ public class DependencyClassPathProvider implements ClassPathProvider {
     }
 
     public ClassPath findClassPath(String name) {
-        if (name.equals(GRADLE_API.name())) {
+        if (name.equals(GRADLE_API.name()) || name.equals(FAT_GRADLE_API.name())) {
             ClassPath classpath = new DefaultClassPath();
             for (String moduleName : Arrays.asList("gradle-core", "gradle-dependency-management", "gradle-plugin-use", "gradle-tooling-api")) {
                 for (Module module : moduleRegistry.getModule(moduleName).getAllRequiredModules()) {
@@ -49,6 +49,9 @@ public class DependencyClassPathProvider implements ClassPathProvider {
             return classpath;
         }
         if (name.equals(GRADLE_TEST_KIT.name())) {
+            return moduleRegistry.getModule("gradle-test-kit").getImplementationClasspath();
+        }
+        if (name.equals(FAT_GRADLE_TEST_KIT.name())) {
             return moduleRegistry.getModule("gradle-test-kit").getClasspath();
         }
         if (name.equals(LOCAL_GROOVY.name())) {

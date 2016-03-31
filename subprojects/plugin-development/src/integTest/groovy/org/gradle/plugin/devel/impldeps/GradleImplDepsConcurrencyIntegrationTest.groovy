@@ -22,7 +22,7 @@ import org.junit.Rule
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     @Rule
-    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(35000)
+    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(45000)
 
     def "Gradle API and TestKit dependency can be resolved by concurrent Gradle builds"() {
         given:
@@ -98,7 +98,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
                 }
 
                 dependencies {
-                    gradleImplDeps gradleApi(), gradleTestKit()
+                    gradleImplDeps fatGradleApi(), fatGradleTestKit()
                 }
 
                 task resolveDependencies {
@@ -139,7 +139,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
             }
 
             dependencies {
-                gradleImplDeps gradleApi(), gradleTestKit()
+                gradleImplDeps fatGradleApi(), fatGradleTestKit()
             }
 
             task resolveDependencies {

@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.devel.impldeps
 
+import spock.lang.Ignore
+
 class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     def "Gradle API is not generated if not declared by build"() {
@@ -30,6 +32,7 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
         assertNoGenerationOutput(output, API_JAR_GENERATION_OUTPUT_REGEX)
     }
 
+    @Ignore("Requires swapping out the gradleApi() reference to the generated fat JAR")
     def "buildSrc project implicitly forces generation of Gradle API JAR"() {
         given:
         requireOwnGradleUserHomeDir()
@@ -51,7 +54,7 @@ class GradleImplDepsGenerationIntegrationTest extends BaseGradleImplDepsIntegrat
             }
 
             dependencies {
-                deps gradleApi()
+                deps fatGradleApi()
             }
 
             task resolveDependencyArtifacts {
