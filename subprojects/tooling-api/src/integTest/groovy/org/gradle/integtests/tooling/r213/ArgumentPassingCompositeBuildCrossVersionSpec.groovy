@@ -26,7 +26,6 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
 
     def setup() {
         toolingApi.requireDaemons()
-        skipIntegratedComposite()
     }
 
     def "can pass additional command-line arguments for project properties"() {
@@ -131,9 +130,13 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
     @TargetGradleVersion(">=2.10")
     def "can set javahome for model requests"() {
         given:
+        skipIntegratedComposite()
+
+        and:
         File javaHome = new File("not/javahome")
         javaHome.mkdirs()
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
+
         when:
         def modelResults = withCompositeConnection(builds) { connection ->
             def modelBuilder = connection.models(EclipseProject)
@@ -154,6 +157,9 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
 
     def "can set javahome for build launcher"() {
         given:
+        skipIntegratedComposite()
+
+        and:
         File javaHome = new File("not/javahome")
         javaHome.mkdirs()
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)

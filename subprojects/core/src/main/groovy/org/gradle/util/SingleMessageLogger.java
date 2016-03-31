@@ -183,8 +183,16 @@ public class SingleMessageLogger {
     }
 
     public static void incubatingFeatureUsed(String incubatingFeature) {
+        incubatingFeatureUsed(incubatingFeature, null);
+    }
+
+    public static void incubatingFeatureUsed(String incubatingFeature, String additionalWarning) {
         if (FEATURES.add(incubatingFeature)) {
-            LOGGER.lifecycle(String.format(INCUBATION_MESSAGE, incubatingFeature));
+            String message = String.format(INCUBATION_MESSAGE, incubatingFeature);
+            if (additionalWarning != null) {
+                message = message + "\n" + additionalWarning;
+            }
+            LOGGER.lifecycle(message);
         }
     }
 }
