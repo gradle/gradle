@@ -25,8 +25,8 @@ import org.gradle.api.Action;
 public interface BuildOperationProcessor {
     /**
      * Submits an arbitrary number of operations, created synchronously by the generator, to be executed by the supplied
-     * worker in the global build operation thread pool.  Operations may execute concurrently.  Blocks until all operations
-     * are complete.
+     * worker in the global build operation thread pool.  Operations may execute concurrently, so the worker should be thread-safe.
+     * Blocks until all operations are complete.
      *
      * @param worker The action to be executed for each operation.
      * @param <T> The type of operations the worker uses.
