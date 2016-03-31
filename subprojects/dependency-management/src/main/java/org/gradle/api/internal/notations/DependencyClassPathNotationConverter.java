@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
+import org.gradle.api.internal.impldeps.GradleImplDepsJarType;
 import org.gradle.api.internal.impldeps.GradleImplDepsProvider;
 import org.gradle.api.internal.impldeps.GradleImplDepsRelocatedJar;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -107,7 +108,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         List<File> groovyImpl = classPathRegistry.getClassPath(LOCAL_GROOVY.name()).getAsFiles();
         apiClasspath.removeAll(groovyImpl);
 
-        return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "fatGradleApi()", "api")
+        return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "fatGradleApi()", GradleImplDepsJarType.API)
             .plus(fileResolver.resolveFiles(
                 groovyImpl,
                 classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles())
@@ -118,12 +119,12 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         List<File> gradleApi = classPathRegistry.getClassPath(GRADLE_API.name()).getAsFiles();
         testKitClasspath.removeAll(gradleApi);
 
-        return (FileCollectionInternal) relocatedDepsJar(testKitClasspath, "fatGradleTestKit()", "test-kit")
+        return (FileCollectionInternal) relocatedDepsJar(testKitClasspath, "fatGradleTestKit()", GradleImplDepsJarType.TEST_KIT)
             .plus(gradleApiFileCollection(gradleApi));
     }
 
-    private FileCollectionInternal relocatedDepsJar(Collection<File> classpath, String displayName, String name) {
-        File gradleImplDepsJar = gradleImplDepsProvider.getFile(classpath, name);
+    private FileCollectionInternal relocatedDepsJar(Collection<File> classpath, String displayName, GradleImplDepsJarType gradleImplDepsJarType) {
+        File gradleImplDepsJar = gradleImplDepsProvider.getFile(classpath, gradleImplDepsJarType);
         return new FileCollectionAdapter(new GradleImplDepsRelocatedJar(displayName, gradleImplDepsJar));
     }
 }

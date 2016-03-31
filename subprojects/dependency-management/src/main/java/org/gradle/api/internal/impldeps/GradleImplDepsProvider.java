@@ -26,9 +26,6 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.File;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -50,9 +47,9 @@ public class GradleImplDepsProvider implements Closeable {
                 .open();
     }
 
-    public File getFile(final Collection<File> classpath, String name) {
-        if (GradleImplDepsJar.isValidIdentifier(name)) {
-            final File implDepsJarFile = jarFile(cache, name);
+    public File getFile(final Collection<File> classpath, GradleImplDepsJarType gradleImplDepsJarType) {
+        if (gradleImplDepsJarType != null) {
+            final File implDepsJarFile = jarFile(cache, gradleImplDepsJarType.getIdentifier());
 
             if (!implDepsJarFile.exists()) {
                 cache.useCache(String.format("Generating %s", implDepsJarFile.getName()), new Runnable() {
@@ -68,7 +65,6 @@ public class GradleImplDepsProvider implements Closeable {
             return implDepsJarFile;
         }
 
-        LOGGER.warn("The provided name {} does not refer to a valid Gradle impl deps JAR", name);
         return null;
     }
 
@@ -78,36 +74,5 @@ public class GradleImplDepsProvider implements Closeable {
 
     private File jarFile(PersistentCache cache, String name) {
         return new File(cache.getBaseDir(), String.format("gradle-%s-%s.jar", name, gradleVersion));
-    }
-
-    enum GradleImplDepsJar {
-        API("api"), TEST_KIT("test-kit");
-
-        private static final Map<String, GradleImplDepsJar> IDENTIFIER_MAPPING;
-        private final String identifier;
-
-        static {
-            IDENTIFIER_MAPPING = new HashMap<String, GradleImplDepsJar>();
-
-            for(GradleImplDepsJar jar : values()) {
-                IDENTIFIER_MAPPING.put(jar.getIdentifier(), jar);
-            }
-        }
-
-        GradleImplDepsJar(String identifier) {
-            this.identifier = identifier;
-        }
-
-        String getIdentifier() {
-            return identifier;
-        }
-
-        static boolean isValidIdentifier(String identifier) {
-            return IDENTIFIER_MAPPING.containsKey(identifier);
-        }
-
-        static Set<String> getAllIdentifiers() {
-            return IDENTIFIER_MAPPING.keySet();
-        }
     }
 }

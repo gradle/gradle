@@ -56,10 +56,10 @@ class GradleImplDepsProviderTest extends Specification {
         1 * cache.close()
     }
 
-    def "returns null for unknown JAR file name"() {
+    def "returns null for null JAR type"() {
         when:
         def provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion)
-        provider.getFile(Collections.emptyList(), 'unknown') == null
+        provider.getFile(Collections.emptyList(), null) == null
 
         then:
         1 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
@@ -70,16 +70,16 @@ class GradleImplDepsProviderTest extends Specification {
     }
 
     @Unroll
-    def "creates JAR file on demand for name '#name'"() {
+    def "creates JAR file on demand for name '#gradleImplDepsJar.identifier'"() {
         def cacheDir = tmpDir.testDirectory
         def jar = tmpDir.createDir('originalJars').file('mydep-1.2.jar')
-        def jarFile = cacheDir.file("gradle-${name}-${gradleVersion}.jar")
+        def jarFile = cacheDir.file("gradle-${gradleImplDepsJar.identifier}-${gradleVersion}.jar")
         def cacheBuilder = Mock(CacheBuilder)
         def cache = Mock(PersistentCache)
 
         when:
         def provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion)
-        def resolvedFile = provider.getFile([jar], name)
+        def resolvedFile = provider.getFile([jar], gradleImplDepsJar)
 
         then:
         1 * cacheRepository.cache(GradleImplDepsProvider.CACHE_KEY) >> cacheBuilder
@@ -91,7 +91,7 @@ class GradleImplDepsProviderTest extends Specification {
         jarFile == resolvedFile
 
         where:
-        name << GradleImplDepsProvider.GradleImplDepsJar.allIdentifiers
+        gradleImplDepsJar << GradleImplDepsJarType.values()
     }
 
     def "reuses existing JAR file if existent"() {
@@ -103,7 +103,7 @@ class GradleImplDepsProviderTest extends Specification {
 
         when:
         def provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion)
-        def resolvedFile = provider.getFile([jar], 'api')
+        def resolvedFile = provider.getFile([jar], GradleImplDepsJarType.API)
 
         then:
         1 * cacheRepository.cache(GradleImplDepsProvider.CACHE_KEY) >> cacheBuilder
@@ -116,7 +116,7 @@ class GradleImplDepsProviderTest extends Specification {
 
         when:
         GFileUtils.touch(jarFile)
-        resolvedFile = provider.getFile([jar], 'api')
+        resolvedFile = provider.getFile([jar], GradleImplDepsJarType.API)
 
         then:
         0 * cacheRepository.cache(GradleImplDepsProvider.CACHE_KEY) >> cacheBuilder
