@@ -172,7 +172,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example.MyTest", methodName: "foo2", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo3", task: ":secondTest")
         assertTestExecuted(className: "example.MyTest", methodName: "foo4", task: ":secondTest")
-        events.tests.size() == 8
+        events.tests.size() in [8, 16] // also accept it as a valid result when the build gets executed twice.
     }
 
     public <T> T withCancellation(@ClosureParams(value = SimpleType, options = ["org.gradle.tooling.CancellationToken"]) Closure<T> cl) {
