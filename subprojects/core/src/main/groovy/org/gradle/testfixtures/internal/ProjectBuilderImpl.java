@@ -65,13 +65,15 @@ public class ProjectBuilderImpl {
     public Project createProject(String name, File inputProjectDir) {
         File projectDir = prepareProjectDir(inputProjectDir);
 
+        final File homeDir = new File(projectDir, "gradleHome");
+
         StartParameter startParameter = new StartParameter();
         File userHomeDir = new File(projectDir, "userHome");
         startParameter.setGradleUserHomeDir(userHomeDir);
 
         NativeServices.initialize(userHomeDir);
 
-        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(getGlobalServices(), startParameter);
+        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(getGlobalServices(), startParameter, homeDir);
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
