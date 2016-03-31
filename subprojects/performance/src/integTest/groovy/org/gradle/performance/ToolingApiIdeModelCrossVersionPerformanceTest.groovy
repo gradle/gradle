@@ -18,7 +18,9 @@ package org.gradle.performance
 
 import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.ToolingApiPerformanceTest
+import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -32,33 +34,16 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         given:
 
         experiment(template, "get $template EclipseProject model") {
-            warmUpCount = 3
-            invocationCount = 10
             maxExecutionTimeRegression = millis(maxRegressionTime)
             action {
                 def model = getModel(tapiClass(EclipseProject))
                 // we must actually do something to highlight some performance issues
-                forEachProject(model) {
+                forEachEclipseProject(model) {
                     buildCommands.each {
                         it.name
                         it.arguments
                     }
-                    gradleProject.tasks.collect {
-                        it.name
-                        it.project
-                        it.path
-                        it.description
-                        it.displayName
-                        it.group
-                        it.public
-                    }
-                    gradleProject.buildDirectory
-                    gradleProject.path
-                    gradleProject.buildScript.sourceFile
-                    gradleProject.buildDirectory
-                    gradleProject.name
-                    gradleProject.projectDirectory
-                    gradleProject.description
+                    withGradleProject(gradleProject)
                     classpath.collect {
                         [it.exported, it.file, it.gradleModuleVersion.group, it.gradleModuleVersion.name, it.gradleModuleVersion.version, it.javadoc, it.source]
                     }
@@ -102,14 +87,96 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         "mediumOldJava"          | 100
         "bigOldJava"             | 100
         "lotDependencies"        | 400
-        "lotProjectDependencies" | 400
     }
 
-    private static void forEachProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {
+    @Unroll
+    def "building IDEA model for a #template project"() {
+        given:
+
+        experiment(template, "get $template IdeaProject model") {
+            maxExecutionTimeRegression = millis(maxRegressionTime)
+            action {
+                def model = getModel(tapiClass(IdeaProject))
+                // we must actually do something to highlight some performance issues
+                model.with {
+                    name
+                    description
+                    jdkName
+                    languageLevel.level
+                    withJava(javaLanguageSettings.languageLevel)
+                    withJava(javaLanguageSettings.targetBytecodeVersion)
+                    withJava(javaLanguageSettings.jdk.javaVersion)
+                    javaLanguageSettings.jdk.javaHome
+                    modules.each {
+                        it.compilerOutput.inheritOutputDirs
+                        it.compilerOutput.outputDir
+                        it.compilerOutput.testOutputDir
+                        it.contentRoots.each {
+                            it.excludeDirectories
+                            withIdeaSources(it.generatedSourceDirectories)
+                            withIdeaSources(it.generatedTestDirectories)
+                            withIdeaSources(it.sourceDirectories)
+                            withIdeaSources(it.testDirectories)
+                        }
+                        it.dependencies.each {
+                            it.scope.scope
+                            if (tapiClass(ExternalDependency).isAssignableFrom(it.class)) {
+                                it.gradleModuleVersion.group
+                                it.gradleModuleVersion.name
+                                it.gradleModuleVersion.version
+                            }
+                        }
+                        withGradleProject(it.gradleProject)
+                    }
+                }
+            }
+        }
+
+        when:
+        def results = performMeasurements()
+
+        then:
+        noExceptionThrown()
+
+        where:
+        template                 | maxRegressionTime
+        "smallOldJava"           | 20
+        "mediumOldJava"          | 100
+        "bigOldJava"             | 100
+        "lotDependencies"        | 400
+    }
+
+    private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {
         action.delegate = elm
         action.call()
         elm.children?.each {
-            forEachProject(it, action)
+            forEachEclipseProject(it, action)
+        }
+    }
+
+    private static void withIdeaSources(def sources) {
+        sources.each {
+            it.generated
+            it.directory
+        }
+    }
+
+    private static void withGradleProject(def gradleProject) {
+        gradleProject.buildDirectory
+        gradleProject.path
+        gradleProject.buildScript.sourceFile
+        gradleProject.buildDirectory
+        gradleProject.name
+        gradleProject.projectDirectory
+        gradleProject.description
+        gradleProject.tasks.collect {
+            it.name
+            it.project
+            it.path
+            it.description
+            it.displayName
+            it.group
+            it.public
         }
     }
 
