@@ -4,7 +4,7 @@ Our commitment to improving the developer experience with each release continues
 
 We've improved [Gradle TestKit](userguide/test_kit.html), so that plugin authors no longer need to add boilerplate to their build scripts. The [development plugin](userguide/javaGradle_plugin.html) automatically adds the necessary configuration to make it easier to test Gradle plugins.
 
-The [Gradle Community](you) has contributed many fixes and new features in this release.  The Checkstyle and FindBugs plugins now allow you to customize their HTML reports with stylesheets.
+The [Gradle Community](https://gradle.org/contribute-to-gradle) has contributed many fixes and new features in this release.  The Checkstyle and FindBugs plugins now allow you to customize their HTML reports with stylesheets.
 The [Signing plugin](userguide/signing_plugin.html) supports OpenPGP subkeys, so you can keep your master signing keys safely off your CI server. These are just some of the great contributions we've received.
 
 [As we announced on our forums](https://discuss.gradle.org/t/exciting-new-buildship-features-coming-up/14728), we're introducing a new way of putting multiple Gradle builds together with [Eclipse Buildship](http://projects.eclipse.org/projects/tools.buildship). We're calling this feature **Composite Build**.
@@ -40,7 +40,7 @@ No change is required to build scripts to leverage these performance improvement
 ### Convenient testing of plugins with Gradle TestKit
 
 Gradle 2.6 introduced the [Gradle TestKit](userguide/test_kit.html), which made it easier to thoroughly test Gradle plugins and build logic.
-The TestKit has improved and matured with subsequent Gradle releases.
+The TestKit has improved and matured with each subsequent Gradle release.
 
 The [Java Gradle Plugin Development Plugin](userguide/javaGradle_plugin.html) now makes the plugin-under-test's implementation classpath discoverable at test time automatically.
 This means you need less manual build configuration in order to test your plugin.
@@ -119,6 +119,7 @@ The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
+<!--
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
@@ -126,7 +127,6 @@ in the next major Gradle version (Gradle 3.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
 
-<!--
 ### Example deprecation
 -->
 
