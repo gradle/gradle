@@ -16,7 +16,6 @@
 
 package org.gradle.internal.installation
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -48,7 +47,6 @@ class GradleFatJarTest extends Specification {
         !GradleFatJar.containsMarkerFile(String.class)
     }
 
-    @LeaksFileHandles
     def "can find marker file contained in fat JAR"() {
         given:
         createJarWithMarkerFile(jarFile)
@@ -58,7 +56,6 @@ class GradleFatJarTest extends Specification {
         GradleFatJar.containsMarkerFile(clazz)
     }
 
-    @LeaksFileHandles
     def "cannot find marker file in standard JAR file"() {
         given:
         createJarWithoutMarkerFile(jarFile)
@@ -69,8 +66,16 @@ class GradleFatJarTest extends Specification {
     }
 
     private Class<?> loadClassForJar() {
-        def classLoader = new URLClassLoader(jarFile.toURI().toURL())
-        classLoader.loadClass(CLASS_NAME.replace('/', '.'))
+        def classLoader
+
+        try {
+            classLoader = new URLClassLoader(jarFile.toURI().toURL())
+            classLoader.loadClass(CLASS_NAME.replace('/', '.'))
+        } finally {
+            if (classLoader) {
+                classLoader.close()
+            }
+        }
     }
 
     private void createJarWithMarkerFile(TestFile jar) {
