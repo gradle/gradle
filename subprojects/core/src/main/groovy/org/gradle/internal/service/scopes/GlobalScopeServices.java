@@ -47,7 +47,6 @@ import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
 import org.gradle.initialization.*;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -82,10 +81,6 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.process.internal.DefaultExecActionFactory;
 
-import java.io.File;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.security.CodeSource;
 import java.util.List;
 
 /**
@@ -161,19 +156,8 @@ public class GlobalScopeServices {
     }
 
     ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
-        CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
-        if (codeSource != null) {
-            URL location = codeSource.getLocation();
-
-            if (location.getProtocol().equals("file") && location.getPath().endsWith(".jar")) {
-                try {
-                    if (GradleFatJar.containsMarkerFile(new File(location.toURI()))) {
-                        return new FlatClassLoaderRegistry(getClass().getClassLoader());
-                    }
-                } catch (URISyntaxException e) {
-                    UncheckedException.throwAsUncheckedException(e);
-                }
-            }
+        if (GradleFatJar.containsMarkerFile(getClass())) {
+            return new FlatClassLoaderRegistry(getClass().getClassLoader());
         }
 
         return new DefaultClassLoaderRegistry(classPathRegistry, classLoaderFactory);

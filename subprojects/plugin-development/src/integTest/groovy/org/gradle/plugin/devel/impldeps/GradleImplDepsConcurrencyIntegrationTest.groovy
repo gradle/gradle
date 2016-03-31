@@ -18,7 +18,9 @@ package org.gradle.plugin.devel.impldeps
 
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore("Needs more work, currently flaky")
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     @Rule

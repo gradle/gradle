@@ -19,39 +19,67 @@ package org.gradle.internal.installation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.tree.ClassNode
 import spock.lang.Specification
 
 class GradleFatJarTest extends Specification {
+
+    private static final String CLASS_NAME = 'org/gradle/test/Registry'
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def jarFile = tmpDir.file('lib.jar')
 
-    def "contains marker file for fat JAR"() {
-        given:
-        createJarWithMarkerFile(jarFile)
+    def "throws exception if provided class is null"() {
+        when:
+        GradleFatJar.containsMarkerFile(null)
 
-        expect:
-        GradleFatJar.containsMarkerFile(jarFile)
+        then:
+        def t = thrown(IllegalArgumentException)
+        t.message == 'Need to provide valid class reference'
     }
 
-    def "does not contain marker file standard JAR file"() {
+    def "does not find marker file for class loaded from outside of JAR"() {
+        expect:
+        !GradleFatJar.containsMarkerFile(String.class)
+    }
+
+    def "can find marker file contained in fat JAR"() {
         given:
-        createJarWithoutMarkerFile(jarFile)
+        createJarWithMarkerFile(jarFile)
+        def clazz = loadClassForJar()
 
         expect:
-        !GradleFatJar.containsMarkerFile(jarFile)
+        GradleFatJar.containsMarkerFile(clazz)
+    }
+
+    def "cannot find marker file in standard JAR file"() {
+        given:
+        createJarWithoutMarkerFile(jarFile)
+        def clazz = loadClassForJar()
+
+        expect:
+        !GradleFatJar.containsMarkerFile(clazz)
+    }
+
+    private Class<?> loadClassForJar() {
+        def classLoader = new URLClassLoader(jarFile.toURI().toURL())
+        classLoader.loadClass(CLASS_NAME.replace('/', '.'))
     }
 
     private void createJarWithMarkerFile(TestFile jar) {
-        handleAsJarFile(jar) { contents ->
+        handleAsJarFile(jar) { TestFile contents ->
+            writeClass(contents)
             contents.createFile(GradleFatJar.MARKER_FILENAME)
         }
     }
 
     private void createJarWithoutMarkerFile(TestFile jar) {
-        handleAsJarFile(jar) { contents ->
+        handleAsJarFile(jar) { TestFile contents ->
+            writeClass(contents)
             contents.createFile('content.txt')
         }
     }
@@ -60,5 +88,21 @@ class GradleFatJarTest extends Specification {
         TestFile contents = tmpDir.createDir('contents')
         c(contents)
         contents.zipTo(jar)
+    }
+
+    private void writeClass(TestFile contents) {
+        TestFile classFile = contents.createFile("${CLASS_NAME}.class")
+        ClassNode classNode = new ClassNode()
+        classNode.version = Opcodes.V1_6
+        classNode.access = Opcodes.ACC_PUBLIC
+        classNode.name = CLASS_NAME
+        classNode.superName = 'java/lang/Object'
+
+        ClassWriter cw = new ClassWriter(0)
+        classNode.accept(cw)
+
+        classFile.withDataOutputStream {
+            it.write(cw.toByteArray())
+        }
     }
 }
