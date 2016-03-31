@@ -53,7 +53,7 @@ public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implemen
     protected void preprocessLaunchables(Iterable<? extends Launchable> launchables) {
         BuildIdentifier targetBuildIdentifier = null;
         for (Launchable launchable : launchables) {
-            BuildIdentifier launchableBuildIdentifier = launchable.getGradleProjectIdentifier().getBuildIdentifier();
+            BuildIdentifier launchableBuildIdentifier = launchable.getProjectIdentifier().getBuildIdentifier();
             if (targetBuildIdentifier == null) {
                 targetBuildIdentifier = launchableBuildIdentifier;
             } else if (!targetBuildIdentifier.equals(launchableBuildIdentifier)) {

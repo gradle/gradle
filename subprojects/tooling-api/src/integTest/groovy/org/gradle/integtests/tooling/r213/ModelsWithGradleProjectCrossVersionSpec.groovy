@@ -44,7 +44,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
         def gradleBuild = getModelWithProjectConnection(rootMulti, GradleBuild)
 
         then:
-        gradleBuild.identifier == new DefaultBuildIdentifier(rootMulti)
+        gradleBuild.buildIdentifier == new DefaultBuildIdentifier(rootMulti)
     }
 
     def "GradleConnection provides identified GradleBuild for each build"() {
@@ -56,8 +56,8 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
 
         then:
         gradleBuilds.size() == 2
-        gradleBuilds.find { it.identifier == new DefaultBuildIdentifier(rootSingle) }
-        gradleBuilds.find { it.identifier == new DefaultBuildIdentifier(rootMulti) }
+        gradleBuilds.find { it.buildIdentifier == new DefaultBuildIdentifier(rootSingle) }
+        gradleBuilds.find { it.buildIdentifier == new DefaultBuildIdentifier(rootMulti) }
     }
 
     def "GradleConnection provides GradleProjects for single project build"() {
@@ -221,7 +221,7 @@ class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecifi
         }
         // Order of children is not guaranteed for Gradle < 2.0
         assert project.children*.path as Set == childPaths as Set
-        assert project.identifier == new DefaultProjectIdentifier(new DefaultBuildIdentifier(rootDir), path)
+        assert project.projectIdentifier == new DefaultProjectIdentifier(new DefaultBuildIdentifier(rootDir), path)
     }
 
     private GradleProject getGradleProjectWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {

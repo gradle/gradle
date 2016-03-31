@@ -73,12 +73,12 @@ class ModelsWithGradleBuildIdentifierCrossVersionSpec extends CompositeToolingAp
     }
 
     private static void assertSameIdentifiers(def gradleBuild, def model) {
-        assert gradleBuild.identifier == model.gradleBuildIdentifier
+        assert gradleBuild.buildIdentifier == model.buildIdentifier
     }
 
     private static void assertSameIdentifiers(List gradleBuilds, List models) {
-        def gradleBuildIdentifiers = gradleBuilds.collect { it.identifier } as Set
-        def modelBuildIdentifiers = models.collect { it.gradleBuildIdentifier } as Set
+        def gradleBuildIdentifiers = gradleBuilds.collect { it.buildIdentifier } as Set
+        def modelBuildIdentifiers = models.collect { it.buildIdentifier } as Set
         assert gradleBuildIdentifiers == modelBuildIdentifiers
     }
 

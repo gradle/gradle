@@ -48,7 +48,7 @@ public interface BuildEnvironment extends Model {
      * @since 2.13
      */
     @Incubating
-    BuildIdentifier getGradleBuildIdentifier();
+    BuildIdentifier getBuildIdentifier();
 
     /**
      * Returns information about the Gradle environment, for example the Gradle version.

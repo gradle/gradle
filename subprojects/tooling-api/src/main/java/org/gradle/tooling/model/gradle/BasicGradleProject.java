@@ -37,7 +37,7 @@ public interface BasicGradleProject extends Model {
      * @since 2.13
      */
     @Incubating
-    ProjectIdentifier getIdentifier();
+    ProjectIdentifier getProjectIdentifier();
 
     /**
      * Returns the name of this project. Note that the name is not a unique identifier for the project.

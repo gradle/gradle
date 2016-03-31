@@ -38,7 +38,7 @@ public interface BuildInvocations extends Model {
      * @since 2.13
      */
     @Incubating
-    ProjectIdentifier getGradleProjectIdentifier();
+    ProjectIdentifier getProjectIdentifier();
 
     /**
      * Returns tasks selectors that can be used to execute a build.

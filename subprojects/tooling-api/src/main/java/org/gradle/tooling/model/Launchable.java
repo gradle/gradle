@@ -34,7 +34,7 @@ public interface Launchable {
      * @since 2.13
      */
     @Incubating
-    ProjectIdentifier getGradleProjectIdentifier();
+    ProjectIdentifier getProjectIdentifier();
 
     /**
      * Returns a human-consumable display name for this launchable.

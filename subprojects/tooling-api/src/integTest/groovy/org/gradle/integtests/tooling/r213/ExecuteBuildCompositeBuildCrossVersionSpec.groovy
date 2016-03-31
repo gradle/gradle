@@ -360,9 +360,9 @@ task hello {
 
     private BuildIdentifier getBuildIdentifier(ModelResult<?> result, Class<?> type) {
         if (type == GradleProject) {
-            return ((GradleProject) result.model).identifier.buildIdentifier
+            return ((GradleProject) result.model).projectIdentifier.buildIdentifier
         }
-        return ((BuildInvocations) result.model).gradleProjectIdentifier.buildIdentifier
+        return ((BuildInvocations) result.model).projectIdentifier.buildIdentifier
     }
 
     private static List<Class<?>> launchableSources() {

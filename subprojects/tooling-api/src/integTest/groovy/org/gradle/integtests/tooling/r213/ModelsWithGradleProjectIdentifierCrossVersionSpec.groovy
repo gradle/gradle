@@ -85,10 +85,10 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
         then:
         buildInvocationsSet.each { BuildInvocations buildInvocations ->
             buildInvocations.taskSelectors.each {
-                buildInvocations.gradleProjectIdentifier == it.gradleProjectIdentifier
+                buildInvocations.projectIdentifier == it.projectIdentifier
             }
             buildInvocations.tasks.each {
-                buildInvocations.gradleProjectIdentifier == it.gradleProjectIdentifier
+                buildInvocations.projectIdentifier == it.projectIdentifier
             }
         }
     }
@@ -108,12 +108,12 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
     }
 
     private static void assertSameIdentifiers(def gradleProject, def model) {
-        assert gradleProject.identifier == model.gradleProjectIdentifier
+        assert gradleProject.projectIdentifier == model.projectIdentifier
     }
 
     private static void assertSameIdentifiers(List gradleProjects, List models) {
-        def gradleProjectIdentifiers = gradleProjects.collect { it.identifier } as Set
-        def modelIdentifiers = models.collect { it.gradleProjectIdentifier } as Set
+        def gradleProjectIdentifiers = gradleProjects.collect { it.projectIdentifier } as Set
+        def modelIdentifiers = models.collect { it.projectIdentifier } as Set
         assert gradleProjectIdentifiers == modelIdentifiers
     }
 
