@@ -16,7 +16,7 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.progress.OperationIdentifier;
+import org.gradle.logging.OperationIdentifier;
 
 public class ProgressCompleteEvent extends CategorisedOutputEvent {
     private final String status;

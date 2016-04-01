@@ -16,7 +16,7 @@
 package org.gradle.logging.internal
 
 import org.gradle.internal.TimeProvider
-import org.gradle.internal.progress.OperationIdentifier
+import org.gradle.logging.OperationIdentifier
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {

@@ -17,7 +17,7 @@
 package org.gradle.logging.internal.progress;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.progress.OperationIdentifier;
+import org.gradle.logging.OperationIdentifier;
 
 import java.util.HashMap;
 import java.util.Map;

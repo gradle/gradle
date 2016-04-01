@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.protocol
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.progress.OperationIdentifier
+import org.gradle.logging.OperationIdentifier
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.logging.StyledTextOutput
