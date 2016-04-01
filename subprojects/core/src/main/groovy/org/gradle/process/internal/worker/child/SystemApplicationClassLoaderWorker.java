@@ -26,7 +26,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.internal.remote.MessagingClient;
 import org.gradle.internal.remote.ObjectConnection;
-import org.gradle.internal.remote.internal.MessagingServices;
+import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
 

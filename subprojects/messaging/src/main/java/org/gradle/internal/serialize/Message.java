@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.remote.internal;
+package org.gradle.internal.serialize;
 
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.slf4j.Logger;

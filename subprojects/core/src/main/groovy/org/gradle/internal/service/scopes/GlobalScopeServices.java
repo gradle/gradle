@@ -68,7 +68,7 @@ import org.gradle.internal.service.ServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.remote.MessagingServer;
-import org.gradle.internal.remote.internal.MessagingServices;
+import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;

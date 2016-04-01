@@ -16,7 +16,7 @@
 
 package org.gradle.internal.remote.internal.hub;
 
-import org.gradle.internal.remote.internal.Message;
+import org.gradle.internal.serialize.Message;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;

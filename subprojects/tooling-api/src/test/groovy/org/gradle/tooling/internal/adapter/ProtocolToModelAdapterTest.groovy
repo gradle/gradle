@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.adapter
 
 import org.gradle.api.Action
-import org.gradle.internal.remote.internal.Message
+import org.gradle.internal.serialize.Message
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.util.Matchers

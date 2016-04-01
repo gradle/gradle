@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.remote.internal;
+
+package org.gradle.internal.remote.services;
 
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
+import org.gradle.internal.remote.internal.IncomingConnector;
+import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.remote.MessagingClient;
 import org.gradle.internal.remote.MessagingServer;

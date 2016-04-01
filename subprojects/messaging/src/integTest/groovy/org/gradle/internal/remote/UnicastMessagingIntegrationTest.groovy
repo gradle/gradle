@@ -19,7 +19,7 @@ package org.gradle.internal.remote
 import org.gradle.api.Action
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.ExecutorFactory
-import org.gradle.internal.remote.internal.MessagingServices
+import org.gradle.internal.remote.services.MessagingServices
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import spock.lang.Timeout
 
