@@ -21,6 +21,7 @@ import org.gradle.api.plugins.quality.FindBugsReports;
 import org.gradle.api.plugins.quality.FindBugsXmlReport;
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsXmlReportImpl;
 import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.reporting.internal.CustomizableHtmlReportImpl;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 import org.gradle.api.tasks.Input;

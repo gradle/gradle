@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality;
+package org.gradle.api.reporting;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.resources.TextResource;
 
 /**

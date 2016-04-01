@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.quality.FindBugsReports;
-import org.gradle.api.plugins.quality.internal.CustomizableHtmlReportImpl;
+import org.gradle.api.reporting.internal.CustomizableHtmlReportImpl;
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;

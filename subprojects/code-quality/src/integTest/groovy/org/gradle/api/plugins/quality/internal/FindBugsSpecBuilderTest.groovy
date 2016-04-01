@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsXmlReportImpl;
 import org.gradle.api.reporting.SingleFileReport
+import org.gradle.api.reporting.internal.CustomizableHtmlReportImpl
 import org.gradle.api.resources.TextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
