@@ -451,6 +451,9 @@ public class ProtocolToModelAdapter implements Serializable {
                 if (a == b) {
                     return true;
                 }
+                if (a == null) {
+                    return false;
+                }
                 if (a.getClass().isArray()) {
                     return Arrays.equals((Object[]) a, (Object[]) b);
                 }
