@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.util
+package org.gradle.internal.io
 
-import org.gradle.internal.io.TextStream
+import org.gradle.util.MultithreadedTestCase
+import org.gradle.util.TextUtil
 import org.junit.Test
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+
+import static org.hamcrest.Matchers.equalTo
+import static org.junit.Assert.assertThat
 
 class LinePerThreadBufferingOutputStreamTest extends MultithreadedTestCase {
     @Test

@@ -20,7 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.io.TextStream;
 import org.gradle.logging.StandardOutputCapture;
-import org.gradle.util.LinePerThreadBufferingOutputStream;
+import org.gradle.internal.io.LinePerThreadBufferingOutputStream;
 
 import java.io.PrintStream;
 
