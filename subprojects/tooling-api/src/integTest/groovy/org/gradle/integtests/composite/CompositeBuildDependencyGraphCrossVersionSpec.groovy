@@ -37,6 +37,8 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
     ResolveTestFixture resolve
 
     def setup() {
+        onlyIntegratedComposite()
+
         mavenRepo = new MavenFileRepository(file("maven-repo"))
         mavenRepo.module("org.test", "buildB", "1.0").publish()
 

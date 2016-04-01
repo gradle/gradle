@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.tooling.fixture
+
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
@@ -22,14 +23,32 @@ import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.connection.ModelResult
 import org.gradle.util.GradleVersion
+import org.junit.Assume
+import org.junit.runner.RunWith
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
 @TargetGradleVersion(">=1.0")
+@RunWith(CompositeToolingApiCompatibilitySuiteRunner)
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
-    boolean executeTestWithIntegratedComposite = true
 
+    private static final ThreadLocal<Boolean> INTEGRATED_COMPOSITE = new ThreadLocal<Boolean>()
+
+    // TODO:DAZ Integrate the next 2 into the test runner with an annotation
     void skipIntegratedComposite() {
-        executeTestWithIntegratedComposite = false
+        Assume.assumeFalse(isIntegratedComposite())
+    }
+
+    void onlyIntegratedComposite() {
+        Assume.assumeTrue(isIntegratedComposite())
+    }
+
+    static void setIntegratedComposite(boolean enable) {
+        INTEGRATED_COMPOSITE.set(enable)
+    }
+
+    static boolean isIntegratedComposite() {
+        def integrated = INTEGRATED_COMPOSITE.get()
+        return integrated != null && integrated
     }
 
     static GradleVersion getTargetDistVersion() {
@@ -56,14 +75,12 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     }
 
     GradleConnectionBuilder createCompositeBuilder() {
-        // TODO:DAZ This isn't quite right: we should be testing _both_ integrated and non-integrated composite for version that support both
-        if (executeTestWithIntegratedComposite && supportsIntegratedComposites()) {
+        if (isIntegratedComposite()) {
             return toolingApi.createIntegratedCompositeBuilder()
         }
         return toolingApi.createCompositeBuilder()
     }
 
-    // TODO:DAZ Integrate this into the test runner with an annotation
     boolean supportsIntegratedComposites() {
         ToolingApiVersions.supportsIntegratedComposite(toolingApiVersion, targetDistVersion)
     }

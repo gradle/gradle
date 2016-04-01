@@ -30,11 +30,9 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import org.junit.rules.RuleChain
-import org.junit.runner.RunWith
 import spock.lang.Specification
 
 import static org.gradle.testing.internal.util.RetryRule.retryIf
-
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and testDirectoryProvider, including the current Gradle version under test.
  *
@@ -46,7 +44,6 @@ import static org.gradle.testing.internal.util.RetryRule.retryIf
  *     <li>{@link TargetGradleVersion} - specifies the tooling API testDirectoryProvider versions that the test is compatible with.
  * </ul>
  */
-@RunWith(ToolingApiCompatibilitySuiteRunner)
 abstract class AbstractToolingApiSpecification extends Specification {
 
     @Rule

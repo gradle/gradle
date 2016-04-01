@@ -15,15 +15,12 @@
  */
 
 package org.gradle.integtests.tooling.r213
-
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.junit.Assume
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
-
 /**
  * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
  */
@@ -63,7 +60,7 @@ class DependencySubstitutionGradleConnectionCrossVersionSpec extends CompositeTo
     def "dependencies report shows external dependencies substituted with project dependencies"() {
         given:
         def expectedOutput = "org.test:buildB:1.0"
-        if (supportsIntegratedComposites()) {
+        if (isIntegratedComposite()) {
             expectedOutput = "org.test:buildB:1.0 -> project buildB::"
         }
 
@@ -78,7 +75,7 @@ compile
     }
 
     def "dependencies report displays failure for dependency that cannot be resolved in composite"() {
-        Assume.assumeTrue(supportsIntegratedComposites())
+        onlyIntegratedComposite()
 
         given:
         // Add a project that makes 'buildB' ambiguous in the composite
@@ -96,7 +93,8 @@ compile
     }
 
     def "builds artifacts for substituted dependencies"() {
-        Assume.assumeTrue(supportsIntegratedComposites())
+        onlyIntegratedComposite()
+
         given:
         buildA.buildFile << """
             task printConfiguration(dependsOn: configurations.compile) << {

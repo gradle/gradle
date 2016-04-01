@@ -69,7 +69,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeTooling
         eclipseProjects.size() == 2
         def eclipseProjectA = eclipseProjects.find { it.projectDirectory.absoluteFile == buildA.absoluteFile }
         eclipseProjectA != null
-        if (supportsIntegratedComposites()) {
+        if (isIntegratedComposite()) {
             assert eclipseProjectA.classpath.empty
             assert eclipseProjectA.projectDependencies.size() == 1
             with(eclipseProjectA.projectDependencies.first()) {
@@ -99,7 +99,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeTooling
         ideaModules.size() == 2
         def ideaModuleA = ideaModules.find { it.gradleProject.projectIdentifier.buildIdentifier == new DefaultBuildIdentifier(buildA) }
         ideaModuleA != null
-        if (supportsIntegratedComposites()) {
+        if (isIntegratedComposite()) {
             assert ideaModuleA.dependencies.size() == 1
             assert ideaModuleA.dependencies.first() instanceof IdeaModuleDependency
             // TODO:DAZ We'll need to provide a way to correlate to a 'foreign' IdeaModule in a composite
