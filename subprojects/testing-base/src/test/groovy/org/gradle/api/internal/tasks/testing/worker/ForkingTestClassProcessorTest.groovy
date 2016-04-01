@@ -22,7 +22,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.messaging.remote.ObjectConnection
+import org.gradle.internal.remote.ObjectConnection
 import org.gradle.process.JavaForkOptions
 import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder
