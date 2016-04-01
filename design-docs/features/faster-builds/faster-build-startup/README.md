@@ -16,6 +16,8 @@ Audience is developers that are using the Gradle daemon.
 - Make creation of project instances cheaper
 - Faster startup by reducing fixed costs in daemon client and per build setup
 - Start progress logging earlier in build lifecycle to give more insight into what's happening early in the build
+- Don't discover global services that are not required in the daemon client.
+- Use a shorter classpath to bootstrap the daemon and daemon client.
 
 ## Stories
 
