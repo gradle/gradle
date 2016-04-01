@@ -45,7 +45,6 @@ public class BuildProcess extends CurrentProcess {
         jvmOptions.systemProperties(getJvmOptions().getImmutableSystemProperties());
         List<String> currentImmutable = jvmOptions.getAllImmutableJvmArgs();
         List<String> requiredImmutable = requiredBuildParameters.getEffectiveJvmArgs();
-        getJvmOptions().getImmutableSystemProperties();
         requiredImmutable.removeAll(DaemonParameters.DEFAULT_JVM_ARGS);
         boolean noImmutableJvmArgsRequired = requiredImmutable.equals(currentImmutable);
 

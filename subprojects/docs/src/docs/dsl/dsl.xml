@@ -454,7 +454,7 @@
         <table>
             <title>Reporting types</title>
             <tr>
-                <td>org.gradle.api.plugins.quality.CustomizableHtmlReport</td>
+                <td>org.gradle.api.reporting.CustomizableHtmlReport</td>
             </tr>
             <tr>
                 <td>org.gradle.api.reporting.SingleFileReport</td>

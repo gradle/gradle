@@ -76,7 +76,7 @@ task slow << { new URL("${server.uri}").text }
         }
         toolingApi.daemons.daemon.assertIdle()
 
-        def build = daemonExecutor().withArgument("-d").withTasks("slow").start()
+        def build = daemonExecutor().withTasks("slow").start()
         server.waitFor()
         toolingApi.daemons.daemon.assertBusy()
 

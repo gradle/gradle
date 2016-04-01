@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality.internal;
+package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Task;
-import org.gradle.api.plugins.quality.CustomizableHtmlReport;
-import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
+import org.gradle.api.reporting.CustomizableHtmlReport;
 import org.gradle.api.resources.TextResource;
 
 public class CustomizableHtmlReportImpl extends TaskGeneratedSingleFileReport implements CustomizableHtmlReport {
