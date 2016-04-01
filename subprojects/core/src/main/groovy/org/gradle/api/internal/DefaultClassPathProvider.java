@@ -35,12 +35,6 @@ public class DefaultClassPathProvider implements ClassPathProvider {
             }
             return classpath;
         }
-        if (name.equals("GRADLE_CORE")) {
-            return moduleRegistry.getModule("gradle-core").getImplementationClasspath();
-        }
-        if (name.equals("GRADLE_BASE_SERVICES")) {
-            return moduleRegistry.getModule("gradle-base-services").getImplementationClasspath();
-        }
         if (name.equals("GRADLE_INSTALLATION_BEACON")) {
             return moduleRegistry.getModule("gradle-installation-beacon").getImplementationClasspath();
         }
@@ -52,9 +46,6 @@ public class DefaultClassPathProvider implements ClassPathProvider {
             classpath = classpath.plus(moduleRegistry.getExternalModule("ant").getClasspath());
             classpath = classpath.plus(moduleRegistry.getExternalModule("ant-launcher").getClasspath());
             return classpath;
-        }
-        if (name.equals("GROOVY")) {
-            return moduleRegistry.getExternalModule("groovy-all").getClasspath();
         }
 
         return null;

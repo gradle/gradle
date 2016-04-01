@@ -27,6 +27,7 @@ dependencies {
         exclude group: "org.codehaus.groovy", module: "groovy-all"
     }
     publishCompile project(":messaging")
+    publishCompile project(":logging")
     publishCompile project(":resources")
 
     compile project(":modelCore")

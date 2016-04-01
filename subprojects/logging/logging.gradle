@@ -1,0 +1,8 @@
+dependencies {
+    compile libraries.slf4j_api
+    compile libraries.ant
+    compile project(':baseServices')
+}
+
+useTestFixtures()
+useClassycle()

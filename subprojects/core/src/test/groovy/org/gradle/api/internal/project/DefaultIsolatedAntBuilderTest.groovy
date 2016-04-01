@@ -42,7 +42,7 @@ import static org.junit.Assert.fail
 class DefaultIsolatedAntBuilderTest {
     private final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
     private final ClassPathRegistry registry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry))
-    private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory())
+    private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry, new DefaultClassLoaderFactory(), moduleRegistry)
     private final TestOutputEventListener outputEventListener = new TestOutputEventListener()
     @Rule
     public final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
@@ -50,7 +50,7 @@ class DefaultIsolatedAntBuilderTest {
 
     @Before
     public void attachAppender() {
-        classpath = registry.getClassPath("GROOVY").asFiles
+        classpath = moduleRegistry.getExternalModule("groovy-all").getClasspath().asFiles
         logging.setLevel(LogLevel.INFO)
     }
 
