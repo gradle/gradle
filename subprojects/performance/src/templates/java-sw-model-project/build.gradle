@@ -5,20 +5,21 @@ plugins {
     id 'java-lang'
 }
 
+<% if (repository) { %>
+def repositoryUrl = rootProject.file("${repository.rootDir.name}").toURI().toURL()
+<% } %>
 repositories {
 <% if (repository) { %>
     maven {
-        url rootProject.file("${repository.rootDir.name}").toURI().toURL()
+        url repositoryUrl
     }
 <% } %>
     jcenter()
 }
 
 configurations {
-    compile
-    testCompile.extendsFrom compile
-    testRuntime.extendsFrom testCompile
-    checkstyle
+    create('testRuntime').extendsFrom(create('testCompile').extendsFrom(create('compile')))
+    create('checkstyle')
 }
 
 dependencies {
@@ -108,6 +109,7 @@ class TestTaskWiring extends RuleSource {
         }.flatten()
         def additionalClassPath = [binaries.get('mainJar').classesDir, testJarClassesDir]
         tasks.create("test", Test) {
+            def project = project
             dependsOn "compileTestJarTestJava"
             classpath = project.files(additionalClassPath) + project.configurations.getByName('testRuntime')
             testClassesDir = testJarClassesDir
@@ -138,6 +140,7 @@ class CheckstyleWiring extends RuleSource {
         def checkstyleTaskNames = libraries.collect { JvmLibrarySpec librarySpec ->
             String taskName = "checkstyle\${librarySpec.getName().capitalize()}"
             tasks.create(taskName, Checkstyle) { task ->
+                def project = project
                 source = librarySpec.sources.collect {
                     it.source.srcDirs
                 }.flatten()
