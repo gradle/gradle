@@ -29,13 +29,13 @@ import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.remote.MessagingServer;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
-import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider;
 
@@ -82,7 +82,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
-        return new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry);
+    WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository) {
+        return new WorkerProcessClassPathProvider(cacheRepository);
     }
 }

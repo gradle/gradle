@@ -60,7 +60,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     final CacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(tmpDir.testDirectory, null, GradleVersion.current())
     final CacheRepository cacheRepository = new DefaultCacheRepository(scopeMapping, factory)
     final ModuleRegistry moduleRegistry = new DefaultModuleRegistry(CurrentGradleInstallation.get())
-    final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry))
+    final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new DefaultClassPathProvider(moduleRegistry), new WorkerProcessClassPathProvider(cacheRepository))
     final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new LongIdGenerator(), null, new TmpDirTemporaryFileProvider(), TestFiles.execHandleFactory(tmpDir.testDirectory))
 
     def cleanup() {

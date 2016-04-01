@@ -16,16 +16,9 @@
 
 package org.gradle.process.internal.worker.child;
 
-import com.tonicsystems.jarjar.JarJarTask;
-import com.tonicsystems.jarjar.Rule;
-import org.apache.tools.ant.types.Resource;
-import org.apache.tools.ant.types.ResourceCollection;
-import org.apache.tools.ant.types.resources.URLResource;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathProvider;
-import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
@@ -39,29 +32,33 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.*;
 import org.gradle.internal.reflect.NoSuchMethodException;
-import org.gradle.process.internal.worker.GradleWorkerMain;
 import org.gradle.process.internal.streams.EncodedStream;
-import org.gradle.util.AntUtil;
+import org.gradle.process.internal.worker.GradleWorkerMain;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Remapper;
+import org.objectweb.asm.commons.RemappingClassAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class WorkerProcessClassPathProvider implements ClassPathProvider, Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerProcessClassPathProvider.class);
     private final CacheRepository cacheRepository;
-    private final ModuleRegistry moduleRegistry;
     private final Object lock = new Object();
     private ClassPath workerClassPath;
     private PersistentCache workerClassPathCache;
 
-    public WorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
+    public WorkerProcessClassPathProvider(CacheRepository cacheRepository) {
         this.cacheRepository = cacheRepository;
-        this.moduleRegistry = moduleRegistry;
     }
 
     public ClassPath findClassPath(String name) {
@@ -102,93 +99,82 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
     }
 
     private static class CacheInitializer implements Action<PersistentCache> {
+        private final WorkerClassRemapper remapper = new WorkerClassRemapper();
+
         public void execute(PersistentCache cache) {
-            File jarFile = jarFile(cache);
-            LOGGER.debug("Generating worker process classes to {}.", jarFile);
+            try {
+                File jarFile = jarFile(cache);
+                LOGGER.debug("Generating worker process classes to {}.", jarFile);
 
-            URL currentClasspath = getClass().getProtectionDomain().getCodeSource().getLocation();
-            JarJarTask task = new JarJarTask();
-            task.setDestFile(jarFile);
-
-            // TODO - calculate this list of classes dynamically
-            final List<Resource> classResources = new ArrayList<Resource>();
-            List<Class<?>> renamedClasses = Arrays.asList(
-                    GradleWorkerMain.class,
-                    BootstrapSecurityManager.class,
-                    EncodedStream.EncodedInput.class,
-                    FilteringClassLoader.class,
-                    FilteringClassLoader.Spec.class,
-                    ClassLoaderHierarchy.class,
-                    ClassLoaderVisitor.class,
-                    ClassLoaderSpec.class,
-                    JavaReflectionUtil.class,
-                    JavaMethod.class,
-                    GradleException.class,
-                    NoSuchPropertyException.class,
-                    NoSuchMethodException.class,
-                    UncheckedException.class,
-                    PropertyAccessor.class,
-                    PropertyMutator.class,
-                    Factory.class,
-                    Spec.class);
-            List<Class<?>> classes = new ArrayList<Class<?>>();
-            classes.addAll(renamedClasses);
-            for (Class<?> aClass : classes) {
-                final String fileName = aClass.getName().replace('.', '/') + ".class";
-
-                // Prefer the class from the same classpath as the current class. This is for the case where we're running in a test under an older
-                // version of Gradle, whose worker classes will be visible to us.
-                // TODO - remove this once we have upgraded to a wrapper with these changes in it
-                Enumeration<URL> resources;
+                // TODO - calculate this list of classes dynamically
+                List<Class<?>> classes = Arrays.asList(
+                        GradleWorkerMain.class,
+                        BootstrapSecurityManager.class,
+                        EncodedStream.EncodedInput.class,
+                        FilteringClassLoader.class,
+                        FilteringClassLoader.Spec.class,
+                        ClassLoaderHierarchy.class,
+                        ClassLoaderVisitor.class,
+                        ClassLoaderSpec.class,
+                        JavaReflectionUtil.class,
+                        JavaMethod.class,
+                        GradleException.class,
+                        NoSuchPropertyException.class,
+                        NoSuchMethodException.class,
+                        UncheckedException.class,
+                        PropertyAccessor.class,
+                        PropertyMutator.class,
+                        Factory.class,
+                        Spec.class);
+                ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(jarFile)));
                 try {
-                    resources = WorkerProcessClassPathProvider.class.getClassLoader().getResources(fileName);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-                URL resource = null;
-                while (resources.hasMoreElements()) {
-                    URL url = resources.nextElement();
-                    resource = url;
-                    if (url.toString().startsWith(currentClasspath.toString())) {
-                        break;
+                    for (Class<?> classToMap : classes) {
+                        remapClass(classToMap, outputStream);
                     }
+                } finally {
+                    outputStream.close();
                 }
-                URLResource urlResource = new URLResource(resource) {
-                    @Override
-                    public synchronized String getName() {
-                        return fileName;
-                    }
-                };
-                classResources.add(urlResource);
+            } catch (Exception e) {
+                throw new GradleException("Could not generate worker process bootstrap classes.", e);
             }
+        }
 
-            task.add(new ResourceCollection() {
-                public Iterator iterator() {
-                    return classResources.iterator();
+        private void remapClass(Class<?> classToMap, ZipOutputStream jar) throws IOException {
+            String internalName = Type.getInternalName(classToMap);
+            String resourceName = internalName.concat(".class");
+            URL resource = WorkerProcessClassPathProvider.class.getClassLoader().getResource(resourceName);
+            if (resource == null) {
+                throw new IllegalStateException("Could not locate classpath resource for class " + classToMap.getName());
+            }
+            InputStream inputStream = resource.openStream();
+            ClassReader classReader;
+            try {
+                classReader = new ClassReader(inputStream);
+            } finally {
+                inputStream.close();
+            }
+            ClassWriter classWriter = new ClassWriter(0);
+            ClassVisitor remappingVisitor = new RemappingClassAdapter(classWriter, remapper);
+            classReader.accept(remappingVisitor, ClassReader.EXPAND_FRAMES);
+            byte[] remappedClass = classWriter.toByteArray();
+            String remappedClassName = remapper.map(internalName).concat(".class");
+            jar.putNextEntry(new ZipEntry(remappedClassName));
+            jar.write(remappedClass);
+        }
+
+        private static class WorkerClassRemapper extends Remapper {
+            private static final String SYSTEM_APP_WORKER_INTERNAL_NAME = Type.getInternalName(SystemApplicationClassLoaderWorker.class);
+
+            @Override
+            public String map(String typeName) {
+                if (typeName.equals(SYSTEM_APP_WORKER_INTERNAL_NAME)) {
+                    return typeName;
                 }
-
-                public int size() {
-                    return classResources.size();
+                if (typeName.startsWith("org/gradle/")) {
+                    return "worker/" + typeName;
                 }
-
-                public boolean isFilesystemOnly() {
-                    return true;
-                }
-            });
-
-            // Don't rename references to this class
-            Rule rule = new Rule();
-            rule.setPattern(SystemApplicationClassLoaderWorker.class.getName());
-            rule.setResult(SystemApplicationClassLoaderWorker.class.getName());
-            task.addConfiguredRule(rule);
-
-            // Rename everything else
-            rule = new Rule();
-            rule.setPattern("org.gradle.**");
-            rule.setResult("jarjar.@0");
-            task.addConfiguredRule(rule);
-
-            AntUtil.execute(task);
+                return typeName;
+            }
         }
     }
 

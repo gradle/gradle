@@ -76,7 +76,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         Object requestedSecurityManager = execSpec.getSystemProperties().get("java.security.manager");
         ClassPath workerMainClassPath = classPathRegistry.getClassPath("WORKER_MAIN");
 
-        execSpec.setMain("jarjar." + GradleWorkerMain.class.getName());
+        execSpec.setMain("worker." + GradleWorkerMain.class.getName());
 
         // This check is not quite right. Should instead probe the version of the requested executable and use options file if it is Java 9 or later, regardless of
         // the version of this JVM
@@ -89,7 +89,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         } else {
             // Use a dummy security manager, which hacks the application classpath into the system ClassLoader
             execSpec.classpath(workerMainClassPath.getAsFiles());
-            execSpec.systemProperty("java.security.manager", "jarjar." + BootstrapSecurityManager.class.getName());
+            execSpec.systemProperty("java.security.manager", "worker." + BootstrapSecurityManager.class.getName());
         }
 
         // Serialize configuration for the worker process to it stdin
