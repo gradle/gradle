@@ -331,7 +331,6 @@ This was contributed by [Alpha Hinex](https://github.com/alphahinex).
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Alexander Afanasyev](https://github.com/cawka) - allow configuring java.util.logging in tests ([GRADLE-2524](https://issues.gradle.org/browse/GRADLE-2524))
 * [Randall Becker](https://github.com/rsbecker) - bypass ulimit in NONSTOP os
 * [Bryan Bess](https://github.com/squarejaw) - fix documentation layout for scala and groovy plugins
 * [Thomas Broyer](https://github.com/tbroyer) - add design doc for better/built-in Java annotation processing support
