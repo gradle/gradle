@@ -63,11 +63,6 @@ public class JvmOptions {
 
     protected final Map<String, Object> immutableSystemProperties = new TreeMap<String, Object>();
 
-
-    public Map<String, Object> getImmutableSystemProperties() {
-        return immutableSystemProperties;
-    }
-
     public JvmOptions(PathToFileResolver resolver) {
         this.bootstrapClasspath = new DefaultConfigurableFileCollection(resolver, null);
         immutableSystemProperties.put(FILE_ENCODING_KEY, Charset.defaultCharset().name());
@@ -231,6 +226,10 @@ public class JvmOptions {
 
     public Map<String, Object> getSystemProperties() {
         return systemProperties;
+    }
+
+    public Map<String, Object> getImmutableSystemProperties() {
+        return immutableSystemProperties;
     }
 
     public void setSystemProperties(Map<String, ?> properties) {
