@@ -117,11 +117,41 @@ This story doesn't implement all of this. This is just to clarify the direction 
 - Simple invalidation strategy, such as invalidate everything when any task action runs. This can be improved later.
 - Invalidate cache at the end of the build. 
 
-
-
 #### Open issues
 - reusing directory scanning results of an output snapshot without a pattern when the input is using a pattern.
 - currently the simple cache invalidation strategy flushes the cache before each task execution. A directory scanning result will only get reused when the task that produces the input to a certain task preceeds the task that uses the output.
+
+
+### Improvement: Split snapshotting to 2 phases to improvement performance
+
+Currently a input or output snapshot is relatively heavy weight. 
+It is possible to skip creating a full snapshot when nothing has changed compared to the previous snapshot.
+
+##### Goal of changes
+
+- when nothing has changed
+  - improve performance of up-to-date checking 
+    - by skipping creating a new full snapshot which also requires the previous snapshot
+      - skipping loading previous snapshot from persistent storage
+        - also saves memory since there is less use for the in-memory cache of snapshots
+
+##### Implementation notes
+
+- Split snapshotting to 2 phases: pre-check and snapshot.
+
+- In the pre-check phase a single integer valued hash is calculated.
+- The hash is calculated from a list of sorted file information.
+  - For files, the hash is updated with the file name, size and modification time
+  - For directories, the hash is updated with the file name
+- The pre-check hash doesn't contain any hashing of the file contents. 
+  - No changes will be noticed if the file size or modification time doesn't change. 
+    - This is also the current behaviour of Gradle since file content hashes are cached based on file name, size and modification time.
+- if the pre-check hash is same as pre-check for previous snapshot, it is considered up-to-date and the actual file snapshot doesn't have to be loaded and no new snapshot has to be created.
+- if the pre-check hash is different and snapshot up-to-date check doesn't  contain changes (false positive), the persisted hash gets updated
+  - this might happen when file modification times are different, but content is the same
+- fileSnapshots in-memory cache can now use weak references for values.
+  - loaded fileSnapshots will get GCd under memory pressure which works fine with the new up-to-date checking.
+
 
 ### Incremental build reuses directory scanning results in most cases
 
