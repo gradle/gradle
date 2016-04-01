@@ -21,6 +21,7 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.process.internal.JvmOptions;
 
+import java.util.Map;
 import java.util.Set;
 
 public class DaemonJvmOptions extends JvmOptions {
@@ -40,7 +41,15 @@ public class DaemonJvmOptions extends JvmOptions {
         super(resolver);
         final JvmOptions currentProcessJvmOptions = new CurrentProcess().getJvmOptions();
         systemProperties(currentProcessJvmOptions.getImmutableSystemProperties());
-        systemProperties(currentProcessJvmOptions.getSystemProperties());
+        handleDaemonImmutableProperties(currentProcessJvmOptions.getSystemProperties());
+    }
+
+    private void handleDaemonImmutableProperties(Map<String, Object> systemProperties) {
+        for (Map.Entry<String, ?> entry : systemProperties.entrySet()) {
+            if(IMMUTABLE_DAEMON_SYSTEM_PROPERTIES.contains(entry.getKey())){
+                immutableSystemProperties.put(entry.getKey(), entry.getValue());
+            }
+        }
     }
 
     public void systemProperty(String name, Object value) {
