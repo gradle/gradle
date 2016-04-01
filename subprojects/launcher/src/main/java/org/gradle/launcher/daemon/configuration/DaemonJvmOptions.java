@@ -38,7 +38,9 @@ public class DaemonJvmOptions extends JvmOptions {
 
     public DaemonJvmOptions(PathToFileResolver resolver) {
         super(resolver);
-        systemProperties(new CurrentProcess().getJvmOptions().getImmutableSystemProperties());
+        final JvmOptions currentProcessJvmOptions = new CurrentProcess().getJvmOptions();
+        systemProperties(currentProcessJvmOptions.getImmutableSystemProperties());
+        systemProperties(currentProcessJvmOptions.getSystemProperties());
     }
 
     public void systemProperty(String name, Object value) {

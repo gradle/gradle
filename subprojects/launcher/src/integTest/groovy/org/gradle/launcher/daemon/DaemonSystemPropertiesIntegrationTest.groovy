@@ -170,6 +170,37 @@ task verify << {
         daemons(gradleVersion).daemons.size() == 2
     }
 
+    def "forks new daemon for changed javax.net.ssl sys properties"() {
+        setup:
+        executer.requireGradleHome()
+        buildScript """
+            println "GRADLE_VERSION: " + gradle.gradleVersion
+
+            task verify {
+                doFirst {
+                    println "verified = " + System.getProperty('javax.net.ssl.keyStorePassword')
+                }
+            }
+        """
+
+        when:
+        executer.withEnvironmentVars(GRADLE_OPTS: "-Djavax.net.ssl.keyStorePassword=secret");
+        run "verify"
+
+        then:
+        String gradleVersion = (output =~ /GRADLE_VERSION: (.*)/)[0][1]
+        daemons(gradleVersion).daemons.size() == 1
+        output.contains("verified = secret")
+
+        when:
+        executer.withEnvironmentVars(GRADLE_OPTS: "-Djavax.net.ssl.keyStorePassword=anotherSecret");
+        run "verify"
+
+        then:
+        output.contains("verified = anotherSecret")
+        daemons(gradleVersion).daemons.size() == 2
+    }
+
     String tempFolder(String folderName) {
         def dir = new TestNameTestDirectoryProvider().createDir(folderName)
         dir.mkdirs();
