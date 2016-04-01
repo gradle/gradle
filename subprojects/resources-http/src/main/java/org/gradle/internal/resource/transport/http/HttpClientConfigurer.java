@@ -71,7 +71,6 @@ public class HttpClientConfigurer {
         configureAuthSchemeRegistry(builder);
         configureCredentials(builder, credentialsProvider, httpSettings.getAuthenticationSettings());
         configureProxy(builder, credentialsProvider, httpSettings);
-        configureRetryHandler(builder);
         configureUserAgent(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
     }
@@ -155,14 +154,6 @@ public class HttpClientConfigurer {
         }
 
         return Cast.uncheckedCast(credentials);
-    }
-
-    private void configureRetryHandler(HttpClientBuilder builder) {
-        builder.setRetryHandler(new HttpRequestRetryHandler() {
-            public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
-                return false;
-            }
-        });
     }
 
     private String getAuthScheme(Authentication authentication) {
