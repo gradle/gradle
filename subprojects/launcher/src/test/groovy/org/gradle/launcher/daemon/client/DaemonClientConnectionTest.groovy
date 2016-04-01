@@ -18,8 +18,8 @@ package org.gradle.launcher.daemon.client
 
 import org.gradle.launcher.daemon.context.DaemonInstanceDetails
 import org.gradle.launcher.daemon.protocol.Message
-import org.gradle.messaging.remote.internal.MessageIOException
-import org.gradle.messaging.remote.internal.RemoteConnection
+import org.gradle.internal.remote.internal.MessageIOException
+import org.gradle.internal.remote.internal.RemoteConnection
 import spock.lang.Specification
 
 class DaemonClientConnectionTest extends Specification {

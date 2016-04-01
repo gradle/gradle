@@ -30,7 +30,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.progress.OperationIdGenerator;
-import org.gradle.messaging.actor.ActorFactory;
+import org.gradle.internal.actor.ActorFactory;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 /**

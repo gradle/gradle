@@ -20,9 +20,9 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
 import org.gradle.launcher.daemon.protocol.Message;
-import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.MessageIOException;
-import org.gradle.messaging.remote.internal.RemoteConnection;
+import org.gradle.internal.remote.internal.Connection;
+import org.gradle.internal.remote.internal.MessageIOException;
+import org.gradle.internal.remote.internal.RemoteConnection;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;

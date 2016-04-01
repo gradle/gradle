@@ -17,7 +17,7 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.dispatch.StreamCompletion;
+import org.gradle.internal.dispatch.StreamCompletion;
 import org.gradle.process.internal.worker.WorkerProcessException;
 
 import java.util.concurrent.ArrayBlockingQueue;

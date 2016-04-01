@@ -18,7 +18,7 @@ package org.gradle.process.internal.worker;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classloader.ClasspathUtil;
-import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.request.Receiver;
 import org.gradle.process.internal.worker.request.RequestProtocol;

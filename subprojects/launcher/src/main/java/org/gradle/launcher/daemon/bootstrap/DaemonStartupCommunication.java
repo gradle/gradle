@@ -26,9 +26,9 @@ import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
-import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
-import org.gradle.messaging.remote.internal.inet.MultiChoiceAddressSerializer;
+import org.gradle.internal.remote.Address;
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
 import org.gradle.process.internal.streams.EncodedStream;
 
 import java.io.*;

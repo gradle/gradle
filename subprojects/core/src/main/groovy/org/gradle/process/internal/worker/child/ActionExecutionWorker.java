@@ -18,7 +18,7 @@ package org.gradle.process.internal.worker.child;
 
 import org.gradle.api.Action;
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

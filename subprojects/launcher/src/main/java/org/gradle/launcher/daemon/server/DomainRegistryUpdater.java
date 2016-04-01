@@ -22,7 +22,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.messaging.remote.Address;
+import org.gradle.internal.remote.Address;
 
 class DomainRegistryUpdater implements Stoppable {
 

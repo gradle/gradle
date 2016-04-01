@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal.worker.child;
 
-import org.gradle.messaging.remote.Address;
+import org.gradle.internal.remote.Address;
 import org.gradle.process.internal.worker.DefaultWorkerProcessBuilder;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 

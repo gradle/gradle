@@ -23,8 +23,8 @@ import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.tasks.testing.Test
-import org.gradle.messaging.actor.Actor
-import org.gradle.messaging.actor.ActorFactory
+import org.gradle.internal.actor.Actor
+import org.gradle.internal.actor.ActorFactory
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import spock.lang.Specification
 

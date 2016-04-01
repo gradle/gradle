@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.messaging.remote.Address;
+import org.gradle.internal.remote.Address;
 
 /**
  * Opens a server connection for clients to connect to to communicate with a daemon.

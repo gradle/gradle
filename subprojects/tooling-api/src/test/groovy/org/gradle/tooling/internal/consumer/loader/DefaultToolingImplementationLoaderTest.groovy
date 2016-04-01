@@ -19,7 +19,7 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.messaging.actor.ActorFactory
+import org.gradle.internal.actor.ActorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution

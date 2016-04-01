@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.registry;
 
-import org.gradle.messaging.remote.Address;
+import org.gradle.internal.remote.Address;
 
 import java.io.Serializable;
 import java.util.HashMap;

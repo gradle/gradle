@@ -18,7 +18,7 @@ package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.Action;
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.Serializable;

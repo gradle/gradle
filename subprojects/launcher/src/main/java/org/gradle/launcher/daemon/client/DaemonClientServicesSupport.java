@@ -28,14 +28,14 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.messaging.remote.internal.OutgoingConnector;
-import org.gradle.messaging.remote.internal.inet.TcpOutgoingConnector;
+import org.gradle.internal.remote.internal.OutgoingConnector;
+import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector;
 
 import java.io.InputStream;
 
 /**
  * Some support wiring for daemon clients.
- * 
+ *
  * @see DaemonClientServices
  */
 public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry {
@@ -73,7 +73,7 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
 
     // subclass hook, allowing us to fake the context for testing
     protected void configureDaemonContextBuilder(DaemonContextBuilder builder) {
-        
+
     }
 
     IdGenerator<?> createIdGenerator() {

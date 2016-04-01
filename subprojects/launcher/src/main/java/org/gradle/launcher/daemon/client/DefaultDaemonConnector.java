@@ -28,9 +28,9 @@ import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.messaging.remote.internal.ConnectException;
-import org.gradle.messaging.remote.internal.OutgoingConnector;
-import org.gradle.messaging.remote.internal.RemoteConnection;
+import org.gradle.internal.remote.internal.ConnectException;
+import org.gradle.internal.remote.internal.OutgoingConnector;
+import org.gradle.internal.remote.internal.RemoteConnection;
 
 import java.util.List;
 

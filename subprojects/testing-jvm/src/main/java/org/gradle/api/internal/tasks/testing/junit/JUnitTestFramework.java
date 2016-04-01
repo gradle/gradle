@@ -30,7 +30,7 @@ import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.messaging.actor.ActorFactory;
+import org.gradle.internal.actor.ActorFactory;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.Serializable;

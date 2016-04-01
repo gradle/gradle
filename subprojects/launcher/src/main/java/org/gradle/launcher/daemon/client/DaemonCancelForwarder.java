@@ -22,7 +22,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.protocol.Cancel;
-import org.gradle.messaging.dispatch.Dispatch;
+import org.gradle.internal.dispatch.Dispatch;
 
 public class DaemonCancelForwarder implements Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DaemonCancelForwarder.class);

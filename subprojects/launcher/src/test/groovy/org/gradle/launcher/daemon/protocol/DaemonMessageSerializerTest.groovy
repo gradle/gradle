@@ -22,7 +22,7 @@ import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
 import org.gradle.logging.StyledTextOutput
 import org.gradle.logging.internal.*
-import org.gradle.messaging.remote.internal.PlaceholderException
+import org.gradle.internal.remote.internal.PlaceholderException
 
 class DaemonMessageSerializerTest extends SerializerSpec {
     def serializer = DaemonMessageSerializer.create()

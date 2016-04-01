@@ -61,7 +61,7 @@ import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.logging.ConsoleRenderer;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.messaging.actor.ActorFactory;
+import org.gradle.internal.actor.ActorFactory;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;

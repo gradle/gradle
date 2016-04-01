@@ -16,11 +16,13 @@
 
 package org.gradle.messaging.actor;
 
+import org.gradle.internal.actor.Actor;
+import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.ThreadSafe;
-import org.gradle.messaging.dispatch.DispatchException;
-import org.gradle.messaging.dispatch.MethodInvocation;
-import org.gradle.messaging.dispatch.ProxyDispatchAdapter;
-import org.gradle.messaging.dispatch.ReflectionDispatch;
+import org.gradle.internal.dispatch.DispatchException;
+import org.gradle.internal.dispatch.MethodInvocation;
+import org.gradle.internal.dispatch.ProxyDispatchAdapter;
+import org.gradle.internal.dispatch.ReflectionDispatch;
 
 public class TestActorFactory implements ActorFactory {
     public Actor createActor(Object target) {

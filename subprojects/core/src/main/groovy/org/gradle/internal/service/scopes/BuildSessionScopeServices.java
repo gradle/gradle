@@ -32,7 +32,7 @@ import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.internal.remote.MessagingServer;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.ExecHandleFactory;

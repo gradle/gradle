@@ -19,7 +19,7 @@ package org.gradle.process.internal
 import org.gradle.api.Action
 import org.gradle.internal.Actions
 import org.gradle.internal.event.ListenerBroadcast
-import org.gradle.messaging.remote.ObjectConnectionBuilder
+import org.gradle.internal.remote.ObjectConnectionBuilder
 import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.process.internal.worker.WorkerProcessContext

@@ -24,7 +24,7 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
-import org.gradle.messaging.remote.Address;
+import org.gradle.internal.remote.Address;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;

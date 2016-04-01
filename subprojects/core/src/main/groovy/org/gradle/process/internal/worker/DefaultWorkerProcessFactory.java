@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.internal.remote.MessagingServer;
 import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 

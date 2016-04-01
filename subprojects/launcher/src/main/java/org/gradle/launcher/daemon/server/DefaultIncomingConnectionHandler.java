@@ -30,8 +30,8 @@ import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
-import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.RemoteConnection;
+import org.gradle.internal.remote.internal.Connection;
+import org.gradle.internal.remote.internal.RemoteConnection;
 
 import java.util.HashSet;
 import java.util.Set;

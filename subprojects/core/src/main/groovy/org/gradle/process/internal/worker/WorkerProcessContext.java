@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal.worker;
 
-import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.internal.remote.ObjectConnection;
 
 public interface WorkerProcessContext {
     /**
