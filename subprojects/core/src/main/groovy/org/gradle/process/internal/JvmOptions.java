@@ -53,7 +53,7 @@ public class JvmOptions {
     private static final Locale DEFAULT_LOCALE = Locale.getDefault();
 
     private final List<Object> extraJvmArgs = new ArrayList<Object>();
-    private final Map<String, Object> systemProperties = new TreeMap<String, Object>();
+    private final Map<String, Object> mutableSystemProperties = new TreeMap<String, Object>();
 
     private DefaultConfigurableFileCollection bootstrapClasspath;
     private String minHeapSize;
@@ -76,7 +76,7 @@ public class JvmOptions {
      */
     public List<String> getAllJvmArgs() {
         List<String> args = new LinkedList<String>();
-        formatSystemProperties(getSystemProperties(), args);
+        formatSystemProperties(getMutableSystemProperties(), args);
 
         // We have to add these after the system properties so they can override any system properties
         // (identical properties later in the command line override earlier ones)
@@ -139,7 +139,7 @@ public class JvmOptions {
     }
 
     public void setAllJvmArgs(Iterable<?> arguments) {
-        systemProperties.clear();
+        mutableSystemProperties.clear();
         minHeapSize = null;
         maxHeapSize = null;
         extraJvmArgs.clear();
@@ -224,8 +224,8 @@ public class JvmOptions {
         jvmArgs(Arrays.asList(arguments));
     }
 
-    public Map<String, Object> getSystemProperties() {
-        return systemProperties;
+    public Map<String, Object> getMutableSystemProperties() {
+        return mutableSystemProperties;
     }
 
     public Map<String, Object> getImmutableSystemProperties() {
@@ -233,7 +233,7 @@ public class JvmOptions {
     }
 
     public void setSystemProperties(Map<String, ?> properties) {
-        systemProperties.clear();
+        mutableSystemProperties.clear();
         systemProperties(properties);
     }
 
@@ -247,7 +247,7 @@ public class JvmOptions {
         if (IMMUTABLE_SYSTEM_PROPERTIES.contains(name)) {
             immutableSystemProperties.put(name, value);
         } else {
-            systemProperties.put(name, value);
+            mutableSystemProperties.put(name, value);
         }
     }
 
@@ -309,7 +309,7 @@ public class JvmOptions {
 
     public void copyTo(JavaForkOptions target) {
         target.setJvmArgs(extraJvmArgs);
-        target.setSystemProperties(systemProperties);
+        target.setSystemProperties(mutableSystemProperties);
         target.setMinHeapSize(minHeapSize);
         target.setMaxHeapSize(maxHeapSize);
         target.setBootstrapClasspath(bootstrapClasspath);

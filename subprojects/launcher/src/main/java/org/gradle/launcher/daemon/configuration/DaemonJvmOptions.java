@@ -41,7 +41,7 @@ public class DaemonJvmOptions extends JvmOptions {
         super(resolver);
         final JvmOptions currentProcessJvmOptions = new CurrentProcess().getJvmOptions();
         systemProperties(currentProcessJvmOptions.getImmutableSystemProperties());
-        handleDaemonImmutableProperties(currentProcessJvmOptions.getSystemProperties());
+        handleDaemonImmutableProperties(currentProcessJvmOptions.getMutableSystemProperties());
     }
 
     private void handleDaemonImmutableProperties(Map<String, Object> systemProperties) {
