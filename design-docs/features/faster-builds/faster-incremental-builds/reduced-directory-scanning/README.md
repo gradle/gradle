@@ -152,6 +152,12 @@ It is possible to skip creating a full snapshot when nothing has changed compare
 - fileSnapshots in-memory cache can now use weak references for values.
   - loaded fileSnapshots will get GCd under memory pressure which works fine with the new up-to-date checking.
 
+### Improvement: Change snapshot persistence to use shared tree snapshots
+
+There is currently duplication in the snapshots of outputs and inputs of dependent tasks.
+Change persistence of input and output snapshots to reference shared tree snapshots.
+An input or output snapshot might be composed of multiple tree snapshots.
+
 
 ### Incremental build reuses directory scanning results in most cases
 
