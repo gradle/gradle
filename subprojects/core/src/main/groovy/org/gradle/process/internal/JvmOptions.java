@@ -85,7 +85,7 @@ public class JvmOptions {
         return args;
     }
 
-    private void formatSystemProperties(Map<String, ?> properties, List<String> args) {
+    protected void formatSystemProperties(Map<String, ?> properties, List<String> args) {
         for (Map.Entry<String, ?> entry : properties.entrySet()) {
             if (entry.getValue() != null && entry.getValue().toString().length() > 0) {
                 args.add(String.format("-D%s=%s", entry.getKey(), entry.getValue().toString()));

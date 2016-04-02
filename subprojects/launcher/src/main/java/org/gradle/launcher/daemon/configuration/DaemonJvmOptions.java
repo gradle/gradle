@@ -17,10 +17,14 @@
 package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.process.internal.JvmOptions;
+import org.gradle.util.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,11 +56,28 @@ public class DaemonJvmOptions extends JvmOptions {
         }
     }
 
+    public Map<String, Object> getImmutableDaemonProperties() {
+        return CollectionUtils.filter(immutableSystemProperties, new Spec<Map.Entry<String, Object>>() {
+            @Override
+            public boolean isSatisfiedBy(Map.Entry<String, Object> element) {
+                return IMMUTABLE_DAEMON_SYSTEM_PROPERTIES.contains(element.getKey());
+            }
+        });
+    }
+
     public void systemProperty(String name, Object value) {
         if (IMMUTABLE_DAEMON_SYSTEM_PROPERTIES.contains(name)) {
             immutableSystemProperties.put(name, value);
         } else {
             super.systemProperty(name, value);
         }
+    }
+
+    public List<String> getAllSingleUseImmutableJvmArgs() {
+        List<String> immutableDaemonParameters = new ArrayList<String>();
+        formatSystemProperties(getImmutableDaemonProperties(), immutableDaemonParameters);
+        final List<String> jvmArgs = getAllImmutableJvmArgs();
+        jvmArgs.removeAll(immutableDaemonParameters);
+        return jvmArgs;
     }
 }
