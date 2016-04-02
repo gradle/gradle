@@ -23,7 +23,7 @@ import org.gradle.groovy.scripts.internal.ScriptClassCompiler
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.logging.StandardOutputCapture
+import org.gradle.internal.logging.StandardOutputCapture
 import spock.lang.Specification
 
 class DefaultScriptCompilerFactoryTest extends Specification {

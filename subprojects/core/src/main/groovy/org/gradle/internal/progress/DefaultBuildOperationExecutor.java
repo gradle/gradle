@@ -20,9 +20,9 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.UncheckedException;
-import org.gradle.logging.OperationIdentifier;
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.OperationIdentifier;
+import org.gradle.internal.logging.ProgressLogger;
+import org.gradle.internal.logging.ProgressLoggerFactory;
 
 import java.util.concurrent.atomic.AtomicLong;
 

@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
-import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.logging.ProgressLogger
+import org.gradle.internal.logging.ProgressLoggerFactory
+import org.gradle.internal.logging.ProgressLogger
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestResult
 import org.slf4j.Logger

@@ -16,8 +16,8 @@
 
 package org.gradle.internal.progress;
 
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.ProgressLogger;
+import org.gradle.internal.logging.ProgressLoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;

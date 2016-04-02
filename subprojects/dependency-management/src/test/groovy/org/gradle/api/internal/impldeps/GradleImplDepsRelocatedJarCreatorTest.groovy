@@ -18,8 +18,8 @@ package org.gradle.api.internal.impldeps
 
 import org.gradle.api.Action
 import org.gradle.internal.IoActions
-import org.gradle.logging.ProgressLogger
-import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.internal.logging.ProgressLogger
+import org.gradle.internal.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

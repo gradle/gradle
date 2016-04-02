@@ -21,7 +21,7 @@ import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices
-import org.gradle.logging.LoggingServiceRegistry
+import org.gradle.internal.logging.LoggingServiceRegistry
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.GradleVersion
 

@@ -25,7 +25,7 @@ import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.internal.logging.LoggingServiceRegistry;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;

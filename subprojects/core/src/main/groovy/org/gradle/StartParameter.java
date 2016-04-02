@@ -28,7 +28,7 @@ import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.logging.LoggingConfiguration;
+import org.gradle.internal.logging.LoggingConfiguration;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

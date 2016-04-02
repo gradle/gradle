@@ -17,7 +17,7 @@
 package org.slf4j.impl;
 
 import org.gradle.internal.TrueTimeProvider;
-import org.gradle.logging.internal.slf4j.OutputEventListenerBackedLoggerContext;
+import org.gradle.internal.logging.internal.slf4j.OutputEventListenerBackedLoggerContext;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.spi.LoggerFactoryBinder;
 

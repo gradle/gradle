@@ -19,8 +19,8 @@ package org.gradle.tooling.internal.provider.connection;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.logging.LoggingConfiguration;
-import org.gradle.logging.internal.LoggingCommandLineConverter;
+import org.gradle.internal.logging.LoggingConfiguration;
+import org.gradle.internal.logging.internal.LoggingCommandLineConverter;
 
 import java.util.Collections;
 import java.util.List;

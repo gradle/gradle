@@ -16,12 +16,12 @@
 package org.gradle;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.StyledTextOutputFactory;
 import org.gradle.util.Clock;
 
-import static org.gradle.logging.StyledTextOutput.Style.Failure;
-import static org.gradle.logging.StyledTextOutput.Style.Success;
+import static org.gradle.internal.logging.StyledTextOutput.Style.Failure;
+import static org.gradle.internal.logging.StyledTextOutput.Style.Success;
 
 /**
  * A {@link BuildListener} which logs the final result of the build.

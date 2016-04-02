@@ -19,7 +19,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.logging.StyledTextOutput;
+import org.gradle.internal.logging.StyledTextOutput;
 import org.gradle.util.TreeVisitor;
 
 import java.util.ArrayList;

@@ -28,8 +28,8 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.UncheckedException;
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.ProgressLogger;
+import org.gradle.internal.logging.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.objectweb.asm.*;
 

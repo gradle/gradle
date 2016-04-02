@@ -16,7 +16,7 @@
 package org.gradle.foundation;
 
 import junit.framework.TestCase;
-import org.gradle.logging.internal.LoggingCommandLineConverter;
+import org.gradle.internal.logging.internal.LoggingCommandLineConverter;
 
 import static org.gradle.foundation.CommandLineAssistant.breakUpCommandLine;
 

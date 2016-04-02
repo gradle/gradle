@@ -27,7 +27,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.LoggingManagerInternal;
 
 public class DefaultGradleLauncher extends GradleLauncher {
 

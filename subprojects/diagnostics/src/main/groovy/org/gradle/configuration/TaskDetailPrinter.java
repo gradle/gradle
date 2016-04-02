@@ -26,12 +26,12 @@ import org.gradle.api.internal.tasks.options.OptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskSelector;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.internal.LinePrefixingStyledTextOutput;
+import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.internal.LinePrefixingStyledTextOutput;
 
 import java.util.*;
 
-import static org.gradle.logging.StyledTextOutput.Style.UserInput;
+import static org.gradle.internal.logging.StyledTextOutput.Style.UserInput;
 import static org.gradle.util.CollectionUtils.sort;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.filter;

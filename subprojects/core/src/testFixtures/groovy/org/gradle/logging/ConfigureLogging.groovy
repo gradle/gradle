@@ -17,9 +17,9 @@
 package org.gradle.logging
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.logging.internal.OutputEventListener
-import org.gradle.logging.internal.slf4j.OutputEventListenerBackedLogger
-import org.gradle.logging.internal.slf4j.OutputEventListenerBackedLoggerContext
+import org.gradle.internal.logging.internal.OutputEventListener
+import org.gradle.internal.logging.internal.slf4j.OutputEventListenerBackedLogger
+import org.gradle.internal.logging.internal.slf4j.OutputEventListenerBackedLoggerContext
 import org.junit.rules.ExternalResource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

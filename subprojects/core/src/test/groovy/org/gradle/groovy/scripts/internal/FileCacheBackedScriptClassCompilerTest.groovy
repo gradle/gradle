@@ -30,8 +30,8 @@ import org.gradle.groovy.scripts.Transformer
 import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.internal.hash.HashValue
 import org.gradle.internal.resource.TextResource
-import org.gradle.logging.ProgressLogger
-import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.internal.logging.ProgressLogger
+import org.gradle.internal.logging.ProgressLoggerFactory
 import spock.lang.Specification
 
 class FileCacheBackedScriptClassCompilerTest extends Specification {

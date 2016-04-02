@@ -24,7 +24,7 @@ import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.launcher.daemon.protocol.*;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
 import org.gradle.launcher.daemon.server.api.StdinHandler;
-import org.gradle.logging.internal.OutputEvent;
+import org.gradle.internal.logging.internal.OutputEvent;
 import org.gradle.internal.remote.internal.RemoteConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

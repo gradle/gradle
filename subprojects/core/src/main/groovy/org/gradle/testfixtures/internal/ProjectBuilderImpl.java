@@ -35,7 +35,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
-import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.internal.logging.LoggingServiceRegistry;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;

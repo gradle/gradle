@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.logging.StandardOutputCapture;
+import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.api.internal.tasks.testing.processors.DefaultStandardOutputRedirector;
 
 import java.io.IOException;

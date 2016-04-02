@@ -1,8 +1,11 @@
 dependencies {
     compile libraries.slf4j_api
+    compile libraries.jul_to_slf4j
     compile libraries.ant
     compile project(':baseServices')
+    compile project(":native")
+    compile project(":messaging")
+    compile project(":cli")
 }
 
 useTestFixtures()
-useClassycle()

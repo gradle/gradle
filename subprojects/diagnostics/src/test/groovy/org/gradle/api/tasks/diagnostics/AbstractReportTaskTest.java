@@ -19,7 +19,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.logging.StyledTextOutput;
+import org.gradle.internal.logging.StyledTextOutput;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;

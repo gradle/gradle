@@ -36,7 +36,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;

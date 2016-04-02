@@ -40,8 +40,8 @@ import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.StandardOutputCapture;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
 

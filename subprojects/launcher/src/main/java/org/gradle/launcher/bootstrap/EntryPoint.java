@@ -18,8 +18,8 @@ package org.gradle.launcher.bootstrap;
 import org.gradle.BuildExceptionReporter;
 import org.gradle.api.Action;
 import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.logging.LoggingConfiguration;
-import org.gradle.logging.internal.StreamingStyledTextOutputFactory;
+import org.gradle.internal.logging.LoggingConfiguration;
+import org.gradle.internal.logging.internal.StreamingStyledTextOutputFactory;
 
 /**
  * An entry point is the point at which execution will never return from.

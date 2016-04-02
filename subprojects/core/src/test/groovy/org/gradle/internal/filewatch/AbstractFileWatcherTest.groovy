@@ -20,7 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.internal.file.FileSystemSubset
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.logging.ConfigureLogging
-import org.gradle.logging.internal.LogEvent
+import org.gradle.internal.logging.internal.LogEvent
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

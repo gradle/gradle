@@ -32,7 +32,7 @@ import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParserBuilder
-import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.internal.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.junit.Rule

@@ -19,8 +19,8 @@ package org.gradle.api.plugins.jetty;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.ProgressLogger;
+import org.gradle.internal.logging.ProgressLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

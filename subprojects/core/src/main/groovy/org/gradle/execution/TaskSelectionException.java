@@ -19,9 +19,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.logging.StyledTextOutput;
+import org.gradle.internal.logging.StyledTextOutput;
 
-import static org.gradle.logging.StyledTextOutput.Style.UserInput;
+import static org.gradle.internal.logging.StyledTextOutput.Style.UserInput;
 
 /**
  * A {@code TaskSelectionException} is thrown when the tasks to execute cannot be selected due to some user input problem.

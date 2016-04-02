@@ -17,7 +17,9 @@
 package org.gradle.logging;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.logging.internal.AbstractStyledTextOutputFactory;
+import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.internal.AbstractStyledTextOutputFactory;
 
 import java.util.ArrayList;
 import java.util.List;

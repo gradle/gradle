@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.test.tasks;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.*;
-import org.gradle.logging.ConsoleRenderer;
+import org.gradle.internal.logging.ConsoleRenderer;
 
 import java.io.File;
 

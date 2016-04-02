@@ -20,7 +20,7 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.FileLockManager
-import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.internal.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion

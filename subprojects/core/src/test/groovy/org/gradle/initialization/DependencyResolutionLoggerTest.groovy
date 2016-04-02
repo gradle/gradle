@@ -16,8 +16,8 @@
 package org.gradle.initialization
 
 import org.gradle.api.artifacts.ResolvableDependencies
-import org.gradle.logging.ProgressLogger
-import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.internal.logging.ProgressLogger
+import org.gradle.internal.logging.ProgressLoggerFactory
 import spock.lang.Specification
 
 class DependencyResolutionLoggerTest extends Specification {

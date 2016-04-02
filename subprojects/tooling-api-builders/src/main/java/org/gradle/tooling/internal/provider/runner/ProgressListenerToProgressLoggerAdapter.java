@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.ProgressLogger;
+import org.gradle.internal.logging.ProgressLoggerFactory;
 import org.gradle.tooling.ProgressEvent;
 import org.gradle.tooling.ProgressListener;
 

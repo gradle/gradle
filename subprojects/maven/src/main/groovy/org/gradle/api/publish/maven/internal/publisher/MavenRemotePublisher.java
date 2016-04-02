@@ -28,7 +28,7 @@ import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportDeploy
 import org.gradle.api.publication.maven.internal.wagon.RepositoryTransportWagonAdapter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
-import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.LoggingManagerInternal;
 
 import java.io.File;
 import java.net.URI;

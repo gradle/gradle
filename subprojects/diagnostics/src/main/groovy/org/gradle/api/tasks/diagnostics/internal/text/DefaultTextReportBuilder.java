@@ -20,16 +20,16 @@ import com.google.common.base.Joiner;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.internal.LinePrefixingStyledTextOutput;
+import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.internal.LinePrefixingStyledTextOutput;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
-import static org.gradle.logging.StyledTextOutput.Style.Header;
-import static org.gradle.logging.StyledTextOutput.Style.Normal;
+import static org.gradle.internal.logging.StyledTextOutput.Style.Header;
+import static org.gradle.internal.logging.StyledTextOutput.Style.Normal;
 
 public class DefaultTextReportBuilder implements TextReportBuilder {
     public static final String SEPARATOR = "------------------------------------------------------------";
