@@ -17,16 +17,14 @@
 // START SNIPPET buildscript_block
 buildscript {
     repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
+        jcenter()
     }
     dependencies {
-        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:1.2"
+        classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:0.4.1"
     }
 }
 
-apply plugin: "org.sonarqube"
+apply plugin: "com.jfrog.bintray"
 // END SNIPPET buildscript_block
 
 
