@@ -6,6 +6,9 @@ dependencies {
     compile project(":native")
     compile project(":messaging")
     compile project(":cli")
+
+    runtime libraries.log4j_to_slf4j
+    runtime libraries.jcl_to_slf4j
 }
 
 useTestFixtures()

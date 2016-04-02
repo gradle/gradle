@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.logging;
+package org.gradle.internal.logging;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.StyledTextOutput;
-import org.gradle.internal.logging.StyledTextOutputFactory;
 import org.gradle.internal.logging.internal.AbstractStyledTextOutputFactory;
 
 import java.util.ArrayList;

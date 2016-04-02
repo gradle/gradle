@@ -28,8 +28,8 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.installation.CurrentGradleInstallation
-import org.gradle.logging.ConfigureLogging
-import org.gradle.logging.TestOutputEventListener
+import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.logging.TestOutputEventListener
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule

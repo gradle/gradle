@@ -32,7 +32,7 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
     @Override
     String initScriptContent() {
         fixtureData = testDir.testDirectory.file("progress-fixture.log")
-        """import org.gradle.logging.internal.*
+        """import org.gradle.internal.logging.internal.*
            File outputFile = file("${fixtureData.toURI()}")
            OutputEventListener outputEventListener = new OutputEventListener() {
                 void onOutput(OutputEvent event) {

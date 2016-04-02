@@ -24,5 +24,6 @@ dependencies {
 }
 
 useTestFixtures()
+useTestFixtures(project: ":logging")
 useClassycle()
 strictCompile()

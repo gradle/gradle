@@ -24,6 +24,7 @@ dependencies {
 }
 
 useTestFixtures()
+useTestFixtures(project: ":logging")
 
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')

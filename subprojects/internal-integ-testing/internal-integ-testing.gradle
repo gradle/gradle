@@ -30,6 +30,7 @@ dependencies {
     compile libraries.joda
     compile libraries.jsch
     compile libraries.jcifs
+    runtime project(':logging')
 }
 
 useTestFixtures(sourceSet: 'main')

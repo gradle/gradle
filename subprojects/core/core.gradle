@@ -46,11 +46,6 @@ dependencies {
 
     runtime project(":docs")
 
-    runtime libraries.log4j_to_slf4j
-    runtime libraries.jcl_to_slf4j
-
-    testCompile libraries.log4j_to_slf4j
-    testCompile libraries.jcl_to_slf4j
     testCompile libraries.jsoup
 
     testRuntime libraries.xerces
@@ -70,6 +65,7 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ":messaging")
 useTestFixtures(project: ":modelCore")
+useTestFixtures(project: ":logging")
 
 test {
     forkEvery = 200
