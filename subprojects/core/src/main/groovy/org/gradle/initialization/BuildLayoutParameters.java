@@ -21,14 +21,14 @@ import org.gradle.internal.SystemProperties;
 
 import java.io.File;
 
-import static org.gradle.util.GFileUtils.canonicalise;
+import static org.gradle.internal.FileUtils.canonicalize;
 
 public class BuildLayoutParameters {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     private static final File DEFAULT_GRADLE_USER_HOME = new File(SystemProperties.getInstance().getUserHome() + "/.gradle");
 
     private boolean searchUpwards = true;
-    private File currentDir = canonicalise(SystemProperties.getInstance().getCurrentDir());
+    private File currentDir = canonicalize(SystemProperties.getInstance().getCurrentDir());
     private File projectDir;
     private File gradleUserHomeDir;
 
@@ -40,7 +40,7 @@ public class BuildLayoutParameters {
                 gradleUserHome = DEFAULT_GRADLE_USER_HOME.getAbsolutePath();
             }
         }
-        gradleUserHomeDir = canonicalise(new File(gradleUserHome));
+        gradleUserHomeDir = canonicalize(new File(gradleUserHome));
     }
 
     public BuildLayoutParameters setSearchUpwards(boolean searchUpwards) {

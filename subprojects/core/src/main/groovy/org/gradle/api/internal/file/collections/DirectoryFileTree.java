@@ -25,9 +25,9 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.FileSystems;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -64,7 +64,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     DirectoryFileTree(File dir, PatternSet patternSet, Factory<DirectoryWalker> directoryWalkerFactory) {
         this.patternSet = patternSet;
-        this.dir = GFileUtils.canonicalise(dir);
+        this.dir = FileUtils.canonicalize(dir);
         this.directoryWalkerFactory = directoryWalkerFactory;
     }
 

@@ -22,11 +22,11 @@ import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.Transformer;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.platform.Architecture;
 import org.gradle.nativeplatform.platform.internal.Architectures;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.TreeVisitor;
 import org.gradle.util.VersionNumber;
 import org.slf4j.Logger;
@@ -131,7 +131,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
                 continue;
             }
             File visualCppDir = new File(windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, baseKey + REGISTRY_ROOTPATH_VC, valueName));
-            visualCppDir = GFileUtils.canonicalise(visualCppDir);
+            visualCppDir = FileUtils.canonicalize(visualCppDir);
             File visualStudioDir = visualCppDir.getParentFile();
 
             if (isVisualCpp(visualCppDir) && isVisualStudio(visualStudioDir)) {
@@ -153,7 +153,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             return;
         }
 
-        File visualCppDir = GFileUtils.canonicalise(compilerInPath.getParentFile().getParentFile());
+        File visualCppDir = FileUtils.canonicalize(compilerInPath.getParentFile().getParentFile());
         if (!isVisualCpp(visualCppDir)) {
             visualCppDir = visualCppDir.getParentFile();
             if (!isVisualCpp(visualCppDir)) {
@@ -173,7 +173,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
     }
 
     private SearchResult locateUserSpecifiedInstall(File candidate) {
-        File visualStudioDir = GFileUtils.canonicalise(candidate);
+        File visualStudioDir = FileUtils.canonicalize(candidate);
         File visualCppDir = new File(visualStudioDir, "VC");
         if (!isVisualStudio(visualStudioDir) || !isVisualCpp(visualCppDir)) {
             LOGGER.debug("Ignoring candidate Visual C++ install for {} as it does not look like a Visual C++ installation.", candidate);

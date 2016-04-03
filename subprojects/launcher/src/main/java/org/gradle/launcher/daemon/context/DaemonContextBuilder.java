@@ -25,7 +25,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
-import static org.gradle.util.GFileUtils.canonicalise;
+import static org.gradle.internal.FileUtils.canonicalize;
 
 /**
  * Builds a daemon context, reflecting the current environment.
@@ -44,7 +44,7 @@ public class DaemonContextBuilder implements Factory<DaemonContext> {
     private List<String> daemonOpts = Lists.newArrayList();
 
     public DaemonContextBuilder(ProcessEnvironment processEnvironment) {
-        javaHome = canonicalise(Jvm.current().getJavaHome());
+        javaHome = canonicalize(Jvm.current().getJavaHome());
         pid = processEnvironment.maybeGetPid();
     }
 

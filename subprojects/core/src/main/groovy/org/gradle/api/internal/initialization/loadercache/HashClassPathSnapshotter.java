@@ -20,8 +20,8 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.hash.Hasher;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.Iterator;
@@ -49,7 +49,7 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
 
     private void hash(Adler32 combinedHash, List<String> visitedFilePaths, Set<File> visitedDirs, Iterator<File> toHash) {
         while (toHash.hasNext()) {
-            File file = GFileUtils.canonicalise(toHash.next());
+            File file = FileUtils.canonicalize(toHash.next());
             if (file.isDirectory()) {
                 if (visitedDirs.add(file)) {
                     //in theory, awkward symbolic links can lead to recursion problems.
