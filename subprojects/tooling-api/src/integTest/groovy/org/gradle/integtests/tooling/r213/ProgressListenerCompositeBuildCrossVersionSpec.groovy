@@ -131,13 +131,17 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
     }
 
     private void assertListenerReceivedSameEventsInCompositeAndRegularConnections() {
-        assert !progressListenerForRegularBuild.eventDescriptions.isEmpty()
-        assert !progressListenerForComposite.eventDescriptions.isEmpty()
-        progressListenerForRegularBuild.eventDescriptions.each { eventDescription ->
-            if (!(eventDescription in IGNORED_EVENTS)) {
-                assert progressListenerForComposite.eventDescriptions.contains(eventDescription)
-                progressListenerForComposite.eventDescriptions.remove(eventDescription)
-            }
+        def regularBuildEvents = progressListenerForRegularBuild.eventDescriptions
+        regularBuildEvents.removeAll(IGNORED_EVENTS)
+        assert !regularBuildEvents.isEmpty()
+
+        def compositeBuildEvents = progressListenerForComposite.eventDescriptions
+        compositeBuildEvents.removeAll(IGNORED_EVENTS)
+        assert !compositeBuildEvents.isEmpty()
+
+        regularBuildEvents.each { eventDescription ->
+            assert compositeBuildEvents.contains(eventDescription)
+            compositeBuildEvents.remove(eventDescription)
         }
     }
 
