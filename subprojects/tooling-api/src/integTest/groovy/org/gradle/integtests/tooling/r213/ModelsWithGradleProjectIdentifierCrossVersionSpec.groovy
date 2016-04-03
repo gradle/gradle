@@ -27,7 +27,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
 
 class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeToolingApiSpecification {
     TestFile rootSingle
@@ -93,7 +92,6 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
         }
     }
 
-    @Ignore("Currently this is all done in the composite coordinator: these models are not identified when accessed from a ProjectConnection")
     @TargetGradleVersion(">=2.13")
     def "ProjectConnection provides identified models for single project build"() {
         when:
@@ -102,6 +100,19 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
 
         then:
         assertSameIdentifiers(gradleProject, model)
+
+        where:
+        modelType << modelsHavingGradleProjectIdentifier
+    }
+
+    @TargetGradleVersion(">=2.13")
+    def "ProjectConnection with custom action provides identified models for multi-project build"() {
+        when:
+        def gradleProjects = getModelsWithProjectConnection(rootMulti, GradleProject)
+        def models = getModelsWithProjectConnection(rootMulti, modelType)
+
+        then:
+        assertSameIdentifiers(gradleProjects, models)
 
         where:
         modelType << modelsHavingGradleProjectIdentifier
@@ -129,6 +140,16 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
         connector.forProjectDirectory(rootDir)
         ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
         return withConnection(connector) { it.getModel(modelType) }
+    }
+
+    private getModelsWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
+        FetchProjectModelsBuildAction buildAction = new FetchProjectModelsBuildAction(modelType)
+        GradleConnector connector = connector()
+        connector.forProjectDirectory(rootDir)
+        ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
+        withConnection(connector) { connection ->
+            connection.action(buildAction).run()
+        }
     }
 
     private static getModelsHavingGradleProjectIdentifier() {

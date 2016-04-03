@@ -22,6 +22,8 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
 
+import java.io.File;
+
 /**
  * Adapter to create {@link org.gradle.tooling.internal.protocol.InternalBuildAction}
  * from an instance of {@link org.gradle.tooling.BuildAction}.
@@ -30,13 +32,15 @@ import org.gradle.tooling.internal.protocol.InternalBuildController;
 public class InternalBuildActionAdapter<T> implements InternalBuildAction<T> {
     private final BuildAction<T> action;
     private final ProtocolToModelAdapter adapter;
+    private final File rootDir;
 
-    public InternalBuildActionAdapter(BuildAction<T> action, ProtocolToModelAdapter adapter) {
+    public InternalBuildActionAdapter(BuildAction<T> action, ProtocolToModelAdapter adapter, File rootDir) {
         this.action = action;
         this.adapter = adapter;
+        this.rootDir = rootDir;
     }
 
     public T execute(final InternalBuildController buildController) {
-        return action.execute(new BuildControllerAdapter(adapter, buildController, new ModelMapping()));
+        return action.execute(new BuildControllerAdapter(adapter, buildController, new ModelMapping(), rootDir));
     }
 }

@@ -26,6 +26,8 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.*;
 
+import java.io.File;
+
 /**
  * An adapter for {@link InternalCancellableConnection}.
  *
@@ -106,10 +108,12 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
 
         public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters)
             throws UnsupportedOperationException, IllegalStateException {
+
+            File rootDir = operationParameters.getProjectDir();
             BuildResult<T> result;
             try {
                 try {
-                    result = executor.run(new InternalBuildActionAdapter<T>(action, adapter), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
+                    result = executor.run(new InternalBuildActionAdapter<T>(action, adapter, rootDir), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
                 } catch (RuntimeException e) {
                     throw exceptionTransformer.transform(e);
                 }

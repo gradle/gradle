@@ -174,23 +174,12 @@ public class ToolingClientCompositeModelBuilder<T> {
                 util.configureRequest(actionExecuter);
                 Map<String, T> actionResults = actionExecuter.run();
                 for (final String projectPath : actionResults.keySet()) {
-                    T identified = unpackAndTransform(participant.toProjectIdentifier(projectPath), actionResults.get(projectPath));
-                    ModelResult<T> result = createModelResult(identified);
+                    ModelResult<T> result = createModelResult(actionResults.get(projectPath));
                     results.add(result);
                 }
             } finally {
                 projectConnection.close();
             }
-        }
-
-        protected T unpackAndTransform(ProjectIdentifier projectIdentifier, T t) {
-            Object sourceObject = protocolToModelAdapter.unpack(t);
-            // TODO:DAZ This should be done in the BuildControllerAdapter, then we wouldn't need to adapt here
-            return transform(projectIdentifier, sourceObject);
-        }
-
-        protected T transform(ProjectIdentifier projectIdentifier, Object sourceObject) {
-            return protocolToModelAdapter.adapt(modelType, sourceObject, new FixedBuildIdentifierProvider(projectIdentifier));
         }
     }
 
@@ -237,6 +226,10 @@ public class ToolingClientCompositeModelBuilder<T> {
             for (GradleProject childProject : project.getChildren()) {
                 constructBuildInvocationsFromGradleProject(participant, childProject, results);
             }
+        }
+
+        private T transform(ProjectIdentifier projectIdentifier, Object sourceObject) {
+            return protocolToModelAdapter.adapt(modelType, sourceObject, new FixedBuildIdentifierProvider(projectIdentifier));
         }
     }
 
