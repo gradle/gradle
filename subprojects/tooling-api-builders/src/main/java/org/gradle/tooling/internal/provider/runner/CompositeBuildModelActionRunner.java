@@ -29,6 +29,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
+import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.daemon.configuration.DaemonUsage;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
@@ -37,6 +38,7 @@ import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
+import org.gradle.tooling.internal.provider.ExecuteBuildActionRunner;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
 
 import java.util.Collections;
@@ -62,27 +64,6 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         buildController.setResult(new BuildActionResult(payloadSerializer.serialize(results), null));
     }
 
-    private void executeTasksInProcess(StartParameter parentStartParam, CompositeBuildActionParameters actionParameters, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
-        CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
-        GradleLauncherFactory launcherFactory = sharedServices.get(GradleLauncherFactory.class);
-
-        GradleParticipantBuild participant = compositeParameters.getTargetBuild();
-        StartParameter startParameter = parentStartParam.newInstance();
-        startParameter.setProjectDir(participant.getProjectDir());
-        startParameter.setSearchUpwards(false);
-
-        ServiceRegistry buildScopedServices = new BuildSessionScopeServices(sharedServices, startParameter, ClassPath.EMPTY);
-
-        DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), System.currentTimeMillis()), buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(), buildRequestContext.getErrorListener());
-        GradleLauncher launcher = launcherFactory.newInstance(startParameter, requestContext, buildScopedServices);
-
-        try {
-            launcher.run();
-        } finally {
-            launcher.stop();
-        }
-    }
-
     private boolean isModelRequest(BuildModelAction action) {
         final String requestedModelName = action.getModelName();
         return !requestedModelName.equals(Void.class.getName());
@@ -96,9 +77,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         BuildActionRunner runner = new SubscribableBuildActionRunner(new BuildModelsActionRunner());
         org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, runner);
         // TODO Need to consider how to handle builds in parallel when sharing event consumers/output streams
-        DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()),
-            buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(),
-            buildRequestContext.getErrorListener());
+        DefaultBuildRequestContext requestContext = createRequestContext(buildRequestContext);
 
         final List<Object> results = Lists.newArrayList();
         for (GradleParticipantBuild participant : participantBuilds) {
@@ -127,6 +106,29 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             }
         }
         return results;
+    }
+
+    private void executeTasksInProcess(StartParameter parentStartParam, CompositeBuildActionParameters actionParameters, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
+        CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
+        GradleLauncherFactory launcherFactory = sharedServices.get(GradleLauncherFactory.class);
+
+        GradleParticipantBuild participant = compositeParameters.getTargetBuild();
+        StartParameter startParameter = parentStartParam.newInstance();
+        startParameter.setProjectDir(participant.getProjectDir());
+        startParameter.setSearchUpwards(false);
+
+        org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(launcherFactory, new ExecuteBuildActionRunner());
+        ExecuteBuildAction action = new ExecuteBuildAction(startParameter);
+        DefaultBuildRequestContext requestContext = createRequestContext(buildRequestContext);
+        ServiceRegistry buildScopedServices = new BuildSessionScopeServices(sharedServices, startParameter, ClassPath.EMPTY);
+
+        buildActionExecuter.execute(action, requestContext, null, buildScopedServices);
+    }
+
+    private DefaultBuildRequestContext createRequestContext(BuildRequestContext buildRequestContext) {
+        // TODO:DAZ Not sure that we can't just use the provided request context
+        BuildRequestMetaData metaData = new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), System.currentTimeMillis());
+        return new DefaultBuildRequestContext(metaData, buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(), buildRequestContext.getErrorListener());
     }
 
     private Exception unwrap(ReportedException e) {
