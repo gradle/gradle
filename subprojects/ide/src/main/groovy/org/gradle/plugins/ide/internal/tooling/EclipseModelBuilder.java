@@ -24,7 +24,7 @@ import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.model.internal.ProjectToolingModelBuilder;
+import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
 import org.gradle.util.GUtil;
 
 import java.io.File;

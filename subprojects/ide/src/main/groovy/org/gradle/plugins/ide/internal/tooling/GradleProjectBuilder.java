@@ -23,7 +23,7 @@ import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleProjectTask
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.PartialGradleProject;
-import org.gradle.tooling.model.internal.ProjectToolingModelBuilder;
+import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
 
 import java.util.ArrayList;
 import java.util.List;

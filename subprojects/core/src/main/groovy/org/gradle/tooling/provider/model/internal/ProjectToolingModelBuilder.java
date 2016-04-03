@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.internal;
+package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.Project;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
