@@ -40,6 +40,17 @@ daemonIntegTest {
     enabled = false //tooling integ tests use daemon anyway, don't rerun
 }
 
+task shadedJar(type: ShadedJar) {
+    sourceFiles = jar.inputs.files + files {(configurations.runtime - configurations.publishCompile).collect { zipTree(it) } }
+    analysisFile = file("$buildDir/shaded-jar/analysis.txt")
+    classesDir = file("$buildDir/shaded-jar/classes")
+    jarFile = file("$buildDir/shaded-jar/tooling-api-shaded.jar")
+    keepPackages = ["org.gradle.tooling"]
+    unshadedPackages = ["org.gradle", "org.slf4j"]
+    ignorePackages = ["org.gradle.tooling.provider.model"]
+    shadowPackage = "org.gradle.impldep"
+}
+
 task jarjarJar(type: JarJarJar) {
     ext.shadedPackage = 'org.gradle.impldep'
     appendix = "fat"
