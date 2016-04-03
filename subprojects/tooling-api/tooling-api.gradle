@@ -56,6 +56,8 @@ task jarjarJar(type: JarJarJar) {
     rule('org.gradle.**', '@0')
     rule('org.slf4j.**', '@0')
 
+    rule('org.xml.sax.helpers.DefaultHandler', '@0')
+
     rule('org.**', "${shadedPackage}.@0")
     rule('com.**', "${shadedPackage}.@0")
     rule('net.**', "${shadedPackage}.@0")
