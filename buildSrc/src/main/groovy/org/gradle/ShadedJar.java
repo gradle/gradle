@@ -154,27 +154,6 @@ public class ShadedJar extends DefaultTask {
         System.out.println("Analysis took " + (end-start) + "ms.");
     }
 
-    private void writeJar(ClassGraph classes, File classesDir, File jarFile, PrintWriter writer) {
-        try {
-            writer.println();
-            writer.println("CLASS GRAPH");
-            writer.println();
-            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(jarFile));
-            try {
-                JarOutputStream jarOutputStream = new JarOutputStream(outputStream);
-                Set<ClassDetails> visited = new HashSet<ClassDetails>();
-                for (ClassDetails classDetails : classes.entryPoints) {
-                    visitTree(classDetails, classesDir, jarOutputStream, writer, "- ", visited);
-                }
-                jarOutputStream.close();
-            } finally {
-                outputStream.close();
-            }
-        } catch (Exception exception) {
-            throw new ClassAnalysisException("Could not write shaded Jar " + jarFile, exception);
-        }
-    }
-
     private void analyse(FileCollection sourceFiles, final ClassGraph classes, final PrintWriter writer) {
         final PackagePatterns ignored = new PackagePatterns(Collections.singleton("java"));
         sourceFiles.getAsFileTree().visit(new FileVisitor() {
@@ -182,9 +161,8 @@ public class ShadedJar extends DefaultTask {
             }
 
             public void visitFile(FileVisitDetails fileDetails) {
-                File file = fileDetails.getFile();
                 writer.print(fileDetails.getPath() + ": ");
-                if (file.getName().endsWith(".class")) {
+                if (fileDetails.getPath().endsWith(".class")) {
                     try {
                         ClassReader reader;
                         InputStream inputStream = new BufferedInputStream(fileDetails.open());
@@ -219,13 +197,40 @@ public class ShadedJar extends DefaultTask {
                             outputStream.close();
                         }
                     } catch (Exception exception) {
-                        throw new ClassAnalysisException("Could not transform class from " + file, exception);
+                        throw new ClassAnalysisException("Could not transform class from " + fileDetails.getFile(), exception);
                     }
+                } else if (fileDetails.getPath().endsWith(".properties") && classes.unshadedPackages.matches(fileDetails.getPath())) {
+                    writer.println("include");
+                    classes.addResource(new ResourceDetails(fileDetails.getPath(), fileDetails.getFile()));
                 } else {
                     writer.println("skipped");
                 }
             }
         });
+    }
+
+    private void writeJar(ClassGraph classes, File classesDir, File jarFile, PrintWriter writer) {
+        try {
+            writer.println();
+            writer.println("CLASS GRAPH");
+            writer.println();
+            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(jarFile));
+            try {
+                JarOutputStream jarOutputStream = new JarOutputStream(outputStream);
+                Set<ClassDetails> visited = new HashSet<ClassDetails>();
+                for (ClassDetails classDetails : classes.entryPoints) {
+                    visitTree(classDetails, classesDir, jarOutputStream, writer, "- ", visited);
+                }
+                for (ResourceDetails resource : classes.resources) {
+                    addJarEntry(resource.resourceName, resource.sourceFile, jarOutputStream);
+                }
+                jarOutputStream.close();
+            } finally {
+                outputStream.close();
+            }
+        } catch (Exception exception) {
+            throw new ClassAnalysisException("Could not write shaded Jar " + jarFile, exception);
+        }
     }
 
     private void visitTree(ClassDetails classDetails, File classesDir, JarOutputStream jarOutputStream, PrintWriter writer, String prefix, Set<ClassDetails> visited) throws IOException {
@@ -235,14 +240,8 @@ public class ShadedJar extends DefaultTask {
         if (classDetails.visited) {
             writer.println(prefix + classDetails.className);
             String fileName = classDetails.outputClassName.concat(".class");
-            jarOutputStream.putNextEntry(new ZipEntry(fileName));
             File classFile = new File(classesDir, fileName);
-            InputStream inputStream = new BufferedInputStream(new FileInputStream(classFile));
-            try {
-                ByteStreams.copy(inputStream, jarOutputStream);
-            } finally {
-                inputStream.close();
-            }
+            addJarEntry(fileName, classFile, jarOutputStream);
             for (ClassDetails dependency : classDetails.dependencies) {
                 String childPrefix = "  " + prefix;
                 visitTree(dependency, classesDir, jarOutputStream, writer, childPrefix, visited);
@@ -252,9 +251,20 @@ public class ShadedJar extends DefaultTask {
         }
     }
 
+    private void addJarEntry(String entryName, File sourceFile, JarOutputStream jarOutputStream) throws IOException {
+        jarOutputStream.putNextEntry(new ZipEntry(entryName));
+        InputStream inputStream = new BufferedInputStream(new FileInputStream(sourceFile));
+        try {
+            ByteStreams.copy(inputStream, jarOutputStream);
+        } finally {
+            inputStream.close();
+        }
+    }
+
     private static class ClassGraph {
         final Map<String, ClassDetails> classes = new LinkedHashMap<String, ClassDetails>();
         final Set<ClassDetails> entryPoints = new LinkedHashSet<ClassDetails>();
+        final Set<ResourceDetails> resources = new LinkedHashSet<ResourceDetails>();
         final PackagePatterns unshadedPackages;
         final PackagePatterns ignorePackages;
         final PackagePatterns keepPackages;
@@ -265,6 +275,10 @@ public class ShadedJar extends DefaultTask {
             this.unshadedPackages = unshadedPackages;
             this.ignorePackages = ignorePackages;
             this.shadowPackagePrefix = shadowPackage.replace('.', '/').concat("/");
+        }
+
+        public void addResource(ResourceDetails resource) {
+            resources.add(resource);
         }
 
         public ClassDetails get(String className) {
@@ -279,6 +293,17 @@ public class ShadedJar extends DefaultTask {
             return classDetails;
         }
     }
+
+    private static class ResourceDetails {
+        final String resourceName;
+        final File sourceFile;
+
+        public ResourceDetails(String resourceName, File sourceFile) {
+            this.resourceName = resourceName;
+            this.sourceFile = sourceFile;
+        }
+    }
+
     private static class ClassDetails {
         final String className;
         final String outputClassName;

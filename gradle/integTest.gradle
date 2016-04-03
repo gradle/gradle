@@ -267,7 +267,6 @@ allprojects {
 
 integTestTasks.all { Test task ->
     dependsOn ':intTestImage'
-    dependsOn ':toolingApi:jarjarJar'
     dependsOn ':cleanUpCaches'
     finalizedBy ':cleanUpDaemons'
     shouldRunAfter 'test'
