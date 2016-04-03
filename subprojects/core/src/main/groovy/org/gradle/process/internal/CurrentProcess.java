@@ -47,9 +47,6 @@ public class CurrentProcess {
         // Try to infer the effective jvm options for the currently running process.
         // We only care about 'managed' jvm args, anything else is unimportant to the running build
         JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
-//        final List<String> inputArguments1 = ManagementFactory.getRuntimeMXBean().getInputArguments();
-//        final LinkedHashSet<String> strings = new LinkedHashSet<String>(inputArguments1);
-//        final List<String> inputArguments = new ArrayList<String>(strings);
         jvmOptions.setAllJvmArgs(ManagementFactory.getRuntimeMXBean().getInputArguments());
         return jvmOptions;
     }

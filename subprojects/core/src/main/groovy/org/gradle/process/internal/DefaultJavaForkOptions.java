@@ -65,7 +65,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     public Map<String, Object> getSystemProperties() {
-        return options.getSystemProperties();
+        return options.getMutableSystemProperties();
     }
 
     public void setSystemProperties(Map<String, ?> properties) {
