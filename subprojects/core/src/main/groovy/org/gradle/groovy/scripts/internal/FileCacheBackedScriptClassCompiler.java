@@ -22,6 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
+import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
@@ -136,8 +137,10 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             if (systemClassLoader != null && systemClassLoader.getParent() == cl) {
                 return 11;
             }
-
-            return cl.hashCode();
+            if (cl instanceof DefaultClassLoaderCache.HashedClassLoader) {
+                return ((DefaultClassLoaderCache.HashedClassLoader) cl).getClassLoaderHash();
+            }
+            return 0;
         }
 
         public void visit(ClassLoader classLoader) {

@@ -233,55 +233,6 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         resourceNames.add(resourceName);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        FilteringClassLoader that = (FilteringClassLoader) o;
-
-        if (!getParent().equals(((FilteringClassLoader) o).getParent())) {
-            return false;
-        }
-
-        if (!packageNames.equals(that.packageNames)) {
-            return false;
-        }
-        if (!packagePrefixes.equals(that.packagePrefixes)) {
-            return false;
-        }
-        if (!resourcePrefixes.equals(that.resourcePrefixes)) {
-            return false;
-        }
-        if (!resourceNames.equals(that.resourceNames)) {
-            return false;
-        }
-        if (!classNames.equals(that.classNames)) {
-            return false;
-        }
-        if (!disallowedClassNames.equals(that.disallowedClassNames)) {
-            return false;
-        }
-        return disallowedPackagePrefixes.equals(that.disallowedPackagePrefixes);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = packageNames.hashCode();
-        result = 31 * result + packagePrefixes.hashCode();
-        result = 31 * result + resourcePrefixes.hashCode();
-        result = 31 * result + resourceNames.hashCode();
-        result = 31 * result + classNames.hashCode();
-        result = 31 * result + disallowedClassNames.hashCode();
-        result = 31 * result + disallowedPackagePrefixes.hashCode();
-        return result;
-    }
-
     public static class Spec extends ClassLoaderSpec {
 
         final Set<String> packageNames;

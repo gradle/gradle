@@ -21,7 +21,6 @@ import org.gradle.util.CollectionUtils;
 
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -57,36 +56,6 @@ public class MutableURLClassLoader extends URLClassLoader implements ClassLoader
         for (URL url : urls) {
             addURL(url);
         }
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-
-        if (obj == null) {
-            return false;
-        }
-
-        if (!(obj instanceof MutableURLClassLoader)) {
-            return false;
-        }
-
-        MutableURLClassLoader other = (MutableURLClassLoader) obj;
-        if (!Arrays.equals(getURLs(), other.getURLs())) {
-            return false;
-        }
-        ClassLoader parent = getParent();
-        if (parent == null) {
-            return other.getParent() == null;
-        }
-        return parent.equals(other.getParent());
-    }
-
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(getURLs());
     }
 
     public static class Spec extends ClassLoaderSpec {
