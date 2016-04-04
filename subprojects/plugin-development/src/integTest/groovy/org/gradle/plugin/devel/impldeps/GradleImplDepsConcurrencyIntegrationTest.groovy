@@ -16,71 +16,57 @@
 
 package org.gradle.plugin.devel.impldeps
 
-import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.junit.Rule
-import spock.lang.Ignore
+import org.gradle.api.Plugin
+import org.gradle.testkit.runner.GradleRunner
 
-@Ignore("Needs more work, currently flaky")
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
-    @Rule
-    final ConcurrentTestUtil concurrent = new ConcurrentTestUtil(45000)
+    private static final int CONCURRENT_BUILDS_PROJECT_COUNT = 5
+    private static final int CONCURRENT_TASKS_PROJECT_COUNT = 10
 
-    def "Gradle API and TestKit dependency can be resolved by concurrent Gradle builds"() {
-        given:
+    def setup() {
         requireOwnGradleUserHomeDir()
+    }
 
-        when:
-        def outputs = []
-
-        5.times { count ->
-            concurrent.start {
-                def projectDirName = file("project$count").name
-                def projectBuildFile = file("$projectDirName/build.gradle")
-                projectBuildFile << resolveGradleApiAndTestKitDependencies()
-
-                def gradleHandle = executer.inDirectory(file("project$count")).withTasks('resolveDependencies').start()
-                gradleHandle.waitForFinish()
-                outputs << gradleHandle.standardOutput
-            }
+    def "Gradle API and TestKit dependency can be resolved and used by concurrent Gradle builds"() {
+        given:
+        setupProjects(CONCURRENT_BUILDS_PROJECT_COUNT) { projectDirName, buildFile ->
+            buildFile << testableGroovyProject()
+            file("$projectDirName/src/test/groovy/MyTest.groovy") << gradleApiAndTestKitClassLoadingTestClass()
         }
 
-        concurrent.finished()
+        when:
+        def outputs = executeBuildsConcurrently(CONCURRENT_BUILDS_PROJECT_COUNT, 'test')
 
         then:
-        def apiGenerationOutputs = outputs.findAll { it =~ /$API_JAR_GENERATION_OUTPUT_REGEX/ }
-        def testKitGenerationOutputs = outputs.findAll { it =~ /$TESTKIT_GENERATION_OUTPUT_REGEX/ }
-        apiGenerationOutputs.size() == 1
-        testKitGenerationOutputs.size() == 1
-        assertApiGenerationOutput(apiGenerationOutputs[0])
-        assertTestKitGenerationOutput(testKitGenerationOutputs[0])
+        assertConcurrentBuildsOutput(outputs)
+    }
+
+    def "Gradle API and TestKit dependency JAR files are the same when run by concurrent Gradle builds"() {
+        given:
+        setupProjects(CONCURRENT_BUILDS_PROJECT_COUNT) { projectDirName, buildFile ->
+            buildFile << resolveGradleApiAndTestKitDependencies()
+        }
+
+        when:
+        def outputs = executeBuildsConcurrently(CONCURRENT_BUILDS_PROJECT_COUNT, 'resolveDependencies')
+
+        then:
+        assertConcurrentBuildsOutput(outputs)
+        assertSameDependencyChecksums(CONCURRENT_BUILDS_PROJECT_COUNT)
     }
 
     def "Gradle API and TestKit dependency can be resolved and used by concurrent tasks within one build"() {
         given:
-        requireOwnGradleUserHomeDir()
-
-        def projectCount = 10
-        (1..projectCount).each { count ->
-            def subprojectBuildFile = file("sub$count/build.gradle")
-            subprojectBuildFile << testableGroovyProject()
-            file("sub$count/src/test/groovy/MyTest.groovy") << """
-                class MyTest extends groovy.util.GroovyTestCase {
-
-                    void testUsageOfGradleApiAndTestKitClasses() {
-                        def classLoader = getClass().classLoader
-                        classLoader.loadClass('org.gradle.api.Plugin')
-                        classLoader.loadClass('org.gradle.testkit.runner.GradleRunner')
-                    }
-                }
-            """
+        setupProjects(CONCURRENT_TASKS_PROJECT_COUNT) { projectDirName, buildFile ->
+            buildFile << testableGroovyProject()
+            file("$projectDirName/src/test/groovy/MyTest.groovy") << gradleApiAndTestKitClassLoadingTestClass()
         }
 
-        file('settings.gradle') << "include ${(1..projectCount).collect { "'sub$it'" }.join(',')}"
+        setupSettingsFile(CONCURRENT_TASKS_PROJECT_COUNT)
 
         when:
-        args('--parallel')
-        succeeds 'test'
+        executeBuildInParallel('test')
 
         then:
         assertApiGenerationOutput(output)
@@ -89,49 +75,19 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
 
     def "Gradle API and TestKit dependency JAR files are the same when run by concurrent tasks within one build"() {
         given:
-        requireOwnGradleUserHomeDir()
-
-        def projectCount = 10
-        (1..projectCount).each { count ->
-            def subprojectBuildFile = file("sub$count/build.gradle")
-            subprojectBuildFile << """
-                configurations {
-                    gradleImplDeps
-                }
-
-                dependencies {
-                    gradleImplDeps fatGradleApi(), fatGradleTestKit()
-                }
-
-                task resolveDependencies {
-                    doLast {
-                        def files = configurations.gradleImplDeps.resolve()
-                        file('deps.txt').text = files.collect {
-                            java.security.MessageDigest.getInstance('MD5').digest(it.bytes).encodeHex().toString()
-                        }.join(',')
-                    }
-                }
-            """
+        setupProjects(CONCURRENT_TASKS_PROJECT_COUNT) { projectDirName, buildFile ->
+            file("$projectDirName/build.gradle") << resolveGradleApiAndTestKitDependencies()
         }
 
-        file('settings.gradle') << "include ${(1..projectCount).collect { "'sub$it'" }.join(',')}"
+        setupSettingsFile(CONCURRENT_TASKS_PROJECT_COUNT)
 
         when:
-        args('--parallel')
-        succeeds 'resolveDependencies'
+        executeBuildInParallel('resolveDependencies')
 
         then:
         assertApiGenerationOutput(output)
         assertTestKitGenerationOutput(output)
-
-        and:
-        def checksums = (1..projectCount).collect { count ->
-            def projectDirName = file("sub$count").name
-            file("$projectDirName/deps.txt").text.split(',') as Set
-        }
-
-        def singleChecksum = checksums.first()
-        checksums.findAll { it == singleChecksum }.size() == projectCount
+        assertSameDependencyChecksums(CONCURRENT_TASKS_PROJECT_COUNT)
     }
 
     static String resolveGradleApiAndTestKitDependencies() {
@@ -146,10 +102,81 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
 
             task resolveDependencies {
                 doLast {
-                    configurations.gradleImplDeps.resolve()
+                    def files = configurations.gradleImplDeps.resolve()
+                    file('deps.txt').text = files.collect {
+                        java.security.MessageDigest.getInstance('MD5').digest(it.bytes).encodeHex().toString()
+                    }.join(',')
                 }
             }
         """
+    }
+
+    static String gradleApiAndTestKitClassLoadingTestClass() {
+        """
+            class MyTest extends groovy.util.GroovyTestCase {
+
+                void testUsageOfGradleApiAndTestKitClasses() {
+                    def classLoader = getClass().classLoader
+                    classLoader.loadClass('${Plugin.class.getName()}')
+                    classLoader.loadClass('${GradleRunner.class.getName()}')
+                }
+            }
+        """
+    }
+
+    private void setupProjects(int projectCount, Closure c) {
+        (1..projectCount).each {
+            def projectDirName = file(createProjectName(it)).name
+            def buildFile = file("$projectDirName/build.gradle")
+            c(projectDirName, buildFile)
+        }
+    }
+
+    private void setupSettingsFile(int projectCount) {
+        file('settings.gradle') << "include ${(1..projectCount).collect { "'${createProjectName(it)}'" }.join(',')}"
+    }
+
+    private List<String> executeBuildsConcurrently(int projectCount, String... taskNames) {
+        def handles = []
+        (1..projectCount).each { count ->
+            handles << executer.inDirectory(file(createProjectName(count))).withTasks(taskNames).start()
+        }
+
+        def outputs = []
+        handles.each { handle ->
+            handle.waitForFinish()
+            outputs << handle.standardOutput
+        }
+
+        outputs
+    }
+
+    private void executeBuildInParallel(String... taskNames) {
+        args('--parallel')
+        succeeds taskNames
+    }
+
+    static void assertConcurrentBuildsOutput(List<String> outputs) {
+        def apiGenerationOutputs = outputs.findAll { it =~ /$API_JAR_GENERATION_OUTPUT_REGEX/ }
+        def testKitGenerationOutputs = outputs.findAll { it =~ /$TESTKIT_GENERATION_OUTPUT_REGEX/ }
+        assert apiGenerationOutputs.size() == 1
+        assert testKitGenerationOutputs.size() == 1
+        assertApiGenerationOutput(apiGenerationOutputs[0])
+        assertTestKitGenerationOutput(testKitGenerationOutputs[0])
+    }
+
+    private void assertSameDependencyChecksums(int projectCount) {
+        def checksums = (1..projectCount).collect { count ->
+            def projectDirName = file(createProjectName(count)).name
+            file("$projectDirName/deps.txt").text.split(',') as Set
+        }
+
+        def singleChecksum = checksums.first()
+        assert checksums.findAll { it == singleChecksum }.size() == projectCount
+    }
+
+    static String createProjectName(int projectNo) {
+        "project$projectNo"
     }
 
     static void assertApiGenerationOutput(String output) {

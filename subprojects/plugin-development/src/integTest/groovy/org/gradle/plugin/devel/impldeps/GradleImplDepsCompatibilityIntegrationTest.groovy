@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.impldeps
 
 import groovy.transform.TupleConstructor
+import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.ErroringAction
 import org.gradle.internal.IoActions
@@ -63,8 +64,9 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
     }
 
     @Ignore("Due to the buggy shading of the TestKit JAR is still happens e.g. org.gradle.api.Incubating")
-    def "Gradle API dependency artifact does not contain any of TestKit's classes"() {
+    def "Gradle API dependency does not contain any of TestKit dependency classes and vice versa"() {
         given:
+        def outputDirName = 'build'
         buildFile << """
             configurations {
                 gradleApi
@@ -79,7 +81,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
             task resolveDependencyArtifacts {
                 doLast {
                     copy {
-                        into 'build'
+                        into '$outputDirName'
                         from configurations.gradleApi.resolve().find { it.name.startsWith('gradle-api-') }
                         from configurations.testKit.resolve().find { it.name.startsWith('gradle-test-kit-') }
                     }
@@ -91,13 +93,19 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         succeeds 'resolveDependencyArtifacts'
 
         then:
-        def outputDir = temporaryFolder.testDirectory.file('build')
+        def outputDir = temporaryFolder.testDirectory.file(outputDirName)
         def jarFiles = outputDir.listFiles()
         jarFiles.size() == 2
         def gradleApiJar = jarFiles.find { it.name.startsWith('gradle-api-') }
         def testKitJar = jarFiles.find { it.name.startsWith('gradle-test-kit-') }
-        def testKitClassNames = parseClassNamesFromZipFile(testKitJar)
-        assertNoDuplicateClassFilenames(gradleApiJar, testKitClassNames)
+        File gradleApiClassNamesTextFile = temporaryFolder.testDirectory.file("$outputDirName/gradle-api-classes.txt")
+        File testKitClassNamesTextFile = temporaryFolder.testDirectory.file("$outputDirName/testkit-classes.txt")
+        writeClassesInZipFileToTextFile(gradleApiJar, gradleApiClassNamesTextFile)
+        writeClassesInZipFileToTextFile(testKitJar, testKitClassNamesTextFile)
+        assert gradleApiClassNamesTextFile.size() > 0
+        assert testKitClassNamesTextFile.size() > 0
+        verifyNoDuplicateEntries(gradleApiClassNamesTextFile, testKitClassNamesTextFile)
+        verifyNoDuplicateEntries(testKitClassNamesTextFile, gradleApiClassNamesTextFile)
     }
 
     @Ignore("Order does matter due to the buggy shading of the TestKit JAR")
@@ -161,34 +169,37 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
                                    new GradleDependency('Tooling API', 'compile', "project.files('${normaliseFileSeparators(buildContext.fatToolingApiJar.absolutePath)}')")].permutations()
     }
 
-    static List<String> parseClassNamesFromZipFile(File zip) {
-        def classNames = []
-
-        handleClassFilenameInZip(zip) { classFilename ->
-            classNames << classFilename
-        }
-
-        classNames
-    }
-
-    static void assertNoDuplicateClassFilenames(File zip, List<String> givenClassFilenames) {
-        handleClassFilenameInZip(zip) { classFilename ->
-            assert !givenClassFilenames.contains(classFilename)
-        }
-    }
-
-    static void handleClassFilenameInZip(File zip, Closure c) {
-        IoActions.withResource(new ZipInputStream(new FileInputStream(zip)), new ErroringAction<ZipInputStream>() {
+    static void writeClassesInZipFileToTextFile(File zipFile, File txtFile) {
+        IoActions.withResource(new ZipInputStream(new FileInputStream(zipFile)), new ErroringAction<ZipInputStream>() {
             protected void doExecute(ZipInputStream inputStream) throws Exception {
                 ZipEntry zipEntry = inputStream.getNextEntry()
                 while (zipEntry != null) {
                     String name = zipEntry.name
 
-                    if (name.endsWith('.class')) {
-                        c(name)
+                    // only check Gradle core, non-relocated classes
+                    if (name.endsWith('.class') && name.startsWith('org/gradle/') && !name.startsWith('org/gradle/impldep/')) {
+                        txtFile << "$name\n"
                     }
 
                     zipEntry = inputStream.getNextEntry()
+                }
+            }
+        })
+    }
+
+    static void verifyNoDuplicateEntries(File textFileA, File textFileB) {
+        IoActions.withResource(new BufferedReader(new FileReader(textFileA)), new Action<BufferedReader>() {
+            void execute(BufferedReader bufferedReaderA) {
+                String lineA
+                while ((lineA = bufferedReaderA.readLine()) != null) {
+                    IoActions.withResource(new BufferedReader(new FileReader(textFileB)), new Action<BufferedReader>() {
+                        void execute(BufferedReader bufferedReaderB) {
+                            String lineB
+                            while ((lineB = bufferedReaderB.readLine()) != null) {
+                                assert !(lineA == lineB)
+                            }
+                        }
+                    })
                 }
             }
         })
