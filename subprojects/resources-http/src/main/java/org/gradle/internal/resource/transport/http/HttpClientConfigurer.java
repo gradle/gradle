@@ -22,7 +22,6 @@ import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.auth.*;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -71,7 +70,6 @@ public class HttpClientConfigurer {
         configureAuthSchemeRegistry(builder);
         configureCredentials(builder, credentialsProvider, httpSettings.getAuthenticationSettings());
         configureProxy(builder, credentialsProvider, httpSettings);
-        configureRetryHandler(builder);
         configureUserAgent(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
     }
@@ -155,14 +153,6 @@ public class HttpClientConfigurer {
         }
 
         return Cast.uncheckedCast(credentials);
-    }
-
-    private void configureRetryHandler(HttpClientBuilder builder) {
-        builder.setRetryHandler(new HttpRequestRetryHandler() {
-            public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
-                return false;
-            }
-        });
     }
 
     private String getAuthScheme(Authentication authentication) {
