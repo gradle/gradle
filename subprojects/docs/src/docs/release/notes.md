@@ -334,7 +334,7 @@ This was contributed by [Alpha Hinex](https://github.com/alphahinex).
 
 ### setTestNameIncludePattern renamed setTestNameIncludePatterns
 
-The incubating, and previously undocumented `setTestNameIncludePattern()` method on the [Test](dsl/org.gradle.api.tasks.testing.Test.html) API has been renamed `setTestNameIncludePatterns` to better reflect the fact that it can accept multiple patterns.
+The incubating `setTestNameIncludePattern()` method on the [Test](dsl/org.gradle.api.tasks.testing.Test.html) API has been renamed `setTestNameIncludePatterns` to better reflect the fact that it can accept multiple patterns.
 
 ## External contributions
 
