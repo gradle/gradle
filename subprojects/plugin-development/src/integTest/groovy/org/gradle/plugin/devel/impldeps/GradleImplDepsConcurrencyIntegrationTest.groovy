@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.impldeps
 
 import org.gradle.api.Plugin
-import org.gradle.testkit.runner.GradleRunner
 
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
