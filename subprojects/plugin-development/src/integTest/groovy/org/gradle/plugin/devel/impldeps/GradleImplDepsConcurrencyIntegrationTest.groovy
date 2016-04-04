@@ -81,6 +81,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
         setupSettingsFile(CONCURRENT_TASKS_PROJECT_COUNT)
 
         when:
+        executer.withBuildJvmOpts('-Xmx512m')
         executeBuildInParallel('resolveDependencies')
 
         then:
