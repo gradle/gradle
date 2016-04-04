@@ -26,6 +26,7 @@ import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.mortbay.jetty.Request
 import org.mortbay.jetty.handler.AbstractHandler
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import javax.servlet.ServletException
@@ -581,6 +582,7 @@ task fastTask { }
         scriptCacheSize() == 1 + iterations // common + 1 build script per iteration
     }
 
+    @Ignore
     def "script don't get recompiled if daemon disappears"() {
         root {
             buildSrc {
