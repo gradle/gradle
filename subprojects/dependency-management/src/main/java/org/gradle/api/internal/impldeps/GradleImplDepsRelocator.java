@@ -50,9 +50,16 @@ class GradleImplDepsRelocator extends Remapper {
                 || clazz.startsWith("java")
                 || clazz.startsWith("javax")
                 || clazz.startsWith("groovy")
+                || clazz.startsWith("groovyjarjarantlr")
                 || clazz.startsWith("net/rubygrapefruit")
                 || clazz.startsWith("org/codehaus/groovy")
                 || clazz.startsWith("org/apache/tools/ant")
+                || clazz.startsWith("org/apache/commons/logging")
+                || clazz.startsWith("org/slf4j")
+                || clazz.startsWith("org/apache/log4j")
+                || clazz.startsWith("org/apache/xerces")
+                || clazz.startsWith("org/w3c/dom")
+                || clazz.startsWith("org/xml/sax")
             ) {
             return null;
         } else {

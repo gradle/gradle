@@ -136,11 +136,18 @@ org.gradle.api.internal.tasks.CompileServices"""
         given:
         def noRelocationClassNames = ['org/gradle/MyClass',
                                       'java/lang/String',
-                                      'javax/swing/Action',
+                                      'javax/inject/Inject',
                                       'groovy/util/XmlSlurper',
+                                      'groovyjarjarantlr/TokenStream',
                                       'net/rubygrapefruit/platform/FileInfo',
                                       'org/codehaus/groovy/ant/Groovyc',
-                                      'org/apache/tools/ant/taskdefs/Ant']
+                                      'org/apache/tools/ant/taskdefs/Ant',
+                                      'org/slf4j/Logger',
+                                      'org/apache/commons/logging/Log',
+                                      'org/apache/log4j/Logger',
+                                      'org/apache/xerces/parsers/SAXParser',
+                                      'org/w3c/dom/Document',
+                                      'org/xml/sax/XMLReader']
         def relocationClassNames = ['org/apache/commons/lang3/StringUtils',
                                     'com/google/common/collect/Lists']
         def classNames = noRelocationClassNames + relocationClassNames
@@ -166,11 +173,18 @@ org.gradle.api.internal.tasks.CompileServices"""
         handleAsJarFile(relocatedJar) { JarFile jar ->
             assert jar.getJarEntry('org/gradle/MyClass.class')
             assert jar.getJarEntry('java/lang/String.class')
-            assert jar.getJarEntry('javax/swing/Action.class')
+            assert jar.getJarEntry('javax/inject/Inject.class')
             assert jar.getJarEntry('groovy/util/XmlSlurper.class')
+            assert jar.getJarEntry('groovyjarjarantlr/TokenStream.class')
             assert jar.getJarEntry('net/rubygrapefruit/platform/FileInfo.class')
             assert jar.getJarEntry('org/codehaus/groovy/ant/Groovyc.class')
             assert jar.getJarEntry('org/apache/tools/ant/taskdefs/Ant.class')
+            assert jar.getJarEntry('org/slf4j/Logger.class')
+            assert jar.getJarEntry('org/apache/commons/logging/Log.class')
+            assert jar.getJarEntry('org/apache/log4j/Logger.class')
+            assert jar.getJarEntry('org/apache/xerces/parsers/SAXParser.class')
+            assert jar.getJarEntry('org/w3c/dom/Document.class')
+            assert jar.getJarEntry('org/xml/sax/XMLReader.class')
             assert jar.getJarEntry('org/gradle/impldep/org/apache/commons/lang3/StringUtils.class')
             assert jar.getJarEntry('org/gradle/impldep/com/google/common/collect/Lists.class')
         }
