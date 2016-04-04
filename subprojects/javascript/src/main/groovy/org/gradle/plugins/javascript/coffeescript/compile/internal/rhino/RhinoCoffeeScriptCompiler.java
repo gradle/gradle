@@ -16,14 +16,12 @@
 
 package org.gradle.plugins.javascript.coffeescript.compile.internal.rhino;
 
-import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompileSpec;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompiler;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.SerializableCoffeeScriptCompileSpec;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
-import org.gradle.process.JavaExecSpec;
 
 import java.io.File;
 
@@ -42,11 +40,7 @@ public class RhinoCoffeeScriptCompiler implements CoffeeScriptCompiler {
     }
 
     public WorkResult compile(CoffeeScriptCompileSpec spec) {
-        CoffeeScriptCompilerProtocol compiler = rhinoWorkerHandleFactory.create(rhinoClasspath, CoffeeScriptCompilerProtocol.class, CoffeeScriptCompilerWorker.class, logLevel, new Action<JavaExecSpec>() {
-            public void execute(JavaExecSpec javaExecSpec) {
-                javaExecSpec.setWorkingDir(workingDir);
-            }
-        });
+        CoffeeScriptCompilerProtocol compiler = rhinoWorkerHandleFactory.create(rhinoClasspath, CoffeeScriptCompilerProtocol.class, CoffeeScriptCompilerWorker.class, logLevel, workingDir);
 
         compiler.process(new SerializableCoffeeScriptCompileSpec(spec));
 

@@ -17,13 +17,11 @@
 package org.gradle.plugins.javascript.envjs.internal;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
 import org.gradle.plugins.javascript.envjs.browser.BrowserEvaluator;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
-import org.gradle.process.JavaExecSpec;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,11 +45,7 @@ public class EnvJsBrowserEvaluator implements BrowserEvaluator {
     }
 
     public void evaluate(String url, Writer writer) {
-        EnvJvEvaluateProtocol evaluator = rhinoWorkerHandleFactory.create(rhinoClasspath, EnvJvEvaluateProtocol.class, EnvJsEvaluateWorker.class, logLevel, new Action<JavaExecSpec>() {
-            public void execute(JavaExecSpec javaExecSpec) {
-                javaExecSpec.setWorkingDir(workingDir);
-            }
-        });
+        EnvJvEvaluateProtocol evaluator = rhinoWorkerHandleFactory.create(rhinoClasspath, EnvJvEvaluateProtocol.class, EnvJsEvaluateWorker.class, logLevel, workingDir);
 
         final String result = evaluator.process(new EnvJsEvaluateSpec(envJsFactory.create(), url));
 

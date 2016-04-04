@@ -16,12 +16,10 @@
 
 package org.gradle.plugins.javascript.rhino.worker;
 
-import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.process.JavaExecSpec;
 
 import java.io.File;
 
 public interface RhinoWorkerHandleFactory {
-    <T> T create(Iterable<File> rhinoClasspath, Class<T> protocolType, Class<? extends T> workerImplementationType, LogLevel logLevel, Action<JavaExecSpec> javaExecSpecAction);
+    <T> T create(Iterable<File> rhinoClasspath, Class<T> protocolType, Class<? extends T> workerImplementationType, LogLevel logLevel, File workingDir);
 }

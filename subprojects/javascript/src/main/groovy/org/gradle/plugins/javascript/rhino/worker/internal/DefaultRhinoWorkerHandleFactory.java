@@ -16,10 +16,8 @@
 
 package org.gradle.plugins.javascript.rhino.worker.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
-import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.SingleRequestWorkerProcessBuilder;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -35,7 +33,7 @@ public class DefaultRhinoWorkerHandleFactory implements RhinoWorkerHandleFactory
     }
 
     @Override
-    public <T> T create(Iterable<File> rhinoClasspath, Class<T> protocolType, Class<? extends T> workerImplementationType, LogLevel logLevel, Action<JavaExecSpec> javaExecSpecAction) {
+    public <T> T create(Iterable<File> rhinoClasspath, Class<T> protocolType, Class<? extends T> workerImplementationType, LogLevel logLevel, File workingDir) {
         SingleRequestWorkerProcessBuilder<T> builder = workerProcessBuilderFactory.singleRequestWorker(protocolType, workerImplementationType);
         builder.setBaseName("Gradle Rhino Worker");
         builder.setLogLevel(logLevel);
@@ -43,9 +41,7 @@ public class DefaultRhinoWorkerHandleFactory implements RhinoWorkerHandleFactory
         builder.sharedPackages("org.mozilla.javascript");
 
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
-        if (javaExecSpecAction != null) {
-            javaExecSpecAction.execute(javaCommand);
-        }
+        javaCommand.setWorkingDir(workingDir);
 
         return builder.build();
     }
