@@ -75,7 +75,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         if (cachedLoader == null) {
             ClassLoader classLoader;
             CachedClassLoader parentCachedLoader = null;
-            final int hashCode = spec.hashCode();
+            final int hashCode = 31 * spec.classPathSnapshot.hashCode() + (spec.filterSpec != null ? spec.filterSpec.hashCode() : 0);
             if (spec.isFiltered()) {
                 parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
                 classLoader = new FilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec) {

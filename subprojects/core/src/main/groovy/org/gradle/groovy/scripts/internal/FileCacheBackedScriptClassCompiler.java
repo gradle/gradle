@@ -28,6 +28,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
@@ -100,20 +101,53 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         return scriptCompilationHandler.loadFromDir(source, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
     }
 
-    private String getClassLoaderHash(ClassLoader cl) {
-        if (classLoaderRegistry.getRuntimeClassLoader() == cl) {
-            return "runtime";
+    private int getClassLoaderHash(ClassLoader cl) {
+        ClassloaderHasher hasher = new ClassloaderHasher(classLoaderRegistry);
+        hasher.visit(cl);
+        return hasher.hash;
+    }
+
+    private static class ClassloaderHasher extends ClassLoaderVisitor {
+        private final ClassLoaderRegistry classLoaderRegistry;
+
+        private int hash;
+
+        private ClassloaderHasher(ClassLoaderRegistry classLoaderRegistry) {
+            this.classLoaderRegistry = classLoaderRegistry;
         }
-        if (classLoaderRegistry.getGradleApiClassLoader() == cl) {
-            return "gradleApi";
+
+        private int hashFor(ClassLoader cl) {
+            if (classLoaderRegistry.getRuntimeClassLoader() == cl) {
+                return 1;
+            }
+            if (classLoaderRegistry.getGradleApiClassLoader() == cl) {
+                return 2;
+            }
+            if (classLoaderRegistry.getGradleCoreApiClassLoader() == cl) {
+                return 3;
+            }
+            if (classLoaderRegistry.getPluginsClassLoader() == cl) {
+                return 5;
+            }
+            ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+            if (systemClassLoader == cl) {
+                return 7;
+            }
+            if (systemClassLoader != null && systemClassLoader.getParent() == cl) {
+                return 11;
+            }
+
+            return cl.hashCode();
         }
-        if (classLoaderRegistry.getGradleCoreApiClassLoader() == cl) {
-            return "gradleCoreApi";
+
+        public void visit(ClassLoader classLoader) {
+            ClassLoader end = ClassLoader.getSystemClassLoader();
+            if (classLoader != null && classLoader != end) {
+                hash = 31 * hash + hashFor(classLoader);
+            }
+            super.visit(classLoader);
         }
-        if (classLoaderRegistry.getPluginsClassLoader() == cl) {
-            return "plugins";
-        }
-        return String.valueOf(cl.hashCode());
+
     }
 
     private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation) {

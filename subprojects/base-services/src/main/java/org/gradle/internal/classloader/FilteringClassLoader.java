@@ -279,7 +279,6 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         result = 31 * result + classNames.hashCode();
         result = 31 * result + disallowedClassNames.hashCode();
         result = 31 * result + disallowedPackagePrefixes.hashCode();
-        result = 31 * result + getParent().hashCode();
         return result;
     }
 

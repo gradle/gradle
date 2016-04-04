@@ -86,7 +86,7 @@ public class MutableURLClassLoader extends URLClassLoader implements ClassLoader
 
     @Override
     public int hashCode() {
-        return 31 * Arrays.hashCode(getURLs()) + (getParent() != null ? getParent().hashCode() : 0);
+        return Arrays.hashCode(getURLs());
     }
 
     public static class Spec extends ClassLoaderSpec {
