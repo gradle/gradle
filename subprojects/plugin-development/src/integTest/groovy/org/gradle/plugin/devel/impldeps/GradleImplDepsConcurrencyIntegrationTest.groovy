@@ -118,7 +118,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
                 void testUsageOfGradleApiAndTestKitClasses() {
                     def classLoader = getClass().classLoader
                     classLoader.loadClass('${Plugin.class.getName()}')
-                    classLoader.loadClass('${GradleRunner.class.getName()}')
+                    classLoader.loadClass('org.gradle.testkit.runner.GradleRunner')
                 }
             }
         """
