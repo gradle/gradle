@@ -332,6 +332,10 @@ Gradle now bundles [Apache Ant 1.9.6](https://archive.apache.org/dist/ant/RELEAS
 
 This was contributed by [Alpha Hinex](https://github.com/alphahinex).
 
+### setTestNameIncludePattern renamed setTestNameIncludePatterns
+
+The incubating, and previously undocumented `setTestNameIncludePattern()` method on the [Test](dsl/org.gradle.api.tasks.testing.Test.html) API has been renamed `setTestNameIncludePatterns` to better reflect the fact that it can accept multiple patterns.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
