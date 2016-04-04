@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.Hasher;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.file.FileTreeElementHasher;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
@@ -47,12 +50,62 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         return new OutputFilesSnapshot(Collections.<String>emptySet(), snapshotter.emptySnapshot());
     }
 
-    public OutputFilesSnapshot snapshot(FileCollection files, boolean allowReuse) {
+    @Override
+    public FileCollectionSnapshot.PreCheck preCheck(FileCollection files, boolean allowReuse) {
         Set<String> roots = new LinkedHashSet<String>();
         for (File file : files.getFiles()) {
             roots.add(stringInterner.intern(file.getAbsolutePath()));
         }
-        return new OutputFilesSnapshot(roots, snapshotter.snapshot(files, allowReuse));
+        return new OutputFilesSnapshotPreCheck(snapshotter.preCheck(files, allowReuse), roots);
+    }
+
+    @Override
+    public OutputFilesSnapshot snapshot(FileCollectionSnapshot.PreCheck preCheck) {
+        return new OutputFilesSnapshot(((OutputFilesSnapshotPreCheck) preCheck).getRoots(), snapshotter.snapshot(preCheck));
+    }
+
+    private static class OutputFilesSnapshotPreCheck implements FileCollectionSnapshot.PreCheck {
+        private final FileCollectionSnapshot.PreCheck delegate;
+        private final Set<String> roots;
+        private Integer hash;
+
+        OutputFilesSnapshotPreCheck(FileCollectionSnapshot.PreCheck delegate, Set<String> roots) {
+            this.delegate = delegate;
+            this.roots = roots;
+        }
+
+        @Override
+        public FileCollection getFileCollection() {
+            return delegate.getFileCollection();
+        }
+
+        @Override
+        public Integer getHash() {
+            if (hash == null) {
+                Hasher hasher = FileTreeElementHasher.createHasher();
+                hasher.putInt(delegate.getHash());
+                for (String root : roots) {
+                    hasher.putUnencodedChars(root);
+                    hasher.putByte((byte) '\n');
+                }
+                hash = hasher.hash().asInt();
+            }
+            return hash;
+        }
+
+        @Override
+        public Collection<FileTreeElement> getFileTreeElements() {
+            return delegate.getFileTreeElements();
+        }
+
+        @Override
+        public Collection<File> getMissingFiles() {
+            return delegate.getMissingFiles();
+        }
+
+        public Set<String> getRoots() {
+            return roots;
+        }
     }
 
     static class OutputFilesSnapshot implements FileCollectionSnapshot {
