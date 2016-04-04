@@ -16,8 +16,6 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.codehaus.groovy.runtime.StackTraceUtils;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -59,7 +57,7 @@ public class DeprecatedFeatureUsage {
             return this;
         }
 
-        StackTraceElement[] originalStack = StackTraceUtils.sanitize(new Exception()).getStackTrace();
+        StackTraceElement[] originalStack = new Exception().getStackTrace();
         int caller = 0;
         while (caller < originalStack.length && !originalStack[caller].getClassName().startsWith(calledFrom.getName())) {
             caller++;
@@ -67,11 +65,20 @@ public class DeprecatedFeatureUsage {
         while (caller < originalStack.length && originalStack[caller].getClassName().startsWith(calledFrom.getName())) {
             caller++;
         }
+        caller = skipSystemStackElements(originalStack, caller);
         caller++;
+        caller = skipSystemStackElements(originalStack, caller);
         List<StackTraceElement> stack = new ArrayList<StackTraceElement>();
         for (; caller < originalStack.length; caller++) {
             stack.add(originalStack[caller]);
         }
         return new DeprecatedFeatureUsage(this, stack);
+    }
+
+    private int skipSystemStackElements(StackTraceElement[] stackTrace, int caller) {
+        while (caller < stackTrace.length && stackTrace[caller].getClassName().startsWith("org.codehaus.groovy.") || stackTrace[caller].getClassName().startsWith("groovy.") || stackTrace[caller].getClassName().startsWith("java.") || stackTrace[caller].getClassName().startsWith("sun.")) {
+            caller++;
+        }
+        return caller;
     }
 }
