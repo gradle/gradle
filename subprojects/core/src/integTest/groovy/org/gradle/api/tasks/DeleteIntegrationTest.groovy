@@ -22,13 +22,21 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+import static org.junit.Assert.assertTrue
+import static org.junit.Assert.assertFalse
+
 class DeleteIntegrationTest extends AbstractIntegrationTest {
     @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
+
+    private TestFile orig;
+    private TestFile keep;
+    private TestFile subject;
+    private TestFile remove;
+    private TestFile link;
 
     @Before
     public void setup() {
@@ -38,21 +46,7 @@ class DeleteIntegrationTest extends AbstractIntegrationTest {
     @Test
     @Requires(TestPrecondition.SYMLINKS)
     public void willNotFollowSymlinks() {
-        TestFile orig = testDirectory.createDir('test/orig')
-        TestFile keep = orig.createFile('keep')
-
-        TestFile subject = testDirectory.createDir('test/subject')
-        TestFile remove = subject.createFile("remove")
-        TestFile link = subject.file('link')
-        link.createLink(orig)
-
-        Assert.assertTrue(orig.isDirectory())
-        Assert.assertTrue(orig.exists())
-        Assert.assertTrue(subject.isDirectory())
-        Assert.assertTrue(subject.exists())
-        Assert.assertTrue(keep.exists())
-        Assert.assertTrue(remove.exists())
-        Assert.assertTrue(link.exists())
+        setupSymlinks()
 
         testFile('build.gradle') << '''
             task delete(type: Delete) {
@@ -62,33 +56,19 @@ class DeleteIntegrationTest extends AbstractIntegrationTest {
 '''
 
         inTestDirectory().withTasks('delete').run()
-        Assert.assertTrue(orig.isDirectory())
-        Assert.assertTrue(orig.exists())
-        Assert.assertFalse(subject.isDirectory())
-        Assert.assertFalse(subject.exists())
-        Assert.assertTrue(keep.exists())
-        Assert.assertFalse(remove.exists())
-        Assert.assertFalse(link.exists())
+        assertTrue(orig.isDirectory())
+        assertTrue(orig.exists())
+        assertFalse(subject.isDirectory())
+        assertFalse(subject.exists())
+        assertTrue(keep.exists())
+        assertFalse(remove.exists())
+        assertFalse(link.exists())
     }
 
     @Test
     @Requires(TestPrecondition.SYMLINKS)
     public void willFollowSymlinks() {
-        TestFile orig = testDirectory.createDir('test/orig')
-        TestFile keep = orig.createFile('keep')
-
-        TestFile subject = testDirectory.createDir('test/subject')
-        TestFile remove = subject.createFile("remove")
-        TestFile link = subject.file('link')
-        link.createLink(orig)
-
-        Assert.assertTrue(orig.isDirectory())
-        Assert.assertTrue(orig.exists())
-        Assert.assertTrue(subject.isDirectory())
-        Assert.assertTrue(subject.exists())
-        Assert.assertTrue(keep.exists())
-        Assert.assertTrue(remove.exists())
-        Assert.assertTrue(link.exists())
+        setupSymlinks()
 
         testFile('build.gradle') << '''
             task delete(type: Delete) {
@@ -98,10 +78,50 @@ class DeleteIntegrationTest extends AbstractIntegrationTest {
 '''
 
         inTestDirectory().withTasks('delete').run()
-        Assert.assertTrue(orig.exists())
-        Assert.assertFalse(subject.exists())
-        Assert.assertFalse(keep.exists())
-        Assert.assertFalse(remove.exists())
-        Assert.assertFalse(link.exists())
+        assertTrue(orig.exists())
+        assertFalse(subject.exists())
+        assertFalse(keep.exists())
+        assertFalse(remove.exists())
+        assertFalse(link.exists())
+    }
+
+    @Test
+    @Requires(TestPrecondition.SYMLINKS)
+    public void willFollowSymlinksFromProject() {
+        setupSymlinks()
+
+        testFile('build.gradle') << '''
+            task delete(type: DefaultTask) {
+                project.delete {
+                    delete 'test/subject'
+                    followSymlinks = true
+                }
+            }
+'''
+
+        inTestDirectory().withTasks('delete').run()
+        assertTrue(orig.exists())
+        assertFalse(subject.exists())
+        assertFalse(keep.exists())
+        assertFalse(remove.exists())
+        assertFalse(link.exists())
+    }
+
+    def void setupSymlinks() {
+        orig = testDirectory.createDir('test/orig')
+        keep = orig.createFile('keep')
+
+        subject = testDirectory.createDir('test/subject')
+        remove = subject.createFile("remove")
+        link = subject.file('link')
+        link.createLink(orig)
+
+        assertTrue(orig.isDirectory())
+        assertTrue(orig.exists())
+        assertTrue(subject.isDirectory())
+        assertTrue(subject.exists())
+        assertTrue(keep.exists())
+        assertTrue(remove.exists())
+        assertTrue(link.exists())
     }
 }

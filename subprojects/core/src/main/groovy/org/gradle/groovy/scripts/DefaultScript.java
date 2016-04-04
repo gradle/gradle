@@ -20,10 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.PathValidation;
 import org.gradle.api.Script;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ProcessOperations;
@@ -217,6 +214,11 @@ public abstract class DefaultScript extends BasicScript {
     @Override
     public boolean delete(Object... paths) {
         return fileOperations.delete(paths);
+    }
+
+    @Override
+    public WorkResult delete(Action<? super DeleteSpec> action) {
+        return fileOperations.delete(action);
     }
 
     @Override

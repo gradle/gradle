@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.file;
+
+package org.gradle.api.internal.file.delete;
+
+import org.gradle.api.file.DeleteSpec;
 
 /**
- * Deletes files and directories.
- *
- * @deprecated Use {@link DeleteSpec} or {@link org.gradle.api.tasks.Delete} instead.
+ * Internal Representation of a {@link DeleteSpec}
  */
-@Deprecated
-public interface DeleteAction {
+public interface DeleteSpecInternal extends DeleteSpec {
+
     /**
-     * Deletes files and directories.
-     *
-     * @param paths Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
-     * @return true if anything got deleted, false otherwise
+     * @return the paths to be deleted.
      */
-    boolean delete(Object... paths);
+    Object[] getPaths();
 }

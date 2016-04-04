@@ -25,10 +25,7 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ModuleInternal;
@@ -710,6 +707,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     public boolean delete(Object... paths) {
         return getFileOperations().delete(paths);
+    }
+
+    public WorkResult delete(Action<? super DeleteSpec> action) {
+        return getFileOperations().delete(action);
     }
 
     public Factory<AntBuilder> getAntBuilderFactory() {

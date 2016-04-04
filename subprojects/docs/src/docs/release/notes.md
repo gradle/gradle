@@ -149,7 +149,12 @@ The [Delete](dsl/org.gradle.api.tasks.Delete.html) task will no longer follow sy
 This was done to prevent issues where Gradle would attempt to delete files outside of Gradle's build directory (e.g. NPM installed in a user-writeable location).
 
 Previous versions of Gradle would follow symlinks when deleting files. If you need the `Delete` task to follow symlinks set `followSymlinks = true`.
-If you need `project.delete()` to follow symlinks, replace it with [ant.delete()](https://ant.apache.org/manual/Tasks/delete.html).
+If you need `project.delete('somepath')` to follow symlinks, replace it with:
+
+    project.delete {
+        delete 'somepath'
+        followSymlinks = true
+    }
 
 This was contributed by [Ethan Hall](https://github.com/ethankhall).
 

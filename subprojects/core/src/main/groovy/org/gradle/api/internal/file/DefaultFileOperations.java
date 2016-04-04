@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
-import org.gradle.api.internal.file.copy.DeleteActionImpl;
+import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskResolver;
@@ -54,7 +54,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     private final TaskResolver taskResolver;
     private final TemporaryFileProvider temporaryFileProvider;
     private final Instantiator instantiator;
-    private final DeleteAction deleteAction;
+    private final Deleter deleter;
     private final DefaultResourceHandler resourceHandler;
     private final FileCopier fileCopier;
     private final FileSystem fileSystem;
@@ -69,7 +69,7 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
         this.resourceHandler = new DefaultResourceHandler(this, temporaryFileProvider);
         this.fileCopier = new FileCopier(this.instantiator, this.fileResolver, fileLookup);
         this.fileSystem = fileLookup.getFileSystem();
-        this.deleteAction = new DeleteActionImpl(fileResolver, fileSystem);
+        this.deleter = new Deleter(fileResolver, fileSystem);
     }
 
     public File file(Object path) {
@@ -134,7 +134,11 @@ public class DefaultFileOperations implements FileOperations, ProcessOperations 
     }
 
     public boolean delete(Object... paths) {
-        return deleteAction.delete(paths);
+        return deleter.delete(paths);
+    }
+
+    public WorkResult delete(Action<? super DeleteSpec> action) {
+        return deleter.delete(action);
     }
 
     public WorkResult copy(Action<? super CopySpec> action) {
