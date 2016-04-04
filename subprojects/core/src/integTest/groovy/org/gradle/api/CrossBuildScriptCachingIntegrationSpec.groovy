@@ -580,6 +580,41 @@ task fastTask { }
         scriptCacheSize() == 1 + iterations // common + 1 build script per iteration
     }
 
+    def "script don't get recompiled if daemon disappears"() {
+        root {
+            buildSrc {
+                'build.gradle'('''
+                    apply plugin: 'java'
+                ''')
+                src {
+                    main {
+                        java {
+                            'Foo.java'('public class Foo {}')
+                        }
+                    }
+                }
+            }
+            'build.gradle'('''apply from:'main.gradle' ''')
+            'main.gradle'('''
+                task success << { println 'ok' }
+                task fail << { System.exit(-1) }
+            ''')
+        }
+        executer = new ForkingGradleExecuter(distribution, temporaryFolder)
+        executer.requireIsolatedDaemons()
+        executer.requireDaemon()
+        executer.withGradleUserHomeDir(homeDirectory)
+
+        when:
+        fails 'fail'
+        succeeds 'success'
+
+        then:
+        String hash = uniqueRemapped('main')
+        getCompileClasspath(hash, 'dsl').length == 1
+
+    }
+
     int buildScopeCacheSize() {
         def m = output =~ /(?s).*Build scope cache size: (\d+).*/
         m.matches()
