@@ -109,7 +109,7 @@ class ScalaBasePlugin implements Plugin<Project> {
             compile.conventionMapping.scalaClasspath = { scalaRuntime.inferScalaClasspath(compile.classpath) }
             compile.conventionMapping.zincClasspath = {
                 def config = project.configurations[ZINC_CONFIGURATION_NAME]
-                if (!compile.scalaCompileOptions.useAnt && config.dependencies.empty) {
+                if (!compile.scalaCompileOptions.internalIsUseAnt() && config.dependencies.empty) {
                     project.dependencies {
                         zinc("com.typesafe.zinc:zinc:$DefaultScalaToolProvider.DEFAULT_ZINC_VERSION")
                     }

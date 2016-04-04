@@ -43,13 +43,13 @@ public class ScalaCompileOptions extends BaseScalaCompileOptions {
             .put("additionalParameters", "addparams")
             .build();
 
-    private boolean fork = true;
+    protected boolean fork = true;
 
-    private boolean useAnt;
+    protected boolean useAnt;
 
-    private boolean useCompileDaemon;
+    protected boolean useCompileDaemon;
 
-    private String daemonServer;
+    protected String daemonServer;
 
     /**
      * Tells whether to use Ant for compilation. If {@code true}, the standard Ant scalac (or fsc) task will be used for
