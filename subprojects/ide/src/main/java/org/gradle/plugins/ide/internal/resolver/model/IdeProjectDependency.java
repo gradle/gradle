@@ -41,4 +41,10 @@ public class IdeProjectDependency extends IdeDependency {
     public String getProjectPath() {
         return projectPath;
     }
+
+    public String getModuleName() {
+        // TODO:DAZ This is just a hack to allow 'idea' task to function reasonably in a composite
+        int index = projectPath.lastIndexOf(':');
+        return projectPath.substring(index + 1);
+    }
 }

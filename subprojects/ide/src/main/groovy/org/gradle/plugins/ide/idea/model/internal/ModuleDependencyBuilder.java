@@ -30,7 +30,7 @@ class ModuleDependencyBuilder {
     private String determineProjectName(IdeProjectDependency dependency) {
         Project project = dependency.getProject();
         if (project == null) {
-            return "/" + dependency.getProjectPath();
+            return dependency.getModuleName();
         } else if (project.getPlugins().hasPlugin(IdeaPlugin.class)) {
             return ((IdeaModel) project.getExtensions().getByName("idea")).getModule().getName();
         } else {

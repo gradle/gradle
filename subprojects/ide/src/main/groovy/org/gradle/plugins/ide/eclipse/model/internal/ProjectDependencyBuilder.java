@@ -31,7 +31,7 @@ public class ProjectDependencyBuilder {
     private String determineProjectName(IdeProjectDependency dependency) {
         Project project = dependency.getProject();
         if (project == null) {
-            return '/' + dependency.getProjectPath();
+            return dependency.getModuleName();
         } else if (project.getPlugins().hasPlugin(EclipsePlugin.class)) {
             return project.getExtensions().getByType(EclipseModel.class).getProject().getName();
         } else {
