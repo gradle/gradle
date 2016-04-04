@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
@@ -597,7 +598,6 @@ task fastTask { }
             'build.gradle'('''apply from:'main.gradle' ''')
             'main.gradle'('''
                 task success << { println 'ok' }
-                task fail << { System.exit(-1) }
             ''')
         }
         executer = new ForkingGradleExecuter(distribution, temporaryFolder)
@@ -606,7 +606,8 @@ task fastTask { }
         executer.withGradleUserHomeDir(homeDirectory)
 
         when:
-        fails 'fail'
+        succeeds 'success'
+        new DaemonLogsAnalyzer(executer.daemonBaseDir).daemon.kill()
         succeeds 'success'
 
         then:
