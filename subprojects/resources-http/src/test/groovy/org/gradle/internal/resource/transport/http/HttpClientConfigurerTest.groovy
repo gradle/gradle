@@ -48,7 +48,7 @@ public class HttpClientConfigurerTest extends Specification {
         configurer.configure(httpClientBuilder)
 
         then:
-        !httpClientBuilder.retryHandler.retryRequest(new IOException(), 1, null)
+        httpClientBuilder.credentialsProvider.getCredentials(AuthScope.ANY) == null
     }
 
     def "configures http client with proxy credentials"() {
