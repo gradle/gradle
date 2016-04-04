@@ -116,9 +116,8 @@ public class Delete extends ConventionTask implements DeleteSpec {
      * @param followSymlinks if symlinks should be followed.
      */
     @Incubating
-    public Delete setFollowSymlinks(boolean followSymlinks) {
+    public void setFollowSymlinks(boolean followSymlinks) {
         this.followSymlinks = followSymlinks;
-        return this;
     }
 
     /**

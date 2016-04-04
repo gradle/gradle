@@ -40,9 +40,8 @@ public class DefaultDeleteSpec implements DeleteSpecInternal {
     }
 
     @Override
-    public DefaultDeleteSpec setFollowSymlinks(boolean followSymlinks) {
+    public void setFollowSymlinks(boolean followSymlinks) {
         this.followSymlinks = followSymlinks;
-        return this;
     }
 
     @Override
