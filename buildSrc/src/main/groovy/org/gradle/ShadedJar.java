@@ -29,6 +29,7 @@ import com.google.common.io.ByteStreams;
 
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
+import java.util.jar.JarFile;
 
 import java.io.*;
 import java.util.*;
@@ -157,6 +158,8 @@ public class ShadedJar extends DefaultTask {
     private void analyse(FileCollection sourceFiles, final ClassGraph classes, final PrintWriter writer) {
         final PackagePatterns ignored = new PackagePatterns(Collections.singleton("java"));
         sourceFiles.getAsFileTree().visit(new FileVisitor() {
+            boolean seenManifest;
+
             public void visitDir(FileVisitDetails dirDetails) {
             }
 
@@ -202,6 +205,9 @@ public class ShadedJar extends DefaultTask {
                 } else if (fileDetails.getPath().endsWith(".properties") && classes.unshadedPackages.matches(fileDetails.getPath())) {
                     writer.println("include");
                     classes.addResource(new ResourceDetails(fileDetails.getPath(), fileDetails.getFile()));
+                } else if (fileDetails.getPath().equals(JarFile.MANIFEST_NAME) && !seenManifest) {
+                    seenManifest = true;
+                    classes.manifest = new ResourceDetails(fileDetails.getPath(), fileDetails.getFile());
                 } else {
                     writer.println("skipped");
                 }
@@ -217,6 +223,9 @@ public class ShadedJar extends DefaultTask {
             OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(jarFile));
             try {
                 JarOutputStream jarOutputStream = new JarOutputStream(outputStream);
+                if (classes.manifest != null) {
+                    addJarEntry(classes.manifest.resourceName, classes.manifest.sourceFile, jarOutputStream);
+                }
                 Set<ClassDetails> visited = new HashSet<ClassDetails>();
                 for (ClassDetails classDetails : classes.entryPoints) {
                     visitTree(classDetails, classesDir, jarOutputStream, writer, "- ", visited);
@@ -259,12 +268,14 @@ public class ShadedJar extends DefaultTask {
         } finally {
             inputStream.close();
         }
+        jarOutputStream.closeEntry();
     }
 
     private static class ClassGraph {
         final Map<String, ClassDetails> classes = new LinkedHashMap<String, ClassDetails>();
         final Set<ClassDetails> entryPoints = new LinkedHashSet<ClassDetails>();
         final Set<ResourceDetails> resources = new LinkedHashSet<ResourceDetails>();
+        ResourceDetails manifest;
         final PackagePatterns unshadedPackages;
         final PackagePatterns ignorePackages;
         final PackagePatterns keepPackages;

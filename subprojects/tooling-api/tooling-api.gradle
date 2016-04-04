@@ -1,8 +1,7 @@
 import org.gradle.build.*
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 
 dependencies {
-    compile project(path: ':core', configuration: "publishCompileWithProjectJar")
+    compile project(':core')
     compile project(':messaging')
     compile project(':wrapper')
     compile project(':baseServices')
@@ -53,14 +52,6 @@ task shadedJar(type: ShadedJar) {
 
 apply from: 'buildship.gradle'
 
-task publishJar(type: Zip) {
-    appendix = "bundle"
-    destinationDir = jar.destinationDir
-    extension = 'jar'
-    dependsOn jar, shadedJar
-    from zipTree(shadedJar.jarFile)
-}
-
 sourceJar {
     configurations.compile.allDependencies.withType(ProjectDependency).each {
         from it.dependencyProject.sourceSets.main.groovy.srcDirs
@@ -69,8 +60,7 @@ sourceJar {
 }
 
 artifacts {
-    publishCompileWithProjectJar publishJar
-    publishRuntime file: publishJar.getArchivePath(), name: archivesBaseName, type: 'jar', builtBy: publishJar
+    publishRuntime file: shadedJar.jarFile, name: archivesBaseName, type: 'jar', builtBy: shadedJar
 }
 
 eclipse {
