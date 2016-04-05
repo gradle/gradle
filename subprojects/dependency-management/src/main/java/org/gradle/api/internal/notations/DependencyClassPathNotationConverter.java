@@ -106,13 +106,12 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private FileCollectionInternal gradleApiFileCollection(Collection<File> apiClasspath) {
         // Don't inline the Groovy jar as the Groovy “tools locator” searches for it by name
         List<File> groovyImpl = classPathRegistry.getClassPath(LOCAL_GROOVY.name()).getAsFiles();
+        List<File> installationBeacon = classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles();
         apiClasspath.removeAll(groovyImpl);
+        apiClasspath.removeAll(installationBeacon);
 
         return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "fatGradleApi()", GradleImplDepsJarType.API)
-            .plus(fileResolver.resolveFiles(
-                groovyImpl,
-                classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles())
-            );
+            .plus(fileResolver.resolveFiles(groovyImpl, installationBeacon));
     }
 
     private FileCollectionInternal gradleTestKitFileCollection(Collection<File> testKitClasspath) {
