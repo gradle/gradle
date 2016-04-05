@@ -127,6 +127,7 @@ Interaction with dependency rules:
 - Composite containing participants with same root directory name
 
 - Test selection reason for substitution (should be a new 'reason' that mentions composite build)
+- Test cancellation of the builds that create the composite context
 
 ### Documentation
 
