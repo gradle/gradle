@@ -63,7 +63,7 @@ class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec {
     static String testKitDependency() {
         """
             dependencies {
-                testCompile fatGradleTestKit()
+                testCompile gradleTestKit()
             }
         """
     }

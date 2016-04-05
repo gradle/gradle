@@ -92,7 +92,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
             FileCollectionInternal files;
             if (runningFromInstallation && notation.equals(FAT_GRADLE_API)) {
                 files = gradleApiFileCollection(classpath);
-            } else if (runningFromInstallation && notation.equals(FAT_GRADLE_TEST_KIT)) {
+            } else if (runningFromInstallation && notation.equals(GRADLE_TEST_KIT)) {
                 files = gradleTestKitFileCollection(classpath);
             } else {
                 files = fileResolver.resolveFiles(classpath);
@@ -119,7 +119,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         List<File> gradleApi = classPathRegistry.getClassPath(GRADLE_API.name()).getAsFiles();
         testKitClasspath.removeAll(gradleApi);
 
-        return (FileCollectionInternal) relocatedDepsJar(testKitClasspath, "fatGradleTestKit()", GradleImplDepsJarType.TEST_KIT)
+        return (FileCollectionInternal) relocatedDepsJar(testKitClasspath, "gradleTestKit()", GradleImplDepsJarType.TEST_KIT)
             .plus(gradleApiFileCollection(gradleApi));
     }
 

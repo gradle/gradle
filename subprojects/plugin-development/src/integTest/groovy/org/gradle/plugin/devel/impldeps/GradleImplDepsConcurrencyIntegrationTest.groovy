@@ -97,7 +97,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
             }
 
             dependencies {
-                gradleImplDeps fatGradleApi(), fatGradleTestKit()
+                gradleImplDeps fatGradleApi(), gradleTestKit()
             }
 
             task resolveDependencies {

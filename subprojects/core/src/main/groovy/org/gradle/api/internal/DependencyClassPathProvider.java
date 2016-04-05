@@ -49,9 +49,6 @@ public class DependencyClassPathProvider implements ClassPathProvider {
             return classpath;
         }
         if (name.equals(GRADLE_TEST_KIT.name())) {
-            return moduleRegistry.getModule("gradle-test-kit").getImplementationClasspath();
-        }
-        if (name.equals(FAT_GRADLE_TEST_KIT.name())) {
             return moduleRegistry.getModule("gradle-test-kit").getClasspath();
         }
         if (name.equals(LOCAL_GROOVY.name())) {

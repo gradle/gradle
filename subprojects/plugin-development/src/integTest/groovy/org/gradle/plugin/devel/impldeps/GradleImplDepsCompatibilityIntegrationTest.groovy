@@ -45,7 +45,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
 
             dependencies {
                 gradleApi fatGradleApi()
-                testKit fatGradleTestKit()
+                testKit gradleTestKit()
             }
 
             task resolveDependencyArtifacts {
@@ -75,7 +75,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
 
             dependencies {
                 gradleApi fatGradleApi()
-                testKit fatGradleTestKit()
+                testKit gradleTestKit()
             }
 
             task resolveDependencyArtifacts {
@@ -165,7 +165,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
 
         where:
         dependencyPermutations << [new GradleDependency('Gradle API', 'compile', 'dependencies.fatGradleApi()'),
-                                   new GradleDependency('TestKit', 'testCompile', 'dependencies.fatGradleTestKit()'),
+                                   new GradleDependency('TestKit', 'testCompile', 'dependencies.gradleTestKit()'),
                                    new GradleDependency('Tooling API', 'compile', "project.files('${normaliseFileSeparators(buildContext.fatToolingApiJar.absolutePath)}')")].permutations()
     }
 
