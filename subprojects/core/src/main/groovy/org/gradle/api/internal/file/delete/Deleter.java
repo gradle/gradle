@@ -54,7 +54,7 @@ public class Deleter {
 
     public WorkResult delete(Action<? super DeleteSpec> action) {
         boolean didWork = false;
-        DefaultDeleteSpec deleteSpec = new DefaultDeleteSpec();
+        DeleteSpecInternal deleteSpec = new DefaultDeleteSpec();
         action.execute(deleteSpec);
         Object[] paths = deleteSpec.getPaths();
         for (File file : fileResolver.resolveFiles(paths)) {
@@ -68,7 +68,7 @@ public class Deleter {
         return new SimpleWorkResult(didWork);
     }
 
-    private void doDeleteInternal(File file, DeleteSpec deleteSpec) {
+    private void doDeleteInternal(File file, DeleteSpecInternal deleteSpec) {
         if (file.isDirectory() && (deleteSpec.isFollowSymlinks() || !fileSystem.isSymlink(file))) {
             File[] contents = file.listFiles();
 
