@@ -22,11 +22,15 @@ No longer support running Gradle, the wrapper or the Tooling api client on Java 
     - `gradle --daemon`
     - `gradlew`
     - `GradleConnector`
+    - old `gradlew`
+    - old `GradleConnector`
 - Warning when running build on Java 6 with entry point running on Java 7+ 
     - `gradle`
     - `gradle --daemon`
     - `gradlew`
     - `GradleConnector`
+    - old `gradlew`
+    - old `GradleConnector`
 - Can cross-compile and test for Java 6.
 
 ## Change minimum version for building and testing Java source to Java 6
@@ -168,7 +172,7 @@ types and to offer a more consistent DSL.
 * Remove the `<<` operator.
 * Inline `ConventionTask` and `AbstractTask` into `DefaultTask`.
 * Remove `Task.dependsOnTaskDidWork()`.
-* Mix `TaskInternal` in during decoration and remove references to internal types.
+* Mix `TaskInternal` in during decoration and remove references to internal types from `DefaultTask` and `AbstractTask`
 
 ## Remove references to internal classes from API
 
