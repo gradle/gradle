@@ -67,8 +67,8 @@ public class IntegrationTestBuildContext {
     }
 
     public TestFile getFatToolingApiJar() {
-        TestFile toolingApiLibsDir = file("integTest.toolingApiLibsDir", "subprojects/tooling-api/build/libs");
-        TestFile fatToolingApiJar = new TestFile(toolingApiLibsDir, String.format("gradle-tooling-api-fat-%s.jar", getVersion().getVersion()));
+        TestFile toolingApiShadedJarDir = file("integTest.toolingApiShadedJarDir", "subprojects/tooling-api/build/shaded-jar");
+        TestFile fatToolingApiJar = new TestFile(toolingApiShadedJarDir, String.format("gradle-tooling-api-shaded-%s.jar", getVersion().getVersion()));
 
         if (!fatToolingApiJar.exists()) {
             throw new IllegalStateException(String.format("The fat Tooling API JAR file does not exist: %s", fatToolingApiJar.getAbsolutePath()));

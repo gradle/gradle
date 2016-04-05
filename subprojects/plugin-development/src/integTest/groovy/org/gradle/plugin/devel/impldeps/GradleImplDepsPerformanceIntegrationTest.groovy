@@ -26,7 +26,7 @@ class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegra
             }
 
             dependencies {
-                deps fatGradleApi()
+                deps gradleApi()
             }
         """
         buildFile << resolveDependencies(5000)

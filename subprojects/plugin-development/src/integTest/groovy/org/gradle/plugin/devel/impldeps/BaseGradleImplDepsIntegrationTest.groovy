@@ -55,7 +55,7 @@ class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec {
     static String gradleApiDependency() {
         """
             dependencies {
-                compile fatGradleApi()
+                compile gradleApi()
             }
         """
     }

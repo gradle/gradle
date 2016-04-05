@@ -101,10 +101,6 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
         return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_API);
     }
 
-    public Dependency fatGradleApi() {
-        return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.FAT_GRADLE_API);
-    }
-
     public Dependency gradleTestKit() {
         return dependencyFactory.createDependency(DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT);
     }

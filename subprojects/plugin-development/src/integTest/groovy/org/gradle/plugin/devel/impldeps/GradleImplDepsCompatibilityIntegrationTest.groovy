@@ -21,7 +21,6 @@ import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.ErroringAction
 import org.gradle.internal.IoActions
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Unroll
 
@@ -44,7 +43,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
             }
 
             dependencies {
-                gradleApi fatGradleApi()
+                gradleApi gradleApi()
                 testKit gradleTestKit()
             }
 
@@ -63,7 +62,6 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         succeeds 'resolveDependencyArtifacts'
     }
 
-    @Ignore("Due to the buggy shading of the TestKit JAR is still happens e.g. org.gradle.api.Incubating")
     def "Gradle API dependency does not contain any of TestKit dependency classes and vice versa"() {
         given:
         def outputDirName = 'build'
@@ -74,7 +72,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
             }
 
             dependencies {
-                gradleApi fatGradleApi()
+                gradleApi gradleApi()
                 testKit gradleTestKit()
             }
 
@@ -108,7 +106,6 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         verifyNoDuplicateEntries(testKitClassNamesTextFile, gradleApiClassNamesTextFile)
     }
 
-    @Ignore("Order does matter due to the buggy shading of the TestKit JAR")
     @Unroll
     def "Gradle API and TestKit are compatible regardless of order #dependencyPermutations"() {
         when:
@@ -164,7 +161,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         succeeds 'build'
 
         where:
-        dependencyPermutations << [new GradleDependency('Gradle API', 'compile', 'dependencies.fatGradleApi()'),
+        dependencyPermutations << [new GradleDependency('Gradle API', 'compile', 'dependencies.gradleApi()'),
                                    new GradleDependency('TestKit', 'testCompile', 'dependencies.gradleTestKit()'),
                                    new GradleDependency('Tooling API', 'compile', "project.files('${normaliseFileSeparators(buildContext.fatToolingApiJar.absolutePath)}')")].permutations()
     }
