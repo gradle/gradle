@@ -58,8 +58,9 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         List<IdeProjectDependency> ideProjectDependencies = new ArrayList<IdeProjectDependency>();
 
         for (ResolvedComponentResult projectComponent : projectComponents) {
-            Project resolvedProject = project.project(((ProjectComponentIdentifier) projectComponent.getId()).getProjectPath());
-            if(!resolvedProject.equals(project)) {
+            Project resolvedProject = project.findProject(((ProjectComponentIdentifier) projectComponent.getId()).getProjectPath());
+            // TODO:DAZ Composite build means that we can't rely on finding a project in this way
+            if(resolvedProject != null && !resolvedProject.equals(project)) {
                 ideProjectDependencies.add(new IdeProjectDependency(configuration.getName(), resolvedProject));
             }
         }

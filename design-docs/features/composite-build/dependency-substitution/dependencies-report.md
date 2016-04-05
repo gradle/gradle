@@ -126,6 +126,8 @@ Interaction with dependency rules:
 
 - Composite containing participants with same root directory name
 
+- Test selection reason for substitution (should be a new 'reason' that mentions composite build)
+
 ### Documentation
 
 - Need to describe this behavior in context of overall composite feature.
