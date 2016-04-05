@@ -139,7 +139,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     private boolean isForkRequired() {
-        if (isUseDaemon() || !getJavaHome().equals(Jvm.current().getJavaHome()) ) {
+        if (isUseDaemon() || !getJavaHome().equals(Jvm.current().getJavaHome())) {
             return true;
         }
         File gradleProperties = new File(getWorkingDir(), "gradle.properties");
