@@ -1,4 +1,4 @@
-## Dependencies report for composite demonstrates external dependencies substituted with project dependencies
+## Dependencies report for composite shows external dependencies substituted with project dependencies
 
 ### Overview
 
