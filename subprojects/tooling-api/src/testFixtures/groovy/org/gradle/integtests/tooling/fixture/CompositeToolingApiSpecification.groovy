@@ -123,7 +123,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
             """
 
             buildFile << """
-                group = 'org.A'
+                group = 'org.test'
                 version = '1.0'
             """
         }
@@ -141,7 +141,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
 
             buildFile << """
                 allprojects {
-                    group = 'org.B'
+                    group = 'org.test'
                     version = '1.0'
                 }
             """

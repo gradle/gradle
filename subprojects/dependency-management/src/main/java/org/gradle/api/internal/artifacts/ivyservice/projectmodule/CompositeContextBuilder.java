@@ -18,12 +18,16 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleIvyDependencyDescriptorFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
@@ -34,6 +38,7 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifi
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.internal.component.model.DependencyMetaData;
 
 import java.util.Set;
 
@@ -76,11 +81,18 @@ public class CompositeContextBuilder implements BuildActionRunner {
     }
 
     private void addConfigurations(BuildableLocalComponentMetaData localComponentMetaData, ProjectInternal project) {
+        // TODO:DAZ The producing build already is able to do this work (and properly): let's just reuse it
         for (Configuration configuration : project.getConfigurations()) {
             Set<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
             Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
             TaskDependency directBuildDependencies = new DefaultTaskDependency();
             localComponentMetaData.addConfiguration(configuration.getName(), configuration.getDescription(), extendsFrom, hierarchy, configuration.isVisible(), configuration.isTransitive(), directBuildDependencies);
+
+            for (Dependency dependency : configuration.getAllDependencies()) {
+                DefaultExternalModuleDependency externalModuleDependency = new DefaultExternalModuleDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion());
+                DependencyMetaData dependencyMetaData = new ExternalModuleIvyDependencyDescriptorFactory(new DefaultExcludeRuleConverter()).createDependencyDescriptor(configuration.getName(), externalModuleDependency);
+                localComponentMetaData.addDependency(dependencyMetaData);
+            }
         }
     }
 
