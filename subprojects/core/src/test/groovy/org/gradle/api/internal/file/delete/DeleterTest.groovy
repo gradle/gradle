@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file.copy
+package org.gradle.api.internal.file.delete
 
-import org.gradle.api.file.DeleteAction
+import org.gradle.api.Action
+import org.gradle.api.file.DeleteSpec
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.test.fixtures.file.TestFile
@@ -27,16 +28,16 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.file.TestFiles.fileSystem
 
-class DeleteActionImplTest extends Specification {
+class DeleterTest extends Specification {
     static final boolean FOLLOW_SYMLINKS = true;
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     FileResolver resolver = TestFiles.resolver(tmpDir.testDirectory)
+    Deleter delete = new Deleter(resolver, fileSystem())
 
     def deletesDirectory() {
         given:
-        DeleteAction delete = new DeleteActionImpl(resolver, fileSystem())
         TestFile dir = tmpDir.getTestDirectory();
         dir.file("somefile").createFile();
 
@@ -50,7 +51,6 @@ class DeleteActionImplTest extends Specification {
 
     def deletesFile() {
         given:
-        DeleteAction delete = new DeleteActionImpl(resolver, fileSystem())
         TestFile dir = tmpDir.getTestDirectory();
         TestFile file = dir.file("somefile");
         file.createFile();
@@ -65,7 +65,6 @@ class DeleteActionImplTest extends Specification {
 
     def deletesFileByPath() {
         given:
-        DeleteAction delete = new DeleteActionImpl(resolver, fileSystem())
         TestFile dir = tmpDir.getTestDirectory();
         TestFile file = dir.file("somefile");
         file.createFile();
@@ -80,7 +79,6 @@ class DeleteActionImplTest extends Specification {
 
     def deletesMultipleTargets() {
         given:
-        DeleteAction delete = new DeleteActionImpl(resolver, fileSystem())
         TestFile file = tmpDir.getTestDirectory().file("somefile").createFile();
         TestFile dir = tmpDir.getTestDirectory().file("somedir").createDir();
         dir.file("sub/child").createFile();
@@ -96,7 +94,6 @@ class DeleteActionImplTest extends Specification {
 
     def didWorkIsFalseWhenNothingDeleted() {
         given:
-        DeleteAction delete = new DeleteActionImpl(resolver, fileSystem())
         TestFile dir = tmpDir.file("unknown");
         dir.assertDoesNotExist();
 
@@ -110,7 +107,6 @@ class DeleteActionImplTest extends Specification {
     @Requires([TestPrecondition.UNIX_DERIVATIVE, TestPrecondition.JDK7_OR_LATER])
     def doesNotDeleteFilesInsideSymlinkDir() {
         given:
-        DeleteAction delete = new DeleteActionImpl(resolver, fileSystem())
         def keepTxt = tmpDir.createFile("originalDir", "keep.txt")
         def originalDir = keepTxt.parentFile
         def link = new File(tmpDir.getTestDirectory(), "link")
@@ -134,7 +130,6 @@ class DeleteActionImplTest extends Specification {
     @Requires([TestPrecondition.UNIX_DERIVATIVE, TestPrecondition.JDK7_OR_LATER])
     def deletesFilesInsideSymlinkDirWhenNeeded() {
         given:
-        DeleteAction delete = new DeleteActionImpl(resolver, fileSystem(), FOLLOW_SYMLINKS)
         def keepTxt = tmpDir.createFile("originalDir", "keep.txt")
         def originalDir = keepTxt.parentFile
         def link = new File(tmpDir.getTestDirectory(), "link")
@@ -146,11 +141,20 @@ class DeleteActionImplTest extends Specification {
         link.exists()
 
         when:
-        boolean didWork = delete.delete(link)
+        boolean didWork = delete.delete(deleteAction(FOLLOW_SYMLINKS, link)).getDidWork()
 
         then:
         !link.exists()
         keepTxt.assertDoesNotExist()
         didWork
+    }
+
+    def Action<? super DeleteSpec> deleteAction(final boolean followSymlinks, final Object... paths) {
+        return new Action<DeleteSpec>() {
+            @Override
+            void execute(DeleteSpec spec) {
+                spec.delete(paths).setFollowSymlinks(followSymlinks)
+            }
+        }
     }
 }

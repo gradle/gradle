@@ -23,10 +23,7 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.invocation.Gradle;
@@ -837,13 +834,29 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * Deletes files and directories.
-     *
-     * This will not follow symlinks unlike ant. If you need to follow symlinks too use {@link #ant(Closure)}.delete()
+     * <p>
+     * This will not follow symlinks. If you need to follow symlinks too use {@link #delete(Action)}.
      *
      * @param paths Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      * @return true if anything got deleted, false otherwise
      */
     boolean delete(Object... paths);
+
+    /**
+     * Deletes the specified files.  The given action is used to configure a {@link DeleteSpec}, which is then used to
+     * delete the files.
+     * <p>Example:
+     * <pre>
+     * project.delete {
+     *     delete 'somefile'
+     *     followSymlinks = true
+     * }
+     * </pre>
+     *
+     * @param action Action to configure the DeleteSpec
+     * @return {@link WorkResult} that can be used to check if delete did any work.
+     */
+    WorkResult delete(Action<? super DeleteSpec> action);
 
     /**
      * Executes a Java main class. The closure configures a {@link org.gradle.process.JavaExecSpec}.

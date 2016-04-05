@@ -18,13 +18,12 @@ package org.gradle.internal.resource.local;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.file.DeleteAction;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
-import org.gradle.api.internal.file.copy.DeleteActionImpl;
+import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -57,12 +56,12 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
     public static final String IN_PROGRESS_MARKER_FILE_SUFFIX = ".fslck";
 
     private File baseDir;
-    private final DeleteAction deleteAction;
+    private final Deleter deleter;
 
     public PathKeyFileStore(File baseDir) {
         this.baseDir = baseDir;
         IdentityFileResolver fileResolver = new IdentityFileResolver();
-        deleteAction = new DeleteActionImpl(fileResolver, fileResolver.getFileSystem());
+        deleter = new Deleter(fileResolver, fileResolver.getFileSystem());
     }
 
     protected File getBaseDir() {
@@ -85,8 +84,8 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
         File file = getFile(path);
         File markerFile = getInProgressMarkerFile(file);
         if (markerFile.exists()) {
-            deleteAction.delete(file);
-            deleteAction.delete(markerFile);
+            deleter.delete(file);
+            deleter.delete(markerFile);
         }
         return file;
     }
@@ -129,13 +128,13 @@ public class PathKeyFileStore implements FileStore<String>, FileStoreSearcher<St
             File inProgressMarkerFile = getInProgressMarkerFile(destination);
             GFileUtils.touch(inProgressMarkerFile);
             try {
-                deleteAction.delete(destination);
+                deleter.delete(destination);
                 action.execute(destination);
             } catch (Throwable t) {
-                deleteAction.delete(destination);
+                deleter.delete(destination);
                 throw t;
             } finally {
-                deleteAction.delete(inProgressMarkerFile);
+                deleter.delete(inProgressMarkerFile);
             }
         } catch (Throwable t) {
             throw new GradleException(failureDescription, t);

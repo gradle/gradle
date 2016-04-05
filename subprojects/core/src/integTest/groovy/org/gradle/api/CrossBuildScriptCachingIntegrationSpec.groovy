@@ -17,6 +17,8 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
@@ -107,6 +109,9 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         coreHash == module1Hash
         hasCachedScripts(settingsHash, coreHash)
         getCompileClasspath(coreHash, 'proj').length == 1
+
+        cleanup:
+        daemons.killAll()
     }
 
     def "can have two build files with same contents and file name"() {
@@ -578,6 +583,48 @@ task fastTask { }
         then:
         remappedCacheSize() == 2 // build + common
         scriptCacheSize() == 1 + iterations // common + 1 build script per iteration
+    }
+
+    def "script don't get recompiled if daemon disappears"() {
+        root {
+            buildSrc {
+                'build.gradle'('''
+                    apply plugin: 'java'
+                ''')
+                src {
+                    main {
+                        java {
+                            'Foo.java'('public class Foo {}')
+                        }
+                    }
+                }
+            }
+            'build.gradle'('''apply from:'main.gradle' ''')
+            'main.gradle'('''
+                task success << { println 'ok' }
+            ''')
+        }
+        executer = new ForkingGradleExecuter(distribution, temporaryFolder)
+        executer.requireIsolatedDaemons()
+        executer.requireDaemon()
+        executer.withGradleUserHomeDir(homeDirectory)
+
+        when:
+        succeeds 'success'
+        daemons.daemon.kill()
+        succeeds 'success'
+
+        then:
+        String hash = uniqueRemapped('main')
+        getCompileClasspath(hash, 'dsl').length == 1
+
+        cleanup:
+        daemons.killAll()
+
+    }
+
+    DaemonsFixture getDaemons() {
+        new DaemonLogsAnalyzer(executer.daemonBaseDir)
     }
 
     int buildScopeCacheSize() {

@@ -67,7 +67,8 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     private void updateCaches() {
         String version = GradleVersion.current().version
         def hash =  HashUtil.createCompactMD5(buildFile.text)
-        String baseDir = "caches/$version/scripts/$hash/proj/projgradleApi"
+        String dirName = userHomeDir.file("caches/$version/scripts/$hash/proj").list()[0]
+        String baseDir = "caches/$version/scripts/$hash/proj/$dirName"
         propertiesFile = userHomeDir.file("$baseDir/cache.properties")
         classFile = userHomeDir.file("$baseDir/classes/_BuildScript_.class")
     }
@@ -141,6 +142,7 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     private def testBuild(String taskName, String expected, String... args) {
         executer.inDirectory(projectDir).withTasks(taskName).withArguments(args).run()
         assertEquals(expected, projectDir.file(TEST_FILE).text)
+        updateCaches()
         classFile.assertIsFile()
         propertiesFile.assertIsFile()
         artifactsCache.assertIsFile()
@@ -180,7 +182,6 @@ void someMethod$i() {
 """
         }
         buildFile.write(content)
-        updateCaches()
     }
 
     def void modifyLargeBuildScript() {
@@ -200,6 +201,5 @@ task newTask {
 }
 """
         buildFile.write(newContent)
-        updateCaches()
     }
 }

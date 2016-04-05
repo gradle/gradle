@@ -42,21 +42,21 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Gradle implementation dependencies are not visible to plugins at development time
 
-Implementing a Gradle plugin requires the declaration of `gradleApi()` 
-to the `compile` configuration. The resolved dependency encompasses the 
-entire Gradle runtime including Gradle's third party dependencies 
+Implementing a Gradle plugin requires the declaration of `gradleApi()`
+to the `compile` configuration. The resolved dependency encompasses the
+entire Gradle runtime including Gradle's third party dependencies
 (e.g. Guava). Any third party dependencies declared by the plugin might
 conflict with the ones pulled in by the `gradleApi()` declaration. Gradle
-does not apply conflict resolution. As a result The user will end up with 
+does not apply conflict resolution. As a result The user will end up with
 two addressable copies of a dependency on the compile classpath and in
  the test runtime classpath.
- 
-In previous versions of Gradle the dependency `gradleTestKit()`, which 
+
+In previous versions of Gradle the dependency `gradleTestKit()`, which
 relies on a Gradle runtime, attempts to address this problem via class
-relocation. The use of `gradleApi()` and `gradleTestKit()` together 
+relocation. The use of `gradleApi()` and `gradleTestKit()` together
 became unreliable as classes of duplicate name but of different content
 were added to the classpath.
- 
+
 With this version of Gradle proper class relocation has been implemented
  across the dependencies `gradleApi()`, `gradleTestKit()` and the published
  Tooling API JAR. Projects using any of those dependencies will not

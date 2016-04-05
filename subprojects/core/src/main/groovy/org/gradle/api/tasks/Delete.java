@@ -16,12 +16,13 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.file.DeleteAction;
+import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.copy.DeleteActionImpl;
+import org.gradle.api.internal.file.delete.Deleter;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import javax.inject.Inject;
@@ -41,7 +42,7 @@ import java.util.Set;
  * {@link Delete#setFollowSymlinks(boolean)} with true. On systems that do not support symlinks,
  * this will have no effect.
  */
-public class Delete extends ConventionTask {
+public class Delete extends ConventionTask implements DeleteSpec {
     private Set<Object> delete = new LinkedHashSet<Object>();
 
     private boolean followSymlinks;
@@ -60,8 +61,15 @@ public class Delete extends ConventionTask {
 
     @TaskAction
     protected void clean() {
-        DeleteAction deleteAction = new DeleteActionImpl(getFileResolver(), getFileSystem(), followSymlinks);
-        setDidWork(deleteAction.delete(delete));
+        Deleter deleter = new Deleter(getFileResolver(), getFileSystem());
+        final boolean innerFollowSymLinks = followSymlinks;
+        final Object[] paths = delete.toArray();
+        setDidWork(deleter.delete(new Action<DeleteSpec>(){
+            @Override
+            public void execute(DeleteSpec deleteSpec) {
+                deleteSpec.delete(paths).setFollowSymlinks(innerFollowSymLinks);
+            }
+        }).getDidWork());
     }
 
     /**

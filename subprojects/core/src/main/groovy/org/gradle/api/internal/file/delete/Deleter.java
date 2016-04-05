@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.file.copy;
+package org.gradle.api.internal.file.delete;
 
-import org.gradle.api.file.DeleteAction;
+import org.gradle.api.Action;
+import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.UnableToDeleteFileException;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.SimpleWorkResult;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
@@ -25,40 +28,48 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-public class DeleteActionImpl implements DeleteAction {
-    private static Logger logger = LoggerFactory.getLogger(DeleteActionImpl.class);
+public class Deleter {
+    private static Logger logger = LoggerFactory.getLogger(Deleter.class);
 
-    private final boolean followSymlinks;
     private FileResolver fileResolver;
     private FileSystem fileSystem;
 
     private static final int DELETE_RETRY_SLEEP_MILLIS = 10;
 
-    public DeleteActionImpl(FileResolver fileResolver, FileSystem fileSystem) {
-        this(fileResolver, fileSystem, false /* followSymlinks */);
-    }
 
-    public DeleteActionImpl(FileResolver fileResolver, FileSystem fileSystem, boolean followSymlinks) {
+    public Deleter(FileResolver fileResolver, FileSystem fileSystem) {
         this.fileResolver = fileResolver;
         this.fileSystem = fileSystem;
-        this.followSymlinks = followSymlinks;
     }
 
-    public boolean delete(Object... deletes) {
+    public boolean delete(Object... paths) {
+        final Object[] innerPaths = paths;
+        return delete(new Action<DeleteSpec>() {
+            @Override
+            public void execute(DeleteSpec deleteSpec) {
+                deleteSpec.delete(innerPaths).setFollowSymlinks(false);
+            }
+        }).getDidWork();
+    }
+
+    public WorkResult delete(Action<? super DeleteSpec> action) {
         boolean didWork = false;
-        for (File file : fileResolver.resolveFiles(deletes)) {
+        DeleteSpecInternal deleteSpec = new DefaultDeleteSpec();
+        action.execute(deleteSpec);
+        Object[] paths = deleteSpec.getPaths();
+        for (File file : fileResolver.resolveFiles(paths)) {
             if (!file.exists()) {
                 continue;
             }
             logger.debug("Deleting {}", file);
             didWork = true;
-            doDeleteInternal(file);
+            doDeleteInternal(file, deleteSpec);
         }
-        return didWork;
+        return new SimpleWorkResult(didWork);
     }
 
-    private void doDeleteInternal(File file) {
-        if (file.isDirectory() && (followSymlinks || !fileSystem.isSymlink(file))) {
+    private void doDeleteInternal(File file, DeleteSpecInternal deleteSpec) {
+        if (file.isDirectory() && (deleteSpec.isFollowSymlinks() || !fileSystem.isSymlink(file))) {
             File[] contents = file.listFiles();
 
             // Something else may have removed it
@@ -67,13 +78,12 @@ public class DeleteActionImpl implements DeleteAction {
             }
 
             for (File item : contents) {
-                doDeleteInternal(item);
+                doDeleteInternal(item, deleteSpec);
             }
         }
 
         if (!file.delete() && file.exists()) {
             handleFailedDelete(file);
-
         }
     }
 
