@@ -22,6 +22,7 @@ import org.gradle.internal.logging.ProgressLogger
 import org.gradle.internal.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
@@ -31,6 +32,7 @@ import spock.lang.Specification
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
+@UsesNativeServices
 class GradleImplDepsRelocatedJarCreatorTest extends Specification {
 
     @Rule
@@ -41,17 +43,15 @@ class GradleImplDepsRelocatedJarCreatorTest extends Specification {
     GradleImplDepsRelocatedJarCreator relocatedJarCreator = new GradleImplDepsRelocatedJarCreator(progressLoggerFactory)
     File outputJar = new File(tmpDir.testDirectory, 'gradle-api.jar')
 
-    def "throws exception if non-JAR files are provided"() {
+    def "creates JAR file for input directory"() {
         given:
         def inputFilesDir = tmpDir.createDir('inputFiles')
-        def textFile = inputFilesDir.file('text.txt')
+        writeClass(inputFilesDir, "org/gradle/MyClass")
 
         when:
-        relocatedJarCreator.create(outputJar, [textFile])
+        relocatedJarCreator.create(outputJar, [inputFilesDir])
 
         then:
-        RuntimeException e = thrown(RuntimeException)
-        e.message == "non JAR on classpath: $textFile.absolutePath"
         1 * progressLoggerFactory.newOperation(GradleImplDepsRelocatedJarCreator) >> progressLogger
         1 * progressLogger.setDescription('Gradle JARs generation')
         1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
@@ -59,7 +59,8 @@ class GradleImplDepsRelocatedJarCreatorTest extends Specification {
         1 * progressLogger.progress(_)
         1 * progressLogger.completed()
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
-        contents.length == 0
+        contents.length == 1
+        contents[0] == outputJar
     }
 
     def "creates fat JAR file for multiple input JAR files"() {
@@ -194,22 +195,26 @@ org.gradle.api.internal.tasks.CompileServices"""
         TestFile contents = tmpDir.createDir("contents/$jar.name")
 
         classNames.each { className ->
-            TestFile classFile = contents.createFile("${className}.class")
-            ClassNode classNode = new ClassNode()
-            classNode.version = Opcodes.V1_6
-            classNode.access = Opcodes.ACC_PUBLIC
-            classNode.name = className
-            classNode.superName = 'java/lang/Object'
-
-            ClassWriter cw = new ClassWriter(0)
-            classNode.accept(cw)
-
-            classFile.withDataOutputStream {
-                it.write(cw.toByteArray())
-            }
+            writeClass(contents, className)
         }
 
         contents.zipTo(jar)
+    }
+
+    private void writeClass(TestFile outputDir, String className) {
+        TestFile classFile = outputDir.createFile("${className}.class")
+        ClassNode classNode = new ClassNode()
+        classNode.version = Opcodes.V1_6
+        classNode.access = Opcodes.ACC_PUBLIC
+        classNode.name = className
+        classNode.superName = 'java/lang/Object'
+
+        ClassWriter cw = new ClassWriter(0)
+        classNode.accept(cw)
+
+        classFile.withOutputStream {
+            it.write(cw.toByteArray())
+        }
     }
 
     private void createJarFileWithProviderConfigurationFile(TestFile jar, String serviceType, String serviceProvider) {
