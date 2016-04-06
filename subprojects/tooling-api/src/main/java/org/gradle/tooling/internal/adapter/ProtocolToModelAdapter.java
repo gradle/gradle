@@ -104,12 +104,6 @@ public class ProtocolToModelAdapter implements Serializable {
      * @param mapper An action that is invoked for each source object in the graph that is to be adapted. The action can influence how the source object is adapted via the provided {@link
      * SourceObjectMapping}.
      */
-    /**
-     * Adapts the source object to a view object.
-     *
-     * @param mapper An action that is invoked for each source object in the graph that is to be adapted. The action can influence how the source object is adapted via the provided {@link
-     * SourceObjectMapping}.
-     */
     public <T, S> T adapt(Class<T> targetType, S sourceObject, Action<? super SourceObjectMapping> mapper) {
         if (sourceObject == null) {
             return null;
