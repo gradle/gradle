@@ -238,7 +238,7 @@ This was contributed by [Ethan Hall](https://github.com/ethankhall).
 
 ### Additional POM `<dependency>` attributes generated for some project dependencies
 
-As described above, generated POM files now include classifiers and all artifacts for project dependencies. This improvement may break existing Gradle builds, particularly those that include a specific workaround for the previous behaviour. These workarounds should no longer be required, and may need to be removed to ensure that Gradle 2.14 will create correct `<dependency>` attributes for project dependencies.
+As described above, generated POM files now include classifiers and all artifacts for project dependencies. This improvement may break existing Gradle builds, particularly those that include a specific workaround for the previous behaviour. These workarounds should no longer be required, and may need to be removed to ensure that Gradle 2.13 will create correct `<dependency>` attributes for project dependencies.
 
 ### Task input property names now follow the JavaBean specification
 
