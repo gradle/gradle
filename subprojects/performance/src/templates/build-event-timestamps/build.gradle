@@ -12,7 +12,7 @@ gradle.buildFinished { buildResult ->
     buildDir.mkdirs()
     def writer = new File(buildDir, "buildEventTimestamps.txt").newPrintWriter()
     try {
-        writer.println(project.hasProperty('settingsEvaluatedTimestamp')?settingsEvaluatedTimestamp:settingsEvaluatedTimestampIfNotAvailable)
+        writer.println(project.findProperty('settingsEvaluatedTimestamp') ?: settingsEvaluatedTimestampIfNotAvailable)
         writer.println(configurationEndTimestamp)
         writer.println(buildEndTimestamp)
         try {
