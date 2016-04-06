@@ -16,12 +16,10 @@
 
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.util.GradleVersion
-
 /**
- * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
+ * Dependency substitution is performed for composite build accessed via the Tooling API.
  */
-class DependencySubstitutionGradleConnectionCrossVersionSpec extends CompositeToolingApiSpecification {
+class DependencySubstitutionCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
 
     def "dependencies report shows external dependencies substituted with project dependencies"() {
@@ -61,7 +59,8 @@ compile
     }
 
     private static boolean targetSupportsSubstitution() {
-        targetDistVersion >= GradleVersion.version("2.14")
+        false
+//        targetDistVersion >= GradleVersion.version("2.14")
     }
 
     def getOutput() {
