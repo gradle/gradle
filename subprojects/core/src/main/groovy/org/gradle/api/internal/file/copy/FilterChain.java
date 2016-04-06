@@ -23,7 +23,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.internal.UncheckedException;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.*;
@@ -57,7 +56,7 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
         try {
             return new ReaderInputStream(transform(new InputStreamReader(original, charset)), charset);
         } catch (UnsupportedEncodingException e) {
-            throw new UncheckedException(e);
+            throw new UncheckedIOException(e);
         }
     }
 
