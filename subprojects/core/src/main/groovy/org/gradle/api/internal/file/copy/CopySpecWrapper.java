@@ -219,4 +219,12 @@ public class CopySpecWrapper implements CopySpec {
     public Set<String> getExcludes() {
         return delegate.getExcludes();
     }
+
+    public String getFilteringCharset() {
+        return delegate.getFilteringCharset();
+    }
+
+    public void setFilteringCharset(String charset) {
+        delegate.setFilteringCharset(charset);
+    }
 }

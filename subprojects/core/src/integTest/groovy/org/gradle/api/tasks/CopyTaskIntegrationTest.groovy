@@ -62,6 +62,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         usingBuildFile(buildFile).withTasks("copy").run()
         testFile('dest').assertHasDescendants(
                 'root.a',
+                'accents.c',
                 'one/one.a',
                 'two/two.a',
         )
@@ -132,6 +133,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'root.renamed',
                 'root.b',
+                'accents.c',
                 'one/renamed_one.renamed',
                 'one/renamed_one.b',
                 'one/sub/onesub.renamed',
@@ -156,6 +158,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'root.a',
                 'root.b',
+                'accents.c',
                 'one/one.a',
                 'one/one.b',
                 'one/sub/onesub.a',
@@ -209,6 +212,41 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void copyWithUtf8FilteringCharsetTest() {
+        TestFile buildFile = testFile('build.gradle').writelns(
+            """task (copy, type:Copy) {
+                   from 'src'
+                   into 'dest'
+                   expand(one: 1)
+                   filteringCharset = 'UTF8'
+                }
+                """
+        )
+        // UTF8 is the actual encoding of the file accents.c
+        usingBuildFile(buildFile).withTasks("copy").run()
+        Iterator<String> it = testFile('dest/accents.c').readLines('UTF8').iterator()
+        assertThat(it.next(), equalTo('éàüî 1'))
+    }
+
+    @Test
+    public void copyWithISO88591FilteringCharsetTest() {
+        TestFile buildFile = testFile('build.gradle').writelns(
+            """task (copy, type:Copy) {
+                   from 'src'
+                   into 'dest'
+                   expand(one: 1)
+                   filteringCharset = 'ISO_8859_1'
+                }
+                """
+        )
+        // UTF8 is the actual encoding of the file accents.c, but any byte sequence is a valid ISO_8859_1
+        // character sequence, so we can read and write is with that encoding as well
+        usingBuildFile(buildFile).withTasks("copy").run()
+        Iterator<String> it = testFile('dest/accents.c').readLines('ISO_8859_1').iterator()
+        assertThat(it.next(), equalTo(new String('éàüî 1'.getBytes('UTF8'), 'ISO_8859_1')))
+    }
+
+    @Test
     public void chainedTransformations() {
         def buildFile = testFile('build.gradle') << '''
             task copy(type: Copy) {
@@ -230,6 +268,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'root.renamed_twice',
                 'root.b',
+                'accents.c',
                 'prefix/one/one.renamed_twice',
                 'prefix/one/one.b',
                 'prefix/one_sub/onesub.renamed_twice',
@@ -255,6 +294,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'root.a',
                 'root.b',
+                'accents.c',
                 'one/one.a',
                 'one/one.b',
                 'two/two.a',
@@ -278,6 +318,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'root.a',
                 'root.b',
+                'accents.c',
                 'one/one.a',
                 'one/one.b',
                 'two/two.a',
@@ -304,6 +345,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         usingBuildFile(buildFile).withTasks("copy").run()
         testFile('dest').assertHasDescendants(
                 'root.a',
+                'accents.c',
                 'one/one.a',
                 'two/two.a',
                 'three/three.a',

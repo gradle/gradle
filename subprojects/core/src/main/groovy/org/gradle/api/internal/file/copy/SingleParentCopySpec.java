@@ -60,4 +60,7 @@ public class SingleParentCopySpec extends DefaultCopySpec {
         return buildResolverRelativeToParent(parentResolver).getFileMode();
     }
 
+    public String getFilteringCharset() {
+        return buildResolverRelativeToParent(parentResolver).getFilteringCharset();
+    }
 }
