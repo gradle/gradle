@@ -66,7 +66,7 @@ For these tests, verify dependency substitution directly via the resolved depend
     - org;bx:1.0 <- [org;ax:1.0]
     - org;by:1.0 <- [org;ay:1.0]
     - result: External dependencies in A are replaced by B project dependencies
-- Substitution of external dependencies with project dependencies from the same participant
+- Substitution for external dependencies with project dependencies from the same participant
     - Single-participant (A, B), multi-project (x, y):
     - A::x produces [org;x:1.0]
     - A::y produces [org;y:1.0]

@@ -26,30 +26,30 @@ class DependencySubstitutionGradleConnectionCrossVersionSpec extends CompositeTo
 
     def "dependencies report shows external dependencies substituted with project dependencies"() {
         given:
-        def buildA = singleProjectBuild("buildA") {
+        def build1 = singleProjectBuild("build1") {
                     buildFile << """
         configurations { compile }
         dependencies {
-            compile "org.test:buildB:1.0"
+            compile "org.A:build2:1.0"
         }
 """
 }
-        def buildB = singleProjectBuild("buildB") {
+        def build2 = singleProjectBuild("build2") {
                     buildFile << """
         apply plugin: 'base'
 """
 }
 
-        def expectedOutput = "org.test:buildB:1.0 FAILED"
+        def expectedOutput = "org.A:build2:1.0 FAILED"
         if (targetSupportsSubstitution()) {
-            expectedOutput = "org.test:buildB:1.0 -> project buildB::"
+            expectedOutput = "org.A:build2:1.0 -> project build2::"
         }
 
         when:
-        withCompositeConnection([buildA, buildB]) { connection ->
+        withCompositeConnection([build1, build2]) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(stdOut)
-            buildLauncher.forTasks(buildA, "dependencies")
+            buildLauncher.forTasks(build1, "dependencies")
             buildLauncher.run()
         }
 
