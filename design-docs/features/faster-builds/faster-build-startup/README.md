@@ -132,6 +132,35 @@ Given this result, a second profiling result, using `--dry-run` this time:
         - 5.7s in configuring the build
     - The results are very consistent with what we have seen in the `MediumWithJUnit` case. There are lots of tasks configured and created even though they are not used, which speaks for the software model. Most of the time is spent in creating and configuring tasks. Which is interesting here since we're running with `--dry-run`, so while we could need the _specs_ of the tasks, we certainly don't need the tasks themselves.
 
+3. running `gradle classes --dry-run`
+
+This profiling session was done from the Gradle 2.13 release branch, already including numerous performance improvements, so the results show different results from 1. and 2. The `--dry-run` option is used to focus on configuration time.
+
+Most of the time (90%) is spent in evaluating the projects. The problem is that visually, a "pause" is visible during the configuration phase: Gradle says its configuring the root project, and nothing seem to happen for seconds. This time is mostly spent in configuring the tasks. Instantiating and decorating the tasks take around 4% of total build time, but this includes the initialization of services. However, configuring the tasks and executing the build scripts cost a lot.
+
+ In particular, resolution of:
+
+ - properties
+ - methods
+
+ on `DynamicObject` is a clear hotspot. There are multiple reasons for this:
+
+ - `DynamicObject` makes use of `PropertyMissingException` which are used for flow control, even if in the end, no exception is thrown. The problem is that we pay the price of filling the stack trace each time. For a simple dry run like this, that's 34k+ `MissingPropertyException` (with stack traces), 32.5k+ `MissingPropertyExceptionNoStack` (no stack traces, cheaper), 1600+ `MissingMethodException` (with stack traces), which are all used only for flow control (because in the end, no error is reported to the user). A lot of those `MissingPropertyException` are caused by lookups of `javaVersion` or `isCiServer` on "dynamic objects".
+
+ Investigation shows that the implementation is very inefficient: a lot of `BeanDynamicObject` are created with `implementsMissing=true`, even though they effectively do not implement it. A spike that checks if `propertyMissing` is implemented and sets this flag to `false` if it's not the case (caching the result by delegate type) shows that we can avoid a lot of unnecessary `getProperty` calls that would throw a `MissingPropertyException`. Also, we're redundantly calling `hasProperty` and `getProperty`. There's also no caching of which delegate implements a property, so the lookup is done every time. Unfortunately, this lookup also has to be done per-instance (there's no structural dynamic object, it's a runtime mixin).
+
+ A spike that combines:
+
+ - caching lookup of properties in `CompositeDynamicObject`
+ - avoiding setting `implementsMissing` on most of `BeanDynamicObject`
+ - replaces `MissingPropertyException` and `MissingMethodException` with their no stack-trace equivalent
+
+ shows a startup time decreasing from 5s to 3.5s. There's probably something even better to do if we change `DynamicObject` not to rely on exceptions at all. We could also think of generating real mixin classes at runtime (a bit like Groovy's traits) to avoid calls to `getProperty` at all whenever possible, because such calls are uncached and very inefficient. Note that this is also true for `invokeMethod`.
+
+ Eventually, an experimental statically compiled DSL could also be worth investigating, but that's out of scope of the performance stream work.
+
+ In terms of exceptions being thrown without being propagated to the user, we can also see `ClassNotFoundException` as a clear hotspot, with more than 2300 exceptions, thrown by `URLClassLoader` but through `FilteringClassLoader`, `MultiParentClassLoader` or `CachingClassLoader`. It would be worth checking if we can avoid those exceptions to be thrown, since we're capturing them.
+
 #### Profiling results for an Android build
 
 Here are some profiling results, as of March 16th, 2016 (`master`) on an [Android app](https://github.com/google/iosched).
