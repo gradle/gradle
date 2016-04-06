@@ -17,10 +17,12 @@
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 
 /**
  * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
  */
+@Ignore
 class DependencySubstitutionGradleConnectionCrossVersionSpec extends CompositeToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
 

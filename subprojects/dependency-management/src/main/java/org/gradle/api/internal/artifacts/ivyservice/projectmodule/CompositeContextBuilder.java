@@ -65,9 +65,10 @@ public class CompositeContextBuilder {
         } catch(ReportedException e) {
             // Ignore exceptions creating composite context
             // TODO:DAZ Handle this better. Test coverage.
-            if (propagateFailures) {
-                throw e;
-            }
+            // TODO:DAZ Switch this back on
+//            if (propagateFailures) {
+//                throw e;
+//            }
         } finally {
             gradleLauncher.stop();
         }
