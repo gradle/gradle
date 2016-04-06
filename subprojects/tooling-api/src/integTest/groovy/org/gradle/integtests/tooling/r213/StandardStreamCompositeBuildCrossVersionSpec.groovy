@@ -23,27 +23,23 @@ import spock.lang.Ignore
 
 class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def escapeHeader = "\u001b["
-    def stdOutStream = new ByteArrayOutputStream()
-    def stdErrStream = new ByteArrayOutputStream()
 
     def "can receive stdout and stderr with model requests"() {
         given:
+        OutputStream stdOut = new ByteArrayOutputStream()
+        OutputStream stdErr = new ByteArrayOutputStream()
         def builds = createBuildsThatLogMessages(numberOfParticipants)
         when:
         withCompositeConnection(builds) { GradleConnection connection ->
             def modelBuilder = connection.models(EclipseProject)
-            modelBuilder.setStandardOutput(stdOutStream)
-            modelBuilder.setStandardError(stdErrStream)
+            modelBuilder.setStandardOutput(stdOut)
+            modelBuilder.setStandardError(stdErr)
             modelBuilder.get()
         }
         then:
-        !stdOut.contains(escapeHeader)
-        numberOfParticipants.times {
-            assertConfigured("build-$it")
-        }
-
-        !stdOut.contains("Stdout from task execution")
-        !stdErr.contains("Stdout from task execution")
+        !stdOut.toString().contains(escapeHeader)
+        stdOut.toString().count("Stdout from configuration") == numberOfParticipants
+        stdErr.toString().count("Stderr from configuration") == numberOfParticipants
 
         where:
         numberOfParticipants << [ 1, 3 ]
@@ -51,49 +47,44 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
 
     def "can receive stdout and stderr with build launcher"() {
         given:
+        OutputStream stdOut = new ByteArrayOutputStream()
+        OutputStream stdErr = new ByteArrayOutputStream()
         def builds = createBuildsThatLogMessages(numberOfParticipants)
         when:
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "log")
-            buildLauncher.setStandardOutput(stdOutStream)
-            buildLauncher.setStandardError(stdErrStream)
+            buildLauncher.setStandardOutput(stdOut)
+            buildLauncher.setStandardError(stdErr)
             buildLauncher.run()
         }
         then:
-        !stdOut.contains(escapeHeader)
-        assertConfigured("build-0")
-        assertTaskExecuted("build-0")
+        !stdOut.toString().contains(escapeHeader)
+        stdOut.toString().count("Stdout from configuration") == 1
+        stdErr.toString().count("Stderr from configuration") == 1
+        stdOut.toString().count("Stdout from task execution") == 1
+        stdErr.toString().count("Stderr from task execution") == 1
 
         where:
         numberOfParticipants << [ 1, 3 ]
-    }
-
-    private void assertConfigured(String project) {
-        assert stdOut.contains("Stdout from configuration of ${project}")
-        assert stdErr.contains("Stderr from configuration of ${project}")
-    }
-
-    private void assertTaskExecuted(String project) {
-        assert stdOut.contains("Stdout from task execution in ${project}")
-        assert stdErr.contains("Stderr from task execution in ${project}")
     }
 
     @TargetGradleVersion(">=2.3")
     @Ignore("We do not support forTasks(String) on a composite connection for now")
     def "can colorize output with model requests"() {
         given:
+        OutputStream stdOut = new ByteArrayOutputStream()
         def builds = createBuildsThatLogMessages(numberOfParticipants)
         when:
         withCompositeConnection(builds) { GradleConnection connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.forTasks("log")
-            modelBuilder.setStandardOutput(stdOutStream)
+            modelBuilder.setStandardOutput(stdOut)
             modelBuilder.colorOutput = true
             modelBuilder.get()
         }
         then:
-        stdOut.count("UP-TO-DATE" + escapeHeader) == numberOfParticipants
+        stdOut.toString().count("UP-TO-DATE" + escapeHeader) == numberOfParticipants
 
         where:
         numberOfParticipants << [ 1, 3 ]
@@ -102,17 +93,18 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
     @TargetGradleVersion(">=2.3")
     def "can colorize output with build launcher"() {
         given:
+        OutputStream stdOut = new ByteArrayOutputStream()
         def builds = createBuildsThatLogMessages(numberOfParticipants)
         when:
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "alwaysUpToDate")
-            buildLauncher.setStandardOutput(stdOutStream)
+            buildLauncher.setStandardOutput(stdOut)
             buildLauncher.colorOutput = true
             buildLauncher.run()
         }
         then:
-        stdOut.count("UP-TO-DATE" + escapeHeader) == 1
+        stdOut.toString().count("UP-TO-DATE" + escapeHeader) == 1
 
         where:
         numberOfParticipants << [ 1, 3 ]
@@ -123,6 +115,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
     @Ignore("setStandardInput unsupported by ModelBuilder and BuildLauncher")
     def "can provide standard input to composite when executing tasks"() {
         given:
+        OutputStream stdOut = new ByteArrayOutputStream()
         InputStream stdIn = new ByteArrayInputStream(("Hello Gradle\n"*numberOfParticipants).bytes)
         def builds = createBuildsThatExpectInput(numberOfParticipants)
         when:
@@ -130,12 +123,12 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "log")
             buildLauncher.setStandardInput(stdIn)
-            buildLauncher.setStandardOutput(stdOutStream)
+            buildLauncher.setStandardOutput(stdOut)
             buildLauncher.run()
         }
         then:
         noExceptionThrown()
-        stdOut.count("Hello Gradle") == 1
+        stdOut.toString().count("Hello Gradle") == 1
         where:
         numberOfParticipants << [ 1, 3 ]
     }
@@ -143,13 +136,14 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
     @Ignore("setStandardInput unsupported by ModelBuilder and BuildLauncher")
     def "can provide standard input to composite when requesting models"() {
         given:
+        OutputStream stdOut = new ByteArrayOutputStream()
         InputStream stdIn = new ByteArrayInputStream(("Hello Gradle\n"*numberOfParticipants).bytes)
         def builds = createBuildsThatExpectInput(numberOfParticipants)
         when:
         def modelRequests = withCompositeConnection(builds) { GradleConnection connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.setStandardInput(stdIn)
-            modelBuilder.setStandardOutput(stdOutStream)
+            modelBuilder.setStandardOutput(stdOut)
             modelBuilder.get()
         }
         then:
@@ -157,7 +151,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
         modelRequests.each {
             assert it.failure == null
         }
-        stdOut.count("Hello Gradle") == numberOfParticipants
+        stdOut.toString().count("Hello Gradle") == numberOfParticipants
 
         where:
         numberOfParticipants << [ 1, 3 ]
@@ -168,16 +162,16 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
 """
         task log {
             doLast {
-                System.out.println("Stdout from task execution in \${project.name}")
-                System.err.println("Stderr from task execution in \${project.name}")
+                System.out.println("Stdout from task execution")
+                System.err.println("Stderr from task execution")
             }
         }
         task alwaysUpToDate {
             outputs.upToDateWhen { true }
         }
 
-        System.out.println("Stdout from configuration of \${project.name}")
-        System.err.println("Stderr from configuration of \${project.name}")
+        System.out.println("Stdout from configuration")
+        System.err.println("Stderr from configuration")
 """)
     }
 
@@ -204,13 +198,5 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
             }
         }
         builds
-    }
-
-    private String getStdOut() {
-        stdOutStream.toString()
-    }
-
-    private String getStdErr() {
-        stdErrStream.toString()
     }
 }
