@@ -33,12 +33,15 @@ import org.junit.Rule
 class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
+    // TODO:DAZ Fix cancellation for integrated composite
+    void setup() {
+        skipIntegratedComposite()
+    }
+
     def cancellationHookText(File cancelledFile, File executedAfterCancellingFile) {
         """
         import org.gradle.initialization.BuildCancellationToken
         import java.util.concurrent.CountDownLatch
-
-        if (!project.hasProperty('waitForCancellation')) { return } // Ignore this stuff when we're creating the composite context
 
         def cancellationToken = services.get(BuildCancellationToken.class)
 
@@ -86,7 +89,6 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         withCompositeConnection([build1, build2, build3]) { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withCancellationToken(cancellationToken.token())
-            modelBuilder.withArguments("-PwaitForCancellation")
             // async ask for results
             modelBuilder.get(resultHandler)
             // wait for model requests to start
