@@ -14,7 +14,7 @@ Following these simple steps can help ensure that your code contribution ends up
 
 This is the general process for contributing code to the Gradle project.
 
-1. Complete and electronically sign a [Gradleware CLA](http://gradle.org/contributor-license-agreement/).
+1. Complete and electronically sign a [Gradle CLA](http://gradle.org/contributor-license-agreement/).
 You'll need to sign one of these before any code contributions can be accepted into the Gradle codebase.
 2. Before starting to work on a feature or a fix, it's generally a good idea to open a discussion about your proposed changes on the [Gradle Developer List](https://groups.google.com/forum/#!forum/gradle-dev).
 Doing so helps to ensure that:
