@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -28,49 +27,40 @@ import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.initialization.GradleLauncher;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.invocation.BuildController;
 
-import java.io.File;
 import java.util.Set;
 
-public class CompositeContextBuilder {
+public class CompositeContextBuilder implements BuildActionRunner {
     private final DefaultCompositeBuildContext context = new DefaultCompositeBuildContext();
-    private final GradleLauncherFactory launcherFactory;
     private final boolean propagateFailures;
 
-    public CompositeContextBuilder(GradleLauncherFactory launcherFactory, boolean propagateFailures) {
-        this.launcherFactory = launcherFactory;
+    public CompositeContextBuilder(boolean propagateFailures) {
         this.propagateFailures = propagateFailures;
     }
 
-    public void addParticipant(File rootDir) {
-        // TODO:DAZ Need to de-duplicate the build names
-        String name = rootDir.getName();
-
-        StartParameter startParameter = new StartParameter();
-        startParameter.setSearchUpwards(false);
-        startParameter.setProjectDir(rootDir);
-
-        GradleLauncher gradleLauncher = launcherFactory.newInstance(startParameter);
+    @Override
+    public void run(BuildAction action, BuildController buildController) {
         try {
-            GradleInternal gradle = (GradleInternal) gradleLauncher.getBuildAnalysis().getGradle();
-            for (Project project : gradle.getRootProject().getAllprojects()) {
-                registerProject(name, (ProjectInternal) project);
+            GradleInternal gradle = buildController.configure();
+            ProjectInternal rootProject = gradle.getRootProject();
+
+            String participantName = rootProject.getProjectDir().getName();
+            for (Project project : rootProject.getAllprojects()) {
+                registerProject(participantName, (ProjectInternal) project);
             }
         } catch(ReportedException e) {
             // Ignore exceptions creating composite context
             // TODO:DAZ Handle this better. Test coverage.
-            // TODO:DAZ Switch this back on
-//            if (propagateFailures) {
-//                throw e;
-//            }
-        } finally {
-            gradleLauncher.stop();
+            if (propagateFailures) {
+                throw e;
+            }
         }
     }
 
