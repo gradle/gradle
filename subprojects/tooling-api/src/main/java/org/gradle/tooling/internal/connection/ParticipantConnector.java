@@ -29,18 +29,12 @@ import java.util.concurrent.TimeUnit;
 class ParticipantConnector {
     private final GradleParticipantBuild build;
     private final File gradleUserHome;
-    private final File projectDirectory;
     private final File daemonBaseDir;
     private final Integer daemonMaxIdleTimeValue;
     private final TimeUnit daemonMaxIdleTimeUnits;
 
     public ParticipantConnector(GradleParticipantBuild build, File gradleUserHome, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
-        this(build, build.getProjectDir(), gradleUserHome, daemonBaseDir, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
-    }
-
-    private ParticipantConnector(GradleParticipantBuild build, File projectDirectory, File gradleUserHome, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
         this.build = build;
-        this.projectDirectory = projectDirectory;
         this.gradleUserHome = gradleUserHome;
         this.daemonBaseDir = daemonBaseDir;
         this.daemonMaxIdleTimeValue = daemonMaxIdleTimeValue;
@@ -56,7 +50,7 @@ class ParticipantConnector {
     }
 
     public ProjectConnection connect() {
-        return connector().forProjectDirectory(projectDirectory).connect();
+        return connector().forProjectDirectory(build.getProjectDir()).connect();
     }
 
     private GradleConnector connector() {
@@ -68,15 +62,9 @@ class ParticipantConnector {
         if (daemonMaxIdleTimeValue != null) {
             connector.daemonMaxIdleTime(daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits);
         }
-        if (isRoot()) {
-            connector.searchUpwards(false);
-        }
+        connector.searchUpwards(false);
         configureDistribution(connector);
         return connector;
-    }
-
-    private boolean isRoot() {
-        return build.getProjectDir().equals(projectDirectory);
     }
 
     private void configureDistribution(GradleConnector connector) {
