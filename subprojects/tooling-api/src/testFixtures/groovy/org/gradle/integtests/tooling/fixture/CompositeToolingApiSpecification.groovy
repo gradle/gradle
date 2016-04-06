@@ -26,15 +26,15 @@ import org.gradle.util.GradleVersion
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
 @TargetGradleVersion(">=1.0")
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
-    boolean integratedComposite = true
+    boolean executeTestWithIntegratedComposite = true
 
     void skipIntegratedComposite() {
-        integratedComposite = false
+        executeTestWithIntegratedComposite = false
     }
 
     static GradleVersion getTargetDistVersion() {
         // Create a copy to work around classloader issues
-        GradleVersion.version(targetDist.version.baseVersion.version)
+        GradleVersion.version(targetDist.version.version)
     }
 
     GradleConnection createComposite(File... rootProjectDirectories) {
@@ -54,11 +54,24 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     GradleConnectionBuilder createCompositeBuilder() {
         def builder = toolingApi.createCompositeBuilder()
 
-        // TODO:DAZ This isn't quite right: we should be performing _both_ integrated and non-integrated tests for this version
-        if (integratedComposite && targetDist.version == GradleVersion.current()) {
+        // TODO:DAZ This isn't quite right: we should be testing _both_ integrated and non-integrated composite for version that support both
+        def toolingApiVersion = GradleVersion.current()
+        if (executeTestWithIntegratedComposite && supportsIntegratedComposites(toolingApiVersion, targetDistVersion)) {
             builder.integratedComposite(true)
+            builder.useInstallation(targetDist.gradleHomeDir.absoluteFile)
+
+            // TODO:DAZ Ensure that embedded coordinator is robust before enabling on CI
+//            builder.embeddedCoordinator(embedded)
+//            if (useClasspathImplementation) {
+//                builder.useClasspathDistribution()
+//            }
         }
         return builder
+    }
+
+    boolean supportsIntegratedComposites(GradleVersion toolingApiVersion, GradleVersion targetGradleVersion) {
+        def versionSpec = GradleVersionSpec.toSpec(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
+        return versionSpec.isSatisfiedBy(toolingApiVersion) && versionSpec.isSatisfiedBy(targetGradleVersion)
     }
 
     void addCompositeParticipant(GradleConnectionBuilder builder, File rootDir) {
