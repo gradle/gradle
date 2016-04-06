@@ -61,7 +61,10 @@ compile
     }
 
     private static boolean targetSupportsSubstitution() {
-        targetDistVersion.baseVersion >= GradleVersion.version("2.14")
+        def targetBaseVersion = targetDistVersion.baseVersion
+        def supportsSubstitution = targetBaseVersion >= GradleVersion.version("2.14")
+        println "Checking if ${targetBaseVersion} supports substitution: " + supportsSubstitution
+        return supportsSubstitution
     }
 
     def getOutput() {
