@@ -112,6 +112,19 @@ The [Signing plugin](userguide/signing_plugin.html#sec:subkeys) now supports sub
 
 This was contributed by [Marcin Zajączkowski](https://github.com/szpak).
 
+### Project.findProperty() method for safer property lookups
+
+Often builds fail when a property cannot be found.  Before [the Project.findProperty() method](dsl/org.gradle.api.Project.html#org.gradle.api.Project:findProperty\(java.lang.String\)),
+build script authors often had to write code like the following to provide a default value for properties that might not have been set.
+
+    def myValue = hasProperty('myKey') ? getProperty('myKey') : 'defaultValue'
+
+The new `Project.findProperty()` method will return null if the property is not found, so the above check can be simplified to:
+
+    def myValue = findProperty('myKey') ?: 'defaultValue'
+
+This feature was contributed by [Marcin Zajączkowski](https://github.com/szpak)
+
 <!--
 ## Promoted features
 
