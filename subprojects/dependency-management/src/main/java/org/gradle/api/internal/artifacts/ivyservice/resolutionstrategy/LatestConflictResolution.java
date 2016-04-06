@@ -22,4 +22,13 @@ import org.gradle.api.artifacts.ConflictResolution;
  * Latest resolution strategy
  */
 public class LatestConflictResolution implements ConflictResolution {
+    private boolean projectPriority = true;
+
+    public boolean isProjectPriority() {
+        return projectPriority;
+    }
+
+    public void setProjectPriority(boolean projectPriority) {
+        this.projectPriority = projectPriority;
+    }
 }

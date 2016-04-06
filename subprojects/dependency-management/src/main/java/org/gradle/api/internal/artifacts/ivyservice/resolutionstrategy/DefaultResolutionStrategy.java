@@ -80,6 +80,14 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
+    public ResolutionStrategy disableProjectPriority() {
+        mutationValidator.validateMutation(STRATEGY);
+        if (this.conflictResolution instanceof LatestConflictResolution) {
+            ((LatestConflictResolution) this.conflictResolution).setProjectPriority(false);
+        }
+        return this;
+    }
+
     public ConflictResolution getConflictResolution() {
         return this.conflictResolution;
     }
@@ -168,6 +176,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
         if (conflictResolution instanceof StrictConflictResolution) {
             out.failOnVersionConflict();
+        } else if (conflictResolution instanceof LatestConflictResolution && !((LatestConflictResolution) conflictResolution).isProjectPriority()) {
+            out.disableProjectPriority();
         }
         out.setForcedModules(getForcedModules());
         out.getComponentSelection().getRules().addAll(componentSelectionRules.getRules());

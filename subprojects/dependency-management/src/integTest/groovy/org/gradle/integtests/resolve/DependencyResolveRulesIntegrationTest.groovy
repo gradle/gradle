@@ -20,6 +20,7 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
+import spock.lang.Unroll
 
 @RunWith(FluidDependenciesResolveRunner)
 class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
@@ -66,6 +67,88 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("check")
     }
 
+    @Unroll
+    void "project dependency (#versionInProject) vs external dependency (#versionExternal) resolved in favor of #winner, when disableProjectPriority=#disableProjectPriority and forcedVersion=#forcedVersion"()
+    {
+        mavenRepo.module("org.utils", "api", versionExternal).publish()
+        if (forcedVersion!=null && forcedVersion!='project' && forcedVersion!=versionExternal) {
+            mavenRepo.module("org.utils", "api", forcedVersion).publish()
+        }
+        mavenRepo.module("org.utils", "api-ext", '1.0').dependsOn("org.utils", "api", versionExternal).publish()
+        settingsFile << 'include "api", "moduleA", "moduleB"'
+
+        def projectPrioritySetting = disableProjectPriority ? 'disableProjectPriority()' : ''
+        String apiDependency = forcedVersion==null && forcedVersion!='project'?
+            'conf project(":api")' : "conf ('org.utils:api:$forcedVersion') { force = true }"
+
+        String substitutionSetting = forcedVersion == 'project'?
+            "dependencySubstitution { substitute module('org.utils:api') with project(':api') }" : ''
+
+        buildFile << """
+            project(":api") {
+                group "org.utils"
+                version = $versionInProject
+
+                $common
+                configurations.create("default").extendsFrom(configurations.conf)
+            }
+
+            project(":moduleA") {
+                $common
+                configurations.create("default").extendsFrom(configurations.conf)
+                dependencies {
+                    conf project(":api")
+                }
+            }
+
+            project(":moduleB") {
+
+                $common
+                configurations.create("default").extendsFrom(configurations.conf)
+
+                dependencies {
+                    conf "org.utils:api:1.0"
+                    conf "org.utils:api-ext:1.0"
+                    conf project(":moduleA")
+                    $apiDependency
+                }
+
+                configurations.conf.resolutionStrategy{
+                    $projectPrioritySetting
+                    $substitutionSetting
+                }
+
+                task check << {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    def apiProjectDependency = deps.find {
+                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
+                        it.requested.matchesStrictly(projectId(":api"))
+                    }
+                    assert apiProjectDependency && apiProjectDependency.selected.componentId == $winner
+                }
+            }
+
+            def moduleId(String group, String name, String version) {
+                return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(group, name, version)
+            }
+
+            def projectId(String projectPath) {
+                return org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newId(projectPath)
+            }
+
+"""
+        expect:
+        succeeds "moduleB:check"
+
+        where:
+        versionInProject | versionExternal  | winner                                | disableProjectPriority | forcedVersion
+        "1.6"            | "2.0"            | 'projectId(":api")'                   | false                  | null
+        "1.6"            | "2.0"            | 'moduleId("org.utils", "api", "2.0")' | true                   | null
+        "3.0"            | "2.0"            | 'moduleId("org.utils", "api", "1.5")' | false                  | '1.5'
+        "1.6"            | "2.0"            | 'projectId(":api")'                   | true                   | 'project'
+        "1.6"            | "1.6"            | 'projectId(":api")'                   | false                  | null
+        "1.6"            | "1.6"            | 'projectId(":api")'                   | true                   | null
+    }
 
     void "forces multiple modules by rule"()
     {

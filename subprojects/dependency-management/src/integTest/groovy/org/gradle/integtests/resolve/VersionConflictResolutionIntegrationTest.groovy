@@ -635,6 +635,10 @@ repositories {
 dependencies {
     compile "org:other:1.7"
 }
+
+configurations.all {
+    resolutionStrategy.disableProjectPriority()
+}
 """
 
         def resolve = new ResolveTestFixture(buildFile)
