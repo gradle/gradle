@@ -53,16 +53,19 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
         throw new InvalidUserDataException(String.format("ToolChain with name '%s' added multiple times", toolChain.getName()));
     }
 
+    @Override
     public void registerDefaultToolChain(String name, Class<? extends NativeToolChain> type) {
         registeredDefaults.put(name, type);
     }
 
+    @Override
     public void addDefaultToolChains() {
         for (String name : registeredDefaults.keySet()) {
             create(name, registeredDefaults.get(name));
         }
     }
 
+    @Override
     public NativeToolChain getForPlatform(NativePlatform targetPlatform) {
         for (NativeToolChainInternal toolChain : searchOrder) {
             if (toolChain.select((NativePlatformInternal) targetPlatform).isAvailable()) {
@@ -88,10 +91,12 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
             this.candidates = candidates;
         }
 
+        @Override
         public boolean isAvailable() {
             return false;
         }
 
+        @Override
         public void explain(TreeVisitor<? super String> visitor) {
             visitor.node(String.format("No tool chain is available to build for platform '%s'", targetPlatform.getName()));
             visitor.startChildren();
@@ -115,18 +120,22 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
             this.failure = failure;
         }
 
+        @Override
         public String getDisplayName() {
             return getName();
         }
 
+        @Override
         public String getName() {
             return "unavailable";
         }
 
+        @Override
         public PlatformToolProvider select(NativePlatformInternal targetPlatform) {
             return new UnavailablePlatformToolProvider(targetPlatform.getOperatingSystem(), failure);
         }
 
+        @Override
         public String getOutputType() {
             return "unavailable";
         }

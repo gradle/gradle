@@ -16,7 +16,7 @@
 
 package org.gradle.play.internal.run
 
-import org.gradle.process.internal.WorkerProcess
+import org.gradle.process.internal.worker.WorkerProcess
 import spock.lang.Specification
 
 class PlayApplicationRunnerTokenTest extends Specification {

@@ -15,7 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
-import org.gradle.language.nativeplatform.internal.SourceIncludes
+import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -33,10 +33,9 @@ class DefaultSourceIncludesResolverTest extends Specification {
     def includesParser = Mock(SourceIncludesParser)
     def includes
     def includePaths = [ ]
-    Set<File> candidates = [] as Set
 
     def setup() {
-        includes = Mock(SourceIncludes)
+        includes = Mock(IncludeDirectives)
         includesParser.parseIncludes(sourceFile) >> includes
         includes.getQuotedIncludes() >> { quotedIncludes.collect { include(it) } }
         includes.getSystemIncludes() >> { systemIncludes.collect { include(it) } }
@@ -48,7 +47,11 @@ class DefaultSourceIncludesResolverTest extends Specification {
     }
 
     def getDependencies() {
-        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes, candidates) as List
+        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes).getResolvedIncludes() as List
+    }
+
+    def getCandidates() {
+        return new DefaultSourceIncludesResolver(includePaths).resolveIncludes(sourceFile, includes).getCheckedLocations() as List
     }
 
     def "handles source file with no includes"() {

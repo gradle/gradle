@@ -36,14 +36,17 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskConfig {
+    @Override
     public String getTaskPrefix() {
         return "compile";
     }
 
+    @Override
     public Class<? extends DefaultTask> getTaskType() {
         return WindowsResourceCompile.class;
     }
 
+    @Override
     public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
         configureResourceCompileTask((WindowsResourceCompile) task, (NativeBinarySpecInternal) binary, (WindowsResourceSet) sourceSet);
     }

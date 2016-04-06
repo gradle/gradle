@@ -32,7 +32,7 @@ import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.nativeplatform.internal.Include;
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme;
 import org.gradle.util.CollectionUtils;
 
@@ -62,20 +62,23 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> implements Com
         this.buildOperationProcessor = buildOperationProcessor;
     }
 
-    public WorkResult execute(T spec) {
+    @Override
+    public WorkResult execute(final T spec) {
         final T transformedSpec = specTransformer.transform(spec);
         final List<String> genericArgs = getArguments(transformedSpec);
-        final BuildOperationQueue<CommandLineToolInvocation> buildQueue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
 
-        File objectDir = transformedSpec.getObjectFileDir();
-        for (File sourceFile : transformedSpec.getSourceFiles()) {
-            CommandLineToolInvocation perFileInvocation =
-                    createPerFileInvocation(genericArgs, sourceFile, objectDir, spec);
-            buildQueue.add(perFileInvocation);
-        }
-
-        // Wait on all executions to complete or fail
-        buildQueue.waitForCompletion();
+        final File objectDir = transformedSpec.getObjectFileDir();
+        buildOperationProcessor.run(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+            @Override
+            public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
+                buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
+                for (File sourceFile : transformedSpec.getSourceFiles()) {
+                    CommandLineToolInvocation perFileInvocation =
+                        createPerFileInvocation(genericArgs, sourceFile, objectDir, spec);
+                    buildQueue.add(perFileInvocation);
+                }
+            }
+        });
 
         return new SimpleWorkResult(!transformedSpec.getSourceFiles().isEmpty());
     }
@@ -124,7 +127,7 @@ public abstract class NativeCompiler<T extends NativeCompileSpec> implements Com
             return Lists.newArrayList();
         }
 
-        final SourceIncludes includes = spec.getSourceFileIncludes().get(sourceFile);
+        final IncludeDirectives includes = spec.getSourceFileIncludeDirectives().get(sourceFile);
         final String header = spec.getPreCompiledHeader();
 
         List<Include> headers = includes.getIncludesAndImports();

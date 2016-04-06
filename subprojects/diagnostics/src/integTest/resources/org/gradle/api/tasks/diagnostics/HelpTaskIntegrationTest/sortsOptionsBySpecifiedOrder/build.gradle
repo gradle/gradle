@@ -1,0 +1,22 @@
+import org.gradle.api.internal.tasks.options.Option
+
+task hello(type: CustomTask)
+
+class CustomTask extends DefaultTask {
+
+    @TaskAction
+    void doSomething() {
+    }
+
+    @Option(option = "valueB", description = "descB", order = 1)
+    public void setValueB(boolean value) {
+    }
+
+    @Option(option = "valueA", description = "descA", order = 2)
+    public void setValueA(boolean value) {
+    }
+
+    @Option(option = "valueC", description = "descC", order = 0)
+    public void setValueC(boolean value) {
+    }
+}

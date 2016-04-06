@@ -29,6 +29,7 @@ public class NativePlatformResolver implements PlatformResolver<NativePlatform> 
         this.nativePlatforms = nativePlatforms;
     }
 
+    @Override
     public Class<NativePlatform> getType() {
         return NativePlatform.class;
     }

@@ -32,11 +32,11 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-import org.gradle.logging.LoggingConfiguration;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.logging.internal.LoggingCommandLineConverter;
+import org.gradle.internal.logging.LoggingConfiguration;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.LoggingServiceRegistry;
+import org.gradle.internal.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.internal.LoggingCommandLineConverter;
 import org.gradle.util.GradleVersion;
 
 import java.io.PrintStream;
@@ -200,10 +200,14 @@ public class CommandLineActionFactory {
             loggingManager.setLevel(loggingConfiguration.getLogLevel());
             loggingManager.start();
 
-            NativeServices.initialize(buildLayout.getGradleUserHomeDir());
-            loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
+            try {
+                NativeServices.initialize(buildLayout.getGradleUserHomeDir());
+                loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
 
-            action.execute(executionListener);
+                action.execute(executionListener);
+            } finally {
+                loggingManager.stop();
+            }
         }
     }
 

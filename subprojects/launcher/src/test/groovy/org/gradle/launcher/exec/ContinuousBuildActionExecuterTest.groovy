@@ -32,7 +32,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.PluginServiceRegistry
-import org.gradle.logging.TestStyledTextOutputFactory
+import org.gradle.internal.logging.TestStyledTextOutputFactory
 import org.gradle.util.Clock
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
@@ -260,7 +260,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private ContinuousBuildActionExecuter executer(JavaVersion javaVersion = JavaVersion.VERSION_1_7) {
-        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, OperatingSystem.current(), executorFactory, waiterFactory)
+        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, OperatingSystem.current(), executorFactory, waiterFactory, null)
     }
 
 }

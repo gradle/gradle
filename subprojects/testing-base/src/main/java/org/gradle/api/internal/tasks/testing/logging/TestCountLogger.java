@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks.testing.logging;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.ProgressLogger;
+import org.gradle.internal.logging.ProgressLoggerFactory;
 import org.gradle.util.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,14 +44,16 @@ public class TestCountLogger implements TestListener {
         this.logger = logger;
     }
 
+    @Override
     public void beforeTest(TestDescriptor testDescriptor) {
+        progressLogger.progress(summary());
     }
 
+    @Override
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         totalTests += result.getTestCount();
         failedTests += result.getFailedTestCount();
         skippedTests += result.getSkippedTestCount();
-        progressLogger.progress(summary());
     }
 
     private String summary() {
@@ -80,6 +82,7 @@ public class TestCountLogger implements TestListener {
         }
     }
 
+    @Override
     public void beforeSuite(TestDescriptor suite) {
         if (suite.getParent() == null) {
             progressLogger = factory.newOperation(TestCountLogger.class);
@@ -88,8 +91,11 @@ public class TestCountLogger implements TestListener {
         }
     }
 
+    @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
         if (suite.getParent() == null) {
+            progressLogger.progress(summary());
+
             if (failedTests > 0) {
                 logger.error(TextUtil.getPlatformLineSeparator() + summary());
             }

@@ -65,7 +65,7 @@ public class DefaultNodeInitializerRegistry implements NodeInitializerRegistry {
         ImmutableSortedSet.Builder<ModelType<?>> constructibleTypes = ImmutableSortedSet.orderedBy(ModelTypes.displayOrder());
         for (NodeInitializerExtractionStrategy extractor : additionalStrategies) {
             for (ModelType<?> constructibleType : extractor.supportedTypes()) {
-                if (context.getBaseType().isAssignableFrom(constructibleType)) {
+                if (context.getConstraints().isSatisfiedBy(constructibleType)) {
                     constructibleTypes.add(constructibleType);
                 }
             }

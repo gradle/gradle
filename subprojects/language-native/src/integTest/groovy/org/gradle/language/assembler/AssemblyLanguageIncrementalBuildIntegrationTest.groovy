@@ -113,7 +113,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         then:
         executedAndNotSkipped ":assembleHelloSharedLibraryHelloAsm"
 
-        // TODO:DAZ Need to have valid x86-64 sources, so that we can verify the output: currently we're producing a binary that won't work on x86-64
+        // Need to have valid x86-64 sources, so that we can verify the output: currently we're producing a binary that won't work on x86-64
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})

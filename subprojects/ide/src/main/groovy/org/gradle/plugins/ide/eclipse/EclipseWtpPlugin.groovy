@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ear.EarPlugin
@@ -180,13 +181,13 @@ class EclipseWtpPlugin extends IdePlugin {
 
                 facet.conventionMapping.facets = {
                     [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.installed, "jst.utility", "1.0"),
-                     new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))]
+                     new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.convention.getPlugin(JavaPluginConvention).sourceCompatibility))]
                 }
             }
             project.plugins.withType(WarPlugin) {
                 facet.conventionMapping.facets = {
                     [new Facet(FacetType.fixed, "jst.java", null), new Facet(FacetType.fixed, "jst.web", null),
-                     new Facet(FacetType.installed, "jst.web", "2.4"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.sourceCompatibility))]
+                     new Facet(FacetType.installed, "jst.web", "2.4"), new Facet(FacetType.installed, "jst.java", toJavaFacetVersion(project.convention.getPlugin(JavaPluginConvention).sourceCompatibility))]
                 }
             }
             project.plugins.withType(EarPlugin) {

@@ -15,152 +15,255 @@
  */
 package org.gradle.integtests.resolve.http
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.SetSystemProperties
+import org.hamcrest.Matchers
 import org.junit.Rule
 import spock.lang.Unroll
 
 abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
     protected TestProxyServer testProxyServer
+    def MavenHttpModule module
 
     @Rule
     TestProxyServer getProxyServer() {
         if (testProxyServer == null) {
-            testProxyServer = new TestProxyServer(server)
+            testProxyServer = new TestProxyServer()
         }
         return testProxyServer
     }
 
-    public void "uses configured proxy to access remote HTTP repository"() {
-        proxyServer.start()
+    abstract MavenHttpRepository getRepo()
+    abstract String getProxyScheme()
+    abstract String getRepoServerUrl()
+    abstract boolean isTunnel()
+    abstract void setupServer()
 
+    def setup() {
+        module = repo.module("org.gradle.test", "some-lib", "1.2.17").publish()
+        buildFile << """
+configurations { compile }
+dependencies { compile 'org.gradle.test:some-lib:1.2.17' }
+task listJars << {
+    assert configurations.compile.collect { it.name } == ['some-lib-1.2.17.jar']
+}
+"""
+    }
+
+    def "uses configured proxy to access remote repository"() {
         given:
-        def repo = ivyHttpRepo
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
+        proxyServer.start()
+        setupServer()
 
         and:
         buildFile << """
 repositories {
-    ivy { url "http://not.a.real.domain/repo" }
-}
-configurations { compile }
-dependencies { compile 'group:projectA:1.2' }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    maven { url "${repoServerUrl}" }
 }
 """
-
         when:
-        executer.withArguments("-D${proxyScheme}.proxyHost=localhost", "-D${proxyScheme}.proxyPort=${proxyServer.port}")
-        addAdditionalArguments()
-
-        and:
-        module.ivy.expectGet()
-        module.jar.expectGet()
+        configureProxy()
+        module.allowAll()
 
         then:
         succeeds('listJars')
 
         and:
-        proxyServer.requestCount == 2
+        if (isTunnel()) {
+            proxyServer.requestCount == 1
+        } else {
+            proxyServer.requestCount == 2
+        }
     }
 
-    public void "uses authenticated proxy to access remote HTTP repository"() {
-        proxyServer.start()
-
+    def "reports proxy not running at configured location"() {
         given:
-        def repo = ivyHttpRepo
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
+        proxyServer.start()
+        proxyServer.stop()
+        setupServer()
 
         and:
         buildFile << """
 repositories {
-    ivy {
-        url "http://not.a.real.domain/repo"
-    }
-}
-configurations { compile }
-dependencies { compile 'group:projectA:1.2' }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    maven { url "${repoServerUrl}" }
 }
 """
-
         when:
-        executer.withArguments("-D${proxyScheme}.proxyHost=localhost", "-D${proxyScheme}.proxyPort=${proxyServer.port}", "-D${proxyScheme}.nonProxyHosts=foo",
-                               "-D${proxyScheme}.proxyUser=proxyUser", "-D${proxyScheme}.proxyPassword=proxyPassword")
-        addAdditionalArguments()
+        configureProxy()
+        module.allowAll()
+
+        then:
+        fails('listJars')
 
         and:
-        proxyServer.requireAuthentication('proxyUser', 'proxyPassword')
+        failure.assertHasCause("Could not resolve org.gradle.test:some-lib:1.2.17.")
+        failure.assertHasCause("Could not get resource '${module.pom.uri}'")
+        failure.assertThatCause(Matchers.containsString("Connection refused"))
+    }
+
+    def "uses authenticated proxy to access remote repository"() {
+        given:
+        def (proxyUserName, proxyPassword) = ['proxyUser', 'proxyPassword']
+        proxyServer.start(proxyUserName, proxyPassword)
+        setupServer()
 
         and:
-        module.ivy.expectGet()
-        module.jar.expectGet()
+        buildFile << """
+repositories {
+    maven { url "${repoServerUrl}" }
+}
+"""
+        when:
+        configureProxy(proxyUserName, proxyPassword)
+        module.allowAll()
 
         then:
         succeeds('listJars')
 
         and:
-        proxyServer.requestCount == 2
+        if (isTunnel()) {
+            proxyServer.requestCount == 1
+        } else {
+            proxyServer.requestCount == 2
+        }
+    }
+
+    def "reports failure due to proxy authentication failure"() {
+        given:
+        def (proxyUserName, proxyPassword) = ['proxyUser', 'proxyPassword']
+        proxyServer.start(proxyUserName, proxyPassword)
+        setupServer()
+
+        and:
+        buildFile << """
+repositories {
+    maven { url "${repoServerUrl}" }
+}
+"""
+        when:
+        configureProxy(proxyUserName, "not-the-password")
+        module.allowAll()
+
+        then:
+        fails('listJars')
+
+        and:
+        failure.assertHasCause("Could not resolve org.gradle.test:some-lib:1.2.17.")
+        failure.assertHasCause("Could not get resource '${module.pom.uri}'")
+        failure.assertThatCause(Matchers.containsString("Proxy Authentication Required"))
+    }
+
+    def "uses configured proxy to access remote repository when both https.proxy and http.proxy are specified"() {
+        given:
+        proxyServer.start()
+        setupServer()
+
+        and:
+        buildFile << """
+repositories {
+    maven { url "${repoServerUrl}" }
+}
+"""
+        when:
+        configureProxy()
+        configureProxyHostFor("http")
+        configureProxyHostFor("https")
+        module.allowAll()
+
+        then:
+        succeeds('listJars')
+
+        and:
+        proxyServer.requestCount == (tunnel ? 1 : 2)
+    }
+
+    def "can resolve from repo with other proxy scheme configured"() {
+        given:
+        proxyServer.start()
+        setupServer()
+
+        and:
+        buildFile << """
+repositories {
+    maven { url "${repoServerUrl}" }
+}
+"""
+
+        when:
+        configureProxyHostFor(proxyScheme == 'https' ? 'http' : 'https')
+        module.allowAll()
+
+        then:
+        succeeds('listJars')
+
+        and:
+        proxyServer.requestCount == 0
     }
 
     @Unroll
-    public void "passes target credentials to #authScheme authenticated server via proxy"() {
-        proxyServer.start()
-
+    def "passes target credentials to #authScheme authenticated server via proxy"() {
         given:
-        def repo = ivyHttpRepo
-        def module = repo.module('group', 'projectA', '1.2')
-        module.publish()
+        def (proxyUserName, proxyPassword) = ['proxyUser', 'proxyPassword']
+        def (repoUserName, repoPassword) = ['targetUser', 'targetPassword']
+        proxyServer.start(proxyUserName, proxyPassword)
+        setupServer()
 
         and:
         buildFile << """
 repositories {
-    ivy {
-        url "http://not.a.real.domain/repo"
+    maven {
+        url "${repoServerUrl}"
         credentials {
-            username 'targetUser'
-            password 'targetPassword'
+            username '$repoUserName'
+            password '$repoPassword'
         }
     }
-}
-configurations { compile }
-dependencies { compile 'group:projectA:1.2' }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
 }
 """
 
         when:
         server.authenticationScheme = authScheme
-        executer.withArguments("-D${proxyScheme}.proxyHost=localhost", "-D${proxyScheme}.proxyPort=${proxyServer.port}", "-D${proxyScheme}.proxyUser=proxyUser", "-D${proxyScheme}.proxyPassword=proxyPassword")
-        addAdditionalArguments()
+        configureProxy(proxyUserName, proxyPassword)
 
         and:
-        proxyServer.requireAuthentication('proxyUser', 'proxyPassword')
-
-        and:
-        module.ivy.expectGet('targetUser', 'targetPassword')
-        module.jar.expectGet('targetUser', 'targetPassword')
+        module.pom.expectGet(repoUserName, repoPassword)
+        module.artifact.expectGet(repoUserName, repoPassword)
 
         then:
         succeeds('listJars')
 
         and:
-        // 1 extra request for authentication
-        proxyServer.requestCount == 3
+        // authentication
+        // pom and jar requests
+        proxyServer.requestCount == (tunnel ? 1 : requestCount)
 
         where:
-        authScheme << [HttpServer.AuthScheme.BASIC, HttpServer.AuthScheme.DIGEST]
+        authScheme                   | requestCount
+        HttpServer.AuthScheme.BASIC  | 3
+        HttpServer.AuthScheme.DIGEST | 3
+        HttpServer.AuthScheme.NTLM   | 4
     }
 
-    protected abstract String getProxyScheme();
+    def configureProxyHostFor(String scheme) {
+        executer.withArgument("-D${scheme}.proxyHost=localhost")
+        executer.withArgument("-D${scheme}.proxyPort=${proxyServer.port}")
+        // use proxy even when accessing localhost
+        executer.withArgument("-Dhttp.nonProxyHosts=${JavaVersion.current() >= JavaVersion.VERSION_1_7 ? '' : '~localhost'}")
+    }
 
-    protected void addAdditionalArguments() {}
+    def configureProxy(String userName=null, String password=null) {
+        configureProxyHostFor(proxyScheme)
+        if (userName) {
+            executer.withArgument("-D${proxyScheme}.proxyUser=${userName}")
+        }
+        if (password) {
+            executer.withArgument("-D${proxyScheme}.proxyPassword=${password}")
+        }
+    }
 }

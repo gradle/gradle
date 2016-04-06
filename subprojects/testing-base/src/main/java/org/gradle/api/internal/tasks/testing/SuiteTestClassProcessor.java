@@ -33,6 +33,7 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
         this.timeProvider = timeProvider;
     }
 
+    @Override
     public void startProcessing(TestResultProcessor testResultProcessor) {
         try {
             resultProcessor = new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(testResultProcessor, new JULRedirector()));
@@ -44,6 +45,7 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
         }
     }
 
+    @Override
     public void processTestClass(TestClassRunInfo testClass) {
         try {
             processor.processTestClass(testClass);
@@ -53,6 +55,7 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
         }
     }
 
+    @Override
     public void stop() {
         try {
             processor.stop();

@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.resource.ResourceException;
 
 public interface VersionPatternVisitor {
     /**

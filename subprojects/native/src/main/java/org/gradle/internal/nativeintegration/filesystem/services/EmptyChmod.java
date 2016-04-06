@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 class EmptyChmod implements FileModeMutator {
+    @Override
     public void chmod(File f, int mode) throws FileNotFoundException {
         if (!f.exists()) {
             throw new FileNotFoundException(String.format("File '%s' does not exist.", f));

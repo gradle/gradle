@@ -63,7 +63,7 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
         config.defaultDependencies { dependencies ->
             this.project.dependencies {
                 jdepend "jdepend:jdepend:${this.extension.toolVersion}"
-                jdepend("org.apache.ant:ant-jdepend:1.9.4")
+                jdepend("org.apache.ant:ant-jdepend:1.9.6")
             }
         }
         task.conventionMapping.with {

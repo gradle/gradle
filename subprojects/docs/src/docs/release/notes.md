@@ -6,48 +6,27 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Set the character set used for filtering files in CopySpec
+
+By default, file filtering using `CopySpec` uses the default platform character set to read and write filtered files.
+This can cause problems if, for example, the files are encoded using `UTF-8` but the default platform character set is another one.
+
+You can now define the character set to use when reading and writing filtered files per `CopySpec`, e.g.:
+
+    task filter(type: Copy) {
+        from 'some/place'
+        into 'somewhere/else'
+        expand(version: project.version)
+        filteringCharset = 'UTF-8'
+    }
+
+See the “[Filtering files](userguide/working_with_files.html#sec:filtering_files)” section of the “Working with files chapter” in the user guide for more information and examples of using this new feature.
+
+This was contributed by [Jean-Baptiste Nizet](https://github.com/jnizet).
+
 <!--
 ### Example new and noteworthy
 -->
-
-### IDE integration improvements
-
-
-#### Idea Plugin uses targetCompatibility for each subproject to determine module and project bytecode version
-
-The Gradle 'idea' plugin can generate configuration files allowing a Gradle build to be opened and developed in IntelliJ IDEA.
-Previous versions of Gradle did not consider any `targetCompatibility` settings for java projects.
-This behavior has been improved, so that the generated IDEA project will have a 'bytecode version' matching the highest targetCompatibility value for all imported subprojects.
-For a multi-project Gradle build that contains a mix of targetCompatibility values, the generated IDEA module for a sub-project will include an override for the appropriate 'module bytecode version' where it does not match that of the overall generated IDEA project.
-
-
-#### Scala support for Intellij IDEA versions 14 and later using 'idea' plugin
-
-Beginning with IntelliJ IDEA version 14 Scala projects are no longer configured using a project facet and instead use a
-[Scala SDK](http://blog.jetbrains.com/scala/2014/10/30/scala-plugin-update-for-intellij-idea-14-rc-is-out/1/) project library. This affects how the IDEA metadata should be
-generated. Using the 'idea' plugin in conjunction with Scala projects for newer IDEA version would cause errors due to the Scala facet being unrecognized. The 'idea' plugin
-now by default creates a Scala SDK project library as well as adds this library to all Scala modules. More information can be found in the
-[user guide](https://docs.gradle.org/current/userguide/scala_plugin.html#sec:intellij_idea_integration).
-
-This feature was contributed by [Nicklas Bondesson](https://github.com/nicklasbondesson).
-
-### Software model improvements
-
-#### Fine grained application of rules
-
-TBD - A new kind of rule method is now available, which can be used to apply additional rules to some target.
-
-This kind of method is annotated with `@Rules`. The first parameter defines a `RuleSource` type to apply, and the second parameter defines the target element to apply the rules to.
-
-Two new annotations have been added:
-
-- `@RuleInput` can be attached to a property of a `RuleSource` to indicate that the property defines an input for all rules on the `RuleSource`.
-- `@RuleTarget` can be attached to a property of a `RuleSource` to indicate that the property defines the target for the `RuleSource`.
-
-### The "scala-library" build init type uses the Zinc compiler by default
-
-When initializing a build with the "scala-library" build init type, the generated build now uses the [Zinc Scala comiler](https://github.com/typesafehub/zinc) by default.
-The Zinc compiler provides the benefit of being faster and more efficient than the Ant Scala compiler.
 
 ## Promoted features
 
@@ -75,21 +54,46 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-### Changes to 'idea' plugin Scala projects
+<!--
+### Example breaking change
+-->
 
-Scala projects using the 'idea' plugin now generate IntelliJ IDEA metadata targeting versions 14 and newer. Users of IDEA versions older than 14 will need to update
-their build scripts to specify that metadata should be generated for an earlier IDEA version.
+### Gradle implementation dependencies are not visible to plugins at development time
 
-    idea {
-        targetVersion = '13'
-    }
+Implementing a Gradle plugin requires the declaration of `gradleApi()`
+to the `compile` configuration. The resolved dependency encompasses the
+entire Gradle runtime including Gradle's third party dependencies
+(e.g. Guava). Any third party dependencies declared by the plugin might
+conflict with the ones pulled in by the `gradleApi()` declaration. Gradle
+does not apply conflict resolution. As a result The user will end up with
+two addressable copies of a dependency on the compile classpath and in
+ the test runtime classpath.
 
+In previous versions of Gradle the dependency `gradleTestKit()`, which
+relies on a Gradle runtime, attempts to address this problem via class
+relocation. The use of `gradleApi()` and `gradleTestKit()` together
+became unreliable as classes of duplicate name but of different content
+were added to the classpath.
+
+With this version of Gradle proper class relocation has been implemented
+ across the dependencies `gradleApi()`, `gradleTestKit()` and the published
+ Tooling API JAR. Projects using any of those dependencies will not
+ conflict anymore with classes from third party dependencies used by
+ the Gradle runtime. Classes from third-party libraries provided by
+ the Gradle runtime are no longer "visible" at compile and test
+ time.
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-* [Nicklas Bondesson](https://github.com/nicklasbondesson) - Support IntelliJ IDEA 14+ when using 'scala' and 'idea' plugins
+- [Igor Melnichenko](https://github.com/Myllyenko) - fixed Groovydoc up-to-date checks ([GRADLE-3349](https://issues.gradle.org/browse/GRADLE-3349))
+- [Sandu Turcan](https://github.com/idlsoft) - add wildcard exclusion for non-transitive dependencies in POM ([GRADLE-1574](https://issues.gradle.org/browse/GRADLE-1574))
+- [Jean-Baptiste Nizet](https://github.com/jnizet) - add `filteringCharset` property to `CopySpec` ([GRADLE-1267](https://issues.gradle.org/browse/GRADLE-1267))
+
+<!--
+ - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
+-->
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 

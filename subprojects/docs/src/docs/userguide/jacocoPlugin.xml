@@ -126,6 +126,10 @@
                 <td>[]</td>
             </tr>
             <tr>
+                <td>includeNoLocationClasses</td>
+                <td>false</td>
+            </tr>
+            <tr>
                 <td>sessionId</td>
                 <td>
                     <literal>auto-generated</literal>

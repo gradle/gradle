@@ -36,6 +36,6 @@ public class GradleProperties {
             JAVA_HOME_PROPERTY, DAEMON_ENABLED_PROPERTY, DEBUG_MODE_PROPERTY, CONFIGURE_ON_DEMAND_PROPERTY, PARALLEL_PROPERTY, WORKERS_PROPERTY);
 
     public static boolean isTrue(Object propertyValue) {
-        return propertyValue != null && propertyValue.toString().equalsIgnoreCase("true");
+        return propertyValue != null && propertyValue.toString().trim().equalsIgnoreCase("true");
     }
 }

@@ -33,9 +33,9 @@ import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
-import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.logging.StyledTextOutputFactory
-import org.gradle.logging.internal.OutputEventListener
+import org.gradle.internal.logging.ProgressLoggerFactory
+import org.gradle.internal.logging.StyledTextOutputFactory
+import org.gradle.internal.logging.internal.OutputEventListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
@@ -66,6 +66,7 @@ class BuildActionsFactoryTest extends Specification {
         _ * loggingServices.getAll(BuildActionRunner) >> []
         _ * loggingServices.get(StyledTextOutputFactory) >> Mock(StyledTextOutputFactory)
         _ * loggingServices.getAll(PluginServiceRegistry) >> []
+        _ * loggingServices.getAll(_) >> []
     }
 
     def "check that --max-workers overrides org.gradle.workers.max"() {

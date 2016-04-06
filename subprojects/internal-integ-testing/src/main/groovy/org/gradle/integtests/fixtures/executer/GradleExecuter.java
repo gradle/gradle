@@ -168,6 +168,12 @@ public interface GradleExecuter {
      */
     GradleExecuter withBuildJvmOpts(Iterable<String> jvmOpts);
 
+
+    /**
+     * Don't set temp folder explicitly.
+     */
+    GradleExecuter withNoExplicitTmpDir();
+
     /**
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for
      * the build JVM and not attempt to provide any others.
@@ -182,15 +188,6 @@ public interface GradleExecuter {
      * @return this executer
      */
     GradleExecuter withDefaultCharacterEncoding(String defaultCharacterEncoding);
-
-    /**
-     * Sets the temp dir to use.
-     *
-     * Only makes sense for forking executers, and is optional.
-     *
-     * @return this executer
-     */
-    GradleExecuter withTmpDir(String tmpDir);
 
     /**
      * Sets the default locale to use.

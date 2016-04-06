@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -134,14 +134,8 @@ class CustomWindowsStartScriptGenerator implements ScriptGenerator {
         file('build/install/sample').exists()
 
         when:
-        TestFile startScriptDir = file('build/install/sample/bin')
-        buildFile << """
-task execStartScript(type: Exec) {
-    workingDir '$startScriptDir.canonicalPath'
-    commandLine './sample'
-}
-"""
-        ExecutionResult result = succeeds('execStartScript')
+
+        ExecutionResult result = runViaUnixStartScript()
 
         then:
         result.output.contains('Hello World!')
@@ -156,6 +150,24 @@ task execStartScript(type: Exec) {
         file('build/install/sample').exists()
 
         when:
+        ExecutionResult result = runViaWindowsStartScript()
+
+        then:
+        result.output.contains('Hello World!')
+    }
+
+    ExecutionResult runViaUnixStartScript() {
+        TestFile startScriptDir = file('build/install/sample/bin')
+        buildFile << """
+task execStartScript(type: Exec) {
+    workingDir '$startScriptDir.canonicalPath'
+    commandLine './sample'
+}
+"""
+        return succeeds('execStartScript')
+    }
+
+    ExecutionResult runViaWindowsStartScript() {
         TestFile startScriptDir = file('build/install/sample/bin')
         String escapedStartScriptDir = startScriptDir.canonicalPath.replaceAll('\\\\', '\\\\\\\\')
         buildFile << """
@@ -164,10 +176,55 @@ task execStartScript(type: Exec) {
     commandLine 'cmd', '/c', 'sample.bat'
 }
 """
-        ExecutionResult result = succeeds('execStartScript')
+        return succeeds('execStartScript')
+    }
+
+    def "compile only dependencies are not included in distribution"() {
+        given:
+        mavenRepo.module('org.gradle.test', 'compile', '1.0').publish()
+        mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
+
+        and:
+        buildFile << """
+repositories {
+    maven { url '$mavenRepo.uri' }
+}
+
+dependencies {
+    compile 'org.gradle.test:compile:1.0'
+    compileOnly 'org.gradle.test:compileOnly:1.0'
+}
+"""
+        when:
+        run "installDist"
 
         then:
-        result.output.contains('Hello World!')
+        file('build/install/sample/lib').allDescendants() == ['sample.jar', 'compile-1.0.jar'] as Set
+    }
+
+    def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script"() {
+        given:
+        buildFile << """
+applicationDefaultJvmArgs = ["-DappHomeSystemProp=REPLACE_THIS_WITH_APP_HOME"]
+
+startScripts {
+    doLast {
+        unixScript.text = unixScript.text.replace("REPLACE_THIS_WITH_APP_HOME", "'\\\$APP_HOME'")
+        windowsScript.text = windowsScript.text.replace("REPLACE_THIS_WITH_APP_HOME", '%APP_HOME%')
+    }
+}
+"""
+        when:
+        succeeds('installDist')
+        and:
+        ExecutionResult result = runViaStartScript()
+
+        then:
+        result.assertOutputContains("App Home: ${file('build/install/sample').absolutePath}")
+    }
+
+    ExecutionResult runViaStartScript() {
+        OperatingSystem.current().isWindows() ? runViaWindowsStartScript() : runViaUnixStartScript()
     }
 
     private void createSampleProjectSetup() {
@@ -182,6 +239,7 @@ package org.gradle.test;
 
 public class Main {
     public static void main(String[] args) {
+        System.out.println("App Home: " + System.getProperty("appHomeSystemProp"));
         System.out.println("Hello World!");
     }
 }

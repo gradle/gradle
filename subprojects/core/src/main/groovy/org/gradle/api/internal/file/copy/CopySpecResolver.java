@@ -29,6 +29,7 @@ public interface CopySpecResolver {
     Integer getFileMode();
     Integer getDirMode();
     boolean getIncludeEmptyDirs();
+    String getFilteringCharset();
 
     RelativePath getDestPath();
 

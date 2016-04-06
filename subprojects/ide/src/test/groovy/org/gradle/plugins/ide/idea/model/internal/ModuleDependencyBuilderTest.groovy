@@ -16,17 +16,19 @@
 
 package org.gradle.plugins.ide.idea.model.internal
 
+import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ModuleDependencyBuilderTest extends Specification {
 
     def project = TestUtil.createRootProject()
+    def ideDependency = new IdeProjectDependency('other', project)
     def builder = new ModuleDependencyBuilder()
 
     def "builds dependency for nonIdea project"() {
         when:
-        def dependency = builder.create(project, 'compile')
+        def dependency = builder.create(ideDependency, 'compile')
 
         then:
         dependency.scope == 'compile'
@@ -39,7 +41,7 @@ class ModuleDependencyBuilderTest extends Specification {
         project.idea.module.name = 'foo'
 
         when:
-        def dependency = builder.create(project, 'compile')
+        def dependency = builder.create(ideDependency, 'compile')
 
         then:
         dependency.scope == 'compile'

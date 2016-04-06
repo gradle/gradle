@@ -369,6 +369,7 @@ Options
                        Available values are:
                             optionA
                             optionB
+                            optionC
 
 Description
      -
@@ -379,4 +380,17 @@ Group
 BUILD SUCCESSFUL"""
     }
 
+    def "sortsOptionsBySpecifiedOrder"() {
+        when:
+        run "help", "--task", "hello"
+
+        then:
+        output.contains """
+Options
+     --valueC     descC
+
+     --valueB     descB
+
+     --valueA     descA"""
+    }
 }

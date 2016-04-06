@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.collections.jdk7
 
+import com.google.common.base.Charsets
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileVisitDetails
@@ -24,7 +25,6 @@ import org.gradle.api.internal.file.collections.DefaultDirectoryWalker
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
-import org.gradle.internal.resource.CharsetUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -56,7 +56,7 @@ class Jdk7DirectoryWalkerTest extends Specification {
     // java.nio2 cannot access files with unicode characters when using single-byte non-unicode platform encoding
     // bug seems to show up only on JDK7 when file.encoding != sun.jnu.encoding
     @Issue("GRADLE-2181")
-    @Requires(adhoc = { JavaVersion.current().isJava7() && (System.getProperty("sun.jnu.encoding") == null || Charset.forName(System.getProperty("sun.jnu.encoding")).contains(CharsetUtil.UTF_8)) })
+    @Requires(adhoc = { JavaVersion.current().isJava7() && (System.getProperty("sun.jnu.encoding") == null || Charset.forName(System.getProperty("sun.jnu.encoding")).contains(Charsets.UTF_8)) })
     def "check that JDK7 walker gets picked with Unicode encoding as default"() {
         setup:
         System.setProperty("file.encoding", fileEncoding)
@@ -251,6 +251,39 @@ class Jdk7DirectoryWalkerTest extends Specification {
         walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
     }
 
+    @Issue("GRADLE-3400")
+    @Requires(TestPrecondition.SYMLINKS)
+    @Unroll
+    def "missing symbolic link that gets filtered doesn't cause an exception - walker: #walkerInstance.class.simpleName"() {
+        given:
+        def rootDir = tmpDir.createDir("root")
+        def dir = rootDir.createDir("target")
+        def link = rootDir.file("source")
+        link.createLink(dir)
+        dir.deleteDir()
+        def file = rootDir.createFile("hello.txt")
+        file << "Hello world"
+
+        def patternSet = new PatternSet()
+        patternSet.include("*.txt")
+        def fileTree = new DirectoryFileTree(rootDir, patternSet, { walkerInstance } as Factory)
+        def visited = []
+        def visitClosure = { visited << it.file.absolutePath }
+        def fileVisitor = [visitFile: visitClosure, visitDir: visitClosure] as FileVisitor
+
+        when:
+        fileTree.visit(fileVisitor)
+
+        then:
+        visited.size() == 1
+        visited[0] == file.absolutePath
+
+        cleanup:
+        link.delete()
+
+        where:
+        walkerInstance << [new DefaultDirectoryWalker(), new Jdk7DirectoryWalker()]
+    }
 
     def "file walker sees a snapshot of file metadata even if files are deleted after walking has started"() {
         given:

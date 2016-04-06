@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.jvm;
 
 import org.gradle.api.GradleException;
 import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.process.internal.ExecHandleFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -29,9 +30,15 @@ import java.util.Collection;
  * Uses `java_home -V` to find JVM installations
  */
 class OsXInstalledJvmLocator {
+    private final ExecHandleFactory execHandleFactory;
+
+    public OsXInstalledJvmLocator(ExecHandleFactory execHandleFactory) {
+        this.execHandleFactory = execHandleFactory;
+    }
+
     public Collection<JvmInstallation> findJvms() {
         try {
-            ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder();
+            ExecHandleBuilder execHandleBuilder = execHandleFactory.newExec();
             execHandleBuilder.workingDir(new File(".").getAbsoluteFile());
             execHandleBuilder.commandLine("/usr/libexec/java_home", "-V");
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

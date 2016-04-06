@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.copy
 import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RelativePath
@@ -34,6 +35,8 @@ import org.jmock.integration.junit4.JMock
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+
+import java.nio.charset.Charset
 
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
@@ -318,19 +321,21 @@ public class DefaultCopySpecTest {
         assert spec.duplicatesStrategy == DuplicatesStrategy.INCLUDE
         assert spec.fileMode == null
         assert spec.dirMode == null
+        assert spec.filteringCharset == Charset.defaultCharset().name()
 
         spec.caseSensitive = false
         spec.includeEmptyDirs = false
         spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         spec.fileMode = 1
         spec.dirMode = 2
+        spec.filteringCharset = "UTF8"
 
         assert spec.caseSensitive == false;
         assert spec.getIncludeEmptyDirs() == false;
         assert spec.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
         assert spec.fileMode == 1
         assert spec.dirMode == 2
-
+        assert spec.filteringCharset == "UTF8"
 
     }
 
@@ -343,18 +348,19 @@ public class DefaultCopySpecTest {
         spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         spec.fileMode = 1
         spec.dirMode = 2
+        spec.filteringCharset = "ISO_8859_1"
 
         DefaultCopySpec child = unpackWrapper(spec.from("child") {
 
         })
 
-        //children still have defaults
+        //children still have these non defaults
         assert child.caseSensitive == false;
         assert child.getIncludeEmptyDirs() == false;
         assert child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
         assert child.fileMode == 1
         assert child.dirMode == 2
-
+        assert child.filteringCharset == "ISO_8859_1"
     }
 
     @Test
@@ -366,20 +372,30 @@ public class DefaultCopySpecTest {
         spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         spec.fileMode = 1
         spec.dirMode = 2
+        spec.filteringCharset = "ISO_8859_1"
 
         DefaultCopySpec child = unpackWrapper(spec.into("child") {
 
         })
 
-        //children still have defaults
+        //children still have these non defaults
         assert child.caseSensitive == false;
         assert child.getIncludeEmptyDirs() == false;
         assert child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
         assert child.fileMode == 1
         assert child.dirMode == 2
-
+        assert child.filteringCharset == "ISO_8859_1"
     }
 
+    @Test(expected = InvalidUserDataException.class)
+    void "setting the filteringCharset to null throws an exception"() {
+        spec.filteringCharset = null
+    }
+
+    @Test(expected = InvalidUserDataException.class)
+    void "setting the filteringCharset to an unsupported charset throws an exception"() {
+        spec.filteringCharset = "THAT_SURE_IS_AN_INVALID_CHARSET"
+    }
 
     DefaultCopySpec unpackWrapper(CopySpec copySpec) {
         (copySpec as CopySpecWrapper).delegate as DefaultCopySpec

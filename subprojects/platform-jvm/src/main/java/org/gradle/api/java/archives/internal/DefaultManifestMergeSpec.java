@@ -33,16 +33,19 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
     List<Object> mergePaths = new ArrayList<Object>();
     private final List<Action<? super ManifestMergeDetails>> actions = new ArrayList<Action<? super ManifestMergeDetails>>();
 
+    @Override
     public ManifestMergeSpec from(Object... mergePaths) {
         GUtil.flatten(mergePaths, this.mergePaths);
         return this;
     }
 
+    @Override
     public ManifestMergeSpec eachEntry(Action<? super ManifestMergeDetails> mergeAction) {
         actions.add(mergeAction);
         return this;
     }
 
+    @Override
     public ManifestMergeSpec eachEntry(Closure<?> mergeAction) {
         return eachEntry(new ClosureBackedAction<ManifestMergeDetails>(mergeAction));
     }
@@ -82,7 +85,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         for (Map.Entry<String, Object> mergeEntry : mergeOnlyAttributes.entrySet()) {
             mergeDetailsSet.add(getMergeDetails(section, mergeEntry.getKey(), null, mergeEntry.getValue()));
         }
-        
+
         for (DefaultManifestMergeDetails mergeDetails : mergeDetailsSet) {
             for (Action<? super ManifestMergeDetails> action : actions) {
                 action.execute(mergeDetails);
@@ -95,7 +98,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         String value = null;
         String baseValueString = baseValue != null ? baseValue.toString() : null;
         String mergeValueString = mergeValue != null ? mergeValue.toString() : null;
-        value = mergeValueString == null ? baseValueString : mergeValueString; 
+        value = mergeValueString == null ? baseValueString : mergeValueString;
         return new DefaultManifestMergeDetails(section, key, baseValueString, mergeValueString, value);
     }
 

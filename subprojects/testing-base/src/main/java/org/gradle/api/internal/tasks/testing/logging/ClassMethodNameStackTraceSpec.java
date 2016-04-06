@@ -28,6 +28,7 @@ public class ClassMethodNameStackTraceSpec implements Spec<StackTraceElement> {
         this.methodName = methodName;
     }
 
+    @Override
     public boolean isSatisfiedBy(StackTraceElement element) {
         return (className == null || className.equals(element.getClassName()))
                 && (methodName == null || methodName.equals(element.getMethodName()));

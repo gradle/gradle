@@ -22,4 +22,6 @@ public interface Symlink {
     boolean isSymlinkSupported();
 
     void symlink(File link, File target) throws Exception;
+
+    boolean isSymlink(File suspect);
 }

@@ -40,6 +40,7 @@ public class TwirlCompiler implements Compiler<TwirlCompileSpec>, Serializable {
         this.adapter = adapter;
     }
 
+    @Override
     public WorkResult execute(TwirlCompileSpec spec) {
         ArrayList<File> outputFiles = Lists.newArrayList();
         try {

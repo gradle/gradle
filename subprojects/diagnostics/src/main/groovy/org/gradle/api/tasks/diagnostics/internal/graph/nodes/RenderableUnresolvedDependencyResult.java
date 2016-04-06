@@ -30,22 +30,27 @@ public class RenderableUnresolvedDependencyResult implements RenderableDependenc
         this.dependency = dependency;
     }
 
+    @Override
     public boolean isResolvable() {
         return false;
     }
 
+    @Override
     public Set<RenderableDependency> getChildren() {
         return Collections.emptySet();
     }
 
+    @Override
     public Object getId() {
         return dependency.getAttempted();
     }
 
+    @Override
     public String getDescription() {
         return null;
     }
 
+    @Override
     public String getName() {
         ComponentSelector requested = dependency.getRequested();
         ComponentSelector attempted = dependency.getAttempted();

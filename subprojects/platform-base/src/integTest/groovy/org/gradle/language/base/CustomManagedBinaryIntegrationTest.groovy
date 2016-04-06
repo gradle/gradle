@@ -125,13 +125,13 @@ BUILD SUCCESSFUL"""
             void apply(final Project project) {}
 
             static class Rules extends RuleSource {
-                @BinaryType
-                void register(BinaryTypeBuilder<SampleBinary> builder) {
+                @ComponentType
+                void register(TypeBuilder<SampleBinary> builder) {
                 }
 
                 @Mutate
-                void createSampleBinary(ModelMap<SampleBinary> binarySpecs) {
-                    binarySpecs.create("sampleBinary")
+                void createSampleBinary(BinaryContainer binaries) {
+                    binaries.create("sampleBinary", SampleBinary)
                 }
             }
         }

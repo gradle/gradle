@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.logging;
 import com.google.common.base.Strings;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.logging.TestLogging;
-import org.gradle.messaging.remote.internal.PlaceholderException;
+import org.gradle.internal.serialize.PlaceholderException;
 
 import java.util.List;
 
@@ -32,6 +32,7 @@ public class ShortExceptionFormatter implements TestExceptionFormatter {
         this.testLogging = testLogging;
     }
 
+    @Override
     public String format(TestDescriptor descriptor, List<Throwable> exceptions) {
         StringBuilder builder = new StringBuilder();
         for (Throwable exception : exceptions) {

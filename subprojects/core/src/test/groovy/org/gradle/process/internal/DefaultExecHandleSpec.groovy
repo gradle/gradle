@@ -16,13 +16,13 @@
 
 package org.gradle.process.internal
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.jvm.Jvm
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.streams.StreamsHandler
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Ignore
@@ -33,7 +33,6 @@ import java.util.concurrent.Callable
 
 @UsesNativeServices
 @Timeout(60)
-@LeaksFileHandles
 class DefaultExecHandleSpec extends Specification {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
@@ -113,6 +112,52 @@ class DefaultExecHandleSpec extends Specification {
         execHandle.abort();
         then:
         execHandle.state == ExecHandleState.ABORTED
+        and:
+        execHandle.waitForFinish().exitValue != 0
+    }
+
+    void "can abort after process has completed"() {
+        given:
+        def execHandle = handle().args(args(TestApp.class)).build();
+        execHandle.start().waitForFinish();
+
+        when:
+        execHandle.abort();
+
+        then:
+        execHandle.state == ExecHandleState.SUCCEEDED
+
+        and:
+        execHandle.waitForFinish().exitValue == 0
+    }
+
+    void "can abort after process has failed"() {
+        given:
+        def execHandle = handle().args(args(BrokenApp.class)).build();
+        execHandle.start().waitForFinish();
+
+        when:
+        execHandle.abort();
+
+        then:
+        execHandle.state == ExecHandleState.FAILED
+
+        and:
+        execHandle.waitForFinish().exitValue == 72
+    }
+
+    void "can abort after process has been aborted"() {
+        given:
+        def execHandle = handle().args(args(SlowApp.class)).build();
+        execHandle.start();
+        execHandle.abort();
+
+        when:
+        execHandle.abort();
+
+        then:
+        execHandle.state == ExecHandleState.ABORTED
+
         and:
         execHandle.waitForFinish().exitValue != 0
     }
@@ -302,7 +347,7 @@ class DefaultExecHandleSpec extends Specification {
     }
 
     private ExecHandleBuilder handle() {
-        new ExecHandleBuilder()
+        new ExecHandleBuilder(TestFiles.resolver())
                 .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
                 .setTimeout(20000) //sanity timeout
                 .workingDir(tmpDir.getTestDirectory());

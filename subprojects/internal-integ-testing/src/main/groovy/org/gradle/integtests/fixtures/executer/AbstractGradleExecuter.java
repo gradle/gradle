@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -83,7 +84,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File settingsFile;
     private PipedOutputStream stdinPipe;
     private String defaultCharacterEncoding;
-    private String tmpDir;
     private Locale defaultLocale;
     private int daemonIdleTimeoutSecs = 60;
     private boolean requireDaemon;
@@ -108,6 +108,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
 
     protected boolean interactive;
+
+    protected boolean noExplicitTmpDir;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this.distribution = distribution;
@@ -136,7 +138,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         environmentVars.clear();
         stdinPipe = null;
         defaultCharacterEncoding = null;
-        tmpDir = null;
         defaultLocale = null;
         commandLineJvmOpts.clear();
         buildJvmOpts.clear();
@@ -161,7 +162,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         beforeExecute.add(action);
     }
 
-    public void beforeExecute(Closure action) {
+    public void beforeExecute(@DelegatesTo(GradleExecuter.class) Closure action) {
         beforeExecute.add(new ClosureBackedAction<GradleExecuter>(action));
     }
 
@@ -169,7 +170,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         afterExecute.add(action);
     }
 
-    public void afterExecute(Closure action) {
+    public void afterExecute(@DelegatesTo(GradleExecuter.class) Closure action) {
         afterExecute.add(new ClosureBackedAction<GradleExecuter>(action));
     }
 
@@ -230,8 +231,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (defaultCharacterEncoding != null) {
             executer.withDefaultCharacterEncoding(defaultCharacterEncoding);
         }
-        if (tmpDir != null) {
-            executer.withTmpDir(tmpDir);
+        if (noExplicitTmpDir) {
+            executer.withNoExplicitTmpDir();
         }
         if (defaultLocale != null) {
             executer.withDefaultLocale(defaultLocale);
@@ -367,7 +368,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             String value = entry.getValue();
             gradleInvocation.implicitLauncherJvmArgs.add(String.format("-D%s=%s", key, value));
         }
-
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
     }
 
@@ -434,11 +434,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public GradleExecuter withDefaultCharacterEncoding(String defaultCharacterEncoding) {
         this.defaultCharacterEncoding = defaultCharacterEncoding;
-        return this;
-    }
-
-    public GradleExecuter withTmpDir(String tmpDir) {
-        this.tmpDir = tmpDir;
         return this;
     }
 
@@ -653,12 +648,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         properties.put(GradleProperties.DAEMON_BASE_DIR_PROPERTY, daemonBaseDir.getAbsolutePath());
         properties.put(DeprecationLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, "true");
 
-        String tmpDirPath = tmpDir;
-        if (tmpDirPath == null) {
-            tmpDirPath = getDefaultTmpDir().createDir().getAbsolutePath();
-        }
-        if (!tmpDirPath.contains(" ") || getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
-            properties.put("java.io.tmpdir", tmpDirPath);
+        if (!noExplicitTmpDir) {
+            String tmpDirPath = getDefaultTmpDir().createDir().getAbsolutePath();
+            if (!tmpDirPath.contains(" ") || (getDistribution().isSupportsSpacesInGradleAndJavaOpts() && supportsWhiteSpaceInEnvVars())) {
+                properties.put("java.io.tmpdir", tmpDirPath);
+            }
         }
 
         properties.put("file.encoding", getDefaultCharacterEncoding());
@@ -682,6 +676,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
 
         return properties;
+    }
+
+    protected boolean supportsWhiteSpaceInEnvVars() {
+        return true;
     }
 
     public final GradleHandle start() {
@@ -824,7 +822,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected TestFile getDefaultTmpDir() {
-        return new TestFile(getTestDirectoryProvider().getTestDirectory(), "tmp");
+        return buildContext.getTmpDir().createDir();
     }
 
     public GradleExecuter noExtraLogging() {
@@ -864,6 +862,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public GradleExecuter withForceInteractive(boolean flag) {
         interactive = flag;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withNoExplicitTmpDir() {
+        noExplicitTmpDir = true;
         return this;
     }
 

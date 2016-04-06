@@ -17,8 +17,8 @@
 package org.gradle.util
 
 import org.gradle.internal.Factory
-import org.gradle.logging.ConfigureLogging
-import org.gradle.logging.TestOutputEventListener
+import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.junit.Rule
 

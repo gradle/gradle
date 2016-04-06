@@ -24,16 +24,16 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
-        @Managed interface SampleLibrary extends ComponentSpec {}
+        @Managed interface SampleLibrary extends GeneralComponentSpec {}
         @Managed interface SampleBinary extends BinarySpec {}
 
         class MyComponentBasePlugin extends RuleSource {
             @ComponentType
-            void register(ComponentTypeBuilder<SampleLibrary> builder) {
+            void registerLibrary(TypeBuilder<SampleLibrary> builder) {
             }
 
-            @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {
+            @ComponentType
+            void registerBinary(TypeBuilder<SampleBinary> builder) {
             }
 
             @Mutate
@@ -156,8 +156,8 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         @Managed interface OtherBinary extends SampleBinary {}
 
         class MyOtherBinariesPlugin extends RuleSource {
-            @BinaryType
-            void register(BinaryTypeBuilder<OtherBinary> builder) {
+            @ComponentType
+            void register(TypeBuilder<OtherBinary> builder) {
             }
 
             @ComponentBinaries

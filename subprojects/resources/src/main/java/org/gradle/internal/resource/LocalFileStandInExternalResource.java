@@ -57,6 +57,14 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource {
         return true;
     }
 
+    @Override
+    public String getDisplayName() {
+        if (source.equals(localFile.toURI())) {
+            return localFile.getPath();
+        }
+        return source.toString();
+    }
+
     public InputStream openStream() throws IOException {
         return new FileInputStream(localFile);
     }

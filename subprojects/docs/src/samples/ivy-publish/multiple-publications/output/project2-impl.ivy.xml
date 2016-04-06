@@ -10,7 +10,7 @@
     <artifact name="project2-impl" type="jar" ext="jar" conf="runtime"/>
   </publications>
   <dependencies>
-    <dependency org="commons-collections" name="commons-collections" rev="3.1" conf="runtime-&gt;default"/>
+    <dependency org="commons-collections" name="commons-collections" rev="3.2.2" conf="runtime-&gt;default"/>
     <dependency org="org.gradle.sample" name="project1-sample" rev="1.1" conf="runtime-&gt;default"/>
   </dependencies>
 </ivy-module>

@@ -30,6 +30,8 @@ import java.util.LinkedList;
  * </p>
  */
 public class SimpleMarkupWriter extends Writer {
+    private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
+
     private enum Context {
         Outside, Text, CData, StartTag, ElementContent
     }
@@ -111,7 +113,7 @@ public class SimpleMarkupWriter extends Writer {
         }
         maybeFinishStartTag();
         if (indent != null) {
-            writeRaw(SystemProperties.getInstance().getLineSeparator());
+            writeRaw(LINE_SEPARATOR);
             for (int i = 0; i < elements.size(); i++) {
                 writeRaw(indent);
             }
@@ -135,7 +137,7 @@ public class SimpleMarkupWriter extends Writer {
             elements.removeLast();
         } else {
             if (context != Context.Text && indent != null) {
-                writeRaw(SystemProperties.getInstance().getLineSeparator());
+                writeRaw(LINE_SEPARATOR);
                 for (int i = 1; i < elements.size(); i++) {
                     writeRaw(indent);
                 }
@@ -146,7 +148,7 @@ public class SimpleMarkupWriter extends Writer {
         }
         if (elements.isEmpty()) {
             if (indent != null) {
-                writeRaw(SystemProperties.getInstance().getLineSeparator());
+                writeRaw(LINE_SEPARATOR);
             }
             output.flush();
             context = Context.Outside;

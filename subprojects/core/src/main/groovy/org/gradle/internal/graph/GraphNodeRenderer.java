@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.graph;
 
-import org.gradle.logging.StyledTextOutput;
+import org.gradle.internal.logging.StyledTextOutput;
 
 public interface GraphNodeRenderer<N> {
     void renderTo(N node, StyledTextOutput output);

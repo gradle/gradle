@@ -35,8 +35,8 @@ import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter
 import org.gradle.launcher.daemon.server.exec.ForwardClientInput
 import org.gradle.launcher.exec.BuildExecuter
 import org.gradle.launcher.exec.DefaultBuildActionParameters
-import org.gradle.logging.LoggingManagerInternal
-import org.gradle.messaging.remote.internal.MessageIOException
+import org.gradle.internal.logging.LoggingManagerInternal
+import org.gradle.internal.remote.internal.MessageIOException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule

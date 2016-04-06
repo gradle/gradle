@@ -16,7 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 
 import java.io.File;
 
@@ -25,6 +25,6 @@ import java.io.File;
  */
 public interface CSourceParser {
 
-    SourceIncludes parseSource(File sourceFile);
+    IncludeDirectives parseSource(File sourceFile);
 
 }

@@ -24,7 +24,7 @@ import org.gradle.platform.base.PlatformAwareComponentSpec;
  * This functionality is a temporary workaround to eliminate configuration of unnecessary domain objects and tasks.
  */
 @Incubating @HasInternalProtocol
-public interface TargetedNativeComponent extends PlatformAwareComponentSpec {
+public interface TargetedNativeComponent extends PlatformAwareComponentSpec, NativeComponentSpec {
 
     /**
      * Specifies the names of one or more {@link Flavor}s that this component should be built for.

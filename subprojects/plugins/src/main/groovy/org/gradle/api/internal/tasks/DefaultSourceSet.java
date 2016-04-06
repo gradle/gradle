@@ -117,6 +117,15 @@ public class DefaultSourceSet implements SourceSet {
         return StringUtils.uncapitalize(String.format("%sRuntime", getTaskBaseName()));
     }
 
+    public String getCompileOnlyConfigurationName() {
+        return StringUtils.uncapitalize(String.format("%sCompileOnly", getTaskBaseName()));
+    }
+
+    @Override
+    public String getCompileClasspathConfigurationName() {
+        return StringUtils.uncapitalize(String.format("%sCompileClasspath", getTaskBaseName()));
+    }
+
     public SourceSetOutput getOutput() {
         return output;
     }

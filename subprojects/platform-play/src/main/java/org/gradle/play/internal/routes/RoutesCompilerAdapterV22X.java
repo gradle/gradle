@@ -35,6 +35,7 @@ class RoutesCompilerAdapterV22X extends DefaultVersionedRoutesCompilerAdapter {
         super(playVersion, "2.10");
     }
 
+    @Override
     public ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException {
         return ScalaReflectionUtil.scalaMethod(
                 cl,
@@ -48,6 +49,7 @@ class RoutesCompilerAdapterV22X extends DefaultVersionedRoutesCompilerAdapter {
         );
     }
 
+    @Override
     public Object[] createCompileParameters(ClassLoader cl, File file, File destinationDir, boolean javaProject, boolean namespaceReverseRouter, boolean generateReverseRoutes, boolean injectedRoutesGenerator, Collection<String> additionalImports) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         List<String> defaultImports = javaProject ? defaultJavaImports : defaultScalaImports;
         defaultImports.addAll(additionalImports);

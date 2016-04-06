@@ -17,7 +17,7 @@ package org.gradle.launcher.daemon.context;
 
 import org.gradle.api.internal.specs.ExplainingSpec;
 
-import static org.gradle.util.GFileUtils.canonicalise;
+import static org.gradle.internal.FileUtils.canonicalize;
 
 public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
 
@@ -51,7 +51,7 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
     }
 
     private boolean javaHomeMatches(DaemonContext potentialContext) {
-        return canonicalise(potentialContext.getJavaHome()).equals(canonicalise(desiredContext.getJavaHome()));
+        return canonicalize(potentialContext.getJavaHome()).equals(canonicalize(desiredContext.getJavaHome()));
     }
 
     @Override

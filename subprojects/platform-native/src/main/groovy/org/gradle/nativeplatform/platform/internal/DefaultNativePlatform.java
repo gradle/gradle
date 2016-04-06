@@ -50,6 +50,7 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         return Architectures.forInput(architectureName);
     }
 
+    @Override
     public String getName() {
         return name;
     }
@@ -59,22 +60,27 @@ public class DefaultNativePlatform implements NativePlatformInternal {
         return getDisplayName();
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("platform '%s'", name);
     }
 
+    @Override
     public ArchitectureInternal getArchitecture() {
         return architecture;
     }
 
+    @Override
     public void architecture(String name) {
         architecture = Architectures.forInput(name);
     }
 
+    @Override
     public OperatingSystemInternal getOperatingSystem() {
         return operatingSystem;
     }
 
+    @Override
     public void operatingSystem(String name) {
         operatingSystem = new DefaultOperatingSystem(name);
     }

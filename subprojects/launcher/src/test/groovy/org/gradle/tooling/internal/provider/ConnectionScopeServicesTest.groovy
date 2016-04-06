@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.logging.LoggingServiceRegistry
+import org.gradle.internal.logging.LoggingServiceRegistry
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import spock.lang.Specification
 

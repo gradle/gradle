@@ -38,7 +38,7 @@ class DaemonParametersTest extends Specification {
         parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
         parameters.baseDir == new File(new BuildLayoutParameters().getGradleUserHomeDir(), "daemon")
         parameters.systemProperties.isEmpty()
-        parameters.effectiveJvmArgs.size() == 1 + 3 // + 1 because effective JVM args contains -Dfile.encoding, +3 for locale props
+        parameters.effectiveJvmArgs.size() == 1  + 3 // + 1 because effective JVM args contains -Dfile.encoding, +3 for locale props
         parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
     }
 

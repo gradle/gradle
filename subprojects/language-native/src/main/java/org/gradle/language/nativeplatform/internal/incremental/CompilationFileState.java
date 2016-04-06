@@ -15,32 +15,32 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.language.nativeplatform.internal.SourceIncludes;
-import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultSourceIncludes;
+import org.gradle.internal.hash.HashValue;
+import org.gradle.language.nativeplatform.internal.IncludeDirectives;
+import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-public class CompilationFileState implements Serializable {
-    private byte[] hash;
-    private SourceIncludes sourceIncludes = new DefaultSourceIncludes();
+public class CompilationFileState {
+    private HashValue hash;
+    private IncludeDirectives includeDirectives = new DefaultIncludeDirectives();
     private Set<ResolvedInclude> resolvedIncludes = new HashSet<ResolvedInclude>();
 
-    public CompilationFileState(byte[] hash) {
+    public CompilationFileState(HashValue hash) {
         this.hash = hash;
     }
 
-    public byte[] getHash() {
+    public HashValue getHash() {
         return hash;
     }
 
-    public SourceIncludes getSourceIncludes() {
-        return sourceIncludes;
+    public IncludeDirectives getIncludeDirectives() {
+        return includeDirectives;
     }
 
-    public void setSourceIncludes(SourceIncludes sourceIncludes) {
-        this.sourceIncludes = sourceIncludes;
+    public void setIncludeDirectives(IncludeDirectives includeDirectives) {
+        this.includeDirectives = includeDirectives;
     }
 
     public Set<ResolvedInclude> getResolvedIncludes() {

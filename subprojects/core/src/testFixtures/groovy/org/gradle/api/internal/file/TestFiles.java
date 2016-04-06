@@ -74,11 +74,11 @@ public class TestFiles {
         return new DefaultExecActionFactory(resolver());
     }
 
-    public static ExecHandleFactory exeHandleFactory() {
+    public static ExecHandleFactory execHandleFactory() {
         return new DefaultExecActionFactory(resolver());
     }
 
-    public static ExecHandleFactory exeHandleFactory(File baseDir) {
+    public static ExecHandleFactory execHandleFactory(File baseDir) {
         return new DefaultExecActionFactory(resolver(baseDir));
     }
 

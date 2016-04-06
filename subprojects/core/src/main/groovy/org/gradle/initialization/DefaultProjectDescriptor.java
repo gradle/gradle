@@ -18,8 +18,8 @@ package org.gradle.initialization;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.Path;
 
 import java.io.File;
@@ -41,7 +41,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         this.parent = parent;
         this.name = name;
         this.fileResolver = fileResolver;
-        this.dir = GFileUtils.canonicalise(dir);
+        this.dir = FileUtils.canonicalize(dir);
         this.projectDescriptorRegistry = projectDescriptorRegistry;
         this.path = path(name);
         projectDescriptorRegistry.addProject(this);
@@ -112,7 +112,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     }
 
     public File getBuildFile() {
-        return GFileUtils.canonicalise(new File(dir, buildFileName));
+        return FileUtils.canonicalize(new File(dir, buildFileName));
     }
 
     public ProjectDescriptorRegistry getProjectDescriptorRegistry() {

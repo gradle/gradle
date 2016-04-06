@@ -158,4 +158,29 @@ BUILD SUCCESSFUL
         '| Type: \t some type'             | 'type'            | 'some type'
         "| Value:  \tC++ source 'lss:lss'" | 'nodeValue'       | "C++ source 'lss:lss'"
     }
+
+
+    def "should parse a short model report with child nodes and values"() {
+        setup:
+        def modelReport = ModelReportParser.parse(""":model
+
+
+My Report
+
+
++ nullCredentials
+    + password
+    + username
++ numbers
+    | value = 5
++ primaryCredentials
+    | password = hunter2
+    | username = uname
+
+BUILD SUCCESSFUL
+""")
+
+        expect:
+        modelReport.reportNode.'**'.primaryCredentials.@username == ['uname']
+    }
 }

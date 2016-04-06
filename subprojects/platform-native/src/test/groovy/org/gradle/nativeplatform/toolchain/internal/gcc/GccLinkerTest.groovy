@@ -79,11 +79,11 @@ class GccLinkerTest extends Specification {
 
         then:
         1 * operationLogger.getLogLocation() >> LOG_LOCATION
-        1 * buildOperationProcessor.newQueue(commandLineTool, LOG_LOCATION) >> queue
+        1 * buildOperationProcessor.run(commandLineTool, _) >> { worker, action -> action.execute(queue) }
         1 * invocationContext.getArgAction() >> Actions.doNothing()
         1 * invocationContext.createInvocation("linking lib", expectedArgs, operationLogger) >> invocation
         1 * queue.add(invocation)
-        1 * queue.waitForCompletion()
+        1 * queue.setLogLocation(LOG_LOCATION)
         0 * _
     }
 
@@ -128,11 +128,11 @@ class GccLinkerTest extends Specification {
 
         then:
         1 * operationLogger.getLogLocation() >> LOG_LOCATION
-        1 * buildOperationProcessor.newQueue(commandLineTool, LOG_LOCATION) >> queue
+        1 * buildOperationProcessor.run(commandLineTool, _) >> { worker, action -> action.execute(queue) }
         1 * invocationContext.getArgAction() >> Actions.doNothing()
         1 * invocationContext.createInvocation("linking lib", expectedArgs, operationLogger) >> invocation
         1 * queue.add(invocation)
-        1 * queue.waitForCompletion()
+        1 * queue.setLogLocation(LOG_LOCATION)
         0 * _
     }
 
@@ -166,11 +166,11 @@ class GccLinkerTest extends Specification {
 
         then:
         1 * operationLogger.getLogLocation() >> LOG_LOCATION
-        1 * buildOperationProcessor.newQueue(commandLineTool, LOG_LOCATION) >> queue
+        1 * buildOperationProcessor.run(commandLineTool, _) >> { worker, action -> action.execute(queue) }
         1 * invocationContext.getArgAction() >> Actions.doNothing()
         1 * invocationContext.createInvocation("linking lib", expectedArgs, operationLogger) >> invocation
         1 * queue.add(invocation)
-        1 * queue.waitForCompletion()
+        1 * queue.setLogLocation(LOG_LOCATION)
         0 * _
     }
 
@@ -205,11 +205,11 @@ class GccLinkerTest extends Specification {
 
         then:
         1 * operationLogger.getLogLocation() >> LOG_LOCATION
-        1 * buildOperationProcessor.newQueue(commandLineTool, LOG_LOCATION) >> queue
+        1 * buildOperationProcessor.run(commandLineTool, _) >> { worker, action -> action.execute(queue) }
         1 * invocationContext.getArgAction() >> Actions.doNothing()
         1 * invocationContext.createInvocation("linking lib", expectedArgs, operationLogger) >> invocation
         1 * queue.add(invocation)
-        1 * queue.waitForCompletion()
+        1 * queue.setLogLocation(LOG_LOCATION)
         0 * _
     }
 

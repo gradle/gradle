@@ -23,6 +23,7 @@ import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.*;
 
 public class DependencyResultSpecNotationConverter implements NotationConverter<String, Spec<DependencyResult>> {
+    @Override
     public void convert(String notation, NotationConvertResult<? super Spec<DependencyResult>> result) throws TypeConversionException {
         final String stringNotation = notation.trim();
         if (stringNotation.length() > 0) {

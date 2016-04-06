@@ -30,6 +30,7 @@ class DependencyResultSpec implements Spec<DependencyResult> {
         this.stringNotation = stringNotation;
     }
 
+    @Override
     public boolean isSatisfiedBy(DependencyResult candidate) {
         //The matching is very simple at the moment but it should solve majority of cases.
         //It operates using String#contains and it tests either requested or selected module.

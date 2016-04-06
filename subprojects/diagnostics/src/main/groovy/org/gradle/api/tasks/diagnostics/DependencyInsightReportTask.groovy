@@ -34,12 +34,12 @@ import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter
 import org.gradle.internal.graph.GraphRenderer
-import org.gradle.logging.StyledTextOutput
-import org.gradle.logging.StyledTextOutputFactory
+import org.gradle.internal.logging.StyledTextOutput
+import org.gradle.internal.logging.StyledTextOutputFactory
 
 import javax.inject.Inject
 
-import static org.gradle.logging.StyledTextOutput.Style.*
+import static StyledTextOutput.Style.*
 
 /**
  * Generates a report that attempts to answer questions like:

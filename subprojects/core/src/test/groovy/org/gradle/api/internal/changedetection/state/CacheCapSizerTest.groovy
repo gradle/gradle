@@ -33,11 +33,11 @@ class CacheCapSizerTest extends Specification {
 
         where:
         maxHeapMB | expectedCaps
-        100       | [taskArtifacts:400, outputFileStates:600, compilationState:200, fileHashes:80000, fileSnapshots:2000]
-        200       | [taskArtifacts:400, outputFileStates:600, compilationState:200, fileHashes:80000, fileSnapshots:2000]
-        768       | [taskArtifacts: 1600, outputFileStates: 2400, compilationState: 800, fileHashes: 325200, fileSnapshots: 8100]
-        1024      | [taskArtifacts: 2300, fileHashes: 459900, compilationState: 1100, outputFileStates: 3400, fileSnapshots: 11500]
-        1536      | [taskArtifacts: 3600, fileHashes: 729400, compilationState: 1800, outputFileStates: 5400, fileSnapshots: 18200]
-        2048      | [taskArtifacts: 4900, fileHashes: 998900, compilationState: 2400, outputFileStates: 7400, fileSnapshots: 24900]
+        100       | [taskArtifacts:400, compilationState:200, fileHashes:80000, fileSnapshots:2000]
+        200       | [taskArtifacts:400, compilationState:200, fileHashes:80000, fileSnapshots:2000]
+        768       | [taskArtifacts: 1600, compilationState: 800, fileHashes: 325200, fileSnapshots: 8100]
+        1024      | [taskArtifacts: 2300, fileHashes: 459900, compilationState: 1100, fileSnapshots: 11500]
+        1536      | [taskArtifacts: 3600, fileHashes: 729400, compilationState: 1800, fileSnapshots: 18200]
+        2048      | [taskArtifacts: 4900, fileHashes: 998900, compilationState: 2400, fileSnapshots: 24900]
     }
 }

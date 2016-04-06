@@ -44,6 +44,7 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
         this.outputRedirector = outputRedirector;
     }
 
+    @Override
     public void started(final TestDescriptorInternal test, TestStartEvent event) {
         processor.started(test, event);
 
@@ -63,6 +64,7 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
         }
     }
 
+    @Override
     public void completed(Object testId, TestCompleteEvent event) {
         if (testId.equals(rootId)) {
             //when root suite is completed we stop redirecting
@@ -80,10 +82,12 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
         processor.completed(testId, event);
     }
 
+    @Override
     public void output(Object testId, TestOutputEvent event) {
         processor.output(testId, event);
     }
 
+    @Override
     public void failure(Object testId, Throwable result) {
         processor.failure(testId, result);
     }

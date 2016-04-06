@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.language.assembler.AssemblerSourceSet;
-import org.gradle.language.assembler.internal.DefaultAssemblerSourceSet;
 import org.gradle.language.assembler.plugins.internal.AssembleTaskConfig;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
@@ -29,8 +28,8 @@ import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.internal.DefaultTool;
-import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
 
 import java.util.Map;
 
@@ -40,16 +39,15 @@ import java.util.Map;
 @Incubating
 public class AssemblerLangPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @LanguageType
-        void registerLanguage(LanguageTypeBuilder<AssemblerSourceSet> builder) {
-            builder.setLanguageName("asm");
-            builder.defaultImplementation(DefaultAssemblerSourceSet.class);
+        @ComponentType
+        void registerLanguage(TypeBuilder<AssemblerSourceSet> builder) {
         }
 
         @Mutate
@@ -59,16 +57,24 @@ public class AssemblerLangPlugin implements Plugin<Project> {
     }
 
     private static class Assembler extends NativeLanguageTransform<AssemblerSourceSet> {
+        @Override
         public Class<AssemblerSourceSet> getSourceSetType() {
             return AssemblerSourceSet.class;
         }
 
+        @Override
+        public String getLanguageName() {
+            return "asm";
+        }
+
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             Map<String, Class<?>> tools = Maps.newLinkedHashMap();
             tools.put("assembler", DefaultTool.class);
             return tools;
         }
 
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new AssembleTaskConfig();
         }

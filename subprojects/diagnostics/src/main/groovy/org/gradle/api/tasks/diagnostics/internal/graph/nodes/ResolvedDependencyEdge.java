@@ -31,26 +31,32 @@ public class ResolvedDependencyEdge implements DependencyEdge {
         this.dependency = dependency;
     }
 
+    @Override
     public boolean isResolvable() {
         return true;
     }
 
+    @Override
     public ComponentSelector getRequested() {
         return dependency.getRequested();
     }
 
+    @Override
     public ComponentSelectionReason getReason() {
         return dependency.getSelected().getSelectionReason();
     }
 
+    @Override
     public ComponentIdentifier getActual() {
         return dependency.getSelected().getId();
     }
 
+    @Override
     public ComponentIdentifier getFrom() {
         return dependency.getFrom().getId();
     }
 
+    @Override
     public Set<? extends RenderableDependency> getChildren() {
         return Collections.singleton(new InvertedRenderableModuleResult(dependency.getFrom()));
     }

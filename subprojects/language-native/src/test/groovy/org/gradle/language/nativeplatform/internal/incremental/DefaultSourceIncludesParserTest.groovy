@@ -17,14 +17,14 @@
 package org.gradle.language.nativeplatform.internal.incremental
 
 import org.gradle.language.nativeplatform.internal.Include
-import org.gradle.language.nativeplatform.internal.SourceIncludes
+import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSourceParser
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultInclude
 import spock.lang.Specification
 
 class DefaultSourceIncludesParserTest extends Specification {
     def sourceParser = Mock(CSourceParser)
-    def sourceIncludes = Mock(SourceIncludes)
+    def sourceIncludes = Mock(IncludeDirectives)
 
     def "returns a filtered SourceIncludes when not importAware"() {
         given:

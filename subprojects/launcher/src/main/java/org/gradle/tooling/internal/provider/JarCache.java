@@ -20,6 +20,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.Factory;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.util.GFileUtils;
@@ -45,7 +46,7 @@ public class JarCache {
      * @return The cached file.
      */
     public File getCachedJar(File original, Factory<File> baseDirFactory) {
-        File source = GFileUtils.canonicalise(original);
+        File source = FileUtils.canonicalize(original);
         FileInfo fileInfo;
         // TODO - do some of this work concurrently
         lock.lock();

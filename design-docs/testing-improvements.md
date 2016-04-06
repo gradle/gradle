@@ -217,8 +217,7 @@ Configure a `TestReport` task to always run after the `Test` task, and change th
 ### Problems
 
 * When a test class' test runner does not implement Filterable, gradle runs all the tests from that class, regardless of whether they were requested or not.
-* When a test's name does not exactly match the method name, gradle cannot run the test. Think Spock @Unroll, JUnits @RunWith(Parameterized.class) and similar.
-* When a test's suite name does not exactly match the class name, gradle doesn't show the tests correctly in the UI and we cannot rerun them.
+* When a test's name does not exactly match the method name, gradle cannot run the test. Think Spock @Unroll and similar.
 * Gradle generates empty test suites for all test classes that don't match, and generated test descriptors for them.
 * The 'could not find any matches' validation is not robust wrt things like #1 and so in this instance when you make a typo in your test request, we run exactly the wrong tests _and_ don't tell you about it.
 

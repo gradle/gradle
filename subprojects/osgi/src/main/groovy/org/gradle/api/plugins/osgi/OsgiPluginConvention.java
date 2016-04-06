@@ -28,7 +28,7 @@ import org.gradle.util.ConfigureUtil;
 import java.util.concurrent.Callable;
 
 /**
- * Is mixed in into the project when applying the  {@link org.gradle.api.plugins.osgi.OsgiPlugin} .
+ * Is mixed into the project when applying the {@link org.gradle.api.plugins.osgi.OsgiPlugin}.
  */
 public class OsgiPluginConvention {
     private ProjectInternal project;

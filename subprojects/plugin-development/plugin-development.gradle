@@ -19,8 +19,11 @@ dependencies {
     compile project(':core')
     compile project(':plugins')
     testRuntime project(':toolingApi')
+    testRuntime project(':launcher')
+    testRuntime project(':testKit')
 }
 
 useTestFixtures()
+useTestFixtures(project: ":logging")
 useClassycle()
 strictCompile()

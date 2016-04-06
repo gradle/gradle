@@ -1,0 +1,14 @@
+// START SNIPPET automatic-classpath
+apply plugin: 'groovy'
+apply plugin: 'java-gradle-plugin'
+
+dependencies {
+    testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+        exclude module: 'groovy-all'
+    }
+}
+// END SNIPPET automatic-classpath
+
+repositories {
+    mavenCentral()
+}

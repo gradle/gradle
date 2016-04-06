@@ -15,7 +15,7 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.internal.resource.Resource;
+import org.gradle.internal.resource.TextResource;
 
 public class DelegatingScriptSource implements ScriptSource {
     private final ScriptSource source;
@@ -40,7 +40,7 @@ public class DelegatingScriptSource implements ScriptSource {
         return source.getFileName();
     }
 
-    public Resource getResource() {
+    public TextResource getResource() {
         return source.getResource();
     }
 }

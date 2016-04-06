@@ -17,9 +17,9 @@
 package org.gradle.internal.event;
 
 import org.gradle.api.Action;
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.MethodInvocation;
-import org.gradle.messaging.dispatch.ProxyDispatchAdapter;
+import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.dispatch.MethodInvocation;
+import org.gradle.internal.dispatch.ProxyDispatchAdapter;
 
 /**
  * <p>Manages a set of listeners of type T. Provides an implementation of T which can be used to broadcast to all
@@ -89,7 +89,7 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
     }
 
     /**
-     * Adds a {@link org.gradle.messaging.dispatch.Dispatch} to receive events from this broadcast.
+     * Adds a {@link Dispatch} to receive events from this broadcast.
      */
     public void add(Dispatch<MethodInvocation> dispatch) {
         broadcast.add(dispatch);

@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-import org.gradle.logging.internal.OutputEvent;
+import org.gradle.internal.logging.internal.OutputEvent;
 
 public class OutputMessage extends Message {
     private final OutputEvent event;

@@ -15,13 +15,13 @@
  */
 package org.gradle.internal.resource.transport.http;
 
+import com.google.common.collect.Lists;
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.auth.*;
 import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -32,6 +32,7 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.auth.*;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
+import org.apache.http.impl.conn.SystemDefaultRoutePlanner;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
@@ -42,7 +43,7 @@ import org.gradle.authentication.http.DigestAuthentication;
 import org.gradle.internal.Cast;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.authentication.AuthenticationInternal;
-import org.gradle.internal.resource.UriResource;
+import org.gradle.internal.resource.UriTextResource;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMCredentials;
 import org.gradle.internal.resource.transport.http.ntlm.NTLMSchemeFactory;
 import org.gradle.util.CollectionUtils;
@@ -50,6 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ProxySelector;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -68,7 +70,6 @@ public class HttpClientConfigurer {
         configureAuthSchemeRegistry(builder);
         configureCredentials(builder, credentialsProvider, httpSettings.getAuthenticationSettings());
         configureProxy(builder, credentialsProvider, httpSettings);
-        configureRetryHandler(builder);
         configureUserAgent(builder);
         builder.setDefaultCredentialsProvider(credentialsProvider);
     }
@@ -98,19 +99,17 @@ public class HttpClientConfigurer {
     }
 
     private void configureProxy(HttpClientBuilder builder, CredentialsProvider credentialsProvider, HttpSettings httpSettings) {
-        String proxyScheme = "https";
-        HttpProxySettings.HttpProxy proxy = httpSettings.getSecureProxySettings().getProxy();
-        if (proxy == null) {
-            proxy = httpSettings.getProxySettings().getProxy();
-            proxyScheme = "http";
-        }
+        HttpProxySettings.HttpProxy httpProxy = httpSettings.getProxySettings().getProxy();
+        HttpProxySettings.HttpProxy httpsProxy = httpSettings.getSecureProxySettings().getProxy();
 
-        if (proxy != null) {
-            if (proxy.credentials != null) {
-                useCredentials(credentialsProvider, proxy.host, proxy.port, Collections.singleton(new AllSchemesAuthentication(proxy.credentials)));
+        for (HttpProxySettings.HttpProxy proxy : Lists.newArrayList(httpProxy, httpsProxy)) {
+            if (proxy != null) {
+                if (proxy.credentials != null) {
+                    useCredentials(credentialsProvider, proxy.host, proxy.port, Collections.singleton(new AllSchemesAuthentication(proxy.credentials)));
+                }
             }
-            builder.setProxy(new HttpHost(proxy.host, proxy.port, proxyScheme));
         }
+        builder.setRoutePlanner(new SystemDefaultRoutePlanner(ProxySelector.getDefault()));
     }
 
     private void useCredentials(CredentialsProvider credentialsProvider, String host, int port, Collection<? extends Authentication> authentications) {
@@ -144,7 +143,7 @@ public class HttpClientConfigurer {
     }
 
     public void configureUserAgent(HttpClientBuilder builder) {
-        builder.setUserAgent(UriResource.getUserAgentString());
+        builder.setUserAgent(UriTextResource.getUserAgentString());
     }
 
     private PasswordCredentials getPasswordCredentials(Authentication authentication) {
@@ -154,14 +153,6 @@ public class HttpClientConfigurer {
         }
 
         return Cast.uncheckedCast(credentials);
-    }
-
-    private void configureRetryHandler(HttpClientBuilder builder) {
-        builder.setRetryHandler(new HttpRequestRetryHandler() {
-            public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
-                return false;
-            }
-        });
     }
 
     private String getAuthScheme(Authentication authentication) {

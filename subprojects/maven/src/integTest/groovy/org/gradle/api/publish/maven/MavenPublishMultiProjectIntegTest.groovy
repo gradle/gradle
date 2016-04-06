@@ -212,7 +212,7 @@ project(":project1") {
     version = "1.0"
 
     dependencies {
-        compile "commons-collections:commons-collections:3.2.1"
+        compile "commons-collections:commons-collections:3.2.2"
         compile "commons-io:commons-io:1.4"
     }
 }

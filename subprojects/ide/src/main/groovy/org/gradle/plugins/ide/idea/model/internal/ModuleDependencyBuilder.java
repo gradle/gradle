@@ -20,9 +20,11 @@ import org.gradle.api.Project;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.ModuleDependency;
+import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 
 class ModuleDependencyBuilder {
-    public ModuleDependency create(Project project, String scope) {
+    public ModuleDependency create(IdeProjectDependency dependency, String scope) {
+        Project project = dependency.getProject();
         if (project.getPlugins().hasPlugin(IdeaPlugin.class)) {
             return new ModuleDependency(((IdeaModel) project.getExtensions().getByName("idea")).getModule().getName(), scope);
         } else {

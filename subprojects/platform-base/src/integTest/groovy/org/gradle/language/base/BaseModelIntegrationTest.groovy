@@ -18,11 +18,16 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.platform.base.ApplicationSpec
+import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.GeneralComponentSpec
+import org.gradle.platform.base.LibrarySpec
+import spock.lang.Unroll
 
 class BaseModelIntegrationTest extends AbstractIntegrationSpec {
     def "empty containers are visible in model report"() {
         buildFile << """
-apply plugin: ComponentModelBasePlugin
+apply plugin: 'component-base'
 """
 
         when:
@@ -43,4 +48,23 @@ apply plugin: ComponentModelBasePlugin
             }
         }
     }
+
+    @Unroll
+    def "can declare instance of general type - #componentSpecType"() {
+        buildFile << """
+            apply plugin: 'component-base'
+            model {
+                components {
+                    main(${componentSpecType})
+                }
+            }
+        """
+
+        expect:
+        succeeds "model"
+
+        where:
+        componentSpecType << [ComponentSpec, GeneralComponentSpec, LibrarySpec, ApplicationSpec]*.simpleName
+    }
+
 }

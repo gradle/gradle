@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.registry;
 
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
-import org.gradle.messaging.remote.Address;
+import org.gradle.internal.remote.Address;
 
 import java.io.Serializable;
 

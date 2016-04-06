@@ -29,14 +29,17 @@ public class NativePlatformConsoleMetaData implements ConsoleMetaData {
         this.terminal = terminal;
     }
 
+    @Override
     public boolean isStdOut() {
         return stdout;
     }
 
+    @Override
     public boolean isStdErr() {
         return stderr;
     }
 
+    @Override
     public int getCols() {
         return terminal.getTerminalSize().getCols();
     }

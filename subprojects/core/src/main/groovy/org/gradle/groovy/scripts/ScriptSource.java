@@ -15,7 +15,7 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.internal.resource.Resource;
+import org.gradle.internal.resource.TextResource;
 
 import java.io.Serializable;
 
@@ -31,7 +31,7 @@ public interface ScriptSource extends Serializable {
     /**
      * Returns the source for this script. Never returns null.
      */
-    Resource getResource();
+    TextResource getResource();
 
     /**
      * Returns the file name that is inserted into the class during compilation.  For a script with a source

@@ -18,7 +18,7 @@ package org.gradle.process.internal.streams
 
 import groovy.transform.NotYetImplemented
 import org.gradle.internal.io.TextStream
-import org.gradle.util.LineBufferingOutputStream
+import org.gradle.internal.io.LineBufferingOutputStream
 import spock.lang.Issue
 import spock.lang.Specification
 

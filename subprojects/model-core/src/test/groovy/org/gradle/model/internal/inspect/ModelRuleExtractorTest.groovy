@@ -31,7 +31,7 @@ import java.beans.Introspector
 
 class ModelRuleExtractorTest extends ProjectRegistrySpec {
     def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(SCHEMA_STORE), MANAGED_PROXY_FACTORY, SCHEMA_STORE, STRUCT_BINDINGS_STORE)
-    ModelRegistry registry = new DefaultModelRegistry(extractor)
+    ModelRegistry registry = new DefaultModelRegistry(extractor, null)
 
     static class ModelThing {
         final String name
@@ -772,6 +772,39 @@ ${ManagedWithNonManageableParents.name}
             extractor.cache.cleanUp()
             extractor.cache.size() == 0
         }
+    }
+
+    static class InvalidEachAnnotation extends RuleSource {
+        @Mutate
+        void mutate(String value, @Each Integer input) {}
+    }
+
+    def "invalid @Each annotations are not allowed"() {
+        when:
+        extract InvalidEachAnnotation
+
+        then:
+        def e = thrown InvalidModelRuleDeclarationException
+        e.message == """Type ${InvalidEachAnnotation.name} is not a valid rule source:
+- Method mutate(java.lang.String, java.lang.Integer) is not a valid rule method: Rule parameter #2 should not be annotated with @Each."""
+    }
+
+    static class InvalidEachAndPathAnnotation extends RuleSource {
+        @Mutate
+        void valid(@Path("value") String value, Integer input) {}
+
+        @Mutate
+        void invalid(@Each @Path("value") String value, Integer input) {}
+    }
+
+    def "both @Each and @Path annotations are not allowed"() {
+        when:
+        extract InvalidEachAndPathAnnotation
+
+        then:
+        def e = thrown InvalidModelRuleDeclarationException
+        e.message == """Type ${InvalidEachAndPathAnnotation.name} is not a valid rule source:
+- Method invalid(java.lang.String, java.lang.Integer) is not a valid rule method: Rule subject must not be annotated with both @Path and @Each."""
     }
 
     private void forcefullyClearReferences(Class<?> clazz) {

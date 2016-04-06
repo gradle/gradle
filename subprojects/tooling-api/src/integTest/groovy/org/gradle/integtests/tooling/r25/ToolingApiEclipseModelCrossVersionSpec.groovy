@@ -63,7 +63,7 @@ configure(project(':a')){
 }'''
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
 
         then:
         rootProject.projectDependencies.find {it.targetProject.name == "a"}.exported ==false
@@ -116,7 +116,7 @@ configure(project(':c')) {
 """
 
         when:
-        EclipseProject rootProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject rootProject = loadToolingModel(EclipseProject)
         EclipseProject aProject = rootProject.children.find { it.name == 'a'}
         EclipseProject bProject = rootProject.children.find { it.name == 'b'}
         EclipseProject cProject = rootProject.children.find { it.name == 'c'}
@@ -125,4 +125,5 @@ configure(project(':c')) {
         bProject.classpath.find { it.file.name == "someArtifact-16.0.1.jar" }
         cProject.classpath.find { it.file.name == "someArtifact-16.0.1.jar" }
     }
+
 }

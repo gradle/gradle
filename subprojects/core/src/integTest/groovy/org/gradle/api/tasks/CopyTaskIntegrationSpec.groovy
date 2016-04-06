@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -215,5 +216,32 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         file("out/nested/b.txt").text == "bar"
+    }
+
+    @Issue("GRADLE-3418")
+    @Unroll
+    def "can copy files with #filePath in path when excluding #pattern"() {
+        given:
+        file("test/${filePath}/a.txt").touch()
+
+        buildScript """
+            task copy(type: Copy) {
+                into "out"
+                from "test"
+                exclude "$pattern"
+            }
+        """
+
+        when:
+        succeeds "copy"
+
+        then:
+        file("out/${filePath}/a.txt").exists()
+
+        where:
+        pattern      | filePath
+        "**/#*#"     | "#"
+        "**/%*%"     | "%"
+        "**/abc*abc" | "abc"
     }
 }

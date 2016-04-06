@@ -30,6 +30,7 @@ class EscapeUserArgs implements Transformer<String, String> {
         return new EscapeUserArgs().transform(original);
     }
 
+    @Override
     public String transform(String original) {
         return original.replace("\\", "\\\\").replace("\"", "\\\"");
     }

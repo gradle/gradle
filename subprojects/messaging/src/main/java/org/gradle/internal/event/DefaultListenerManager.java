@@ -17,10 +17,10 @@
 package org.gradle.internal.event;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.MethodInvocation;
-import org.gradle.messaging.dispatch.ProxyDispatchAdapter;
-import org.gradle.messaging.dispatch.ReflectionDispatch;
+import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.dispatch.MethodInvocation;
+import org.gradle.internal.dispatch.ProxyDispatchAdapter;
+import org.gradle.internal.dispatch.ReflectionDispatch;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;

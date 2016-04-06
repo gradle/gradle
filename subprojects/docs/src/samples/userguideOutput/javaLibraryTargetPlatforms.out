@@ -4,7 +4,7 @@
 :core:mainJava5ApiJar
 :core:mainJava5Jar
 :core:compileMainJava6JarMainJava
-:core:compileMainJava6JarMainJava6
+:core:compileMainJava6JarMainJava6JarJava
 :core:processMainJava6JarMainResources
 :core:createMainJava6Jar
 :core:mainJava6ApiJar

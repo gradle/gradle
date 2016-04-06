@@ -30,6 +30,7 @@ public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
         this.projectModelResolver = projectModelResolver;
     }
 
+    @Override
     public DomainObjectSet<NativeLibraryBinary> getBinaries(NativeLibraryRequirement requirement) {
         ModelRegistry projectModel = projectModelResolver.resolveProjectModel(requirement.getProjectPath());
         NamedDomainObjectSet<PrebuiltLibraries> repositories = projectModel.realize("repositories", Repositories.class).withType(PrebuiltLibraries.class);

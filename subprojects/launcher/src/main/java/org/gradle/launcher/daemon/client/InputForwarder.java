@@ -21,7 +21,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.io.TextStream;
 import org.gradle.util.DisconnectableInputStream;
-import org.gradle.util.LineBufferingOutputStream;
+import org.gradle.internal.io.LineBufferingOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -101,7 +101,7 @@ public class InputForwarder implements Stoppable {
         } finally {
             lifecycleLock.unlock();
         }
-        
+
         return this;
     }
 
@@ -114,7 +114,7 @@ public class InputForwarder implements Stoppable {
                 } catch (IOException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
-                
+
                 forwardingExecuter.stop();
                 stopped = true;
             }

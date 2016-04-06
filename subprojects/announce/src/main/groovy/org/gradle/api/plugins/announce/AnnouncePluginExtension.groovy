@@ -16,13 +16,13 @@
 package org.gradle.api.plugins.announce
 
 import org.gradle.api.Project
-import org.gradle.api.internal.GradleDistributionLocator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.plugins.announce.internal.AnnouncerFactory
 import org.gradle.api.plugins.announce.internal.DefaultAnnouncerFactory
 import org.gradle.api.plugins.announce.internal.DefaultIconProvider
+import org.gradle.internal.installation.CurrentGradleInstallation
 
 class AnnouncePluginExtension {
     private static final Logger logger = Logging.getLogger(AnnouncePlugin)
@@ -43,7 +43,7 @@ class AnnouncePluginExtension {
 
     AnnouncePluginExtension(ProjectInternal project) {
         this.project = project
-        this.announcerFactory = new DefaultAnnouncerFactory(this, project, new DefaultIconProvider(project.services.get(GradleDistributionLocator)))
+        this.announcerFactory = new DefaultAnnouncerFactory(this, project, new DefaultIconProvider(project.services.get(CurrentGradleInstallation).getInstallation()))
         this.onDemandLocalAnnouncer = new LocalAnnouncer(this)
     }
 

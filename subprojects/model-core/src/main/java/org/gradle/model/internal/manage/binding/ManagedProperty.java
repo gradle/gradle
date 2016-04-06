@@ -68,4 +68,9 @@ public class ManagedProperty<T> {
     public boolean isDeclaredAsHavingUnmanagedType() {
         return declaredAsHavingUnmanagedType;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

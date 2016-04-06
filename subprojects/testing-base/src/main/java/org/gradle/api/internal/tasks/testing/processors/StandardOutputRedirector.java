@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.logging.StandardOutputCapture;
+import org.gradle.internal.logging.StandardOutputCapture;
 
 public interface StandardOutputRedirector extends StandardOutputCapture {
     void redirectStandardOutputTo(StandardOutputListener stdOutDestination);

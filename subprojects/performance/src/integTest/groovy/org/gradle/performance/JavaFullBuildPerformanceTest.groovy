@@ -32,7 +32,7 @@ class JavaFullBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testProject = testProject
         runner.tasksToRun = ['clean', 'build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['1.0', '2.0', '2.2.1', '2.4', '2.8', 'last']
+        runner.targetVersions = targetVersions
 
         when:
         def result = runner.run()
@@ -41,9 +41,9 @@ class JavaFullBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | maxExecutionTimeRegression
-        "small"           | millis(1000)
-        "multi"           | millis(1300)
-        "lotDependencies" | millis(1000)
+        testProject       | maxExecutionTimeRegression | targetVersions
+        "small"           | millis(1000)               | ['1.0', '2.2.1', '2.4', '2.8', 'last']
+        "multi"           | millis(1300)               | ['2.8', 'last']
+        "lotDependencies" | millis(1000)               | ['2.4', '2.8', 'last']
     }
 }

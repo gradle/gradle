@@ -43,7 +43,7 @@ class Antlr2PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         output.contains("TestGrammar.g:7:24: unexpected token: extra")
         assertAntlrVersion(2)
         failure.assertHasDescription("Execution failed for task ':generateGrammarSource'.")
-        failure.assertHasCause("There was 1 error during grammar generation")
+        failure.assertHasCause("There were errors during grammar generation")
         failure.assertHasCause("ANTLR Panic: Exiting due to errors.")
     }
 

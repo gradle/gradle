@@ -31,38 +31,47 @@ public class DefaultMutableCommandLineToolContext implements MutableCommandLineT
     private final Map<String, String> environment = new HashMap<String, String>();
     private final List<File> path = new ArrayList<File>();
 
+    @Override
     public void setArgAction(Action<List<String>> argAction) {
         postArgsAction = argAction;
     }
 
+    @Override
     public void addPath(File pathEntry) {
         this.path.add(pathEntry);
     }
 
+    @Override
     public void addPath(List<File> path) {
         this.path.addAll(path);
     }
 
+    @Override
     public List<File> getPath() {
         return path;
     }
 
+    @Override
     public Map<String, String> getEnvironment() {
         return environment;
     }
 
+    @Override
     public Action<List<String>> getArgAction() {
         return postArgsAction;
     }
 
+    @Override
     public void addEnvironmentVar(String key, String value) {
         this.environment.put(key, value);
     }
 
+    @Override
     public CommandLineToolInvocation createInvocation(String description, File workDirectory, Iterable<String> args, BuildOperationLogger oplogger) {
         return new DefaultCommandLineToolInvocation(description, workDirectory, args, this, oplogger);
     }
 
+    @Override
     public CommandLineToolInvocation createInvocation(String description, Iterable<String> args, BuildOperationLogger oplogger) {
         File currentWorkingDirectory = null;
         return createInvocation(description, currentWorkingDirectory, args, oplogger);

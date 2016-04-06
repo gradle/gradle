@@ -38,7 +38,7 @@ import java.lang.annotation.Target;
  *
  * class MySamplePlugin extends RuleSource {
  *     {@literal @}ComponentType
- *     void register(ComponentTypeBuilder&lt;SampleComponent&gt; builder) {
+ *     void register(TypeBuilder&lt;SampleComponent&gt; builder) {
  *         builder.defaultImplementation(DefaultSampleComponent)
  *     }
  *

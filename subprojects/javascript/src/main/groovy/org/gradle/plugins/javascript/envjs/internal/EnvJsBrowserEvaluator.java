@@ -17,15 +17,11 @@
 package org.gradle.plugins.javascript.envjs.internal;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
 import org.gradle.plugins.javascript.envjs.browser.BrowserEvaluator;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandle;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerSpec;
-import org.gradle.process.JavaExecSpec;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,24 +45,14 @@ public class EnvJsBrowserEvaluator implements BrowserEvaluator {
     }
 
     public void evaluate(String url, Writer writer) {
-        RhinoWorkerHandle<String, EnvJsEvaluateSpec> handle = rhinoWorkerHandleFactory.create(rhinoClasspath, createWorkerSpec(), logLevel, new Action<JavaExecSpec>() {
-            public void execute(JavaExecSpec javaExecSpec) {
-                javaExecSpec.setWorkingDir(workingDir);
-            }
-        });
+        EnvJvEvaluateProtocol evaluator = rhinoWorkerHandleFactory.create(rhinoClasspath, EnvJvEvaluateProtocol.class, EnvJsEvaluateWorker.class, logLevel, workingDir);
 
-        final String result = handle.process(new EnvJsEvaluateSpec(envJsFactory.create(), url));
+        final String result = evaluator.process(new EnvJsEvaluateSpec(envJsFactory.create(), url));
 
         try {
             IOUtils.copy(new StringReader(result), writer);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    private RhinoWorkerSpec<String, EnvJsEvaluateSpec> createWorkerSpec() {
-        return new RhinoWorkerSpec<String, EnvJsEvaluateSpec>(
-                String.class, EnvJsEvaluateSpec.class, EnvJsEvaluateWorker.class
-        );
     }
 }

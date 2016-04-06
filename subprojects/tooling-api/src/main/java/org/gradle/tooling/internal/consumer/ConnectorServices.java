@@ -23,6 +23,9 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.tooling.CancellationTokenSource;
+import org.gradle.tooling.connection.GradleConnectionBuilder;
+import org.gradle.tooling.internal.connection.DefaultGradleConnectionBuilder;
+import org.gradle.tooling.internal.connection.GradleConnectionFactory;
 import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.SynchronizedToolingImplementationLoader;
@@ -34,6 +37,11 @@ public class ConnectorServices {
     public static DefaultGradleConnector createConnector() {
         assertJava6();
         return singletonRegistry.getFactory(DefaultGradleConnector.class).create();
+    }
+
+    public static GradleConnectionBuilder createGradleConnectionBuilder() {
+        assertJava6();
+        return singletonRegistry.getFactory(GradleConnectionBuilder.class).create();
     }
 
     public static CancellationTokenSource createCancellationTokenSource() {
@@ -70,6 +78,14 @@ public class ConnectorServices {
             };
         }
 
+        protected Factory<GradleConnectionBuilder> createGradleConnectionBuilder(final GradleConnectionFactory gradleConnectionFactory, final DistributionFactory distributionFactory) {
+            return new Factory<GradleConnectionBuilder>() {
+                public GradleConnectionBuilder create() {
+                    return new DefaultGradleConnectionBuilder(gradleConnectionFactory, distributionFactory);
+                }
+            };
+        }
+
         protected ExecutorFactory createExecutorFactory() {
             return new DefaultExecutorFactory();
         }
@@ -92,6 +108,10 @@ public class ConnectorServices {
 
         protected ConnectionFactory createConnectionFactory(ToolingImplementationLoader toolingImplementationLoader, ExecutorFactory executorFactory, LoggingProvider loggingProvider) {
             return new ConnectionFactory(toolingImplementationLoader, executorFactory, loggingProvider);
+        }
+
+        protected GradleConnectionFactory createGradleConnectionFactory(ToolingImplementationLoader toolingImplementationLoader, ExecutorFactory executorFactory, LoggingProvider loggingProvider) {
+            return new GradleConnectionFactory(toolingImplementationLoader, executorFactory, loggingProvider);
         }
     }
 }

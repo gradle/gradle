@@ -27,6 +27,7 @@ public class LinksOfflineJavadocOptionFileOption extends AbstractJavadocOptionFi
         super(option, new ArrayList<JavadocOfflineLink>());
     }
 
+    @Override
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
         if (value != null && !value.isEmpty()) {
             for (final JavadocOfflineLink offlineLink : value) {

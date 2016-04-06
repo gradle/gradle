@@ -16,42 +16,78 @@
 
 package org.gradle.platform.base.component.internal;
 
+import org.gradle.api.Nullable;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.core.BaseInstanceFactory;
-import org.gradle.model.internal.core.InstanceFactory;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.typeregistration.BaseInstanceFactory;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentSpecIdentifier;
-import org.gradle.platform.base.component.BaseComponentSpec;
+import org.gradle.platform.base.binary.BaseBinarySpec;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
+import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
-
-import java.util.Set;
 
 public class ComponentSpecFactory extends BaseInstanceFactory<ComponentSpec> {
     private final ProjectIdentifier projectIdentifier;
 
-    public ComponentSpecFactory(String displayName, ProjectIdentifier projectIdentifier) {
-        super(displayName, ComponentSpec.class, BaseComponentSpec.class);
+    public ComponentSpecFactory(final ProjectIdentifier projectIdentifier, final Instantiator instantiator, final ITaskFactory taskFactory, final SourceDirectorySetFactory sourceDirectorySetFactory) {
+        super(ComponentSpec.class);
         this.projectIdentifier = projectIdentifier;
+        registerFactory(DefaultComponentSpec.class, new ImplementationFactory<ComponentSpec, DefaultComponentSpec>() {
+            @Override
+            public <T extends DefaultComponentSpec> T create(ModelType<? extends ComponentSpec> publicType, ModelType<T> implementationType, String name, MutableModelNode componentNode) {
+                ComponentSpecIdentifier id = getId(findOwner(componentNode), name);
+                return DefaultComponentSpec.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, componentNode);
+            }
+        });
+        registerFactory(BaseBinarySpec.class, new ImplementationFactory<BinarySpec, BaseBinarySpec>() {
+            @Override
+            public <T extends BaseBinarySpec> T create(ModelType<? extends BinarySpec> publicType, ModelType<T> implementationType, String name, MutableModelNode binaryNode) {
+                MutableModelNode componentNode = findOwner(binaryNode);
+                ComponentSpecIdentifier id = getId(componentNode, name);
+                return BaseBinarySpec.create(
+                        publicType.getConcreteClass(),
+                        implementationType.getConcreteClass(),
+                        id,
+                        binaryNode,
+                        componentNode,
+                        instantiator,
+                        taskFactory);
+            }
+        });
+        registerFactory(BaseLanguageSourceSet.class, new ImplementationFactory<LanguageSourceSet, BaseLanguageSourceSet>() {
+            @Override
+            public <T extends BaseLanguageSourceSet> T create(ModelType<? extends LanguageSourceSet> publicType, ModelType<T> implementationType, String sourceSetName, MutableModelNode node) {
+                ComponentSpecIdentifier id = getId(findOwner(node), sourceSetName);
+                return Cast.uncheckedCast(BaseLanguageSourceSet.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, sourceDirectorySetFactory));
+            }
+        });
     }
 
-    public <S extends ComponentSpec, T extends BaseComponentSpec> void register(final ModelType<S> publicType, final ModelType<T> implementationType,
-                                                                                Set<Class<?>> internalViews, ModelRuleDescriptor descriptor) {
-        InstanceFactory.TypeRegistrationBuilder<S> registration = register(publicType, descriptor);
-        if (implementationType != null) {
-            registration.withImplementation(Cast.<ModelType<? extends S>>uncheckedCast(implementationType), new InstanceFactory.ImplementationFactory<S>() {
-                @Override
-                public S create(ModelType<? extends S> publicType, String name, MutableModelNode componentNode) {
-                    ComponentSpecIdentifier id = new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
-                    return Cast.uncheckedCast(BaseComponentSpec.create(publicType.getConcreteClass(), implementationType.getConcreteClass(), id, componentNode));
-                }
-            });
+    @Nullable
+    private ComponentSpecIdentifier getId(@Nullable MutableModelNode ownerNode, String name) {
+        if (ownerNode != null) {
+            ComponentSpecInternal componentSpec = ownerNode.asImmutable(ModelType.of(ComponentSpecInternal.class), null).getInstance();
+            return componentSpec.getIdentifier().child(name);
         }
-        for (Class<?> internalView : internalViews) {
-            registration.withInternalView(ModelType.of(internalView));
+
+        return new DefaultComponentSpecIdentifier(projectIdentifier.getPath(), name);
+    }
+
+    @Nullable
+    private MutableModelNode findOwner(MutableModelNode modelNode) {
+        MutableModelNode grandparentNode = modelNode.getParent().getParent();
+        if (grandparentNode != null && grandparentNode.canBeViewedAs(ModelType.of(ComponentSpecInternal.class))) {
+            return grandparentNode;
         }
+
+        return null;
     }
 }

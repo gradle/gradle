@@ -20,9 +20,9 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.internal.graph.GraphRenderer
-import org.gradle.logging.StyledTextOutput
+import org.gradle.internal.logging.StyledTextOutput
 
-import static org.gradle.logging.StyledTextOutput.Style.Info
+import static org.gradle.internal.logging.StyledTextOutput.Style.Info
 
 class DependencyGraphRenderer {
     private final GraphRenderer renderer

@@ -37,8 +37,6 @@ import org.gradle.api.Incubating;
  * <li>{@link Validate}</li>
  * <li>{@link Rules}</li>
  * <li>{@link org.gradle.platform.base.ComponentType}</li>
- * <li>{@link org.gradle.platform.base.BinaryType}</li>
- * <li>{@link org.gradle.platform.base.LanguageType}</li>
  * <li>{@link org.gradle.platform.base.ComponentBinaries}</li>
  * <li>{@link org.gradle.platform.base.BinaryTasks}</li>
  * </ul>

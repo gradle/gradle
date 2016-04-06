@@ -16,7 +16,6 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -24,7 +23,7 @@ import spock.lang.Unroll
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([Experiment, JavaPerformanceTest])
+@Category([JavaPerformanceTest])
 class JavaSourceChangesFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("incremental full assemble Java build - #testProject")
     def "incremental full assemble Java build"() {

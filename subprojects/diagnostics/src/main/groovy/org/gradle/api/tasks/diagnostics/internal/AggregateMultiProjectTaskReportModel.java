@@ -56,10 +56,12 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
         }
     }
 
+    @Override
     public Set<String> getGroups() {
         return groups.keySet();
     }
 
+    @Override
     public Set<TaskDetails> getTasksForGroup(String group) {
         return groups.get(group);
     }
@@ -71,18 +73,22 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
             this.task = task;
         }
 
+        @Override
         public Path getPath() {
             return Path.path(task.getPath().getName());
         }
 
+        @Override
         public Set<TaskDetails> getChildren() {
             return task.getChildren();
         }
 
+        @Override
         public String getDescription() {
             return task.getDescription();
         }
 
+        @Override
         public Set<TaskDetails> getDependencies() {
             return task.getDependencies();
         }

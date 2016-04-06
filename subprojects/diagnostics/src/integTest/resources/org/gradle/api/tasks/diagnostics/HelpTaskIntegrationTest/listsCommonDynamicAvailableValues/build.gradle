@@ -16,6 +16,6 @@ class CustomTask extends DefaultTask {
 
     @OptionValues("stringValue")
     public List<String> possibleValues(){
-        return Arrays.asList("optionA", "optionB", "$path")
+        return Arrays.asList("optionA", "optionB", "optionC", "$path")
     }
 }

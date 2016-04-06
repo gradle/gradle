@@ -34,6 +34,10 @@ public class BuildInvocationsConverter {
         while (rootProject.getParent() != null) {
             rootProject = rootProject.getParent();
         }
+        return convertSingleProject(rootProject);
+    }
+
+    public ConsumerProvidedBuildInvocations convertSingleProject(GradleProject rootProject) {
         List<ConsumerProvidedTaskSelector> selectors = buildRecursively(rootProject);
         return new ConsumerProvidedBuildInvocations(selectors, convertTasks(rootProject.getTasks()));
     }

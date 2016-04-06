@@ -27,12 +27,12 @@ import java.util.List;
 public class PluginRequestsSerializer implements Serializer<PluginRequests> {
     @Override
     public PluginRequests read(Decoder decoder) throws Exception {
-        int requestCount = decoder.readInt();
+        int requestCount = decoder.readSmallInt();
         List<PluginRequest> requests = Lists.newArrayListWithCapacity(requestCount);
         for (int i = 0; i < requestCount; i++) {
             PluginId pluginId = PluginId.unvalidated(decoder.readString());
             String version = decoder.readNullableString();
-            int lineNumber = decoder.readInt();
+            int lineNumber = decoder.readSmallInt();
             String scriptDisplayName = decoder.readString();
 
             requests.add(i, new DefaultPluginRequest(pluginId, version, lineNumber, scriptDisplayName));
@@ -42,11 +42,11 @@ public class PluginRequestsSerializer implements Serializer<PluginRequests> {
 
     @Override
     public void write(Encoder encoder, PluginRequests requests) throws Exception {
-        encoder.writeInt(requests.size());
+        encoder.writeSmallInt(requests.size());
         for (PluginRequest request : requests) {
             encoder.writeString(request.getId().asString());
             encoder.writeNullableString(request.getVersion());
-            encoder.writeInt(request.getLineNumber());
+            encoder.writeSmallInt(request.getLineNumber());
             encoder.writeString(request.getScriptDisplayName());
         }
     }

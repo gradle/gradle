@@ -31,7 +31,7 @@ public class ModelMaps {
                     @Override
                     public void execute(MutableModelNode node, NodeInitializerRegistry nodeInitializerRegistry) {
                         ChildNodeInitializerStrategy<T> childFactory =
-                            NodeBackedModelMap.createUsingRegistry(elementModelType, nodeInitializerRegistry);
+                            NodeBackedModelMap.createUsingRegistry(nodeInitializerRegistry);
                         node.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
                     }
                 })

@@ -125,7 +125,6 @@ public class ApiJar extends DefaultTask {
                         byte[] apiClassBytes = apiClassExtractor.extractApiClassFrom(classReader);
                         String internalClassName = classReader.getClassName();
                         String entryPath = internalClassName + ".class";
-                        // TODO:RBO consider what to do about duplicate class names
                         writeEntry(jos, entryPath, apiClassBytes);
                     }
                 }

@@ -32,6 +32,7 @@ public class RenderableDependencyResult extends AbstractRenderableDependencyResu
         this.dependency = dependency;
     }
 
+    @Override
     public boolean isResolvable() {
         return true;
     }
@@ -46,6 +47,7 @@ public class RenderableDependencyResult extends AbstractRenderableDependencyResu
         return dependency.getRequested();
     }
 
+    @Override
     public Set<RenderableDependency> getChildren() {
         Set<RenderableDependency> out = new LinkedHashSet<RenderableDependency>();
         for (DependencyResult d : dependency.getSelected().getDependencies()) {

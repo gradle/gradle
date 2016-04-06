@@ -36,11 +36,13 @@ public class AllExceptIgnoredTestRunnerBuilder extends AllDefaultPossibilitiesBu
         return new IgnoredIgnoredBuilder();
     }
 
+    @Override
     protected JUnit4Builder junit4Builder() {
         return new FallbackJUnit4Builder();
     }
 
     private class FallbackJUnit4Builder extends JUnit4Builder {
+        @Override
         public Runner runnerForClass(Class<?> testClass) throws Throwable {
             try {
                 return new BlockJUnit4ClassRunner(testClass);

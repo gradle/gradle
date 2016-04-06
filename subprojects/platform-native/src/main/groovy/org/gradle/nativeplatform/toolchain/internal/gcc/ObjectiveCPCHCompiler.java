@@ -28,6 +28,7 @@ public class ObjectiveCPCHCompiler extends GccCompatibleNativeCompiler<Objective
     }
 
     private static class ObjectiveCPCHCompileArgsTransformer extends GccCompilerArgsTransformer<ObjectiveCPCHCompileSpec> {
+        @Override
         protected String getLanguage() {
             return "objective-c-header";
         }

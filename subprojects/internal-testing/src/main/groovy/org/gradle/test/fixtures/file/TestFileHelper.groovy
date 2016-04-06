@@ -25,7 +25,9 @@ import org.apache.tools.ant.taskdefs.Zip
 import org.apache.tools.ant.types.ArchiveFileSet
 import org.apache.tools.ant.types.EnumeratedAttribute
 import org.apache.tools.ant.types.ZipFileSet
+import org.apache.tools.bzip2.CBZip2OutputStream
 
+import java.util.zip.GZIPOutputStream
 import java.util.zip.ZipInputStream
 
 import static org.hamcrest.Matchers.equalTo
@@ -251,4 +253,24 @@ class TestFileHelper {
         tar.execute();
     }
 
+    void bzip2To(TestFile compressedFile) {
+        def outStr = new FileOutputStream(compressedFile)
+        try {
+            outStr.write('BZ'.getBytes("us-ascii"))
+            def zipStream = new CBZip2OutputStream(outStr)
+            zipStream.bytes = file.bytes
+            zipStream.close()
+        } finally {
+            outStr.close()
+        }
+    }
+
+    void gzipTo(TestFile compressedFile) {
+        def outStr = new GZIPOutputStream(new FileOutputStream(compressedFile))
+        try {
+            outStr.bytes = file.bytes
+        } finally {
+            outStr.close()
+        }
+    }
 }

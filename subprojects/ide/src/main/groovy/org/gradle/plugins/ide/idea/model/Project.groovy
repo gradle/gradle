@@ -129,14 +129,20 @@ class Project extends XmlPersistableConfigurationObject {
     }
 
     private void configureBytecodeLevels() {
-        if (bytecodeVersion != JavaVersion.toVersion(jdk.projectJdkName)) {
-            findBytecodeLevelConfiguration().@'target' = bytecodeVersion.toString()
-        }
+        def bytecodeLevelConfiguration = findBytecodeLevelConfiguration()
+        bytecodeLevelConfiguration.@'target' = bytecodeVersion.toString()
         for (IdeaModule module : modules) {
+            def moduleNode = bytecodeLevelConfiguration.module.find { moduleNode -> moduleNode.'@name' == module.name }
             def moduleBytecodeVersionOverwrite = module.getTargetBytecodeVersion()
-            if (moduleBytecodeVersionOverwrite != null) {
-                def moduleNode = findBytecodeLevelConfiguration().appendNode('module')
-                moduleNode.@'name' = module.name
+            if (moduleBytecodeVersionOverwrite == null) {
+                if (moduleNode != null) {
+                    moduleNode.replaceNode {}
+                }
+            } else {
+                if (moduleNode == null) {
+                    moduleNode = bytecodeLevelConfiguration.appendNode('module')
+                    moduleNode.@'name' = module.name
+                }
                 moduleNode.@'target' = moduleBytecodeVersionOverwrite.toString()
             }
         }
@@ -218,6 +224,9 @@ class Project extends XmlPersistableConfigurationObject {
         if (modulePaths != project.modulePaths) {
             return false
         }
+        if (projectLibraries != project.projectLibraries) {
+            return false
+        }
         if (wildcards != project.wildcards) {
             return false
         }
@@ -230,9 +239,9 @@ class Project extends XmlPersistableConfigurationObject {
 
     int hashCode() {
         int result;
-
         result = (modulePaths != null ? modulePaths.hashCode() : 0);
         result = 31 * result + (wildcards != null ? wildcards.hashCode() : 0);
+        result = 31 * result + (projectLibraries != null ? projectLibraries.hashCode() : 0);
         result = 31 * result + (jdk != null ? jdk.hashCode() : 0);
         result = 31 * result + (vcs != null ? vcs.hashCode() : 0);
         return result;

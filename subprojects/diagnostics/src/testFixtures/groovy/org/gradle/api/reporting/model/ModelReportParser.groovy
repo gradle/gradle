@@ -81,6 +81,8 @@ class ModelReportParser {
                     prev.attributes()['rules'] = []
                 } else if (isARule(line)) {
                     prev.attributes()['rules'] << rule(line)
+                } else if (isASimpleProperty(line)) {
+                    setPropertyValue(prev.attributes(), line)
                 } else {
                     setNodeProperties(line, prev)
                 }
@@ -91,6 +93,15 @@ class ModelReportParser {
 
     private static String rule(String line) {
         return line.replaceAll('⤷', '').trim()
+    }
+
+    private static String setPropertyValue(Map attributes, String line) {
+        def match = (line =~ /( +)\| (.+?) = (.+)/)[0]
+        attributes[match[2]] = match[3]
+    }
+
+    private static boolean isASimpleProperty(String line) {
+        return line =~ /( +)\| .+? = .+/
     }
 
     private static boolean isARule(String line) {

@@ -84,7 +84,7 @@ class InternalConnectionBackedConsumerConnectionTest extends Specification {
 
         1 * target.getTheModel(GradleProject.class, parameters) >> gradleProject
         1 * adapter.adapt(GradleProject.class, gradleProject, _) >> gradleProject
-        1 * adapter.adapt(GradleBuild.class, _) >> model
+        1 * adapter.adapt(GradleBuild.class, _, _) >> model
         0 * target._
     }
 

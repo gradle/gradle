@@ -229,6 +229,20 @@ class EclipseModelBuilderTest extends Specification {
         "target" | "targetCompatibility" | "targetBytecodeVersion"
     }
 
+    def "non convention source and target compatibility properties are ignored"() {
+        given:
+        def modelBuilder = createEclipseModelBuilder()
+        project.ext.sourceCompatibility = '1.2'
+        project.ext.targetCompatibility = '1.2'
+        project.plugins.apply(JavaPlugin)
+
+        when:
+        def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
+
+        then:
+        eclipseModel.javaSourceSettings.sourceLanguageLevel == JavaVersion.current()
+    }
+
     private def createEclipseModelBuilder() {
         def gradleProjectBuilder = Mock(GradleProjectBuilder)
         gradleProjectBuilder.buildAll(_) >> Mock(DefaultGradleProject)

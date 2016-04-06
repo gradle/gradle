@@ -72,6 +72,7 @@ class ModelElementNode extends ModelNodeInternal {
         return getPrivateData(ModelType.of(type));
     }
 
+    @Override
     public <T> T getPrivateData(ModelType<T> type) {
         if (privateData == null) {
             return null;
@@ -93,6 +94,7 @@ class ModelElementNode extends ModelNodeInternal {
         setPrivateData(ModelType.of(type), object);
     }
 
+    @Override
     public <T> void setPrivateData(ModelType<? super T> type, T object) {
         if (!isMutable()) {
             throw new IllegalStateException(String.format("Cannot set value for model element '%s' as this element is not mutable.", getPath()));
@@ -101,15 +103,18 @@ class ModelElementNode extends ModelNodeInternal {
         this.privateData = object;
     }
 
+    @Override
     public boolean hasLink(String name) {
         return links.containsKey(name);
     }
 
+    @Override
     @Nullable
     public ModelNodeInternal getLink(String name) {
         return links.get(name);
     }
 
+    @Override
     public Iterable<? extends ModelNodeInternal> getLinks() {
         return links.values();
     }
@@ -166,7 +171,7 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public <T> void addReference(String name, ModelType<T> type, ModelRuleDescriptor descriptor) {
+    public <T> void addReference(String name, ModelType<T> type, ModelNode target, ModelRuleDescriptor descriptor) {
         // TODO:LPTR Remove projection for reference node
         // This shouldn't be needed, but if there's no actual value referenced, model report can only
         // show the type of the node if we do this for now. It should use the schema instead to find
@@ -175,7 +180,11 @@ class ModelElementNode extends ModelNodeInternal {
         ModelRegistration registration = ModelRegistrations.of(getPath().child(name))
             .withProjection(projection)
             .descriptor(descriptor).build();
-        addNode(new ModelReferenceNode(modelRegistry, registration, this), registration);
+        ModelReferenceNode referenceNode = new ModelReferenceNode(modelRegistry, registration, this);
+        if (target != null) {
+            referenceNode.setTarget(target);
+        }
+        addNode(referenceNode, registration);
     }
 
     @Override

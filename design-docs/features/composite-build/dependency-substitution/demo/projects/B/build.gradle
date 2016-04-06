@@ -1,0 +1,33 @@
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven'
+    apply plugin: 'idea'
+
+    group = 'org'
+    version = '1.0'
+
+    dependencies {
+        compile 'log4j:log4j:1.2.4'
+        compile "junit:junit:4.0"
+    }
+
+    repositories {
+        mavenCentral()
+        maven {
+            url("file://" + rootProject.file("../repo"))
+        }
+    }
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                repository(url: "file://" + rootProject.file("../repo"))
+            }
+        }
+    }
+}
+project(':b2') {
+    dependencies {
+        compile 'org:c:1.0'
+    }
+}

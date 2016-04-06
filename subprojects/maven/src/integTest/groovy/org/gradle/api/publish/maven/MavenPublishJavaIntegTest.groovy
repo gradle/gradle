@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
-    public void "can publish jar and meta-data to maven repository"() {
+    def "can publish jar and meta-data to maven repository"() {
         given:
         createBuildScripts("""
             publishing {
@@ -40,13 +40,13 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         mavenModule.assertPublishedAsJavaModule()
 
         mavenModule.parsedPom.scopes.keySet() == ["runtime"] as Set
-        mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:3.2.1", "commons-io:commons-io:1.4")
+        mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:3.2.2", "commons-io:commons-io:1.4")
 
         and:
-        resolveArtifacts(mavenModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
+        resolveArtifacts(mavenModule) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
     }
 
-    public void "can publish attached artifacts to maven repository"() {
+    def "can publish attached artifacts to maven repository"() {
         given:
         createBuildScripts("""
             task sourceJar(type: Jar) {
@@ -72,8 +72,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         mavenModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-1.9.pom", "publishTest-1.9-source.jar")
 
         and:
-        resolveArtifacts(mavenModule) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
-        resolveArtifacts(mavenModule, [classifier: 'source']) == ["commons-collections-3.2.1.jar", "commons-io-1.4.jar", "publishTest-1.9-source.jar", "publishTest-1.9.jar"]
+        resolveArtifacts(mavenModule) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar"]
+        resolveArtifacts(mavenModule, [classifier: 'source']) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9-source.jar", "publishTest-1.9.jar"]
     }
 
     def createBuildScripts(def append) {
@@ -99,7 +99,8 @@ $append
             }
 
             dependencies {
-                compile "commons-collections:commons-collections:3.2.1"
+                compile "commons-collections:commons-collections:3.2.2"
+                compileOnly "javax.servlet:servlet-api:2.5"
                 runtime "commons-io:commons-io:1.4"
                 testCompile "junit:junit:4.12"
             }

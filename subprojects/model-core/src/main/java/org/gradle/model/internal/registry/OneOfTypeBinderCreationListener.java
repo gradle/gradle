@@ -33,6 +33,7 @@ class OneOfTypeBinderCreationListener extends ModelBinding {
         return state.isAtLeast(ModelNode.State.Discovered);
     }
 
+    @Override
     public void doOnBind(ModelNodeInternal node) {
         boundTo = node;
         bindAction.execute(this);

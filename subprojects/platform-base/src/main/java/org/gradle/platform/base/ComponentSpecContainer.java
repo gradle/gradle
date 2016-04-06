@@ -21,7 +21,6 @@ import org.gradle.model.ModelMap;
 
 /**
  * A container of software components.
- * TODO:DAZ Merge with org.gradle.api.component.SoftwareComponentContainer
  */
 @Incubating
 public interface ComponentSpecContainer extends ModelMap<ComponentSpec> {

@@ -18,7 +18,7 @@ package org.gradle.performance.fixture;
 
 import java.util.List;
 
-public class PerformanceTestResult {
+public abstract class PerformanceTestResult {
     String testId;
     String jvm;
     String operatingSystem;
@@ -91,4 +91,7 @@ public class PerformanceTestResult {
     public void setJvm(String jvm) {
         this.jvm = jvm;
     }
+
+    public abstract void assertEveryBuildSucceeds();
+
 }

@@ -26,11 +26,14 @@ import org.junit.Rule
 class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
 
+    // Explicitly set the options to their default values so that the
+    // test will be robust against future changes to these defaults.
     String compilerConfiguration() {
         """
-compileScala.scalaCompileOptions.with {
-    useAnt = false
-}
+        compileScala.scalaCompileOptions.with {
+            useAnt = false
+            fork = true
+        }
         """
     }
 
@@ -49,6 +52,7 @@ compileScala.scalaCompileOptions.with {
         file("src/main/scala/Person.scala").delete()
         file("src/main/scala/Person.scala") << "class Person"
         args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        executer.withDeprecationChecksDisabled() // each run clears args (argh!)
         run("compileScala")
 
         then:
@@ -71,6 +75,7 @@ compileScala.scalaCompileOptions.with {
         file("src/main/scala/Person.java").delete()
         file("src/main/scala/Person.java") << "public class Person {}"
         args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        executer.withDeprecationChecksDisabled() // each run clears args (argh!)
         run("compileScala")
 
         then:
@@ -90,11 +95,32 @@ compileScala.scalaCompileOptions.with {
         file("prj1/src/main/scala/Person.scala").delete()
         file("prj1/src/main/scala/Person.scala") << "class Person"
         args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        executer.withDeprecationChecksDisabled() // each run clears args (argh!)
         run("compileScala")
 
         then:
         person.lastModified() != old(person.lastModified())
         house.lastModified() != old(house.lastModified())
         other.lastModified() == old(other.lastModified())
+    }
+
+    def compilesAllScalaCodeWhenForced() {
+        setup:
+        def person = file("build/classes/main/Person.class")
+        def house = file("build/classes/main/House.class")
+        def other = file("build/classes/main/Other.class")
+        run("compileScala")
+
+        when:
+        file("src/main/scala/Person.scala").delete()
+        file("src/main/scala/Person.scala") << "class Person"
+        args("-i", "-PscalaVersion=$version") // each run clears args (argh!)
+        executer.withDeprecationChecksDisabled() // each run clears args (argh!)
+        run("compileScala")
+
+        then:
+        person.lastModified() != old(person.lastModified())
+        house.lastModified() != old(house.lastModified())
+        other.lastModified() != old(other.lastModified())
     }
 }

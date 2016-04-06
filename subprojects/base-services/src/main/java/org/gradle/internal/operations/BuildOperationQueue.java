@@ -36,6 +36,11 @@ public interface BuildOperationQueue<T extends BuildOperation> {
     public void add(T operation);
 
     /**
+     * Cancels all queued operations in this queue.  Any operations that have started will be allowed to complete.
+     */
+    public void cancel();
+
+    /**
      * Waits for all previously added operations to complete.
      * <p>
      * On failure, some effort is made to cancel any operations that have not started.
@@ -43,4 +48,9 @@ public interface BuildOperationQueue<T extends BuildOperation> {
      * @throws MultipleBuildOperationFailures if <em>any</em> operation failed
      */
     public void waitForCompletion() throws MultipleBuildOperationFailures;
+
+    /**
+     * Sets the location of a log file where build operation output can be found.  For use in exceptions.
+     */
+    public void setLogLocation(String logLocation);
 }

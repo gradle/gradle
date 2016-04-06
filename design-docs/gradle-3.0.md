@@ -9,6 +9,52 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
+## Change minimum version for running Gradle to Java 7
+
+No longer support running Gradle, the wrapper or the Tooling api client on Java 6. Instead, we'd support Java source compilation and test execution on Java 6 and later, as we do for Java 1.5 now.
+
+- Update project target versions, remove customisations for IDEA project generation.
+
+### Test coverage
+
+- Warning when running Gradle entry point on Java 6:
+    - `gradle`
+    - `gradle --daemon`
+    - `gradlew`
+    - `GradleConnector`
+    - old `gradlew`
+    - old `GradleConnector`
+- Warning when running build on Java 6 with entry point running on Java 7+ 
+    - `gradle`
+    - `gradle --daemon`
+    - `gradlew`
+    - `GradleConnector`
+    - old `gradlew`
+    - old `GradleConnector`
+- Can cross-compile and test for Java 6.
+
+## Change minimum version for building and testing Java source to Java 6
+
+Change cross-compilation and test execution to require Java 6 or later.
+Building against Java 5 requires that the compiler daemon and test execution infrastructure still support Java 5.
+
+- Clean up `DefaultClassLoaderFactory`.
+- Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`.
+- Replace usages of `guava-jdk5`.
+
+### Test coverage
+
+- Warning when running tests on Java 5.
+
+## Drop support for old versions of things
+
+- Using TestNG Javadoc annotations. TestNG dropped support for this in 5.12, in early 2010. Supporting these old style annotations means we need to attach the test source files as an input to the `Test` task, which means there's an up-to-date check cost for this.
+- Tooling api clients older than 2.0 (1.5 years old). Gradle 2.x supports tapi clients 1.2 and later. People using tooling older than 2.0 would have to upgrade to a newer version.
+- Tooling api client running builds for Gradle versions older than 1.0 (3.75 years old). Tapi 2.x supports Gradle 1.0-m8 and later.
+- Wrapper support for versions older than 2.0. Wrapper 2.x supports Gradle 0.9.2 and later (5 years) and Gradle 2.x can be run by wrapper 0.9.2 and later.
+- Cached artefact reuse for versions older than 2.0.
+- Execution of task classes compiled against Gradle versions older than 2.0.
+
 ## Remove Sonar plugins
 
 Deprecate the Sonar plugins
@@ -42,14 +88,6 @@ The current defaults for the outputs of tasks of type `Test` conflict with each 
 * Wrapper does not support downloading versions earlier than 1.0
 * Remove old unused types that are baked into the bytecode of tasks compiled against older versions (eg `ConventionValue`). Fail with a reasonable
 error message for these task types.
-
-## Remove support for building against Java 5
-
-Building against Java 5 requires that the compiler daemon and test execution infrastructure still support Java 5.
-
-* Clean up `DefaultClassLoaderFactory`.
-* Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`.
-* Replace usages of `guava-jdk5`.
 
 ## Remove Ant <depend> based incremental compilation backend
 
@@ -134,7 +172,7 @@ types and to offer a more consistent DSL.
 * Remove the `<<` operator.
 * Inline `ConventionTask` and `AbstractTask` into `DefaultTask`.
 * Remove `Task.dependsOnTaskDidWork()`.
-* Mix `TaskInternal` in during decoration and remove references to internal types.
+* Mix `TaskInternal` in during decoration and remove references to internal types from `DefaultTask` and `AbstractTask`
 
 ## Remove references to internal classes from API
 

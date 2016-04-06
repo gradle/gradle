@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.messaging.remote.Address;
+import org.gradle.internal.remote.Address;
 
 /**
  * Opens a server connection for clients to connect to to communicate with a daemon.
@@ -34,7 +34,7 @@ public interface DaemonServerConnector extends Stoppable {
      * @return the address that clients can use to connect
      * @throws IllegalStateException if this method has previously been called on this object, or if the stop method has previously been called on this object.
      */
-    Address start(IncomingConnectionHandler handler);
+    Address start(IncomingConnectionHandler handler, Runnable connectionErrorHandler);
 
     /**
      * Stops accepting new connections, and blocks until all active connections close.

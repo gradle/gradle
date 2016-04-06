@@ -16,8 +16,15 @@
 
 package org.gradle.jvm.plugins;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import org.gradle.api.*;
 import org.gradle.api.internal.project.ProjectIdentifier;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmBinarySpec;
@@ -29,66 +36,57 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
+import org.gradle.jvm.toolchain.LocalJava;
+import org.gradle.jvm.toolchain.internal.*;
 import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.*;
-import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.core.Hidden;
 import org.gradle.platform.base.*;
 import org.gradle.platform.base.internal.*;
 import org.gradle.util.CollectionUtils;
 
-import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static org.apache.commons.lang.StringUtils.capitalize;
-import static org.gradle.model.internal.core.ModelNodes.withType;
-import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 
 /**
- * Base plugin for JVM component support. Applies the
- * {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}.
- * Registers the {@link JvmLibrarySpec} library type for the components container.
+ * Base plugin for JVM component support. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers the {@link JvmLibrarySpec} library type for the components
+ * container.
  */
 @Incubating
 public class JvmComponentPlugin implements Plugin<Project> {
 
-    private final ModelRegistry modelRegistry;
-
-    @Inject
-    public JvmComponentPlugin(ModelRegistry modelRegistry) {
-        this.modelRegistry = modelRegistry;
-    }
-
     @Override
     public void apply(Project project) {
-        modelRegistry.getRoot().applyTo(allDescendants(withType(ComponentSpec.class)), JarBinaryRules.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @ComponentType
-        public void register(ComponentTypeBuilder<JvmLibrarySpec> builder) {
+        public void register(TypeBuilder<JvmLibrarySpec> builder) {
             builder.defaultImplementation(DefaultJvmLibrarySpec.class);
             builder.internalView(JvmLibrarySpecInternal.class);
         }
 
-        @BinaryType
-        public void registerJvmBinarySpec(BinaryTypeBuilder<JvmBinarySpec> builder) {
+        @ComponentType
+        public void registerJvmBinarySpec(TypeBuilder<JvmBinarySpec> builder) {
             builder.defaultImplementation(DefaultJvmBinarySpec.class);
             builder.internalView(JvmBinarySpecInternal.class);
         }
 
-        @BinaryType
-        public void registerJarBinarySpec(BinaryTypeBuilder<JarBinarySpec> builder) {
+        @ComponentType
+        public void registerJarBinarySpec(TypeBuilder<JarBinarySpec> builder) {
             builder.defaultImplementation(DefaultJarBinarySpec.class);
             builder.internalView(JarBinarySpecInternal.class);
         }
 
         @Model
+        @Hidden
         public JavaToolChainRegistry javaToolChain(ServiceRegistry serviceRegistry) {
             JavaToolChainInternal toolChain = serviceRegistry.get(JavaToolChainInternal.class);
             return new DefaultJavaToolChainRegistry(toolChain);
@@ -99,9 +97,78 @@ public class JvmComponentPlugin implements Plugin<Project> {
             return new ProjectLayout(projectIdentifier, buildDir);
         }
 
+        @Model
+        public void javaInstallations(ModelMap<LocalJava> jdks) {
+        }
+
+        @Model
+        @Hidden
+        public void javaToolChains(ModelMap<LocalJavaInstallation> javaInstallations, final JavaInstallationProbe probe) {
+            javaInstallations.create("currentGradleJDK", InstalledJdk.class, new Action<InstalledJdk>() {
+                @Override
+                public void execute(InstalledJdk installedJdk) {
+                    installedJdk.setJavaHome(Jvm.current().getJavaHome());
+                    probe.current(installedJdk);
+                }
+            });
+        }
+
+        private static void validateNoDuplicate(ModelMap<LocalJava> jdks) {
+            ListMultimap<String, LocalJava> jdksByPath = indexByPath(jdks);
+            List<String> errors = Lists.newArrayList();
+            for (String path : jdksByPath.keySet()) {
+                checkDuplicateForPath(jdksByPath, path, errors);
+            }
+            if (!errors.isEmpty()) {
+                throw new InvalidModelException(String.format("Duplicate Java installation found:\n%s", Joiner.on("\n").join(errors)));
+            }
+        }
+
         @Mutate
         public void registerPlatformResolver(PlatformResolvers platformResolvers) {
             platformResolvers.register(new JavaPlatformResolver());
+        }
+
+        @Model
+        @Hidden
+        JavaInstallationProbe javaInstallationProbe(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(JavaInstallationProbe.class);
+        }
+
+        @Defaults
+        public void resolveJavaToolChains(final ModelMap<LocalJavaInstallation> installedJdks, ModelMap<LocalJava> localJavaInstalls, final JavaInstallationProbe probe) {
+            File currentJavaHome = canonicalFile(Jvm.current().getJavaHome());
+            // TODO:Cedric The following validation should in theory happen in its own rule, but it is not possible now because
+            // there's no way to iterate on the map as subject of a `@Validate` rule without Gradle thinking you're trying to mutate it
+            validateNoDuplicate(localJavaInstalls);
+            for (final LocalJava candidate : localJavaInstalls) {
+                final File javaHome = canonicalFile(candidate.getPath());
+                final JavaInstallationProbe.ProbeResult probeResult = probe.checkJdk(javaHome);
+                Class<? extends LocalJavaInstallation> clazz;
+                switch (probeResult.getInstallType()) {
+                    case IS_JDK:
+                        clazz = InstalledJdkInternal.class;
+                        break;
+                    case IS_JRE:
+                        clazz = InstalledJre.class;
+                        break;
+                    case NO_SUCH_DIRECTORY:
+                        throw new InvalidModelException(String.format("Path to JDK '%s' doesn't exist: %s", candidate.getName(), javaHome));
+                    case INVALID_JDK:
+                    default:
+                        throw new InvalidModelException(String.format("JDK '%s' is not a valid JDK installation: %s\n%s", candidate.getName(), javaHome, probeResult.getError()));
+                }
+
+                if (!javaHome.equals(currentJavaHome)) {
+                    installedJdks.create(candidate.getName(), clazz, new Action<LocalJavaInstallation>() {
+                        @Override
+                        public void execute(LocalJavaInstallation installedJdk) {
+                            installedJdk.setJavaHome(javaHome);
+                            probeResult.configure(installedJdk);
+                        }
+                    });
+                }
+            }
         }
 
         @ComponentBinaries
@@ -123,6 +190,14 @@ public class JvmComponentPlugin implements Plugin<Project> {
                         jarBinary.setDependencies(dependencies);
                     }
                 });
+            }
+        }
+
+        private static File canonicalFile(File f) {
+            try {
+                return f.getCanonicalFile();
+            } catch (IOException e) {
+                return f;
             }
         }
 
@@ -155,9 +230,9 @@ public class JvmComponentPlugin implements Plugin<Project> {
 
         private BinaryNamingScheme namingSchemeFor(JvmLibrarySpec jvmLibrary, List<JavaPlatform> selectedPlatforms, JavaPlatform platform) {
             return DefaultBinaryNamingScheme.component(jvmLibrary.getName())
-                    .withBinaryType("Jar")
-                    .withRole("jar", true)
-                    .withVariantDimension(platform, selectedPlatforms);
+                .withBinaryType("Jar")
+                .withRole("jar", true)
+                .withVariantDimension(platform, selectedPlatforms);
         }
 
         @BinaryTasks
@@ -205,9 +280,62 @@ public class JvmComponentPlugin implements Plugin<Project> {
         private String apiJarTaskName(JarBinarySpecInternal binary) {
             String binaryName = binary.getProjectScopedName();
             String libName = binaryName.endsWith("Jar")
-                    ? binaryName.substring(0, binaryName.length() - 3)
-                    : binaryName;
+                ? binaryName.substring(0, binaryName.length() - 3)
+                : binaryName;
             return libName + "ApiJar";
+        }
+
+        private static void checkDuplicateForPath(ListMultimap<String, LocalJava> index, String path, List<String> errors) {
+            List<LocalJava> localJavas = index.get(path);
+            if (localJavas.size() > 1) {
+                errors.add(String.format("   - %s are both pointing to the same JDK installation path: %s",
+                    Joiner.on(", ").join(Iterables.transform(localJavas, new Function<LocalJava, String>() {
+                        @Override
+                        public String apply(LocalJava input) {
+                            return "'" + input.getName() + "'";
+                        }
+                    })), path));
+            }
+        }
+
+        private static ListMultimap<String, LocalJava> indexByPath(ModelMap<LocalJava> localJavaInstalls) {
+            final ListMultimap<String, LocalJava> index = ArrayListMultimap.create();
+            for (LocalJava localJava : localJavaInstalls) {
+                try {
+                    index.put(localJava.getPath().getCanonicalPath(), localJava);
+                } catch (IOException e) {
+                    // ignore this installation for validation, it will be caught later
+                }
+            }
+            return index;
+        }
+
+        private static List<LocalJava> toImmutableJdkList(ModelMap<LocalJava> jdks) {
+            final List<LocalJava> asImmutable = Lists.newArrayList();
+            jdks.afterEach(new Action<LocalJava>() {
+                @Override
+                public void execute(LocalJava localJava) {
+                    asImmutable.add(localJava);
+                }
+            });
+            return asImmutable;
+        }
+
+        @Defaults
+        void configureJvmBinaries(@Each JvmBinarySpecInternal jvmBinary, ProjectLayout projectLayout) {
+            File buildDir = projectLayout.getBuildDir();
+            BinaryNamingScheme namingScheme = jvmBinary.getNamingScheme();
+            jvmBinary.setClassesDir(namingScheme.getOutputDirectory(buildDir, "classes"));
+            jvmBinary.setResourcesDir(namingScheme.getOutputDirectory(buildDir, "resources"));
+        }
+
+        @Defaults
+        void configureJarBinaries(@Each JarBinarySpecInternal jarBinary, ProjectLayout projectLayout, JavaToolChainRegistry toolChains) {
+            String libraryName = jarBinary.getId().getLibraryName();
+            File jarsDir = jarBinary.getNamingScheme().getOutputDirectory(projectLayout.getBuildDir(), "jars");
+            jarBinary.setJarFile(new File(jarsDir, String.format("%s.jar", libraryName)));
+            jarBinary.setApiJarFile(new File(jarsDir, String.format("api/%s.jar", libraryName)));
+            jarBinary.setToolChain(toolChains.getForPlatform(jarBinary.getTargetPlatform()));
         }
     }
 }

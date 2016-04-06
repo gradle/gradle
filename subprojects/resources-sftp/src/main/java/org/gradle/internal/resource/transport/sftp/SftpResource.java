@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.transport.sftp;
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
 
@@ -46,7 +46,7 @@ public class SftpResource implements ExternalResourceReadResponse {
         try {
             return client.getSftpClient().get(uri.getPath());
         } catch (com.jcraft.jsch.SftpException e) {
-            throw ResourceException.getFailed(uri, e);
+            throw ResourceExceptions.getFailed(uri, e);
         }
     }
 

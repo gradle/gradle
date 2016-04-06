@@ -24,7 +24,8 @@ import java.util.List;
 public class AllResultsStore implements ResultsStore, Closeable {
     private final CrossVersionResultsStore crossVersion = new CrossVersionResultsStore();
     private final CrossBuildResultsStore crossBuild = new CrossBuildResultsStore();
-    private final CompositeResultsStore store = new CompositeResultsStore(crossVersion, crossBuild);
+    private final GradleVsMavenBuildResultsStore gradleVsMaven = new GradleVsMavenBuildResultsStore();
+    private final CompositeResultsStore store = new CompositeResultsStore(crossVersion, crossBuild, gradleVsMaven);
 
     @Override
     public List<String> getTestNames() {
@@ -43,6 +44,6 @@ public class AllResultsStore implements ResultsStore, Closeable {
 
     @Override
     public void close() {
-        CompositeStoppable.stoppable(crossVersion, crossBuild).stop();
+        CompositeStoppable.stoppable(crossVersion, crossBuild, gradleVsMaven).stop();
     }
 }

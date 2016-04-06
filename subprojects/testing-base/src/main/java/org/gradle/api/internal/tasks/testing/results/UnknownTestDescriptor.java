@@ -20,22 +20,27 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 
 public class UnknownTestDescriptor implements TestDescriptorInternal {
 
+    @Override
     public Object getId() {
         return "Unknown test (possible bug, please report)";
     }
 
+    @Override
     public String getName() {
         return "Unknown test (possible bug, please report)";
     }
 
+    @Override
     public String getClassName() {
         return null;
     }
 
+    @Override
     public boolean isComposite() {
         return false;
     }
 
+    @Override
     public TestDescriptorInternal getParent() {
         return null;
     }

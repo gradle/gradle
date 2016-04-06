@@ -33,6 +33,7 @@ public class RoutesCompiler implements Compiler<RoutesCompileSpec>, Serializable
         this.adapter = adapter;
     }
 
+    @Override
     public WorkResult execute(RoutesCompileSpec spec) {
         boolean didWork = false;
         // Need to compile all secondary routes ("Foo.routes") before primary ("routes")

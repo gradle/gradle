@@ -64,4 +64,5 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
 
     Map<File, PreCompiledHeader> getPrefixFileToPCH();
 
+    void addPreCompiledHeaderFor(DependentSourceSet sourceSet);
 }

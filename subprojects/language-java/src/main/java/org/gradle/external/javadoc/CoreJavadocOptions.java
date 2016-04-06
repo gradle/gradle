@@ -77,10 +77,12 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     private final JavadocOptionFileOption<String> overview;
 
+    @Override
     public String getOverview() {
         return overview.getValue();
     }
 
+    @Override
     public void setOverview(String overview) {
         this.overview.setValue(overview);
     }
@@ -90,6 +92,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * @param overview The new overview.
      * @return The <code>MinimalJavadocOptions</code> object.
      */
+    @Override
     public MinimalJavadocOptions overview(String overview) {
         setOverview(overview);
         return this;
@@ -100,40 +103,48 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     private final JavadocOptionFileOption<JavadocMemberLevel> memberLevel;
 
+    @Override
     public JavadocMemberLevel getMemberLevel() {
         return memberLevel.getValue();
     }
 
+    @Override
     public void setMemberLevel(JavadocMemberLevel memberLevel) {
         this.memberLevel.setValue(memberLevel);
     }
 
+    @Override
     public MinimalJavadocOptions showFromPublic() {
         setMemberLevel(JavadocMemberLevel.PUBLIC);
         return this;
     }
 
+    @Override
     public MinimalJavadocOptions showFromProtected() {
         setMemberLevel(JavadocMemberLevel.PROTECTED);
         return this;
     }
 
+    @Override
     public MinimalJavadocOptions showFromPackage() {
         setMemberLevel(JavadocMemberLevel.PACKAGE);
         return this;
     }
 
+    @Override
     public void contributeCommandLineOptions(ExecSpec execHandleBuilder) {
         execHandleBuilder
             .args(GUtil.prefix("-J", jFlags)) // J flags can not be set in the option file
             .args(GUtil.prefix("@", GFileUtils.toPaths(optionFiles))); // add additional option files
     }
 
+    @Override
     public MinimalJavadocOptions showFromPrivate() {
         setMemberLevel(JavadocMemberLevel.PRIVATE);
         return this;
     }
 
+    @Override
     public MinimalJavadocOptions showAll() {
         return showFromPrivate();
     }
@@ -154,14 +165,17 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     private final JavadocOptionFileOption<String> doclet;
 
+    @Override
     public String getDoclet() {
         return doclet.getValue();
     }
 
+    @Override
     public void setDoclet(String doclet) {
         this.doclet.setValue(doclet);
     }
 
+    @Override
     public MinimalJavadocOptions doclet(String doclet) {
         setDoclet(doclet);
         return this;
@@ -187,14 +201,17 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     private final JavadocOptionFileOption<List<File>> docletpath;
 
+    @Override
     public List<File> getDocletpath() {
         return docletpath.getValue();
     }
 
+    @Override
     public void setDocletpath(List<File> docletpath) {
         this.docletpath.setValue(docletpath);
     }
 
+    @Override
     public MinimalJavadocOptions docletpath(File ... docletpath) {
         this.docletpath.getValue().addAll(Arrays.asList(docletpath));
         return this;
@@ -212,14 +229,17 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     private final JavadocOptionFileOption<String> source; // TODO bind with the sourceCompatibility property
 
+    @Override
     public String getSource() {
         return source.getValue();
     }
 
+    @Override
     public void setSource(String source) {
         this.source.setValue(source);
     }
 
+    @Override
     public MinimalJavadocOptions source(String source) {
         setSource(source);
         return this;
@@ -250,19 +270,23 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     private final JavadocOptionFileOption<List<File>> classpath; // TODO link to runtime configuration ?
 
+    @Override
     public List<File> getClasspath() {
         return classpath.getValue();
     }
 
+    @Override
     public void setClasspath(List<File> classpath) {
         this.classpath.setValue(classpath);
     }
 
+    @Override
     public MinimalJavadocOptions classpath(List<File> classpath) {
         this.classpath.getValue().addAll(classpath);
         return this;
     }
 
+    @Override
     public MinimalJavadocOptions classpath(File ... classpath) {
         this.classpath.getValue().addAll(Arrays.asList(classpath));
         return this;
@@ -276,14 +300,17 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     private final JavadocOptionFileOption<List<File>> bootClasspath;
 
+    @Override
     public List<File> getBootClasspath() {
         return bootClasspath.getValue();
     }
 
+    @Override
     public void setBootClasspath(List<File> bootClasspath) {
         this.bootClasspath.setValue(bootClasspath);
     }
 
+    @Override
     public MinimalJavadocOptions bootClasspath(File ... bootClasspath) {
         this.bootClasspath.getValue().addAll(Arrays.asList(bootClasspath));
         return this;
@@ -298,14 +325,17 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     private final JavadocOptionFileOption<List<File>> extDirs;
 
+    @Override
     public List<File> getExtDirs() {
         return extDirs.getValue();
     }
 
+    @Override
     public void setExtDirs(List<File> extDirs) {
         this.extDirs.setValue(extDirs);
     }
 
+    @Override
     public MinimalJavadocOptions extDirs(File ... extDirs) {
         this.extDirs.getValue().addAll(Arrays.asList(extDirs));
         return this;
@@ -316,23 +346,28 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     private final JavadocOptionFileOption<JavadocOutputLevel> outputLevel;
 
+    @Override
     public JavadocOutputLevel getOutputLevel() {
         return outputLevel.getValue();
     }
 
+    @Override
     public void setOutputLevel(JavadocOutputLevel outputLevel) {
         this.outputLevel.setValue(outputLevel);
     }
 
+    @Override
     public MinimalJavadocOptions verbose() {
         setOutputLevel(JavadocOutputLevel.VERBOSE);
         return this;
     }
 
+    @Override
     public boolean isVerbose() {
         return outputLevel.getValue() == JavadocOutputLevel.VERBOSE;
     }
 
+    @Override
     public MinimalJavadocOptions quiet() {
         setOutputLevel(JavadocOutputLevel.QUIET);
         return this;
@@ -367,19 +402,23 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     private final JavadocOptionFileOption<Boolean> breakIterator;
 
+    @Override
     public boolean isBreakIterator() {
         return breakIterator.getValue();
     }
 
+    @Override
     public void setBreakIterator(boolean breakIterator) {
         this.breakIterator.setValue(breakIterator);
     }
 
+    @Override
     public MinimalJavadocOptions breakIterator(boolean breakIterator) {
         setBreakIterator(breakIterator);
         return this;
     }
 
+    @Override
     public MinimalJavadocOptions breakIterator() {
         setBreakIterator(true);
         return this;
@@ -404,14 +443,17 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     private final JavadocOptionFileOption<String> locale;
 
+    @Override
     public String getLocale() {
         return locale.getValue();
     }
 
+    @Override
     public void setLocale(String locale) {
         this.locale.setValue(locale);
     }
 
+    @Override
     public MinimalJavadocOptions locale(String locale) {
         setLocale(locale);
         return this;
@@ -425,14 +467,17 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     private final JavadocOptionFileOption<String> encoding;
 
+    @Override
     public String getEncoding() {
         return encoding.getValue();
     }
 
+    @Override
     public void setEncoding(String encoding) {
         this.encoding.setValue(encoding);
     }
 
+    @Override
     public MinimalJavadocOptions encoding(String encoding) {
         setEncoding(encoding);
         return this;
@@ -440,14 +485,17 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
 
+    @Override
     public List<String> getSourceNames() {
         return sourceNames.getValue();
     }
 
+    @Override
     public void setSourceNames(List<String> sourceNames) {
         this.sourceNames.setValue(sourceNames);
     }
 
+    @Override
     public MinimalJavadocOptions sourceNames(String ... sourceNames) {
         this.sourceNames.getValue().addAll(Arrays.asList(sourceNames));
         return this;
@@ -473,14 +521,17 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     private List<String> jFlags = new ArrayList<String>();
 
+    @Override
     public List<String> getJFlags() {
         return jFlags;
     }
 
+    @Override
     public void setJFlags(List<String> jFlags) {
         this.jFlags = jFlags;
     }
 
+    @Override
     public MinimalJavadocOptions jFlags(String ... jFlags) {
         this.jFlags.addAll(Arrays.asList(jFlags));
         return this;
@@ -488,19 +539,23 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
 
     private List<File> optionFiles = new ArrayList<File>();
 
+    @Override
     public List<File> getOptionFiles() {
         return optionFiles;
     }
 
+    @Override
     public void setOptionFiles(List<File> optionFiles) {
         this.optionFiles = optionFiles;
     }
 
+    @Override
     public MinimalJavadocOptions optionFiles(File ... argumentFiles) {
         this.optionFiles.addAll(Arrays.asList(argumentFiles));
         return this;
     }
 
+    @Override
     public final void write(File outputFile) throws IOException {
         optionFile.write(outputFile);
     }

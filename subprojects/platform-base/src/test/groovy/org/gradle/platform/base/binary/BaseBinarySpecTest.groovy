@@ -18,11 +18,11 @@ package org.gradle.platform.base.binary
 
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.language.base.internal.compile.CompileSpec
 import org.gradle.language.base.sources.BaseLanguageSourceSet
 import org.gradle.model.internal.core.ModelRuleExecutionException
 import org.gradle.model.internal.core.MutableModelNode
 import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.platform.base.component.BaseComponentFixtures
@@ -36,7 +36,7 @@ class BaseBinarySpecTest extends PlatformBaseSpecification {
 
         then:
         def e = thrown ModelInstantiationException
-        e.message == "Direct instantiation of a BaseBinarySpec is not permitted. Use a BinaryTypeBuilder instead."
+        e.message == "Direct instantiation of a BaseBinarySpec is not permitted. Use a @ComponentType rule instead."
     }
 
     def "binary has name and sensible display name"() {
@@ -96,19 +96,11 @@ class BaseBinarySpecTest extends PlatformBaseSpecification {
         binary.inputs*.name == ["input"]
     }
 
-    def "source property is the same as inputs property"() {
-        given:
-        def binary = create(SampleBinary, MySampleBinary, "sampleBinary")
-
-        expect:
-        binary.source == binary.inputs
-    }
-
     private <T extends BinarySpec, I extends BaseBinarySpec> T create(Class<T> type, Class<I> implType, String name, MutableModelNode componentNode = null) {
         BaseBinaryFixtures.create(type, implType, name, componentNode, Mock(ITaskFactory))
     }
 
-    interface SampleComponent extends CompileSpec {}
+    interface SampleComponent extends ComponentSpec {}
 
     static class MySampleComponent extends BaseComponentSpec implements SampleComponent {}
 

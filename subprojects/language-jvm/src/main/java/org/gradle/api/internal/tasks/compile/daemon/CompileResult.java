@@ -29,6 +29,7 @@ public class CompileResult implements WorkResult, Serializable {
         this.exception = exception;
     }
 
+    @Override
     public boolean getDidWork() {
         return didWork;
     }

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.quality.FindBugsReports;
+import org.gradle.api.reporting.internal.CustomizableHtmlReportImpl;
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.CollectionUtils;
@@ -163,9 +164,14 @@ public class FindBugsSpecBuilder {
                 FindBugsReportsImpl reportsImpl = (FindBugsReportsImpl) reports;
                 String outputArg = "-" + reportsImpl.getFirstEnabled().getName();
                 if (reportsImpl.getFirstEnabled() instanceof FindBugsXmlReportImpl) {
-                    FindBugsXmlReportImpl r = (FindBugsXmlReportImpl)reportsImpl.getFirstEnabled();
+                    FindBugsXmlReportImpl r = (FindBugsXmlReportImpl) reportsImpl.getFirstEnabled();
                     if (r.isWithMessages()) {
                         outputArg += ":withMessages";
+                    }
+                } else if (reportsImpl.getFirstEnabled() instanceof CustomizableHtmlReportImpl) {
+                    CustomizableHtmlReportImpl r = (CustomizableHtmlReportImpl) reportsImpl.getFirstEnabled();
+                    if (r.getStylesheet() != null) {
+                        outputArg += ':' + r.getStylesheet().asFile().getAbsolutePath();
                     }
                 }
                 args.add(outputArg);

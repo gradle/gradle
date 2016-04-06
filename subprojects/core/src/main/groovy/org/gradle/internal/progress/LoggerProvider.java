@@ -16,7 +16,7 @@
 
 package org.gradle.internal.progress;
 
-import org.gradle.logging.ProgressLogger;
+import org.gradle.internal.logging.ProgressLogger;
 
 public interface LoggerProvider {
 

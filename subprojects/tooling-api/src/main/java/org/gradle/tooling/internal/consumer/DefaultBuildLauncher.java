@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.api.Transformer;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
@@ -28,7 +29,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 public class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBuildLauncher> implements BuildLauncher {
-    private final AsyncConsumerActionExecutor connection;
+    protected final AsyncConsumerActionExecutor connection;
 
     public DefaultBuildLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
@@ -62,8 +63,12 @@ public class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBu
     }
 
     public BuildLauncher forLaunchables(Iterable<? extends Launchable> launchables) {
+        preprocessLaunchables(launchables);
         operationParamsBuilder.setLaunchables(launchables);
         return this;
+    }
+
+    protected void preprocessLaunchables(Iterable<? extends Launchable> launchables) {
     }
 
     public void run() {
@@ -89,12 +94,12 @@ public class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBu
 
     private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {
         public ResultHandlerAdapter(ResultHandler<? super Void> handler) {
-            super(handler);
-        }
-
-        @Override
-        protected String connectionFailureMessage(Throwable failure) {
-            return String.format("Could not execute build using %s.", connection.getDisplayName());
+            super(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
+                @Override
+                public String transform(Throwable throwable) {
+                    return String.format("Could not execute build using %s.", connection.getDisplayName());
+                }
+            }));
         }
     }
 }

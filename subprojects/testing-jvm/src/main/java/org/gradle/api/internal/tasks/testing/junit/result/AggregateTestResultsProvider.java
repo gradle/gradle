@@ -42,6 +42,7 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
         this.providers = providers;
     }
 
+    @Override
     public void visitClasses(final Action<? super TestClassResult> visitor) {
         final Map<String, OverlayedIdProxyingTestClassResult> aggregatedTestResults = new LinkedHashMap<String, OverlayedIdProxyingTestClassResult>();
         classOutputProviders = ArrayListMultimap.create();
@@ -96,6 +97,7 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
         }
     }
 
+    @Override
     public boolean hasOutput(long id, final TestOutputEvent.Destination destination) {
         return Iterables.any(
                 classOutputProviders.get(id),
@@ -106,12 +108,14 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
                 });
     }
 
+    @Override
     public void writeAllOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
         for (DelegateProvider delegateProvider : classOutputProviders.get(id)) {
             delegateProvider.provider.writeAllOutput(delegateProvider.id, destination, writer);
         }
     }
 
+    @Override
     public boolean isHasResults() {
         return any(providers, new Spec<TestResultsProvider>() {
             public boolean isSatisfiedBy(TestResultsProvider element) {
@@ -119,19 +123,22 @@ public class AggregateTestResultsProvider implements TestResultsProvider {
             }
         });
     }
-    
+
+    @Override
     public void writeNonTestOutput(long id, TestOutputEvent.Destination destination, Writer writer) {
         for (DelegateProvider delegateProvider : classOutputProviders.get(id)) {
             delegateProvider.provider.writeNonTestOutput(delegateProvider.id, destination, writer);
         }
     }
 
+    @Override
     public void writeTestOutput(long classId, long testId, TestOutputEvent.Destination destination, Writer writer) {
         for (DelegateProvider delegateProvider : classOutputProviders.get(classId)) {
             delegateProvider.provider.writeTestOutput(delegateProvider.id, testId, destination, writer);
         }
     }
 
+    @Override
     public void close() throws IOException {
         CompositeStoppable.stoppable(providers).stop();
     }

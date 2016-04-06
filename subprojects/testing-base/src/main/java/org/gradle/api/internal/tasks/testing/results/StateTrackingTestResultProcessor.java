@@ -31,6 +31,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
         this.delegate = delegate;
     }
 
+    @Override
     public final void started(TestDescriptorInternal test, TestStartEvent event) {
         TestDescriptorInternal parent = null;
         if (event.getParentId() != null) {
@@ -46,6 +47,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
         delegate.started(state.test, event);
     }
 
+    @Override
     public final void completed(Object testId, TestCompleteEvent event) {
         TestState testState = executing.remove(testId);
         if (testState == null) {
@@ -69,6 +71,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
         delegate.completed(testState.test, new DefaultTestResult(testState), event);
     }
 
+    @Override
     public final void failure(Object testId, Throwable result) {
         TestState testState = executing.get(testId);
         if (testState == null) {
@@ -79,6 +82,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
         testState.failures.add(result);
     }
 
+    @Override
     public final void output(Object testId, TestOutputEvent event) {
         delegate.output(findDescriptor(testId), event);
     }

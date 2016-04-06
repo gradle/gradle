@@ -42,26 +42,32 @@ public class DefaultRoutesCompileSpec implements RoutesCompileSpec {
         this.additionalImports = additionalImports;
     }
 
+    @Override
     public Iterable<File> getSources() {
         return sourceFiles;
     }
 
+    @Override
     public File getDestinationDir() {
         return outputDirectory;
     }
 
+    @Override
     public BaseForkOptions getForkOptions() {
         return forkOptions;
     }
 
+    @Override
     public boolean isJavaProject() {
         return javaProject;
     }
 
+    @Override
     public boolean isNamespaceReverseRouter() {
         return namespaceReverseRouter;
     }
 
+    @Override
     public boolean isGenerateReverseRoutes() {
         return generateReverseRoutes;
     }

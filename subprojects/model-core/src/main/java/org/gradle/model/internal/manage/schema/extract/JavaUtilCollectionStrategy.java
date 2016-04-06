@@ -36,6 +36,7 @@ public class JavaUtilCollectionStrategy implements ModelSchemaExtractionStrategy
         Set.class
     );
 
+    @Override
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
         Class<? super T> rawClass = type.getRawClass();

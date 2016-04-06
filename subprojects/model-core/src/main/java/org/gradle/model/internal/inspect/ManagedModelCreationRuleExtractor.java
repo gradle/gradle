@@ -42,13 +42,14 @@ public class ManagedModelCreationRuleExtractor extends AbstractModelCreationRule
         this.schemaStore = schemaStore;
     }
 
+    @Override
     public String getDescription() {
         return String.format("%s and taking a managed model element", super.getDescription());
     }
 
     @Override
     public boolean isSatisfiedBy(MethodRuleDefinition<?, ?> element) {
-        return super.isSatisfiedBy(element) && element.getReturnType().equals(ModelType.of(Void.TYPE));
+        return super.isSatisfiedBy(element) && isVoidMethod(element);
     }
 
     @Override

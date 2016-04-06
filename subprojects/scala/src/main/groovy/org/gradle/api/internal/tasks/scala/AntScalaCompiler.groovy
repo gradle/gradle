@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.scala
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.tasks.WorkResult
-import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.util.GUtil
 import org.gradle.util.VersionNumber
@@ -42,14 +41,14 @@ class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
 
     WorkResult execute(ScalaCompileSpec spec) {
         def destinationDir = spec.destinationDir
-        ScalaCompileOptions scalaCompileOptions = spec.scalaCompileOptions as ScalaCompileOptions
+        ScalaCompileOptionsInternal scalaCompileOptions = spec.scalaCompileOptions as ScalaCompileOptionsInternal
 
         def backend = chooseBackend(spec)
         def options = [destDir: destinationDir, target: backend] + scalaCompileOptions.optionMap()
-        if (scalaCompileOptions.fork) {
+        if (scalaCompileOptions.internalIsFork()) {
             options.compilerPath = GUtil.asPath(scalaClasspath)
         }
-        def taskName = scalaCompileOptions.useCompileDaemon ? 'fsc' : 'scalac'
+        def taskName = scalaCompileOptions.internalUseCompileDaemon() ? 'fsc' : 'scalac'
         def compileClasspath = spec.classpath
 
         LOGGER.info("Compiling with Ant scalac task.")

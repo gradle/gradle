@@ -17,16 +17,27 @@
 package org.gradle.api.internal.tasks.testing.worker
 
 import org.gradle.api.Action
+import org.gradle.api.internal.classpath.Module
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
-import org.gradle.internal.Factory
+import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.remote.ObjectConnection
 import org.gradle.process.JavaForkOptions
+import org.gradle.process.internal.worker.WorkerProcess
+import org.gradle.process.internal.worker.WorkerProcessBuilder
+import org.gradle.process.internal.worker.WorkerProcessFactory
 import spock.lang.Specification
 import spock.lang.Subject
 
 class ForkingTestClassProcessorTest extends Specification {
 
-    @Subject processor = Spy(ForkingTestClassProcessor, constructorArgs: [Mock(Factory), Mock(WorkerTestClassProcessorFactory), Mock(JavaForkOptions), [new File("classpath.jar")], Mock(Action)])
+    WorkerProcessFactory workerProcessFactory = Mock(WorkerProcessFactory)
+    WorkerProcessBuilder workerProcessBuilder = Mock(WorkerProcessBuilder)
+    WorkerProcess workerProcess = Mock(WorkerProcess)
+    ModuleRegistry moduleRegistry = Mock(ModuleRegistry)
+    @Subject
+        processor = Spy(ForkingTestClassProcessor, constructorArgs: [workerProcessFactory, Mock(WorkerTestClassProcessorFactory), Mock(JavaForkOptions), [new File("classpath.jar")], Mock(Action), moduleRegistry])
 
     def "starts worker process on first test"() {
         def test1 = Mock(TestClassRunInfo)
@@ -42,5 +53,30 @@ class ForkingTestClassProcessorTest extends Specification {
         1 * remoteProcessor.processTestClass(test1)
         1 * remoteProcessor.processTestClass(test2)
         0 * remoteProcessor._
+    }
+
+    def "starts process with a limited implementation classpath"() {
+        setup:
+        1 * workerProcessFactory.create(_) >> workerProcessBuilder
+        1 * workerProcessBuilder.build() >> workerProcess
+        1 * workerProcess.getConnection() >> Stub(ObjectConnection) { addOutgoing(_) >> Stub(RemoteTestClassProcessor) }
+
+        when:
+        processor.forkProcess()
+
+        then:
+        8 * moduleRegistry.getModule(_) >> { module(it[0]) }
+        7 * moduleRegistry.getExternalModule(_) >> { module(it[0]) }
+        1 * workerProcessBuilder.setImplementationClasspath(_) >> { assert it[0].size() == 15 }
+    }
+
+    def module(String module) {
+        return Stub(Module) {
+            _ * getImplementationClasspath() >> {
+                Stub(ClassPath) {
+                    _ * getAsURLs() >> { [new URL("file://${module}.jar")] }
+                }
+            }
+        }
     }
 }

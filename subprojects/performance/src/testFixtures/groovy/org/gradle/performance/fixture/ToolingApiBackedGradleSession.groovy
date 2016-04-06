@@ -50,7 +50,7 @@ class ToolingApiBackedGradleSession implements GradleSession {
                 .connect()
     }
 
-    @Override
+
     Runnable runner(GradleInvocationCustomizer invocationCustomizer) {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(this.invocation) : this.invocation
 

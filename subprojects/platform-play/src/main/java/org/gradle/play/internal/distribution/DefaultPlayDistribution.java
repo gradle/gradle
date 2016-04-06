@@ -29,6 +29,7 @@ public class DefaultPlayDistribution extends DefaultDistribution implements Play
         this.binary = binary;
     }
 
+    @Override
     public PlayApplicationBinarySpec getBinary() {
         return binary;
     }

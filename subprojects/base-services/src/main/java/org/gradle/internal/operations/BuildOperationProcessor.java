@@ -17,18 +17,29 @@
 package org.gradle.internal.operations;
 
 
-import org.gradle.api.Nullable;
+import org.gradle.api.Action;
 
 /**
  * A processor for executing build operations.
  */
 public interface BuildOperationProcessor {
     /**
-     * Creates a new queue for holding operations to be executed.
+     * Submits an arbitrary number of operations, created synchronously by the generator, to be executed by the supplied
+     * worker in the global build operation thread pool.  Operations may execute concurrently, so the worker should be thread-safe.
+     * Blocks until all operations are complete.
      *
      * @param worker The action to be executed for each operation.
      * @param <T> The type of operations the worker uses.
-     * @return A queue to add operations to and wait for their completion.
+     * @param generator An action that populates the queue with build operations
      */
-    <T extends BuildOperation> BuildOperationQueue<T> newQueue(BuildOperationWorker<T> worker, @Nullable String logLocation);
+    <T extends BuildOperation> void run(BuildOperationWorker<T> worker, Action<BuildOperationQueue<T>> generator);
+
+    /**
+     * Submits an arbitrary number of runnable operations, created synchronously by the generator, to be executed in the global
+     * build operation thread pool.  Operations may execute concurrently.  Blocks until all operations are complete.
+     *
+     * @param <T> The type of operations the generator produces.
+     * @param generator An action that populates the queue with build operations
+     */
+    <T extends RunnableBuildOperation> void run(Action<BuildOperationQueue<T>> generator);
 }

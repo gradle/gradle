@@ -26,7 +26,7 @@ import org.junit.Rule
 class MavenS3ProxiedRepoIntegrationTest extends AbstractS3DependencyResolutionTest {
 
     @Rule
-    TestProxyServer proxyServer = new TestProxyServer(server)
+    TestProxyServer proxyServer = new TestProxyServer()
     @Rule
     SetSystemProperties systemProperties = new SetSystemProperties()
 

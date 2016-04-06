@@ -30,14 +30,17 @@ public class DependencyToAll implements DependentsSet {
         this(null);
     }
 
+    @Override
     public Set<String> getDependentClasses() {
         throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
     }
 
+    @Override
     public boolean isDependencyToAll() {
         return true;
     }
 
+    @Override
     public String getDescription() {
         return reason;
     }

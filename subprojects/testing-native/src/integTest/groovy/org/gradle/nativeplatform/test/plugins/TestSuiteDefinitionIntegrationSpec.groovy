@@ -44,18 +44,17 @@ class DefaultCustomTestBinary extends BaseBinarySpec implements CustomTestBinary
 
 class TestSuitePlugin extends RuleSource {
     @ComponentType
-    void registerTestSuiteType(ComponentTypeBuilder<CustomTestSuite> builder) {
+    void registerTestSuiteType(TypeBuilder<CustomTestSuite> builder) {
         builder.defaultImplementation(DefaultCustomTestSuite)
     }
 
-    @BinaryType
-    void registerBinaryType(BinaryTypeBuilder<CustomTestBinary> builder) {
+    @ComponentType
+    void registerBinaryType(TypeBuilder<CustomTestBinary> builder) {
         builder.defaultImplementation(DefaultCustomTestBinary)
     }
 
-    @LanguageType
-    void registerLanguageType(LanguageTypeBuilder<CustomTestSourceSet> builder) {
-        builder.setLanguageName("custom")
+    @ComponentType
+    void registerLanguageType(TypeBuilder<CustomTestSourceSet> builder) {
     }
 
     @Mutate

@@ -20,13 +20,11 @@ import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyResourceLoader;
 import groovy.lang.Script;
-import groovyjarjarasm.asm.ClassWriter;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.classgen.Verifier;
 import org.codehaus.groovy.control.*;
-import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.Action;
@@ -55,6 +53,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.List;
+import java.util.Map;
 
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
@@ -64,10 +63,12 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private static final int HAS_METHODS_FLAG = 2;
     private final ClassLoaderCache classLoaderCache;
     private final String[] defaultImportPackages;
+    private final Map<String, List<String>> simpleNameToFQN;
 
     public DefaultScriptCompilationHandler(ClassLoaderCache classLoaderCache, ImportsReader importsReader) {
         this.classLoaderCache = classLoaderCache;
         defaultImportPackages = importsReader.getImportPackages();
+        simpleNameToFQN = importsReader.getSimpleNameToFullClassNamesMapping();
     }
 
     @Override
@@ -79,18 +80,17 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(classesDir);
         try {
-            compileScript(source, classLoader, configuration, classesDir, metadataDir, extractingTransformer, verifier);
+            compileScript(source, classLoader, configuration, metadataDir, extractingTransformer, verifier);
         } catch (GradleException e) {
             GFileUtils.deleteDirectory(classesDir);
             GFileUtils.deleteDirectory(metadataDir);
             throw e;
         }
 
-        logger.debug("Timing: Writing script to cache at {} took: {}", classesDir.getAbsolutePath(),
-                clock.getTime());
+        logger.debug("Timing: Writing script to cache at {} took: {}", classesDir.getAbsolutePath(), clock.getTime());
     }
 
-    private void compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File classesDir, File metadataDir,
+    private void compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File metadataDir,
                                final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier) {
         final Transformer transformer = extractingTransformer != null ? extractingTransformer.getTransformer() : null;
         logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
@@ -101,11 +101,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             @Override
             protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration,
                                                             CodeSource codeSource) {
-                ImportCustomizer customizer = new ImportCustomizer();
-                customizer.addStarImports(defaultImportPackages);
-                compilerConfiguration.addCompilationCustomizers(customizer);
 
-                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, source, this);
+                CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, this);
 
                 if (transformer != null) {
                     transformer.register(compilationUnit);
@@ -131,7 +128,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         if (packageDetector.hasPackageStatement) {
             throw new UnsupportedOperationException(String.format("%s should not contain a package statement.",
-                    StringUtils.capitalize(source.getDisplayName())));
+                StringUtils.capitalize(source.getDisplayName())));
         }
         serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript(), emptyScriptDetector.getHasMethods());
     }
@@ -176,8 +173,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
         Integer lineNumber = syntaxError == null ? null : syntaxError.getLine();
-        throw new ScriptCompilationException(String.format("Could not compile %s.", source.getDisplayName()), e, source,
-                lineNumber);
+        throw new ScriptCompilationException(String.format("Could not compile %s.", source.getDisplayName()), e, source, lineNumber);
     }
 
     private CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
@@ -265,11 +261,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
     private class CustomCompilationUnit extends CompilationUnit {
 
-        private final ScriptSource source;
-
-        public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, ScriptSource source, GroovyClassLoader groovyClassLoader) {
+        public CustomCompilationUnit(CompilerConfiguration compilerConfiguration, CodeSource codeSource, final Action<? super ClassNode> customVerifier, GroovyClassLoader groovyClassLoader) {
             super(compilerConfiguration, codeSource, groovyClassLoader);
-            this.source = source;
             this.verifier = new Verifier() {
                 public void visitClass(ClassNode node) {
                     customVerifier.execute(node);
@@ -277,67 +270,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 }
 
             };
-            this.classNodeResolver = new ShortcutClassNodeResolver();
-        }
-
-        // This creepy bit of code is here to put the full source path of the script into the debug info for
-        // the class.  This makes it possible for a debugger to find the source file for the class.  By default
-        // Groovy will only put the filename into the class, but that does not help a debugger for Gradle
-        // because it does not know where Gradle scripts might live.
-        @Override
-        protected groovyjarjarasm.asm.ClassVisitor createClassVisitor() {
-            return new ClassWriter(ClassWriter.COMPUTE_MAXS) {
-                @Override
-                public byte[] toByteArray() {
-                    // ignore the sourcePath that is given by Groovy (this is only the filename) and instead
-                    // insert the full path if our script source has a source file
-                    visitSource(source.getFileName(), null);
-                    return super.toByteArray();
-                }
-            };
-        }
-    }
-
-    /**
-     * This custom class node resolver is responsible for quickly discarding class lookups
-     * based on the class name, in order to increase the performance of compilation of Groovy scripts:
-     * the Groovy compiler, for each thing that may be a class reference in a script, performs *lots*
-     * of attempts to load a class using different fully qualified class names. In some situations,
-     * we are able to tell that this will fail, for example when we see something that starts with
-     * java.lang$java$lang$.
-     * This shortcut makes dramatic differences in compilation times.
-     */
-    private static class ShortcutClassNodeResolver extends ClassNodeResolver {
-        @Override
-        public LookupResult findClassNode(String name, CompilationUnit compilationUnit) {
-            // todo: ideally, we should use a precompiled DFA here, in order to choose whether to perform a lookup
-            // in linear time
-            if (name.startsWith("org$gradle$")) {
-                return null;
-            }
-            if (name.indexOf("$org$gradle") > 0 || name.indexOf("$java$lang") > 0 || name.indexOf("$groovy$lang") > 0) {
-                return null;
-            }
-            if (name.startsWith("java.") || name.startsWith("groovy.") || name.startsWith("org.gradle")) {
-                if (hasDollarBeforeUpperCaseCharacter(name)) {
-                    return null;
-                }
-                if (name.indexOf("org.gradle", 1) > 0) {
-                    // ex: org.gradle.api.org.gradle....
-                    return null;
-                }
-            }
-            return super.findClassNode(name, compilationUnit);
-        }
-
-        private boolean hasDollarBeforeUpperCaseCharacter(String name) {
-            for (int idx = 6; idx < name.length(); idx++) {
-                char c = name.charAt(idx);
-                if (c != '.' && !Character.isLowerCase(c)) {
-                    return c == '$';
-                }
-            }
-            return false;
+            this.resolveVisitor = new GradleResolveVisitor(this, defaultImportPackages, simpleNameToFQN);
         }
     }
 
@@ -397,5 +330,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             }
             return scriptClass;
         }
+
     }
+
 }

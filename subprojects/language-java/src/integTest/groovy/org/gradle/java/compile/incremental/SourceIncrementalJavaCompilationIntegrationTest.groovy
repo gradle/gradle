@@ -16,8 +16,10 @@
 
 package org.gradle.java.compile.incremental
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
+import spock.lang.Issue
 
 public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -403,5 +405,18 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
 
         when: fails "compileJava"
         then: failure.assertHasCause("Compilation failed")
+    }
+
+    @Issue("GRADLE-3426")
+    @NotYetImplemented
+    def "supports Java 1.2 dependencies"() {
+        java "class A {}"
+
+        buildFile << """
+repositories { jcenter() }
+dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
+"""
+        expect:
+        run "compileJava"
     }
 }

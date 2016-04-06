@@ -19,23 +19,27 @@ import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.ObjectFile;
 import org.gradle.platform.base.TransformationFileType;
 import org.gradle.platform.base.component.BaseComponentSpec;
+import org.gradle.platform.base.internal.HasIntermediateOutputsComponentSpec;
 import org.gradle.util.GUtil;
 
 import java.util.Collections;
 import java.util.Set;
 
-public abstract class AbstractNativeComponentSpec extends BaseComponentSpec implements NativeComponentSpec {
+public abstract class AbstractNativeComponentSpec extends BaseComponentSpec implements NativeComponentSpec, HasIntermediateOutputsComponentSpec {
     private String baseName;
 
+    @Override
     public String getBaseName() {
         return GUtil.elvis(baseName, getName());
     }
 
+    @Override
     public void setBaseName(String baseName) {
         this.baseName = baseName;
     }
 
-    public Set<? extends Class<? extends TransformationFileType>> getInputTypes() {
+    @Override
+    public Set<? extends Class<? extends TransformationFileType>> getIntermediateTypes() {
         return Collections.singleton(ObjectFile.class);
     }
 }

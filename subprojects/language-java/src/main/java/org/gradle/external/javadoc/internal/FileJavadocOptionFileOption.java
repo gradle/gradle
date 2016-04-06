@@ -31,6 +31,7 @@ public class FileJavadocOptionFileOption extends AbstractJavadocOptionFileOption
         super(option, value);
     }
 
+    @Override
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
         if (value != null) {
             writerContext.writeValueOption(option, value.getAbsolutePath());

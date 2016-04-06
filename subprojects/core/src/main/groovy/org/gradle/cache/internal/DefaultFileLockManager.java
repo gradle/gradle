@@ -19,6 +19,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.filelock.*;
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
@@ -71,7 +72,7 @@ public class DefaultFileLockManager implements FileLockManager {
         if (options.getMode() == LockMode.None) {
             throw new UnsupportedOperationException(String.format("No %s mode lock implementation available.", options));
         }
-        File canonicalTarget = GFileUtils.canonicalise(target);
+        File canonicalTarget = FileUtils.canonicalize(target);
         if (!lockedFiles.add(canonicalTarget)) {
             throw new IllegalStateException(String.format("Cannot lock %s as it has already been locked by this process.", targetDisplayName));
         }

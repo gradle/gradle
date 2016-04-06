@@ -24,7 +24,7 @@ import org.gradle.api.reporting.Reporting
 import org.gradle.api.resources.TextResource
 import org.gradle.api.tasks.*
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.logging.ConsoleRenderer
+import org.gradle.internal.logging.ConsoleRenderer
 
 import javax.inject.Inject
 
@@ -161,10 +161,11 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
             }
 
             if (reports.html.enabled) {
-                def xsl = Checkstyle.getClassLoader().getResourceAsStream('checkstyle-noframes-sorted.xsl')
+                def stylesheet = reports.html.stylesheet ? reports.html.stylesheet.asString() :
+                    Checkstyle.getClassLoader().getResourceAsStream('checkstyle-noframes-sorted.xsl').text
                 ant.xslt(in: reports.xml.destination, out: reports.html.destination) {
                     style {
-                        string(value: xsl.text)
+                        string(value: stylesheet)
                     }
                 }
             }

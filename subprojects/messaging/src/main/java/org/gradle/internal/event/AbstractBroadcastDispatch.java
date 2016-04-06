@@ -17,8 +17,8 @@
 package org.gradle.internal.event;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.dispatch.MethodInvocation;
 
 import java.util.ArrayList;
 import java.util.Iterator;

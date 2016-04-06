@@ -27,8 +27,3 @@ dependencies {
     testCompile 'org.scalatest:${scalaTestModule.groovyString}:${scalaTestVersion.groovyString}'
     testRuntime 'org.scala-lang.modules:${scalaXmlModule.groovyString}:${scalaXmlVersion.groovyString}'
 }
-
-// Configure to use the Zinc compiler by default
-tasks.withType(ScalaCompile) {
-    scalaCompileOptions.useAnt = false
-}

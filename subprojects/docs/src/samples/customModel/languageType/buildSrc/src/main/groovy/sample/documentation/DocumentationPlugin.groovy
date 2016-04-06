@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package sample.documentation
+
 import org.gradle.api.Task
 import org.gradle.api.tasks.Copy
 import org.gradle.model.ModelMap
@@ -30,24 +31,22 @@ class DocumentationPlugin extends RuleSource {
 // END SNIPPET binaries-generation
 // END SNIPPET text-tasks-generation
     @ComponentType
-    void register(ComponentTypeBuilder<DocumentationComponent> builder) {}
+    void registerComponent(TypeBuilder<DocumentationComponent> builder) {}
 // END SNIPPET component-registration
 
 // START SNIPPET binary-registration
-    @BinaryType
-    void register(BinaryTypeBuilder<DocumentationBinary> builder) {}
+    @ComponentType
+    void registerBinary(TypeBuilder<DocumentationBinary> builder) {}
 // END SNIPPET binary-registration
 
 // START SNIPPET text-lang-registration
-    @LanguageType
-    void registerText(LanguageTypeBuilder<TextSourceSet> builder) {
-        builder.languageName = "text"
-    }
+    @ComponentType
+    void registerText(TypeBuilder<TextSourceSet> builder) {}
 // END SNIPPET text-lang-registration
 
 // START SNIPPET binaries-generation
     @ComponentBinaries
-    void generateDocBinaries(ModelMap<DocumentationBinary> binaries, DocumentationComponent component, @Path("buildDir") File buildDir) {
+    void generateDocBinaries(ModelMap<DocumentationBinary> binaries, VariantComponentSpec component, @Path("buildDir") File buildDir) {
         binaries.create("exploded") { binary ->
             outputDir = new File(buildDir, "${component.name}/${binary.name}")
         }

@@ -16,24 +16,25 @@
 
 package org.gradle.performance
 
+import groovy.transform.CompileStatic
 import org.gradle.performance.categories.GradleCorePerformanceTest
-import org.gradle.performance.fixture.BuildExperimentRunner
-import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
-import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.fixture.*
 import org.gradle.performance.results.CrossBuildResultsStore
+import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
 import spock.lang.Specification
 
 @Category(GradleCorePerformanceTest)
+@CompileStatic
 class AbstractCrossBuildPerformanceTest extends Specification {
+    private static final DataReporter<CrossBuildPerformanceResults> RESULT_STORE = ResultsStoreHelper.maybeUseResultStore { new CrossBuildResultsStore() }
+
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    static def resultStore = new CrossBuildResultsStore()
 
-    def runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore) {
+    CrossBuildPerformanceTestRunner runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), RESULT_STORE) {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)
@@ -58,7 +59,7 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     static {
         // TODO - find a better way to cleanup
         System.addShutdownHook {
-            resultStore.close()
+            ((Closeable)RESULT_STORE).close()
         }
     }
 }

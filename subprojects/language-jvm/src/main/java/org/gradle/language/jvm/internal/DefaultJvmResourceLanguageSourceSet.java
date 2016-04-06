@@ -20,7 +20,7 @@ import org.gradle.language.jvm.JvmResourceSet;
 
 public class DefaultJvmResourceLanguageSourceSet extends BaseLanguageSourceSet implements JvmResourceSet {
     @Override
-    protected String getTypeName() {
+    protected String getLanguageName() {
         return "JVM resources";
     }
 }

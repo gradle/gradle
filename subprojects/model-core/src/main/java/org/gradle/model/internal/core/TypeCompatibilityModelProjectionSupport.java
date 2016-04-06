@@ -48,6 +48,7 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
             || (targetType == ModelType.UNTYPED && isPrimitiveType(type));
     }
 
+    @Override
     public <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
         if (canBeViewedAs(type)) {
             return Cast.uncheckedCast(toView(modelNode, ruleDescriptor, true));
@@ -56,6 +57,7 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
         }
     }
 
+    @Override
     public <T> ModelView<? extends T> asImmutable(ModelType<T> type, MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor) {
         if (canBeViewedAs(type)) {
             return Cast.uncheckedCast(toView(modelNode, ruleDescriptor, false));

@@ -32,6 +32,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     final DataReporter<CrossVersionPerformanceResults> reporter
     TestProjectLocator testProjectLocator = new TestProjectLocator()
     final BuildExperimentRunner experimentRunner
+    final ReleasedVersionDistributions releases
 
     String testProject
     boolean useDaemon
@@ -46,10 +47,13 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
     BuildExperimentListener buildExperimentListener
+    private boolean adhocRun
 
-    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter) {
+    CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, boolean adhocRun) {
+        this.adhocRun = adhocRun
         this.reporter = reporter
         this.experimentRunner = experimentRunner
+        this.releases = releases
     }
 
     CrossVersionPerformanceResults run() {
@@ -78,22 +82,11 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             vcsCommits: [Git.current().commitId],
             testTime: System.currentTimeMillis())
 
-        def releasedDistributions = new ReleasedVersionDistributions()
-        def releasedVersions = releasedDistributions.all*.version.version
-        def mostRecentFinalRelease = releasedDistributions.mostRecentFinalRelease.version.version
-        def currentBaseVersion = GradleVersion.current().getBaseVersion().version
-        def allVersions = targetVersions.findAll { it != 'last' } as LinkedHashSet
-
-        // Always include the most recent final release
-        allVersions.add(mostRecentFinalRelease)
-
-        // A target version may be something that is yet unreleased, so filter that out
-        allVersions.remove(currentBaseVersion)
-        allVersions.removeAll { !releasedVersions.contains(it) }
+        LinkedHashSet baselineVersions = toBaselineVersions(releases, targetVersions, adhocRun)
 
         File projectDir = testProjectLocator.findProjectDir(testProject)
 
-        allVersions.each { it ->
+        baselineVersions.each { it ->
             def baselineVersion = results.baseline(it)
             baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
             baselineVersion.maxMemoryRegression = maxMemoryRegression
@@ -104,16 +97,60 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         runVersion(current, projectDir, results.current)
 
         results.assertEveryBuildSucceeds()
-        results.assertCurrentVersionHasNotRegressed()
 
         // Don't store results when builds have failed
         reporter.report(results)
 
+        results.assertCurrentVersionHasNotRegressed()
+
         return results
     }
 
+    static LinkedHashSet<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, boolean adhocRun) {
+        def mostRecentFinalRelease = releases.mostRecentFinalRelease.version.version
+        def mostRecentSnapshot = releases.mostRecentSnapshot.version.version
+        def currentBaseVersion = GradleVersion.current().getBaseVersion().version
+        def baselineVersions = new LinkedHashSet()
+
+
+        if (adhocRun) {
+            baselineVersions.add(mostRecentSnapshot)
+        } else {
+            for (String version : targetVersions) {
+                if (version == 'last' || version == 'nightly' || version == currentBaseVersion) {
+                    // These are all treated specially below
+                    continue
+                }
+                baselineVersions.add(findRelease(releases, version).version.version)
+            }
+            if (!targetVersions.contains('nightly')) {
+                // Include the most recent final release if we're not testing against a nightly
+                baselineVersions.add(mostRecentFinalRelease)
+            } else {
+                baselineVersions.add(mostRecentSnapshot)
+            }
+        }
+        baselineVersions
+    }
+
+    protected static GradleDistribution findRelease(ReleasedVersionDistributions releases, String requested) {
+        GradleDistribution best = null
+        for (GradleDistribution release : releases.all) {
+            if (release.version.version == requested) {
+                return release
+            }
+            if (!release.version.snapshot && release.version.baseVersion.version == requested && (best == null || best.version < release.version)) {
+                best = release
+            }
+        }
+        if (best != null) {
+            return best
+        }
+        throw new RuntimeException("Cannot find Gradle release that matches version '" + requested + "'")
+    }
+
     private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
-        def builder = BuildExperimentSpec.builder()
+        def builder = GradleBuildExperimentSpec.builder()
             .projectName(testId)
             .displayName(dist.version.version)
             .warmUpCount(warmUpRuns)

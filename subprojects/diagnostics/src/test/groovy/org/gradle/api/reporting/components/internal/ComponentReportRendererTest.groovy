@@ -20,10 +20,11 @@ import org.gradle.api.Project
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder
 import org.gradle.language.base.LanguageSourceSet
-import org.gradle.logging.TestStyledTextOutput
+import org.gradle.internal.logging.TestStyledTextOutput
 import org.gradle.model.ModelMap
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.SourceComponentSpec
 import spock.lang.Specification
 
 class ComponentReportRendererTest extends Specification {
@@ -93,7 +94,7 @@ class ComponentReportRendererTest extends Specification {
         def sourceSet2 = Stub(LanguageSourceSet) {
             getDisplayName() >> "<source set>"
         }
-        def component = Stub(ComponentSpec) {
+        def component = Stub(SourceComponentSpec) {
             getSources() >> Stub(ModelMap) {
                 values() >> [sourceSet1]
             }

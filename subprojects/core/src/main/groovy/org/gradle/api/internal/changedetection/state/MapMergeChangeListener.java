@@ -21,47 +21,21 @@ import org.gradle.util.ChangeListener;
 import java.util.Map;
 
 class MapMergeChangeListener<K, V> implements ChangeListener<Map.Entry<K, V>> {
-    private final ChangeListener<FileCollectionSnapshot.Merge> listener;
     private final Map<K, V> newSnapshots;
 
-    public MapMergeChangeListener(ChangeListener<FileCollectionSnapshot.Merge> listener, Map<K, V> targetMap) {
-        this.listener = listener;
+    public MapMergeChangeListener(Map<K, V> targetMap) {
         this.newSnapshots = targetMap;
     }
 
     public void added(Map.Entry<K, V> element) {
-        DefaultMerge merge = new DefaultMerge();
-        listener.added(merge);
-        if (!merge.isIgnore()) {
-            newSnapshots.put(element.getKey(), element.getValue());
-        }
+        newSnapshots.put(element.getKey(), element.getValue());
     }
 
     public void removed(Map.Entry<K, V> element) {
-        DefaultMerge merge = new DefaultMerge();
-        listener.removed(merge);
-        if (!merge.isIgnore()) {
-            newSnapshots.remove(element.getKey());
-        }
+        newSnapshots.remove(element.getKey());
     }
 
     public void changed(Map.Entry<K, V> element) {
-        DefaultMerge merge = new DefaultMerge();
-        listener.changed(merge);
-        if (!merge.isIgnore()) {
-            newSnapshots.put(element.getKey(), element.getValue());
-        }
-    }
-
-    private static class DefaultMerge implements FileCollectionSnapshot.Merge {
-        private boolean ignore;
-
-        public boolean isIgnore() {
-            return ignore;
-        }
-
-        public void ignore() {
-            ignore = true;
-        }
+        newSnapshots.put(element.getKey(), element.getValue());
     }
 }

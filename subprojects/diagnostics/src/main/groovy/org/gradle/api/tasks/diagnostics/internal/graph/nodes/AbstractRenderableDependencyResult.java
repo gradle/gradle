@@ -22,10 +22,12 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
 public abstract class AbstractRenderableDependencyResult implements RenderableDependency {
+    @Override
     public ComponentIdentifier getId() {
         return getActual();
     }
 
+    @Override
     public String getName() {
         ComponentSelector requested = getRequested();
         ComponentIdentifier selected = getActual();
@@ -66,6 +68,7 @@ public abstract class AbstractRenderableDependencyResult implements RenderableDe
         return getRequested().getDisplayName();
     }
 
+    @Override
     @Nullable
     public String getDescription() {
         return null;

@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.repositories.resolver
 
 import org.gradle.api.artifacts.ModuleIdentifier
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult
+import org.gradle.api.resources.MissingResourceException
+import org.gradle.api.resources.ResourceException
 import org.gradle.internal.component.model.IvyArtifactName
-import org.gradle.internal.resource.ResourceException
-import org.gradle.internal.resource.ResourceNotFoundException
+import org.gradle.internal.resolve.result.ResourceAwareResolveResult
 import spock.lang.Specification
 
 class ChainedVersionListerTest extends Specification {
@@ -56,7 +56,7 @@ class ChainedVersionListerTest extends Specification {
         0 * _._
     }
 
-    def "visit ignores ResourceNotFoundException when another VersionLister provides a result"() {
+    def "visit ignores MissingResourceException when another VersionLister provides a result"() {
         def versions = []
 
         given:
@@ -69,7 +69,7 @@ class ChainedVersionListerTest extends Specification {
         versionList.visit(pattern, artifact)
 
         then:
-        1 * versionList1.visit(pattern, artifact) >> { throw new ResourceNotFoundException(URI.create("scheme:thing"), "ignore me") }
+        1 * versionList1.visit(pattern, artifact) >> { throw new MissingResourceException(URI.create("scheme:thing"), "ignore me") }
         1 * versionList2.visit(pattern, artifact)
     }
 
@@ -96,9 +96,9 @@ class ChainedVersionListerTest extends Specification {
         0 * versionList2._
     }
 
-    def "visit rethrows ResourceNotFoundException of failed first VersionLister"() {
+    def "visit rethrows MissingResourceException of failed first VersionLister"() {
         given:
-        def exception = new ResourceNotFoundException(URI.create("scheme:thing"), "not found")
+        def exception = new MissingResourceException(URI.create("scheme:thing"), "not found")
         def versions = []
         lister1.newVisitor(module, versions, result) >> versionList1
         lister2.newVisitor(module, versions, result) >> versionList2
@@ -109,12 +109,12 @@ class ChainedVersionListerTest extends Specification {
         versionList.visit(pattern, artifact)
 
         then:
-        def e = thrown(ResourceNotFoundException)
+        def e = thrown(MissingResourceException)
         e == exception
 
         and:
         1 * versionList1.visit(pattern, artifact) >> { throw exception }
-        1 * versionList2.visit(pattern, artifact) >> { throw new ResourceNotFoundException(URI.create("scheme:thing"), "ignore me") }
+        1 * versionList2.visit(pattern, artifact) >> { throw new MissingResourceException(URI.create("scheme:thing"), "ignore me") }
     }
 
     def "visit wraps failed last VersionLister"() {
@@ -135,7 +135,7 @@ class ChainedVersionListerTest extends Specification {
         e.cause == exception
 
         and:
-        1 * versionList1.visit(pattern, artifact) >> { throw new ResourceNotFoundException(URI.create("scheme:thing"), "ignore me") }
+        1 * versionList1.visit(pattern, artifact) >> { throw new MissingResourceException(URI.create("scheme:thing"), "ignore me") }
         1 * versionList2.visit(pattern, artifact) >> { throw exception }
     }
 }

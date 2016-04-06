@@ -18,8 +18,8 @@ package org.gradle.internal.progress
 
 import org.gradle.internal.Factory
 import org.gradle.internal.TimeProvider
-import org.gradle.logging.ProgressLogger
-import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.internal.logging.ProgressLogger
+import org.gradle.internal.logging.ProgressLoggerFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultBuildOperationExecutorTest extends ConcurrentSpec {

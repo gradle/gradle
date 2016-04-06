@@ -30,10 +30,10 @@ import org.gradle.launcher.daemon.client.JvmVersionDetector;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.logging.internal.OutputEventRenderer;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.LoggingServiceRegistry;
+import org.gradle.internal.logging.internal.OutputEventListener;
+import org.gradle.internal.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
@@ -105,6 +105,20 @@ public class ProviderConnection {
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
         BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
+        return run(action, cancellationToken, listenerConfig, providerParameters, params);
+    }
+
+    public Object buildModels(String modelName, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
+        List<String> tasks = providerParameters.getTasks();
+        if (modelName.equals(ModelIdentifier.NULL_MODEL) && tasks == null) {
+            throw new IllegalArgumentException("No model type or tasks specified.");
+        }
+        Parameters params = initParams(providerParameters);
+        Class<?> type = new ModelMapping().getProtocolTypeFromModelName(modelName);
+
+        StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
+        BuildAction action = new BuildModelsAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
     }
 

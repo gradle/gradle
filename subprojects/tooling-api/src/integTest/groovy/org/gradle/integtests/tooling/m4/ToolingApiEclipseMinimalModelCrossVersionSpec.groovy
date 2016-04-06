@@ -39,7 +39,7 @@ project(':child') {
 '''
 
         when:
-        HierarchicalEclipseProject project = withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+        HierarchicalEclipseProject project = loadToolingModel(HierarchicalEclipseProject)
 
         then:
         project.projectDependencies.size() == 1
@@ -58,7 +58,7 @@ task generateResources << {
 '''
 
         when:
-        withConnection { connection -> connection.getModel(HierarchicalEclipseProject.class) }
+        loadToolingModel(HierarchicalEclipseProject)
 
         then:
         noExceptionThrown()

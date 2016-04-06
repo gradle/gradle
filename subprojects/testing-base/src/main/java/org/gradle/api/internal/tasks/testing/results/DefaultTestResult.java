@@ -44,38 +44,47 @@ public class DefaultTestResult implements TestResult, Serializable {
         this.failures = failures;
     }
 
+    @Override
     public ResultType getResultType() {
         return resultType;
     }
 
+    @Override
     public Throwable getException() {
         return failures.isEmpty() ? null : failures.get(0);
     }
 
+    @Override
     public List<Throwable> getExceptions() {
         return failures;
     }
 
+    @Override
     public long getStartTime() {
         return startTime;
     }
 
+    @Override
     public long getEndTime() {
         return endTime;
     }
 
+    @Override
     public long getTestCount() {
         return testCount;
     }
 
+    @Override
     public long getSuccessfulTestCount() {
         return successfulCount;
     }
 
+    @Override
     public long getSkippedTestCount() {
         return testCount - successfulCount - failedCount;
     }
 
+    @Override
     public long getFailedTestCount() {
         return failedCount;
     }

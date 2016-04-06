@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
@@ -50,20 +51,28 @@ class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec>
         this.invocationContext = invocationContext;
     }
 
-    public WorkResult execute(StaticLibraryArchiverSpec spec) {
-        BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
-        StaticLibraryArchiverSpec transformedSpec = specTransformer.transform(spec);
-        List<String> args = argsTransformer.transform(transformedSpec);
+    @Override
+    public WorkResult execute(final StaticLibraryArchiverSpec spec) {
+        final StaticLibraryArchiverSpec transformedSpec = specTransformer.transform(spec);
+        final List<String> args = argsTransformer.transform(transformedSpec);
         invocationContext.getArgAction().execute(args);
         new VisualCppOptionsFileArgsWriter(spec.getTempDir()).execute(args);
-        CommandLineToolInvocation invocation = invocationContext.createInvocation(
+        final CommandLineToolInvocation invocation = invocationContext.createInvocation(
                 String.format("archiving %s", spec.getOutputFile().getName()), args, spec.getOperationLogger());
-        queue.add(invocation);
-        queue.waitForCompletion();
+
+        buildOperationProcessor.run(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+            @Override
+            public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
+                buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
+                buildQueue.add(invocation);
+            }
+        });
+
         return new SimpleWorkResult(true);
     }
 
     private static class LibExeSpecToArguments implements ArgsTransformer<StaticLibraryArchiverSpec> {
+        @Override
         public List<String> transform(StaticLibraryArchiverSpec spec) {
             List<String> args = new ArrayList<String>();
             args.add("/OUT:" + spec.getOutputFile().getAbsolutePath());

@@ -21,8 +21,8 @@ import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.internal.StreamingStyledTextOutput;
+import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.internal.StreamingStyledTextOutput;
 import org.gradle.util.GUtil;
 
 import java.io.BufferedWriter;
@@ -44,19 +44,23 @@ public class TextReportRenderer implements ReportRenderer {
         this.fileResolver = fileResolver;
     }
 
+    @Override
     public void setClientMetaData(BuildClientMetaData clientMetaData) {
         this.clientMetaData = clientMetaData;
     }
 
+    @Override
     public void setOutput(StyledTextOutput textOutput) {
         setWriter(textOutput, false);
     }
 
+    @Override
     public void setOutputFile(File file) throws IOException {
         cleanupWriter();
         setWriter(new StreamingStyledTextOutput(new BufferedWriter(new FileWriter(file))), true);
     }
 
+    @Override
     public void startProject(Project project) {
         String header = createHeader(project);
         builder.heading(header);
@@ -75,9 +79,11 @@ public class TextReportRenderer implements ReportRenderer {
         return header;
     }
 
+    @Override
     public void completeProject(Project project) {
     }
 
+    @Override
     public void complete() {
         cleanupWriter();
     }

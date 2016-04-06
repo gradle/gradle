@@ -30,13 +30,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
-import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.util.GFileUtils;
+import org.gradle.internal.logging.LoggingServiceRegistry;
 
 import java.io.File;
 
@@ -108,7 +108,7 @@ public class ProjectBuilderImpl {
             // TODO deleteOnExit won't clean up non-empty directories (and it leaks memory for long-running processes).
             projectDir.deleteOnExit();
         } else {
-            projectDir = GFileUtils.canonicalise(projectDir);
+            projectDir = FileUtils.canonicalize(projectDir);
         }
         return projectDir;
     }

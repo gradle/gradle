@@ -21,8 +21,8 @@ import org.gradle.api.Task
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.TaskState
 import org.gradle.internal.progress.LoggerProvider
-import org.gradle.logging.ProgressLogger
-import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.internal.logging.ProgressLogger
+import org.gradle.internal.logging.ProgressLoggerFactory
 import spock.lang.Specification
 
 public class TaskExecutionLoggerTest extends Specification {

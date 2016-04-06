@@ -33,6 +33,7 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
         this.fileCollectionFactory = fileCollectionFactory;
     }
 
+    @Override
     public void resolve(NativeBinaryResolveResult nativeBinaryResolveResult) {
         for (NativeBinaryRequirementResolveResult resolution : nativeBinaryResolveResult.getAllResolutions()) {
             String linkage = getLinkage(resolution);
@@ -70,14 +71,17 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
             return original;
         }
 
+        @Override
         public String getProjectPath() {
             return original.getProjectPath();
         }
 
+        @Override
         public String getLibraryName() {
             return original.getLibraryName();
         }
 
+        @Override
         public String getLinkage() {
             // Rely on the default linkage for providing the headers
             return null;
@@ -93,14 +97,17 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
             this.fileCollectionFactory = fileCollectionFactory;
         }
 
+        @Override
         public FileCollection getIncludeRoots() {
             return delegate.getIncludeRoots();
         }
 
+        @Override
         public FileCollection getLinkFiles() {
             return fileCollectionFactory.empty(delegate.getLinkFiles().toString());
         }
 
+        @Override
         public FileCollection getRuntimeFiles() {
             return fileCollectionFactory.empty(delegate.getRuntimeFiles().toString());
         }

@@ -114,6 +114,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     return modelNode.hashCode();
                 }
 
+                @Override
                 public Object get(String name) {
                     if (propertyViews.containsKey(name)) {
                         return propertyViews.get(name);
@@ -150,6 +151,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     ClosureBackedAction.execute(get(name), action);
                 }
 
+                @Override
                 public void set(String name, Object value) {
                     if (!writable || closed) {
                         throw new ModelViewClosedException(getType(), ruleDescriptor);
@@ -174,7 +176,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                             return ((ScalarCollectionModelView<?, ? extends Collection<?>>) modelView).setValue(value);
                         } else if (value == null) {
                             propertyNode.setTarget(null);
-                        } else if (ManagedInstance.class.isInstance(value)) {
+                        } else if (value instanceof ManagedInstance) {
                             ManagedInstance managedInstance = (ManagedInstance) value;
                             MutableModelNode targetNode = managedInstance.getBackingNode();
                             propertyNode.setTarget(targetNode);

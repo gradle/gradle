@@ -545,7 +545,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolutionStrategy;
     }
 
-    // TODO:DAZ ResolveContext should have-a Configuration, not be one
     public ComponentResolveMetaData toRootComponentMetaData() {
         ModuleInternal module = getModule();
         Set<? extends Configuration> configurations = getAll();

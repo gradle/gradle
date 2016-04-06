@@ -31,6 +31,16 @@ public abstract class AbstractLocallyAvailableResource implements LocallyAvailab
         this.sha1 = sha1;
     }
 
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    @Override
+    public String getDisplayName() {
+        return getFile().getPath();
+    }
+
     public HashValue getSha1() {
         if (sha1 == null) {
             this.sha1 = HashUtil.sha1(getFile());

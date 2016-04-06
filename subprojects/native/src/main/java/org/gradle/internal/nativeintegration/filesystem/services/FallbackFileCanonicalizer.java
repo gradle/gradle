@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 
 class FallbackFileCanonicalizer implements FileCanonicalizer {
+    @Override
     public File canonicalize(File file) throws FileException {
         try {
             return file.getCanonicalFile();

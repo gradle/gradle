@@ -25,20 +25,24 @@ public class DefaultStaticLibraryArchiverSpec extends AbstractBinaryToolSpec imp
     private final List<File> objectFiles = new ArrayList<File>();
     private File outputFile;
 
+    @Override
     public List<File> getObjectFiles() {
         return objectFiles;
     }
 
+    @Override
     public void objectFiles(Iterable<File> objectFiles) {
         for (File objectFile : objectFiles) {
             this.objectFiles.add(objectFile);
         }
     }
 
+    @Override
     public File getOutputFile() {
         return outputFile;
     }
 
+    @Override
     public void setOutputFile(File outputFile) {
         this.outputFile = outputFile;
     }

@@ -24,6 +24,7 @@ import org.gradle.util.DisconnectableInputStream;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DefaultCancellableOperationManager implements CancellableOperationManager {
 
@@ -42,6 +43,7 @@ public class DefaultCancellableOperationManager implements CancellableOperationM
 
     @Override
     public void monitorInput(final Action<? super BuildCancellationToken> operation) {
+        final AtomicBoolean operationCompleted = new AtomicBoolean();
         Future<?> handle = null;
         try {
             handle = executorService.submit(new Runnable() {
@@ -50,7 +52,11 @@ public class DefaultCancellableOperationManager implements CancellableOperationM
                     try {
                         while (!Thread.currentThread().isInterrupted()) {
                             int c = input.read();
-                            if (c == KEY_CODE_CTRL_D || c == EOF) {
+                            // Ignore input received after the monitor operation has been completed
+                            if (operationCompleted.get()) {
+                                break;
+                            }
+                            if (isCancellation(c) && !operationCompleted.get()) {
                                 cancellationToken.cancel();
                                 break;
                             }
@@ -61,10 +67,15 @@ public class DefaultCancellableOperationManager implements CancellableOperationM
                 }
             });
             operation.execute(cancellationToken);
+            operationCompleted.set(true);
         } finally {
             if (handle != null) {
                 handle.cancel(true);
             }
         }
+    }
+
+    private static boolean isCancellation(int c) {
+        return c == KEY_CODE_CTRL_D || c == EOF;
     }
 }

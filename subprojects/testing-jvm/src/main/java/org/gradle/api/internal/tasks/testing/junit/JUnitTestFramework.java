@@ -30,8 +30,8 @@ import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.internal.actor.ActorFactory;
+import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.Serializable;
 
@@ -48,6 +48,7 @@ public class JUnitTestFramework implements TestFramework {
         classLoaderFactory = new TestClassLoaderFactory(classLoaderCache, testTask);
     }
 
+    @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         verifyJUnitCategorySupport();
         return new TestClassProcessorFactoryImpl(new JUnitSpec(options.getIncludeCategories(), options.getExcludeCategories(), filter.getIncludePatterns()));
@@ -67,6 +68,7 @@ public class JUnitTestFramework implements TestFramework {
         return classLoaderFactory.create();
     }
 
+    @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
         return new Action<WorkerProcessBuilder>() {
             public void execute(WorkerProcessBuilder workerProcessBuilder) {
@@ -77,6 +79,7 @@ public class JUnitTestFramework implements TestFramework {
         };
     }
 
+    @Override
     public JUnitOptions getOptions() {
         return options;
     }
@@ -85,6 +88,7 @@ public class JUnitTestFramework implements TestFramework {
         this.options = options;
     }
 
+    @Override
     public JUnitDetector getDetector() {
         return detector;
     }
@@ -96,6 +100,7 @@ public class JUnitTestFramework implements TestFramework {
             this.spec = spec;
         }
 
+        @Override
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
             return new JUnitTestClassProcessor(spec, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(ActorFactory.class), serviceRegistry.get(TimeProvider.class));
         }

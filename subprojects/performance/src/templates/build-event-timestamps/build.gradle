@@ -1,6 +1,7 @@
 ${original}
 
 def configurationEndTimestamp
+def settingsEvaluatedTimestampIfNotAvailable = System.nanoTime()
 
 gradle.taskGraph.whenReady {
     configurationEndTimestamp = System.nanoTime()
@@ -11,7 +12,7 @@ gradle.buildFinished { buildResult ->
     buildDir.mkdirs()
     def writer = new File(buildDir, "buildEventTimestamps.txt").newPrintWriter()
     try {
-        writer.println(settingsEvaluatedTimestamp)
+        writer.println(project.findProperty('settingsEvaluatedTimestamp') ?: settingsEvaluatedTimestampIfNotAvailable)
         writer.println(configurationEndTimestamp)
         writer.println(buildEndTimestamp)
         try {

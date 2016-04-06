@@ -42,6 +42,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
         this.aspectExtractor = aspectExtractor;
     }
 
+    @Override
     public <R> void extract(final ModelSchemaExtractionContext<R> extractionContext) {
         ModelType<R> type = extractionContext.getType();
         if (!isTarget(type)) {

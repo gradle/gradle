@@ -19,9 +19,9 @@ import org.gradle.api.Action;
 import org.gradle.cache.*;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.util.GFileUtils;
 
 import java.io.Closeable;
 import java.io.File;
@@ -73,7 +73,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     }
 
     private PersistentCache doOpen(File cacheDir, String displayName, CacheValidator validator, Map<String, ?> properties, LockOptions lockOptions, Action<? super PersistentCache> action) {
-        File canonicalDir = GFileUtils.canonicalise(cacheDir);
+        File canonicalDir = FileUtils.canonicalize(cacheDir);
         DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, validator, properties, lockOptions, action, lockManager);
@@ -95,7 +95,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         if (initializer != null) {
             throw new UnsupportedOperationException("Initializer actions are not currently supported by the directory store implementation.");
         }
-        File canonicalDir = GFileUtils.canonicalise(storeDir);
+        File canonicalDir = FileUtils.canonicalize(storeDir);
         DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
         if (dirCacheReference == null) {
             ReferencablePersistentCache cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockOptions, lockManager);

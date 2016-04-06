@@ -24,7 +24,6 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
-import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.nativeplatform.internal.PCHCompileTaskConfig;
 import org.gradle.language.nativeplatform.internal.SourceCompileTaskConfig;
@@ -34,9 +33,10 @@ import org.gradle.language.objectivec.tasks.ObjectiveCCompile;
 import org.gradle.language.objectivec.tasks.ObjectiveCPreCompiledHeaderCompile;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
+import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.nativeplatform.internal.pch.PchEnabledLanguageTransform;
-import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
 
 import java.util.Map;
 
@@ -45,15 +45,15 @@ import java.util.Map;
  */
 @Incubating
 public class ObjectiveCLangPlugin implements Plugin<Project> {
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @LanguageType
-        void registerLanguage(LanguageTypeBuilder<ObjectiveCSourceSet> builder) {
-            builder.setLanguageName("objc");
+        @ComponentType
+        void registerLanguage(TypeBuilder<ObjectiveCSourceSet> builder) {
             builder.defaultImplementation(DefaultObjectiveCSourceSet.class);
             builder.internalView(DependentSourceSetInternal.class);
         }
@@ -65,20 +65,29 @@ public class ObjectiveCLangPlugin implements Plugin<Project> {
     }
 
     private static class ObjectiveC extends NativeLanguageTransform<ObjectiveCSourceSet> implements PchEnabledLanguageTransform<ObjectiveCSourceSet> {
+        @Override
         public Class<ObjectiveCSourceSet> getSourceSetType() {
             return ObjectiveCSourceSet.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             Map<String, Class<?>> tools = Maps.newLinkedHashMap();
             tools.put("objcCompiler", DefaultPreprocessingTool.class);
             return tools;
         }
 
+        @Override
+        public String getLanguageName() {
+            return "objc";
+        }
+
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceCompileTaskConfig(this, ObjectiveCCompile.class);
         }
 
+        @Override
         public SourceTransformTaskConfig getPchTransformTask() {
             return new PCHCompileTaskConfig(this, ObjectiveCPreCompiledHeaderCompile.class);
         }

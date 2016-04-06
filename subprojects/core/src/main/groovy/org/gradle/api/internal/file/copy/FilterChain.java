@@ -27,10 +27,20 @@ import org.gradle.util.ConfigureUtil;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
+import java.nio.charset.Charset;
 import java.util.Map;
 
 public class FilterChain implements Transformer<InputStream, InputStream> {
     private final ChainingTransformer<Reader> transformers = new ChainingTransformer<Reader>(Reader.class);
+    private final String charset;
+
+    public FilterChain() {
+        this(null);
+    }
+
+    public FilterChain(String charset) {
+        this.charset = charset == null ? Charset.defaultCharset().name() : charset;
+    }
 
     /**
      * Transforms the given Reader. The original Reader will be closed by the returned Reader.
@@ -43,7 +53,11 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
      * Transforms the given InputStream. The original InputStream will be closed by the returned InputStream.
      */
     public InputStream transform(InputStream original) {
-        return new ReaderInputStream(transform(new InputStreamReader(original)));
+        try {
+            return new ReaderInputStream(transform(new InputStreamReader(original, charset)), charset);
+        } catch (UnsupportedEncodingException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public boolean hasFilters() {

@@ -25,8 +25,8 @@ import org.gradle.launcher.daemon.server.api.*;
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.internal.LoggingOutputInternal;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.internal.LoggingOutputInternal;
 
 import java.io.File;
 import java.util.List;

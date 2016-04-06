@@ -28,10 +28,12 @@ public class FindBugsXmlReportImpl extends TaskGeneratedSingleFileReport impleme
         super(name, task);
     }
 
+    @Override
     public boolean isWithMessages() {
         return withMessages;
     }
 
+    @Override
     public void setWithMessages(boolean withMessages) {
         this.withMessages = withMessages;
     }

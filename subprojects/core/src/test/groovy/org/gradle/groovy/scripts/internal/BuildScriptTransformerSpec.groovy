@@ -34,6 +34,7 @@ class BuildScriptTransformerSpec extends Specification {
 
     def importsReader = Mock(ImportsReader) {
         getImportPackages() >> ([] as String[])
+        getSimpleNameToFullClassNamesMapping() >> [:]
     }
 
     final DefaultScriptCompilationHandler scriptCompilationHandler = new DefaultScriptCompilationHandler(new DummyClassLoaderCache(), importsReader)

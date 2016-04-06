@@ -26,7 +26,7 @@ import org.gradle.api.tasks.diagnostics.internal.ProjectReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.StyledTextOutputFactory;
 
 import javax.inject.Inject;
 import java.io.File;

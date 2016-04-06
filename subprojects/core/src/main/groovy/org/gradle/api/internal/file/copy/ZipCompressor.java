@@ -19,9 +19,10 @@ import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.internal.file.archive.compression.ArchiveOutputStreamFactory;
 
 import java.io.File;
+import java.io.IOException;
 
 public interface ZipCompressor extends ArchiveOutputStreamFactory {
 
-    ZipOutputStream createArchiveOutputStream(File destination);
+    ZipOutputStream createArchiveOutputStream(File destination) throws IOException;
 
 }

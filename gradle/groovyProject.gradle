@@ -52,7 +52,8 @@ testTasks.all { task ->
         }
     }
     if (javaVersion.java6 || javaVersion.java7) {
-        task.jvmArgs '-XX:+CMSClassUnloadingEnabled'
+        // enable class unloading
+        task.jvmArgs '-XX:+UseConcMarkSweepGC', '-XX:+CMSClassUnloadingEnabled'
     }
 }
 

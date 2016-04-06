@@ -25,11 +25,10 @@ import java.io.InputStream;
  */
 @HasInternalProtocol
 public interface ReadableResource extends Resource {
-
     /**
-     * Returns an input stream that provides means to read the resource
+     * Returns an unbuffered {@link InputStream} that provides means to read the resource. It is the caller's responsibility to close this stream.
      *
-     * @return allows reading the resource
+     * @return An input stream.
      */
     InputStream read() throws MissingResourceException, ResourceException;
 }

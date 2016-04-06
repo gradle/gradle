@@ -19,13 +19,13 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import org.gradle.api.Action
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
-import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.api.resources.MissingResourceException
+import org.gradle.api.resources.ResourceException
 import org.gradle.internal.UncheckedException
+import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult
 import org.gradle.internal.resource.ExternalResource
-import org.gradle.internal.resource.ResourceException
-import org.gradle.internal.resource.ResourceNotFoundException
 import org.gradle.internal.resource.transport.ExternalResourceRepository
 import org.xml.sax.SAXParseException
 import spock.lang.Specification
@@ -146,13 +146,13 @@ class MavenVersionListerTest extends Specification {
         0 * resource._
     }
 
-    def "visit throws ResourceNotFoundException when maven-metadata not available"() {
+    def "visit throws MissingResourceException when maven-metadata not available"() {
         when:
         def versionList = lister.newVisitor(module, [], result)
         versionList.visit(pattern, artifact)
 
         then:
-        ResourceNotFoundException e = thrown()
+        MissingResourceException e = thrown()
         e.message == "Maven meta-data not available: $metaDataResource"
 
         and:

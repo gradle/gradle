@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface Profiler {
-    void addProfilerDefaults(GradleInvocationSpec.Builder invocation);
+    void addProfilerDefaults(GradleInvocationSpec.InvocationBuilder invocation);
 
     List<String> profilerArguments(Map<String, Object> yourkitOptions);
 }

@@ -55,10 +55,12 @@ public class RequestedVersion extends AbstractRenderableDependencyResult {
         return requested;
     }
 
+    @Override
     public boolean isResolvable() {
         return resolvable;
     }
 
+    @Override
     public Set<RenderableDependency> getChildren() {
         return children;
     }

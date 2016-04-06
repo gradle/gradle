@@ -21,14 +21,15 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
 import org.gradle.initialization.DistributionInitScriptFinder;
 import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
-import org.gradle.logging.LoggingConfiguration;
-import org.gradle.util.GFileUtils;
+import org.gradle.internal.FileUtils;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.logging.LoggingConfiguration;
 
 import java.io.File;
 import java.io.Serializable;
@@ -97,7 +98,12 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the command-line with no arguments.
      */
     public StartParameter() {
-        gradleHomeDir = new DefaultGradleDistributionLocator().getGradleHome();
+        GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
+        if (gradleInstallation == null) {
+            gradleHomeDir = null;
+        } else {
+            gradleHomeDir = gradleInstallation.getGradleHome();
+        }
 
         BuildLayoutParameters layoutParameters = new BuildLayoutParameters();
         searchUpwards = layoutParameters.getSearchUpwards();
@@ -160,6 +166,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.parallelProjectExecution = parallelProjectExecution;
         p.configureOnDemand = configureOnDemand;
         p.maxWorkerCount = maxWorkerCount;
+        p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
         return p;
     }
 
@@ -190,7 +197,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
             this.buildFile = null;
             setCurrentDir(null);
         } else {
-            this.buildFile = GFileUtils.canonicalise(buildFile);
+            this.buildFile = FileUtils.canonicalize(buildFile);
             setProjectDir(this.buildFile.getParentFile());
         }
     }
@@ -303,7 +310,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public void setCurrentDir(File currentDir) {
         if (currentDir != null) {
-            this.currentDir = GFileUtils.canonicalise(currentDir);
+            this.currentDir = FileUtils.canonicalize(currentDir);
         } else {
             this.currentDir = new BuildLayoutParameters().getCurrentDir();
         }
@@ -348,7 +355,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @param gradleUserHomeDir The home directory. May be null.
      */
     public void setGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir == null ? new BuildLayoutParameters().getGradleUserHomeDir() : GFileUtils.canonicalise(gradleUserHomeDir);
+        this.gradleUserHomeDir = gradleUserHomeDir == null ? new BuildLayoutParameters().getGradleUserHomeDir() : FileUtils.canonicalize(gradleUserHomeDir);
     }
 
     /**
@@ -386,7 +393,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
             this.settingsFile = null;
         } else {
             this.useEmptySettings = false;
-            this.settingsFile = GFileUtils.canonicalise(settingsFile);
+            this.settingsFile = FileUtils.canonicalize(settingsFile);
             currentDir = this.settingsFile.getParentFile();
         }
     }
@@ -457,7 +464,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
             setCurrentDir(null);
             this.projectDir = null;
         } else {
-            File canonicalFile = GFileUtils.canonicalise(projectDir);
+            File canonicalFile = FileUtils.canonicalize(projectDir);
             currentDir = canonicalFile;
             this.projectDir = canonicalFile;
         }

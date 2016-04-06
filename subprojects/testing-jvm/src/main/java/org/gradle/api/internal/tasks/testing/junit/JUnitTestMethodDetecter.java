@@ -28,6 +28,7 @@ class JUnitTestMethodDetecter extends MethodVisitor {
         this.testClassDetecter = testClassDetecter;
     }
 
+    @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
         if ("Lorg/junit/Test;".equals(desc)) {
             testClassDetecter.setTest(true);
