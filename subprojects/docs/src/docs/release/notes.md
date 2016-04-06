@@ -6,6 +6,24 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Set the character set used for filtering files in CopySpec
+
+By default, file filtering using `CopySpec` uses the default platform character set to read and write filtered files.
+This can cause problems if, for example, the files are encoded using `UTF-8` but the default platform character set is another one.
+
+You can now define the character set to use when reading and writing filtered files per `CopySpec`, e.g.:
+
+    task filter(type: Copy) {
+        from 'some/place'
+        into 'somewhere/else'
+        expand(version: project.version)
+        filteringCharset = 'UTF-8'
+    }
+
+See the “[Filtering files](userguide/working_with_files.html#sec:filtering_files)” section of the “Working with files chapter” in the user guide for more information and examples of using this new feature.
+
+This was contributed by [Jean-Baptiste Nizet](https://github.com/jnizet).
+
 <!--
 ### Example new and noteworthy
 -->
@@ -71,6 +89,7 @@ We would like to thank the following community members for making contributions 
 
 - [Igor Melnichenko](https://github.com/Myllyenko) - fixed Groovydoc up-to-date checks ([GRADLE-3349](https://issues.gradle.org/browse/GRADLE-3349))
 - [Sandu Turcan](https://github.com/idlsoft) - add wildcard exclusion for non-transitive dependencies in POM ([GRADLE-1574](https://issues.gradle.org/browse/GRADLE-1574))
+- [Jean-Baptiste Nizet](https://github.com/jnizet) - add `filteringCharset` property to `CopySpec` ([GRADLE-1267](https://issues.gradle.org/browse/GRADLE-1267))
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)

@@ -246,7 +246,7 @@
                 <sourcefile file="build.gradle" snippet="rename-files"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:filtering_files">
             <title>Filtering files</title>
             <sample id="filterOnCopy" dir="userguide/files/copy" title="Filtering files as they are copied">
                 <sourcefile file="build.gradle" snippet="filter-files"/>
