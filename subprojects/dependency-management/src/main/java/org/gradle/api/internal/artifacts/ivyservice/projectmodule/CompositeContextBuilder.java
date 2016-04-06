@@ -39,11 +39,13 @@ import java.io.File;
 import java.util.Set;
 
 public class CompositeContextBuilder {
-    private final GradleLauncherFactory launcherFactory;
     private final DefaultCompositeBuildContext context = new DefaultCompositeBuildContext();
+    private final GradleLauncherFactory launcherFactory;
+    private final boolean propagateFailures;
 
-    public CompositeContextBuilder(GradleLauncherFactory launcherFactory) {
+    public CompositeContextBuilder(GradleLauncherFactory launcherFactory, boolean propagateFailures) {
         this.launcherFactory = launcherFactory;
+        this.propagateFailures = propagateFailures;
     }
 
     public void addParticipant(File rootDir) {
@@ -62,7 +64,10 @@ public class CompositeContextBuilder {
             }
         } catch(ReportedException e) {
             // Ignore exceptions creating composite context
-            // TODO:DAZ Probably should ignore these when creating models, but fail when executing tasks
+            // TODO:DAZ Handle this better. Test coverage.
+            if (propagateFailures) {
+                throw e;
+            }
         } finally {
             gradleLauncher.stop();
         }

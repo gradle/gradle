@@ -79,7 +79,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         List<GradleParticipantBuild> participantBuilds = compositeParameters.getBuilds();
 
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
-        DefaultServiceRegistry compositeServices = createCompositeAwareServices(participantBuilds, gradleLauncherFactory, sharedServices);
+        DefaultServiceRegistry compositeServices = createCompositeAwareServices(participantBuilds, gradleLauncherFactory, sharedServices, false);
 
         BuildActionRunner runner = new SubscribableBuildActionRunner(new BuildModelsActionRunner());
         org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, runner);
@@ -119,7 +119,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
 
-        DefaultServiceRegistry compositeServices = createCompositeAwareServices(compositeParameters.getBuilds(), gradleLauncherFactory, sharedServices);
+        DefaultServiceRegistry compositeServices = createCompositeAwareServices(compositeParameters.getBuilds(), gradleLauncherFactory, sharedServices, true);
 
         StartParameter startParameter = compositeAction.getStartParameter().newInstance();
         startParameter.setProjectDir(compositeParameters.getTargetBuild().getProjectDir());
@@ -156,8 +156,8 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         return new Object[]{participant.getProjectDir(), projectPath, modelValue};
     }
 
-    private DefaultServiceRegistry createCompositeAwareServices(List<GradleParticipantBuild> builds, GradleLauncherFactory gradleLauncherFactory, ServiceRegistry sharedServices) {
-        CompositeBuildContext context = constructCompositeContext(gradleLauncherFactory, builds);
+    private DefaultServiceRegistry createCompositeAwareServices(List<GradleParticipantBuild> builds, GradleLauncherFactory gradleLauncherFactory, ServiceRegistry sharedServices, boolean propagateFailures) {
+        CompositeBuildContext context = constructCompositeContext(gradleLauncherFactory, builds, propagateFailures);
 
         DefaultServiceRegistry compositeServices = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
             .displayName("Composite services")
@@ -168,8 +168,8 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         return compositeServices;
     }
 
-    private CompositeBuildContext constructCompositeContext(GradleLauncherFactory gradleLauncherFactory, List<GradleParticipantBuild> participantBuilds) {
-        CompositeContextBuilder builder = new CompositeContextBuilder(gradleLauncherFactory);
+    private CompositeBuildContext constructCompositeContext(GradleLauncherFactory gradleLauncherFactory, List<GradleParticipantBuild> participantBuilds, boolean propagateFailures) {
+        CompositeContextBuilder builder = new CompositeContextBuilder(gradleLauncherFactory, propagateFailures);
         for (GradleParticipantBuild participant : participantBuilds) {
             builder.addParticipant(participant.getProjectDir());
         }
