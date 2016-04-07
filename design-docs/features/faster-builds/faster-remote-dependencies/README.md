@@ -25,7 +25,7 @@ Times here were reported against `master` as of April, 7th, and relative to `Con
     * 31% of it in `StreamingResolutionResultBuilder.resolvedConfiguration(ModuleVersionIdentifier, Collection)`
     * 4% of it in `TransientConfigurationResultsBuilder.parentChildMapping(ResolvedConfigurationIdentifier, ResolvedConfigurationIdentifier, long)`
     * 2% of it in `StreamingResolutionResultBuilder.resolvedModuleVersion(ModuleVersionSelection)`
-    * Most of this time seems to be spent in `flush`, and since flushing is mostly triggered from `writeString`, it probably indicates that the buffer size is too small (currently 4096 bytes)
+    * Most of this time seems to be spent in `flush`, and since flushing is mostly triggered from `writeString`, it probably indicates that the buffer size is too small (currently 4096 bytes). Increasing the default buffer size to `65536` reduces the time spent in writing the persistent cache from 41% to 10%.
 * 9% of time spent in parsing the module descriptors
     * 69% of it spent in parsing the external module descriptors (Maven POM files)
     * 31% of time spent in parsing the project module descriptors (Ivy files). This one clearly indicates that a better serialized format for our internal modules would be better fitted. It's very expensive for information that is available locally.
