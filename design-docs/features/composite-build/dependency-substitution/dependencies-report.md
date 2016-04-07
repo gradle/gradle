@@ -92,6 +92,9 @@ For these tests, verify dependency substitution directly via the resolved depend
     - B::z produces [org;z:1.0]
     - org;z:1.0 <- org;y:1.0 <- [org;x:1.0]
     - result: A::x has dependency on B::z.
+
+Failure conditions:
+
 - Failure: External dependency can be replaced by two different projects in multi-project build.
     - Single participant (A, B), multi-project build (x, y):
     - A::x produces [org;x:1.0]
@@ -106,6 +109,9 @@ For these tests, verify dependency substitution directly via the resolved depend
     - C::y produces [org;y:1.0]
     - org;x:1.0 <- [org;y:1.0]
     - result: Fail - multiple participants can satisfy dependency
+- Dependency cycle within multi-project build
+- Dependency cycle within multi-participant composite
+- Composite containing participants with same root directory name
 
 Interaction with dependency rules:
 
@@ -121,10 +127,7 @@ Interaction with dependency rules:
 - Dependency substitution rule replaces a project dependency with an external dependency, that is then substituted in composite
     - Should dependency substitution rule win over composite substitution?
 
-- Dependency cycle within multi-project build
-- Dependency cycle within multi-participant composite
-
-- Composite containing participants with same root directory name
+Other improvements:
 
 - Test selection reason for substitution (should be a new 'reason' that mentions composite build)
 - Test cancellation of the builds that create the composite context
