@@ -8,8 +8,15 @@ Any time we need to generate a text file, or to read, transform and write the co
 what charset(s) to use.
 Some tasks might need to use a charset to write that is different from the charset used to read.
 For the most frequent case, i.e. copying and filtering files, it's a reasonable assumption to expect the developer to
-choose the target encoding for the source files, and thus to use a single filtering charset both for reading and writing.
+choose the target encoding for the source files, and thus to use a single filtering charset both for reading and
+writing.
 
+As a general rule of thumb, the default character set to use is the default platform character set.
+When reading and writing text files for example.
+But, when it comes to encoding text inside a binary format, like in archives metadata, the corresponding binary formats
+specifications prevail.
+
+<a name="jar"></a>
 ## About ZIP/JAR
 
 Gradle makes use of the [Apache Commons Compress](https://commons.apache.org/proper/commons-compress/zip.html) library
@@ -34,9 +41,9 @@ The name of this property is confusing, and the default value is not correct.
 Moreover, as already said above, JAR, WAR and EAR metadata should always be encoded in UTF-8 instead of the platform
 default encoding.
 
-The Apache Commons Compress team has been running
-[interoperability tests](https://commons.apache.org/proper/commons-compress/zip.html#Recommendations_for_Interoperability),
-the results are of interest.
+The Apache Commons Compress team has been running interoperability tests, the
+[results](https://commons.apache.org/proper/commons-compress/zip.html#Recommendations_for_Interoperability) are of
+interest.
 Note that since then, starting with Windows 8, the Windows "Compressed Folder" feature recognize the language encoding
 flag and thus supports UTF-8.
 
@@ -46,12 +53,13 @@ the way to go as it provides predictable encoding/decoding of filenames.
 Such a change should not break existing builds as UTF-8 in ZIP archives is widely supported.
 But, non-compliant implementations can use other charsets and Gradle should be able to read them.
 
+<a name="tar"></a>
 ## About TAR
 
 Gradle makes use of the [Apache Commons Compress](https://commons.apache.org/proper/commons-compress/tar.html) to handle
 the TAR file format.
 
-There are mainly two `tar` flavours in the wild: GNU and POSIX.1-2001 (aka. PAX).
+There are mainly two TAR flavours in the wild: GNU and POSIX.1-2001 (aka. PAX).
 Both of theses flavor extend from the 1988 POSIX USTAR specification that uses ASCII only.
 See the [File format](https://en.wikipedia.org/wiki/Tar_(computing)#File_format) section of the Tar page on Wikipedia.
 
@@ -60,7 +68,7 @@ This can lead to mojibakes in filenames when extracting on a system with a diffe
 
 The PAX flavour, a now 15 years old specification that is widely supported, says that implementations should encode
 filenames to UTF-8 when creating archives and decode them to the default platform encoding when extracting archives.
-See the[pax Archive Character Set Encoding/Decoding](http://pubs.opengroup.org/onlinepubs/009695399/utilities/pax.html#tag_04_100_18_02)
+See the [pax Archive Character Set Encoding/Decoding](http://pubs.opengroup.org/onlinepubs/009695399/utilities/pax.html#tag_04_100_18_02)
 section of the specification.
 
 All TAR commands/tools out there should support creation and at least extraction of theses two flavours.
@@ -83,7 +91,7 @@ But, non-compliant implementations can use other charsets and Gradle should be a
 
 ## Stories
 
-* [~~`CopySpec` reading and writing text files when filtering~~](#copyspec-filtering)
+* [`CopySpec` reading and writing text files when filtering](#copyspec-filtering)
 * [`ZipFileTree` and `TarFileTree` reading ZIPs and TARs metadata](#zip-tar-read)
 * [`Zip`, `Jar`, `War`, `Ear` tasks writing archives metadata](#zip-write)
 * [`Tar` task writing TARs metadata](#tar-write)
@@ -91,7 +99,8 @@ But, non-compliant implementations can use other charsets and Gradle should be a
 There may be other use cases involving character encoding than the ones mentioned in this document.
 Please add them to this inventory.
 
-### Story: Control the character set used when reading and writing filtered files content <a name="copyspec-filtering"></a>
+<a name="copyspec-filtering"></a>
+### Story: Control the character set used when reading and writing filtered files content
 
 See [GRADLE-1267](https://issues.gradle.org/browse/GRADLE-1267) and [PR#520](https://github.com/gradle/gradle/pull/520).
 
@@ -115,7 +124,8 @@ Since the `Copy` task inherits from `CopySpec`, that should document the task au
 - When `filteringCharset` is set to something other than the default platform charset, it is honored.
 - When a specified charset is not a valid charset name, an exception is thrown immediately, with a clear error message.
 
-### Story: Control the character set used for metadata when reading ZIP and TAR archives <a name="zip-tar-read"></a>
+<a name="zip-tar-read"></a>
+### Story: Control the character set used for metadata when reading ZIP and TAR archives
 
 When reading from ZIP files using `ZipFileTree` or from TAR files using `TarFileTree`, there should be a
 `metadataCharset` property which determines the `Charset` which will be used to read the file entries and header data
@@ -133,7 +143,8 @@ should be the name of the platform default character set.
 - When `metadataCharset` is set to something other than the default platform charset, it is honored.
 - When a specified charset is not a valid charset name, an exception is thrown immediately, with a clear error message.
 
-### Story: Control the character set used for metadata when creating ZIP/JAR/WAR/EAR archives <a name="zip-write"></a>
+<a name="zip-write"></a>
+### Story: Control the character set used for metadata when creating ZIP/JAR/WAR/EAR archives
 
 When creating ZIP archives with the `Zip` task, there should be a `metadataCharset` property which determines the
 `Charset` which will be used to create the file entries and header data in the ZIP archive.
@@ -160,7 +171,8 @@ and will always use the default `UTF-8` value.
 
 [//]: # (TODO)
 
-### Story: Gradle produces TAR archives using the POSIX.1-2001 format (aka. PAX) <a name="tar-write"></a>
+<a name="tar-write"></a>
+### Story: Gradle produces TAR archives using the POSIX.1-2001 format (aka. PAX)
 
 Today Gradle creates TAR archives in the GNU format in an hardcoded way using the default platform character set for
 metadata.
