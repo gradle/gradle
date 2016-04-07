@@ -28,8 +28,7 @@ abstract class BaseTestKitEndUserIntegrationTest extends BaseGradleRunnerIntegra
 
     def setup() {
         requireIsolatedTestKitDir = true
-        executer.requireGradleHome().withStackTraceChecksDisabled()
-        executer.withEnvironmentVars(GRADLE_USER_HOME: executer.gradleUserHomeDir.absolutePath)
+        executer.requireGradleHome()
         executer.beforeExecute {
             usingInitScript(file("testKitDirInit.gradle") << """
                 allprojects {

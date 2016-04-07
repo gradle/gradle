@@ -51,7 +51,7 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
     def setup() {
         executer.requireOwnGradleUserHomeDir()
         executer.beforeExecute {
-            it.withDeprecationChecksDisabled().withStackTraceChecksDisabled()
+            it.withDeprecationChecksDisabled()
             moduleResolution()
         }
 

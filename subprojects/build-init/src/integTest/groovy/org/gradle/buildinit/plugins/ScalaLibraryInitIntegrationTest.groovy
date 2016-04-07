@@ -40,7 +40,6 @@ class ScalaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         wrapper.generated()
 
         when:
-        executer.withDeprecationChecksDisabled()
         run("build")
 
         then:

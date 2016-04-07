@@ -21,7 +21,7 @@ class MultiProjectContinuousIntegrationTest extends Java7RequiringContinuousInte
     def upstreamSource, downstreamSource
 
     def setup() {
-        executer.noExtraLogging().withStackTraceChecksDisabled()
+        executer.noExtraLogging()
         settingsFile << "include 'upstream', 'downstream'"
         buildFile << """
             subprojects {

@@ -64,7 +64,6 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         def markerFile = file("marker")
 
         when:
-        executer.withStackTraceChecksDisabled()
         buildFile << """
             task build {
               def f = file("marker")
