@@ -23,7 +23,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
-
 /**
  * Tests for dependency substitution within a composite build.
  * Note that this test should be migrated to use the command-line entry point for composite build, when this is developed.
@@ -37,13 +36,20 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
     def buildA
     def buildB
     List builds
+    def mavenRepo
 
     def setup() {
+        mavenRepo = new MavenFileRepository(file("maven-repo"))
+        mavenRepo.module("org.test", "buildB", "1.0").publish()
+
         buildA = multiProjectBuild("buildA", ['a1', 'a2']) {
             buildFile << """
-                configurations { compile }
-                subprojects {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                allprojects {
                     apply plugin: 'base'
+                    configurations { compile }
                 }
 """
         }
@@ -59,6 +65,9 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
 
     def "does no substitution when no project matches external dependencies"() {
         given:
+        mavenRepo.module("org.different", "buildB", "1.0").publish()
+        mavenRepo.module("org.test", "buildC", "1.0").publish()
+
         buildA.buildFile << """
             dependencies {
                 compile "org.different:buildB:1.0"
@@ -72,8 +81,8 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         then:
         output.contains """
 compile
-+--- org.different:buildB:1.0 FAILED
-\\--- org.test:buildC:1.0 FAILED
++--- org.different:buildB:1.0
+\\--- org.test:buildC:1.0
 """
     }
 
@@ -136,6 +145,7 @@ compile
 
     def "substitutes external dependency with subproject dependency that has transitive dependencies"() {
         given:
+        mavenRepo.module("org.foo", "transitive", "1.0").publish()
         buildA.buildFile << """
             dependencies {
                 compile "org.test:buildB:1.0"
@@ -154,7 +164,7 @@ compile
         output.contains """
 compile
 \\--- org.test:buildB:1.0 -> project buildB::
-     \\--- org.foo:transitive:1.0 FAILED
+     \\--- org.foo:transitive:1.0
 """
     }
 
@@ -190,13 +200,9 @@ compile
 
     def "substitutes transitive dependency of non-substituted external dependency"() {
         given:
-        def mavenRepo = new MavenFileRepository(file("maven-repo"))
         mavenRepo.module("org.external", "external-dep", '1.0').dependsOn("org.test", "buildB", "1.0").publish()
 
         buildA.buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
             dependencies {
                 compile "org.external:external-dep:1.0"
             }
