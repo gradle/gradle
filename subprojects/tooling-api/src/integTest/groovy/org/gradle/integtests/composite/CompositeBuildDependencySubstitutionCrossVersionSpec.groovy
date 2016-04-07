@@ -15,14 +15,12 @@
  */
 
 package org.gradle.integtests.composite
-
+import org.gradle.integtests.resolve.ResolveTestFixture
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.test.fixtures.maven.MavenFileRepository
-
-import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
 /**
  * Tests for dependency substitution within a composite build.
  * Note that this test should be migrated to use the command-line entry point for composite build, when this is developed.
@@ -32,10 +30,10 @@ import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSepara
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
 class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeToolingApiSpecification {
     // TODO:DAZ Use ResolveTestFixture in here, instead of parsing 'dependencies' output
-    def stdOut = new ByteArrayOutputStream()
     def buildA
     def buildB
     List builds
+    ResolveTestFixture resolve
     def mavenRepo
 
     def setup() {
@@ -53,10 +51,14 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
                 }
 """
         }
+        resolve = new ResolveTestFixture(buildA.buildFile).withoutCheckingArtifacts()
+        resolve.prepare()
+
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    apply plugin: 'base'
+                    apply plugin: 'java'
+                    version "20"
                 }
 """
         }
@@ -79,11 +81,10 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         checkDependencies()
 
         then:
-        output.contains """
-compile
-+--- org.different:buildB:1.0
-\\--- org.test:buildC:1.0
-"""
+        checkGraph {
+            module("org.different:buildB:1.0")
+            module("org.test:buildC:1.0")
+        }
     }
 
     def "substitutes external dependency with root project dependency"() {
@@ -98,10 +99,11 @@ compile
         checkDependencies()
 
         then:
-        output.contains """
-compile
-\\--- org.test:buildB:1.0 -> project buildB::
-"""
+        checkGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:20") {
+                selectedByRule()
+            }
+        }
     }
 
     def "substitutes external dependencies with subproject dependencies"() {
@@ -117,11 +119,14 @@ compile
         checkDependencies()
 
         then:
-        output.contains """
-compile
-+--- org.test:b1:1.0 -> project buildB::b1
-\\--- org.test:b2:1.0 -> project buildB::b2
-"""
+        checkGraph {
+            edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:20") {
+                selectedByRule()
+            }
+            edge("org.test:b2:1.0", "project buildB::b2", "org.test:b2:20") {
+                selectedByRule()
+            }
+        }
     }
 
     def "substitutes external dependency with project dependency from same build"() {
@@ -136,11 +141,11 @@ compile
         checkDependencies()
 
         then:
-        output.contains """
-compile
-\\--- org.test:a2:1.0 -> project buildA::a2
-"""
-        // TODO:DAZ This should render like a local project dependency (not qualified with 'buildA:')
+        checkGraph {
+            edge("org.test:a2:1.0", "project buildA::a2", "org.test:a2:1.0") {
+                selectedByRule()
+            }
+        }
     }
 
     def "substitutes external dependency with subproject dependency that has transitive dependencies"() {
@@ -161,11 +166,12 @@ compile
         checkDependencies()
 
         then:
-        output.contains """
-compile
-\\--- org.test:buildB:1.0 -> project buildB::
-     \\--- org.foo:transitive:1.0
-"""
+        checkGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:20") {
+                selectedByRule()
+                module("org.foo:transitive:1.0")
+            }
+        }
     }
 
     def "substitutes transitive dependency of substituted project dependency"() {
@@ -191,11 +197,14 @@ compile
         checkDependencies()
 
         then:
-        output.contains """
-compile
-\\--- org.test:buildB:1.0 -> project buildB::
-     \\--- org.test:buildC:1.0 -> project buildC::
-"""
+        checkGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:20") {
+                selectedByRule()
+                edge("org.test:buildC:1.0", "project buildC::", "org.test:buildC:1.0") {
+                    selectedByRule()
+                }
+            }
+        }
     }
 
     def "substitutes transitive dependency of non-substituted external dependency"() {
@@ -212,23 +221,27 @@ compile
         checkDependencies()
 
         then:
-        output.contains """
-compile
-\\--- org.external:external-dep:1.0
-     \\--- org.test:buildB:1.0 -> project buildB::
-"""
+        checkGraph {
+            module("org.external:external-dep:1.0") {
+                edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:20") {
+                    selectedByRule()
+                }
+            }
+        }
     }
 
     private void checkDependencies() {
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
-            buildLauncher.setStandardOutput(stdOut)
-            buildLauncher.forTasks(buildA, "dependencies")
+            buildLauncher.setStandardOutput(System.out)
+            buildLauncher.forTasks(buildA, ":checkDeps")
             buildLauncher.run()
         }
     }
 
-    def getOutput() {
-        normaliseLineSeparators(stdOut.toString())
+    void checkGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
+        resolve.expectGraph {
+            root(":", "org.test:buildA:1.0", closure)
+        }
     }
 }
