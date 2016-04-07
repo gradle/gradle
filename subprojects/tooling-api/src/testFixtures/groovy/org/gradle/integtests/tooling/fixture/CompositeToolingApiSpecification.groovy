@@ -55,8 +55,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         def builder = toolingApi.createCompositeBuilder()
 
         // TODO:DAZ This isn't quite right: we should be testing _both_ integrated and non-integrated composite for version that support both
-        def toolingApiVersion = GradleVersion.current()
-        if (executeTestWithIntegratedComposite && supportsIntegratedComposites(toolingApiVersion, targetDistVersion)) {
+        if (executeTestWithIntegratedComposite && supportsIntegratedComposites()) {
             builder.integratedComposite(true)
             builder.useInstallation(targetDist.gradleHomeDir.absoluteFile)
 
@@ -69,7 +68,10 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         return builder
     }
 
-    boolean supportsIntegratedComposites(GradleVersion toolingApiVersion, GradleVersion targetGradleVersion) {
+    boolean supportsIntegratedComposites() {
+        def toolingApiVersion = GradleVersion.current()
+        def targetGradleVersion = targetDistVersion
+
         def versionSpec = GradleVersionSpec.toSpec(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
         return versionSpec.isSatisfiedBy(toolingApiVersion) && versionSpec.isSatisfiedBy(targetGradleVersion)
     }

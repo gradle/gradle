@@ -16,13 +16,14 @@
 
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.util.GradleVersion
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
 
 /**
  * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
  */
+@TargetGradleVersion(">=1.4") // Dependencies task fails for missing dependencies with older Gradle versions
 class DependencySubstitutionGradleConnectionCrossVersionSpec extends CompositeToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
 
@@ -42,9 +43,9 @@ class DependencySubstitutionGradleConnectionCrossVersionSpec extends CompositeTo
 """
 }
 
-        def expectedOutput = "org.A:build2:1.0 FAILED"
-        if (targetSupportsSubstitution()) {
-            expectedOutput = "org.A:build2:1.0 -> project build2::"
+        def expectedOutput = "org.test:buildB:1.0 FAILED"
+        if (supportsIntegratedComposites()) {
+            expectedOutput = "org.test:buildB:1.0 -> project buildB::"
         }
 
         when:
@@ -60,13 +61,6 @@ class DependencySubstitutionGradleConnectionCrossVersionSpec extends CompositeTo
 compile
 \\--- $expectedOutput
 """
-    }
-
-    private static boolean targetSupportsSubstitution() {
-        def targetBaseVersion = targetDistVersion.baseVersion
-        def supportsSubstitution = targetBaseVersion >= GradleVersion.version("2.14")
-        println "Checking if ${targetBaseVersion} supports substitution: " + supportsSubstitution
-        return supportsSubstitution
     }
 
     def getOutput() {
