@@ -90,6 +90,7 @@ We would like to thank the following community members for making contributions 
 - [Igor Melnichenko](https://github.com/Myllyenko) - fixed Groovydoc up-to-date checks ([GRADLE-3349](https://issues.gradle.org/browse/GRADLE-3349))
 - [Sandu Turcan](https://github.com/idlsoft) - add wildcard exclusion for non-transitive dependencies in POM ([GRADLE-1574](https://issues.gradle.org/browse/GRADLE-1574))
 - [Jean-Baptiste Nizet](https://github.com/jnizet) - add `filteringCharset` property to `CopySpec` ([GRADLE-1267](https://issues.gradle.org/browse/GRADLE-1267))
+- [Simon Herter](https://github.com/sherter) - add thrown exception to Javadocs for `ExtensionContainer`
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
