@@ -149,7 +149,7 @@ should be the name of the platform default character set.
 When creating ZIP archives with the `Zip` task, there should be a `metadataCharset` property which determines the
 `Charset` which will be used to create the file entries and header data in the ZIP archive.
 
-The `metadataCharset` property should default to UTF-8
+The `metadataCharset` property should default to UTF-8 and be marked as an input to the task using `@Input`.
 
 The existing `encoding` property of the `Zip` task should be deprecated and removed in Gradle 3.0.
 In the meantime, its getter and setter should delegate to the new `metadataCharset` property.
@@ -191,6 +191,8 @@ It should default to `UTF-8` when `tarFormat` is `posix` and to the platform def
 
 Having theses two properties allow build authors to have full control on created TAR archives while providing both a
 sensible default and an easy way to go back to the old default behaviour.
+
+Both of theses properties should be marked as an input to the task using `@Input`.
 
 Create POSIX/PAX TAR using UTF-8 for metadata encoding, that is the new default behaviour:
 
