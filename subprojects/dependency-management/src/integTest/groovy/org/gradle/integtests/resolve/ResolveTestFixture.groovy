@@ -72,29 +72,29 @@ allprojects {
         def configDetailsFile = buildFile.parentFile.file("build/${config}.txt")
         def configDetails = configDetailsFile.text.readLines()
 
-        def actualArtifacts = configDetails.findAll { it.startsWith('artifact:') }.collect { it.substring(9) }
-        def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.module}.jar]" }
-        assert actualArtifacts == expectedArtifacts
-
-        def actualFiles = configDetails.findAll { it.startsWith('file:') }.collect { it.substring(5) }
-        def expectedFiles = graph.artifactNodes.collect { it.fileName }
-        assert actualFiles == expectedFiles
-
-        def actualFirstLevel = configDetails.findAll { it.startsWith('first-level:') }.collect { it.substring(12) } as LinkedHashSet
-        def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:default]" } as LinkedHashSet
-        assert actualFirstLevel == expectedFirstLevel
-
         def actualRoot = configDetails.find { it.startsWith('root:') }.substring(5)
         def expectedRoot = "[id:${graph.root.id}][mv:${graph.root.moduleVersionId}][reason:${graph.root.reason}]"
         assert actualRoot == expectedRoot
 
+        def actualArtifacts = configDetails.findAll { it.startsWith('artifact:') }.collect { it.substring(9) }
+        def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.module}.jar]" }
+        assert actualArtifacts as Set == expectedArtifacts as Set
+
+        def actualFiles = configDetails.findAll { it.startsWith('file:') }.collect { it.substring(5) }
+        def expectedFiles = graph.artifactNodes.collect { it.fileName }
+        assert actualFiles as Set == expectedFiles as Set
+
+        def actualFirstLevel = configDetails.findAll { it.startsWith('first-level:') }.collect { it.substring(12) }
+        def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" }
+        assert actualFirstLevel as Set == expectedFirstLevel as Set
+
         def actualNodes = configDetails.findAll { it.startsWith('component:') }.collect { it.substring(10) }
         def expectedNodes = graph.nodes.values().collect { "[id:${it.id}][mv:${it.moduleVersionId}][reason:${it.reason}]" }
-        assert actualNodes == expectedNodes
+        assert actualNodes as Set == expectedNodes as Set
 
         def actualEdges = configDetails.findAll { it.startsWith('dependency:') }.collect { it.substring(11) }
         def expectedEdges = graph.edges.collect { "[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
-        assert actualEdges == expectedEdges
+        assert actualEdges as Set == expectedEdges as Set
     }
 
     public static class GraphBuilder {
@@ -221,7 +221,8 @@ allprojects {
         final String group
         final String module
         final String version
-        private String reason
+        String configuration = "default"
+        private Set<String> reasons = new TreeSet<String>()
 
         NodeBuilder(String id, String moduleVersionId, Map attrs, GraphBuilder graph) {
             this.graph = graph
@@ -232,8 +233,8 @@ allprojects {
             this.id = id
         }
 
-        private def getReason() {
-            reason ?: (this == graph.root ? 'root:' : 'requested:')
+        def getReason() {
+            reasons.empty ? (this == graph.root ? 'root' : 'requested') : reasons.join(',')
         }
 
         private def getFileName() {
@@ -296,6 +297,18 @@ allprojects {
         }
 
         /**
+         * Defines a dependency from the current node to the given node. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
+         */
+        NodeBuilder edge(String requested, String id, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl) {
+            def node = graph.node(id, selectedModuleVersionId)
+            deps << new EdgeBuilder(this, requested, node)
+            cl.resolveStrategy = Closure.DELEGATE_ONLY
+            cl.delegate = node
+            cl.call()
+            return node
+        }
+
+        /**
          * Defines a dependency of the current node.
          */
         EdgeBuilder dependency(Map requested) {
@@ -308,7 +321,23 @@ allprojects {
          * Marks that this node was selected due to conflict resolution.
          */
         NodeBuilder byConflictResolution() {
-            reason = 'conflict resolution:conflict'
+            reasons << 'conflict'
+            this
+        }
+
+        /**
+         * Marks that this node was selected by a rule.
+         */
+        NodeBuilder selectedByRule() {
+            reasons << 'selectedByRule'
+            this
+        }
+
+        /**
+         * Marks that this node has a forced vers.
+         */
+        NodeBuilder forced() {
+            reasons << 'forced'
             this
         }
     }
@@ -358,6 +387,6 @@ public class GenerateGraphTask extends DefaultTask {
         if (reason.selectedByRule) {
             reasons << "selectedByRule"
         }
-        return "${reason.description}:${reasons.join(',')}"
+        return reasons.empty ? reason.description : reasons.join(',')
     }
 }
