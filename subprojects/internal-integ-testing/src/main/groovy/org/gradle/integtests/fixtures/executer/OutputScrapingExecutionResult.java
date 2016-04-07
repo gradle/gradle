@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
 import org.gradle.util.TextUtil;
+import org.hamcrest.core.StringContains;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,12 +41,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     private final Pattern taskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FAILED)|(\\s*))");
 
     public OutputScrapingExecutionResult(String output, String error) {
-        this.output = output;
-        this.error = error;
+        this.output = TextUtil.normaliseLineSeparators(output);
+        this.error = TextUtil.normaliseLineSeparators(error);
     }
 
     public String getOutput() {
-        return TextUtil.normaliseLineSeparators(output);
+        return output;
     }
 
     public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
@@ -56,12 +57,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertOutputContains(String expectedOutput) {
-        assertThat("Substring not found in build output", getOutput(), org.hamcrest.core.StringContains.containsString(normaliseLineSeparators(expectedOutput)));
+        assertThat("Substring not found in build output", getOutput(), StringContains.containsString(normaliseLineSeparators(expectedOutput)));
         return this;
     }
 
     public String getError() {
-        return TextUtil.normaliseLineSeparators(error);
+        return error;
     }
 
     public List<String> getExecutedTasks() {

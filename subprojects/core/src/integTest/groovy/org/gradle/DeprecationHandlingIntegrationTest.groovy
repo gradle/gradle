@@ -41,6 +41,7 @@ class DeprecatedTask extends DefaultTask {
 
         when:
         executer.withDeprecationChecksDisabled()
+        executer.withDeprecationChecksDisabled()
         run()
 
         then:
@@ -51,6 +52,7 @@ class DeprecatedTask extends DefaultTask {
 
         // Run again to ensure logging is reset
         when:
+        executer.withDeprecationChecksDisabled()
         executer.withDeprecationChecksDisabled()
         run()
 
