@@ -78,6 +78,8 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new File(get(DaemonDir.class).getVersionedDir(), fileName);
     }
 
+    // TODO(ew): protected File getRegistryFile() {}
+
     protected DaemonHealthServices createDaemonHealthServices() {
         return new DefaultDaemonHealthServices();
     }

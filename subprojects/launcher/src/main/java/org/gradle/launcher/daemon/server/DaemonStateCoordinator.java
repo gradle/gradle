@@ -91,10 +91,13 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                                 LOGGER.debug(DaemonMessages.DAEMON_BUSY);
                                 condition.await();
                             } else if (hasBeenIdleFor(timeoutMs)) {
+                                // TODO(ew): additional condition for hasBeenIdleFor(periodicCheckMs)
+                                //     try getDaemonRegistryFile() catch stopNow("registry unreadable")
                                 LOGGER.debug("Idle timeout: daemon has been idle for requested period. Stopping now.");
                                 stopNow("idle timeout");
                                 return false;
                             } else {
+                                // TODO(ew): change this to periodic check
                                 Date waitUntil = new Date(lastActivityAt + timeoutMs);
                                 LOGGER.debug("{}{}", DaemonMessages.DAEMON_IDLE, waitUntil);
                                 condition.awaitUntil(waitUntil);
@@ -119,6 +122,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
+    // TODO(ew): public void stopOnExpirationConditionsMet
     public void stopOnIdleTimeout(int timeout, TimeUnit timeoutUnits) {
         awaitStop(timeoutUnits.toMillis(timeout));
     }

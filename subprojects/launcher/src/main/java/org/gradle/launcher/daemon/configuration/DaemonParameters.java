@@ -40,7 +40,9 @@ public class DaemonParameters {
     private final File gradleUserHomeDir;
 
     private File baseDir;
+    // TODO(ew): Pull idleTimeout into expirationStrategy
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
+    private final DaemonExpirationStrategy expirationStrategy = new DaemonExpirationStrategy();
     private final DaemonJvmOptions jvmOptions = new DaemonJvmOptions(new IdentityFileResolver());
     private DaemonUsage daemonUsage = DaemonUsage.IMPLICITLY_DISABLED;
     private boolean hasJvmArgs;

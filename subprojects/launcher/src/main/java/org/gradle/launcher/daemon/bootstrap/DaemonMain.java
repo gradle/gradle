@@ -75,6 +75,7 @@ public class DaemonMain extends EntryPoint {
         try {
             gradleHomeDir = new File(decoder.readString());
             daemonBaseDir = new File(decoder.readString());
+            // TODO(ew): Read periodic check interval int
             idleTimeoutMs = decoder.readSmallInt();
             daemonUid = decoder.readString();
             int argCount = decoder.readSmallInt();
@@ -111,6 +112,7 @@ public class DaemonMain extends EntryPoint {
             daemonStarted(pid, daemon.getUid(), daemon.getAddress(), daemonLog);
 
             // Block until idle
+            // TODO(ew): refactor to stopOnExpiration() with DaemonExpirationStrategy arg
             daemon.requestStopOnIdleTimeout(parameters.getIdleTimeout(), TimeUnit.MILLISECONDS);
         } finally {
             daemon.stop();

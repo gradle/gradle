@@ -69,6 +69,10 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         0 * _._
     }
 
+    // TODO(ew): def "all daemons stop when their registry is deleted"() {}
+
+    // TODO(ew): def "starting new build recreates registry"() {}
+
     def "runs actions when command is run"() {
         Runnable command = Mock()
 

@@ -35,6 +35,7 @@ class DaemonParametersTest extends Specification {
     def "has reasonable default values"() {
         expect:
         parameters.daemonUsage == DaemonUsage.IMPLICITLY_DISABLED
+        // TODO(ew): verify periodic health check interval
         parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
         parameters.baseDir == new File(new BuildLayoutParameters().getGradleUserHomeDir(), "daemon")
         parameters.systemProperties.isEmpty()
