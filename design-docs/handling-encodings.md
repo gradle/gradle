@@ -1,120 +1,213 @@
 # Encoding
 
-Updated: __2016/03/24__
-Status: __Under Review__
+This spec describes improvements to allow build authors to take control of character encoding in their build.
+It applies to tasks which need to read, write and transform text files, as well as tasks which create archives (zip
+files, tar files, etc.).
 
-This document describes the rules and conventions for handling the character encoding of file contents in general, and metadata
-(file names and comments) in archives. It applies to tasks which need to read, write and transform text files, as well as tasks which create
-archives (zip files, tar files, etc.)
+Any time we need to generate a text file, or to read, transform and write the contents of a text file, we need to know
+what charset(s) to use.
+Some tasks might need to use a charset to write that is different from the charset used to read.
+For the most frequent case, i.e. copying and filtering files, it's a reasonable assumption to expect the developer to
+choose the target encoding for the source files, and thus to use a single filtering charset both for reading and writing.
 
-## Use Cases
+## About ZIP/JAR
 
-### Content Encoding
+Gradle makes use of the [Apache Commons Compress](https://commons.apache.org/proper/commons-compress/zip.html) library
+to handle the ZIP file format.
 
-Any time we need to generate a text file, or to read, transform and write the contents of a text file, we need to know what 
-charset(s) to use.
+The ZIP specification only supports CodePage 437 (basically ascii for visible characters), or UTF-8 if a special bit is
+set (*Language encoding flag* or EFS).
+See [Section 4.4.4 and appendix D1 & D2](https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT) of the ZIP
+specification.
 
-Common situations include:
+Before that specification, InfoZIP vendor introduced an extra metadata field to store an UTF-8 encoded version of
+filenames alongside the main ones.
+Most tools ignore that extra field, Gradle should do the same.
 
-* Copying and filtering a file from one location to another.
-* Creating and reading an archive (zip, tar, etc.).
+For JAR, WAR and EAR archives only the UTF-8 character set is supported.
+JVMs ignore the EFS flag when loading such archives.
 
-[GRADLE-1267](https://issues.gradle.org/browse/GRADLE-1267) describes just one instance of where this functionality is needed.
+In Gradle, up to version 2.13 at least, the `Zip`, `Jar`, `War` and `Ear` tasks all have an `encoding` property added
+in [Pull Request 499](https://github.com/gradle/gradle/pull/499) which allows specifying a metadata charset, which
+defaults to the platform default charset.
+The name of this property is confusing, and the default value is not correct.
+Moreover, as already said above, JAR, WAR and EAR metadata should always be encoded in UTF-8 instead of the platform
+default encoding.
 
-### Metadata Encoding
+The Apache Commons Compress team has been running
+[interoperability tests](https://commons.apache.org/proper/commons-compress/zip.html#Recommendations_for_Interoperability),
+the results are of interest.
+Note that since then, starting with Windows 8, the Windows "Compressed Folder" feature recognize the language encoding
+flag and thus supports UTF-8.
 
-Metadata in zip files can be encoded with a variety of charsets. 
+Always producing ZIP archives with metadata encoded using the UTF-8 character set and setting the EFS flag seems to be
+the way to go as it provides predictable encoding/decoding of filenames.
 
-POSIX-compliant tar files, on the other hand, only use UTF8 for metadata. But non-compliant implementations can use other
-charsets and Gradle should be able to read them. 
+Such a change should not break existing builds as UTF-8 in ZIP archives is widely supported.
+But, non-compliant implementations can use other charsets and Gradle should be able to read them.
 
-Jar, war and ear files only use UTF8 for metadata. 
+## About TAR
 
-In Gradle however, up to version 2.12 at least, the Zip, Jar, War and Ear tasks all have an `encoding` option added in 
-[Pull Request 499](https://github.com/gradle/gradle/pull/499) which allows specifying a metadata charset, which defaults to
-the platform default encoding. The name of this option is confusing, and the default value is not correct. Moreover, jar, war and ear
-metadata should always be encoded in UTF8 instead of the platform default encoding. The Tar task should use UTF8, but it
-uses the default platform encoding.
+Gradle makes use of the [Apache Commons Compress](https://commons.apache.org/proper/commons-compress/tar.html) to handle
+the TAR file format.
 
-## Solution
+There are mainly two `tar` flavours in the wild: GNU and POSIX.1-2001 (aka. PAX).
+Both of theses flavor extend from the 1988 POSIX USTAR specification that uses ASCII only.
+See the [File format](https://en.wikipedia.org/wiki/Tar_(computing)#File_format) section of the Tar page on Wikipedia.
 
-### Content encoding
+The GNU flavour uses default platform encoding for file names both when creating and extracting archives.
+This can lead to mojibakes in filenames when extracting on a system with a different default platform encoding.
 
-This design generally proposes that any task which needs to read and write text should specify a charset used to encode/decode 
-characters into bytes.
+The PAX flavour, a now 15 years old specification that is widely supported, says that implementations should encode
+filenames to UTF-8 when creating archives and decode them to the default platform encoding when extracting archives.
+See the[pax Archive Character Set Encoding/Decoding](http://pubs.opengroup.org/onlinepubs/009695399/utilities/pax.html#tag_04_100_18_02)
+section of the specification.
 
-Notes:
+All TAR commands/tools out there should support creation and at least extraction of theses two flavours.
+The format (GNU vs. POSIX/PAX) of TAR files metadata is automatically detected on read by tools, including the Apache
+Commons Compress library used in Gradle.
 
- - reading and writing characters isn't limited to files. It also applies to archive entries, network communication, etc.
- - some tasks might need to use a charset to write that is different from the charset used to read. For the most frequent case,
-   i.e. copying and filtering files, it's a reasonable assumption to expect the developer to choose the target encoding for the
-   source files, and thus to use a single filtering charset both for reading and writing. By the way, when not filtering the 
-   files, the Copy task treats them as binary files, and thus uses the same encoding for the source and target files.
+The GNU manual says the following under [the POSIX section](https://www.gnu.org/software/tar/manual/html_node/Formats.html#SEC132):
 
-### Metadata encoding
+> This archive format will be the default format for future versions of GNU tar.
 
-The Zip task, which produces zip files, should allow specifying a metadata charset used to encode/decode the metadata
-of the archive. This should default to UTF8. 
+So, following the least surprise principle, producing PAX TAR archives by default is the way to go as it provides
+predictable encoding/decoding of filenames.
 
-Jar, War, Ear and Tar tasks should not allow specifying a metadata charset, or at the very least should reject any metadata 
-charset other than UTF8.
-
-When reading from zip files using `ZipFileTree`, we should support a metadata charset option as well.
-
-When reading from tar files using `TarFileTree`, we should support a metadata charset option so that we can handle reading 
-non-POSIX tar files, like the tar files created with current and older versions of Gradle, or with other tools.
-
-## Implementation Plan
-
-### Content encoding
-
-`CopySpec` should get a new `filteringCharset` property of type `String` which is the name of the `Charset` which will be used for 
-encoding and decoding the contents of a file on either side of passing the contents to the closure(s) specified by the various 
-filter methods of CopySpec. 
-
-The default value of `filteringCharset` should be the name of the platform default charset. That will maintain backward 
-compatibility, since up to Gradle 1.12 at least, the platform default charset is always used.
-
-### Metadata encoding
-
-The Zip task should support a `metadataCharset` option, or type String, defaulting to UTF8. Unfortunately, the Jar task 
-inherits from Zip, and should not use any `metadataCharset` other than UTF8. The setter of this property should thus be 
-overridden to throw an `UnsupportedOperationException`. War and Ear inherit from Jar, and will thus automatically benefit
-from this behavior.
-
-The Tar task should use UTF8 rather than the default platform charset to encode its metadata, and the POSIX/PAX mode when creating entries.
-
-ZipFileTree should use an additional `metadataCharset` option, defaulting to UTF8.
-
-TarFileTree should use an additional `metadataCharset` option, defaulting to UTF8.
-
-The `encoding` property of the Zip task (inherited by Jar, War and Ear) should be deprecated. Its getter and setter shoud delegate 
-to the new `metadataCharset` getter and setter.
-
-The setters for these two charset properties should not accept null, and should validate that the given String is a valid `Charset` name,
-and produce a clear error message if it isn't.
-
-## Testing Plan
-
-We need to add tests which cover each of these scenarios:
-
-- The default encoding is honored when `filteringCharset` or `metadataCharset` is not set.
-- When `filteringCharset` is set to something other than the default platform encoding, it is honored.
-- When `metadataCharset` is set to something other than the default UTF8 value in Zip, ZipFileTree and TarFileTree, it is honored.
-- When `metadataCharset` is set in Jar, an `UnsupportedOperationException` is thrown.
-- When a specified charset is not a valid charset name, an exception is thrown immediately, with a clear error message.
-
-## Documentation Plan
-
-- The CopySpec interface documentation should document the `filteringCharset` property and specify the default value if the property is not set.
-  Since the Copy task inherits from CopySpec, that should document the task automatically.
-- The Zip task should document the `metadataCharset` property and specify the default value if the property is not set.
-- The Jar, War and Ear tasks should document the `metadataCharset` property and specify that it should not be set and will always use the 
-  default UTF8 value.
-
-## Note
-
-The code base should be investigated in order to find properties and method arguments with names like `encoding`, `charset`, etc., and replace them with either `metadataCharset` or `filteringCharset` if those names are more accurate.
+Such a change should not break existing builds as PAX TAR archives are widely supported.
+But, non-compliant implementations can use other charsets and Gradle should be able to read them.
 
 ## Open Questions
 
+[//]: # (Any?)
+
+## Stories
+
+* [~~`CopySpec` reading and writing text files when filtering~~](#copyspec-filtering)
+* [`ZipFileTree` and `TarFileTree` reading ZIPs and TARs metadata](#zip-tar-read)
+* [`Zip`, `Jar`, `War`, `Ear` tasks writing archives metadata](#zip-write)
+* [`Tar` task writing TARs metadata](#tar-write)
+
+There may be other use cases involving character encoding than the ones mentioned in this document.
+Please add them to this inventory.
+
+### Story: Control the character set used when reading and writing filtered files content <a name="copyspec-filtering"></a>
+
+See [GRADLE-1267](https://issues.gradle.org/browse/GRADLE-1267) and [PR#520](https://github.com/gradle/gradle/pull/520).
+
+CopySpec should get a new `filteringCharset` property of type `String` which is the name of the `Charset` which will
+be used for encoding and decoding the contents of a file on either side of passing the contents to the closure(s)
+specified by the various `filter` methods of `CopySpec`.
+
+The default value of `filteringCharset` should be the name of the platform default charset.
+That will maintain backward compatibility, since up to Gradle 2.13 at least, the platform default charset is used.
+
+By the way, when not filtering the files, the `Copy` task treats them as binary files, and thus does no
+encoding/decoding at all.
+
+The `CopySpec` interface documentation should document the `filteringCharset` property and specify the default value if
+the property is not set.
+Since the `Copy` task inherits from `CopySpec`, that should document the task automatically.
+
+#### Tests
+
+- The default charset is honored when `filteringCharset` is not set.
+- When `filteringCharset` is set to something other than the default platform charset, it is honored.
+- When a specified charset is not a valid charset name, an exception is thrown immediately, with a clear error message.
+
+### Story: Control the character set used for metadata when reading ZIP and TAR archives <a name="zip-tar-read"></a>
+
+When reading from ZIP files using `ZipFileTree` or from TAR files using `TarFileTree`, there should be a
+`metadataCharset` property which determines the `Charset` which will be used to read the file entries and header data
+from the respectively ZIP or TAR archive.
+
+    zipTree('someFile.zip', metadataCharset: 'UTF-8')
+    tarTree('someFile.tar', metadataCharset: 'UTF-8')
+
+In order to keep backward compatibility the `metadataCharset` default value for both `ZipFileTree` and `TarFileTree`
+should be the name of the platform default character set.
+
+#### Tests
+
+- The default charset is honored when `metadataCharset` is not set.
+- When `metadataCharset` is set to something other than the default platform charset, it is honored.
+- When a specified charset is not a valid charset name, an exception is thrown immediately, with a clear error message.
+
+### Story: Control the character set used for metadata when creating ZIP/JAR/WAR/EAR archives <a name="zip-write"></a>
+
+When creating ZIP archives with the `Zip` task, there should be a `metadataCharset` property which determines the
+`Charset` which will be used to create the file entries and header data in the ZIP archive.
+
+The `metadataCharset` property should default to UTF-8
+
+The existing `encoding` property of the `Zip` task should be deprecated and removed in Gradle 3.0.
+In the meantime, its getter and setter should delegate to the new `metadataCharset` property.
+
+When `metadataCharset` is UTF-8 the `Zip` task should properly set the *Language encoding flag* or EFS.
+
+When creating WAR, EAR, and JAR files which all extend from the `Zip` task, we should only allow `metadataCharset`to
+have the value `UTF-8` as that is the expectation of the JVM.
+
+We should accomplish this by overriding the setter for the property on the `Jar` task implementation to throw an
+`UnsupportedOperationException`.
+`War` and `Ear` inherit from `Jar`, and will thus automatically benefit from this behavior.
+
+The `Zip` task should document the `metadataCharset` property and specify the default value if the property is not set.
+The `Jar`, `War` and `Ear` tasks should document the `metadataCharset` property and specify that it should not be set
+and will always use the default `UTF-8` value.
+
+#### Tests
+
+[//]: # (TODO)
+
+### Story: Gradle produces TAR archives using the POSIX.1-2001 format (aka. PAX) <a name="tar-write"></a>
+
+Today Gradle creates TAR archives in the GNU format in an hardcoded way using the default platform character set for
+metadata.
+We should change this to default to POSIX/PAX TAR files with `UTF-8` encoded metadata,
+see [About TAR](#tar) above.
+We should also provide an easy way to enable the old default behaviour, producing GNU TAR files with metadata encoded
+using the platform default charset.
+
+One `String` property named `tarFormat` should be added to the `Tar` task to specify which TAR flavour to use, `gnu` or `posix`.
+It should default to `posix`.
+
+Another `String` property named `metadataCharset` should be added to the `Tar` task to specify which character set to use when
+encoding archive metadata.
+It should default to `UTF-8` when `tarFormat` is `posix` and to the platform default character set when `tarFormat` is
+`gnu`.
+
+Having theses two properties allow build authors to have full control on created TAR archives while providing both a
+sensible default and an easy way to go back to the old default behaviour.
+
+Create POSIX/PAX TAR using UTF-8 for metadata encoding, that is the new default behaviour:
+
+    task posixPaxTar(type: Tar) {
+        // ...
+    }
+
+Create POSIX/PAX TAR using ISO-8859 for metadata encoding:
+
+    task posixPaxIso8859Tar(type: Tar) {
+        metadataCharset = 'ISO-8859'
+        // ...
+    }
+
+Create GNU TAR using platform default character set, that is the previous default behaviour:
+
+    task gnuTar(type: Tar) {
+        format = 'gnu'
+        // ...
+    }
+
+Create GNU TAR using UTF-8 for metadata encoding:
+
+    task gnuUtf8Tar(type: Tar) {
+        format = 'gnu'
+        metadataCharset = 'UTF-8'
+        // ...
+    }
+
+#### Tests
+
+[//]: # (TODO)
