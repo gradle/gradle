@@ -32,3 +32,7 @@ Times here were reported against `master` as of April, 7th, and relative to `Con
 * 20% of time spent in adding `DependencyEdge` instances to `incomingEdges`/`outcomingEdges` in `ConfigurationNode`. Time is totally dominated by calling `hashCode` on these instances. Since the `hashCode` is the native JVM one, it seems to be hardly optimizable without changing the algorithms. Question: do we need the `Set` semantics here?
 
 Those results show that using a more appropriate cache, we can probably improve the performance of dependency resolution. For example, instead of using a persistent store, we could use an in-memory store backed with a persistent store for overflows.
+
+#### Miscellaneous results
+
+1. Iterating on `Configuration#getAllDependencies` is very inefficient. The code at `DefaultProjectDependency.resolve(DependencyResolveContext)` triggers a call to `iterator()`, which in turns delegates to `org.gradle.api.internal.CompositeDomainObjectSet#iterator()`. The problem is that this method returns an immutable iterator constructed from a `LinkedHashSet`. Creating this hash set requires iterating the backing collection twice, because of an implicit call to `size()`. We should investigate why returning an immutable iterator is required, and in any case avoid creating a `LinkedHashSet`.
