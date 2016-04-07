@@ -17,6 +17,9 @@
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.util.GradleVersion
+
+import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
+
 /**
  * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
  */
@@ -67,6 +70,6 @@ compile
     }
 
     def getOutput() {
-        stdOut.toString()
+        normaliseLineSeparators(stdOut.toString())
     }
 }
