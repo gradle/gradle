@@ -285,7 +285,7 @@ class Main {
     def "#installTask complains if install directory exists and doesn't look like previous install"() {
         setup:
         if(deprecatedTask){
-            executer.withDeprecationChecksDisabled()
+            executer.expectDeprecationWarning()
         }
 
         file('build.gradle') << """

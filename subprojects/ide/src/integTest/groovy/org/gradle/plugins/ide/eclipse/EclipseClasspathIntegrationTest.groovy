@@ -938,7 +938,7 @@ task generateForTest << {}
     @Test
     void configuringNonExportedConfigurationsIsDeprecated() {
         //when
-        executer.withDeprecationChecksDisabled()
+        executer.expectDeprecationWarning()
         def result = runEclipseTask """
 apply plugin: 'java'
 apply plugin: 'eclipse'

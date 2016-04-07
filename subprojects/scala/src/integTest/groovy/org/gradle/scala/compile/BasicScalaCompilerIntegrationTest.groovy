@@ -32,7 +32,7 @@ DeprecationLogger.whileDisabled {
 }
 """
         // We've deprecated some getters that are used by all scala compiler calls.
-        executer.withDeprecationChecksDisabled()
+        executer.expectDeprecationWarning()
     }
 
     def compileGoodCode() {
@@ -110,7 +110,7 @@ compileScala.scalaCompileOptions.encoding = "ISO8859_7"
 compileScala.scalaCompileOptions.debugLevel = "line"
 """
         // This resets every time run is called.
-        executer.withDeprecationChecksDisabled()
+        executer.expectDeprecationWarning()
         run("compileScala")
 
         then:
@@ -128,7 +128,7 @@ compileScala.scalaCompileOptions.debugLevel = "line"
 compileScala.scalaCompileOptions.debugLevel = "none"
 """
         // This resets every time run is called.
-        executer.withDeprecationChecksDisabled()
+        executer.expectDeprecationWarning()
         run("compileScala")
 
         then:

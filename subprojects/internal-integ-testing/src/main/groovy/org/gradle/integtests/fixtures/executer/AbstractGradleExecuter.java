@@ -247,7 +247,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         executer.noExtraLogging();
 
         for (int i = 0; i < expectedDeprecationWarnings; i++) {
-            executer.withDeprecationChecksDisabled();
+            executer.expectDeprecationWarning();
         }
         if (!eagerClassLoaderCreationChecksOn) {
             executer.withEagerClassLoaderCreationCheckDisabled();
@@ -818,7 +818,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         };
     }
 
-    public GradleExecuter withDeprecationChecksDisabled() {
+    public GradleExecuter expectDeprecationWarning() {
         expectedDeprecationWarnings++;
         return this;
     }

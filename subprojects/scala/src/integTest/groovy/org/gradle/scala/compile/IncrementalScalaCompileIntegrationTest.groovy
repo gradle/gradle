@@ -37,11 +37,11 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 '''
         then:
         // This gets reset each time you run() is run.
-        executer.withDeprecationChecksDisabled();
+        executer.expectDeprecationWarning();
         run('compileScala').assertTasksSkipped(':compileJava')
 
         // This gets reset each time you run() is run.
-        executer.withDeprecationChecksDisabled();
+        executer.expectDeprecationWarning();
         run('compileScala').assertTasksSkipped(':compileJava', ':compileScala')
     }
 
@@ -54,7 +54,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // This gets reset each time you run() is run.
-        executer.withDeprecationChecksDisabled();
+        executer.expectDeprecationWarning();
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }
 
@@ -86,7 +86,7 @@ class IncrementalScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // This gets reset each time you run() is run.
-        executer.withDeprecationChecksDisabled();
+        executer.expectDeprecationWarning();
         //the build should fail because the interface the scala class needs has changed
         runAndFail("classes").assertHasDescription("Execution failed for task ':compileScala'.")
     }

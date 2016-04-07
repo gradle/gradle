@@ -194,7 +194,7 @@ eclipse {
 }
 """
         when:
-        executer.withDeprecationChecksDisabled()
+        executer.expectDeprecationWarning()
         run "eclipse"
 
         then:
