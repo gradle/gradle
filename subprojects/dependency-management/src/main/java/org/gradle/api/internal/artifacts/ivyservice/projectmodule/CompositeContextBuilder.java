@@ -16,31 +16,18 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ModuleInternal;
-import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExternalModuleIvyDependencyDescriptorFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ReportedException;
-import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.component.local.model.*;
+import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.internal.component.model.DependencyMetaData;
-
-import java.util.Set;
 
 public class CompositeContextBuilder implements BuildActionRunner {
     private final DefaultCompositeBuildContext context = new DefaultCompositeBuildContext();
@@ -69,31 +56,36 @@ public class CompositeContextBuilder implements BuildActionRunner {
         }
     }
 
-    public void registerProject(String buildName, ProjectInternal project) {
+    private void registerProject(String buildName, ProjectInternal project) {
         String projectPath = buildName + ":" + project.getPath();
-
-        ModuleInternal module = project.getModule();
-        ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
         ComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(projectPath);
-        DefaultLocalComponentMetaData localComponentMetaData = new DefaultLocalComponentMetaData(moduleVersionIdentifier, componentIdentifier, module.getStatus());
-        addConfigurations(localComponentMetaData, project);
-        context.register(moduleVersionIdentifier.getModule(), projectPath, localComponentMetaData);
+
+        ProjectComponentRegistry projectComponentRegistry = project.getServices().get(ProjectComponentRegistry.class);
+
+        DefaultLocalComponentMetaData projectComponentMetadata = (DefaultLocalComponentMetaData) projectComponentRegistry.getProject(project.getPath());
+        LocalComponentMetaData localComponentMetaData = createCompositeCopy(componentIdentifier, projectComponentMetadata);
+
+        context.register(localComponentMetaData.getId().getModule(), projectPath, localComponentMetaData);
     }
 
-    private void addConfigurations(BuildableLocalComponentMetaData localComponentMetaData, ProjectInternal project) {
-        // TODO:DAZ The producing build already is able to do this work (and properly): let's just reuse it
-        for (Configuration configuration : project.getConfigurations()) {
-            Set<String> hierarchy = Configurations.getNames(configuration.getHierarchy());
-            Set<String> extendsFrom = Configurations.getNames(configuration.getExtendsFrom());
-            TaskDependency directBuildDependencies = new DefaultTaskDependency();
-            localComponentMetaData.addConfiguration(configuration.getName(), configuration.getDescription(), extendsFrom, hierarchy, configuration.isVisible(), configuration.isTransitive(), directBuildDependencies);
+    private LocalComponentMetaData createCompositeCopy(ComponentIdentifier componentIdentifier, DefaultLocalComponentMetaData projectComponentMetadata) {
+        DefaultLocalComponentMetaData compositeComponentMetadata = new DefaultLocalComponentMetaData(projectComponentMetadata.getId(), componentIdentifier, projectComponentMetadata.getStatus());
 
-            for (Dependency dependency : configuration.getAllDependencies()) {
-                DefaultExternalModuleDependency externalModuleDependency = new DefaultExternalModuleDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion());
-                DependencyMetaData dependencyMetaData = new ExternalModuleIvyDependencyDescriptorFactory(new DefaultExcludeRuleConverter()).createDependencyDescriptor(configuration.getName(), externalModuleDependency);
-                localComponentMetaData.addDependency(dependencyMetaData);
-            }
+        for (String configurationName : projectComponentMetadata.getConfigurationNames()) {
+            LocalConfigurationMetaData configuration = projectComponentMetadata.getConfiguration(configurationName);
+            compositeComponentMetadata.addConfiguration(configurationName,
+                configuration.getDescription(), configuration.getExtendsFrom(), configuration.getHierarchy(),
+                configuration.isVisible(), configuration.isTransitive(), new DefaultTaskDependency());
         }
+        for (DependencyMetaData dependency : projectComponentMetadata.getDependencies()) {
+            compositeComponentMetadata.addDependency(dependency);
+        }
+        for (ExcludeRule excludeRule : projectComponentMetadata.getExcludeRules()) {
+            compositeComponentMetadata.addExcludeRule(excludeRule);
+        }
+
+        // TODO:DAZ Artifacts...
+        return compositeComponentMetadata;
     }
 
     public CompositeBuildContext build() {
