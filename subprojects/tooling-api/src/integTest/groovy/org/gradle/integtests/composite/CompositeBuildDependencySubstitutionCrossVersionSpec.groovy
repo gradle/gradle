@@ -22,6 +22,8 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
+import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
+
 /**
  * Tests for dependency substitution within a composite build.
  * Note that this test should be migrated to use the command-line entry point for composite build, when this is developed.
@@ -221,6 +223,6 @@ compile
     }
 
     def getOutput() {
-        stdOut.toString()
+        normaliseLineSeparators(stdOut.toString())
     }
 }
