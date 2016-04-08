@@ -120,7 +120,12 @@ public class DefaultFileLockManager implements FileLockManager {
             }
 
             GFileUtils.mkdirs(lockFile.getParentFile());
-            lockFile.createNewFile();
+            try {
+                lockFile.createNewFile();
+            } catch (IOException e) {
+                LOGGER.info("Couldn't create lock file for {}", lockFile);
+                throw e;
+            }
 
             LockStateSerializer stateProtocol = options.isUseCrossVersionImplementation() ? new Version1LockStateSerializer() : new DefaultLockStateSerializer();
             lockFileAccess = new LockFileAccess(lockFile, new LockStateAccess(stateProtocol));
