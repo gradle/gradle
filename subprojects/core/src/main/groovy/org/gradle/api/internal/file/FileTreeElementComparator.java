@@ -43,10 +43,15 @@ public class FileTreeElementComparator implements Comparator<FileTreeElement> {
                 return compareResult;
             }
         }
-        compareResult = o1.getRelativePath().getLastName().compareTo(o2.getRelativePath().getLastName());
+        compareResult = fastStringCompare(o1.getRelativePath().getLastName(), o2.getRelativePath().getLastName());
         if (compareResult != 0) {
             return compareResult;
         }
         return o1.getRelativePath().compareTo(o2.getRelativePath());
+    }
+
+    private int fastStringCompare(String s1, String s2) {
+        // when Strings are interned, the instance comparison makes sense
+        return s1 == s2 ? 0 : s1.compareTo(s2);
     }
 }
