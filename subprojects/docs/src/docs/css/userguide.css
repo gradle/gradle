@@ -37,6 +37,14 @@ div.toc p b {
     font-weight: normal;
 }
 
+.chapter > .toc {
+    margin-bottom: 1em;
+}
+
+.chapter > .toc > dl {
+    margin-left: 1.5em;
+}
+
 /*
  * HEADER/FOOTER
  */
