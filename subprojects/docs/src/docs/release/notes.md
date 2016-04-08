@@ -24,10 +24,6 @@ See the “[Filtering files](userguide/working_with_files.html#sec:filtering_fil
 
 This was contributed by [Jean-Baptiste Nizet](https://github.com/jnizet).
 
-<!--
-### Example new and noteworthy
--->
-
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -48,15 +44,13 @@ in the next major Gradle version (Gradle 3.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
 
-<!--
-### Example deprecation
--->
+### Support for running Gradle on Java 6
+
+Running Gradle using Java 6 is now deprecated, and support will be removed in Gradle 3.0.
+
+It will continue to be possible to build JVM based projects for Java 6, by running Gradle using Java 7 and configuring Gradle to use Java 6 to compile, test and run your code.
 
 ## Potential breaking changes
-
-<!--
-### Example breaking change
--->
 
 ### Gradle implementation dependencies are not visible to plugins at development time
 
