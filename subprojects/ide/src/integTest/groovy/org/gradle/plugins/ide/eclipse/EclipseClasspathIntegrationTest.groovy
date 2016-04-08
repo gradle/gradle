@@ -115,7 +115,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
 :eclipseProject
 :eclipse
 """
-        result.assertOutputEquals(expected, true, false)
+        result.assertOutputContains(expected)
     }
 
 
