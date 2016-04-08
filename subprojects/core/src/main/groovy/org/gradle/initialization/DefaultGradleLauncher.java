@@ -71,6 +71,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
+        loggingManager.start();
     }
 
     public GradleInternal getGradle() {
@@ -88,8 +89,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     private BuildResult doBuild(final Stage upTo) {
-        loggingManager.start();
-
         return buildOperationExecutor.run("Run build", new Factory<BuildResult>() {
             @Override
             public BuildResult create() {
