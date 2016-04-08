@@ -157,6 +157,7 @@ task css(type: Sync, dependsOn: configureCss) {
     into "$buildDir/css"
     from "src/docs/css"
     include "*.css"
+    include "*.svg"
 }
 
 ext.cssFiles = fileTree(css.destinationDir) {
