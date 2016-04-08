@@ -32,7 +32,7 @@ filenames alongside the main ones.
 Most tools ignore that extra field, Gradle should do the same.
 
 For JAR, WAR and EAR archives only the UTF-8 character set is supported.
-JVMs ignore the EFS flag when loading such archives.
+JVMs <= 6 ignore the EFS flag when loading such archives.
 
 In Gradle, up to version 2.13 at least, the `Zip`, `Jar`, `War` and `Ear` tasks all have an `encoding` property added
 in [Pull Request 499](https://github.com/gradle/gradle/pull/499) which allows specifying a metadata charset, which
