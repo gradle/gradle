@@ -15,8 +15,10 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.io.CharSource;
 import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.util.TextUtil;
 import org.hamcrest.core.StringContains;
 
@@ -27,10 +29,12 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertThat;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
+    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?[\\w.$_]+\\(.+?\\)");
     private final String output;
     private final String error;
 
@@ -49,9 +53,41 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return output;
     }
 
+    @Override
+    public String getNormalizedOutput() {
+        StringBuilder result = new StringBuilder();
+        List<String> lines;
+        try {
+            lines = CharSource.wrap(output).readLines();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        int i = 0;
+        while (i < lines.size()) {
+            String line = lines.get(i);
+            if (line.contains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")) {
+                // Assume running build on Java 6, skip over stack trace and ignore
+                i++;
+                while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+                    i++;
+                }
+            } else if (i == lines.size() - 1 && line.matches("Total time: [\\d\\.]+ secs")) {
+                result.append("Total time: 1 secs");
+                result.append('\n');
+                i++;
+            } else {
+                result.append(line);
+                result.append('\n');
+                i++;
+            }
+        }
+
+        return result.toString();
+    }
+
     public ExecutionResult assertOutputEquals(String expectedOutput, boolean ignoreExtraLines, boolean ignoreLineOrder) {
         SequentialOutputMatcher matcher = ignoreLineOrder ? new AnyOrderOutputMatcher() : new SequentialOutputMatcher();
-        matcher.assertOutputMatches(expectedOutput, getOutput(), ignoreExtraLines);
+        matcher.assertOutputMatches(expectedOutput, getNormalizedOutput(), ignoreExtraLines);
         return this;
     }
 

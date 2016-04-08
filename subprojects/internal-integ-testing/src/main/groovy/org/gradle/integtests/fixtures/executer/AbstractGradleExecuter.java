@@ -41,14 +41,13 @@ import org.gradle.util.DeprecationLogger;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
-import java.util.regex.Pattern;
 
+import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
-    private static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?[\\w.$_]+\\(.+?\\)");
     protected static Set<String> propagatedSystemProperties = Sets.newHashSet();
 
     public static void propagateSystemProperty(String name) {
@@ -766,7 +765,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
             @Override
             public void execute(ExecutionResult executionResult) {
-                validate(executionResult.getOutput(), "Standard output");
+                validate(executionResult.getNormalizedOutput(), "Standard output");
                 String error = executionResult.getError();
                 if (executionResult instanceof ExecutionFailure) {
                     // Axe everything after the expected exception
@@ -791,12 +790,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                     if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                         // A javac warning, ignore
                         i++;
-                    } else if (line.contains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")) {
-                        // Assume running build on Java 6, skip over stack trace and ignore
-                        i++;
-                        while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
-                            i++;
-                        }
                     } else if (line.matches(".*\\s+deprecated.*")) {
                         if (expectedDeprecationWarnings <= 0) {
                             throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i+1, line, output));
