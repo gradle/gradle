@@ -49,7 +49,7 @@ model {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 Native library 'someLib'
 ------------------------
 
@@ -107,7 +107,7 @@ model {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 Native library 'anotherLib'
 ---------------------------
 
@@ -195,7 +195,7 @@ model {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 Native library 'someLib'
 ------------------------
 

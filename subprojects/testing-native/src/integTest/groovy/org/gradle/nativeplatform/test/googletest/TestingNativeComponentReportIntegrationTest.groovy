@@ -46,7 +46,7 @@ model {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 Native executable 'someExe'
 ---------------------------
 

@@ -50,7 +50,7 @@ model {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 JVM library 'someLib'
 ---------------------
 
@@ -97,7 +97,7 @@ Binaries
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 JVM library 'myLib'
 -------------------
 
@@ -160,7 +160,7 @@ Binaries
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 JVM library 'myLib'
 -------------------
 
@@ -254,7 +254,7 @@ model {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 JVM library 'someLib'
 ---------------------
 
@@ -347,7 +347,7 @@ model {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 JVM library 'someLib'
 ---------------------
 
