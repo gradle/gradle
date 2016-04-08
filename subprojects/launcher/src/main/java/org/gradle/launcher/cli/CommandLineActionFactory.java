@@ -28,15 +28,15 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.internal.Actions;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.internal.logging.LoggingConfiguration;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.LoggingServiceRegistry;
 import org.gradle.internal.logging.StyledTextOutputFactory;
 import org.gradle.internal.logging.internal.LoggingCommandLineConverter;
+import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.util.GradleVersion;
 
 import java.io.PrintStream;
@@ -63,11 +63,13 @@ public class CommandLineActionFactory {
 
         LoggingConfiguration loggingConfiguration = new LoggingConfiguration();
 
-        return new ExceptionReportingAction(
-                new WithLogging(loggingServices, args, loggingConfiguration,
+        return new WithLogging(loggingServices,
+                args,
+                loggingConfiguration,
+                new ExceptionReportingAction(
                         new JavaRuntimeValidationAction(
-                            new ParseAndBuildAction(loggingServices, args))),
-                new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
+                                new ParseAndBuildAction(loggingServices, args)),
+                        new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())));
     }
 
     protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
@@ -199,11 +201,9 @@ public class CommandLineActionFactory {
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevel(loggingConfiguration.getLogLevel());
             loggingManager.start();
-
             try {
                 NativeServices.initialize(buildLayout.getGradleUserHomeDir());
                 loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
-
                 action.execute(executionListener);
             } finally {
                 loggingManager.stop();
