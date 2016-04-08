@@ -48,7 +48,10 @@ class SonarRunnerSmokeIntegrationTest extends MultiVersionIntegrationSpec {
 
     def "execute 'sonarRunner' task"() {
         given:
-        executer.expectDeprecationWarning() // sonar.dynamicAnalysis is deprecated since SonarQube 4.3
+        executer.expectDeprecationWarning()
+        10.times {
+            executer.expectDeprecationWarning() // sonar.dynamicAnalysis is deprecated since SonarQube 4.3, this is reported 10 times
+        }
 
         when:
         buildFile << """

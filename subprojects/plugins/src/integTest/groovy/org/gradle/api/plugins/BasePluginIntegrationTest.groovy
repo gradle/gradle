@@ -61,6 +61,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 """
         when:
         executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
         succeeds "build"
 
         then:

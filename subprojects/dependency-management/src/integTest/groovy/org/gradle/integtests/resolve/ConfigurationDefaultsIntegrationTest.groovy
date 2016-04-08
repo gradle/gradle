@@ -115,6 +115,7 @@ configurations.conf.incoming.beforeResolve {
         when:
         executer.withArgument("-PresolveChild")
         executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
 
         then:
         succeeds "checkDefault"

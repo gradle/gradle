@@ -180,6 +180,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
         when:
         executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
         succeeds("impl:modifyConfigDuringTaskExecution")
 
         then:
@@ -187,6 +188,8 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         output.contains("Resolving configuration ':impl:compile' again after modification.")
 
         when:
+        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
         executer.expectDeprecationWarning()
         succeeds("impl:modifyParentConfigDuringTaskExecution")
 
@@ -196,6 +199,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         output.contains("Resolving configuration ':impl:testCompile' again after modification.")
 
         when:
+        executer.expectDeprecationWarning()
         executer.expectDeprecationWarning()
         succeeds("impl:modifyDependentConfigDuringTaskExecution")
 
@@ -241,12 +245,14 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
 
         when:
         executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
 
         then:
         succeeds("impl:addArtifactToConfigDuringTaskExecution")
         output.contains("Changed artifacts of configuration ':impl:compile' after task dependencies have been resolved. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
 
         when:
+        executer.expectDeprecationWarning()
         executer.expectDeprecationWarning()
 
         then:
@@ -273,6 +279,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             dependencies { a files("some.jar") }
         """
         executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
 
         when: succeeds()
         then: output.contains("Changed dependencies of configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
@@ -291,6 +298,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             artifacts { a file("some.jar") }
         """
         executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
 
         when: succeeds()
         then: output.contains("Changed artifacts of configuration ':a' after it has been included in dependency resolution. This behaviour has been deprecated and is scheduled to be removed in Gradle 3.0")
@@ -308,6 +316,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations.c.resolve()
             configurations.a.exclude group: 'someGroup'
         """
+        executer.expectDeprecationWarning()
         executer.expectDeprecationWarning()
 
         when: succeeds()
@@ -345,6 +354,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             configurations.a.resolve()
             configurations.a.exclude group: 'otherGroup'
         """
+        executer.expectDeprecationWarning()
         executer.expectDeprecationWarning()
 
         when: fails()
