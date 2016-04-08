@@ -25,10 +25,6 @@ public class UnsupportedJavaRuntimeException extends GradleException {
         super(message);
     }
 
-    public UnsupportedJavaRuntimeException(JavaVersion javaVersion) {
-        super(String.format("Gradle %s requires Java 6 or later to run. Your build is currently configured to use Java %s.", GradleVersion.current().getVersion(), javaVersion.getMajorVersion()));
-    }
-
     public static UnsupportedJavaRuntimeException usingUnsupportedVersion(String component, JavaVersion minVersion) {
         return new UnsupportedJavaRuntimeException(String.format("%s %s requires Java %s or later to run. You are currently using Java %s.", component, GradleVersion.current().getVersion(),
                 minVersion.getMajorVersion(), JavaVersion.current().getMajorVersion()));
