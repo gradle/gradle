@@ -102,3 +102,40 @@ div.toc p b {
 div.example code.filename {
   font-weight: bold;
 }
+
+/* Clickable links on section headers */
+h2 > a, h3 > a, h4 > a {
+    background-image: url("icon-link.svg");
+    background-repeat: no-repeat;
+    background-position: 0em 0.1em;
+    background-size: 0.9em;
+    display: inline-block;
+    text-decoration: none !important;
+    width: 0.9em;
+    height: 0.9em;
+    margin-left: -0.9em;
+    margin-top: 0;
+    visibility: hidden;
+}
+
+/* This is a similar approach to the one immediately
+   above, but using a Unicode character rather than
+   an SVG image. It's the approach currently taken by
+   Asciidoctor.
+
+   I'm leaving it here in case someone wants to switch
+   back to using a character rather than an image.
+
+h2 > a:before, h3 > a:before, h4 > a:before {
+    content: "\00A7";
+    display: inline-block;
+    font-size: 90%;
+}
+*/
+
+h2:hover > a, h2 > a:hover,
+h3:hover > a, h3 > a:hover,
+h4:hover > a, h4 > a:hover {
+    border: inherit;
+    visibility: visible;
+}
