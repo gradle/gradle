@@ -354,7 +354,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             throw new InvalidUserDataException("filteringCharset must not be null");
         }
         if (!Charset.isSupported(charset)) {
-            throw new InvalidUserDataException("filteringCharset " + charset + " is not supported by your JVM");
+            throw new InvalidUserDataException(String.format("filteringCharset %s is not supported by your JVM", charset));
         }
         this.filteringCharset = charset;
     }

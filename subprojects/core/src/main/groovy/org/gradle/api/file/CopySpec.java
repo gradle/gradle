@@ -328,13 +328,19 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * Gets the charset used to read and write files when filtering.
      * By default, the JVM default charset is used.
+     *
+     * @return the charset used to read and write files when filtering
+     * @since 2.14
      */
+    @Incubating
     String getFilteringCharset();
 
     /**
      * Specifies the charset used to read and write files when filtering.
      *
      * @param charset the name of the charset to use when filtering files
+     * @since 2.14
      */
+    @Incubating
     void setFilteringCharset(String charset);
 }

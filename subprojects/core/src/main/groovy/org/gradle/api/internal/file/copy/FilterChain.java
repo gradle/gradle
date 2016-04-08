@@ -35,11 +35,11 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
     private final String charset;
 
     public FilterChain() {
-        this(null);
+        this(Charset.defaultCharset().name());
     }
 
     public FilterChain(String charset) {
-        this.charset = charset == null ? Charset.defaultCharset().name() : charset;
+        this.charset = charset;
     }
 
     /**

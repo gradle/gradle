@@ -18,12 +18,17 @@ package org.gradle.api.tasks
 
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
+
+    @Rule
+    public final TestResources resources = new TestResources(testDirectoryProvider, "copyTestResources")
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2181")
     def "can copy files with unicode characters in name with non-unicode platform encoding"() {
@@ -243,5 +248,59 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         "**/#*#"     | "#"
         "**/%*%"     | "%"
         "**/abc*abc" | "abc"
+    }
+
+    @Unroll
+    def "can copy files using default platform charset when filtering if filteringCharset is unset"() {
+        given:
+        buildScript """
+            task (copy, type:Copy) {
+               from 'src'
+               into 'dest'
+               expand(one: 1)
+            }
+        """.stripIndent()
+
+        when:
+        executer.withDefaultCharacterEncoding(charset).withTasks('copy')
+        executer.run()
+
+        then:
+        file('dest/accents.c').readLines(charset)[0] == output
+
+        where:
+        charset      | output
+        // UTF8 is the actual encoding of the file accents.c
+        'UTF-8'      | 'éàüî 1'
+        // Any byte sequence of the file accents.c is a valid ISO_8859_1 character sequence,
+        // so we can read and write it with that encoding as well
+        'ISO-8859-1' | new String('éàüî 1'.getBytes('UTF-8'), 'ISO-8859-1')
+    }
+
+    @Unroll
+    def "can copy files using #charset charset when filtering if filteringCharset is set"() {
+        given:
+        buildScript """
+            task (copy, type:Copy) {
+               from 'src'
+               into 'dest'
+               expand(one: 1)
+               filteringCharset = '$charset'
+            }
+        """.stripIndent()
+
+        when:
+        succeeds "copy"
+
+        then:
+        file('dest/accents.c').readLines(charset)[0] == output
+
+        where:
+        charset      | output
+        // UTF8 is the actual encoding of the file accents.c
+        'UTF-8'      | 'éàüî 1'
+        // Any byte sequence of the file accents.c is a valid ISO_8859_1 character sequence,
+        // so we can read and write it with that encoding as well
+        'ISO-8859-1' | new String('éàüî 1'.getBytes('UTF-8'), 'ISO-8859-1')
     }
 }
