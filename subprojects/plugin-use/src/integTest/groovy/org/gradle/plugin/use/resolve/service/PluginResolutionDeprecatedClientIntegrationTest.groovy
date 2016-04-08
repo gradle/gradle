@@ -219,11 +219,9 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         pluginQuery1()
         service.expectStatusQueryOutOfProtocol()
         build()
-        output.contains("Exception thrown fetching client status")
 
         service.expectStatusQueryOutOfProtocol()
         build()
-        output.contains("Exception thrown fetching client status")
 
         // Test that if the issue gets resolved, everything works as it should
         service.expectStatusQuery()

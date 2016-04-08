@@ -62,7 +62,7 @@ public class DeprecationListeningPluginResolutionServiceClient implements Plugin
         try {
             response = delegate.queryClientStatus(portalUrl, shouldValidate, statusChecksum);
         } catch (Exception e) {
-            LOGGER.warn("Exception thrown fetching client status", e);
+            LOGGER.debug("Exception thrown fetching client status", e);
             return;
         }
 
