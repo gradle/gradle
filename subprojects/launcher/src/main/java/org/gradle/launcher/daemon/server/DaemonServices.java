@@ -19,8 +19,11 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.remote.internal.inet.InetAddressFactory;
+import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -34,9 +37,6 @@ import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 import org.gradle.launcher.daemon.server.health.DefaultDaemonHealthServices;
 import org.gradle.launcher.exec.BuildExecuter;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.remote.services.MessagingServices;
-import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 
 import java.io.File;
 import java.util.UUID;
@@ -77,8 +77,6 @@ public class DaemonServices extends DefaultServiceRegistry {
         String fileName = String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid);
         return new File(get(DaemonDir.class).getVersionedDir(), fileName);
     }
-
-    // TODO(ew): protected File getRegistryFile() {}
 
     protected DaemonHealthServices createDaemonHealthServices() {
         return new DefaultDaemonHealthServices();

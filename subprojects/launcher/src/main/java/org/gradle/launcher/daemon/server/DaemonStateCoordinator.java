@@ -23,14 +23,12 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.daemon.server.api.DaemonUnavailableException;
 import org.slf4j.Logger;
 
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -79,52 +77,12 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         condition.signalAll();
     }
 
-    private boolean awaitStop(long timeoutMs) {
-        lock.lock();
-        try {
-            LOGGER.debug("Idle timeout: waiting for daemon to stop or be idle for {}ms", timeoutMs);
-            while (true) {
-                try {
-                    switch (state) {
-                        case Running:
-                            if (isBusy()) {
-                                LOGGER.debug(DaemonMessages.DAEMON_BUSY);
-                                condition.await();
-                            } else if (hasBeenIdleFor(timeoutMs)) {
-                                // TODO(ew): additional condition for hasBeenIdleFor(periodicCheckMs)
-                                //     try getDaemonRegistryFile() catch stopNow("registry unreadable")
-                                LOGGER.debug("Idle timeout: daemon has been idle for requested period. Stopping now.");
-                                stopNow("idle timeout");
-                                return false;
-                            } else {
-                                // TODO(ew): change this to periodic check
-                                Date waitUntil = new Date(lastActivityAt + timeoutMs);
-                                LOGGER.debug("{}{}", DaemonMessages.DAEMON_IDLE, waitUntil);
-                                condition.awaitUntil(waitUntil);
-                            }
-                            break;
-                        case Broken:
-                            throw new IllegalStateException("This daemon is in a broken state.");
-                        case StopRequested:
-                            LOGGER.debug("Idle timeout: daemon stop has been requested. Sleeping until state changes.");
-                            condition.await();
-                            break;
-                        case Stopped:
-                            LOGGER.debug("Idle timeout: daemon has stopped.");
-                            return true;
-                    }
-                } catch (InterruptedException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            }
-        } finally {
-            lock.unlock();
+    long getIdleMillis() {
+        if (isIdle()) {
+            return System.currentTimeMillis() - lastActivityAt;
+        } else {
+            return 0L;
         }
-    }
-
-    // TODO(ew): public void stopOnExpirationConditionsMet
-    public void stopOnIdleTimeout(int timeout, TimeUnit timeoutUnits) {
-        awaitStop(timeoutUnits.toMillis(timeout));
     }
 
     public void requestStop() {
@@ -385,10 +343,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         } finally {
             lock.unlock();
         }
-    }
-
-    private boolean hasBeenIdleFor(long milliseconds) {
-        return lastActivityAt < (System.currentTimeMillis() - milliseconds);
     }
 
     boolean isStopped() {

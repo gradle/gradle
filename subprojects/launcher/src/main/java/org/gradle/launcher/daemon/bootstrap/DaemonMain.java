@@ -15,25 +15,31 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.launcher.bootstrap.EntryPoint;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.server.CompositeDaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.DaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.DaemonIdleTimeoutExpirationStrategy;
+import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.services.LoggingServiceRegistry;
-import org.gradle.internal.remote.Address;
+import org.gradle.launcher.daemon.server.health.DefaultDaemonExpirationStrategy;
 import org.gradle.process.internal.streams.EncodedStream;
 
 import java.io.*;
@@ -75,7 +81,7 @@ public class DaemonMain extends EntryPoint {
         try {
             gradleHomeDir = new File(decoder.readString());
             daemonBaseDir = new File(decoder.readString());
-            // TODO(ew): Read periodic check interval int
+            // TODO(ew): Consider periodic check interval int
             idleTimeoutMs = decoder.readSmallInt();
             daemonUid = decoder.readString();
             int argCount = decoder.readSmallInt();
@@ -100,6 +106,10 @@ public class DaemonMain extends EntryPoint {
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
         DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager, new DefaultClassPath(additionalClassPath));
         File daemonLog = daemonServices.getDaemonLogFile();
+        // TODO(ew): rename vars
+        DaemonIdleTimeoutExpirationStrategy e1 = new DaemonIdleTimeoutExpirationStrategy(parameters.getIdleTimeout(), TimeUnit.MILLISECONDS);
+        DaemonRegistryUnavailableExpirationStrategy e2 = new DaemonRegistryUnavailableExpirationStrategy();
+        DaemonExpirationStrategy expirationStrategy = new CompositeDaemonExpirationStrategy(ImmutableList.of(e1, e2));
 
         initialiseLogging(loggingManager, daemonLog);
 
@@ -111,9 +121,7 @@ public class DaemonMain extends EntryPoint {
             Long pid = daemonContext.getPid();
             daemonStarted(pid, daemon.getUid(), daemon.getAddress(), daemonLog);
 
-            // Block until idle
-            // TODO(ew): refactor to stopOnExpiration() with DaemonExpirationStrategy arg
-            daemon.requestStopOnIdleTimeout(parameters.getIdleTimeout(), TimeUnit.MILLISECONDS);
+            daemon.stopOnExpiration(expirationStrategy);
         } finally {
             daemon.stop();
         }

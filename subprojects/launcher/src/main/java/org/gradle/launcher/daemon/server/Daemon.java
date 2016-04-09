@@ -20,13 +20,15 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.remote.Address;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
-import org.gradle.internal.remote.Address;
 
 import java.util.Date;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -40,11 +42,14 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class Daemon implements Stoppable {
     private static final Logger LOGGER = Logging.getLogger(Daemon.class);
+    private static final long PERIODIC_CHECK_INTERVAL_MILLIS = 60000L;
 
     private final DaemonServerConnector connector;
     private final DaemonRegistry daemonRegistry;
     private final DaemonContext daemonContext;
     private final DaemonCommandExecuter commandExecuter;
+
+    private final ScheduledExecutorService scheduledExecutorService;
     private final ExecutorFactory executorFactory;
     private final String password;
 
@@ -58,7 +63,6 @@ public class Daemon implements Stoppable {
 
     /**
      * Creates a new daemon instance.
-     *
      * @param connector The provider of server connections for this daemon
      * @param daemonRegistry The registry that this daemon should advertise itself in
      */
@@ -69,6 +73,7 @@ public class Daemon implements Stoppable {
         this.password = password;
         this.commandExecuter = commandExecuter;
         this.executorFactory = executorFactory;
+        scheduledExecutorService = Executors.newScheduledThreadPool(1);
     }
 
     public String getUid() {
@@ -77,6 +82,14 @@ public class Daemon implements Stoppable {
 
     public Address getAddress() {
         return connectorAddress;
+    }
+
+    public DaemonContext getDaemonContext() {
+        return daemonContext;
+    }
+
+    public DaemonRegistry getDaemonRegistry() {
+        return this.daemonRegistry;
     }
 
     /**
@@ -131,6 +144,7 @@ public class Daemon implements Stoppable {
                 }
             };
             connectorAddress = connector.start(connectionHandler, connectionErrorHandler);
+
             LOGGER.debug("Daemon starting at: {}, with address: {}", new Date(), connectorAddress);
             registryUpdater.onStart(connectorAddress);
         } finally {
@@ -163,6 +177,9 @@ public class Daemon implements Stoppable {
 
             LOGGER.info(DaemonMessages.REMOVING_PRESENCE_DUE_TO_STOP);
 
+            // Stop periodic checks
+            scheduledExecutorService.shutdown();
+
             // Stop the pipeline:
             // 1. mark daemon as stopped, so that any incoming requests will be rejected with 'daemon unavailable'
             // 2. remove presence from registry
@@ -176,23 +193,32 @@ public class Daemon implements Stoppable {
     }
 
     /**
-     * Waits for the daemon to be idle for the specified number of milliseconds, then requests that the daemon stop.
-     *
-     * <p>May return earlier if the daemon is stopped before the idle timeout is reached.</p>
+     * Given a DaemonExpirationStrategy, request stop of daemon if it should expire.
      */
-    public void requestStopOnIdleTimeout(int idleTimeout, TimeUnit idleTimeoutUnits) {
-        LOGGER.debug("requestStopOnIdleTimeout({} {}) called on daemon", idleTimeout, idleTimeoutUnits);
-        DaemonStateCoordinator stateCoordinator;
-        lifecyleLock.lock();
-        try {
-            if (this.stateCoordinator == null) {
-                throw new IllegalStateException("cannot stop daemon as it has not been started.");
-            }
-            stateCoordinator = this.stateCoordinator;
-        } finally {
-            lifecyleLock.unlock();
+    public void stopOnExpiration(DaemonExpirationStrategy expirationStrategy) {
+        LOGGER.debug("stopOnExpiration() called on daemon");
+        DaemonExpirationPeriodicCheck periodicCheck = new DaemonExpirationPeriodicCheck(this, expirationStrategy);
+        scheduledExecutorService.scheduleAtFixedRate(periodicCheck, PERIODIC_CHECK_INTERVAL_MILLIS, PERIODIC_CHECK_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
+    }
+
+    DaemonStateCoordinator getStateCoordinator() {
+        return stateCoordinator;
+    }
+
+    private static class DaemonExpirationPeriodicCheck implements Runnable {
+        private final Daemon daemon;
+        private DaemonExpirationStrategy expirationStrategy;
+
+        DaemonExpirationPeriodicCheck(Daemon daemon, DaemonExpirationStrategy expirationStrategy) {
+            this.daemon = daemon;
+            this.expirationStrategy = expirationStrategy;
         }
 
-        stateCoordinator.stopOnIdleTimeout(idleTimeout, idleTimeoutUnits);
+        @Override
+        public void run() {
+            if (expirationStrategy.shouldExpire(daemon)) {
+                daemon.getStateCoordinator().requestStop();
+            }
+        }
     }
 }

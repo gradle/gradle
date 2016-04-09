@@ -44,35 +44,6 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def "await idle timeout does nothing when already stopped"() {
-        given:
-        coordinator.stop()
-
-        when:
-        coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
-
-        then:
-        coordinator.stopped
-    }
-
-    def "await idle timeout waits for specified time and then stops"() {
-        when:
-        operation.waitForIdle {
-            coordinator.stopOnIdleTimeout(100, TimeUnit.MILLISECONDS)
-        }
-
-        then:
-        coordinator.stopped
-        operation.waitForIdle.duration in approx(100)
-
-        and:
-        0 * _._
-    }
-
-    // TODO(ew): def "all daemons stop when their registry is deleted"() {}
-
-    // TODO(ew): def "starting new build recreates registry"() {}
-
     def "runs actions when command is run"() {
         Runnable command = Mock()
 
@@ -228,26 +199,26 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         unavailableException.message == 'This daemon is in a broken state and will stop.'
     }
 
-    def "await idle time returns immediately after start command action has failed"() {
-        Runnable command = Mock()
-        RuntimeException failure = new RuntimeException()
-
-        when:
-        coordinator.runCommand(command, "command")
-
-        then:
-        RuntimeException e = thrown()
-        e == failure
-        1 * onStartCommand.run() >> { throw failure }
-        0 * _._
-
-        when:
-        coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
-
-        then:
-        IllegalStateException illegalStateException = thrown()
-        illegalStateException.message == 'This daemon is in a broken state.'
-    }
+//    def "await idle time returns immediately after start command action has failed"() {
+//        Runnable command = Mock()
+//        RuntimeException failure = new RuntimeException()
+//
+//        when:
+//        coordinator.runCommand(command, "command")
+//
+//        then:
+//        RuntimeException e = thrown()
+//        e == failure
+//        1 * onStartCommand.run() >> { throw failure }
+//        0 * _._
+//
+//        when:
+//        coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
+//
+//        then:
+//        IllegalStateException illegalStateException = thrown()
+//        illegalStateException.message == 'This daemon is in a broken state.'
+//    }
 
     def "can stop when start command action has failed"() {
         Runnable command = Mock()
@@ -291,28 +262,28 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def "await idle time returns immediately after finish command action has failed"() {
-        Runnable command = Mock()
-        RuntimeException failure = new RuntimeException()
-
-        when:
-        coordinator.runCommand(command, "command")
-
-        then:
-        RuntimeException e = thrown()
-        e == failure
-        1 * onStartCommand.run()
-        1 * command.run()
-        1 * onFinishCommand.run() >> { throw failure }
-        0 * _._
-
-        when:
-        coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
-
-        then:
-        IllegalStateException illegalStateException = thrown()
-        illegalStateException.message == 'This daemon is in a broken state.'
-    }
+//    def "await idle time returns immediately after finish command action has failed"() {
+//        Runnable command = Mock()
+//        RuntimeException failure = new RuntimeException()
+//
+//        when:
+//        coordinator.runCommand(command, "command")
+//
+//        then:
+//        RuntimeException e = thrown()
+//        e == failure
+//        1 * onStartCommand.run()
+//        1 * command.run()
+//        1 * onFinishCommand.run() >> { throw failure }
+//        0 * _._
+//
+//        when:
+//        coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
+//
+//        then:
+//        IllegalStateException illegalStateException = thrown()
+//        illegalStateException.message == 'This daemon is in a broken state.'
+//    }
 
     def "requestStop stops immediately when idle"() {
         expect:
@@ -376,34 +347,6 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def "await idle time returns after command has finished and stop requested"() {
-        def command = Mock(Runnable)
-
-        when:
-        start {
-            coordinator.runCommand(command, "command")
-        }
-        async {
-            thread.blockUntil.actionStarted
-            coordinator.requestStop()
-            coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
-            instant.idle
-        }
-
-        then:
-        coordinator.stopped
-        instant.idle > instant.actionFinished
-
-        and:
-        1 * onStartCommand.run()
-        1 * command.run() >> {
-            instant.actionStarted
-            thread.block()
-            instant.actionFinished
-        }
-        0 * _._
-    }
-
     def "requestForcefulStop stops immediately when idle"() {
         expect:
         !coordinator.stopped
@@ -447,35 +390,35 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         0 * _._
     }
 
-    def "await idle time returns immediately when forceful stop requested and command running"() {
-        def command = Mock(Runnable)
-
-        when:
-        start {
-            coordinator.runCommand(command, "command")
-        }
-        async {
-            thread.blockUntil.startAction
-            coordinator.requestForcefulStop()
-            coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
-            instant.idle
-        }
-
-        then:
-        thrown(DaemonStoppedException)
-        coordinator.stopped
-        instant.idle < instant.finishAction
-
-        and:
-        1 * onStartCommand.run()
-        1 * command.run() >> {
-            instant.startAction
-            thread.block()
-            instant.finishAction
-        }
-
-        0 * _._
-    }
+//    def "await idle time returns immediately when forceful stop requested and command running"() {
+//        def command = Mock(Runnable)
+//
+//        when:
+//        start {
+//            coordinator.runCommand(command, "command")
+//        }
+//        async {
+//            thread.blockUntil.startAction
+//            coordinator.requestForcefulStop()
+//            coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
+//            instant.idle
+//        }
+//
+//        then:
+//        thrown(DaemonStoppedException)
+//        coordinator.stopped
+//        instant.idle < instant.finishAction
+//
+//        and:
+//        1 * onStartCommand.run()
+//        1 * command.run() >> {
+//            instant.startAction
+//            thread.block()
+//            instant.finishAction
+//        }
+//
+//        0 * _._
+//    }
 
     def "cancelBuild when running command completes in short time"() {
         def command = Mock(Runnable)
