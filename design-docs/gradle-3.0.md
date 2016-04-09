@@ -14,6 +14,7 @@ The following stories are candidates to be included in a major release of Gradle
 No longer support running Gradle, the wrapper or the Tooling api client on Java 6. Instead, we'd support Java source compilation and test execution on Java 6 and later, as we do for Java 1.5 now.
 
 - Update project target versions, remove customisations for IDEA project generation.
+- Remove java 7 checks, eg from continuous build.
 
 ### Test coverage
 
@@ -22,6 +23,7 @@ No longer support running Gradle, the wrapper or the Tooling api client on Java 
     - `gradle --daemon`
     - `gradlew`
     - `GradleConnector`
+    - `GradleRunner`
     - old `gradlew`
     - old `GradleConnector`
 - Warning when running build on Java 6 with entry point running on Java 7+ 
@@ -29,8 +31,10 @@ No longer support running Gradle, the wrapper or the Tooling api client on Java 
     - `gradle --daemon`
     - `gradlew`
     - `GradleConnector`
+    - `GradleRunner`
     - old `gradlew`
     - old `GradleConnector`
+    - old `GradleRunner`
 - Can cross-compile and test for Java 6.
 
 ## Change minimum version for building and testing Java source to Java 6
