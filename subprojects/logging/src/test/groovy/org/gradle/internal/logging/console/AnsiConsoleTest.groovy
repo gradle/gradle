@@ -18,7 +18,7 @@ package org.gradle.internal.logging.console
 import org.fusesource.jansi.Ansi
 import org.fusesource.jansi.Ansi.Color
 import org.gradle.internal.SystemProperties
-import org.gradle.internal.logging.StyledTextOutput
+import org.gradle.internal.logging.text.StyledTextOutput
 import spock.lang.Specification
 
 class AnsiConsoleTest extends Specification {

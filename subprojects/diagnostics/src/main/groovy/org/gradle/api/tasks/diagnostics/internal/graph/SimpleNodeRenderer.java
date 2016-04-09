@@ -17,10 +17,10 @@
 package org.gradle.api.tasks.diagnostics.internal.graph;
 
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
-import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
-import static org.gradle.internal.logging.StyledTextOutput.Style.Failure;
-import static org.gradle.internal.logging.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
 public class SimpleNodeRenderer implements NodeRenderer {
     @Override

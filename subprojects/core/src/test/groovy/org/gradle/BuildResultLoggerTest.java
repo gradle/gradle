@@ -16,7 +16,7 @@
 package org.gradle;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.logging.TestStyledTextOutput;
 import org.gradle.util.Clock;
 import org.gradle.util.JUnit4GroovyMockery;

@@ -16,7 +16,7 @@
 package org.gradle.internal.logging.internal
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.logging.StyledTextOutput
+import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.TestStyledTextOutput
 import org.gradle.internal.logging.events.RenderableOutputEvent
 import org.gradle.internal.logging.events.StyledTextOutputEvent

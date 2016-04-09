@@ -16,9 +16,10 @@
 package org.gradle.internal.logging.internal;
 
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 /**
- * A {@link org.gradle.internal.logging.StyledTextOutput} that breaks text up into lines.
+ * A {@link StyledTextOutput} that breaks text up into lines.
  */
 public abstract class AbstractLineChoppingStyledTextOutput extends AbstractStyledTextOutput {
     private final char[] eolChars;

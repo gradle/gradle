@@ -16,7 +16,7 @@
 package org.gradle.internal.logging.internal
 
 import org.gradle.internal.SystemProperties
-import org.gradle.internal.logging.StyledTextOutput.Style
+import org.gradle.internal.logging.text.StyledTextOutput.Style
 import org.gradle.internal.logging.TestStyledTextOutput
 
 class AbstractStyledTextOutputTest extends OutputSpecification {

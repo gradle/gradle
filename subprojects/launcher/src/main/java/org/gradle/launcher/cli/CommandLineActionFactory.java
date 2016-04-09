@@ -31,6 +31,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.*;
 import org.gradle.internal.logging.internal.LoggingCommandLineConverter;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;

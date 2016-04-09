@@ -16,7 +16,7 @@
 
 package org.gradle.internal.text;
 
-import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.internal.AbstractStyledTextOutput;
 import org.gradle.internal.logging.internal.LinePrefixingStyledTextOutput;
 import org.gradle.util.TreeVisitor;

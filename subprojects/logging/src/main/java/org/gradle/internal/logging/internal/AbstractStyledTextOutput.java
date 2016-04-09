@@ -17,7 +17,7 @@ package org.gradle.internal.logging.internal;
 
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

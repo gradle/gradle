@@ -23,8 +23,8 @@ import org.gradle.internal.SystemProperties
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.LoggingServiceRegistry
-import org.gradle.internal.logging.ProgressLoggerFactory
-import org.gradle.internal.logging.StyledTextOutputFactory
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.internal.logging.internal.DefaultLoggingManagerFactory
 import org.gradle.internal.logging.internal.DefaultProgressLoggerFactory

@@ -34,8 +34,8 @@ import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter
 import org.gradle.internal.graph.GraphRenderer
-import org.gradle.internal.logging.StyledTextOutput
-import org.gradle.internal.logging.StyledTextOutputFactory
+import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.internal.logging.text.StyledTextOutputFactory
 
 import javax.inject.Inject
 

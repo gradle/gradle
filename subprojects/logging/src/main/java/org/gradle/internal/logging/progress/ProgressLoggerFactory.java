@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging;
+package org.gradle.internal.logging.progress;
 
 /**
  * Thread-safe, however the progress logger instances created are not.

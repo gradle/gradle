@@ -16,7 +16,7 @@
 package org.gradle.internal.logging.console
 
 import org.fusesource.jansi.Ansi
-import org.gradle.internal.logging.StyledTextOutput
+import org.gradle.internal.logging.text.StyledTextOutput
 
 class TestColorMap implements ColorMap {
     def Ansi.Attribute statusBarOn = Ansi.Attribute.INTENSITY_BOLD

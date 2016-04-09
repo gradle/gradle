@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.io.Serializable;
 import java.util.ArrayList;

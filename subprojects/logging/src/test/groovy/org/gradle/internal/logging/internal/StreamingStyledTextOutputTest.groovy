@@ -16,7 +16,7 @@
 package org.gradle.internal.logging.internal
 
 import org.gradle.api.logging.StandardOutputListener
-import org.gradle.internal.logging.StyledTextOutput.Style
+import org.gradle.internal.logging.text.StyledTextOutput.Style
 
 class StreamingStyledTextOutputTest extends OutputSpecification {
     def forwardsTextToAListener() {

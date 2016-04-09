@@ -18,7 +18,7 @@ package org.gradle.internal.logging.console
 import org.fusesource.jansi.Ansi
 import org.fusesource.jansi.Ansi.Attribute
 import org.fusesource.jansi.Ansi.Color
-import org.gradle.internal.logging.StyledTextOutput.Style
+import org.gradle.internal.logging.text.StyledTextOutput.Style
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification

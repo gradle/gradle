@@ -17,8 +17,8 @@
 package org.gradle.api.tasks.diagnostics.internal
 
 import org.gradle.initialization.BuildClientMetaData
-import org.gradle.internal.logging.StyledTextOutput
-import org.gradle.internal.logging.StyledTextOutputFactory
+import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule

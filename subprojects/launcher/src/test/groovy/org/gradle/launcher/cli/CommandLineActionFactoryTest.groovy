@@ -23,9 +23,9 @@ import org.gradle.internal.Factory
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.LoggingServiceRegistry
-import org.gradle.internal.logging.ProgressLoggerFactory
-import org.gradle.internal.logging.StyledTextOutput
-import org.gradle.internal.logging.StyledTextOutputFactory
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.bootstrap.ExecutionListener

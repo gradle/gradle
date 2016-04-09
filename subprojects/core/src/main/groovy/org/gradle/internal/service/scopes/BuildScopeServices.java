@@ -82,7 +82,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;

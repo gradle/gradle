@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging;
+package org.gradle.internal.logging.progress;
 
 /**
  * Used to log the progress of a potentially long running operation.

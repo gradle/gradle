@@ -16,12 +16,13 @@
 package org.gradle.internal.logging.internal;
 
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * A {@link org.gradle.internal.logging.StyledTextOutput} implementation which writes text to some char stream. Ignores any
+ * A {@link StyledTextOutput} implementation which writes text to some char stream. Ignores any
  * styling information.
  */
 public class StreamingStyledTextOutput extends AbstractStyledTextOutput implements Closeable {

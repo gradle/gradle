@@ -17,15 +17,15 @@
 package org.gradle.internal.logging.console;
 
 import org.fusesource.jansi.Ansi;
-import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.fusesource.jansi.Ansi.Attribute;
 import static org.fusesource.jansi.Ansi.Color.DEFAULT;
-import static org.gradle.internal.logging.StyledTextOutput.Style.*;
-import static org.gradle.internal.logging.StyledTextOutput.Style.Error;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Error;
 
 public class DefaultColorMap implements ColorMap {
     private static final String STATUSBAR = "statusbar";

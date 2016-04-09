@@ -19,7 +19,7 @@ package org.gradle.api.internal.impldeps;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.internal.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

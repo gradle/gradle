@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.text;
 
-import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.File;

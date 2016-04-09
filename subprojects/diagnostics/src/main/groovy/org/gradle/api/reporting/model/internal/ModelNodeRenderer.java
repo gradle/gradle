@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.reporting.model.ModelReport;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -34,7 +34,7 @@ import org.gradle.reporting.ReportRenderer;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static org.gradle.internal.logging.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 
 public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuilder> {
 

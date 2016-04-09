@@ -16,7 +16,7 @@
 package org.gradle.internal.logging.internal;
 
 import org.gradle.api.Action;
-import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.util.ArrayList;
 import java.util.List;

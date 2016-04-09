@@ -24,7 +24,7 @@ import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.logging.DefaultLoggingConfiguration
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
-import org.gradle.internal.logging.StyledTextOutputFactory
+import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.TestStyledTextOutput
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification

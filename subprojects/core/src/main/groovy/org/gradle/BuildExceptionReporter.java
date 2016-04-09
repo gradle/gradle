@@ -23,8 +23,8 @@ import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.internal.logging.StyledTextOutput;
-import org.gradle.internal.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.logging.internal.BufferingStyledTextOutput;
 import org.gradle.internal.logging.internal.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.internal.LoggingCommandLineConverter;
@@ -33,7 +33,7 @@ import org.gradle.util.TreeVisitor;
 
 import java.util.List;
 
-import static org.gradle.internal.logging.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 
 /**
  * A {@link BuildListener} which reports the build exception, if any.

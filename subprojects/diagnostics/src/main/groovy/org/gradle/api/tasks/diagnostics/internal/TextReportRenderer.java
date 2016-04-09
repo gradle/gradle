@@ -21,7 +21,7 @@ import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.internal.StreamingStyledTextOutput;
 import org.gradle.util.GUtil;
 

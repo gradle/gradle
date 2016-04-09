@@ -33,8 +33,8 @@ import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
-import org.gradle.internal.logging.ProgressLoggerFactory
-import org.gradle.internal.logging.StyledTextOutputFactory
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties

@@ -30,8 +30,8 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
-import org.gradle.internal.logging.ProgressLogger;
-import org.gradle.internal.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.objectweb.asm.*;
 

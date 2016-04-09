@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging;
+
+package org.gradle.internal.logging.text;
 
 /**
  * Provides streaming of styled text, that is, a stream of text with inline styling information. Implementations are not

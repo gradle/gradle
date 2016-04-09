@@ -16,7 +16,7 @@
 package org.gradle.internal.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
@@ -24,8 +24,8 @@ import org.gradle.internal.logging.events.RenderableOutputEvent;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static org.gradle.internal.logging.StyledTextOutput.Style.Error;
-import static org.gradle.internal.logging.StyledTextOutput.Style.Normal;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Error;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class StyledTextOutputBackedRenderer implements OutputEventListener {
     private final OutputEventTextOutputImpl textOutput;

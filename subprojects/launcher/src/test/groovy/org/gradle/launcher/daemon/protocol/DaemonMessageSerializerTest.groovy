@@ -27,7 +27,7 @@ import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
-import org.gradle.internal.logging.StyledTextOutput
+import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.serialize.PlaceholderException
 
 class DaemonMessageSerializerTest extends SerializerSpec {

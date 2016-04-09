@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.logging.internal;
 
-import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 /**
  * A {@link StyledTextOutput} which prefixes each line of text with some fixed prefix. Does not prefix the first line.

@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.internal.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 import java.util.ArrayList;
 import java.util.List;

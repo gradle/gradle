@@ -16,7 +16,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.logging.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.internal.ProgressListener;

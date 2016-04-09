@@ -23,6 +23,8 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.internal.*;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.logging.slf4j.Slf4jLoggingConfigurer;
 

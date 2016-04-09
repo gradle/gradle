@@ -19,7 +19,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.TimeProvider
 import org.gradle.internal.logging.events.OutputEventListener
 
-import static org.gradle.internal.logging.StyledTextOutput.Style.*
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.*
 
 class LoggingBackedStyledTextOutputTest extends OutputSpecification {
     private final OutputEventListener listener = Mock()
