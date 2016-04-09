@@ -23,7 +23,7 @@ import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.internal.logging.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;

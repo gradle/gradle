@@ -18,8 +18,8 @@ package org.gradle.initialization;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineArgumentException;
-import org.gradle.internal.logging.ConsoleOutput;
-import org.gradle.internal.logging.ShowStacktrace;
+import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.hamcrest.Matchers;
 import org.junit.Assert;

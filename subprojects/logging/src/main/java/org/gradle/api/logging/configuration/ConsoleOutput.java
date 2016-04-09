@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging;
+package org.gradle.api.logging.configuration;
 
 import org.gradle.api.Incubating;
 

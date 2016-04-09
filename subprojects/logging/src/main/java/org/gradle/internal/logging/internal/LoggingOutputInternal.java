@@ -16,7 +16,7 @@
 package org.gradle.internal.logging.internal;
 
 import org.gradle.api.logging.LoggingOutput;
-import org.gradle.internal.logging.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 
 import java.io.OutputStream;
 

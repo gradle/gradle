@@ -20,7 +20,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.logging.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.LoggingManagerInternal;
 
 import java.io.Closeable;

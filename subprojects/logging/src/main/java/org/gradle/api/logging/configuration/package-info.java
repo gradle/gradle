@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging;
 
 /**
- * Specifies the detail to include in stacktraces.
+ * Classes for logging configuration.
  */
-public enum ShowStacktrace {
-    INTERNAL_EXCEPTIONS, ALWAYS, ALWAYS_FULL
-}
+package org.gradle.api.logging.configuration;

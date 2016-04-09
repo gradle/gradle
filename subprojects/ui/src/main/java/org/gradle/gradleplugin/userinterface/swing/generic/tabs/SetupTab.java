@@ -23,7 +23,7 @@ import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 import org.gradle.gradleplugin.userinterface.swing.generic.OutputUILord;
 import org.gradle.gradleplugin.userinterface.swing.generic.Utility;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.logging.ShowStacktrace;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.internal.logging.internal.LoggingCommandLineConverter;
 
 import javax.swing.*;

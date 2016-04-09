@@ -46,7 +46,7 @@ import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.logging.LoggingConfiguration
+import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.ProgressLoggerFactory
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector

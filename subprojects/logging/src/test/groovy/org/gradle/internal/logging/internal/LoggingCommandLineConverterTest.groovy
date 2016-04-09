@@ -17,10 +17,10 @@ package org.gradle.internal.logging.internal
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.cli.CommandLineArgumentException
-import org.gradle.internal.logging.ConsoleOutput
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.internal.logging.DefaultLoggingConfiguration
-import org.gradle.internal.logging.LoggingConfiguration
-import org.gradle.internal.logging.ShowStacktrace
+import org.gradle.api.logging.configuration.LoggingConfiguration
+import org.gradle.api.logging.configuration.ShowStacktrace
 import spock.lang.Specification
 
 class LoggingCommandLineConverterTest extends Specification {

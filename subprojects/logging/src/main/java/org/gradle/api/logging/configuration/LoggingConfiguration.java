@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging;
+package org.gradle.api.logging.configuration;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.logging.LogLevel;
 
 /**
- * Defines various logging settings.
+ * Defines Gradle logging settings.
  */
 public interface LoggingConfiguration {
     LogLevel getLogLevel();

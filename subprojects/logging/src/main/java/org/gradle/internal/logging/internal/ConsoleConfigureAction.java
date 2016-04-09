@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.internal;
 
 import org.gradle.api.Action;
-import org.gradle.internal.logging.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;

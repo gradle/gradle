@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging;
 
+import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.internal.Actions;
 import org.gradle.internal.TimeProvider;
@@ -50,7 +51,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
      *
      * <p>Does nothing until started.</p>
      *
-     * <p>Allows dynamic and colored output to be written to the console. Use {@link LoggingManagerInternal#attachProcessConsole(ConsoleOutput)} to enable this.</p>
+     * <p>Allows dynamic and colored output to be written to the console. Use {@link LoggingManagerInternal#attachProcessConsole(org.gradle.api.logging.configuration.ConsoleOutput)} to enable this.</p>
      */
     public static LoggingServiceRegistry newCommandLineProcessLogging() {
         CommandLineLogging loggingServices = new CommandLineLogging();

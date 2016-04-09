@@ -19,6 +19,7 @@ import groovy.lang.GroovySystem;
 import org.apache.tools.ant.Main;
 import org.gradle.BuildExceptionReporter;
 import org.gradle.api.Action;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;

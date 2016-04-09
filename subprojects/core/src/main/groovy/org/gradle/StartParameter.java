@@ -30,10 +30,10 @@ import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.internal.logging.ConsoleOutput;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
-import org.gradle.internal.logging.LoggingConfiguration;
-import org.gradle.internal.logging.ShowStacktrace;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 
 import java.io.File;
 import java.io.Serializable;

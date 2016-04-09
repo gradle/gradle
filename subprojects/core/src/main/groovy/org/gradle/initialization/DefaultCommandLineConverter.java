@@ -19,7 +19,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.BasicFileResolver;
 import org.gradle.cli.*;
-import org.gradle.internal.logging.LoggingConfiguration;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.internal.logging.internal.LoggingCommandLineConverter;
 
 import java.io.File;

@@ -24,9 +24,9 @@ import org.gradle.cli.AbstractCommandLineConverter;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
-import org.gradle.internal.logging.ConsoleOutput;
-import org.gradle.internal.logging.LoggingConfiguration;
-import org.gradle.internal.logging.ShowStacktrace;
+import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 
 import java.util.*;
 

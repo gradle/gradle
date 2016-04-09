@@ -22,8 +22,8 @@ import org.gradle.initialization.BuildClientMetaData
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.logging.DefaultLoggingConfiguration
-import org.gradle.internal.logging.LoggingConfiguration
-import org.gradle.internal.logging.ShowStacktrace
+import org.gradle.api.logging.configuration.LoggingConfiguration
+import org.gradle.api.logging.configuration.ShowStacktrace
 import org.gradle.internal.logging.StyledTextOutputFactory
 import org.gradle.internal.logging.TestStyledTextOutput
 import org.gradle.util.TreeVisitor
