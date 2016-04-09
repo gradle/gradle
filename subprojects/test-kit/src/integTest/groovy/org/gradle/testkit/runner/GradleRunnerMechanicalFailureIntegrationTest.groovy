@@ -17,13 +17,12 @@
 package org.gradle.testkit.runner
 
 import org.gradle.api.GradleException
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.tooling.GradleConnectionException
-
-import static org.gradle.util.TextUtil.normaliseLineSeparators
 
 class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
@@ -158,9 +157,9 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
         t.cause.cause.class.name == DaemonDisappearedException.name // not the same class because it's coming from the tooling client
 
         and:
-        normaliseLineSeparators(t.message) == """An error occurred executing build with args 'helloWorld' in directory '$testDirectory.canonicalPath'. Output before error:
+        OutputScrapingExecutionResult.normalize(t.message) == """An error occurred executing build with args 'helloWorld' in directory '$testDirectory.canonicalPath'. Output before error:
 :helloWorld
 Hello world!
-""".toString()
+"""
     }
 }

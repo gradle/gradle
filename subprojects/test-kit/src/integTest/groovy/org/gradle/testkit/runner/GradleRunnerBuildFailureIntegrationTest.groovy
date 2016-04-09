@@ -18,8 +18,8 @@ package org.gradle.testkit.runner
 
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
-import org.gradle.util.TextUtil
 
+import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.*
 import static org.gradle.testkit.runner.TaskOutcome.FAILED
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -90,18 +90,20 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
 
         then:
         def t = thrown UnexpectedBuildSuccess
-        def expectedMessage = """Unexpected build execution success in ${TextUtil.escapeString(testDirectory.canonicalPath)} with arguments \\u005BhelloWorld\\u005D
-
-Output:
-:helloWorld
+        def expectedOutput = """:helloWorld
 Hello world!
 
 BUILD SUCCESSFUL
 
-Total time: .+ secs
+Total time: 1 secs
 """
-        TextUtil.normaliseLineSeparators(t.message) ==~ expectedMessage
-        t.buildResult.output.contains(':helloWorld')
+        def expectedMessage = """Unexpected build execution success in ${testDirectory.canonicalPath} with arguments [helloWorld]
+
+Output:
+$expectedOutput"""
+
+        normalize(t.message) == expectedMessage
+        normalize(t.buildResult.output) == expectedOutput
         t.buildResult.taskPaths(SUCCESS) == [':helloWorld']
     }
 
@@ -140,30 +142,32 @@ Total time: .+ secs
 
         then:
         UnexpectedBuildFailure t = thrown(UnexpectedBuildFailure)
-        String expectedMessage = """Unexpected build execution failure in ${TextUtil.escapeString(testDirectory.canonicalPath)} with arguments \\u005BhelloWorld\\u005D
-
-Output:
-:helloWorld FAILED
+        String expectedOutput = """:helloWorld FAILED
 
 FAILURE: Build failed with an exception.
 
-\\u002A Where:
-Build file '${TextUtil.escapeString(buildFile.canonicalPath)}' line: 4
+* Where:
+Build file '${buildFile.canonicalPath}' line: 4
 
-\\u002A What went wrong:
+* What went wrong:
 Execution failed for task ':helloWorld'.
 > Unexpected exception
 
-\\u002A Try:
+* Try:
 Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
 
 BUILD FAILED
 
-Total time: .+ secs
+Total time: 1 secs
 """
-        TextUtil.normaliseLineSeparators(t.message) ==~ expectedMessage
+        String expectedMessage = """Unexpected build execution failure in ${testDirectory.canonicalPath} with arguments [helloWorld]
+
+Output:
+$expectedOutput"""
+
+        normalize(t.message) == expectedMessage
         def result = t.buildResult
-        result.output.contains(':helloWorld FAILED')
+        normalize(result.output) == expectedOutput
         result.taskPaths(FAILED) == [':helloWorld']
     }
 
