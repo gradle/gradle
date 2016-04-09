@@ -17,13 +17,15 @@ package org.gradle.internal.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.TimeProvider;
+import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * A {@link org.gradle.internal.logging.StyledTextOutput} implementation which generates events of type {@link
- * org.gradle.internal.logging.internal.StyledTextOutputEvent}. This implementation is not thread-safe.
+ * StyledTextOutputEvent}. This implementation is not thread-safe.
  */
 public class LoggingBackedStyledTextOutput extends AbstractLineChoppingStyledTextOutput {
     private final OutputEventListener listener;

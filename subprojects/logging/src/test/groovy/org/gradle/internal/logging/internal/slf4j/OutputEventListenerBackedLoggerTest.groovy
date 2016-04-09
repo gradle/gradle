@@ -19,8 +19,8 @@ package org.gradle.internal.logging.internal.slf4j
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.internal.logging.internal.LogEvent
-import org.gradle.internal.logging.internal.OutputEventListener
+import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.OutputEventListener
 import org.slf4j.Marker
 import spock.lang.Specification
 import spock.lang.Unroll

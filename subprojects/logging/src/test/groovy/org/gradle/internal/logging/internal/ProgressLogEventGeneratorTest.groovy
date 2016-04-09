@@ -15,6 +15,9 @@
  */
 package org.gradle.internal.logging.internal
 
+import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.StyledTextOutputEvent
+
 class ProgressLogEventGeneratorTest extends OutputSpecification {
     private final OutputEventListener target = Mock()
 

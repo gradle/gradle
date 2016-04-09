@@ -13,8 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.internal;
 
-public interface OutputEventListener {
-    void onOutput(OutputEvent event);
+package org.gradle.internal.logging.events;
+
+import org.gradle.api.Nullable;
+import org.gradle.api.logging.LogLevel;
+
+/**
+ * Represents some event which may generate output. All implementations are immutable.
+ */
+public abstract class OutputEvent {
+    /**
+     * Returns the log level for this event.
+     */
+    @Nullable
+    public abstract LogLevel getLogLevel();
 }

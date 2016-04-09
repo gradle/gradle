@@ -17,6 +17,9 @@ package org.gradle.internal.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.StyledTextOutput;
+import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.RenderableOutputEvent;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

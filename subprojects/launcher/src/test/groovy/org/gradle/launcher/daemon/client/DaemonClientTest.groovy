@@ -25,7 +25,7 @@ import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.daemon.protocol.*
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException
 import org.gradle.launcher.exec.BuildActionParameters
-import org.gradle.internal.logging.internal.OutputEventListener
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.util.ConcurrentSpecification
 
 class DaemonClientTest extends ConcurrentSpecification {

@@ -37,8 +37,8 @@ import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.LoggingServiceRegistry;
-import org.gradle.internal.logging.internal.OutputEvent;
-import org.gradle.internal.logging.internal.OutputEventListener;
+import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 

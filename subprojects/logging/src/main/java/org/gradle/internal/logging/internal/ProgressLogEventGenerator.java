@@ -18,6 +18,7 @@ package org.gradle.internal.logging.internal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.logging.OperationIdentifier;
+import org.gradle.internal.logging.events.*;
 import org.gradle.util.GUtil;
 
 import java.util.Iterator;

@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.logging.console
 
-import org.gradle.internal.logging.internal.FlushToOutputsEvent
-import org.gradle.internal.logging.internal.OutputEventListener
+import org.gradle.internal.logging.events.FlushToOutputsEvent
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.internal.OutputSpecification
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.util.MockExecutor

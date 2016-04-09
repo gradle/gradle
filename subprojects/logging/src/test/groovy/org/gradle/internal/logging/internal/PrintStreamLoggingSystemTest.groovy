@@ -18,6 +18,8 @@ package org.gradle.internal.logging.internal
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.TimeProvider
+import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 

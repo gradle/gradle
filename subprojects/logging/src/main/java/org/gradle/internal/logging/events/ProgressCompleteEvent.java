@@ -13,28 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.internal;
+
+package org.gradle.internal.logging.events;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.OperationIdentifier;
 
-public class ProgressEvent extends CategorisedOutputEvent {
+public class ProgressCompleteEvent extends CategorisedOutputEvent {
     private final String status;
-    private final OperationIdentifier operationId;
+    private final String description;
+    private OperationIdentifier operationId;
 
-    public ProgressEvent(OperationIdentifier operationId, long timestamp, String category, String status) {
+    public ProgressCompleteEvent(OperationIdentifier operationId, long timestamp, String category, String description, String status) {
         super(timestamp, category, LogLevel.LIFECYCLE);
         this.operationId = operationId;
         this.status = status;
+        this.description = description;
     }
 
     public String getStatus() {
         return status;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     @Override
     public String toString() {
-        return "Progress " + status;
+        return String.format("ProgressComplete %s", status);
     }
 
     public OperationIdentifier getOperationId() {

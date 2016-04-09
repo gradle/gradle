@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.internal;
+package org.gradle.internal.logging.events;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;

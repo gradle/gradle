@@ -19,6 +19,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.logging.StyledTextOutput;
 import org.gradle.internal.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.events.OutputEventListener;
 
 public class DefaultStyledTextOutputFactory extends AbstractStyledTextOutputFactory implements StyledTextOutputFactory {
     private final OutputEventListener outputEventListener;

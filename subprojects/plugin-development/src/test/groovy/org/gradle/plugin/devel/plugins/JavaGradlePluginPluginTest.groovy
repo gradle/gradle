@@ -25,9 +25,9 @@ import org.gradle.api.internal.plugins.PluginDescriptor
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.internal.logging.ConfigureLogging
-import org.gradle.internal.logging.internal.LogEvent
-import org.gradle.internal.logging.internal.OutputEvent
-import org.gradle.internal.logging.internal.OutputEventListener
+import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.OutputEvent
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification

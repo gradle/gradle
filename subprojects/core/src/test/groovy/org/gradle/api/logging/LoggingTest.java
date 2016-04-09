@@ -17,8 +17,8 @@
 package org.gradle.api.logging;
 
 import org.gradle.internal.logging.ConfigureLogging;
-import org.gradle.internal.logging.internal.LogEvent;
-import org.gradle.internal.logging.internal.OutputEventListener;
+import org.gradle.internal.logging.events.LogEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;

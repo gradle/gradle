@@ -19,6 +19,8 @@ import org.gradle.api.Action
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.logging.console.ConsoleStub
+import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule

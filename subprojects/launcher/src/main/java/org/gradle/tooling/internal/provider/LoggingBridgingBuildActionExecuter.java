@@ -20,10 +20,10 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.internal.OutputEvent;
-import org.gradle.internal.logging.internal.OutputEventListener;
-import org.gradle.internal.logging.internal.ProgressCompleteEvent;
-import org.gradle.internal.logging.internal.ProgressStartEvent;
+import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.ProgressCompleteEvent;
+import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 

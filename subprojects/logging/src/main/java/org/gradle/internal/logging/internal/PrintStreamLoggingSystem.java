@@ -21,6 +21,8 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.io.LinePerThreadBufferingOutputStream;
+import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.StyledTextOutputEvent;
 
 import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicReference;

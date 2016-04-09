@@ -16,9 +16,9 @@
 
 package org.gradle.internal.logging
 
-import org.gradle.internal.logging.internal.LogEvent
-import org.gradle.internal.logging.internal.OutputEvent
-import org.gradle.internal.logging.internal.OutputEventListener
+import org.gradle.internal.logging.events.LogEvent
+import org.gradle.internal.logging.events.OutputEvent
+import org.gradle.internal.logging.events.OutputEventListener
 
 class TestOutputEventListener implements OutputEventListener {
     final StringWriter writer = new StringWriter()

@@ -32,7 +32,7 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.LoggingServiceRegistry;
-import org.gradle.internal.logging.internal.OutputEventListener;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;

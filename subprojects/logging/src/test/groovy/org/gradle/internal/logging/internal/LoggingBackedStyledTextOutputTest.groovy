@@ -17,6 +17,7 @@ package org.gradle.internal.logging.internal
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.internal.TimeProvider
+import org.gradle.internal.logging.events.OutputEventListener
 
 import static org.gradle.internal.logging.StyledTextOutput.Style.*
 
