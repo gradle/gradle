@@ -18,13 +18,14 @@ package org.gradle.internal.logging.internal
 import org.gradle.api.logging.LogLevel
 import org.gradle.cli.CommandLineArgumentException
 import org.gradle.internal.logging.ConsoleOutput
+import org.gradle.internal.logging.DefaultLoggingConfiguration
 import org.gradle.internal.logging.LoggingConfiguration
 import org.gradle.internal.logging.ShowStacktrace
 import spock.lang.Specification
 
 class LoggingCommandLineConverterTest extends Specification {
     final LoggingCommandLineConverter converter = new LoggingCommandLineConverter()
-    final LoggingConfiguration expectedConfig = new LoggingConfiguration()
+    final LoggingConfiguration expectedConfig = new DefaultLoggingConfiguration()
 
     def convertsEmptyArgs() {
         expect:
@@ -78,7 +79,7 @@ class LoggingCommandLineConverterTest extends Specification {
 
     def reportsUnknownColorOption() {
         when:
-        converter.convert(["--console", "unknown"], new LoggingConfiguration())
+        converter.convert(["--console", "unknown"], new DefaultLoggingConfiguration())
 
         then:
         CommandLineArgumentException e = thrown()
@@ -116,7 +117,7 @@ class LoggingCommandLineConverterTest extends Specification {
     }
 
     void checkConversion(List<String> args) {
-        def actual = converter.convert(args, new LoggingConfiguration())
+        def actual = converter.convert(args, new DefaultLoggingConfiguration())
         assert actual.logLevel == expectedConfig.logLevel
         assert actual.consoleOutput == expectedConfig.consoleOutput
         assert actual.showStacktrace == expectedConfig.showStacktrace

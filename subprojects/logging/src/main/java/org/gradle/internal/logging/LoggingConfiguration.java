@@ -13,25 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.logging;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.logging.LogLevel;
 
-import java.io.Serializable;
+/**
+ * Defines various logging settings.
+ */
+public interface LoggingConfiguration {
+    LogLevel getLogLevel();
 
-public class LoggingConfiguration implements Serializable {
-    private LogLevel logLevel = LogLevel.LIFECYCLE;
-    private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
-    private ConsoleOutput consoleOutput = ConsoleOutput.Auto;
-
-    public LogLevel getLogLevel() {
-        return logLevel;
-    }
-
-    public void setLogLevel(LogLevel logLevel) {
-        this.logLevel = logLevel;
-    }
+    void setLogLevel(LogLevel logLevel);
 
     /**
      * Returns true if logging output should be displayed in color when Gradle is running in a terminal which supports
@@ -39,34 +33,22 @@ public class LoggingConfiguration implements Serializable {
      *
      * @return true if logging output should be displayed in color.
      */
-    public boolean isColorOutput() {
-        return consoleOutput != ConsoleOutput.Plain;
-    }
+    boolean isColorOutput();
 
     /**
      * Specifies whether logging output should be displayed in color.
      *
      * @param colorOutput true if logging output should be displayed in color.
      */
-    public void setColorOutput(boolean colorOutput) {
-        this.consoleOutput = colorOutput ? ConsoleOutput.Auto : ConsoleOutput.Plain;
-    }
+    void setColorOutput(boolean colorOutput);
 
     @Incubating
-    public ConsoleOutput getConsoleOutput() {
-        return consoleOutput;
-    }
+    ConsoleOutput getConsoleOutput();
 
     @Incubating
-    public void setConsoleOutput(ConsoleOutput colorOutput) {
-        this.consoleOutput = colorOutput;
-    }
+    void setConsoleOutput(ConsoleOutput colorOutput);
 
-    public ShowStacktrace getShowStacktrace() {
-        return showStacktrace;
-    }
+    ShowStacktrace getShowStacktrace();
 
-    public void setShowStacktrace(ShowStacktrace showStacktrace) {
-        this.showStacktrace = showStacktrace;
-    }
+    void setShowStacktrace(ShowStacktrace showStacktrace);
 }

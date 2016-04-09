@@ -21,6 +21,7 @@ import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.LocationAwareException
+import org.gradle.internal.logging.DefaultLoggingConfiguration
 import org.gradle.internal.logging.LoggingConfiguration
 import org.gradle.internal.logging.ShowStacktrace
 import org.gradle.internal.logging.StyledTextOutputFactory
@@ -32,7 +33,7 @@ class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()
     final StyledTextOutputFactory factory = Mock()
     final BuildClientMetaData clientMetaData = Mock()
-    final LoggingConfiguration configuration = new LoggingConfiguration()
+    final LoggingConfiguration configuration = new DefaultLoggingConfiguration()
     final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, configuration, clientMetaData)
 
     def setup() {

@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.connection;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.LoggingConfiguration;
 import org.gradle.internal.logging.internal.LoggingCommandLineConverter;
 
@@ -43,7 +44,7 @@ public class BuildLogLevelMixIn {
             return LogLevel.DEBUG;
         }
 
-        LoggingConfiguration loggingConfiguration = converter.convert(parsedCommandLine, new LoggingConfiguration());
+        LoggingConfiguration loggingConfiguration = converter.convert(parsedCommandLine, new DefaultLoggingConfiguration());
         return loggingConfiguration.getLogLevel();
     }
 }

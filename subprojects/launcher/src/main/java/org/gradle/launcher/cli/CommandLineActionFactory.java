@@ -28,10 +28,7 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.internal.Actions;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.logging.LoggingConfiguration;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.LoggingServiceRegistry;
-import org.gradle.internal.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.*;
 import org.gradle.internal.logging.internal.LoggingCommandLineConverter;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
@@ -61,7 +58,7 @@ public class CommandLineActionFactory {
     public Action<ExecutionListener> convert(List<String> args) {
         ServiceRegistry loggingServices = createLoggingServices();
 
-        LoggingConfiguration loggingConfiguration = new LoggingConfiguration();
+        LoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
 
         return new WithLogging(loggingServices,
                 args,

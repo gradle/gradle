@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
 import org.gradle.initialization.DistributionInitScriptFinder;
@@ -29,7 +30,10 @@ import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.internal.logging.ConsoleOutput;
+import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.LoggingConfiguration;
+import org.gradle.internal.logging.ShowStacktrace;
 
 import java.io.File;
 import java.io.Serializable;
@@ -43,7 +47,7 @@ import java.util.*;
  *
  * @see org.gradle.initialization.GradleLauncher
  */
-public class StartParameter extends LoggingConfiguration implements Serializable {
+public class StartParameter implements LoggingConfiguration, Serializable {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = BuildLayoutParameters.GRADLE_USER_HOME_PROPERTY_KEY;
 
     /**
@@ -51,6 +55,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public static final File DEFAULT_GRADLE_USER_HOME = new BuildLayoutParameters().getGradleUserHomeDir();
 
+    private final DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
     private List<TaskExecutionRequest> taskRequests = new ArrayList<TaskExecutionRequest>();
     private Set<String> excludedTaskNames = new LinkedHashSet<String>();
     private boolean buildProjectDependencies = true;
@@ -77,6 +82,48 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean configureOnDemand;
     private int maxWorkerCount;
     private boolean continuous;
+
+    @Override
+    public LogLevel getLogLevel() {
+        return loggingConfiguration.getLogLevel();
+    }
+
+    @Override
+    public void setLogLevel(LogLevel logLevel) {
+        loggingConfiguration.setLogLevel(logLevel);
+    }
+
+    @Override
+    public ShowStacktrace getShowStacktrace() {
+        return loggingConfiguration.getShowStacktrace();
+    }
+
+    @Override
+    public void setShowStacktrace(ShowStacktrace showStacktrace) {
+        loggingConfiguration.setShowStacktrace(showStacktrace);
+    }
+
+    @Override
+    public boolean isColorOutput() {
+        return loggingConfiguration.isColorOutput();
+    }
+
+    @Override
+    public void setColorOutput(boolean colorOutput) {
+        loggingConfiguration.setColorOutput(colorOutput);
+    }
+
+    @Override
+    @Incubating
+    public ConsoleOutput getConsoleOutput() {
+        return loggingConfiguration.getConsoleOutput();
+    }
+
+    @Override
+    @Incubating
+    public void setConsoleOutput(ConsoleOutput colorOutput) {
+        loggingConfiguration.setConsoleOutput(colorOutput);
+    }
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
