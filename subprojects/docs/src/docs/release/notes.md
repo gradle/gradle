@@ -31,9 +31,9 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### `StartParameter.consoleOutput` property
+
+The `StartParameter.consoleOutput` property has been promoted and is now stable.
 
 ## Fixed issues
 
@@ -49,6 +49,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 Running Gradle using Java 6 is now deprecated, and support will be removed in Gradle 3.0.
 
 It will continue to be possible to build JVM based projects for Java 6, by running Gradle using Java 7 and configuring Gradle to use Java 6 to compile, test and run your code.
+
+### `StartParameter.colorOutput` property
+
+The `StartParameter.colorOutput` property has been deprecated and will be removed in Gradle 3.0. You should use the `consoleOutput` property instead.
 
 ## Potential breaking changes
 

@@ -16,7 +16,6 @@
 
 package org.gradle.api.logging.configuration;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.logging.LogLevel;
 
 /**
@@ -39,27 +38,29 @@ public interface LoggingConfiguration {
      * color output. The default value is true.
      *
      * @return true if logging output should be displayed in color.
+     * @deprecated Use {@link #getConsoleOutput()} instead.
      */
+    @Deprecated
     boolean isColorOutput();
 
     /**
      * Specifies whether logging output should be displayed in color.
      *
      * @param colorOutput true if logging output should be displayed in color.
+     * @deprecated Use {@link #setConsoleOutput(ConsoleOutput)} instead.
      */
+    @Deprecated
     void setColorOutput(boolean colorOutput);
 
     /**
      * Returns the style of logging output that should be written to the console.
      * Defaults to {@link ConsoleOutput#Auto}
      */
-    @Incubating
     ConsoleOutput getConsoleOutput();
 
     /**
      * Specifies the style of logging output that should be written to the console.
      */
-    @Incubating
     void setConsoleOutput(ConsoleOutput colorOutput);
 
     /**

@@ -34,6 +34,7 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.io.Serializable;
@@ -117,7 +118,9 @@ public class StartParameter implements LoggingConfiguration, Serializable {
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
     public boolean isColorOutput() {
+        DeprecationLogger.nagUserOfReplacedProperty("StartParameter.colorOutput", "consoleOutput");
         return loggingConfiguration.isColorOutput();
     }
 
@@ -125,7 +128,9 @@ public class StartParameter implements LoggingConfiguration, Serializable {
      * {@inheritDoc}
      */
     @Override
+    @Deprecated
     public void setColorOutput(boolean colorOutput) {
+        DeprecationLogger.nagUserOfReplacedProperty("StartParameter.colorOutput", "consoleOutput");
         loggingConfiguration.setColorOutput(colorOutput);
     }
 
@@ -133,7 +138,6 @@ public class StartParameter implements LoggingConfiguration, Serializable {
      * {@inheritDoc}
      */
     @Override
-    @Incubating
     public ConsoleOutput getConsoleOutput() {
         return loggingConfiguration.getConsoleOutput();
     }
@@ -142,7 +146,6 @@ public class StartParameter implements LoggingConfiguration, Serializable {
      * {@inheritDoc}
      */
     @Override
-    @Incubating
     public void setConsoleOutput(ConsoleOutput colorOutput) {
         loggingConfiguration.setConsoleOutput(colorOutput);
     }
