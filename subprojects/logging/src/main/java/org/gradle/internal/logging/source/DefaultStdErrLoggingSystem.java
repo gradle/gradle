@@ -13,26 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.internal;
+
+package org.gradle.internal.logging.source;
 
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
 
 import java.io.PrintStream;
 
-public class DefaultStdOutLoggingSystem extends PrintStreamLoggingSystem implements StdOutLoggingSystem {
+public class DefaultStdErrLoggingSystem extends PrintStreamLoggingSystem implements StdErrLoggingSystem {
 
-    public DefaultStdOutLoggingSystem(OutputEventListener listener, TimeProvider timeProvider) {
-        super(listener, "system.out", timeProvider);
+    public DefaultStdErrLoggingSystem(OutputEventListener listener, TimeProvider timeProvider) {
+        super(listener, "system.err", timeProvider);
     }
 
     @Override
     protected PrintStream get() {
-        return System.out;
+        return System.err;
     }
 
     @Override
     protected void set(PrintStream printStream) {
-        System.setOut(printStream);
+        System.setErr(printStream);
     }
 }

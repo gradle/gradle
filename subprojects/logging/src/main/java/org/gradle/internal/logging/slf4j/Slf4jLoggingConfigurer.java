@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.slf4j;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.internal.LoggingConfigurer;
+import org.gradle.internal.logging.source.LoggingConfigurer;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.slf4j.LoggerFactory;
 

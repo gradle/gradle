@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.internal;
+package org.gradle.internal.logging.source;
 
 import org.gradle.api.logging.LogLevel;
 import org.slf4j.bridge.SLF4JBridgeHandler;

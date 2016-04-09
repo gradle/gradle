@@ -14,27 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.internal;
+package org.gradle.internal.logging.source;
 
-import org.gradle.api.logging.LogLevel;
-
-public class NoOpLoggingSystem implements StdOutLoggingSystem, StdErrLoggingSystem, LoggingSystem {
-    public Snapshot snapshot() {
-        return dummy();
-    }
-
-    @Override
-    public Snapshot on(LogLevel minimumLevel, LogLevel defaultLevel) {
-        return dummy();
-    }
-
-    public Snapshot off() {
-        return dummy();
-    }
-
-    public void restore(Snapshot state) {}
-
-    private Snapshot dummy() {
-        return new Snapshot() {};
-    }
+public interface StdErrLoggingSystem extends LoggingSystem {
 }

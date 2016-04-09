@@ -20,7 +20,7 @@ import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.logging.internal.DefaultProgressLoggerFactory;
+import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.internal.ProgressListener;
 
 /**

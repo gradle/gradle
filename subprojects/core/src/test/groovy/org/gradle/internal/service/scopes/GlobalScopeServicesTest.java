@@ -47,7 +47,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.LoggingServiceRegistry;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.internal.DefaultLoggingManagerFactory;
-import org.gradle.internal.logging.internal.DefaultProgressLoggerFactory;
+import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.junit.Test;

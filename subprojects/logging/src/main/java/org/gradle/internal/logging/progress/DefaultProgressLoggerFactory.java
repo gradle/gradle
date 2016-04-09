@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.internal;
+package org.gradle.internal.logging.progress;
 
 import org.gradle.internal.TimeProvider;
-import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.events.OperationIdentifier;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.internal.ProgressListener;
 import org.gradle.util.GUtil;
 
 import java.util.concurrent.atomic.AtomicLong;

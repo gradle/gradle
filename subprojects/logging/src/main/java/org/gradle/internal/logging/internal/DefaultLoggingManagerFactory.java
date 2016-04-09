@@ -18,6 +18,9 @@ package org.gradle.internal.logging.internal;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.source.LoggingConfigurer;
+import org.gradle.internal.logging.source.LoggingSystem;
+import org.gradle.internal.logging.source.LoggingSystemAdapter;
 
 public class DefaultLoggingManagerFactory implements Factory<LoggingManagerInternal> {
     private final LoggingSystem slfLoggingSystem;
