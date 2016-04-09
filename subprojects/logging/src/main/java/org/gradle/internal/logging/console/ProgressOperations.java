@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.internal.progress;
+package org.gradle.internal.logging.console;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.logging.OperationIdentifier;

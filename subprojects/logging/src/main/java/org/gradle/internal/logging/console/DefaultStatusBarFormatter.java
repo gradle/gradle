@@ -17,7 +17,6 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
-import org.gradle.internal.logging.internal.progress.ProgressOperation;
 
 public class DefaultStatusBarFormatter {
     private final ConsoleMetaData consoleMetaData;
