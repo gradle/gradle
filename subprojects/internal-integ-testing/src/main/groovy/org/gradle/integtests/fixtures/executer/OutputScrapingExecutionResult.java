@@ -35,7 +35,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertThat;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
-    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?[\\w.$_]+\\(.+?\\)");
+    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?[\\w.$_]+\\.[\\w$_ =-]+\\(.+?\\)");
     private final String output;
     private final String error;
 
@@ -56,6 +56,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public String getNormalizedOutput() {
+        return normalize(output);
+    }
+
+    public static String normalize(String output) {
         StringBuilder result = new StringBuilder();
         List<String> lines;
         try {
