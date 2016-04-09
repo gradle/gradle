@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.internal.slf4j;
+package org.gradle.internal.logging.slf4j;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.internal.LoggingConfigurer;

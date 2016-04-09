@@ -24,7 +24,7 @@ import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.internal.*;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.logging.internal.slf4j.Slf4jLoggingConfigurer;
+import org.gradle.internal.logging.slf4j.Slf4jLoggingConfigurer;
 
 /**
  * A {@link org.gradle.internal.service.ServiceRegistry} implementation that provides the logging services. To use this:
