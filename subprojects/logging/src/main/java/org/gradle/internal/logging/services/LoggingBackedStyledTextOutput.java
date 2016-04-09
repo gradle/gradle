@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.text;
+package org.gradle.internal.logging.services;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.logging.text.AbstractLineChoppingStyledTextOutput;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A {@link StyledTextOutput} implementation which generates events of type {@link
+ * A {@link org.gradle.internal.logging.text.StyledTextOutput} implementation which generates events of type {@link
  * StyledTextOutputEvent}. This implementation is not thread-safe.
  */
 public class LoggingBackedStyledTextOutput extends AbstractLineChoppingStyledTextOutput {

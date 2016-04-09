@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.services;
+package org.gradle.internal.logging.text;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.StandardOutputListener;

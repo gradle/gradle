@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.logging.services
 
+import org.gradle.internal.logging.text.StreamBackedStandardOutputListener
 import spock.lang.Specification
 
 class StreamBackedStandardOutputListenerTest extends Specification {

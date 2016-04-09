@@ -26,7 +26,6 @@ import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.internal.logging.text.DefaultStyledTextOutputFactory
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.TextUtil

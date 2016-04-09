@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.text;
+package org.gradle.internal.logging.services;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.text.AbstractStyledTextOutputFactory;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 public class DefaultStyledTextOutputFactory extends AbstractStyledTextOutputFactory implements StyledTextOutputFactory {
     private final OutputEventListener outputEventListener;

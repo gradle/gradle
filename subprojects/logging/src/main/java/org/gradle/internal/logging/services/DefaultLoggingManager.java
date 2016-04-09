@@ -25,6 +25,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.LoggingOutputInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.source.LoggingSystem;
+import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 
 import java.io.Closeable;
 import java.io.OutputStream;
