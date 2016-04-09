@@ -14,8 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.internal;
+package org.gradle.internal.logging.console;
 
-public interface Label {
-    void setText(String text);
+import org.gradle.internal.logging.internal.TextArea;
+
+public interface Console {
+    TextArea getMainArea();
+
+    Label getStatusBar();
+
+    /**
+     * Flushes any pending updates. Updates may or may not be buffered, and this method should be called to finish rendering and pending updates, such as
+     * updating the status bar.
+     */
+    void flush();
 }

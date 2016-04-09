@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.internal;
+package org.gradle.internal.logging.console;
 
-public interface Console {
-    TextArea getMainArea();
+import org.fusesource.jansi.Ansi;
+import org.gradle.internal.logging.StyledTextOutput;
 
-    Label getStatusBar();
+public interface ColorMap {
+    Color getColourFor(StyledTextOutput.Style style);
 
-    /**
-     * Flushes any pending updates. Updates may or may not be buffered, and this method should be called to finish rendering and pending updates, such as
-     * updating the status bar.
-     */
-    void flush();
+    Color getStatusBarColor();
+    
+    interface Color {
+        void on(Ansi ansi);
+
+        void off(Ansi ansi);
+    }
 }

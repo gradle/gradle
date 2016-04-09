@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.internal;
+package org.gradle.internal.logging.console;
 
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.logging.internal.progress.ProgressOperation;

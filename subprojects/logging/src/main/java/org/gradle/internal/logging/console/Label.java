@@ -13,19 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.internal;
 
-import org.fusesource.jansi.Ansi;
-import org.gradle.internal.logging.StyledTextOutput;
+package org.gradle.internal.logging.console;
 
-public interface ColorMap {
-    Color getColourFor(StyledTextOutput.Style style);
-
-    Color getStatusBarColor();
-    
-    interface Color {
-        void on(Ansi ansi);
-
-        void off(Ansi ansi);
-    }
+public interface Label {
+    void setText(String text);
 }

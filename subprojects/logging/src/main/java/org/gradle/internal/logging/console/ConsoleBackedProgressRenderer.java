@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.internal;
+
+package org.gradle.internal.logging.console;
 
 import org.gradle.internal.TimeProvider;
+import org.gradle.internal.logging.internal.*;
 import org.gradle.internal.logging.internal.progress.ProgressOperation;
 import org.gradle.internal.logging.internal.progress.ProgressOperations;
 

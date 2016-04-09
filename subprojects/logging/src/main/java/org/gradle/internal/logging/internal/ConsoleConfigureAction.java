@@ -18,6 +18,8 @@ package org.gradle.internal.logging.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.internal.logging.console.AnsiConsole;
+import org.gradle.internal.logging.console.Console;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
