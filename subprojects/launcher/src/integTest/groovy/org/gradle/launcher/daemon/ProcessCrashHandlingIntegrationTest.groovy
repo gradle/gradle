@@ -53,6 +53,7 @@ task block << {
 """
 
         when:
+        executer.withStackTraceChecksDisabled() // daemon log may contain stack traces
         def build = executer.withTasks("block").start()
         server.waitFor()
         daemons.daemon.kill()
@@ -68,6 +69,7 @@ task block << {
         file("build.gradle") << "System.exit(0)"
 
         when:
+        executer.withStackTraceChecksDisabled() // daemon log may contain stack traces
         def failure = executer.runWithFailure()
 
         then:
