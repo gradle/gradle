@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.internal;
+
+package org.gradle.internal.logging;
 
 import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.logging.configuration.ConsoleOutput;

@@ -24,7 +24,7 @@ import org.gradle.launcher.daemon.client.DaemonStartListener;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
-import org.gradle.internal.logging.internal.OutputEventRenderer;
+import org.gradle.internal.logging.services.OutputEventRenderer;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;

@@ -23,7 +23,7 @@ import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.LoggingServiceRegistry;
+import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.remote.MessagingClient;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.services.MessagingServices;

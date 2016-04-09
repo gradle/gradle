@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.text;
 
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.internal.logging.internal.StreamBackedStandardOutputListener;
+import org.gradle.internal.logging.services.StreamBackedStandardOutputListener;
 
 import java.io.Closeable;
 import java.io.IOException;

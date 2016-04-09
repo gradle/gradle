@@ -32,7 +32,7 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.LoggingServiceRegistry;
+import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.remote.Address;
 import org.gradle.process.internal.streams.EncodedStream;
 

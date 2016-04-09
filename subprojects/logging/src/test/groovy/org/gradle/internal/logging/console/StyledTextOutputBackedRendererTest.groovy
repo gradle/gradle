@@ -19,7 +19,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.RenderableOutputEvent
 import org.gradle.internal.logging.events.StyledTextOutputEvent
-import org.gradle.internal.logging.internal.OutputSpecification
+import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.TestStyledTextOutput
 

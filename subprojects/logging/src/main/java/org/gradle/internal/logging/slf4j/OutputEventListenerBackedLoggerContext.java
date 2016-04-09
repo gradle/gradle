@@ -20,7 +20,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Actions;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.logging.internal.OutputEventRenderer;
+import org.gradle.internal.logging.services.OutputEventRenderer;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.Marker;

@@ -51,7 +51,7 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.LoggingServiceRegistry;
+import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;

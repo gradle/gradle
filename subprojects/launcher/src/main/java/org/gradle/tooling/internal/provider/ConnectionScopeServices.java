@@ -25,8 +25,8 @@ import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.daemon.client.JvmVersionDetector;
 import org.gradle.launcher.exec.BuildExecuter;
-import org.gradle.internal.logging.LoggingServiceRegistry;
-import org.gradle.internal.logging.internal.OutputEventRenderer;
+import org.gradle.internal.logging.services.LoggingServiceRegistry;
+import org.gradle.internal.logging.services.OutputEventRenderer;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
 /**

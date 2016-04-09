@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.internal;
+package org.gradle.internal.logging.services;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.ConsoleOutput;

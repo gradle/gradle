@@ -20,7 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.BasicFileResolver;
 import org.gradle.cli.*;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.internal.logging.internal.LoggingCommandLineConverter;
+import org.gradle.internal.logging.LoggingCommandLineConverter;
 
 import java.io.File;
 import java.util.HashMap;

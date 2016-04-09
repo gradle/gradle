@@ -17,7 +17,6 @@ package org.gradle.internal.logging;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.internal.logging.internal.LoggingOutputInternal;
 
 public interface LoggingManagerInternal extends LoggingManager, StandardOutputCapture, LoggingOutputInternal {
     LoggingManagerInternal start();

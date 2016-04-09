@@ -28,7 +28,7 @@ import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.ProjectScopeServices
-import org.gradle.internal.logging.LoggingServiceRegistry
+import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.TestUtil
 

@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.internal;
+
+package org.gradle.internal.logging.services;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.logging.LoggingOutputInternal;
 import org.gradle.internal.logging.console.*;
 import org.gradle.internal.logging.events.FlushToOutputsEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;

@@ -22,7 +22,7 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.internal.Factory
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.LoggingManagerInternal
-import org.gradle.internal.logging.LoggingServiceRegistry
+import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutputFactory

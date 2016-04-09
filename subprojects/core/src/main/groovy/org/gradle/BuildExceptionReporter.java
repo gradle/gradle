@@ -27,7 +27,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
-import org.gradle.internal.logging.internal.LoggingCommandLineConverter;
+import org.gradle.internal.logging.LoggingCommandLineConverter;
 import org.gradle.util.GUtil;
 import org.gradle.util.TreeVisitor;
 

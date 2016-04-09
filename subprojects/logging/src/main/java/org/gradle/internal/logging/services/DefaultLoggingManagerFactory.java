@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.internal;
+package org.gradle.internal.logging.services;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.LoggingOutputInternal;
 import org.gradle.internal.logging.source.LoggingConfigurer;
 import org.gradle.internal.logging.source.LoggingSystem;
 import org.gradle.internal.logging.source.LoggingSystemAdapter;

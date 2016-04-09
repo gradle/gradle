@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.internal
+package org.gradle.internal.logging
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.cli.CommandLineArgumentException
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.internal.logging.DefaultLoggingConfiguration
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
+import org.gradle.cli.CommandLineArgumentException
 import spock.lang.Specification
 
 class LoggingCommandLineConverterTest extends Specification {
