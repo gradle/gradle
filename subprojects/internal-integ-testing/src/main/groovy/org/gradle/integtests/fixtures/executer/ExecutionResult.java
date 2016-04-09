@@ -30,6 +30,7 @@ public interface ExecutionResult {
      * <ul>
      *     <li>Removes warning about running on Java 6.</li>
      *     <li>Removes warning about running using configure on demand or parallel execution.</li>
+     *     <li>Removes notice about starting the daemon.</li>
      *     <li>Normalizes build time to 1 second.
      * </ul>
      */

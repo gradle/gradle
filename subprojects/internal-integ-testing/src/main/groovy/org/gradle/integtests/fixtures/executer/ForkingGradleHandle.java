@@ -32,6 +32,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PipedOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 class ForkingGradleHandle extends OutputScrapingGradleHandle {
     final private Factory<? extends AbstractExecHandleBuilder> execHandleFactory;
@@ -85,6 +86,11 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         execHandle = execBuilder.build();
 
         System.out.println("Starting build with: " + execHandle.getCommand() + " " + Joiner.on(" ").join(execHandle.getArguments()));
+        System.out.println("Working directory: " + execHandle.getDirectory());
+        System.out.println("Environment vars:");
+        for (Map.Entry<String, String> entry : execHandle.getEnvironment().entrySet()) {
+            System.out.println(String.format("    %s: %s", entry.getKey(), entry.getValue()));
+        }
 
         execHandle.start();
 

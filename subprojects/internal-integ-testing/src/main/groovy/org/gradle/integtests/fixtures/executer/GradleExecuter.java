@@ -321,8 +321,6 @@ public interface GradleExecuter {
      */
     GradleExecuter copyTo(GradleExecuter executer);
 
-    GradleExecuter withDaemonStartingMessageEnabled();
-
     /**
      * Where possible, starts the Gradle build process in suspended debug mode.
      */

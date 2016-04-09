@@ -62,7 +62,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     protected void transformInvocation(GradleInvocation invocation) {
         if (getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
             // Mix the implicit launcher JVM args in with the requested JVM args
-            invocation.launcherJvmArgs.addAll(invocation.implicitLauncherJvmArgs);
+            super.transformInvocation(invocation);
         } else {
             // Need to move those implicit JVM args that contain a space to the Gradle command-line (if possible)
             // Note that this isn't strictly correct as some system properties can only be set on JVM start up.
@@ -129,7 +129,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             return false;
         }
     }
-
 
     private ExecHandleBuilder createExecHandleBuilder() {
         TestFile gradleHomeDir = getDistribution().getGradleHomeDir();

@@ -43,7 +43,6 @@ import java.nio.charset.Charset;
 import java.util.*;
 
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
-import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
 
@@ -93,7 +92,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> commandLineJvmOpts = new ArrayList<String>();
     private boolean useOnlyRequestedJvmOpts;
     private boolean requireGradleHome;
-    private boolean daemonStartingMessageDisabled = true;
 
     private int expectedDeprecationWarnings;
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -257,9 +255,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (requireGradleHome) {
             executer.requireGradleHome();
         }
-        if (!daemonStartingMessageDisabled) {
-            executer.withDaemonStartingMessageEnabled();
-        }
         if (requireDaemon) {
             executer.requireDaemon();
         }
@@ -338,7 +333,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * Adjusts the calculated invocation prior to execution. This method is responsible for handling the implicit launcher JVM args in some way, by mutating the invocation appropriately.
      */
     protected void transformInvocation(GradleInvocation gradleInvocation) {
-        gradleInvocation.launcherJvmArgs.addAll(gradleInvocation.implicitLauncherJvmArgs);
+        gradleInvocation.launcherJvmArgs.addAll(0, gradleInvocation.implicitLauncherJvmArgs);
         gradleInvocation.implicitLauncherJvmArgs.clear();
     }
 
@@ -672,10 +667,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put(DaemonParameters.INTERACTIVE_TOGGLE, "true");
         }
 
-        if (daemonStartingMessageDisabled) {
-            properties.put(DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY, "true");
-        }
-
         return properties;
     }
 
@@ -845,11 +836,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public GradleExecuter requireGradleHome() {
         this.requireGradleHome = true;
-        return this;
-    }
-
-    public GradleExecuter withDaemonStartingMessageEnabled() {
-        daemonStartingMessageDisabled = false;
         return this;
     }
 

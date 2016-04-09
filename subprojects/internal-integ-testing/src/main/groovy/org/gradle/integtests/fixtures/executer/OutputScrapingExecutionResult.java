@@ -28,6 +28,7 @@ import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.STARTING_DAEMON_MESSAGE;
 import static org.gradle.util.TextUtil.normaliseLineSeparators;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -71,6 +72,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
                     i++;
                 }
+            } else if (line.contains(STARTING_DAEMON_MESSAGE)) {
+                // Assume running using the daemon, ignore
+                i++;
             } else if (i == lines.size() - 1 && line.matches("Total time: [\\d\\.]+ secs")) {
                 result.append("Total time: 1 secs");
                 result.append('\n');
