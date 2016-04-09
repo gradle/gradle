@@ -33,8 +33,8 @@ class JarTestFixture extends ZipTestFixture {
     /**
      * Asserts that the Jar file is well-formed
      */
-     JarTestFixture(File file) {
-         super(file, 'UTF-8')
+     JarTestFixture(File file, String metadataCharset = 'UTF-8', String contentCharset = null) {
+         super(file, metadataCharset, contentCharset)
          this.file = file
          isManifestPresentAndFirstEntry()
      }
