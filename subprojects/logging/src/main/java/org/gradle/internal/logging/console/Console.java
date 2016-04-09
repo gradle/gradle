@@ -16,8 +16,6 @@
 
 package org.gradle.internal.logging.console;
 
-import org.gradle.internal.logging.internal.TextArea;
-
 public interface Console {
     TextArea getMainArea();
 

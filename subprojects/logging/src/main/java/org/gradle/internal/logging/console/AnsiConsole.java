@@ -19,7 +19,6 @@ package org.gradle.internal.logging.console;
 import org.fusesource.jansi.Ansi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.logging.internal.AbstractLineChoppingStyledTextOutput;
-import org.gradle.internal.logging.internal.TextArea;
 
 import java.io.Flushable;
 import java.io.IOException;
