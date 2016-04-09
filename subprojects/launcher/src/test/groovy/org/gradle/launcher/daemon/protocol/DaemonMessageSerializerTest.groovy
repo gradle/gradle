@@ -17,9 +17,9 @@
 package org.gradle.launcher.daemon.protocol
 
 import org.gradle.api.logging.LogLevel
-import org.gradle.internal.logging.OperationIdentifier
+import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.LogEvent
-import org.gradle.internal.logging.internal.LogLevelChangeEvent
+import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent

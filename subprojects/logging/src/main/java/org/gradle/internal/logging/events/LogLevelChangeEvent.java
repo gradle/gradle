@@ -14,41 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging;
+package org.gradle.internal.logging.events;
 
-import java.io.Serializable;
+import org.gradle.api.logging.LogLevel;
 
-public class OperationIdentifier implements Serializable {
-    private final long id;
+/**
+ * Notifies output consumers that the log level has changed. Consumers will not receive any further events at a lesser log level.
+ */
+public class LogLevelChangeEvent extends OutputEvent {
+    private final LogLevel newLogLevel;
 
-    public OperationIdentifier(long id) {
-        this.id = id;
+    public LogLevelChangeEvent(LogLevel newLogLevel) {
+        this.newLogLevel = newLogLevel;
     }
 
-    public long getId() {
-        return id;
+    public LogLevel getNewLogLevel() {
+        return newLogLevel;
     }
 
     @Override
     public String toString() {
-        return String.valueOf(id);
+        return String.format("%s %s", LogLevelChangeEvent.class.getSimpleName(), newLogLevel);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        OperationIdentifier that = (OperationIdentifier) o;
-        return id == that.id;
-    }
-
-    @Override
-    public int hashCode() {
-        return (int) id;
+    public LogLevel getLogLevel() {
+        return null;
     }
 }

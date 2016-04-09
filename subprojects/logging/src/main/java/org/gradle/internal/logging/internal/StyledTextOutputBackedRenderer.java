@@ -16,6 +16,7 @@
 package org.gradle.internal.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.text.AbstractLineChoppingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.events.OutputEvent;

@@ -18,7 +18,7 @@ package org.gradle.internal.logging.internal;
 
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.logging.progress.ProgressLogger;
-import org.gradle.internal.logging.OperationIdentifier;
+import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
