@@ -20,15 +20,22 @@ import org.gradle.api.Incubating;
 import org.gradle.api.logging.LogLevel;
 
 /**
- * Defines Gradle logging settings.
+ * A {@code LoggingConfiguration} defines the logging settings for a Gradle build.
  */
 public interface LoggingConfiguration {
+    /**
+     * Returns the minimum logging level to use. All log messages with a lower log level are ignored.
+     * Defaults to {@link LogLevel#LIFECYCLE}.
+     */
     LogLevel getLogLevel();
 
+    /**
+     * Specifies the minimum logging level to use. All log messages with a lower log level are ignored.
+     */
     void setLogLevel(LogLevel logLevel);
 
     /**
-     * Returns true if logging output should be displayed in color when Gradle is running in a terminal which supports
+     * Returns true if logging output should be displayed in color when Gradle is running in a console which supports
      * color output. The default value is true.
      *
      * @return true if logging output should be displayed in color.
@@ -42,13 +49,26 @@ public interface LoggingConfiguration {
      */
     void setColorOutput(boolean colorOutput);
 
+    /**
+     * Returns the style of logging output that should be written to the console.
+     * Defaults to {@link ConsoleOutput#Auto}
+     */
     @Incubating
     ConsoleOutput getConsoleOutput();
 
+    /**
+     * Specifies the style of logging output that should be written to the console.
+     */
     @Incubating
     void setConsoleOutput(ConsoleOutput colorOutput);
 
+    /**
+     * Returns the detail that should be included in stacktraces. Defaults to {@link ShowStacktrace#INTERNAL_EXCEPTIONS}.
+     */
     ShowStacktrace getShowStacktrace();
 
+    /**
+     * Sets the detail that should be included in stacktraces.
+     */
     void setShowStacktrace(ShowStacktrace showStacktrace);
 }

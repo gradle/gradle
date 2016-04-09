@@ -44,8 +44,6 @@ import java.util.*;
  * Gradle.
  *
  * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
- *
- * @see org.gradle.initialization.GradleLauncher
  */
 public class StartParameter implements LoggingConfiguration, Serializable {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = BuildLayoutParameters.GRADLE_USER_HOME_PROPERTY_KEY;
@@ -83,42 +81,66 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     private int maxWorkerCount;
     private boolean continuous;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public LogLevel getLogLevel() {
         return loggingConfiguration.getLogLevel();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setLogLevel(LogLevel logLevel) {
         loggingConfiguration.setLogLevel(logLevel);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ShowStacktrace getShowStacktrace() {
         return loggingConfiguration.getShowStacktrace();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setShowStacktrace(ShowStacktrace showStacktrace) {
         loggingConfiguration.setShowStacktrace(showStacktrace);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isColorOutput() {
         return loggingConfiguration.isColorOutput();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setColorOutput(boolean colorOutput) {
         loggingConfiguration.setColorOutput(colorOutput);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Incubating
     public ConsoleOutput getConsoleOutput() {
         return loggingConfiguration.getConsoleOutput();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Incubating
     public void setConsoleOutput(ConsoleOutput colorOutput) {
