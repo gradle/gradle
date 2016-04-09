@@ -34,6 +34,10 @@ forkingIntegTest {
     }
 }
 
+parallelIntegTest {
+    enabled = false //tooling integ tests use parallel settings, don't run
+}
+
 daemonIntegTest {
     enabled = false //tooling integ tests use daemon anyway, don't rerun
 }
