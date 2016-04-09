@@ -202,10 +202,19 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         private static class TestedGradleDistribution {
 
             private static
-            final TestedGradleDistribution UNDER_DEVELOPMENT = new TestedGradleDistribution(BUILD_CONTEXT.version, GradleProvider.installation(BUILD_CONTEXT.gradleHomeDir))
+            final TestedGradleDistribution UNDER_DEVELOPMENT = new TestedGradleDistribution(BUILD_CONTEXT.version, GradleProvider.installation(BUILD_CONTEXT.gradleHomeDir)) {
+                @Override
+                String getDisplayName() {
+                    return "current"
+                }
+            }
 
             final GradleVersion gradleVersion
             final GradleProvider gradleProvider
+
+            String getDisplayName() {
+                return gradleVersion.version
+            }
 
             TestedGradleDistribution(GradleVersion gradleVersion, GradleProvider gradleProvider) {
                 this.gradleVersion = gradleVersion
@@ -256,7 +265,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
             @Override
             protected String getDisplayName() {
-                "version = $testedGradleDistribution.gradleVersion.version, debug = $debug"
+                "version = $testedGradleDistribution.displayName, debug = $debug"
             }
 
             @Override
