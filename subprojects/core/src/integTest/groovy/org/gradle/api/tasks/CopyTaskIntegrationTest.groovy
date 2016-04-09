@@ -574,10 +574,9 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
 
         '''
 
-        def result = usingBuildFile(buildFile).withTasks("copy").run()
+        usingBuildFile(buildFile).withTasks("copy").run()
         file('dest').assertHasDescendants('path/file.txt')
         file('dest/path/file.txt').assertContents(Matchers.containsText("f1"))
-        assertFalse(result.output.contains('deprecated'))
     }
 
     @Test
@@ -598,10 +597,9 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                     eachFile { it.duplicatesStrategy = 'exclude' }
                 }
             '''
-        def result = usingBuildFile(buildFile).withTasks("copy").run()
+        usingBuildFile(buildFile).withTasks("copy").run()
         file('dest').assertHasDescendants('path/file.txt')
         file('dest/path/file.txt').assertContents(Matchers.containsText("file1"))
-        assertFalse(result.output.contains('deprecated'))
     }
 
     @Test
