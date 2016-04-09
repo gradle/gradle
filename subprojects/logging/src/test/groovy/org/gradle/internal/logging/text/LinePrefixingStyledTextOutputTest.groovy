@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.internal
+package org.gradle.internal.logging.text
 
 import org.gradle.internal.SystemProperties
-import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 

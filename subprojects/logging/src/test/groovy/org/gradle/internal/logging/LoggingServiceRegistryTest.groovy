@@ -28,7 +28,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.internal.logging.internal.DefaultLoggingManagerFactory
 import org.gradle.internal.logging.internal.DefaultProgressLoggerFactory
-import org.gradle.internal.logging.internal.DefaultStyledTextOutputFactory
+import org.gradle.internal.logging.text.DefaultStyledTextOutputFactory
 import org.gradle.internal.logging.internal.LoggingCommandLineConverter
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.TextUtil

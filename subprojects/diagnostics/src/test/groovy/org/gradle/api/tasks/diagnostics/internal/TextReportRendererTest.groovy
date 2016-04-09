@@ -17,8 +17,8 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 
 import org.gradle.api.Project
-import org.gradle.internal.logging.TestStyledTextOutput
-import org.gradle.internal.logging.internal.StreamingStyledTextOutput
+import org.gradle.internal.logging.text.TestStyledTextOutput
+import org.gradle.internal.logging.text.StreamingStyledTextOutput
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.jmock.Expectations
 import org.jmock.integration.junit4.JMock

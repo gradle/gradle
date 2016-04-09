@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.internal;
+
+package org.gradle.internal.logging.text;
 
 import org.gradle.api.Action;
-import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.util.ArrayList;
 import java.util.List;

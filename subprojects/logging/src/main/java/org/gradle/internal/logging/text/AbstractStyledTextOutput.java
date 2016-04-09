@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.internal;
+
+package org.gradle.internal.logging.text;
 
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

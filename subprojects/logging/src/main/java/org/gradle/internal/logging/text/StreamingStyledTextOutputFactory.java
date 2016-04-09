@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.internal;
+
+package org.gradle.internal.logging.text;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
-public abstract class AbstractStyledTextOutputFactory implements StyledTextOutputFactory {
-    public StyledTextOutput create(Class logCategory) {
-        return create(logCategory.getName());
+public class StreamingStyledTextOutputFactory extends AbstractStyledTextOutputFactory {
+    private final Appendable target;
+
+    public StreamingStyledTextOutputFactory(Appendable target) {
+        this.target = target;
     }
 
-    public StyledTextOutput create(String logCategory) {
-        return create(logCategory, null);
-    }
-
-    public StyledTextOutput create(Class logCategory, LogLevel logLevel) {
-        return create(logCategory.getName(), logLevel);
+    public StyledTextOutput create(String logCategory, LogLevel logLevel) {
+        return new StreamingStyledTextOutput(target);
     }
 }

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.internal;
+
+package org.gradle.internal.logging.text;
 
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.logging.text.StyledTextOutput;
 
 /**
  * A {@link StyledTextOutput} that breaks text up into lines.

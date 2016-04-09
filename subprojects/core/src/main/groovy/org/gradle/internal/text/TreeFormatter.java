@@ -17,8 +17,8 @@
 package org.gradle.internal.text;
 
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.logging.internal.AbstractStyledTextOutput;
-import org.gradle.internal.logging.internal.LinePrefixingStyledTextOutput;
+import org.gradle.internal.logging.text.AbstractStyledTextOutput;
+import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.util.TreeVisitor;
 
 public class TreeFormatter extends TreeVisitor<String> {

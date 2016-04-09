@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.internal;
 
-import org.gradle.internal.logging.text.StyledTextOutput;
+package org.gradle.internal.logging.text;
 
 /**
  * A {@link StyledTextOutput} which prefixes each line of text with some fixed prefix. Does not prefix the first line.

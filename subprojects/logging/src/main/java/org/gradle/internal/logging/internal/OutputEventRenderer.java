@@ -24,6 +24,7 @@ import org.gradle.internal.logging.console.*;
 import org.gradle.internal.logging.events.FlushToOutputsEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.event.ListenerBroadcast;

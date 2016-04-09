@@ -17,7 +17,7 @@ package org.gradle.internal.graph;
 
 import org.gradle.api.Action;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.logging.internal.StreamingStyledTextOutput;
+import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 
 import java.util.*;
 

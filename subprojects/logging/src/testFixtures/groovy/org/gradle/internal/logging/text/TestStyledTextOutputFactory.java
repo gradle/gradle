@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging;
+package org.gradle.internal.logging.text;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.internal.AbstractStyledTextOutputFactory;
-import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.logging.console;
 
-import org.gradle.internal.logging.TestStyledTextOutput;
+import org.gradle.internal.logging.text.TestStyledTextOutput;
 
 public class ConsoleStub implements Console {
     private final TextAreaImpl mainArea = new TextAreaImpl();

@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.TaskSelector;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.logging.internal.LinePrefixingStyledTextOutput;
+import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 
 import java.util.*;
 

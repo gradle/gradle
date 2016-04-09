@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging
+package org.gradle.internal.logging.text
 
-import org.gradle.internal.logging.text.StyledTextOutput.Style
 import org.gradle.internal.SystemProperties
-import org.gradle.internal.logging.internal.AbstractStyledTextOutput
+import org.gradle.internal.logging.text.StyledTextOutput.Style
 
 class TestStyledTextOutput extends AbstractStyledTextOutput {
     StringBuilder result = new StringBuilder()
