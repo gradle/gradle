@@ -18,13 +18,13 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonStartListener;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
-import org.gradle.internal.logging.services.OutputEventRenderer;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -32,11 +32,11 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
     private final Set<DaemonInstanceDetails> daemons = new CopyOnWriteArraySet<DaemonInstanceDetails>();
     private final DaemonClientFactory clientFactory;
-    private final OutputEventRenderer outputEventRenderer;
+    private final OutputEventListener outputEventListener;
 
-    public ShutdownCoordinator(DaemonClientFactory clientFactory, OutputEventRenderer outputEventRenderer) {
+    public ShutdownCoordinator(DaemonClientFactory clientFactory, OutputEventListener outputEventListener) {
         this.clientFactory = clientFactory;
-        this.outputEventRenderer = outputEventRenderer;
+        this.outputEventListener = outputEventListener;
     }
 
     public void daemonStarted(DaemonInstanceDetails daemon) {
@@ -44,7 +44,7 @@ public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
     }
 
     public void stop() {
-        ServiceRegistry clientServices = clientFactory.createStopDaemonServices(outputEventRenderer, new DaemonParameters(new BuildLayoutParameters()));
+        ServiceRegistry clientServices = clientFactory.createStopDaemonServices(outputEventListener, new DaemonParameters(new BuildLayoutParameters()));
         DaemonStopClient client = clientServices.get(DaemonStopClient.class);
         client.gracefulStop(daemons);
     }
