@@ -117,6 +117,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
         '''
 
         expect:
+        executer.withArgument("--debug")
         succeeds("test")
     }
 }
