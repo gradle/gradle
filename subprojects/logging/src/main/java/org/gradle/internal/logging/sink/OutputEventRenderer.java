@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.services;
+package org.gradle.internal.logging.sink;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;

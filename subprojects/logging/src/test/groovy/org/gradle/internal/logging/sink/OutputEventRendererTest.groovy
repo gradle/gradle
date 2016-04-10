@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.logging.services
+
+
+package org.gradle.internal.logging.sink
 
 import org.gradle.api.Action
 import org.gradle.api.logging.LogLevel
