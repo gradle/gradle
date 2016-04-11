@@ -199,6 +199,12 @@ Previously, only a single `<dependency>` entry would have been generated for 'pr
 
 Many thanks to [Raymond Navarette](https://github.com/rnavarette) for contributing this feature.
 
+### Clickable links to sections in User Guide
+
+The Gradle User Guide now includes clickable links to section headers.
+
+This was contributed by [Peter Ledbrook](https://github.com/pledbrook).
+
 <!--
 ## Promoted features
 
@@ -229,7 +235,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example breaking change
 -->
 
-### `Delete`/`project.delete()` no longer follows symlinks
+### Deleting files no longer follows symlinks
 
 As described above, deleting files will no longer follow symlinks by default.
 
@@ -317,6 +323,7 @@ We would like to thank the following community members for making contributions 
 * [Maciej Kowalski](https://github.com/fkowal) - move `DEFAULT_JVM_OPTS` after `APP_HOME` in application plugin
 * [Denis Krapenko](https://github.com/dkrapenko) - support multiple values for some command-line options
 * [Guillaume Laforge](https://github.com/glaforge) - remove extraneous `public` keywords from build.gradle
+* [Peter Ledbrook](https://github.com/pledbrook) - clickable section headers
 * [Evgeny Mandrikov](https://github.com/Godin) - upgrade default JaCoCo version to 0.7.6
 * [Raymond Navarette](https://github.com/rnavarette) - add classifiers for project dependencies in generated POM files ([GRADLE-3030](https://issues.gradle.org/browse/GRADLE-3030))
 * [Pierre-Etienne Poirot](https://github.com/pepoirot) - support for stylesheets with FindBugs and Checkstyle
