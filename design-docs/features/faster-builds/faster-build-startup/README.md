@@ -175,4 +175,28 @@ Running `gradle -Dcom.android.build.gradle.overrideVersionCheck=true assembleDeb
 
 That's roughly 40% of build time spent in dependency resolution. While somehow very diffuse, it seems that a lot of time is spent in executing the DSL build script logic, which is very costly due to heavy use of dynamic extensions. The call stacks are very long and involve a lot of method missing/extension handling.
 
+#### Profiling results for task creation
+
+The objective of this session is to estimate the cost of task creation, and give hints about how to improve it. The test was realized using the following `build.gradle` file:
+
+```
+@groovy.transform.CompileStatic
+void createTasks(Project p) {
+    15000.times {
+        p.task("copy$it", Copy)
+    }
+}
+createTasks(project)
+```
+
+The use of `CompileStatic` is done to make sure we only measure the cost of creation of the tasks. There's no configuration, and calling `gradle help`. As a result, 71% of the build duration (366ms) is spent in `createTasks(Project)`. Starting from here, times are relative to this duration.
+
+- 66% of time is spent in instantiating the task (that is to say, not a direct instantiation, but task creation + dependency injection)
+   - a significant anount of this time, most (40%) is spent in instantiating task input/outputs. The overweight is directly related to the eager creation of a `TaskMutator` (which is eagerly created, but even making this lazy wouldn't work since `AnnotationProcessingTaskFactory.Validator#addInputsAndOutputs` will make use of it)
+   - 31% of the time (44ms) is spent in instantiating the task through the factory. 2 identifiable problems are immediatly visible:
+      - `DependencyInjectingInstantiator` always validates the type, and this counts for 10 of the 31%. Adding a validation cache, or optionaly not validating (is this even useful in real builds?) would help.
+      - calling `getConstructors` in `DirectInstantiator` is very expensive (21 of the 31%). Constructors could be cached, or we could even cache direct instantiators, that is to say classes generated specifically to instantiate delegates without reflection.
+   - the last 10% (20ms) are spent in `DefaultTaskInputs.getFiles()` which is used to wire the dependencies of a task based on its input files. We are using generic algorithms/implementations here, and it's hard to tell if a collection is empty or not, so instead of being smart and returning an empty collection, for example, we always return a `UnionFileCollection` which is inefficient.
+- 34% of time is spent in adding the task to the task collection. Almost all of this time is spent in creating a `RuleBinder`. This algorithm seems to be very inefficient. Basically a significant amount of time is spent in `HashSet#add` (because of `binders.add`). In general it looks like the "new model" rule engine algorithms leak into the old model too easily, and imply a significant amount of configuration time.
+
 
