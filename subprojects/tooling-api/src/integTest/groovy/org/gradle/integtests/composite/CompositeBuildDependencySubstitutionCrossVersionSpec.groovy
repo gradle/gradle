@@ -29,12 +29,11 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 @TargetGradleVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
 class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeToolingApiSpecification {
-    // TODO:DAZ Use ResolveTestFixture in here, instead of parsing 'dependencies' output
     def buildA
     def buildB
     List builds
-    ResolveTestFixture resolve
     def mavenRepo
+    ResolveTestFixture resolve
 
     def setup() {
         mavenRepo = new MavenFileRepository(file("maven-repo"))
@@ -51,7 +50,7 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
                 }
 """
         }
-        resolve = new ResolveTestFixture(buildA.buildFile).withoutCheckingArtifacts()
+        resolve = new ResolveTestFixture(buildA.buildFile)
         resolve.prepare()
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
@@ -135,6 +134,9 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
             dependencies {
                 compile "org.test:a2:1.0"
             }
+            project(':a2') {
+                apply plugin: 'java' // Ensure that the project produces a jar
+            }
 """
 
         when:
@@ -188,7 +190,7 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
 """
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
-                apply plugin: 'base'
+                apply plugin: 'java'
 """
         }
         builds << buildC

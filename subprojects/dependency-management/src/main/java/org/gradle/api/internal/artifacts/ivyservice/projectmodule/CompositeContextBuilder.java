@@ -18,16 +18,25 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.Project;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.component.local.model.*;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
+import org.gradle.util.CollectionUtils;
+
+import java.io.File;
+import java.util.Set;
 
 public class CompositeContextBuilder implements BuildActionRunner {
     private final DefaultCompositeBuildContext context = new DefaultCompositeBuildContext();
@@ -76,6 +85,18 @@ public class CompositeContextBuilder implements BuildActionRunner {
             compositeComponentMetadata.addConfiguration(configurationName,
                 configuration.getDescription(), configuration.getExtendsFrom(), configuration.getHierarchy(),
                 configuration.isVisible(), configuration.isTransitive(), new DefaultTaskDependency());
+
+
+            // TODO:DAZ Probably shouldn't need to convert back into PublishArtifact.
+            Set<ComponentArtifactMetaData> artifacts = configuration.getArtifacts();
+            Set<PublishArtifact> detachedArtifacts = CollectionUtils.collect(artifacts, new Transformer<PublishArtifact, ComponentArtifactMetaData>() {
+                @Override
+                public PublishArtifact transform(ComponentArtifactMetaData componentArtifactMetaData) {
+                    return new DetachedPublishArtifact(componentArtifactMetaData.getName(), ((LocalComponentArtifactIdentifier) componentArtifactMetaData).getFile());
+                }
+            });
+
+            compositeComponentMetadata.addArtifacts(configurationName, detachedArtifacts);
         }
         for (DependencyMetaData dependency : projectComponentMetadata.getDependencies()) {
             compositeComponentMetadata.addDependency(dependency);
@@ -84,11 +105,36 @@ public class CompositeContextBuilder implements BuildActionRunner {
             compositeComponentMetadata.addExcludeRule(excludeRule);
         }
 
-        // TODO:DAZ Artifacts...
         return compositeComponentMetadata;
     }
 
     public CompositeBuildContext build() {
         return context;
     }
+
+    private static class DetachedPublishArtifact extends DefaultPublishArtifact {
+        public DetachedPublishArtifact(IvyArtifactName ivyArtifactName, File artifactFile) {
+            super(ivyArtifactName.getName(), ivyArtifactName.getExtension(), ivyArtifactName.getType(), ivyArtifactName.getClassifier(), null, artifactFile);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof DetachedPublishArtifact)) {
+                return false;
+            }
+
+            DetachedPublishArtifact that = (DetachedPublishArtifact) o;
+            return getFile().equals(that.getFile());
+
+        }
+
+        @Override
+        public int hashCode() {
+            return getFile().hashCode();
+        }
+    }
+
 }

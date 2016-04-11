@@ -31,16 +31,10 @@ import org.gradle.test.fixtures.file.TestFile
 class ResolveTestFixture {
     private final TestFile buildFile
     private final String config
-    private boolean structureOnly
 
     ResolveTestFixture(TestFile buildFile, String config = "compile") {
         this.config = config
         this.buildFile = buildFile
-    }
-
-    ResolveTestFixture withoutCheckingArtifacts() {
-        structureOnly = true;
-        return this;
     }
 
     /**
@@ -94,15 +88,13 @@ allprojects {
         def expectedEdges = graph.edges.collect { "[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
         assert actualEdges as Set == expectedEdges as Set
 
-        if (!structureOnly) {
-            def actualArtifacts = configDetails.findAll { it.startsWith('artifact:') }.collect { it.substring(9) }
-            def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.module}.jar]" }
-            assert actualArtifacts as Set == expectedArtifacts as Set
+        def actualArtifacts = configDetails.findAll { it.startsWith('artifact:') }.collect { it.substring(9) }
+        def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.module}.jar]" }
+        assert actualArtifacts as Set == expectedArtifacts as Set
 
-            def actualFiles = configDetails.findAll { it.startsWith('file:') }.collect { it.substring(5) }
-            def expectedFiles = graph.artifactNodes.collect { it.fileName }
-            assert actualFiles as Set == expectedFiles as Set
-        }
+        def actualFiles = configDetails.findAll { it.startsWith('file:') }.collect { it.substring(5) }
+        def expectedFiles = graph.artifactNodes.collect { it.fileName }
+        assert actualFiles as Set == expectedFiles as Set
     }
 
     public static class GraphBuilder {
