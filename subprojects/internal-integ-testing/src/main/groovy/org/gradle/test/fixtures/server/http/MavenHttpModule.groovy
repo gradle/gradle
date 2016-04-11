@@ -78,6 +78,13 @@ class MavenHttpModule extends DelegatingMavenModule<MavenHttpModule> implements 
         return this
     }
 
+    MavenHttpModule revalidate() {
+        server.allowGetOrHeadMissing(pomPath)
+        server.allowGetOrHeadMissing(metaDataPath)
+        server.allowGetOrHeadWithRevalidate(artifactPath, artifactFile)
+        return this
+    }
+
     void missing() {
         server.allowGetOrHeadMissing(pomPath)
         server.allowGetOrHeadMissing(metaDataPath)

@@ -69,7 +69,7 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
         reset()
         args "--refresh-dependencies"
         pluginQuery()
-        moduleResolution()
+        moduleResolutionWithRevalidate()
         build()
 
         reset()
@@ -166,6 +166,10 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
 
     void moduleResolution() {
         module.allowAll()
+    }
+
+    void moduleResolutionWithRevalidate() {
+        module.revalidate()
     }
 
     void pluginQuery() {
