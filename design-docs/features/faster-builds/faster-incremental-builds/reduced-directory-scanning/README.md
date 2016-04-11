@@ -158,6 +158,49 @@ There is currently duplication in the snapshots of outputs and inputs of depende
 Change persistence of input and output snapshots to reference shared tree snapshots.
 An input or output snapshot might be composed of multiple tree snapshots.
 
+#### Implementation notes
+
+Output directory snapshotting is special currently. it handles the case
+where the output directory is shared. The current algoritm is:
+  - snapshot before task executions
+  - snapshot after task executions
+  - save snapshot for the files created by the task
+    - uses previous saved snapshot as template for list of files
+    - adds any changed or new files to the list of files created by the task
+Output directory snapshotting uses updateFrom and applyAllChangesSince methods on
+FileCollectionSnapshot to create the snapshot. This complicates the implementation.
+It should be replaced with a single method that is optimized for the use case of creating an output snapshot.
+This method should be added to OutputFilesCollectionSnapshotter.
+
+Introduce new concepts `VisitedTree` and `TreeSnapshot` for structuring the tree snapshot sharing solution.
+The `CachingTreeVisitor` implemented in the previous story "Incremental build reuses directory scanning results in simple cases" should be modified to return `VisitedTree` instances.
+
+```java
+public interface VisitedTree {
+    Collection<FileTreeElement> getEntries();
+    TreeSnapshot maybeCreateSnapshot(FileSnapshotter fileSnapshotter, StringInterner stringInterner);
+    boolean isShareable();
+}
+```
+A `TreeSnapshot` can be created from a `VisitedTree`. The `VisitedTree` instance will keep state of a created `TreeSnapshot` instance and will only create it if it hasn't been done. 
+
+Furthermore, a `TreeSnapshot` instance has methods for accessing the stored snapshot information and a method for storing the content. The `maybeStoreEntry` method persists the entry only if it hasn't been done before.
+```java
+public interface TreeSnapshot {
+    boolean isShareable();
+    Collection<FileSnapshotWithKey> getFileSnapshots();
+    Long getAssignedId();
+    Long maybeStoreEntry(Action<Long> storeEntryAction);
+}
+```
+
+### Improvement: Use relative paths in Jdk7DirectoryWalker and in snapshots
+
+Currently the snapshot uses absolute paths. Absolute paths contain a lot of redundant information.
+- Absolute path of root + relative path
+  - change in directory scanning to create File instances on demand
+    - Path.toFile relatively expensive
+- TreeSnapshot can hold the root information
 
 ### Incremental build reuses directory scanning results in most cases
 
@@ -176,7 +219,7 @@ Currently there are a lot of file system operations involved when the file metad
 Sometimes a task may accept a given directory as input or output multiple times. The `Test` task is an example of this.
 
 Currently, such directories will be scanned multiple times. Instead, each directory should be scanned once when calculating the input or output snapshots for a task.
-   
+
 The implementation of this is made more complex when different patterns or specs are used. For this story, simply merge those file trees with the same base directory
 and where one of the file trees has an 'accept everything' spec.
 
