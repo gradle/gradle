@@ -83,17 +83,8 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
                                                                               StartParameter startParameter, final DependencyManagementServices dependencyManagementServices,
                                                                               final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider,
                                                                               ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector) {
-            final ProjectFinder projectFinder = new ProjectFinder() {
-                public ProjectInternal getProject(String path) {
-                    throw new UnknownProjectException("Cannot use project dependencies in a plugin resolution definition.");
-                }
-            };
-
-            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter, classLoaderScopeRegistry.getCoreScope(), new Factory<DependencyResolutionServices>() {
-                public DependencyResolutionServices create() {
-                    return dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, new BasicDomainObjectContext());
-                }
-            }, pluginInspector);
+            final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
+            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter, classLoaderScopeRegistry.getCoreScope(), dependencyResolutionServicesFactory, pluginInspector);
         }
 
         PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver,
@@ -109,8 +100,27 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, injectedPluginClasspath.getClasspath());
         }
 
-        CustomRepositoryPluginResolver createCustomRepositoryPluginResolver() {
-            return new CustomRepositoryPluginResolver();
+        CustomRepositoryPluginResolver createCustomRepositoryPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector,
+                                                                            final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver,
+                                                                            final DependencyMetaDataProvider dependencyMetaDataProvider) {
+            final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
+            return new CustomRepositoryPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, dependencyResolutionServicesFactory);
+        }
+
+        private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider) {
+            return new Factory<DependencyResolutionServices>() {
+                public DependencyResolutionServices create() {
+                    return dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, makeUnknownProjectFinder(), new BasicDomainObjectContext());
+                }
+            };
+        }
+
+        private ProjectFinder makeUnknownProjectFinder() {
+            return new ProjectFinder() {
+                public ProjectInternal getProject(String path) {
+                    throw new UnknownProjectException("Cannot use project dependencies in a plugin resolution definition.");
+                }
+            };
         }
     }
 }
