@@ -37,6 +37,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.plugin.use.resolve.internal.CustomRepositoryPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.*;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -96,8 +97,8 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
         }
 
         PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver,
-                                                          InjectedClasspathPluginResolver injectedClasspathPluginResolver) {
-            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, injectedClasspathPluginResolver);
+                                                          CustomRepositoryPluginResolver customRepositoryPluginResolver, InjectedClasspathPluginResolver injectedClasspathPluginResolver) {
+            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, customRepositoryPluginResolver, injectedClasspathPluginResolver);
         }
 
         PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory) {
@@ -106,6 +107,10 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
 
         InjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector, InjectedPluginClasspath injectedPluginClasspath) {
             return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, injectedPluginClasspath.getClasspath());
+        }
+
+        CustomRepositoryPluginResolver createCustomRepositoryPluginResolver() {
+            return new CustomRepositoryPluginResolver();
         }
     }
 }

@@ -19,10 +19,7 @@ package org.gradle.plugin.use.internal;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
-import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
-import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
-import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.plugin.use.resolve.internal.*;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
@@ -34,17 +31,20 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
     private final PluginRegistry pluginRegistry;
     private final DocumentationRegistry documentationRegistry;
     private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
+    private final CustomRepositoryPluginResolver customRepositoryPluginResolver;
     private final InjectedClasspathPluginResolver injectedClasspathPluginResolver;
 
     public PluginResolverFactory(
             PluginRegistry pluginRegistry,
             DocumentationRegistry documentationRegistry,
             PluginResolutionServiceResolver pluginResolutionServiceResolver,
+            CustomRepositoryPluginResolver customRepositoryPluginResolver,
             InjectedClasspathPluginResolver injectedClasspathPluginResolver
     ) {
         this.pluginRegistry = pluginRegistry;
         this.documentationRegistry = documentationRegistry;
         this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
+        this.customRepositoryPluginResolver = customRepositoryPluginResolver;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
     }
 
@@ -63,6 +63,8 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         }
 
         resolvers.add(pluginResolutionServiceResolver);
+        if (System.getProperties().containsKey("org.gradle.plugin.useCustomRepositories")) {
+            resolvers.add(customRepositoryPluginResolver);
+        }
     }
-
 }
