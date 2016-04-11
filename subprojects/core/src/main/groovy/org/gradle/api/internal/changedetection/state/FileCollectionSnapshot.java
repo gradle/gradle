@@ -17,11 +17,11 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.util.ChangeListener;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -32,6 +32,8 @@ public interface FileCollectionSnapshot {
         IgnoreAddedFiles
     }
 
+    boolean isEmpty();
+
     /**
      * Returns an iterator over the changes to file contents since the given snapshot, subject to the given filters.
      *
@@ -39,20 +41,9 @@ public interface FileCollectionSnapshot {
      */
     ChangeIterator<String> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, Set<ChangeFilter> filters);
 
-    /**
-     * Returns a copy of this snapshot with file details updated from the given snapshot. Ignores files that are present in the given snapshot but not this snapshot.
-     * Removes files that are present in this snapshot but not the given snapshot.
-     */
-    FileCollectionSnapshot updateFrom(FileCollectionSnapshot newSnapshot);
-
-    /**
-     * Applies any changes to file contents since the given old snapshot, to the given target snapshot.
-     *
-     * <p>Note: <em>Includes changes to file meta-data, such as last modified time.</em> This should be made a {@link ChangeFilter} at some point.
-     */
-    FileCollectionSnapshot applyAllChangesSince(FileCollectionSnapshot oldSnapshot, FileCollectionSnapshot target);
-
     Collection<File> getFiles();
+
+    Map<String, IncrementalFileSnapshot> getSnapshots();
 
     FilesSnapshotSet getSnapshot();
 
@@ -61,12 +52,16 @@ public interface FileCollectionSnapshot {
     }
 
     interface PreCheck {
-        FileCollection getFileCollection();
-
         Integer getHash();
 
-        Collection<FileTreeElement> getFileTreeElements();
+        FileCollection getFiles();
+
+        Collection<VisitedTree> getVisitedTrees();
 
         Collection<File> getMissingFiles();
+
+        boolean isEmpty();
     }
+
+    Collection<Long> getTreeSnapshotIds();
 }

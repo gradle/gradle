@@ -40,7 +40,7 @@ class CachingTreeVisitorTest extends Specification {
         def fileTrees = resolveAsFileTrees()
 
         when:
-        def fileDetails = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true)
+        def fileDetails = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true).entries
 
         then:
         fileDetails.size() == 8
@@ -49,11 +49,11 @@ class CachingTreeVisitorTest extends Specification {
         treeVisitor.cachedTrees.size() == 1
 
         when:
-        def fileDetails2 = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true)
+        def fileDetails2 = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true).entries
 
         then:
-        fileDetails2 == fileDetails
         treeVisitor.cachedTrees.size() == 1
+        fileDetails2.is(fileDetails)
     }
 
     def "should not cache list of file details when there is a pattern or filter"() {
@@ -62,7 +62,7 @@ class CachingTreeVisitorTest extends Specification {
         def fileTrees = resolveAsFileTrees(includePattern, includeFilter)
 
         when:
-        def fileDetails = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true)
+        def fileDetails = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true).entries
 
         then:
         fileDetails.size() == 6
@@ -71,7 +71,7 @@ class CachingTreeVisitorTest extends Specification {
         treeVisitor.cachedTrees.size() == 0
 
         when:
-        def fileDetails2 = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true)
+        def fileDetails2 = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true).entries
 
         then:
         !fileDetails2.is(fileDetails)
@@ -91,14 +91,14 @@ class CachingTreeVisitorTest extends Specification {
         def fileTrees = resolveAsFileTrees()
 
         when:
-        def fileDetails = treeVisitor.visitTreeForSnapshotting(fileTrees[0], false)
+        def fileDetails = treeVisitor.visitTreeForSnapshotting(fileTrees[0], false).entries
 
         then:
         fileDetails.size() == 8
         treeVisitor.cachedTrees.size() == 1
 
         when:
-        def fileDetails2 = treeVisitor.visitTreeForSnapshotting(fileTrees[0], false)
+        def fileDetails2 = treeVisitor.visitTreeForSnapshotting(fileTrees[0], false).entries
 
         then:
         !fileDetails2.is(fileDetails)
@@ -106,7 +106,7 @@ class CachingTreeVisitorTest extends Specification {
         treeVisitor.cachedTrees.size() == 1
 
         when:
-        def fileDetails3 = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true)
+        def fileDetails3 = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true).entries
 
         then:
         fileDetails3.is(fileDetails2)

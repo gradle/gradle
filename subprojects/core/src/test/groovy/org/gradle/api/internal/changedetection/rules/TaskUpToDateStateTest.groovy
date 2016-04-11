@@ -15,13 +15,11 @@
  */
 
 package org.gradle.api.internal.changedetection.rules
+
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.FilesSnapshotSet
-import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
+import org.gradle.api.internal.changedetection.state.*
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.tasks.TaskInputs
 import spock.lang.Issue
@@ -30,7 +28,7 @@ import spock.lang.Specification
 class TaskUpToDateStateTest extends Specification {
     private TaskInternal stubTask
     private TaskHistoryRepository.History stubHistory
-    private FileCollectionSnapshotter stubOutputFileSnapshotter
+    private OutputFilesCollectionSnapshotter stubOutputFileSnapshotter
     private FileCollectionSnapshotter stubInputFileSnapshotter
     private FileCollectionSnapshotter stubDiscoveredInputFileSnapshotter
     private FileCollectionFactory fileCollectionFactory = Mock(FileCollectionFactory)
@@ -44,7 +42,7 @@ class TaskUpToDateStateTest extends Specification {
             _ * getOutputs() >> stubOutputs
         }
         this.stubHistory = Stub(TaskHistoryRepository.History)
-        this.stubOutputFileSnapshotter = Stub(FileCollectionSnapshotter)
+        this.stubOutputFileSnapshotter = Stub(OutputFilesCollectionSnapshotter)
         this.stubInputFileSnapshotter = Stub(FileCollectionSnapshotter)
         this.stubDiscoveredInputFileSnapshotter = Stub(FileCollectionSnapshotter)
     }
@@ -54,7 +52,7 @@ class TaskUpToDateStateTest extends Specification {
         FileCollectionSnapshot stubSnapshot = Stub(FileCollectionSnapshot) {
             _ * getSnapshot() >> Stub(FilesSnapshotSet)
         }
-        FileCollectionSnapshotter mockOutputFileSnapshotter = Mock(FileCollectionSnapshotter)
+        OutputFilesCollectionSnapshotter mockOutputFileSnapshotter = Mock(OutputFilesCollectionSnapshotter)
         FileCollectionSnapshotter mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
         FileCollectionSnapshotter mockDiscoveredInputFileSnapshotter = Mock(FileCollectionSnapshotter)
         FileCollectionSnapshot.PreCheck inputPreCheck = Mock(FileCollectionSnapshot.PreCheck)

@@ -16,11 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.Hasher;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.FileTreeElementHasher;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
@@ -52,60 +49,57 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
 
     @Override
     public FileCollectionSnapshot.PreCheck preCheck(FileCollection files, boolean allowReuse) {
+        return snapshotter.preCheck(files, allowReuse);
+    }
+
+    private Set<String> getRoots(FileCollection files) {
         Set<String> roots = new LinkedHashSet<String>();
         for (File file : files.getFiles()) {
             roots.add(stringInterner.intern(file.getAbsolutePath()));
         }
-        return new OutputFilesSnapshotPreCheck(snapshotter.preCheck(files, allowReuse), roots);
+        return roots;
+    }
+
+    /**
+     * Returns a new snapshot that ignores new files between 2 previous snapshots
+     */
+    public OutputFilesSnapshot createOutputSnapshot(FileCollectionSnapshot afterPreviousExecution, FileCollectionSnapshot beforeExecution, FileCollectionSnapshot afterExecution, FileCollection roots) {
+        FileCollectionSnapshot filesSnapshot;
+        if (!beforeExecution.getSnapshots().isEmpty() && !afterExecution.getSnapshots().isEmpty()) {
+            Map<String, IncrementalFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
+            Map<String, IncrementalFileSnapshot> previousSnapshots = afterPreviousExecution.getSnapshots();
+            List<Map.Entry<String, IncrementalFileSnapshot>> newEntries = new ArrayList<Map.Entry<String, IncrementalFileSnapshot>>(afterExecution.getSnapshots().size());
+
+            for (Map.Entry<String, IncrementalFileSnapshot> entry : afterExecution.getSnapshots().entrySet()) {
+                final String path = entry.getKey();
+                IncrementalFileSnapshot otherFile = beforeSnapshots.get(path);
+                if (otherFile == null
+                    || !entry.getValue().isContentAndMetadataUpToDate(otherFile)
+                    || previousSnapshots.containsKey(path)) {
+                    newEntries.add(entry);
+                }
+            }
+            if (newEntries.size() == afterExecution.getSnapshots().size()) {
+                filesSnapshot = afterExecution;
+            } else {
+                Map<String, IncrementalFileSnapshot> newSnapshots = new HashMap<String, IncrementalFileSnapshot>(newEntries.size());
+                for (Map.Entry<String, IncrementalFileSnapshot> entry : newEntries) {
+                    newSnapshots.put(entry.getKey(), entry.getValue());
+                }
+                filesSnapshot = new FileCollectionSnapshotImpl(newSnapshots);
+            }
+        } else {
+            filesSnapshot = afterExecution;
+        }
+        if (filesSnapshot instanceof OutputFilesSnapshot) {
+            filesSnapshot = ((OutputFilesSnapshot) filesSnapshot).filesSnapshot;
+        }
+        return new OutputFilesSnapshot(getRoots(roots), filesSnapshot);
     }
 
     @Override
-    public OutputFilesSnapshot snapshot(FileCollectionSnapshot.PreCheck preCheck) {
-        return new OutputFilesSnapshot(((OutputFilesSnapshotPreCheck) preCheck).getRoots(), snapshotter.snapshot(preCheck));
-    }
-
-    private static class OutputFilesSnapshotPreCheck implements FileCollectionSnapshot.PreCheck {
-        private final FileCollectionSnapshot.PreCheck delegate;
-        private final Set<String> roots;
-        private Integer hash;
-
-        OutputFilesSnapshotPreCheck(FileCollectionSnapshot.PreCheck delegate, Set<String> roots) {
-            this.delegate = delegate;
-            this.roots = roots;
-        }
-
-        @Override
-        public FileCollection getFileCollection() {
-            return delegate.getFileCollection();
-        }
-
-        @Override
-        public Integer getHash() {
-            if (hash == null) {
-                Hasher hasher = FileTreeElementHasher.createHasher();
-                hasher.putInt(delegate.getHash());
-                for (String root : roots) {
-                    hasher.putUnencodedChars(root);
-                    hasher.putByte((byte) '\n');
-                }
-                hash = hasher.hash().asInt();
-            }
-            return hash;
-        }
-
-        @Override
-        public Collection<FileTreeElement> getFileTreeElements() {
-            return delegate.getFileTreeElements();
-        }
-
-        @Override
-        public Collection<File> getMissingFiles() {
-            return delegate.getMissingFiles();
-        }
-
-        public Set<String> getRoots() {
-            return roots;
-        }
+    public FileCollectionSnapshot snapshot(FileCollectionSnapshot.PreCheck preCheck) {
+        return new OutputFilesSnapshot(getRoots(preCheck.getFiles()), snapshotter.snapshot(preCheck));
     }
 
     static class OutputFilesSnapshot implements FileCollectionSnapshot {
@@ -121,21 +115,23 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             return filesSnapshot.getFiles();
         }
 
+        @Override
+        public Map<String, IncrementalFileSnapshot> getSnapshots() {
+            return filesSnapshot.getSnapshots();
+        }
+
         public FilesSnapshotSet getSnapshot() {
             return filesSnapshot.getSnapshot();
         }
 
         @Override
-        public FileCollectionSnapshot updateFrom(FileCollectionSnapshot newSnapshot) {
-            OutputFilesSnapshot newOutputsSnapshot = (OutputFilesSnapshot) newSnapshot;
-            return new OutputFilesSnapshot(roots, filesSnapshot.updateFrom(newOutputsSnapshot.filesSnapshot));
+        public Collection<Long> getTreeSnapshotIds() {
+            return filesSnapshot.getTreeSnapshotIds();
         }
 
         @Override
-        public FileCollectionSnapshot applyAllChangesSince(FileCollectionSnapshot oldSnapshot, FileCollectionSnapshot target) {
-            OutputFilesSnapshot oldOutputsSnapshot = (OutputFilesSnapshot) oldSnapshot;
-            OutputFilesSnapshot targetOutputsSnapshot = (OutputFilesSnapshot) target;
-            return new OutputFilesSnapshot(roots, filesSnapshot.applyAllChangesSince(oldOutputsSnapshot.filesSnapshot, targetOutputsSnapshot.filesSnapshot));
+        public boolean isEmpty() {
+            return filesSnapshot.isEmpty();
         }
 
         @Override

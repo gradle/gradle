@@ -31,7 +31,9 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
     def treeVisitor = new CachingTreeVisitor()
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, new StringInterner(), TestFiles.resolver(), treeVisitor)
+    def stringInterner = new StringInterner()
+    def treeSnapshotCache = new TreeSnapshotRepository(cacheAccess, stringInterner)
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, TestFiles.resolver(), treeVisitor, treeSnapshotCache)
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -252,6 +254,9 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         0 * listener._
     }
 
+    /*
+    TODO: LH Add proper unit tests for OutputFilesCollectionSnapshotter.createOutputSnapshot which replaces FileCollectionSnapshot's applyAllChangesSince and updateFrom methods
+
     def applyChangesAddsAddedFilesToSnapshot() {
         TestFile file = tmpDir.createFile('file')
 
@@ -469,6 +474,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         then:
         target.is(original)
     }
+    */
 
     private void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
         changes(newSnapshot.iterateContentChangesSince(oldSnapshot, [] as Set), listener)

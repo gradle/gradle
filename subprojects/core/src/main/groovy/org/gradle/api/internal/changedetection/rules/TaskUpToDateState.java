@@ -17,10 +17,7 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
-import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
+import org.gradle.api.internal.changedetection.state.*;
 import org.gradle.api.internal.file.FileCollectionFactory;
 
 import java.io.File;
@@ -39,7 +36,7 @@ public class TaskUpToDateState {
     private SummaryTaskStateChanges rebuildChanges;
 
     public TaskUpToDateState(TaskInternal task, TaskHistoryRepository.History history,
-                             FileCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter,
+                             OutputFilesCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter,
                              FileCollectionSnapshotter discoveredInputsSnapshotter, FileCollectionFactory fileCollectionFactory) {
         TaskExecution thisExecution = history.getCurrentExecution();
         TaskExecution lastExecution = history.getPreviousExecution();

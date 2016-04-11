@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.rules;
 import com.google.common.collect.Iterators;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
 import java.util.EnumSet;
@@ -29,12 +29,12 @@ public class OutputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateCh
     private final TaskExecution previousExecution;
     private final TaskExecution currentExecution;
     private final TaskInternal task;
-    private final FileCollectionSnapshotter outputFilesSnapshotter;
+    private final OutputFilesCollectionSnapshotter outputFilesSnapshotter;
     private final FileCollectionSnapshot.PreCheck outputFilesBeforePreCheck;
     private final boolean noChanges;
     private FileCollectionSnapshot outputFilesBefore;
 
-    public OutputFilesTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task, FileCollectionSnapshotter outputFilesSnapshotter) {
+    public OutputFilesTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task, OutputFilesCollectionSnapshotter outputFilesSnapshotter) {
         super(task.getName());
         this.previousExecution = previousExecution;
         this.currentExecution = currentExecution;
@@ -75,10 +75,10 @@ public class OutputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateCh
         } else {
             lastExecutionOutputFiles = previousExecution.getOutputFilesSnapshot();
         }
-        FileCollectionSnapshot newOutputFiles = lastExecutionOutputFiles.updateFrom(outputFilesBefore);
+
         FileCollectionSnapshot.PreCheck outputFilesAfterPreCheck = createSnapshotPreCheck(outputFilesSnapshotter, task.getOutputs().getFiles());
         FileCollectionSnapshot outputFilesAfter = createSnapshot(outputFilesSnapshotter, outputFilesAfterPreCheck);
-        currentExecution.setOutputFilesSnapshot(outputFilesAfter.applyAllChangesSince(outputFilesBefore, newOutputFiles));
+        currentExecution.setOutputFilesSnapshot(outputFilesSnapshotter.createOutputSnapshot(lastExecutionOutputFiles, outputFilesBefore, outputFilesAfter, task.getOutputs().getFiles()));
         currentExecution.setOutputFilesHash(outputFilesAfterPreCheck.getHash());
     }
 
