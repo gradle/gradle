@@ -36,10 +36,12 @@ import java.io.OutputStream;
 public class TarCopyAction implements CopyAction {
     private final File tarFile;
     private final ArchiveOutputStreamFactory compressor;
+    private final String encoding;
 
-    public TarCopyAction(File tarFile, ArchiveOutputStreamFactory compressor) {
+    public TarCopyAction(File tarFile, ArchiveOutputStreamFactory compressor, String encoding) {
         this.tarFile = tarFile;
         this.compressor = compressor;
+        this.encoding = encoding;
     }
 
     public WorkResult execute(final CopyActionProcessingStream stream) {
@@ -56,7 +58,7 @@ public class TarCopyAction implements CopyAction {
             protected void doExecute(final OutputStream outStr) throws Exception {
                 TarOutputStream tarOutStr;
                 try {
-                    tarOutStr = new TarOutputStream(outStr);
+                    tarOutStr = new TarOutputStream(outStr, encoding);
                 } catch (Exception e) {
                     throw new GradleException(String.format("Could not create TAR '%s'.", tarFile), e);
                 }

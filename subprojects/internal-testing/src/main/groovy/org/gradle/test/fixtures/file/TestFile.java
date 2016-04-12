@@ -223,6 +223,11 @@ public class TestFile extends File {
         new TestFileHelper(this).untarTo(target, useNativeTools);
     }
 
+    public void untarTo(File target, String encoding) {
+        assertIsFile();
+        new TestFileHelper(this).untarTo(target, useNativeTools, encoding);
+    }
+
     public void copyTo(File target) {
         if (isDirectory()) {
             try {

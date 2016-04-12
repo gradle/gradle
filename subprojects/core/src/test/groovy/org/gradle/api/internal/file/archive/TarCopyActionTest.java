@@ -38,6 +38,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -134,8 +135,43 @@ public class TarCopyActionTest {
         }
     }
 
+    @Test
+    public void createTarFileWithEncoding() throws UnsupportedEncodingException {
+        String encoding = "GBK";
+        final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tar"),
+            new SimpleCompressor(), encoding);
+        tarAndUntarAndCheckFileNames(tarFile, new String("file-中文".getBytes(encoding), encoding), encoding);
+    }
+
+    private void tarAndUntarAndCheckFileNames(TestFile tarFile, String filename, String encoding) {
+        tar(file("dir/" + filename + "1"), file(filename + "2"));
+
+        TestFile expandDir = tmpDir.getTestDirectory().file("expanded");
+        tarFile.untarTo(expandDir, encoding);
+        expandDir.assertHasDescendants("dir/" + filename + "1", filename + "2");
+    }
+
+    @Test
+    public void wrapsFailureToUnsupportedEncoding() {
+        String encoding = "unsupported encoding";
+        final TestFile tarFile = initializeTarFile(tmpDir.getTestDirectory().file("test.tar"),
+            new SimpleCompressor(), encoding);
+
+        try {
+            tarAndUntarAndCheckFileNames(tarFile, "file-中文", encoding);
+            fail();
+        } catch (GradleException e) {
+            assertThat(e.getMessage(), equalTo(String.format("Could not create TAR '%s'.", tarFile)));
+            assertThat(e.getCause().getMessage(), equalTo(encoding));
+        }
+    }
+
     private TestFile initializeTarFile(final TestFile tarFile, final ArchiveOutputStreamFactory compressor) {
-        action = new TarCopyAction(tarFile, compressor);
+        return initializeTarFile(tarFile, compressor, null);
+    }
+
+    private TestFile initializeTarFile(final TestFile tarFile, final ArchiveOutputStreamFactory compressor, final String encoding) {
+        action = new TarCopyAction(tarFile, compressor, encoding);
         return tarFile;
     }
 

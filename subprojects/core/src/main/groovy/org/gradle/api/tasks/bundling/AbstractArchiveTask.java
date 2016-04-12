@@ -33,6 +33,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private String version;
     private String extension;
     private String classifier = "";
+    private String encoding;
 
     /**
      * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
@@ -155,6 +156,25 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     public void setClassifier(String classifier) {
         this.classifier = classifier;
+    }
+
+    /**
+     * The encoding to use for filenames and the file comment of the archive.
+     *
+     * @return null if using the platform's default character encoding.
+     */
+    public String getEncoding() {
+        return this.encoding;
+    }
+
+    /**
+     * The encoding to use for filenames and the file comment of the archive.
+     * Defaults to the platform's default character encoding.
+     *
+     * @param encoding the encoding value
+     */
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
     }
 
     /**
