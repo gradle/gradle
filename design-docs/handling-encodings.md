@@ -12,10 +12,19 @@ choose the target encoding for the source files, and thus to use a single filter
 writing.
 
 As a general rule of thumb, the default character set to use is the default platform character set as defined by the
-`java.io.encoding` system property.
+`file.encoding` system property, also accessible via `Charset.defaultCharset()`.
 APIs should provide a way for build authors to control the character set to use.
+
 But, when it comes to encoding text inside a binary format, like in archives metadata, the corresponding binary formats
 specifications prevail.
+
+<a name="impl-notes"></a>
+## Implementation notes
+
+When writing tests, the `CP1047` character set, aka. EBCDIC, is a good candidate as it is
+[very different](https://kb.iu.edu/d/aesh) than `ASCII` and its cousins.
+It makes it very easy to exhibit problems when encoding/decoding with wrong character sets.
+Almost all characters turn into mojibakes.
 
 <a name="jar"></a>
 ## About ZIP/JAR
@@ -178,20 +187,30 @@ In the meantime, its getter and setter should delegate to the new `metadataChars
 
 When `metadataCharset` is UTF-8 the `Zip` task should properly set the *Language encoding flag* or EFS.
 
-When creating WAR, EAR, and JAR files which all extend from the `Zip` task, we should only allow `metadataCharset`to
-have the value `UTF-8` as that is the expectation of the JVM.
+When creating WAR, EAR, and JAR files which all extend from the `Zip` task, we should set default value of
+`metadataCharset`to `UTF-8` as that is the expectation of the JVM.
 
 We should accomplish this by overriding the setter for the property on the `Jar` task implementation to throw an
 `UnsupportedOperationException`.
 `War` and `Ear` inherit from `Jar`, and will thus automatically benefit from this behavior.
 
+This is a potential breaking change.
+To get the old behaviour the `metadataCharset` property could be set as follows:
+
+    task oldBehaviour(type:Jar) {
+        metadataCharset = Charset.defaultCharset().name()
+    }
+
 The `Zip` task should document the `metadataCharset` property and specify the default value if the property is not set.
-The `Jar`, `War` and `Ear` tasks should document the `metadataCharset` property and specify that it should not be set
-and will always use the default `UTF-8` value.
+
+The `Jar`, `War` and `Ear` tasks should document the `metadataCharset` property, specify the default value of `UTF-8`
+and warn about using something else.
 
 #### Tests
 
-[//]: # (TODO)
+- See existing tests in `JarIntegrationTest` for JAR/WAR/EAR metadata encoding
+
+[//]: # (TODO add tests)
 
 <a name="tar-write"></a>
 ### Story: Control the character set used for metadata when creating TAR archives
@@ -244,16 +263,44 @@ Create POSIX/PAX TAR using ISO-8859 for metadata encoding:
 
 #### Tests
 
-[//]: # (TODO)
+[//]: # (TODO add tests)
 
 <a name="jar-manifest"></a>
 ### Story: JAR/WAR/EAR manifests are always encoded using UTF-8
 
 Gradle use the platform default character set to encode the manifest content.
 Manifests must be encoded using UTF-8.
-
 This is a bug and it should be fixed, see [GRADLE-3374](https://issues.gradle.org/browse/GRADLE-3374).
+
+While fixing the default behaviour we should provide a way to control the character set used for encoding/decoding
+manifests:
+
+    task jar(type: Jar) {
+        manifest {
+            contentCharset = 'windows-1252'
+        }
+    }
+
+When merging manifests from files:
+
+    task jar(type: Jar) {
+        manifest {
+            // Encode the JAR manifest using the charset below
+            contentCharset = Charset.defaultCharset().name()
+            from('src/config/javabasemanifest.txt') {
+                // Read this manifest to merge using the charset below
+                contentCharset = 'windows-1252'
+            }
+        }
+    }
+
+This is a potential breaking change.
+To get the old behaviour, simply use `Charset.defaultCharset().name()` as `contentCharset` value.
 
 #### Tests
 
-- whatever the platform default character set, JAR/WAR/EAR manifests are encoded using UTF-8
+- by default, whatever the platform default character set, JAR/WAR/EAR manifests are encoded/decoded using UTF-8
+- build author can control which character set is used for both encoding/decoding JAR manifests
+- See existing tests in `JarIntegrationTest` for manifest content encoding
+
+[//]: # (TODO add tests)
