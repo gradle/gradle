@@ -355,6 +355,13 @@ class HttpServer extends ServerWithExpectations {
     }
 
     /**
+     * Expects one HEAD request for the given URL, asserting that the request is revalidated.
+     */
+    void expectHeadRevalidate(String path, File srcFile) {
+        expect(path, false, ['HEAD'], revalidateFileHandler(path, srcFile))
+    }
+
+    /**
      * Allows one HEAD request for the given URL with http authentication.
      */
     void expectHead(String path, String username, String password, File srcFile, Long lastModified = null, Long contentLength = null) {
@@ -366,6 +373,13 @@ class HttpServer extends ServerWithExpectations {
      */
     HttpResourceInteraction expectGet(String path, File srcFile) {
         return expect(path, false, ['GET'], fileHandler(path, srcFile))
+    }
+
+    /**
+     * Allows one GET request for the given URL, asserting that the request revalidates. Reads the request content from the given file.
+     */
+    HttpResourceInteraction expectGetRevalidate(String path, File srcFile) {
+        return expect(path, false, ['GET'], revalidateFileHandler(path, srcFile))
     }
 
     /**
