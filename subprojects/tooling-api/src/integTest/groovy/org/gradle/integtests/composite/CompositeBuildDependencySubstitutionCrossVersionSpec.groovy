@@ -383,7 +383,6 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         }
     }
 
-    @NotYetImplemented
     def "reports failure to resolve dependencies when substitution is ambiguous"() {
         given:
         def buildC = multiProjectBuild("buildC", ['a1', 'b1']) {
@@ -407,11 +406,9 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
 
         then:
         def t = thrown(BuildException)
-        assertFailureHasCause(t, ModuleVersionResolveException)
         assertFailure(t, "Module version 'org.test:b1:1.0' is not unique in composite: can be provided by projects [buildC::b1, buildB::b1].")
     }
 
-    @NotYetImplemented
     def "reports failure to resolve dependencies when substitution is ambiguous within single participant"() {
         given:
         buildB
@@ -437,7 +434,6 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
 
         then:
         def t = thrown(BuildException)
-        assertFailureHasCause(t, ModuleVersionResolveException)
         assertFailure(t, "Module version 'org.test:c1:1.0' is not unique in composite: can be provided by projects [buildC::c1, buildC::nested:c1].")
     }
 

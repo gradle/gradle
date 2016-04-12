@@ -16,22 +16,37 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 public class DefaultCompositeBuildContext implements CompositeBuildContext {
-    private final Map<ModuleIdentifier, String> replacementProjects = Maps.newHashMap();
+    private final Multimap<ModuleIdentifier, String> replacementProjects = ArrayListMultimap.create();
     private final Map<String, LocalComponentMetaData> projectMetadata = Maps.newHashMap();
+    private final Set<ModuleIdentifier> duplicateProjects = Sets.newHashSet();
 
     @Override
     public String getReplacementProject(ModuleComponentSelector selector) {
         ModuleIdentifier candidateId = DefaultModuleIdentifier.newId(selector.getGroup(), selector.getModule());
-        return replacementProjects.get(candidateId);
+        Collection<String> providingProjects = replacementProjects.get(candidateId);
+        if (providingProjects.isEmpty()) {
+            return null;
+        }
+        if (providingProjects.size() == 1) {
+            return providingProjects.iterator().next();
+        }
+        String failureMessage = String.format("Module version '%s' is not unique in composite: can be provided by projects %s.", selector.getDisplayName(), providingProjects);
+        throw new ModuleVersionResolveException(selector, failureMessage);
     }
 
     @Override
