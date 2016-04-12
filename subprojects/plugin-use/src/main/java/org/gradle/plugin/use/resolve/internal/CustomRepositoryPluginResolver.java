@@ -53,15 +53,14 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
     @Override
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         final String artifactAddress = pluginRequest.getId() + ":" + pluginRequest.getId() + ":" + pluginRequest.getVersion();
-        ClassPath classPath = resolvePluginDependencies(artifactAddress);
+        ClassPath classPath = resolvePluginDependencies(System.getProperty("org.gradle.plugin.repoUrl"), artifactAddress);
         result.found("Custom Repository", new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector));
     }
 
-    private ClassPath resolvePluginDependencies(final String groupArtifactVersion) {
+    private ClassPath resolvePluginDependencies(final String repoUrl, final String groupArtifactVersion) {
         DependencyResolutionServices resolution = dependencyResolutionServicesFactory.create();
 
         RepositoryHandler repositories = resolution.getResolveRepositoryHandler();
-        final String repoUrl = System.getProperty("org.gradle.plugin.repoUrl", new File("../maven-repo").toURI().toString());
         repositories.maven(new Action<MavenArtifactRepository>() {
             public void execute(MavenArtifactRepository mavenArtifactRepository) {
                 mavenArtifactRepository.setUrl(repoUrl);
