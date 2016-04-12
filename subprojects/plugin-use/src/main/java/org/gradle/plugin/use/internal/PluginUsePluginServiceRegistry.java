@@ -39,6 +39,7 @@ import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.plugin.use.resolve.internal.CustomRepositoryPluginResolver;
+import org.gradle.plugin.use.resolve.internal.PluginClassPathResolver;
 import org.gradle.plugin.use.resolve.service.internal.*;
 
 import java.io.File;
@@ -87,7 +88,8 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
                                                                               final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider,
                                                                               ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector) {
             final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
-            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter, classLoaderScopeRegistry.getCoreScope(), dependencyResolutionServicesFactory, pluginInspector);
+            PluginClassPathResolver pluginClassPathResolver = new PluginClassPathResolver(dependencyResolutionServicesFactory);
+            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter, pluginClassPathResolver, classLoaderScopeRegistry.getCoreScope(), pluginInspector);
         }
 
         PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver,
@@ -115,7 +117,8 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
              */
             FileResolver fileResolver = fileLookup.getFileResolver(new File("").getAbsoluteFile());
             final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
-            return new CustomRepositoryPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, dependencyResolutionServicesFactory);
+            PluginClassPathResolver pluginClassPathResolver = new PluginClassPathResolver(dependencyResolutionServicesFactory);
+            return new CustomRepositoryPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, pluginClassPathResolver);
         }
 
         private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider) {

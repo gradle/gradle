@@ -16,41 +16,25 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginInspector;
-import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.exceptions.Contextual;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
-
-import java.io.File;
-import java.util.Set;
 
 public class CustomRepositoryPluginResolver implements PluginResolver {
     private static final String REPO_SYSTEM_PROPERTY = "org.gradle.plugin.repoUrl";
     private static final String UNSET_REPO_SYSTEM_PROPERTY = "repo-url-unset-in-system-properties";
     private final ClassLoaderScope parentScope;
     private final PluginInspector pluginInspector;
-    private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
+    private final PluginClassPathResolver pluginClassPathResolver;
     private String repoUrl;
 
-    public CustomRepositoryPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
+    public CustomRepositoryPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, PluginClassPathResolver pluginClassPathResolver) {
         this.parentScope = parentScope;
         this.pluginInspector = pluginInspector;
-        this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
+        this.pluginClassPathResolver = pluginClassPathResolver;
     }
 
     @Override
@@ -59,31 +43,8 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
             return;
         }
         final String artifactAddress = pluginRequest.getId() + ":" + pluginRequest.getId() + ":" + pluginRequest.getVersion();
-        ClassPath classPath = resolvePluginDependencies(getRepoUrl(), artifactAddress);
+        ClassPath classPath = pluginClassPathResolver.resolvePluginDependencies(getRepoUrl(), artifactAddress);
         result.found("Custom Repository", new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector));
-    }
-
-    private ClassPath resolvePluginDependencies(final String repoUrl, final String groupArtifactVersion) {
-        DependencyResolutionServices resolution = dependencyResolutionServicesFactory.create();
-
-        RepositoryHandler repositories = resolution.getResolveRepositoryHandler();
-        repositories.maven(new Action<MavenArtifactRepository>() {
-            public void execute(MavenArtifactRepository mavenArtifactRepository) {
-                mavenArtifactRepository.setUrl(repoUrl);
-            }
-        });
-
-        Dependency dependency = resolution.getDependencyHandler().create(groupArtifactVersion);
-
-        ConfigurationContainerInternal configurations = (ConfigurationContainerInternal) resolution.getConfigurationContainer();
-        ConfigurationInternal configuration = configurations.detachedConfiguration(dependency);
-
-        try {
-            Set<File> files = configuration.getResolvedConfiguration().getFiles(Specs.satisfyAll());
-            return new DefaultClassPath(files);
-        } catch (ResolveException e) {
-            throw new DependencyResolutionException("Failed to resolve all plugin dependencies from " + repoUrl, e.getCause());
-        }
     }
 
     // Gets and caches the repoUrl so that we create minimal lock contention on System.getProperty() calls.
@@ -92,12 +53,5 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
             repoUrl = System.getProperty(REPO_SYSTEM_PROPERTY, UNSET_REPO_SYSTEM_PROPERTY);
         }
         return repoUrl;
-    }
-
-    @Contextual
-    public static class DependencyResolutionException extends GradleException {
-        public DependencyResolutionException(String message, Throwable cause) {
-            super(message, cause);
-        }
     }
 }
