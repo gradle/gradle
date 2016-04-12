@@ -147,6 +147,7 @@
                     <xsl:attribute name="name">
                         <xsl:value-of select="$refId"/>
                     </xsl:attribute>
+                    <xsl:attribute name="class">section-anchor</xsl:attribute>
                     <xsl:attribute name="href">#<xsl:value-of select="$refId"/></xsl:attribute>
                 </a>
             </xsl:when>
