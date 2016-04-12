@@ -100,6 +100,8 @@ We should allow it while retaining backward compatibility.
 
 ## Open Questions
 
+Currently scripts are compiled using the current locale. Obviously this is an issue if the build script contains system-dependent characters and is used on a different platform. What should we do in that case?
+
 [//]: # (Any?)
 
 ## Stories
