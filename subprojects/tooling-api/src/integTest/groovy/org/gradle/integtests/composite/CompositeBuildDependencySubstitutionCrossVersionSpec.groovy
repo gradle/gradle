@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
-import org.gradle.api.GradleScriptException
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -83,7 +82,6 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
 
         then:
         def t = thrown(BuildException)
-        assertFailureHasCause(t, GradleScriptException)
         assertFailure(t,
             "A problem occurred evaluating root project 'buildC'.",
             "exception thrown on configure")
