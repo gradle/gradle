@@ -120,7 +120,7 @@ class DefaultProjectTest {
     void setUp() {
         rootDir = new File("/path/root").absoluteFile
 
-        testAntBuilder = new DefaultAntBuilder()
+        testAntBuilder = new DefaultAntBuilder(null, null)
 
         context.checking {
             allowing(antBuilderFactoryMock).create(); will(returnValue(testAntBuilder))

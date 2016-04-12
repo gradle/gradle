@@ -15,29 +15,31 @@
  */
 package org.gradle.api.internal.project;
 
-import org.apache.tools.ant.BuildListener;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ant.AntLoggingAdapter;
+import org.gradle.api.internal.project.ant.AntLoggingAdapterFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
 import java.io.Closeable;
 
 public class DefaultAntBuilderFactory implements Factory<AntBuilder>, Closeable {
-    private final BuildListener buildListener;
     private final Project project;
+    private final AntLoggingAdapterFactory loggingAdapterFactory;
     private final CompositeStoppable stoppable = new CompositeStoppable();
 
-    public DefaultAntBuilderFactory(BuildListener buildListener, Project project) {
-        this.buildListener = buildListener;
+    public DefaultAntBuilderFactory(Project project, AntLoggingAdapterFactory loggingAdapterFactory) {
         this.project = project;
+        this.loggingAdapterFactory = loggingAdapterFactory;
     }
 
     public DefaultAntBuilder create() {
-        DefaultAntBuilder antBuilder = new DefaultAntBuilder(project);
+        AntLoggingAdapter loggingAdapter = loggingAdapterFactory.create();
+        DefaultAntBuilder antBuilder = new DefaultAntBuilder(project, loggingAdapter);
         antBuilder.getProject().setBaseDir(project.getProjectDir());
         antBuilder.getProject().removeBuildListener(antBuilder.getProject().getBuildListeners().get(0));
-        antBuilder.getProject().addBuildListener(buildListener);
+        antBuilder.getProject().addBuildListener(loggingAdapter);
         stoppable.add(antBuilder);
         return antBuilder;
     }

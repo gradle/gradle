@@ -81,6 +81,16 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder implements Closea
         }
     }
 
+    @Override
+    public void setLifecycleLogLevel(AntMessagePriority logLevel) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public AntMessagePriority getLifecycleLogLevel() {
+        throw new UnsupportedOperationException();
+    }
+
     protected Object postNodeCompletion(Object parent, Object node) {
         try {
             return nodeField.get(this);
