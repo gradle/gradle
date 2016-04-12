@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.composite
+
 import groovy.transform.NotYetImplemented
 import org.gradle.api.GradleScriptException
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -22,9 +23,9 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
-import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.BuildException
+
 /**
  * Tests for dependency substitution within a composite build.
  * Note that this test should be migrated to use the command-line entry point for composite build, when this is developed.
@@ -437,29 +438,6 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         assertFailure(t, "Module version 'org.test:c1:1.0' is not unique in composite: can be provided by projects [buildC::c1, buildC::nested:c1].")
     }
 
-    @NotYetImplemented
-    def "does not perform substitution for project with no defined configurations"() {
-        given:
-        mavenRepo.module("org.test", "buildC", "1.0").publish()
-        def buildC = singleProjectBuild("buildC")
-        builds << buildC
-
-        buildA.buildFile << """
-            dependencies {
-                compile "org.test:buildC:1.0"
-            }
-"""
-
-        when:
-        checkDependencies()
-
-        then:
-        def t = thrown(BuildException)
-        assertFailureHasCause(t, ModuleVersionResolveException)
-        assertFailure(t, "Module version 'org.test:b1:1.0' is not unique in composite: can be provided by projects [buildC::b1, buildB::b1].")
-    }
-
-    @NotYetImplemented
     def "handles unused participant with no defined configurations"() {
         given:
         def buildC = singleProjectBuild("buildC")
@@ -482,7 +460,6 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         }
     }
 
-    @NotYetImplemented
     def "reports failure when substituted project does not have requested configuration"() {
         given:
         def buildC = singleProjectBuild("buildC")
@@ -499,7 +476,6 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
 
         then:
         def t = thrown(BuildException)
-        assertFailureHasCause(t, ModuleVersionResolveException)
         assertFailure(t, "Module version org.test:buildA:1.0, configuration 'compile' declares a dependency on configuration 'default' which is not declared in the module descriptor for org.test:buildC:1.0")
     }
 
