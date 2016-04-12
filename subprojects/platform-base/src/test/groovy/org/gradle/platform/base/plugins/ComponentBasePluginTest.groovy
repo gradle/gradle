@@ -21,6 +21,16 @@ import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.PlatformBaseSpecification
 
 class ComponentBasePluginTest extends PlatformBaseSpecification {
+    def "can apply plugin by id"() {
+        when:
+        dsl {
+            apply plugin: 'component-base'
+        }
+
+        then:
+        project.pluginManager.pluginContainer.hasPlugin(ComponentBasePlugin)
+    }
+
     def "applies lifecycle base plugin only"() {
         when:
         dsl {

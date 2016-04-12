@@ -24,6 +24,22 @@ See the “[Filtering files](userguide/working_with_files.html#sec:filtering_fil
 
 This was contributed by [Jean-Baptiste Nizet](https://github.com/jnizet).
 
+### Apply gradle core plugins by id
+
+Some gradle core plugins can now be applied by id:
+
+    plugins {
+        id 'standard-toolchains' // StandardToolChainsPlugin
+        id 'gcc-compiler' // GccCompilerPlugin
+        id 'component-base' // ComponentBasePlugin
+        id 'component-model-base' // ComponentModelBasePlugin
+        id 'reporting-base' // ReportingBasePlugin
+        id 'clang-compiler' // ClangCompilerPlugin
+        id 'native-component-model' // NativeComponentModelPlugin
+        id 'lifecycle-base' // LifecycleBasePlugin
+        id 'visualcpp-compiler' // MicrosoftVisualCppPlugin
+    }
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -80,6 +96,10 @@ With this version of Gradle proper class relocation has been implemented
  the Gradle runtime. Classes from third-party libraries provided by
  the Gradle runtime are no longer "visible" at compile and test
  time.
+
+### Change in plugin id
+
+`ComponentModelBasePlugin` can no longer be applied using id `component-base`. Its new id is `component-model-base`.
 
 ## External contributions
 

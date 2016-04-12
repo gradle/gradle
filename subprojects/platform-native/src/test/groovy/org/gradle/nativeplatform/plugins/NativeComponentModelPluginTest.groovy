@@ -43,6 +43,15 @@ class NativeComponentModelPluginTest extends Specification {
         project.pluginManager.apply(NativeComponentModelPlugin)
     }
 
+    def "can apply plugin by id"() {
+        given:
+        def project = TestUtil.createRootProject()
+        project.apply plugin: 'native-component-model'
+
+        expect:
+        project.plugins.hasPlugin(NativeComponentModelPlugin)
+    }
+
     public <T> T realizeModelElement(String path, Class<T> type) {
         realizeModelElement(path, ModelType.of(type))
     }
@@ -105,10 +114,10 @@ class NativeComponentModelPluginTest extends Specification {
     def "behaves correctly for defaults when domain is explicitly configured"() {
         when:
         registry
-                .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
-                .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
-                .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
-                .mutate(FlavorContainer) { it.add named(Flavor, "flavor1") }
+            .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
+            .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
+            .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
+            .mutate(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
         then:
         one(toolChains).name == 'tc'
@@ -121,10 +130,10 @@ class NativeComponentModelPluginTest extends Specification {
         when:
         project.pluginManager.apply(NativeComponentModelPlugin)
         registry
-                .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
-                .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
-                .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
-                .mutate(FlavorContainer) { it.add named(Flavor, "flavor1") }
+            .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
+            .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
+            .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
+            .mutate(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
         project.model {
             components {
@@ -154,10 +163,10 @@ class NativeComponentModelPluginTest extends Specification {
         when:
         project.pluginManager.apply(NativeComponentModelPlugin)
         registry
-                .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
-                .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
-                .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
-                .mutate(FlavorContainer) { it.add named(Flavor, "flavor1") }
+            .mutate(NativeToolChainRegistry) { it.add toolChain("tc") }
+            .mutate(PlatformContainer) { it.add named(NativePlatformInternal, "platform") }
+            .mutate(BuildTypeContainer) { it.add named(BuildType, "bt") }
+            .mutate(FlavorContainer) { it.add named(Flavor, "flavor1") }
 
         project.model {
             components {
