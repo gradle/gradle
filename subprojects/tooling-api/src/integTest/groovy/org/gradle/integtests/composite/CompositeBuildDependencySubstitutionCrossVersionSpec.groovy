@@ -123,7 +123,7 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
-                selectedByRule()
+                compositeSubstitute()
             }
         }
     }
@@ -143,10 +143,10 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         then:
         checkGraph {
             edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
-                selectedByRule()
+                compositeSubstitute()
             }
             edge("org.test:b2:1.0", "project buildB::b2", "org.test:b2:2.0") {
-                selectedByRule()
+                compositeSubstitute()
             }
         }
     }
@@ -168,7 +168,7 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         then:
         checkGraph {
             edge("org.test:a2:1.0", "project buildA::a2", "org.test:a2:1.0") {
-                selectedByRule()
+                compositeSubstitute()
             }
         }
     }
@@ -193,7 +193,7 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
-                selectedByRule()
+                compositeSubstitute()
                 module("org.foo:transitive:1.0")
             }
         }
@@ -224,9 +224,9 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
-                selectedByRule()
+                compositeSubstitute()
                 edge("org.test:buildC:1.0", "project buildC::", "org.test:buildC:1.0") {
-                    selectedByRule()
+                    compositeSubstitute()
                 }
             }
         }
@@ -249,7 +249,7 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         checkGraph {
             module("org.external:external-dep:1.0") {
                 edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
-                    selectedByRule()
+                    compositeSubstitute()
                 }
             }
         }
@@ -281,9 +281,9 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         then:
         checkGraph {
             edge("org.test:a1:1.0", "project buildA::a1", "org.test:a1:1.0") {
-                selectedByRule()
+                compositeSubstitute()
                 edge("org.test:a2:1.0", "project buildA::a2", "org.test:a2:1.0") {
-                    selectedByRule()
+                    compositeSubstitute()
                     edge("org.test:a1:1.0", "project buildA::a1", "org.test:a1:1.0") {}
                 }
             }
@@ -309,7 +309,7 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
-                selectedByRule()
+                compositeSubstitute()
                 edge("org.test:buildA:1.0", "project :", "org.test:buildA:1.0") {}
             }
         }
@@ -342,10 +342,10 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
-                selectedByRule()
+                compositeSubstitute()
             }
             edge("org.test:buildC:1.0", "project buildC::", "org.test:buildC:1.0") {
-                selectedByRule()
+                compositeSubstitute()
             }
         }
     }
@@ -374,10 +374,10 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         then:
         checkGraph {
             edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
-                selectedByRule()
+                compositeSubstitute()
             }
             edge("org.test:c1:1.0", "project buildC::c1", "org.test:c1:1.0") {
-                selectedByRule()
+                compositeSubstitute()
             }
         }
     }
@@ -453,7 +453,7 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
-                selectedByRule()
+                compositeSubstitute()
             }
         }
     }
