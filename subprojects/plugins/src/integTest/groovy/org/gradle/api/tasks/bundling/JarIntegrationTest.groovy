@@ -16,8 +16,10 @@
 
 package org.gradle.api.tasks.bundling
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
+import spock.lang.Issue
 
 class JarIntegrationTest extends AbstractIntegrationSpec {
 
@@ -369,5 +371,55 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.hasService('org.gradle.Service', 'org.gradle.DefaultServiceImpl')
     }
 
+    @NotYetImplemented
+    @Issue('GRADLE-1506')
+    def "create Jar with metadata encoded using UTF-8 when platform default charset is not UTF-8"() {
+        given:
+        buildScript """
+            task jar(type: Jar) {
+                from file('test')
+                destinationDir = file('dest')
+                archiveName = 'test.jar'
+            }
+        """.stripIndent()
 
+        createDir('test') {
+            // Use an UTF-8 caution symbol in file name
+            // that will create a mojibake if encoded using another charset
+            file 'mojibake☡.txt'
+        }
+
+        when:
+        executer.withDefaultCharacterEncoding('windows-1252').withTasks("jar")
+        executer.run()
+
+        then:
+        def jar = new JarTestFixture(file('dest/test.jar'))
+        jar.assertContainsFile('mojibake☡.txt')
+    }
+
+    @NotYetImplemented
+    @Issue('GRADLE-1506')
+    def "create Jar with metadata encoded using user supplied charset"() {
+        given:
+        buildScript """
+            task jar(type: Jar) {
+                metadataCharset = 'CP1047'
+                from file('test')
+                destinationDir = file('dest')
+                archiveName = 'test.jar'
+            }
+        """.stripIndent()
+
+        createDir('test') {
+            file 'mojibake.txt'
+        }
+
+        when:
+        succeeds 'run'
+
+        then:
+        def jar = new JarTestFixture(file('dest/test.jar'), 'CP1047')
+        jar.assertContainsFile('mojibake.txt')
+    }
 }
