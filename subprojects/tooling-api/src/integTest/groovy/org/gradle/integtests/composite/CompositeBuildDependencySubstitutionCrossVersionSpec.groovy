@@ -49,7 +49,7 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
                     maven { url "${mavenRepo.uri}" }
                 }
                 allprojects {
-                    apply plugin: 'base'
+                    apply plugin: 'java'
                     configurations { compile }
                 }
 """

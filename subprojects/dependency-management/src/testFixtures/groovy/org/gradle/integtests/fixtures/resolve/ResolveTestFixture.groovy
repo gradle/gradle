@@ -111,9 +111,6 @@ allprojects {
             Set<NodeBuilder> nodesToVisit = []
             for (EdgeBuilder edge: node.deps) {
                 def targetNode = edge.selected
-                if (targetNode.moduleVersionId == root.moduleVersionId) {
-                    continue; // Ignore artifacts for root node
-                }
                 if (result.add(targetNode)) {
                     nodesToVisit << targetNode
                 }
