@@ -110,8 +110,12 @@ allprojects {
         private void visitNodes(NodeBuilder node, Set<NodeBuilder> result) {
             Set<NodeBuilder> nodesToVisit = []
             for (EdgeBuilder edge: node.deps) {
-                if (result.add(edge.selected)) {
-                    nodesToVisit << edge.selected
+                def targetNode = edge.selected
+                if (targetNode.moduleVersionId == root.moduleVersionId) {
+                    continue; // Ignore artifacts for root node
+                }
+                if (result.add(targetNode)) {
+                    nodesToVisit << targetNode
                 }
             }
             for(NodeBuilder child: nodesToVisit) {
