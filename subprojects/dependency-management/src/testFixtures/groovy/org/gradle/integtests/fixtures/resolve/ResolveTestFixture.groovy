@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve
+package org.gradle.integtests.fixtures.resolve
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
