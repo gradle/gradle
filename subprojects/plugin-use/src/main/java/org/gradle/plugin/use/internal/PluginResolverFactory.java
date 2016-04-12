@@ -62,7 +62,9 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
             resolvers.add(injectedClasspathPluginResolver);
         }
 
-        resolvers.add(pluginResolutionServiceResolver);
+        // Order Matters. We want to look in custom plugin repositories before
+        // the Gradle Plugin Portal.
         resolvers.add(customRepositoryPluginResolver);
+        resolvers.add(pluginResolutionServiceResolver);
     }
 }

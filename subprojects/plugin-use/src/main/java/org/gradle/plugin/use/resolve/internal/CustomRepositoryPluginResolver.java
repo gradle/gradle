@@ -40,9 +40,12 @@ import java.io.File;
 import java.util.Set;
 
 public class CustomRepositoryPluginResolver implements PluginResolver {
+    private static final String REPO_SYSTEM_PROPERTY = "org.gradle.plugin.repoUrl";
+    private static final String UNSET_REPO_SYSTEM_PROPERTY = "repo-url-unset-in-system-properties";
     private final ClassLoaderScope parentScope;
     private final PluginInspector pluginInspector;
     private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
+    private String repoUrl;
 
     public CustomRepositoryPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
         this.parentScope = parentScope;
@@ -52,12 +55,11 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
 
     @Override
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
-        String repoUrl = System.getProperty("org.gradle.plugin.repoUrl");
-        if (repoUrl == null) {
+        if (getRepoUrl().equals(UNSET_REPO_SYSTEM_PROPERTY)) {
             return;
         }
         final String artifactAddress = pluginRequest.getId() + ":" + pluginRequest.getId() + ":" + pluginRequest.getVersion();
-        ClassPath classPath = resolvePluginDependencies(repoUrl, artifactAddress);
+        ClassPath classPath = resolvePluginDependencies(getRepoUrl(), artifactAddress);
         result.found("Custom Repository", new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector));
     }
 
@@ -82,6 +84,14 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
         } catch (ResolveException e) {
             throw new DependencyResolutionException("Failed to resolve all plugin dependencies from " + repoUrl, e.getCause());
         }
+    }
+
+    // Gets and caches the repoUrl so that we create minimal lock contention on System.getProperty() calls.
+    private String getRepoUrl() {
+        if (repoUrl == null) {
+            repoUrl = System.getProperty(REPO_SYSTEM_PROPERTY, UNSET_REPO_SYSTEM_PROPERTY);
+        }
+        return repoUrl;
     }
 
     @Contextual
