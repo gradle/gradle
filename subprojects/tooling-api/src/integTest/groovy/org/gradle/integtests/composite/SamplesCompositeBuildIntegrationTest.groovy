@@ -88,18 +88,13 @@ compile - Dependencies for source set 'main'.
         def gradleUserHomePath = Matcher.quoteReplacement(TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath))
 
         def buildScript = buildFile.text
+        buildScript = buildScript.replaceAll("project\\.gradle\\.gradleHomeDir", "new File('${gradleHomePath}')")
         buildScript = buildScript.replaceFirst(
             "newGradleConnection\\(\\)",
             "newGradleConnection()" +
                 ".useGradleUserHomeDir(new File('${gradleUserHomePath}'))" +
                 ".daemonBaseDir(new File('${daemonBaseDirPath}'))" +
-                ".daemonMaxIdleTime(10, java.util.concurrent.TimeUnit.SECONDS)" +
-                ".useInstallation(new File('${gradleHomePath}'))"
-        )
-        buildScript = buildScript.replaceAll(
-            "addParticipant\\((project.)\\)",
-            "addParticipant(\$1)" +
-                ".useInstallation(new File('${gradleHomePath}'))"
+                ".daemonMaxIdleTime(10, java.util.concurrent.TimeUnit.SECONDS)"
         )
         buildFile.text = buildScript
     }

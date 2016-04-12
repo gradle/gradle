@@ -18,10 +18,13 @@ private openCompositeConnection() {
     def projectB = file("projects/projectB")
     def projectC = file("projects/projectC")
 
+    def gradleHome = project.gradle.gradleHomeDir
+
     def builder = GradleConnector.newGradleConnection()
-    builder.addParticipant(projectA)
-    builder.addParticipant(projectB)
-    builder.addParticipant(projectC)
+    builder.addParticipant(projectA).useInstallation(gradleHome)
+    builder.addParticipant(projectB).useInstallation(gradleHome)
+    builder.addParticipant(projectC).useInstallation(gradleHome)
+    builder.useInstallation(gradleHome)
 
     // Switch to enable (experimental) dependency substitution
     builder.integratedComposite(project.hasProperty("integrated"))
