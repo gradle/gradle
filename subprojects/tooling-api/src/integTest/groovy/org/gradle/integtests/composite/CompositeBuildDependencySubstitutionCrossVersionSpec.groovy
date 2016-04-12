@@ -407,7 +407,7 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
 
         then:
         def t = thrown(BuildException)
-        assertFailure(t, "Module version 'org.test:b1:1.0' is not unique in composite: can be provided by projects [buildC::b1, buildB::b1].")
+        assertFailure(t, "Module version 'org.test:b1:1.0' is not unique in composite: can be provided by projects [buildB::b1, buildC::b1].")
     }
 
     def "reports failure to resolve dependencies when substitution is ambiguous within single participant"() {
