@@ -16,8 +16,6 @@
 
 package org.gradle.plugin.use
 
-import org.gradle.api.internal.file.FileOrUriNotationConverter
-import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -46,7 +44,6 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
 
     def "can resolve plugin from maven-repo"() {
         given:
-        FileOrUriNotationConverter.parser(TestFiles.fileSystem());
         publishTestPlugin()
         buildScript """
           plugins {
@@ -64,7 +61,6 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
 
     def "cannot resolve plugin from maven-repo without repoUrl"() {
         given:
-        FileOrUriNotationConverter.parser(TestFiles.fileSystem());
         publishTestPlugin()
         buildScript """
           plugins {
