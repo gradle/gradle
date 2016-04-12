@@ -63,8 +63,6 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         }
 
         resolvers.add(pluginResolutionServiceResolver);
-        if (System.getProperties().containsKey("org.gradle.plugin.repoUrl")) {
-            resolvers.add(customRepositoryPluginResolver);
-        }
+        resolvers.add(customRepositoryPluginResolver);
     }
 }
