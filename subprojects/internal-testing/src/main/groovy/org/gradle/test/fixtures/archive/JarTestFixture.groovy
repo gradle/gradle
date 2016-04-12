@@ -20,6 +20,7 @@ import org.apache.commons.io.IOUtils
 import org.gradle.api.JavaVersion
 import org.gradle.test.fixtures.file.ClassFile
 
+import java.nio.charset.Charset
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.zip.ZipEntry
@@ -50,7 +51,7 @@ class JarTestFixture extends ZipTestFixture {
      * Asserts that the manifest file is present and first entry in this jar file.
      */
     void isManifestPresentAndFirstEntry() {
-        ZipInputStream zip = new ZipInputStream(new FileInputStream(file))
+        ZipInputStream zip = new ZipInputStream(new FileInputStream(file), Charset.forName(metadataCharset))
         try {
             ZipEntry zipEntry = zip.getNextEntry()
 
