@@ -37,6 +37,8 @@ import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Set;
 
 public class CustomRepositoryPluginResolver implements PluginResolver {
@@ -53,17 +55,33 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
     @Override
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         final String artifactAddress = pluginRequest.getId() + ":" + pluginRequest.getId() + ":" + pluginRequest.getVersion();
-        ClassPath classPath = resolvePluginDependencies(System.getProperty("org.gradle.plugin.repoUrl"), artifactAddress);
+        ClassPath classPath = resolvePluginDependencies(getRepoUri(), artifactAddress);
         result.found("Custom Repository", new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector));
     }
 
-    private ClassPath resolvePluginDependencies(final String repoUrl, final String groupArtifactVersion) {
+    private URI getRepoUri() {
+        String repoUrl = System.getProperty("org.gradle.plugin.repoUrl");
+        URI uri = URI.create(repoUrl);
+        if (!uri.isAbsolute()) {
+            /*
+             * TODO this is a workaround for the fact that this code currently runs in a
+             * context that does not have a base dir, so the identity file resolver is used.
+             * That resolver cannot deal with relative paths. We use the current working dir
+             * as a workaround. In the final implementation, the repository handler will live
+             * in a context that hase a base dir (settings scope or project scope).
+             */
+            uri = new File(repoUrl).getAbsoluteFile().toURI();
+        }
+        return uri;
+    }
+
+    private ClassPath resolvePluginDependencies(final URI repoUri, final String groupArtifactVersion) {
         DependencyResolutionServices resolution = dependencyResolutionServicesFactory.create();
 
         RepositoryHandler repositories = resolution.getResolveRepositoryHandler();
         repositories.maven(new Action<MavenArtifactRepository>() {
             public void execute(MavenArtifactRepository mavenArtifactRepository) {
-                mavenArtifactRepository.setUrl(repoUrl);
+                mavenArtifactRepository.setUrl(repoUri.toString());
             }
         });
 
@@ -76,7 +94,7 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
             Set<File> files = configuration.getResolvedConfiguration().getFiles(Specs.satisfyAll());
             return new DefaultClassPath(files);
         } catch (ResolveException e) {
-            throw new DependencyResolutionException("Failed to resolve all plugin dependencies from " + repoUrl, e.getCause());
+            throw new DependencyResolutionException("Failed to resolve all plugin dependencies from " + repoUri, e.getCause());
         }
     }
 
