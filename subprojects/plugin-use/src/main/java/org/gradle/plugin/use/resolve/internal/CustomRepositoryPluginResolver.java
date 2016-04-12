@@ -38,7 +38,6 @@ import org.gradle.plugin.use.internal.PluginRequest;
 
 import java.io.File;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Set;
 
 public class CustomRepositoryPluginResolver implements PluginResolver {
