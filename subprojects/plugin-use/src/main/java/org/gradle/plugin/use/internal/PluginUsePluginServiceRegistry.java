@@ -105,7 +105,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, injectedPluginClasspath.getClasspath());
         }
 
-        CustomRepositoryPluginResolver createCustomRepositoryPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector,
+        CustomRepositoryPluginResolver createCustomRepositoryPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, VersionSelectorScheme versionSelectorScheme, PluginInspector pluginInspector,
                                                                             final DependencyManagementServices dependencyManagementServices, final FileLookup fileLookup,
                                                                             final DependencyMetaDataProvider dependencyMetaDataProvider) {
             /*
@@ -118,7 +118,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             FileResolver fileResolver = fileLookup.getFileResolver(new File("").getAbsoluteFile());
             final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
             PluginClassPathResolver pluginClassPathResolver = new PluginClassPathResolver(dependencyResolutionServicesFactory);
-            return new CustomRepositoryPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, pluginClassPathResolver);
+            return new CustomRepositoryPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), versionSelectorScheme, pluginInspector, pluginClassPathResolver);
         }
 
         private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider) {

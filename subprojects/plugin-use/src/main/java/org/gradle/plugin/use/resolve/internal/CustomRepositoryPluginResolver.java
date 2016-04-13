@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.internal.Factories;
@@ -28,12 +29,14 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
     private static final String UNSET_REPO_SYSTEM_PROPERTY = "repo-url-unset-in-system-properties";
 
     private final ClassLoaderScope parentScope;
+    private final VersionSelectorScheme versionSelectorScheme;
     private final PluginInspector pluginInspector;
     private final PluginClassPathResolver pluginClassPathResolver;
     private String repoUrl;
 
-    public CustomRepositoryPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, PluginClassPathResolver pluginClassPathResolver) {
+    public CustomRepositoryPluginResolver(ClassLoaderScope parentScope, VersionSelectorScheme versionSelectorScheme, PluginInspector pluginInspector, PluginClassPathResolver pluginClassPathResolver) {
         this.parentScope = parentScope;
+        this.versionSelectorScheme = versionSelectorScheme;
         this.pluginInspector = pluginInspector;
         this.pluginClassPathResolver = pluginClassPathResolver;
     }
@@ -41,6 +44,18 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
     @Override
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         if (getRepoUrl().equals(UNSET_REPO_SYSTEM_PROPERTY)) {
+            return;
+        }
+        if (pluginRequest.getVersion() == null) {
+            result.notFound(getDescription(), "plugin dependency must include a version number for this source");
+            return;
+        }
+        if (pluginRequest.getVersion().endsWith("-SNAPSHOT")) {
+            result.notFound(getDescription(), "snapshot plugin versions are not supported");
+            return;
+        }
+        if (versionSelectorScheme.parseSelector(pluginRequest.getVersion()).isDynamic()) {
+            result.notFound(getDescription(), "dynamic plugin versions are not supported");
             return;
         }
         final String artifactNotation = pluginRequest.getId() + ":" + pluginRequest.getId() + ":" + pluginRequest.getVersion();

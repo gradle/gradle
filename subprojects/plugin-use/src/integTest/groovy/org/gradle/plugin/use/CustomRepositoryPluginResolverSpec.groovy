@@ -80,6 +80,69 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
         !failure.output.contains(CustomRepositoryPluginResolver.description)
     }
 
+    def "Fails plugins without versions" () {
+        given:
+        buildScript """
+          plugins {
+              id "org.example.plugin"
+          }
+        """
+        args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir()}")
+
+        when:
+        fails("pluginTask")
+
+        then:
+        failure.assertHasDescription("""Plugin [id: 'org.example.plugin'] was not found in any of the following sources:
+
+- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+- User-defined Plugin Repository (plugin dependency must include a version number for this source)
+- Gradle Central Plugin Repository (plugin dependency must include a version number for this source)"""
+        )
+    }
+
+    def "Fails SNAPSHOT plugins" () {
+        given:
+        buildScript """
+          plugins {
+              id "org.example.plugin" version "1.1-SNAPSHOT"
+          }
+        """
+        args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir()}")
+
+        when:
+        fails("pluginTask")
+
+        then:
+        failure.assertHasDescription("""Plugin [id: 'org.example.plugin', version: '1.1-SNAPSHOT'] was not found in any of the following sources:
+
+- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+- User-defined Plugin Repository (snapshot plugin versions are not supported)
+- Gradle Central Plugin Repository (snapshot plugin versions are not supported)"""
+        )
+    }
+
+    def "Fails dynamic plugin versions" () {
+        given:
+        buildScript """
+          plugins {
+              id "org.example.plugin" version "latest.revision"
+          }
+        """
+        args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir()}")
+
+        when:
+        fails("pluginTask")
+
+        then:
+        failure.assertHasDescription("""Plugin [id: 'org.example.plugin', version: 'latest.revision'] was not found in any of the following sources:
+
+- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+- User-defined Plugin Repository (dynamic plugin versions are not supported)
+- Gradle Central Plugin Repository (dynamic plugin versions are not supported)"""
+        )
+    }
+
     def "Fails gracefully if a plugin is not found"() {
         given:
         buildScript """
