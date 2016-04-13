@@ -17,8 +17,11 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.plugin.use.resolve.internal.CustomRepositoryPluginResolver
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @LeaksFileHandles
 class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTest {
@@ -42,9 +45,12 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
         pluginBuilder.publishTo(executer, artifactFile)
     }
 
+    def setup() {
+        publishTestPlugin()
+    }
+
     def "can resolve plugin from maven-repo"() {
         given:
-        publishTestPlugin()
         buildScript """
           plugins {
               id "org.example.plugin" version "1.1"
@@ -59,17 +65,56 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
         output.contains("from plugin")
     }
 
-    def "cannot resolve plugin from maven-repo without repoUrl"() {
+    def "custom repository is not mentioned in plugin resolution errors if none is defined"() {
         given:
-        publishTestPlugin()
         buildScript """
           plugins {
               id "org.example.plugin" version "1.1"
           }
         """
 
-        expect:
+        when:
         fails("pluginTask")
-        errorOutput.contains("org.gradle.api.plugins.UnknownPluginException")
+
+        then:
+        !failure.output.contains(CustomRepositoryPluginResolver.description)
+    }
+
+    def "Fails gracefully if a plugin is not found"() {
+        given:
+        buildScript """
+          plugins {
+              id "org.example.foo" version "1.1"
+          }
+        """
+        args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir()}")
+
+        when:
+        fails("pluginTask")
+
+        then:
+        failure.assertHasDescription("""Plugin [id: 'org.example.foo', version: '1.1'] was not found in any of the following sources:
+
+- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
+- User-defined Plugin Repository (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
+- Gradle Central Plugin Repository (no 'org.example.foo' plugin available - see https://plugins.gradle.org for available plugins)"""
+        )
+    }
+
+    @Requires(TestPrecondition.ONLINE)
+    def "Falls through to Plugin Portal if not found in custom repository"() {
+        given:
+        requireOwnGradleUserHomeDir()
+        buildScript """
+            plugins {
+                id "org.gradle.hello-world" version "0.2"
+            }
+        """
+
+        when:
+        args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir()}")
+
+        then:
+        succeeds("helloWorld")
     }
 }

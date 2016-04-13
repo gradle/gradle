@@ -26,6 +26,7 @@ import org.gradle.plugin.use.internal.PluginRequest;
 public class CustomRepositoryPluginResolver implements PluginResolver {
     private static final String REPO_SYSTEM_PROPERTY = "org.gradle.plugin.repoUrl";
     private static final String UNSET_REPO_SYSTEM_PROPERTY = "repo-url-unset-in-system-properties";
+
     private final ClassLoaderScope parentScope;
     private final PluginInspector pluginInspector;
     private final PluginClassPathResolver pluginClassPathResolver;
@@ -42,16 +43,24 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
         if (getRepoUrl().equals(UNSET_REPO_SYSTEM_PROPERTY)) {
             return;
         }
-        final String artifactAddress = pluginRequest.getId() + ":" + pluginRequest.getId() + ":" + pluginRequest.getVersion();
-        ClassPath classPath = pluginClassPathResolver.resolvePluginDependencies(getRepoUrl(), artifactAddress);
-        result.found("Custom Repository", new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector));
+        final String artifactNotation = pluginRequest.getId() + ":" + pluginRequest.getId() + ":" + pluginRequest.getVersion();
+        try {
+            ClassPath classPath = pluginClassPathResolver.resolvePluginDependencies(getRepoUrl(), artifactNotation);
+            result.found(getDescription(), new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector));
+        } catch (PluginClassPathResolver.DependencyResolutionException e) {
+            result.notFound(getDescription(), String.format("Could not resolve plugin artifact '%s'", artifactNotation));
+        }
     }
 
-    // Gets and caches the repoUrl so that we create minimal lock contention on System.getProperty() calls.
+    // Caches the repoUrl so that we create minimal lock contention on System.getProperty() calls.
     private String getRepoUrl() {
         if (repoUrl == null) {
             repoUrl = System.getProperty(REPO_SYSTEM_PROPERTY, UNSET_REPO_SYSTEM_PROPERTY);
         }
         return repoUrl;
+    }
+
+    public static String getDescription() {
+        return "User-defined Plugin Repository";
     }
 }
