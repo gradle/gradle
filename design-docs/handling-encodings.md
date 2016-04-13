@@ -43,7 +43,10 @@ Most tools ignore that extra field, Gradle should do the same.
 
 For [JAR, WAR and EAR](http://docs.oracle.com/javase/8/docs/technotes/guides/jar/jar.html) archives only the UTF-8
 character set is supported.
-All tools in a JVM dealing with ZIP files, incl. the `jar` command and classpath loading, use the `java.util.zip`
+All tools in a JVM dealing with ZIP files, incl. the `jar` command and classpath loading, use the
+[`java.util.jar`](https://docs.oracle.com/javase/8/docs/api/java/util/jar/package-summary.html#package.description)
+package that makes use of the
+[`java.util.zip`](https://docs.oracle.com/javase/8/docs/api/java/util/zip/package-summary.html#package.description)
 package that uses UTF-8 by default to both read and write archives metadata.
 
 In Gradle, up to version 2.13 at least, the `Zip`, `Jar`, `War` and `Ear` tasks all have an `encoding` property added
@@ -189,10 +192,6 @@ When `metadataCharset` is UTF-8 the `Zip` task should properly set the *Language
 
 When creating WAR, EAR, and JAR files which all extend from the `Zip` task, we should set default value of
 `metadataCharset`to `UTF-8` as that is the expectation of the JVM.
-
-We should accomplish this by overriding the setter for the property on the `Jar` task implementation to throw an
-`UnsupportedOperationException`.
-`War` and `Ear` inherit from `Jar`, and will thus automatically benefit from this behavior.
 
 This is a potential breaking change.
 To get the old behaviour the `metadataCharset` property could be set as follows:
