@@ -16,10 +16,10 @@
 
 package org.gradle.api.tasks.bundling
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class JarIntegrationTest extends AbstractIntegrationSpec {
 
@@ -421,9 +421,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertContainsFile('mojibake.txt')
     }
 
-    @NotYetImplemented
     @Issue('GRADLE-3374')
-    def "read and write manifest encoded using UTF-8 when platform default charset is not UTF-8"() {
+    def "write manifest encoded using UTF-8 when platform default charset is not UTF-8"() {
         given:
         buildScript """
             task jar(type: Jar) {
@@ -434,12 +433,9 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                     // Use an UTF-8 caution symbol in manifest entry
                     // that will create a mojibake if encoded using another charset
                     attributes 'moji': 'bake☡'
-                    // Merge a manifest encoded using UTF-8
-                    from('manifest-utf8.txt')
                 }
             }
         """.stripIndent()
-        file('manifest-utf8.txt').setText('bake: moji☡','UTF-8')
 
         when:
         executer.withDefaultCharacterEncoding('windows-1252').withTasks('jar')
@@ -448,10 +444,33 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         then:
         def manifest = new JarTestFixture(file('dest/test.jar'), 'UTF-8', 'UTF-8').content('META-INF/MANIFEST.MF')
         manifest.contains('moji: bake☡')
-        manifest.contains('bake: moji☡')
     }
 
-    @NotYetImplemented
+    @Issue("GRADLE-3374")
+    def "merge manifest read using platform default charset"() {
+        given:
+        buildScript """
+            task jar(type: Jar) {
+                from file('test')
+                destinationDir = file('dest')
+                archiveName = 'test.jar'
+                manifest {
+                    from('manifest-CP1047.txt')
+                }
+            }
+        """.stripIndent()
+        file('manifest-CP1047.txt').setText('bake: möjì!', 'CP1047')
+
+        when:
+        executer.withDefaultCharacterEncoding('CP1047').withTasks('jar')
+        executer.run()
+
+        then:
+        def jar = new JarTestFixture(file('dest/test.jar'), 'UTF-8', 'UTF-8')
+        def manifest = jar.content('META-INF/MANIFEST.MF')
+        manifest.contains('bake: möjì!')
+    }
+
     @Issue('GRADLE-3374')
     def "write manifests using a user defined character set"() {
         given:
@@ -477,7 +496,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         manifest.contains('moji: bãké!')
     }
 
-    @NotYetImplemented
     @Issue('GRADLE-3374')
     def "merge manifests using user defined character sets"() {
         given:
@@ -487,9 +505,11 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 destinationDir = file('dest')
                 archiveName = 'test.jar'
                 manifest {
+                    // Charset used to encode the generated manifest content
                     contentCharset = 'CP1047'
                     attributes 'moji': 'bãké!'
                     from('manifest-iso88591.txt') {
+                        // Charset used to decode the read manifest content
                         contentCharset = 'ISO-8859-1'
                     }
                 }
@@ -506,5 +526,39 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         def manifest = jar.content('META-INF/MANIFEST.MF')
         manifest.contains('moji: bãké!')
         manifest.contains('bake: möjì!')
+    }
+
+    @Issue('GRADLE-3374')
+    @Unroll
+    def "reports error for unsupported manifest content charsets"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildScript """
+            task jar(type: Jar) {
+                from file('test')
+                destinationDir = file('dest')
+                archiveName = 'test.jar'
+                manifest {
+                    contentCharset = '$writeCharset'
+                    from('manifest-to-merge.txt') {
+                        contentCharset = '$readCharset'
+                    }
+                }
+            }
+        """.stripIndent()
+        def unsupportedCharset = 'UNSUPPORTED'
+
+        when:
+        executer.withDefaultCharacterEncoding('UTF-8')
+        fails 'jar'
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
+        failure.assertHasCause("Charset for contentCharset 'UNSUPPORTED' is not supported by your JVM")
+
+        where:
+        writeCharset       | readCharset
+        unsupportedCharset | 'UTF-8'
+        'UTF-8'            | unsupportedCharset
     }
 }

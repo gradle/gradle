@@ -32,7 +32,6 @@ import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.concurrent.Callable;
 
 /**
@@ -62,9 +61,8 @@ public class Jar extends Zip {
                         if (manifest == null) {
                             manifest = new DefaultManifest(null);
                         }
-                        manifest.writeTo(new OutputStreamWriter(outputStream));
+                        manifest.writeTo(outputStream);
                     }
-
                 });
                 return new FileTreeAdapter(manifestSource);
             }
