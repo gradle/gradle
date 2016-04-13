@@ -447,6 +447,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         manifest.contains('moji: bake☡')
     }
 
+    @Ignore
     @Issue("GRADLE-3374")
     def "merge manifest read using platform default charset"() {
         given:
