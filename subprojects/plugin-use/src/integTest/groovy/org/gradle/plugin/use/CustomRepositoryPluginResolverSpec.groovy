@@ -69,6 +69,25 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
         output.contains("from plugin")
     }
 
+    def "can access classes from plugin from maven-repo"() {
+        given:
+        buildScript """
+          plugins {
+              id "org.example.plugin" version "1.1"
+          }
+          plugins.withType(org.gradle.test.TestPlugin) {
+            println "I'm here"
+          }
+        """
+
+        when:
+        args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir()}")
+
+        then:
+        succeeds("pluginTask")
+        output.contains("I'm here")
+    }
+
     def "custom repository is not mentioned in plugin resolution errors if none is defined"() {
         given:
         buildScript """
