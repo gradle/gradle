@@ -1,4 +1,4 @@
-## User can specify arguments that apply to one participant in a composite
+## GradleConnection performs validation when building composite
 
 ### Overview
 
