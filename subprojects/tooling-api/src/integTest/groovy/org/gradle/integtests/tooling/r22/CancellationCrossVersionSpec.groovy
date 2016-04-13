@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling.r22
 
 import org.gradle.integtests.tooling.fixture.*
-import org.gradle.integtests.tooling.r20.BrokenAction
+import org.gradle.integtests.tooling.r18.BrokenAction
 import org.gradle.integtests.tooling.r21.HangingBuildAction
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
