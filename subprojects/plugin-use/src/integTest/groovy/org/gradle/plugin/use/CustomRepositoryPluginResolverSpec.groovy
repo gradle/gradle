@@ -69,7 +69,7 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
         given:
         buildScript """
           plugins {
-              id "org.example.plugin" version "1.1"
+              id "org.example.plugin"
           }
         """
 
