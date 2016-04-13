@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.integtests.tooling.r20
+package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
