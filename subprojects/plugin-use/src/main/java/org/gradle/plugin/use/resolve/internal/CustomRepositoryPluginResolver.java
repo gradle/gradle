@@ -25,7 +25,7 @@ import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
 public class CustomRepositoryPluginResolver implements PluginResolver {
-    private static final String REPO_SYSTEM_PROPERTY = "org.gradle.plugin.repoUrl";
+    static final String REPO_SYSTEM_PROPERTY = "org.gradle.plugin.repoUrl";
     private static final String UNSET_REPO_SYSTEM_PROPERTY = "repo-url-unset-in-system-properties";
 
     private final ClassLoaderScope parentScope;

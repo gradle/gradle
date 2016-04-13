@@ -40,8 +40,12 @@ class CustomRepositoryPluginResolverTest extends Specification {
         new DefaultPluginRequest(id, version, 1, new StringScriptSource("test", "test"))
     }
 
-    def setup() {
-        System.setProperty("org.gradle.plugin.repoUrl", "test")
+    def setupSpec() {
+        System.setProperty(CustomRepositoryPluginResolver.REPO_SYSTEM_PROPERTY, "test")
+    }
+
+    def cleanupSpec() {
+        System.clearProperty(CustomRepositoryPluginResolver.REPO_SYSTEM_PROPERTY)
     }
 
     def "fail pluginRequests without versions"() {
