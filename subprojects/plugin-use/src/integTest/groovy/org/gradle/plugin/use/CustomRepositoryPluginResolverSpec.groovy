@@ -49,6 +49,10 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
         publishTestPlugin()
     }
 
+    def useCustomRepository() {
+        args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir()}")
+    }
+
     def "can resolve plugin from maven-repo"() {
         given:
         buildScript """
@@ -58,7 +62,7 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
         """
 
         when:
-        args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir()}")
+        useCustomRepository()
 
         then:
         succeeds("pluginTask")
@@ -87,7 +91,9 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
               id "org.example.foo" version "1.1"
           }
         """
-        args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir()}")
+
+        and:
+        useCustomRepository()
 
         when:
         fails("pluginTask")
@@ -112,7 +118,7 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
         """
 
         when:
-        args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir()}")
+        useCustomRepository()
 
         then:
         succeeds("helloWorld")
