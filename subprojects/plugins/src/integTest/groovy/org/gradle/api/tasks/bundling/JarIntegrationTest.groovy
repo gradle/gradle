@@ -371,7 +371,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.hasService('org.gradle.Service', 'org.gradle.DefaultServiceImpl')
     }
 
-    @NotYetImplemented
     @Issue('GRADLE-1506')
     def "create Jar with metadata encoded using UTF-8 when platform default charset is not UTF-8"() {
         given:
@@ -398,7 +397,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertContainsFile('mojibake☡.txt')
     }
 
-    @NotYetImplemented
     @Issue('GRADLE-1506')
     def "create Jar with metadata encoded using user supplied charset"() {
         given:
@@ -416,7 +414,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         }
 
         when:
-        succeeds 'run'
+        succeeds 'jar'
 
         then:
         def jar = new JarTestFixture(file('dest/test.jar'), 'CP1047')

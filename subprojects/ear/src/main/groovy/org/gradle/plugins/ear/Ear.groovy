@@ -52,6 +52,7 @@ class Ear extends Jar {
 
     Ear() {
         extension = EAR_EXTENSION
+        metadataCharset = 'UTF-8'
         lib = rootSpec.addChildBeforeSpec(mainSpec).into {
             getLibDirName()
         }
@@ -97,6 +98,30 @@ class Ear extends Jar {
     @Inject
     protected Instantiator getInstantiator() {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * The character set used to encode EAR metadata like file names.
+     * Defaults to UTF-8.
+     * You can change this property but it is not recommended as JVMs expect EAR metadata to be encoded using UTF-8
+     *
+     * @return the character set used to encode EAR metadata like file names
+     */
+    @Override
+    public String getMetadataCharset() {
+        return super.getMetadataCharset();
+    }
+
+    /**
+     * The character set used to encode EAR metadata like file names.
+     * Defaults to UTF-8.
+     * You can change this property but it is not recommended as JVMs expect EAR metadata to be encoded using UTF-8
+     *
+     * @param metadataCharset the character set used to encode EAR metadata like file names
+     */
+    @Override
+    public void setMetadataCharset(String metadataCharset) {
+        super.setMetadataCharset(metadataCharset);
     }
 
     /**

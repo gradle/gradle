@@ -37,6 +37,7 @@ class War extends Jar {
 
     War() {
         extension = WAR_EXTENSION
+        metadataCharset = 'UTF-8'
         // Add these as separate specs, so they are not affected by the changes to the main spec
 
         webInf = rootSpec.addChildBeforeSpec(mainSpec).into('WEB-INF')
@@ -60,6 +61,30 @@ class War extends Jar {
                 'web.xml'
             }
         }
+    }
+
+    /**
+     * The character set used to encode WAR metadata like file names.
+     * Defaults to UTF-8.
+     * You can change this property but it is not recommended as JVMs expect WAR metadata to be encoded using UTF-8
+     *
+     * @return the character set used to encode WAR metadata like file names
+     */
+    @Override
+    public String getMetadataCharset() {
+        return super.getMetadataCharset();
+    }
+
+    /**
+     * The character set used to encode WAR metadata like file names.
+     * Defaults to UTF-8.
+     * You can change this property but it is not recommended as JVMs expect WAR metadata to be encoded using UTF-8
+     *
+     * @param metadataCharset the character set used to encode WAR metadata like file names
+     */
+    @Override
+    public void setMetadataCharset(String metadataCharset) {
+        super.setMetadataCharset(metadataCharset);
     }
 
     CopySpec getWebInf() {
