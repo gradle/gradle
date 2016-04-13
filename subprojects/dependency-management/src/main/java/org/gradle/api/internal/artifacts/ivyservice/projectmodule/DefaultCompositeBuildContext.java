@@ -28,7 +28,6 @@ import java.util.*;
 public class DefaultCompositeBuildContext implements CompositeBuildContext {
     private final Multimap<ModuleIdentifier, String> replacementProjects = ArrayListMultimap.create();
     private final Map<String, LocalComponentMetaData> projectMetadata = Maps.newHashMap();
-    private final Set<ModuleIdentifier> duplicateProjects = Sets.newHashSet();
 
     @Override
     public String getReplacementProject(ModuleComponentSelector selector) {
