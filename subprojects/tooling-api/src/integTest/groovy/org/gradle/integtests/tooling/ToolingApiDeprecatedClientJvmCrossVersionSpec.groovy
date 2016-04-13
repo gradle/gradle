@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -23,15 +25,15 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 
-@IgnoreIf({ AvailableJavaHomes.java5 == null })
-class ToolingApiUnsupportedClientJvmCrossVersionSpec extends ToolingApiSpecification {
+@IgnoreIf({ AvailableJavaHomes.jdk6 == null })
+class ToolingApiDeprecatedClientJvmCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         settingsFile << "rootProject.name = 'test'"
 
         buildFile << """
 apply plugin: 'application'
-sourceCompatibility = 1.5
-targetCompatibility = 1.5
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
 repositories {
     maven {
         url 'https://repo.gradle.org/gradle/libs-releases-local'
@@ -54,13 +56,8 @@ import org.gradle.tooling.GradleConnector;
 
 public class TestClient {
     public static void main(String[] args) {
-        try {
-            GradleConnector.newConnector();
-        } catch(Exception t) {
-            t.printStackTrace(System.out);
-            System.exit(0);
-        }
-        System.exit(1);
+        GradleConnector.newConnector();
+        System.exit(0);
     }
 }
 """
@@ -68,32 +65,21 @@ public class TestClient {
     }
 
     @TargetGradleVersion("current")
-    @ToolingApiVersion(">=1.2 <=1.12")
-    def "cannot use old tooling API client to run build using Java 5"() {
-        when:
-        def out = runScript()
-
-        then:
-        out.contains("Could not execute build using Gradle installation")
-        out.contains("Gradle ${targetDist.version.version} requires Java 6 or later to run. You are currently using Java 5.")
-    }
-
-    @TargetGradleVersion("current")
     @ToolingApiVersion("current")
-    def "cannot use tooling API from Java 5"() {
+    def "warning when using tooling API from Java 6"() {
         when:
         def out = runScript()
 
         then:
-        out.contains("Gradle Tooling API ${targetDist.version.version} requires Java 6 or later to run. You are currently using Java 5.")
+        out.contains("Support for using the Gradle Tooling API with Java 6 is deprecated and will be removed in Gradle 3.0")
     }
 
-    def runScript() {
+    String runScript() {
         def outStr = new ByteArrayOutputStream()
         def executer = new ScriptExecuter()
-        executer.environment(JAVA_HOME: AvailableJavaHomes.java5.javaHome)
+        executer.environment(JAVA_HOME: AvailableJavaHomes.jdk6.javaHome)
         executer.workingDir(projectDir)
-        executer.standardOutput = outStr
+        executer.errorOutput = outStr // simple slf4j writes warnings to stderr
         executer.commandLine("build/install/test/bin/test")
         executer.run().assertNormalExitValue()
         println outStr
