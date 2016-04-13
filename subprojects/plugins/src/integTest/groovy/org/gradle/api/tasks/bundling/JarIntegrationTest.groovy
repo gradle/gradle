@@ -506,23 +506,23 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 archiveName = 'test.jar'
                 manifest {
                     // Charset used to encode the generated manifest content
-                    contentCharset = 'CP1047'
+                    contentCharset = 'ISO-8859-1'
                     attributes 'moji': 'bãké!'
-                    from('manifest-iso88591.txt') {
+                    from('manifest-CP1047.txt') {
                         // Charset used to decode the read manifest content
-                        contentCharset = 'ISO-8859-1'
+                        contentCharset = 'CP1047'
                     }
                 }
             }
         """.stripIndent()
-        file('manifest-iso88591.txt').setText('bake: möjì!', 'ISO-8859-1')
+        file('manifest-CP1047.txt').setText('bake: möjì!', 'CP1047')
 
         when:
         executer.withDefaultCharacterEncoding('UTF-8').withTasks('jar')
         executer.run()
 
         then:
-        def jar = new JarTestFixture(file('dest/test.jar'), 'UTF-8', 'CP1047')
+        def jar = new JarTestFixture(file('dest/test.jar'), 'UTF-8', 'ISO-8859-1')
         def manifest = jar.content('META-INF/MANIFEST.MF')
         manifest.contains('moji: bãké!')
         manifest.contains('bake: möjì!')
