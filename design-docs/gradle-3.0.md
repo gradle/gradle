@@ -5,9 +5,7 @@ list of ideas to consider before shipping Gradle 3.0.
 
 Note: for the change listed below, the old behaviour or feature to be removed should be deprecated in a Gradle 2.x release. Similarly for changes to behaviour.
 
-# Candidates for Gradle 3.0
-
-The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
+# Stories
 
 ## Change minimum version for running Gradle to Java 7
 
@@ -36,6 +34,14 @@ No longer support running Gradle, the wrapper or the Tooling api client on Java 
     - old `GradleConnector`
     - old `GradleRunner`
 
+## Remove Sonar plugins
+
+Deprecate the Sonar plugins
+
+# Candidates for Gradle 3.0
+
+The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
+
 ## Change minimum version for building and testing Java source to Java 6
 
 Change cross-compilation and test execution to require Java 6 or later.
@@ -58,10 +64,6 @@ Building against Java 5 requires that the compiler daemon and test execution inf
 - Wrapper support for versions older than 2.0. Wrapper 2.x supports Gradle 0.9.2 and later (5 years) and Gradle 2.x can be run by wrapper 0.9.2 and later.
 - Cached artefact reuse for versions older than 2.0.
 - Execution of task classes compiled against Gradle versions older than 2.0.
-
-## Remove Sonar plugins
-
-Deprecate the Sonar plugins
 
 ## Test output directories
 
