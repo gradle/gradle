@@ -18,8 +18,6 @@ package org.gradle.plugin.use.resolve.internal
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
-import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.plugins.PluginInspector
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.use.internal.DefaultPluginRequest
 import org.gradle.plugin.use.internal.PluginRequest
