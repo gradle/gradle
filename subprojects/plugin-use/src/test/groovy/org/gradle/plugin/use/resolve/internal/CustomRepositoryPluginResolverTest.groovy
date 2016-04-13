@@ -23,9 +23,15 @@ import org.gradle.api.internal.plugins.PluginInspector
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.use.internal.DefaultPluginRequest
 import org.gradle.plugin.use.internal.PluginRequest
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.plugin.use.resolve.internal.CustomRepositoryPluginResolver.REPO_SYSTEM_PROPERTY
+
 class CustomRepositoryPluginResolverTest extends Specification {
+    @Rule SetSystemProperties sysProps =  new SetSystemProperties((REPO_SYSTEM_PROPERTY): "test")
+
     def parentScope = Mock(ClassLoaderScope)
     def versionSelectorScheme = new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme())
     def pluginInspector = Mock(PluginInspector)
@@ -38,14 +44,6 @@ class CustomRepositoryPluginResolverTest extends Specification {
 
     PluginRequest request(String id, String version = null) {
         new DefaultPluginRequest(id, version, 1, new StringScriptSource("test", "test"))
-    }
-
-    def setupSpec() {
-        System.setProperty(CustomRepositoryPluginResolver.REPO_SYSTEM_PROPERTY, "test")
-    }
-
-    def cleanupSpec() {
-        System.clearProperty(CustomRepositoryPluginResolver.REPO_SYSTEM_PROPERTY)
     }
 
     def "fail pluginRequests without versions"() {
