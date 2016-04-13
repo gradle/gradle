@@ -32,15 +32,10 @@ import static org.gradle.plugin.use.resolve.internal.CustomRepositoryPluginResol
 class CustomRepositoryPluginResolverTest extends Specification {
     @Rule SetSystemProperties sysProps =  new SetSystemProperties((REPO_SYSTEM_PROPERTY): "test")
 
-    def parentScope = Mock(ClassLoaderScope)
     def versionSelectorScheme = new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme())
-    def pluginInspector = Mock(PluginInspector)
-    def pluginClassPathResolver = Mock(PluginClassPathResolver)
-
     def result = Mock(PluginResolutionResult)
 
-    def resolver = new CustomRepositoryPluginResolver(
-        parentScope, versionSelectorScheme, pluginInspector, pluginClassPathResolver);
+    def resolver = new CustomRepositoryPluginResolver(versionSelectorScheme, null);
 
     PluginRequest request(String id, String version = null) {
         new DefaultPluginRequest(id, version, 1, new StringScriptSource("test", "test"))
