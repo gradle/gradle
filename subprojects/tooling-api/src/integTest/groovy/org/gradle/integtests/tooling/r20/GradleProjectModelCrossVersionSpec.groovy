@@ -23,9 +23,9 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 
 class GradleProjectModelCrossVersionSpec extends ToolingApiSpecification {
-    @ToolingApiVersion("current")
-    @TargetGradleVersion("current")
-    def "can request the build directory"() {
+    @ToolingApiVersion(">=2.0")
+    @TargetGradleVersion(">=2.0")
+    def "can request the build directory for a Gradle project"() {
         given:
         buildFile << """
 buildDir = 'custom/dir'
