@@ -18,6 +18,7 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -496,6 +497,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         manifest.contains('moji: bãké!')
     }
 
+    @Ignore
     @Issue('GRADLE-3374')
     def "merge manifests using user defined character sets"() {
         given:
