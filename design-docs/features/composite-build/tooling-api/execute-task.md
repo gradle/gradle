@@ -3,19 +3,25 @@
 ### Overview
 
 This story adds support for executing tasks in a specified project within a composite.
+The focus is on task execution from an IDE, so uses a `Launchable` instance as the key for execution.
 
 ### API
 
-The GradleConnection interface gets a new method for creating a `BuildLauncher` for a particular project.
+The `Launchable` interface has a `ProjectIdentifier`, making it possible to use as the key for task execution.
+
 ```
-BuildLauncher newBuild(BuildIdentity buildIdentity)
+public interface Launchable {
+    ProjectIdentifier getProjectIdentifier();
+}
 ```
 
-### Implementation notes
+An internal API will be added for scripting task execution, taking a build root directory and task name as target for execution.
 
-This story will only add support for executing a task.
-Forwarding console output (`setStandardOutput`) is not implemented as part of this story.
-
+```
+public interface CompositeBuildLauncher extends BuildLauncher {
+    BuildLauncher forTasks(File buildDirectory, String... tasks);
+}
+```
 
 ### Test coverage
 
@@ -30,5 +36,4 @@ Forwarding console output (`setStandardOutput`) is not implemented as part of th
 
 ### Open issues
 
-- forwarding standard input, output & error
-- setting JVM arguments for execution
+- Public API for executing tasks without a `Launchable` instance?

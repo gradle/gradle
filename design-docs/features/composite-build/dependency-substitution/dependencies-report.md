@@ -162,3 +162,5 @@ Other improvements:
         - For scenario 1, composite substitution is disabled, so the participants generated eclipse projects are independent.
         - For scenario 2, composite substitution is enabled, so the participants generated eclipse projects should have a long chain of dependencies (a depends on b ... y depends on z).
 
+- Provide way of detecting feature set of composite build?
+
