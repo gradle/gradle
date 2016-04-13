@@ -17,12 +17,12 @@
 package org.gradle.util;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.UsageLocationReporter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -32,7 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @ThreadSafe
 public class SingleMessageLogger {
-    private static final Logger LOGGER = Logging.getLogger(DeprecationLogger.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DeprecationLogger.class);
     private static final Set<String> FEATURES = Collections.synchronizedSet(new HashSet<String>());
 
     private static final ThreadLocal<Boolean> ENABLED = new ThreadLocal<Boolean>() {
@@ -192,7 +192,7 @@ public class SingleMessageLogger {
             if (additionalWarning != null) {
                 message = message + "\n" + additionalWarning;
             }
-            LOGGER.lifecycle(message);
+            LOGGER.warn(message);
         }
     }
 }
