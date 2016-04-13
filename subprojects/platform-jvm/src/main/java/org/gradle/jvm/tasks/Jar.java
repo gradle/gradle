@@ -84,6 +84,7 @@ public class Jar extends Zip {
      * You can change this property but it is not recommended as JVMs expect JAR metadata to be encoded using UTF-8
      *
      * @return the character set used to encode JAR metadata like file names
+     * @since 2.14
      */
     @Override
     public String getMetadataCharset() {
@@ -96,6 +97,7 @@ public class Jar extends Zip {
      * You can change this property but it is not recommended as JVMs expect JAR metadata to be encoded using UTF-8
      *
      * @param metadataCharset the character set used to encode JAR metadata like file names
+     * @since 2.14
      */
     @Override
     public void setMetadataCharset(String metadataCharset) {

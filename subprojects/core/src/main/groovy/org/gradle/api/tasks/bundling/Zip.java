@@ -111,6 +111,7 @@ public class Zip extends AbstractArchiveTask {
      * Defaults to the platform's default character set.
      *
      * @return null if using the platform's default character set for ZIP metadata
+     * @since 2.14
      */
     @Incubating
     @Input @Optional
@@ -123,6 +124,7 @@ public class Zip extends AbstractArchiveTask {
      * Defaults to the platform's default character set.
      *
      * @param metadataCharset the character set used to encode ZIP metadata like file names
+     * @since 2.14
      */
     @Incubating
     public void setMetadataCharset(String metadataCharset) {
