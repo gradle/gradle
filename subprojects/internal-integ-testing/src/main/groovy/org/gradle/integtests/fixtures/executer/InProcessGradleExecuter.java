@@ -75,7 +75,7 @@ import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-class InProcessGradleExecuter extends AbstractGradleExecuter {
+public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
         .displayName("Global services")
         .parent(LoggingServiceRegistry.newCommandLineProcessLogging())
@@ -91,7 +91,7 @@ class InProcessGradleExecuter extends AbstractGradleExecuter {
         loggingManager.start();
     }
 
-    InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
+    public InProcessGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
     }
 

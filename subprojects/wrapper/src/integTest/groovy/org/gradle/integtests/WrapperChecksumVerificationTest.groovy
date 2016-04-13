@@ -16,45 +16,34 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
-import static org.gradle.util.TextUtil.normaliseFileAndLineSeparators
-
 @LeaksFileHandles
-class WrapperChecksumVerificationTest extends AbstractIntegrationSpec {
+class WrapperChecksumVerificationTest extends AbstractWrapperIntegrationSpec {
     @Rule
     HttpServer server = new HttpServer()
 
     def setup() {
-        executer.beforeExecute(new WrapperSetup())
         server.allowGetOrHead('/gradle-bin.zip', distribution.binDistribution)
         server.start()
     }
 
     def "wrapper execution fails when using bad checksum"() {
         given:
-        buildFile << """
-    wrapper {
-        distributionUrl = '${server.address}/gradle-bin.zip'
-    }
-"""
-
-        succeeds('wrapper')
+        prepareWrapper(new URI("${server.address}/gradle-bin.zip"))
 
         and:
         file('gradle/wrapper/gradle-wrapper.properties') << 'distributionSha256Sum=bad'
 
         when:
-        def failure = executer.usingExecutable("gradlew").runWithFailure()
+        def failure = wrapperExecuter.runWithFailure()
         def f = new File(file("user-home/wrapper/dists/gradle-bin").listFiles()[0], "gradle-bin.zip")
 
         then:
-        def errorOutput = normaliseFileAndLineSeparators(failure.error)
-        errorOutput.startsWith(normaliseFileAndLineSeparators("""
+        failure.error.startsWith("""
 Verification of Gradle distribution failed!
 
 Your Gradle distribution may have been tampered with.
@@ -64,24 +53,18 @@ Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.propert
 Download Location: $f.absolutePath
 Expected checksum: 'bad'
   Actual checksum: '${HashUtil.sha256(distribution.binDistribution).asZeroPaddedHexString(64)}'
-""".trim()))
+""".trim())
     }
 
     def "wrapper successfully verifies good checksum"() {
         given:
-        buildFile << """
-    wrapper {
-        distributionUrl = '${server.address}/gradle-bin.zip'
-    }
-"""
-
-        succeeds('wrapper')
+        prepareWrapper(new URI("${server.address}/gradle-bin.zip"))
 
         and:
         file('gradle/wrapper/gradle-wrapper.properties') << "distributionSha256Sum=${HashUtil.sha256(distribution.binDistribution).asZeroPaddedHexString(64)}"
 
         when:
-        def success = executer.usingExecutable("gradlew").run()
+        def success = wrapperExecuter.run()
 
         then:
         success.output.contains('BUILD SUCCESSFUL')
