@@ -1,4 +1,4 @@
-## User can specify arguments that apply to one participant in a composite
+## Tooling client can specify arguments that apply to one participant in a composite
 
 ### Overview
 

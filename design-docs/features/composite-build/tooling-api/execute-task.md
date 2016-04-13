@@ -1,10 +1,8 @@
-# Milestone: Tooling client can define a composite and execute tasks
-
-## Tooling client executes task in a single project within a composite
+## Tooling client executes tasks for specified project within a composite
 
 ### Overview
 
-This story adds support for executing tasks in a single project within a composite.
+This story adds support for executing tasks in a specified project within a composite.
 
 ### API
 
