@@ -15,8 +15,10 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.junit.Assume
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
@@ -24,33 +26,41 @@ import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSepara
 /**
  * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
  */
-@TargetGradleVersion(">=1.4") // Dependencies task fails for missing dependencies with older Gradle versions
+@TargetGradleVersion(">=1.4")
+// Dependencies task fails for missing dependencies with older Gradle versions
 class DependencySubstitutionGradleConnectionCrossVersionSpec extends CompositeToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
     def buildA
     def buildB
     def builds = []
+    def mavenRepo
 
     def setup() {
+        mavenRepo = new MavenFileRepository(file("maven-repo"))
+        mavenRepo.module("org.test", "buildB", "1.0").publish()
+
         buildA = singleProjectBuild("buildA") {
-                    buildFile << """
+            buildFile << """
         configurations { compile }
         dependencies {
             compile "org.test:buildB:1.0"
         }
+        repositories {
+            maven { url '${mavenRepo.uri}' }
+        }
 """
-}
+        }
         buildB = singleProjectBuild("buildB") {
-                    buildFile << """
+            buildFile << """
         apply plugin: 'base'
 """
-}
+        }
         builds << buildA << buildB
     }
 
     def "dependencies report shows external dependencies substituted with project dependencies"() {
         given:
-        def expectedOutput = "org.test:buildB:1.0 FAILED"
+        def expectedOutput = "org.test:buildB:1.0"
         if (supportsIntegratedComposites()) {
             expectedOutput = "org.test:buildB:1.0 -> project buildB::"
         }
@@ -81,7 +91,6 @@ compile
 compile
 \\--- org.test:buildB:1.0 FAILED
 """
-
     }
 
     private Object dependencies() {
