@@ -42,6 +42,14 @@ class MicrosoftVisualCppPluginTest extends NativeToolChainPluginTest {
         VisualCppToolChain.DEFAULT_NAME
     }
 
+    def "can apply plugin by id"() {
+        given:
+        project.apply plugin: 'visualcpp-compiler'
+
+        expect:
+        project.plugins.hasPlugin(pluginClass)
+    }
+
     def "makes a VisualCpp tool chain available"() {
         when:
         register()

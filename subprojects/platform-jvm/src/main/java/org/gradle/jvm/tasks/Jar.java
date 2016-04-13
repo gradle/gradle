@@ -48,6 +48,7 @@ public class Jar extends Zip {
 
     public Jar() {
         setExtension(DEFAULT_EXTENSION);
+        setMetadataCharset("UTF-8");
 
         manifest = new DefaultManifest(getFileResolver());
         // Add these as separate specs, so they are not affected by the changes to the main spec
@@ -75,6 +76,30 @@ public class Jar extends Zip {
                 }
             }
         });
+    }
+
+    /**
+     * The character set used to encode JAR metadata like file names.
+     * Defaults to UTF-8.
+     * You can change this property but it is not recommended as JVMs expect JAR metadata to be encoded using UTF-8
+     *
+     * @return the character set used to encode JAR metadata like file names
+     */
+    @Override
+    public String getMetadataCharset() {
+        return super.getMetadataCharset();
+    }
+
+    /**
+     * The character set used to encode JAR metadata like file names.
+     * Defaults to UTF-8.
+     * You can change this property but it is not recommended as JVMs expect JAR metadata to be encoded using UTF-8
+     *
+     * @param metadataCharset the character set used to encode JAR metadata like file names
+     */
+    @Override
+    public void setMetadataCharset(String metadataCharset) {
+        super.setMetadataCharset(metadataCharset);
     }
 
     /**

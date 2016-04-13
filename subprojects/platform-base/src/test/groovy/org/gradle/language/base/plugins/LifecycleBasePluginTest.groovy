@@ -30,6 +30,14 @@ import static org.hamcrest.Matchers.instanceOf
 class LifecycleBasePluginTest extends Specification {
     private final DefaultProject project = TestUtil.createRootProject()
 
+    def "can apply plugin by id"() {
+        given:
+        project.apply plugin: 'lifecycle-base'
+
+        expect:
+        project.plugins.hasPlugin(LifecycleBasePlugin)
+    }
+
     public void createsTasksAndAppliesMappings() {
         when:
         project.pluginManager.apply(LifecycleBasePlugin)

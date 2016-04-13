@@ -110,8 +110,9 @@ allprojects {
         private void visitNodes(NodeBuilder node, Set<NodeBuilder> result) {
             Set<NodeBuilder> nodesToVisit = []
             for (EdgeBuilder edge: node.deps) {
-                if (result.add(edge.selected)) {
-                    nodesToVisit << edge.selected
+                def targetNode = edge.selected
+                if (result.add(targetNode)) {
+                    nodesToVisit << targetNode
                 }
             }
             for(NodeBuilder child: nodesToVisit) {
@@ -338,6 +339,14 @@ allprojects {
          */
         NodeBuilder forced() {
             reasons << 'forced'
+            this
+        }
+
+        /**
+         * Marks that this node was substituted in a composite.
+         */
+        NodeBuilder compositeSubstitute() {
+            reasons << 'composite build substitution'
             this
         }
     }

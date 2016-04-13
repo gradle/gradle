@@ -67,7 +67,7 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         FileCollectionSnapshot filesSnapshot;
         if (!beforeExecution.getSnapshots().isEmpty() && !afterExecution.getSnapshots().isEmpty()) {
             Map<String, IncrementalFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
-            Map<String, IncrementalFileSnapshot> previousSnapshots = afterPreviousExecution.getSnapshots();
+            Map<String, IncrementalFileSnapshot> previousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getSnapshots() : new HashMap<String, IncrementalFileSnapshot>();
             List<Map.Entry<String, IncrementalFileSnapshot>> newEntries = new ArrayList<Map.Entry<String, IncrementalFileSnapshot>>(afterExecution.getSnapshots().size());
 
             for (Map.Entry<String, IncrementalFileSnapshot> entry : afterExecution.getSnapshots().entrySet()) {

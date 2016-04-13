@@ -112,6 +112,8 @@ Failure conditions:
 - Dependency cycle within multi-project build
 - Dependency cycle within multi-participant composite
 - Composite containing participants with same root directory name
+- One of the participants has no configurations defined
+- One of the participants cannot be configured
 
 Interaction with dependency rules:
 

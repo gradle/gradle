@@ -16,91 +16,66 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginInspector;
-import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.exceptions.Contextual;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
-import java.io.File;
-import java.net.URI;
-import java.util.Set;
-
 public class CustomRepositoryPluginResolver implements PluginResolver {
-    private final ClassLoaderScope parentScope;
-    private final PluginInspector pluginInspector;
-    private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
+    private static final String REPO_SYSTEM_PROPERTY = "org.gradle.plugin.repoUrl";
+    private static final String UNSET_REPO_SYSTEM_PROPERTY = "repo-url-unset-in-system-properties";
 
-    public CustomRepositoryPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
+    private final ClassLoaderScope parentScope;
+    private final VersionSelectorScheme versionSelectorScheme;
+    private final PluginInspector pluginInspector;
+    private final PluginClassPathResolver pluginClassPathResolver;
+    private String repoUrl;
+
+    public CustomRepositoryPluginResolver(ClassLoaderScope parentScope, VersionSelectorScheme versionSelectorScheme, PluginInspector pluginInspector, PluginClassPathResolver pluginClassPathResolver) {
         this.parentScope = parentScope;
+        this.versionSelectorScheme = versionSelectorScheme;
         this.pluginInspector = pluginInspector;
-        this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
+        this.pluginClassPathResolver = pluginClassPathResolver;
     }
 
     @Override
     public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
-        final String artifactAddress = pluginRequest.getId() + ":" + pluginRequest.getId() + ":" + pluginRequest.getVersion();
-        ClassPath classPath = resolvePluginDependencies(getRepoUri(), artifactAddress);
-        result.found("Custom Repository", new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector));
-    }
-
-    private URI getRepoUri() {
-        String repoUrl = System.getProperty("org.gradle.plugin.repoUrl");
-        URI uri = URI.create(repoUrl);
-        if (!uri.isAbsolute()) {
-            /*
-             * TODO this is a workaround for the fact that this code currently runs in a
-             * context that does not have a base dir, so the identity file resolver is used.
-             * That resolver cannot deal with relative paths. We use the current working dir
-             * as a workaround. In the final implementation, the repository handler will live
-             * in a context that hase a base dir (settings scope or project scope).
-             */
-            uri = new File(repoUrl).getAbsoluteFile().toURI();
+        if (getRepoUrl().equals(UNSET_REPO_SYSTEM_PROPERTY)) {
+            return;
         }
-        return uri;
-    }
-
-    private ClassPath resolvePluginDependencies(final URI repoUri, final String groupArtifactVersion) {
-        DependencyResolutionServices resolution = dependencyResolutionServicesFactory.create();
-
-        RepositoryHandler repositories = resolution.getResolveRepositoryHandler();
-        repositories.maven(new Action<MavenArtifactRepository>() {
-            public void execute(MavenArtifactRepository mavenArtifactRepository) {
-                mavenArtifactRepository.setUrl(repoUri.toString());
-            }
-        });
-
-        Dependency dependency = resolution.getDependencyHandler().create(groupArtifactVersion);
-
-        ConfigurationContainerInternal configurations = (ConfigurationContainerInternal) resolution.getConfigurationContainer();
-        ConfigurationInternal configuration = configurations.detachedConfiguration(dependency);
-
+        if (pluginRequest.getVersion() == null) {
+            result.notFound(getDescription(), "plugin dependency must include a version number for this source");
+            return;
+        }
+        if (pluginRequest.getVersion().endsWith("-SNAPSHOT")) {
+            result.notFound(getDescription(), "snapshot plugin versions are not supported");
+            return;
+        }
+        if (versionSelectorScheme.parseSelector(pluginRequest.getVersion()).isDynamic()) {
+            result.notFound(getDescription(), "dynamic plugin versions are not supported");
+            return;
+        }
+        final String artifactNotation = pluginRequest.getId() + ":" + pluginRequest.getId() + ":" + pluginRequest.getVersion();
         try {
-            Set<File> files = configuration.getResolvedConfiguration().getFiles(Specs.satisfyAll());
-            return new DefaultClassPath(files);
-        } catch (ResolveException e) {
-            throw new DependencyResolutionException("Failed to resolve all plugin dependencies from " + repoUri, e.getCause());
+            ClassPath classPath = pluginClassPathResolver.resolvePluginDependencies(getRepoUrl(), artifactNotation);
+            result.found(getDescription(), new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector));
+        } catch (PluginClassPathResolver.DependencyResolutionException e) {
+            result.notFound(getDescription(), String.format("Could not resolve plugin artifact '%s'", artifactNotation));
         }
     }
 
-    @Contextual
-    public static class DependencyResolutionException extends GradleException {
-        public DependencyResolutionException(String message, Throwable cause) {
-            super(message, cause);
+    // Caches the repoUrl so that we create minimal lock contention on System.getProperty() calls.
+    private String getRepoUrl() {
+        if (repoUrl == null) {
+            repoUrl = System.getProperty(REPO_SYSTEM_PROPERTY, UNSET_REPO_SYSTEM_PROPERTY);
         }
+        return repoUrl;
+    }
+
+    public static String getDescription() {
+        return "User-defined Plugin Repository";
     }
 }

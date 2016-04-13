@@ -15,12 +15,16 @@
  */
 
 package org.gradle.integtests.composite
+
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.tooling.BuildException
+
 /**
  * Tests for dependency substitution within a composite build.
  * Note that this test should be migrated to use the command-line entry point for composite build, when this is developed.
@@ -45,7 +49,7 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
                     maven { url "${mavenRepo.uri}" }
                 }
                 allprojects {
-                    apply plugin: 'base'
+                    apply plugin: 'java'
                     configurations { compile }
                 }
 """
@@ -57,11 +61,30 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
             buildFile << """
                 allprojects {
                     apply plugin: 'java'
-                    version "20"
+                    version "2.0"
                 }
 """
         }
         builds = [buildA, buildB]
+    }
+
+    def "reports failure to configure one participant build"() {
+        given:
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                throw new RuntimeException('exception thrown on configure')
+"""
+        }
+        builds << buildC
+
+        when:
+        checkDependencies()
+
+        then:
+        def t = thrown(BuildException)
+        assertFailure(t,
+            "A problem occurred evaluating root project 'buildC'.",
+            "exception thrown on configure")
     }
 
     def "does no substitution when no project matches external dependencies"() {
@@ -99,8 +122,8 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:20") {
-                selectedByRule()
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
             }
         }
     }
@@ -119,11 +142,11 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
 
         then:
         checkGraph {
-            edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:20") {
-                selectedByRule()
+            edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
+                compositeSubstitute()
             }
-            edge("org.test:b2:1.0", "project buildB::b2", "org.test:b2:20") {
-                selectedByRule()
+            edge("org.test:b2:1.0", "project buildB::b2", "org.test:b2:2.0") {
+                compositeSubstitute()
             }
         }
     }
@@ -145,7 +168,7 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         then:
         checkGraph {
             edge("org.test:a2:1.0", "project buildA::a2", "org.test:a2:1.0") {
-                selectedByRule()
+                compositeSubstitute()
             }
         }
     }
@@ -169,8 +192,8 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:20") {
-                selectedByRule()
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
                 module("org.foo:transitive:1.0")
             }
         }
@@ -200,10 +223,10 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
 
         then:
         checkGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:20") {
-                selectedByRule()
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
                 edge("org.test:buildC:1.0", "project buildC::", "org.test:buildC:1.0") {
-                    selectedByRule()
+                    compositeSubstitute()
                 }
             }
         }
@@ -225,11 +248,233 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         then:
         checkGraph {
             module("org.external:external-dep:1.0") {
-                edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:20") {
-                    selectedByRule()
+                edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                    compositeSubstitute()
                 }
             }
         }
+    }
+
+    def "can resolve with dependency cycle between substituted projects in a multiproject build"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:a1:1.0"
+            }
+            project(':a1') {
+                apply plugin: 'java'
+                dependencies {
+                    compile "org.test:a2:1.0"
+                }
+            }
+            project(':a2') {
+                apply plugin: 'java'
+                dependencies {
+                    compile "org.test:a1:1.0"
+                }
+            }
+"""
+
+        when:
+        checkDependencies()
+
+        then:
+        checkGraph {
+            edge("org.test:a1:1.0", "project buildA::a1", "org.test:a1:1.0") {
+                compositeSubstitute()
+                edge("org.test:a2:1.0", "project buildA::a2", "org.test:a2:1.0") {
+                    compositeSubstitute()
+                    edge("org.test:a1:1.0", "project buildA::a1", "org.test:a1:1.0") {}
+                }
+            }
+        }
+    }
+
+    def "can resolve with dependency cycle between substituted participants in a composite build"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:buildB:1.0"
+            }
+"""
+        buildB.buildFile << """
+            dependencies {
+                compile "org.test:buildA:1.0"
+            }
+"""
+
+        when:
+        checkDependencies()
+
+        then:
+        checkGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+                edge("org.test:buildA:1.0", "project :", "org.test:buildA:1.0") {}
+            }
+        }
+    }
+
+    @NotYetImplemented
+    def "substitutes dependency in composite containing participants with same root directory name"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:buildB:1.0"
+                compile "org.test:buildC:1.0"
+            }
+"""
+
+        def buildC = rootDir.file("hierarchy", "buildB");
+        buildC.file('settings.gradle') << """
+            rootProject.name = 'buildC'
+"""
+        buildC.file('build.gradle') << """
+            apply plugin: 'java'
+            group = 'org.test'
+            version = '1.0'
+"""
+        builds << buildC
+
+        when:
+        checkDependencies()
+
+        then:
+        checkGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+            }
+            edge("org.test:buildC:1.0", "project buildC::", "org.test:buildC:1.0") {
+                compositeSubstitute()
+            }
+        }
+    }
+
+    def "can substitute dependencies in composite with duplicate publication if not involved in resolution"() {
+        given:
+        def buildC = multiProjectBuild("buildC", ['a2', 'b2', 'c1']) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                }
+"""
+        }
+        builds << buildC
+
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:b1:1.0"
+                compile "org.test:c1:1.0"
+            }
+"""
+
+        when:
+        checkDependencies()
+
+        then:
+        checkGraph {
+            edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
+                compositeSubstitute()
+            }
+            edge("org.test:c1:1.0", "project buildC::c1", "org.test:c1:1.0") {
+                compositeSubstitute()
+            }
+        }
+    }
+
+    def "reports failure to resolve dependencies when substitution is ambiguous"() {
+        given:
+        def buildC = multiProjectBuild("buildC", ['a1', 'b1']) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    version = '3.0'
+                }
+"""
+        }
+        builds << buildC
+
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:b1:1.0"
+            }
+"""
+
+        when:
+        checkDependencies()
+
+        then:
+        def t = thrown(BuildException)
+        assertFailure(t, "Module version 'org.test:b1:1.0' is not unique in composite: can be provided by projects [buildB::b1, buildC::b1].")
+    }
+
+    def "reports failure to resolve dependencies when substitution is ambiguous within single participant"() {
+        given:
+        buildB
+        def buildC = multiProjectBuild("buildC", ['c1', 'c2']);
+        buildC.settingsFile << """
+            include ':nested:c1'
+"""
+        buildC.buildFile << """
+            allprojects {
+                apply plugin: 'java'
+            }
+"""
+        builds << buildC
+
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:c1:1.0"
+            }
+"""
+
+        when:
+        checkDependencies()
+
+        then:
+        def t = thrown(BuildException)
+        assertFailure(t, "Module version 'org.test:c1:1.0' is not unique in composite: can be provided by projects [buildC::c1, buildC::nested:c1].")
+    }
+
+    def "handles unused participant with no defined configurations"() {
+        given:
+        def buildC = singleProjectBuild("buildC")
+        builds << buildC
+
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:buildB:1.0"
+            }
+"""
+
+        when:
+        checkDependencies()
+
+        then:
+        checkGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+            }
+        }
+    }
+
+    def "reports failure when substituted project does not have requested configuration"() {
+        given:
+        def buildC = singleProjectBuild("buildC")
+        builds << buildC
+
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:buildC:1.0"
+            }
+"""
+
+        when:
+        checkDependencies()
+
+        then:
+        def t = thrown(BuildException)
+        assertFailure(t, "Module version org.test:buildA:1.0, configuration 'compile' declares a dependency on configuration 'default' which is not declared in the module descriptor for org.test:buildC:1.0")
     }
 
     private void checkDependencies() {

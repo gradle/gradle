@@ -1,21 +1,43 @@
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.connection.GradleConnection
 
-task buildProject << {
-    def project1 = file("projects/project1")
-    def project2 = file("projects/project2")
-    def project3 = file("projects/project3")
+task showDependencies << {
+    def connection = openCompositeConnection()
+    executeTask(connection, "projectA", ":dependencies")
+}
+
+task publishAll << {
+    def connection = openCompositeConnection()
+    executeTask(connection, "projectC", ":uploadArchives")
+    executeTask(connection, "projectB", ":b1:uploadArchives", ":b2:uploadArchives")
+    executeTask(connection, "projectA", ":uploadArchives")
+}
+
+private openCompositeConnection() {
+    def projectA = file("projects/projectA")
+    def projectB = file("projects/projectB")
+    def projectC = file("projects/projectC")
+
+    def gradleHome = project.gradle.gradleHomeDir
 
     def builder = GradleConnector.newGradleConnection()
-    builder.addParticipant(project1)
-    builder.addParticipant(project2)
-    builder.addParticipant(project3)
-    def connection = builder.build()
+    builder.addParticipant(projectA).useInstallation(gradleHome)
+    builder.addParticipant(projectB).useInstallation(gradleHome)
+    builder.addParticipant(projectC).useInstallation(gradleHome)
+    builder.useInstallation(gradleHome)
 
-    logger.lifecycle("Running build tasks in target project: ${project3.name}")
+    // Switch to enable (experimental) dependency substitution
+    builder.integratedComposite(project.hasProperty("integrated"))
+
+    return builder.build()
+}
+
+private executeTask(GradleConnection connection, String participant, String... tasks) {
+    def rootDir = file("projects/${participant}")
+    logger.lifecycle("Running tasks ${tasks} in participant: ${participant}")
     def buildLauncher = connection.newBuild()
-    buildLauncher.forTasks(project3, "build")
+    buildLauncher.forTasks(rootDir, tasks)
     buildLauncher.standardOutput = System.out
     buildLauncher.standardError = System.err
     buildLauncher.run()
-    connection.close()
 }

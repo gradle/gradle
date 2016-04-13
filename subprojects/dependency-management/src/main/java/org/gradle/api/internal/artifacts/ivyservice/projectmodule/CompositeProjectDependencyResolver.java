@@ -46,7 +46,7 @@ public class CompositeProjectDependencyResolver implements DependencyToComponent
 
             LocalComponentMetaData metaData = projectComponentRegistry.getProject(projectPath);
             result.resolved(metaData);
-            result.setSelectionReason(VersionSelectionReasons.SELECTED_BY_RULE);
+            result.setSelectionReason(VersionSelectionReasons.COMPOSITE_BUILD);
         }
     }
 

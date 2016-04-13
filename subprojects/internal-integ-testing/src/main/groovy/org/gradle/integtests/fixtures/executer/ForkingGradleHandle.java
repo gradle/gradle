@@ -32,7 +32,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PipedOutputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.Map;
 
 class ForkingGradleHandle extends OutputScrapingGradleHandle {
     final private Factory<? extends AbstractExecHandleBuilder> execHandleFactory;
@@ -88,9 +87,11 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         System.out.println("Starting build with: " + execHandle.getCommand() + " " + Joiner.on(" ").join(execHandle.getArguments()));
         System.out.println("Working directory: " + execHandle.getDirectory());
         System.out.println("Environment vars:");
-        for (Map.Entry<String, String> entry : execHandle.getEnvironment().entrySet()) {
-            System.out.println(String.format("    %s: %s", entry.getKey(), entry.getValue()));
-        }
+        System.out.println(String.format("    JAVA_HOME: %s", execHandle.getEnvironment().get("JAVA_HOME")));
+        System.out.println(String.format("    GRADLE_HOME: %s", execHandle.getEnvironment().get("GRADLE_HOME")));
+        System.out.println(String.format("    GRADLE_USER_HOME: %s", execHandle.getEnvironment().get("GRADLE_USER_HOME")));
+        System.out.println(String.format("    JAVA_OPTS: %s", execHandle.getEnvironment().get("JAVA_OPTS")));
+        System.out.println(String.format("    GRADLE_OPTS: %s", execHandle.getEnvironment().get("GRADLE_OPTS")));
 
         execHandle.start();
 

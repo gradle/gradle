@@ -17,9 +17,15 @@ package org.gradle.api.tasks.bundling;
 
 import org.apache.tools.zip.ZipOutputStream;
 import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.copy.*;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
+import org.gradle.util.DeprecationLogger;
+
+import java.nio.charset.Charset;
 
 /**
  * Assembles a ZIP archive.
@@ -30,7 +36,7 @@ public class Zip extends AbstractArchiveTask {
     public static final String ZIP_EXTENSION = "zip";
     private ZipEntryCompression entryCompression = ZipEntryCompression.DEFLATED;
     private boolean allowZip64;
-    private String encoding;
+    private String metadataCharset;
 
     public Zip() {
         setExtension(ZIP_EXTENSION);
@@ -51,7 +57,7 @@ public class Zip extends AbstractArchiveTask {
     @Override
     protected CopyAction createCopyAction() {
         DocumentationRegistry documentationRegistry = getServices().get(DocumentationRegistry.class);
-        return new ZipCopyAction(getArchivePath(), getCompressor(), documentationRegistry, encoding);
+        return new ZipCopyAction(getArchivePath(), getCompressor(), documentationRegistry, metadataCharset);
     }
 
     /**
@@ -101,22 +107,58 @@ public class Zip extends AbstractArchiveTask {
     }
 
     /**
-     * The encoding to use for filenames and the file comment of the archive.
+     * The character set used to encode ZIP metadata like file names.
+     * Defaults to the platform's default character set.
      *
-     * @return null if using the platform's default character encoding.
+     * @return null if using the platform's default character set for ZIP metadata
      */
-    public String getEncoding() {
-        return this.encoding;
+    @Incubating
+    @Input @Optional
+    public String getMetadataCharset() {
+        return this.metadataCharset;
     }
 
     /**
-     * The encoding to use for filenames and the file comment of the archive.
-     * Defaults to the platform's default character encoding.
-     * 
-     * @param encoding the encoding value
+     * The character set used to encode ZIP metadata like file names.
+     * Defaults to the platform's default character set.
+     *
+     * @param metadataCharset the character set used to encode ZIP metadata like file names
      */
+    @Incubating
+    public void setMetadataCharset(String metadataCharset) {
+        if (metadataCharset == null) {
+            throw new InvalidUserDataException("metadataCharset must not be null");
+        }
+        if (!Charset.isSupported(metadataCharset)) {
+            throw new InvalidUserDataException(String.format("Charset for metadataCharset '%s' is not supported by your JVM", metadataCharset));
+        }
+        this.metadataCharset = metadataCharset;
+    }
+
+    /**
+     * The character set used to encode ZIP metadata like file names.
+     * Defaults to the platform's default character set.
+     *
+     * @return null if using the platform's default character set for ZIP metadata
+     * @deprecated Use {@link #getMetadataCharset()} instead
+     */
+    @Deprecated
+    public String getEncoding() {
+        DeprecationLogger.nagUserOfReplacedProperty("Zip.encoding", "metadataCharset");
+        return getMetadataCharset();
+    }
+
+    /**
+     * The character set used to encode ZIP metadata like file names.
+     * Defaults to the platform's default character set.
+     *
+     * @param encoding the character set used to encode ZIP metadata like file names
+     * @deprecated Use {@link #setMetadataCharset(String)} instead
+     */
+    @Deprecated
     public void setEncoding(String encoding) {
-        this.encoding = encoding;
+        DeprecationLogger.nagUserOfReplacedProperty("Zip.encoding", "metadataCharset");
+        setMetadataCharset(encoding);
     }
 
     /**

@@ -33,7 +33,6 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
     }
 
     public void addDependencyDescriptors(BuildableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations) {
-        assert !configurations.isEmpty();
         addDependencies(metaData, configurations);
         addExcludeRules(metaData, configurations);
     }

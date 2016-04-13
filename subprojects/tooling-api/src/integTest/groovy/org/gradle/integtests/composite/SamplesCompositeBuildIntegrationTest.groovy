@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.tooling
+
+
+package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
@@ -30,18 +32,49 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
     @UsesSample('compositeBuild')
-    def "can define composite build and execute task"() {
+    def "can publish participants and resolve dependencies in non-integrated composite"() {
         given:
         tweakProject()
 
         when:
         executer.inDirectory(sample.dir)
-        succeeds('buildProject')
+        succeeds('publishAll')
 
         then:
-        result.assertOutputContains("Running build tasks in target project: project3")
-        result.assertOutputContains(":3a:build")
-        result.assertOutputContains(":3b:build")
+        result.assertOutputContains("Running tasks [:uploadArchives] in participant: projectC")
+        result.assertOutputContains("Running tasks [:b1:uploadArchives, :b2:uploadArchives] in participant: projectB")
+        result.assertOutputContains("Running tasks [:uploadArchives] in participant: projectA")
+
+        when:
+        executer.inDirectory(sample.dir)
+        succeeds('showDependencies')
+
+        then:
+        result.assertOutputContains("""
+compile - Dependencies for source set 'main'.
++--- org.sample:b1:1.0
+\\--- org.sample:b2:1.0
+     \\--- org.sample:projectC:1.0
+""")
+    }
+
+    @UsesSample('compositeBuild')
+    def "can resolve participant dependencies in integrated composite"() {
+        given:
+        tweakProject()
+
+        when:
+        executer.inDirectory(sample.dir)
+        executer.withArgument("-Pintegrated")
+        succeeds('showDependencies')
+
+        then:
+        result.assertOutputContains("""
+compile - Dependencies for source set 'main'.
++--- org.sample:b1:1.0 -> project projectB::b1
+\\--- org.sample:b2:1.0 -> project projectB::b2
+     \\--- org.sample:projectC:1.0 -> project projectC::
+""")
     }
 
     private void tweakProject(TestFile projectDir = sample.dir) {
@@ -55,17 +88,13 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         def gradleUserHomePath = Matcher.quoteReplacement(TextUtil.escapeString(executer.gradleUserHomeDir.absolutePath))
 
         def buildScript = buildFile.text
+        buildScript = buildScript.replaceAll("project\\.gradle\\.gradleHomeDir", "new File('${gradleHomePath}')")
         buildScript = buildScript.replaceFirst(
             "newGradleConnection\\(\\)",
             "newGradleConnection()" +
                 ".useGradleUserHomeDir(new File('${gradleUserHomePath}'))" +
                 ".daemonBaseDir(new File('${daemonBaseDirPath}'))" +
                 ".daemonMaxIdleTime(10, java.util.concurrent.TimeUnit.SECONDS)"
-        )
-        buildScript = buildScript.replaceAll(
-            "addParticipant\\((project.)\\)",
-            "addParticipant(\$1)" +
-                ".useInstallation(new File('${gradleHomePath}'))"
         )
         buildFile.text = buildScript
     }

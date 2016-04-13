@@ -17,31 +17,16 @@
 package org.gradle.plugin.use.resolve.service.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginInspector;
-import org.gradle.api.specs.Specs;
 import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.exceptions.Contextual;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.plugin.use.resolve.internal.*;
-
-import java.io.File;
-import java.util.Set;
 
 public class PluginResolutionServiceResolver implements PluginResolver {
 
@@ -51,20 +36,20 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     private final PluginResolutionServiceClient portalClient;
     private final VersionSelectorScheme versionSelectorScheme;
     private final StartParameter startParameter;
-    private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
+    private final PluginClassPathResolver pluginClassPathResolver;
     private final ClassLoaderScope parentScope;
     private final PluginInspector pluginInspector;
 
     public PluginResolutionServiceResolver(
-            PluginResolutionServiceClient portalClient,
-            VersionSelectorScheme versionSelectorScheme, StartParameter startParameter,
-            ClassLoaderScope parentScope, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory, PluginInspector pluginInspector
+        PluginResolutionServiceClient portalClient,
+        VersionSelectorScheme versionSelectorScheme, StartParameter startParameter,
+        PluginClassPathResolver pluginClassPathResolver, ClassLoaderScope parentScope, PluginInspector pluginInspector
     ) {
         this.portalClient = portalClient;
         this.versionSelectorScheme = versionSelectorScheme;
         this.startParameter = startParameter;
+        this.pluginClassPathResolver = pluginClassPathResolver;
         this.parentScope = parentScope;
-        this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
         this.pluginInspector = pluginInspector;
     }
 
@@ -122,38 +107,13 @@ public class PluginResolutionServiceResolver implements PluginResolver {
     }
 
     private ClassPath resolvePluginDependencies(final PluginUseMetaData metadata) {
-        DependencyResolutionServices resolution = dependencyResolutionServicesFactory.create();
-
-        RepositoryHandler repositories = resolution.getResolveRepositoryHandler();
+        final String groupArtifactId = metadata.implementation.get("gav");
         final String repoUrl = metadata.implementation.get("repo");
-        repositories.maven(new Action<MavenArtifactRepository>() {
-            public void execute(MavenArtifactRepository mavenArtifactRepository) {
-                mavenArtifactRepository.setUrl(repoUrl);
-            }
-        });
 
-        Dependency dependency = resolution.getDependencyHandler().create(metadata.implementation.get("gav"));
-
-        ConfigurationContainerInternal configurations = (ConfigurationContainerInternal) resolution.getConfigurationContainer();
-        ConfigurationInternal configuration = configurations.detachedConfiguration(dependency);
-
-        try {
-            Set<File> files = configuration.getResolvedConfiguration().getFiles(Specs.satisfyAll());
-            return new DefaultClassPath(files);
-        } catch (ResolveException e) {
-            throw new DependencyResolutionException("Failed to resolve all plugin dependencies from " + repoUrl, e.getCause());
-        }
+        return pluginClassPathResolver.resolvePluginDependencies(repoUrl, groupArtifactId);
     }
 
     public String getDescription() {
         return "Gradle Central Plugin Repository";
     }
-
-    @Contextual
-    public static class DependencyResolutionException extends GradleException {
-        public DependencyResolutionException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
-
 }
