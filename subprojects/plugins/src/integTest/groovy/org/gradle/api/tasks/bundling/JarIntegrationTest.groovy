@@ -546,7 +546,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """.stripIndent()
-        def unsupportedCharset = 'UNSUPPORTED'
 
         when:
         executer.withDefaultCharacterEncoding('UTF-8')
@@ -557,8 +556,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Charset for contentCharset 'UNSUPPORTED' is not supported by your JVM")
 
         where:
-        writeCharset       | readCharset
-        unsupportedCharset | 'UTF-8'
-        'UTF-8'            | unsupportedCharset
+        writeCharset  | readCharset
+        'UNSUPPORTED' | 'UTF-8'
+        'UTF-8'       | 'UNSUPPORTED'
     }
 }
