@@ -22,7 +22,7 @@ import org.gradle.api.internal.DynamicObjectUtil;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.logging.StandardOutputCapture;
+import org.gradle.internal.logging.StandardOutputCapture;
 
 import java.util.Map;
 

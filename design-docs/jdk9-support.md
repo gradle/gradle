@@ -550,15 +550,14 @@ Abstractly:
 - runtime image is a bundle of modules
 - modular JVM is a JVM platform with a single target native platform that can host jars, multi-version jars, modular jars
 
-# Gradle and JDK9 Status Today (2016/03/23)
+# Gradle and JDK9 Status Today (2016/03/30)
 
-This section is for recording issues with Gradle and the JDK 9 libraries and runtime. There are currently two different
-distributions of Jdk 9 available for 64-bit OS X.
+This section is for recording issues with Gradle and the JDK 9 libraries and runtime. There is currently just one
+distributions of Jdk 9 available for 64-bit OS X (this is down from two in the past.)
 
-- **Jdk 9 (without Jigsaw)** Java HotSpot(TM) 64-Bit Server VM (build 9-ea+110, mixed mode)
-- **Jdk 9 (with Jigsaw)** Java HotSpot(TM) 64-Bit Server VM (build 9-ea+110-2016-03-17-011052.javare.4664.nc, mixed mode)
+- **Jdk 9 (with Jigsaw)** Java HotSpot(TM) 64-Bit Server VM (build 9-ea+111, mixed mode)
 
-In the following scenarios, we describe how Gradle version 2.12 behaves running with each of these jdks.
+In the following scenarios, we describe how Gradle version 2.12 behaves running with this jdk.
 
 ## Scenario 1: Simple Gralde Build
 
@@ -569,59 +568,6 @@ task printProps << {
   println "Favorite Color: " + System.properties['favoriteColor']
 }
 ```
-
-### Gradle 2.12 and Jdk 9 (without Jigsaw) -- Failure
-
-```
-$> gradle printProps -s
-
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-sun.management.spi.PlatformMBeanProvider: Provider jdk.management.cmm.internal.PlatformMBeanProviderImpl not found
-
-* Try:
-Run with --info or --debug option to get more log output.
-
-* Exception is:
-java.util.ServiceConfigurationError: sun.management.spi.PlatformMBeanProvider: Provider jdk.management.cmm.internal.PlatformMBeanProviderImpl not found
-	at java.util.ServiceLoader.fail(ServiceLoader.java:237)
-	at java.util.ServiceLoader.access$300(ServiceLoader.java:183)
-	at java.util.ServiceLoader$LazyIterator.nextService(ServiceLoader.java:370)
-	at java.util.ServiceLoader$LazyIterator.next(ServiceLoader.java:402)
-	at java.util.ServiceLoader$1.next(ServiceLoader.java:478)
-	at java.lang.Iterable.forEach(Iterable.java:74)
-	at java.lang.management.ManagementFactory$PlatformMBeanFinder.lambda$static$0(ManagementFactory.java:890)
-	at java.security.AccessController.doPrivileged(Native Method)
-	at java.security.AccessController.doPrivileged(AccessController.java:428)
-	at java.lang.management.ManagementFactory$PlatformMBeanFinder.<clinit>(ManagementFactory.java:886)
-	at java.lang.management.ManagementFactory.getPlatformMXBean(ManagementFactory.java:649)
-	at java.lang.management.ManagementFactory.getRuntimeMXBean(ManagementFactory.java:355)
-	at org.gradle.launcher.cli.BuildActionsFactory.getBuildStartTime(BuildActionsFactory.java:152)
-	at org.gradle.launcher.cli.BuildActionsFactory.runBuild(BuildActionsFactory.java:148)
-	at org.gradle.launcher.cli.BuildActionsFactory.runBuildWithDaemon(BuildActionsFactory.java:91)
-	at org.gradle.launcher.cli.BuildActionsFactory.createAction(BuildActionsFactory.java:70)
-	at org.gradle.launcher.cli.CommandLineActionFactory$ParseAndBuildAction.createAction(CommandLineActionFactory.java:242)
-	at org.gradle.launcher.cli.CommandLineActionFactory$ParseAndBuildAction.execute(CommandLineActionFactory.java:232)
-	at org.gradle.launcher.cli.CommandLineActionFactory$ParseAndBuildAction.execute(CommandLineActionFactory.java:210)
-	at org.gradle.launcher.cli.JavaRuntimeValidationAction.execute(JavaRuntimeValidationAction.java:35)
-	at org.gradle.launcher.cli.JavaRuntimeValidationAction.execute(JavaRuntimeValidationAction.java:24)
-	at org.gradle.launcher.cli.CommandLineActionFactory$WithLogging.execute(CommandLineActionFactory.java:206)
-	at org.gradle.launcher.cli.CommandLineActionFactory$WithLogging.execute(CommandLineActionFactory.java:169)
-	at org.gradle.launcher.cli.ExceptionReportingAction.execute(ExceptionReportingAction.java:33)
-	at org.gradle.launcher.cli.ExceptionReportingAction.execute(ExceptionReportingAction.java:22)
-	at org.gradle.launcher.Main.doAction(Main.java:33)
-	at org.gradle.launcher.bootstrap.EntryPoint.run(EntryPoint.java:45)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:520)
-	at org.gradle.launcher.bootstrap.ProcessBootstrap.runNoExit(ProcessBootstrap.java:54)
-	at org.gradle.launcher.bootstrap.ProcessBootstrap.run(ProcessBootstrap.java:35)
-	at org.gradle.launcher.GradleMain.main(GradleMain.java:23)
-```
-
-This is also the exception reported [in the forums](https://discuss.gradle.org/t/gradle-2-12-fails-to-build-when-running-on-jdk-9/15335).
 
 ### Gradle 2.12 and Jdk 9 (with Jigsaw) -- Success
 
@@ -639,10 +585,6 @@ Total time: 0.666 sec
 ## Scenario 2: Simple Java Library
 
 In this scenario, we run `gradle init --type java-library` and then `gradle build`
-
-### Gradle 2.12 with Jdk 9 (without Jigsaw) -- Failure
-
-Basically, any gradle command we run gives us the same failure as above. Not repeating the stack trace here.
 
 ### Gradle 2.12 with Jdk 9 (with Jigsaw) -- Failure
 
@@ -714,14 +656,31 @@ Caused by: org.gradle.internal.reflect.ObjectInstantiationException: Could not c
 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeAction(ExecuteActionsTaskExecuter.java:80)
 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeActions(ExecuteActionsTaskExecuter.java:61)
 	... 14 more
-Caused by: java.lang.IllegalAccessException: class org.gradle.internal.reflect.DirectInstantiator cannot access class com.sun.tools.javac.api.JavacTool (in module jdk.compiler) because module jdk.compiler does not export com.sun.tools.javac.api to unnamed module @4b9e255
+Caused by: java.lang.IllegalAccessException: class org.gradle.internal.reflect.DirectInstantiator cannot access class com.sun.tools.javac.api.JavacTool (in module jdk.compiler) because module jdk.compiler does not export com.sun.tools.javac.api to unnamed module @6c9f5c0d
 	at org.gradle.internal.reflect.DirectInstantiator.newInstance(DirectInstantiator.java:49)
 	... 39 more
 
 
 BUILD FAILED
 
-Total time: 0.754 secs
+Total time: 1.527 secs
 ```
 
+According to this [slide
+deck](http://openjdk.java.net/projects/jigsaw/talks/prepare-for-jdk9-j1-2015.pdf),
+it looks like we should just be able to work around this by passing
+"-XaddExports" as JVM optinos when invoking the build, but that has not worked for
+me yet.
 
+Also, the problem seems to come from our use of a private
+implementation detail behind the `JavaCompiler` interface. We are
+creating an isolated classLoader with only the tools.jar on it, and
+then attempting to create an instance of the
+`com.sun.tools.javac.api.JavacTool` class rather than getting a
+`JavaCompiler` from `ToolsProvider.getSystemJavaCompiler()` method as
+suggested by [the
+documentation](http://download.java.net/jdk9/docs/api/javax/tools/JavaCompiler.html).
+
+I don't currently understand why we need to isolate ourselves from the
+application `ClassLoader` or exactly how this is accomplished, but I
+wonder if there might be another way to achieve the same results.

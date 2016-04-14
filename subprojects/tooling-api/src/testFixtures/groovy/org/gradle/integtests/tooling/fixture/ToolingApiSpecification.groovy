@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.fixture
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 
@@ -29,10 +28,6 @@ abstract class ToolingApiSpecification extends AbstractToolingApiSpecification {
 
     public <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         toolingApi.withConnection(cl)
-    }
-
-    public <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
-        toolingApi.withConnection(connector, cl)
     }
 
     public ConfigurableOperation withModel(Class modelType, Closure cl = {}) {

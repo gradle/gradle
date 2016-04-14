@@ -49,7 +49,7 @@ public class HeapProportionalCacheSizer {
         return scaleCacheSize(referenceValue, 100);
     }
 
-    private int scaleCacheSize(int referenceValue, int granularity) {
+    public int scaleCacheSize(int referenceValue, int granularity) {
         if (referenceValue < granularity) {
             throw new IllegalArgumentException("reference value must be larger than granularity");
         }

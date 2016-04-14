@@ -1,7 +1,7 @@
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import org.gradle.logging.StyledTextOutputFactory
-import static org.gradle.logging.StyledTextOutput.Style.*
+import org.gradle.internal.logging.text.StyledTextOutputFactory
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.*
 
 task log << {
     def executor = Executors.newCachedThreadPool()

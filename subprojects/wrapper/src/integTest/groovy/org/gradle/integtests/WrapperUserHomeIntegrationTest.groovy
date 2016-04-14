@@ -16,59 +16,37 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 @LeaksFileHandles
-class WrapperUserHomeIntegrationTest extends AbstractIntegrationSpec {
-
-    void setup() {
-        assert distribution.binDistribution.exists() : "bin distribution must exist to run this test, you need to run the :distributions:binZip task"
-        executer.requireIsolatedDaemons()
-    }
-
-    private prepareWrapper() {
-        file("build.gradle") << """
-            wrapper {
-                distributionUrl = '${distribution.binDistribution.toURI()}'
-            }
-        """
-        executer.withTasks('wrapper').run()
-        executer.usingExecutable('gradlew').inDirectory(testDirectory).withGradleUserHomeDir(null)
-    }
-
-    private def installationIn(TestFile userHomeDir) {
-        def distDir = userHomeDir.file("wrapper/dists/gradle-${distribution.version.version}-bin").assertIsDir()
-        assert distDir.listFiles().length == 1
-        return distDir.listFiles()[0].file("gradle-${distribution.version.version}").assertIsDir()
-    }
-
+class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
     void 'uses gradle user home set by -Dgradle.user.home'() {
         given:
         prepareWrapper()
-        def gradleUserHome = testDirectory.file('user-home')
+        def gradleUserHome = testDirectory.file('some-custom-user-home')
 
         when:
-        args "-Dgradle.user.home=$gradleUserHome.absolutePath"
-        succeeds()
+        def executer = wrapperExecuter.withGradleUserHomeDir(null)
+        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath")
+        executer.run()
 
         then:
-        installationIn gradleUserHome exists()
+        installationIn gradleUserHome
     }
 
     @Issue('https://issues.gradle.org/browse/GRADLE-2802')
     void 'uses gradle user home set by -g'() {
         given:
         prepareWrapper()
-        def gradleUserHome = testDirectory.file('user-home')
+        def gradleUserHome = testDirectory.file('some-custom-user-home')
 
         when:
-        args '-g', gradleUserHome.absolutePath
-        succeeds()
+        def executer = wrapperExecuter.withGradleUserHomeDir(null)
+        executer.withArguments('-g', gradleUserHome.absolutePath)
+        executer.run()
 
         then:
-        installationIn gradleUserHome exists()
+        installationIn gradleUserHome
     }
 }

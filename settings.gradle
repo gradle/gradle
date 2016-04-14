@@ -16,6 +16,7 @@
 include 'distributions'
 include 'baseServices'
 include 'baseServicesGroovy'
+include 'logging'
 include 'core'
 include 'dependencyManagement'
 include 'wrapper'

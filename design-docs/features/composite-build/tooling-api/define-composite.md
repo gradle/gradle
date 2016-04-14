@@ -25,11 +25,6 @@
 - After closing a `GradleConnection`, `GradleConnection` methods throw IllegalStateException (like `ProjectConnection.getModel`)
 - `CompositeModelBuilder` is an extension of `ModelBuilder`, allowing to set per-participant arguments on top of arguments for the coordinator.
 - All `CompositeModelBuilder` methods are delegates to the underlying `ProjectConnection`
-- Validate participant projects are a "valid" composite before retrieving model
-    - >1 participants
-    - All using >= Gradle 1.0
-    - Participants are not "overlapping" (subprojects of one another)
-    - Participants are actually Gradle builds
 - Order of participants added to a composite does not guarantee an order when operating on participants or returning results.  A composite with [A,B,C] will return the same results as a composite with [C,B,A], but results are not guaranteed to be in any particular order.
 
 ### Test coverage
@@ -43,9 +38,3 @@
 ### Documentation
 
 - Add toolingApi sample that creates a `GradleConnection` with multiple independent builds.
-
-### Open issues
-
-- Don't yet support distribution for coordinator: remove these methods?
-- Provide way of detecting feature set of composite build?
-- Enable validation of composite build -- better way than querying model multiple times?

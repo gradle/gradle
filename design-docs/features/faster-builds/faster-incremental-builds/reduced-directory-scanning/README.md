@@ -117,11 +117,90 @@ This story doesn't implement all of this. This is just to clarify the direction 
 - Simple invalidation strategy, such as invalidate everything when any task action runs. This can be improved later.
 - Invalidate cache at the end of the build. 
 
-
-
 #### Open issues
 - reusing directory scanning results of an output snapshot without a pattern when the input is using a pattern.
 - currently the simple cache invalidation strategy flushes the cache before each task execution. A directory scanning result will only get reused when the task that produces the input to a certain task preceeds the task that uses the output.
+
+
+### Improvement: Split snapshotting to 2 phases to improvement performance
+
+Currently a input or output snapshot is relatively heavy weight. 
+It is possible to skip creating a full snapshot when nothing has changed compared to the previous snapshot.
+
+##### Goal of changes
+
+- when nothing has changed
+  - improve performance of up-to-date checking 
+    - by skipping creating a new full snapshot which also requires the previous snapshot
+      - skipping loading previous snapshot from persistent storage
+        - also saves memory since there is less use for the in-memory cache of snapshots
+
+##### Implementation notes
+
+- Split snapshotting to 2 phases: pre-check and snapshot.
+
+- In the pre-check phase a single integer valued hash is calculated.
+- The hash is calculated from a list of sorted file information.
+  - For files, the hash is updated with the file name, size and modification time
+  - For directories, the hash is updated with the file name
+- The pre-check hash doesn't contain any hashing of the file contents. 
+  - No changes will be noticed if the file size or modification time doesn't change. 
+    - This is also the current behaviour of Gradle since file content hashes are cached based on file name, size and modification time.
+- if the pre-check hash is same as pre-check for previous snapshot, it is considered up-to-date and the actual file snapshot doesn't have to be loaded and no new snapshot has to be created.
+- if the pre-check hash is different and snapshot up-to-date check doesn't  contain changes (false positive), the persisted hash gets updated
+  - this might happen when file modification times are different, but content is the same
+- fileSnapshots in-memory cache can now use weak references for values.
+  - loaded fileSnapshots will get GCd under memory pressure which works fine with the new up-to-date checking.
+
+### Improvement: Change snapshot persistence to use shared tree snapshots
+
+There is currently duplication in the snapshots of outputs and inputs of dependent tasks.
+Change persistence of input and output snapshots to reference shared tree snapshots.
+An input or output snapshot might be composed of multiple tree snapshots.
+
+#### Implementation notes
+
+Output directory snapshotting is special currently. it handles the case
+where the output directory is shared. The current algoritm is:
+  - snapshot before task executions
+  - snapshot after task executions
+  - save snapshot for the files created by the task
+    - uses previous saved snapshot as template for list of files
+    - adds any changed or new files to the list of files created by the task
+Output directory snapshotting uses updateFrom and applyAllChangesSince methods on
+FileCollectionSnapshot to create the snapshot. This complicates the implementation.
+It should be replaced with a single method that is optimized for the use case of creating an output snapshot.
+This method should be added to OutputFilesCollectionSnapshotter.
+
+Introduce new concepts `VisitedTree` and `TreeSnapshot` for structuring the tree snapshot sharing solution.
+The `CachingTreeVisitor` implemented in the previous story "Incremental build reuses directory scanning results in simple cases" should be modified to return `VisitedTree` instances.
+
+```java
+public interface VisitedTree {
+    Collection<FileTreeElement> getEntries();
+    TreeSnapshot maybeCreateSnapshot(FileSnapshotter fileSnapshotter, StringInterner stringInterner);
+    boolean isShareable();
+}
+```
+A `TreeSnapshot` can be created from a `VisitedTree`. The `VisitedTree` instance will keep state of a created `TreeSnapshot` instance and will only create it if it hasn't been done. 
+
+Furthermore, a `TreeSnapshot` instance has methods for accessing the stored snapshot information and a method for storing the content. The `maybeStoreEntry` method persists the entry only if it hasn't been done before.
+```java
+public interface TreeSnapshot {
+    boolean isShareable();
+    Collection<FileSnapshotWithKey> getFileSnapshots();
+    Long getAssignedId();
+    Long maybeStoreEntry(Action<Long> storeEntryAction);
+}
+```
+
+### Improvement: Use relative paths in Jdk7DirectoryWalker and in snapshots
+
+Currently the snapshot uses absolute paths. Absolute paths contain a lot of redundant information.
+- Absolute path of root + relative path
+  - change in directory scanning to create File instances on demand
+    - Path.toFile relatively expensive
+- TreeSnapshot can hold the root information
 
 ### Incremental build reuses directory scanning results in most cases
 
@@ -140,7 +219,7 @@ Currently there are a lot of file system operations involved when the file metad
 Sometimes a task may accept a given directory as input or output multiple times. The `Test` task is an example of this.
 
 Currently, such directories will be scanned multiple times. Instead, each directory should be scanned once when calculating the input or output snapshots for a task.
-   
+
 The implementation of this is made more complex when different patterns or specs are used. For this story, simply merge those file trees with the same base directory
 and where one of the file trees has an 'accept everything' spec.
 

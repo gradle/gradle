@@ -34,12 +34,11 @@ public class Main {
 
         File gradleHome = new File(args[0]);
         File gradleUserHome = new File(args[1]);
-        builder.useInstallation(gradleHome);
         builder.useGradleUserHomeDir(gradleUserHome);
 
         for (int i = 2; i < args.length; i++) {
             File projectDir = new File(args[i]);
-            builder.newParticipant(projectDir).useInstallation(gradleHome).create();
+            builder.addParticipant(projectDir).useInstallation(gradleHome);
         }
         GradleConnection connection = builder.build();
         try {

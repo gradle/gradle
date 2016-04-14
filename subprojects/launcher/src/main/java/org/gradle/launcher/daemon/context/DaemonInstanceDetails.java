@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.context;
 
-import org.gradle.messaging.remote.Address;
+import org.gradle.internal.remote.Address;
 
 /**
  * Some basic meta-data required to identify and connect to a daemon.

@@ -65,4 +65,56 @@ public abstract class AntBuilder extends groovy.util.AntBuilder {
     public AntBuilder getAnt() {
         return this;
     }
+
+    /**
+     * Sets the Ant message priority that should correspond to the Gradle "lifecycle" log level.  Any messages logged at this
+     * priority (or more critical priority) will be logged at least at lifecycle in Gradle's logger.  If the Ant priority already maps to a
+     * higher Gradle log level, it will continue to be logged at that level.
+     *
+     * @param logLevel The Ant log level to map to the Gradle lifecycle log level
+     */
+    public abstract void setLifecycleLogLevel(AntMessagePriority logLevel);
+
+    /**
+     * Sets the Ant message priority that should correspond to the Gradle "lifecycle" log level.  Any messages logged at this
+     * priority (or more critical priority) will be logged at least at lifecycle in Gradle's logger.  If the Ant priority already maps to a
+     * higher Gradle log level, it will continue to be logged at that level.  Acceptable values are "VERBOSE", "DEBUG", "INFO", "WARN",
+     * and "ERROR".
+     *
+     * @param logLevel The Ant log level to map to the Gradle lifecycle log level
+     */
+    public void setLifecycleLogLevel(String logLevel) {
+        setLifecycleLogLevel(AntMessagePriority.valueOf(logLevel));
+    }
+
+    /**
+     * Returns the Ant message priority that corresponds to the Gradle "lifecycle" log level.
+     *
+     * @return logLevel The Ant log level that maps to the Gradle lifecycle log level
+     */
+    public abstract AntMessagePriority getLifecycleLogLevel();
+
+    /**
+     * Represents the normal Ant message priorities.
+     */
+    public enum AntMessagePriority {
+        DEBUG, VERBOSE, INFO, WARN, ERROR;
+
+        public static AntMessagePriority from(int messagePriority) {
+            switch(messagePriority) {
+                case org.apache.tools.ant.Project.MSG_ERR:
+                    return ERROR;
+                case org.apache.tools.ant.Project.MSG_WARN:
+                    return WARN;
+                case org.apache.tools.ant.Project.MSG_INFO:
+                    return INFO;
+                case org.apache.tools.ant.Project.MSG_VERBOSE:
+                    return VERBOSE;
+                case org.apache.tools.ant.Project.MSG_DEBUG:
+                    return DEBUG;
+                default:
+                    throw new IllegalArgumentException();
+            }
+        }
+    }
 }

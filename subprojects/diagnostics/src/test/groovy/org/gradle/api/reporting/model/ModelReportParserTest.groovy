@@ -34,12 +34,15 @@ class ModelReportParserTest extends Specification {
         text | message
         ''   | 'Report text must not be blank'
         null | 'Report text must not be blank'
-        's'  | 'Should have at least 7 lines'
+        's'  | 'Should have at least 5 lines'
     }
 
     def "fails when missing the success marker"() {
         when:
-        ModelReportParser.parse("""1
+        ModelReportParser.parse("""-----------
+Report
+--------------
+1
 2
 3
 4
@@ -53,12 +56,28 @@ BUILD SUCCESSFUsL
         ex.message.startsWith "Expected to find an end of report marker '${ModelReportParser.END_OF_REPORT_MARKER}'"
     }
 
+    def "fails when missing the header marker"() {
+        when:
+        ModelReportParser.parse("""1
+2
+3
+4
+5
+6
++ model
+BUILD SUCCESSFUL
+""")
+        then:
+        def ex = thrown(AssertionError)
+        ex.message == "No header found in report output"
+    }
+
     def "should parse a report with no children"() {
         def modelReport = ModelReportParser.parse(""":model
 
-
+---------
 My Report
-
+---------
 
 BUILD SUCCESSFUL
 """)
@@ -72,9 +91,9 @@ BUILD SUCCESSFUL
         setup:
         def modelReport = ModelReportParser.parse(""":model
 
-
+---------
 My Report
-
+---------
 
 + nullCredentials
       | Type: \t PasswordCredentials
@@ -113,9 +132,9 @@ BUILD SUCCESSFUL
         setup:
         def modelReport = ModelReportParser.parse(""":model
 
-
+---------
 My Report
-
+---------
 
 
 + lss
@@ -164,9 +183,9 @@ BUILD SUCCESSFUL
         setup:
         def modelReport = ModelReportParser.parse(""":model
 
-
+---------
 My Report
-
+---------
 
 + nullCredentials
     + password

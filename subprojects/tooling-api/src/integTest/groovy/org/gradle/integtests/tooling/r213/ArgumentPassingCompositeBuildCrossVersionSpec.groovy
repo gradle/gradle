@@ -16,14 +16,11 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.internal.jvm.Jvm
 import org.gradle.tooling.BuildLauncher
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.junit.Assume
-import spock.lang.Ignore
 
 class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
 
@@ -47,9 +44,9 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
 
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
-            BuildLauncher buildLauncher = connection.newBuild(buildIds[0])
-            buildLauncher.forTasks("run")
+        withCompositeConnection(builds) { connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks(builds[0], "run")
             buildLauncher.withArguments("-PprojectProperty=foo")
             buildLauncher.run()
         }
@@ -80,9 +77,9 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
 
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
-            BuildLauncher buildLauncher = connection.newBuild(buildIds[0])
-            buildLauncher.forTasks("run")
+        withCompositeConnection(builds) { connection ->
+            BuildLauncher buildLauncher = connection.newBuild()
+            buildLauncher.forTasks(builds[0], "run")
             buildLauncher.withArguments("-DsystemProperty=foo")
             buildLauncher.run()
         }
@@ -113,9 +110,9 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         }
 
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
-            BuildLauncher buildLauncher = connection.newBuild(buildIds[0])
-            buildLauncher.forTasks("run")
+        withCompositeConnection(builds) { connection ->
+            BuildLauncher buildLauncher = connection.newBuild()
+            buildLauncher.forTasks(builds[0], "run")
             buildLauncher.setJvmArguments("-DsystemProperty=foo")
             buildLauncher.run()
         }
@@ -130,12 +127,16 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         2                    | [3, 0]
     }
 
-    @Ignore
     @TargetGradleVersion(">=2.10")
     def "can set javahome for model requests"() {
         given:
-        File javaHome = findJavaHome()
+        skipIntegratedComposite()
+
+        and:
+        File javaHome = new File("not/javahome")
+        javaHome.mkdirs()
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
+
         when:
         def modelResults = withCompositeConnection(builds) { connection ->
             def modelBuilder = connection.models(EclipseProject)
@@ -143,9 +144,9 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
             modelBuilder.get()
         }
         then:
-        modelResults.size() == numberOfParticipants + numberOfSubprojects.sum()
+        modelResults.size() == numberOfParticipants
         modelResults.each {
-            it.model.javaSourceSettings.jdk.javaHome == javaHome
+            assertFailure(it.failure, "The supplied javaHome seems to be invalid.")
         }
         where:
         numberOfParticipants | numberOfSubprojects
@@ -154,23 +155,24 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         2                    | [3, 0]
     }
 
-    @Ignore
     def "can set javahome for build launcher"() {
         given:
-        File javaHome = findJavaHome()
+        skipIntegratedComposite()
+
+        and:
+        File javaHome = new File("not/javahome")
+        javaHome.mkdirs()
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
         when:
-        withCompositeBuildParticipants(builds) { connection, buildIds ->
-            BuildLauncher buildLauncher = connection.newBuild(buildIds.first())
-            buildLauncher.withArguments("-PprintJavaHome")
+        withCompositeConnection(builds) { connection ->
+            BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.setJavaHome(javaHome)
-            buildLauncher.forTasks("run")
+            buildLauncher.forTasks(builds[0], "run")
             buildLauncher.run()
         }
         then:
-        noExceptionThrown()
-        def results = builds.first().file("result")
-        results.text.count(javaHome.absolutePath) == (numberOfSubprojects.first()+1)
+        def e = thrown(GradleConnectionException)
+        assertFailure(e, "The supplied javaHome seems to be invalid.")
         where:
         numberOfParticipants | numberOfSubprojects
         1                    | [0]
@@ -178,14 +180,6 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         2                    | [3, 0]
     }
 
-    private File findJavaHome() {
-        def jdk = AvailableJavaHomes.getAvailableJdk {
-            targetDist.isToolingApiTargetJvmSupported(it.javaVersion) &&
-                it.javaHome != Jvm.current().javaHome
-        }
-        Assume.assumeNotNull(jdk)
-        jdk.javaHome
-    }
     private List createBuilds(int numberOfParticipants, List numberOfSubprojects) {
         createBuilds(numberOfParticipants, numberOfSubprojects,
 """

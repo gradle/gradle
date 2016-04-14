@@ -36,7 +36,7 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.ExecHandle;
-import org.gradle.process.internal.child.EncodedStream;
+import org.gradle.process.internal.streams.EncodedStream;
 import org.gradle.util.Clock;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;

@@ -27,7 +27,7 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
-import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import spock.lang.Specification
 
 class DefaultBaseRepositoryFactoryTest extends Specification {

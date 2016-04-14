@@ -27,7 +27,7 @@ import spock.lang.Unroll
 class BaseModelIntegrationTest extends AbstractIntegrationSpec {
     def "empty containers are visible in model report"() {
         buildFile << """
-apply plugin: 'component-base'
+apply plugin: 'component-model-base'
 """
 
         when:
@@ -52,7 +52,7 @@ apply plugin: 'component-base'
     @Unroll
     def "can declare instance of general type - #componentSpecType"() {
         buildFile << """
-            apply plugin: 'component-base'
+            apply plugin: 'component-model-base'
             model {
                 components {
                     main(${componentSpecType})

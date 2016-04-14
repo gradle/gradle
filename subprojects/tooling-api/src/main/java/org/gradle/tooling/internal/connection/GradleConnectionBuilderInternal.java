@@ -22,11 +22,17 @@ import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 public interface GradleConnectionBuilderInternal extends GradleConnectionBuilder {
-    GradleConnectionBuilderInternal embeddedCoordinator(boolean embedded);
 
     GradleConnectionBuilderInternal daemonMaxIdleTime(int timeoutValue, TimeUnit timeoutUnits);
 
     GradleConnectionBuilderInternal daemonBaseDir(File daemonBaseDir);
+
+    GradleConnectionBuilderInternal integratedComposite(boolean integrated);
+
+    // The following only have an effect with `integratedComposite(true)
+    GradleConnectionBuilderInternal embeddedCoordinator(boolean embedded);
+
+    GradleConnectionBuilder useInstallation(File gradleHome);
 
     GradleConnectionBuilderInternal useClasspathDistribution();
 }

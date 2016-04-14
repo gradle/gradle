@@ -22,7 +22,7 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.PersistentDaemonRegistry
-import org.gradle.logging.LoggingServiceRegistry
+import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.UsesNativeServices

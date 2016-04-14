@@ -1,4 +1,4 @@
-import org.gradle.logging.StyledTextOutputFactory
+import org.gradle.internal.logging.text.StyledTextOutputFactory
 
 logger.quiet('An info log message which is always logged.')
 logger.error('An error log message.')

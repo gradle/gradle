@@ -16,8 +16,8 @@
 
 package org.gradle.internal.featurelifecycle
 
-import org.gradle.logging.ConfigureLogging
-import org.gradle.logging.TestOutputEventListener
+import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.TextUtil
 import org.junit.Rule

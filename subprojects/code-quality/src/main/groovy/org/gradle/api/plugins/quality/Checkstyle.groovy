@@ -24,7 +24,7 @@ import org.gradle.api.reporting.Reporting
 import org.gradle.api.resources.TextResource
 import org.gradle.api.tasks.*
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.logging.ConsoleRenderer
+import org.gradle.internal.logging.ConsoleRenderer
 
 import javax.inject.Inject
 

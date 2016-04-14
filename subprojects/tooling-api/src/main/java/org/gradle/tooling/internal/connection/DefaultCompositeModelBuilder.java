@@ -33,8 +33,9 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
 
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 
 public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperation<DefaultCompositeModelBuilder<T>> implements ModelBuilder<ModelResults<T>> {
     private final Class<T> modelType;
@@ -53,18 +54,17 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
     }
 
     public DefaultCompositeModelBuilder<T> forTasks(String... tasks) {
-        // only set a non-null task list on the operationParamsBuilder if at least one task has been given to this method,
-        // this is needed since any non-null list, even if empty, is treated as 'execute these tasks before building the model'
-        // this would cause an error when fetching the BuildEnvironment model
-        List<String> rationalizedTasks = rationalizeInput(tasks);
-        operationParamsBuilder.setTasks(rationalizedTasks);
-        return getThis();
+        return forTasks(Arrays.asList(tasks));
     }
 
     @Override
     public DefaultCompositeModelBuilder<T> forTasks(Iterable<String> tasks) {
-        operationParamsBuilder.setTasks(rationalizeInput(tasks));
-        return getThis();
+        return unsupportedMethod();
+    }
+
+    @Override
+    public DefaultCompositeModelBuilder<T> setStandardInput(InputStream inputStream) {
+        return unsupportedMethod();
     }
 
     @Override
@@ -107,5 +107,10 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
                 }
             }));
         }
+    }
+
+    private DefaultCompositeModelBuilder<T> unsupportedMethod() {
+        throw new UnsupportedOperationException(
+            "This is unsupported for composite models from GradleConnections at this time.");
     }
 }

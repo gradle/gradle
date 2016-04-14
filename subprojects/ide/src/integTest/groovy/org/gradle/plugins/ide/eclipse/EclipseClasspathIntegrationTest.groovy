@@ -115,7 +115,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
 :eclipseProject
 :eclipse
 """
-        result.assertOutputEquals(expected, true, false)
+        result.assertOutputContains(expected)
     }
 
 
@@ -938,7 +938,7 @@ task generateForTest << {}
     @Test
     void configuringNonExportedConfigurationsIsDeprecated() {
         //when
-        executer.withDeprecationChecksDisabled()
+        executer.expectDeprecationWarning()
         def result = runEclipseTask """
 apply plugin: 'java'
 apply plugin: 'eclipse'

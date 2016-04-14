@@ -43,12 +43,11 @@ public class BuildProcess extends CurrentProcess {
 
         final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
         jvmOptions.systemProperties(getJvmOptions().getImmutableSystemProperties());
-        List<String> currentImmutable = jvmOptions.getAllImmutableJvmArgs();
-        List<String> requiredImmutable = requiredBuildParameters.getEffectiveJvmArgs();
-        getJvmOptions().getImmutableSystemProperties();
-        requiredImmutable.removeAll(DaemonParameters.DEFAULT_JVM_ARGS);
-        boolean noImmutableJvmArgsRequired = requiredImmutable.equals(currentImmutable);
+        List<String> currentImmutables = jvmOptions.getAllImmutableJvmArgs();
+        List<String> requiredImmutables = requiredBuildParameters.getEffectiveSingleUseJvmArgs();
+        requiredImmutables.removeAll(DaemonParameters.DEFAULT_JVM_ARGS);
 
+        boolean noImmutableJvmArgsRequired = requiredImmutables.equals(currentImmutables);
         if (javaHomeMatch && noImmutableJvmArgsRequired) {
             // Set the system properties and use this process
             Properties properties = new Properties();

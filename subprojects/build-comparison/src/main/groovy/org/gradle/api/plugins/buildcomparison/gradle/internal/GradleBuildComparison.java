@@ -31,7 +31,7 @@ import org.gradle.api.plugins.buildcomparison.outcome.internal.CompositeBuildOut
 import org.gradle.api.plugins.buildcomparison.render.internal.*;
 import org.gradle.api.plugins.buildcomparison.render.internal.html.GradleBuildComparisonResultHtmlRenderer;
 import org.gradle.api.plugins.buildcomparison.render.internal.html.HtmlRenderContext;
-import org.gradle.logging.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;

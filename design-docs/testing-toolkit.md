@@ -698,3 +698,5 @@ none
 - Have test daemons reuse the artifact cache and other caches in ~/.gradle, and just ignore the configuration files there.
 - More convenient construction of test project directories (i.e. something like Gradle core's test directory provider)
 - Integration with IDE plugins e.g. for automatic setup of debug flag
+- Automatic classpath injection for projects that do _not_ contain a plugin definition e.g. just a collection of custom task types. The plugin DSL would not be used in those
+cases.

@@ -21,19 +21,19 @@ import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.logging.LoggingConfiguration;
-import org.gradle.logging.ShowStacktrace;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.logging.internal.BufferingStyledTextOutput;
-import org.gradle.logging.internal.LinePrefixingStyledTextOutput;
-import org.gradle.logging.internal.LoggingCommandLineConverter;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.logging.text.BufferingStyledTextOutput;
+import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
+import org.gradle.internal.logging.LoggingCommandLineConverter;
 import org.gradle.util.GUtil;
 import org.gradle.util.TreeVisitor;
 
 import java.util.List;
 
-import static org.gradle.logging.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 
 /**
  * A {@link BuildListener} which reports the build exception, if any.

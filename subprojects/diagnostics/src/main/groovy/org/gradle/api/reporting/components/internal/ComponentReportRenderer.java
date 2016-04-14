@@ -28,7 +28,7 @@ import org.gradle.reporting.ReportRenderer;
 import java.util.Collection;
 import java.util.Set;
 
-import static org.gradle.logging.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
 public class ComponentReportRenderer extends TextReportRenderer {
     private final ComponentRenderer componentRenderer;

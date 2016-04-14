@@ -84,6 +84,9 @@ public class GradleVersionSpec {
                 throw new RuntimeException(String.format("Unsupported version range '%s' specified in constraint '%s'. Supported formats: '>=nnn' or '<=nnn' or space-separate patterns", value, constraint));
             }
         }
+        if (specs.size() == 1) {
+            return specs.get(0);
+        }
         return Specs.intersect(specs);
     }
 

@@ -32,6 +32,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.resources.TextResource;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
@@ -53,7 +54,9 @@ public class AntGroovydoc {
         this.ant = ant;
     }
 
-    public void execute(final FileCollection source, File destDir, boolean use, boolean noTimestamp, boolean noVersionStamp, String windowTitle, String docTitle, String header, String footer, String overview, boolean includePrivate, final Set<Groovydoc.Link> links, final Iterable<File> groovyClasspath, Iterable<File> classpath, Project project) {
+    public void execute(final FileCollection source, File destDir, boolean use, boolean noTimestamp, boolean noVersionStamp,
+            String windowTitle, String docTitle, String header, String footer, TextResource overview, boolean includePrivate,
+            final Set<Groovydoc.Link> links, final Iterable<File> groovyClasspath, Iterable<File> classpath, Project project) {
 
         final File tmpDir = new File(project.getBuildDir(), "tmp/groovydoc");
         FileOperations fileOperations = (ProjectInternal) project;
@@ -84,7 +87,10 @@ public class AntGroovydoc {
         putIfNotNull(args, "doctitle", docTitle);
         putIfNotNull(args, "header", header);
         putIfNotNull(args, "footer", footer);
-        putIfNotNull(args, "overview", overview);
+
+        if (overview != null) {
+            args.put("overview", overview.asFile().getAbsolutePath());
+        }
 
         invokeGroovydoc(links, combinedClasspath, args);
     }

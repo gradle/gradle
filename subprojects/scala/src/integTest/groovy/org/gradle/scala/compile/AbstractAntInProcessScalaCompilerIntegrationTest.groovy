@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 abstract class AbstractAntInProcessScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     def setup() {
         executer.requireIsolatedDaemons()
+        executer.expectDeprecationWarning()
         if (GradleContextualExecuter.daemon) {
             executer.beforeExecute {
                 executer.withBuildJvmOpts("-XX:MaxPermSize=320m")

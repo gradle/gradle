@@ -3,7 +3,7 @@
  * It can be used to compile and execute Buildship from an Eclipse workspace.
  *
  * To generate the Eclipse project, execute the 'buildshipEclipseProject' task. The task
- * takes the output of the 'jarjarJar' task, analyzes its content, and assembles an Eclipse plug-in
+ * takes the shaded Jar, analyzes its content, and assembles an Eclipse plug-in
  * project in the $buildDir/buildshipProject folder.
  *
  * The $buildDir/buildshipProject folder can be imported into Eclipse by using the
@@ -18,9 +18,9 @@ import java.util.zip.ZipInputStream
 
 task buildshipEclipseProject(type: CreateBuildshipEclipseProjectTask) {
     description = "Creates an Eclipse plug-in project from the Tooling API fat jar"
-    dependsOn jarjarJar
+    dependsOn shadedJar
 
-    jarFile = jarjarJar.outputs.files.singleFile
+    jarFile = shadedJar.jarFile
     projectDirectory = file("$buildDir/buildshipProject")
 }
 

@@ -46,17 +46,17 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
 
     public void load(ProjectDescriptor rootProjectDescriptor, ProjectDescriptor defaultProject, GradleInternal gradle, ClassLoaderScope classLoaderScope) {
         buildLoader.load(rootProjectDescriptor, defaultProject, gradle, classLoaderScope);
-        setProjectProperties(gradle.getRootProject(), new Applicator());
+        setProjectProperties(gradle.getRootProject(), new CachingPropertyApplicator());
     }
 
-    private void setProjectProperties(Project project, Applicator applicator) {
+    private void setProjectProperties(Project project, CachingPropertyApplicator applicator) {
         addPropertiesToProject(project, applicator);
         for (Project childProject : project.getChildProjects().values()) {
             setProjectProperties(childProject, applicator);
         }
     }
 
-    private void addPropertiesToProject(Project project, Applicator applicator) {
+    private void addPropertiesToProject(Project project, CachingPropertyApplicator applicator) {
         Properties projectProperties = new Properties();
         File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
         LOGGER.debug("Looking for project properties from: {}", projectPropertiesFile);
@@ -68,6 +68,9 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             LOGGER.debug("project property file does not exists. We continue!");
         }
 
+        // this should really be <String, Object>, however properties loader signature expects a <String, String>
+        // even if in practice it was never enforced (one can pass other property types, such as boolean) an
+        // fixing the method signature would be a binary breaking change in a public API.
         Map<String, String> mergedProperties = propertiesLoader.mergeProperties(new HashMap(projectProperties));
         for (Map.Entry<String, String> entry : mergedProperties.entrySet()) {
             applicator.configureProperty(project, entry.getKey(), entry.getValue());
@@ -78,11 +81,11 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
      * Applies the given properties to the project and its subprojects, caching property mutators whenever possible
      * to avoid too many searches.
      */
-    private static class Applicator {
+    private static class CachingPropertyApplicator {
         private final Map<String, PropertyMutator> mutators = Maps.newHashMap();
         private Class<? extends Project> projectClazz;
 
-        void configureProperty(Project project, String name, String value) {
+        void configureProperty(Project project, String name, Object value) {
             Class<? extends Project> clazz = project.getClass();
             if (clazz != projectClazz) {
                 mutators.clear();

@@ -34,9 +34,9 @@ import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 import org.gradle.launcher.daemon.server.health.DefaultDaemonHealthServices;
 import org.gradle.launcher.exec.BuildExecuter;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.messaging.remote.internal.MessagingServices;
-import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.remote.services.MessagingServices;
+import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 
 import java.io.File;
 import java.util.UUID;

@@ -19,7 +19,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 import java.io.File;
 import java.io.IOException;

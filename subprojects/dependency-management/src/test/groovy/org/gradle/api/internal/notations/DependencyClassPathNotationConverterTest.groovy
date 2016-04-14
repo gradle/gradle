@@ -32,7 +32,7 @@ import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParserBuilder
-import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.junit.Rule
@@ -90,6 +90,7 @@ public class DependencyClassPathNotationConverterTest extends Specification {
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
         1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
+        1 * cache.useCache(_, _)
         out.is dependency
 
         when: // same instance is reused

@@ -23,7 +23,7 @@ import org.gradle.cache.internal.GracefullyStoppedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
+import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 
 import java.util.HashMap;
 import java.util.Map;

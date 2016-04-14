@@ -17,8 +17,6 @@
 package org.gradle.integtests
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
@@ -30,27 +28,14 @@ import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
 
 @LeaksFileHandles
-class WrapperHttpIntegrationTest extends AbstractIntegrationSpec {
+class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Rule HttpServer server = new HttpServer()
     @Rule TestProxyServer proxyServer = new TestProxyServer()
 
     void setup() {
-        assert distribution.binDistribution.exists(): "bin distribution must exist to run this test, you need to run the :distributions:binZip task"
-        executer.beforeExecute(new WrapperSetup())
         server.start()
         server.expectUserAgent(matchesNameAndVersion("gradlew", GradleVersion.current().getVersion()))
-    }
-
-    GradleExecuter getWrapperExecuter() {
-        executer.usingExecutable('gradlew').inDirectory(testDirectory)
-    }
-
-    private prepareWrapper(String baseUrl) {
         file("build.gradle") << """
-    wrapper {
-        distributionUrl = '${baseUrl}/gradlew/dist'
-    }
-
     task hello << {
         println 'hello'
     }
@@ -59,8 +44,10 @@ class WrapperHttpIntegrationTest extends AbstractIntegrationSpec {
         println "fooD=" + project.properties["fooD"]
     }
 """
+    }
 
-        executer.withTasks('wrapper').run()
+    private prepareWrapper(String baseUrl) {
+        prepareWrapper(new URI("${baseUrl}/gradlew/dist"))
     }
 
     public void "downloads wrapper from http server and caches"() {

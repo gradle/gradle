@@ -1,8 +1,7 @@
 import org.gradle.build.*
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
 
 dependencies {
-    compile project(path: ':core', configuration: "publishCompileWithProjectJar")
+    compile project(':core')
     compile project(':messaging')
     compile project(':wrapper')
     compile project(':baseServices')
@@ -13,7 +12,6 @@ dependencies {
     testCompile libraries.groovy
 
     // lots of integTest errors otherwise
-    integTestCompile project(':internalIntegTesting')
     integTestRuntime project(':ide')
     integTestRuntime project(':buildInit')
     integTestRuntime project(':buildComparison')
@@ -24,6 +22,8 @@ dependencies {
 }
 
 useTestFixtures()
+useTestFixtures(project: ":logging")
+useTestFixtures(project: ':dependencyManagement')
 
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
@@ -35,42 +35,27 @@ forkingIntegTest {
     }
 }
 
+parallelIntegTest {
+    enabled = false //tooling integ tests use parallel settings, don't run
+}
+
 daemonIntegTest {
     enabled = false //tooling integ tests use daemon anyway, don't rerun
 }
 
-task jarjarJar(type: JarJarJar) {
-    ext.shadedPackage = 'org.gradle.impldep'
-    appendix = "fat"
-    dependsOn jar
-    doFirst {
-        from(zipTree(jar.getArchivePath()))
-        (configurations.runtime - configurations.publishCompile).each {
-            from(zipTree(it))
-        }
-    }
-    exclude "META-INF/**"
-    exclude "*classpath.properties"
-
-    rule('org.gradle.**', '@0')
-    rule('org.slf4j.**', '@0')
-
-    rule('org.**', "${shadedPackage}.@0")
-    rule('com.**', "${shadedPackage}.@0")
-    rule('net.**', "${shadedPackage}.@0")
-
-    keep('org.gradle.tooling.**')
+task shadedJar(type: ShadedJar) {
+    ext.outputDir = file("$buildDir/shaded-jar")
+    sourceFiles = jar.inputs.files + files {(configurations.runtime - configurations.publishCompile).collect { zipTree(it) } }
+    analysisFile = file("$outputDir/analysis.txt")
+    classesDir = file("$outputDir/classes")
+    jarFile = file("$outputDir/gradle-tooling-api-shaded-${version}.jar")
+    keepPackages = ["org.gradle.tooling"]
+    unshadedPackages = ["org.gradle", "org.slf4j"]
+    ignorePackages = ["org.gradle.tooling.provider.model"]
+    shadowPackage = "org.gradle.impldep"
 }
 
 apply from: 'buildship.gradle'
-
-task publishJar(type: Zip) {
-    appendix = "bundle"
-    destinationDir = jar.destinationDir
-    extension = 'jar'
-    dependsOn jar, jarjarJar
-    from zipTree(jarjarJar.getArchivePath())
-}
 
 sourceJar {
     configurations.compile.allDependencies.withType(ProjectDependency).each {
@@ -80,11 +65,8 @@ sourceJar {
 }
 
 artifacts {
-    publishCompileWithProjectJar publishJar
-    publishRuntime file: publishJar.getArchivePath(), name: archivesBaseName, type: 'jar', builtBy: publishJar
+    publishRuntime file: shadedJar.jarFile, name: archivesBaseName, type: 'jar', builtBy: shadedJar
 }
-
-configurations.publishRuntime { artifacts.removeAll { it instanceof ArchivePublishArtifact && it.archiveTask in [jar, jarjarJar] } }
 
 eclipse {
     classpath {

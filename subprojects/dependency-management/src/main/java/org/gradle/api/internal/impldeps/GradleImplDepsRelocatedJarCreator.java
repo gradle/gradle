@@ -21,12 +21,17 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.installation.GradleFatJar;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.progress.PercentageProgressFormatter;
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.GFileUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -34,10 +39,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.RemappingClassAdapter;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -46,6 +48,7 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
 
     private static final int BUFFER_SIZE = 8192;
     private static final String SERVICES_DIR_PREFIX = "META-INF/services/";
+    private static final int ADDITIONAL_PROGRESS_STEPS = 2;
     private static final GradleImplDepsRelocator REMAPPER = new GradleImplDepsRelocator();
     private final ProgressLoggerFactory progressLoggerFactory;
 
@@ -99,7 +102,7 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
 
     private void processFiles(ZipOutputStream outputStream, Iterable<? extends File> files, byte[] buffer, HashSet<String> seenPaths, Map<String, List<String>> services,
                               ProgressLogger progressLogger) throws Exception {
-        PercentageProgressFormatter progressFormatter = new PercentageProgressFormatter("Generating", Iterables.size(files));
+        PercentageProgressFormatter progressFormatter = new PercentageProgressFormatter("Generating", Iterables.size(files) + ADDITIONAL_PROGRESS_STEPS);
 
         for (File file : files) {
             progressLogger.progress(progressFormatter.getProgress());
@@ -107,38 +110,78 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
             if (file.getName().endsWith(".jar")) {
                 processJarFile(outputStream, file, buffer, seenPaths, services);
             } else {
-                throw new RuntimeException("non JAR on classpath: " + file.getAbsolutePath());
+                processDirectory(outputStream, file, buffer, seenPaths, services);
             }
 
             progressFormatter.incrementAndGetProgress();
         }
 
+        writeServiceFiles(outputStream, services);
+        progressFormatter.incrementAndGetProgress();
+
+        writeMarkerFile(outputStream);
+        progressFormatter.incrementAndGetProgress();
+    }
+
+    private void writeServiceFiles(ZipOutputStream outputStream, Map<String, List<String>> services) throws IOException {
         for (Map.Entry<String, List<String>> service : services.entrySet()) {
             String allProviders = Joiner.on("\n").join(service.getValue());
             writeEntry(outputStream, SERVICES_DIR_PREFIX + service.getKey(), allProviders.getBytes(Charsets.UTF_8));
         }
     }
 
-    private void processJarFile(final ZipOutputStream outputStream, File file, final byte[] buffer, final HashSet<String> seenPaths, final Map<String, List<String>> services) throws IOException {
+    private void writeMarkerFile(ZipOutputStream outputStream) throws IOException {
+        writeEntry(outputStream, GradleFatJar.MARKER_FILENAME, new byte[0]);
+    }
+
+    private void processDirectory(final ZipOutputStream outputStream, File file, final byte[] buffer, final HashSet<String> seenPaths, final Map<String, List<String>> services) {
+        new DirectoryFileTree(file).visit(new FileVisitor() {
+            @Override
+            public void visitDir(FileVisitDetails dirDetails) {
+                try {
+                    ZipEntry zipEntry = new ZipEntry(dirDetails.getPath() + "/");
+                    processEntry(outputStream, null, zipEntry, buffer, seenPaths, services);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                try {
+                    ZipEntry zipEntry = new ZipEntry(fileDetails.getPath());
+                    InputStream inputStream = fileDetails.open();
+                    try {
+                        processEntry(outputStream, inputStream, zipEntry, buffer, seenPaths, services);
+                    } finally {
+                        inputStream.close();
+                    }
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        });
+    }
+
+    private void processJarFile(final ZipOutputStream outputStream, File file, final byte[] buffer, final Set<String> seenPaths, final Map<String, List<String>> services) throws IOException {
         IoActions.withResource(openJarFile(file), new ErroringAction<ZipInputStream>() {
             @Override
             protected void doExecute(ZipInputStream inputStream) throws Exception {
                 ZipEntry zipEntry = inputStream.getNextEntry();
                 while (zipEntry != null) {
-                    String name = zipEntry.getName();
-                    if (name.startsWith(SERVICES_DIR_PREFIX) || seenPaths.add(name)) {
-                        processEntry(outputStream, inputStream, zipEntry, buffer, services);
-                    }
+                    processEntry(outputStream, inputStream, zipEntry, buffer, seenPaths, services);
                     zipEntry = inputStream.getNextEntry();
                 }
             }
         });
     }
 
-    private void processEntry(ZipOutputStream outputStream, ZipInputStream inputStream, ZipEntry zipEntry, byte[] buffer, Map<String, List<String>> services) throws IOException {
+    private void processEntry(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer, final Set<String> seenPaths, Map<String, List<String>> services) throws IOException {
         String name = zipEntry.getName();
-
         if (zipEntry.isDirectory() || name.equals("META-INF/MANIFEST.MF")) {
+            return;
+        }
+        if (!name.startsWith(SERVICES_DIR_PREFIX) && !seenPaths.add(name)) {
             return;
         }
 
@@ -151,7 +194,7 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
         }
     }
 
-    private void processServiceDescriptor(ZipInputStream inputStream, ZipEntry zipEntry, byte[] buffer, Map<String, List<String>> services) throws IOException {
+    private void processServiceDescriptor(InputStream inputStream, ZipEntry zipEntry, byte[] buffer, Map<String, List<String>> services) throws IOException {
         String descriptorName = zipEntry.getName().substring(SERVICES_DIR_PREFIX.length());
         String descriptorApiClass = periodsToSlashes(descriptorName);
         String relocatedApiClassName = REMAPPER.relocateClass(descriptorApiClass);
@@ -186,7 +229,7 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
         return periodClassName.replace('.', '/');
     }
 
-    private void copyEntry(ZipOutputStream outputStream, ZipInputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
+    private void copyEntry(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
         outputStream.putNextEntry(new ZipEntry(zipEntry.getName()));
         pipe(inputStream, outputStream, buffer);
         outputStream.closeEntry();
@@ -199,7 +242,7 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
         outputStream.closeEntry();
     }
 
-    private void processClassFile(ZipOutputStream outputStream, ZipInputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
+    private void processClassFile(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
         String className = zipEntry.getName().substring(0, zipEntry.getName().length() - ".class".length());
         byte[] bytes = readEntry(inputStream, zipEntry, buffer);
         ClassReader classReader = new ClassReader(bytes);

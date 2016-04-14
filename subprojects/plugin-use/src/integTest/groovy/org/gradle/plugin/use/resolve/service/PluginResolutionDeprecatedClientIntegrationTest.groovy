@@ -51,7 +51,7 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
     def setup() {
         executer.requireOwnGradleUserHomeDir()
         executer.beforeExecute {
-            it.withDeprecationChecksDisabled().withStackTraceChecksDisabled()
+            it.expectDeprecationWarning()
             moduleResolution()
         }
 
@@ -219,11 +219,9 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         pluginQuery1()
         service.expectStatusQueryOutOfProtocol()
         build()
-        output.contains("Exception thrown fetching client status")
 
         service.expectStatusQueryOutOfProtocol()
         build()
-        output.contains("Exception thrown fetching client status")
 
         // Test that if the issue gets resolved, everything works as it should
         service.expectStatusQuery()

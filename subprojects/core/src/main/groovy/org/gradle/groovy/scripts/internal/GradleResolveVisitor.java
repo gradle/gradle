@@ -122,7 +122,7 @@ public class GradleResolveVisitor extends ResolveVisitor {
             if (redirect() != this) {
                 return super.hasPackageName();
             }
-            return className.indexOf('.') != -1;
+            return getName().indexOf('.') != -1;
         }
 
         public String setName(String name) {
@@ -447,9 +447,11 @@ public class GradleResolveVisitor extends ResolveVisitor {
 
     private static String replaceLastPoint(String name) {
         int lastPoint = name.lastIndexOf('.');
-        name = name.substring(0, lastPoint)
-            + "$"
-            + name.substring(lastPoint + 1);
+        if (lastPoint>0) {
+            name = name.substring(0, lastPoint)
+                + "$"
+                + name.substring(lastPoint + 1);
+        }
         return name;
     }
 

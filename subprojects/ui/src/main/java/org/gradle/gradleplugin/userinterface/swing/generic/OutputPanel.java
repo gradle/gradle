@@ -26,7 +26,7 @@ import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 import org.gradle.gradleplugin.userinterface.swing.common.SearchPanel;
 import org.gradle.gradleplugin.userinterface.swing.common.TextPaneSearchInteraction;
-import org.gradle.logging.ShowStacktrace;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 
 import javax.swing.*;
 import javax.swing.text.AttributeSet;

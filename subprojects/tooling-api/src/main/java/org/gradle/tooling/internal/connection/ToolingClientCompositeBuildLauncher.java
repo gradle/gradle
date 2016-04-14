@@ -16,10 +16,11 @@
 
 package org.gradle.tooling.internal.connection;
 
+import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.model.BuildIdentifier;
 
 public class ToolingClientCompositeBuildLauncher {
 
@@ -32,9 +33,10 @@ public class ToolingClientCompositeBuildLauncher {
     }
 
     public void run() {
-        for (GradleConnectionParticipant gradleBuildInternal : operationParameters.getBuilds()) {
-            // TODO: Use BuildIdentity directly?
-            if (operationParameters.getCompositeTargetBuildRootDir().equals(gradleBuildInternal.getProjectDir())) {
+        for (GradleParticipantBuild gradleBuildInternal : operationParameters.getBuilds()) {
+            BuildIdentifier participantIdentifier = new DefaultBuildIdentifier(gradleBuildInternal.getProjectDir());
+            if (operationParameters.getBuildIdentifier() == null
+                || operationParameters.getBuildIdentifier().equals(participantIdentifier)) {
                 ProjectConnection connection = null;
                 try {
                     connection = util.createParticipantConnector(gradleBuildInternal).connect();
@@ -45,10 +47,9 @@ public class ToolingClientCompositeBuildLauncher {
                     if (connection!=null) {
                         connection.close();
                     }
+
                 }
-                return;
             }
         }
-        throw new GradleConnectionException("Not a valid build directory: " + operationParameters.getCompositeTargetBuildRootDir(), new IllegalStateException("Build not part of composite"));
     }
 }

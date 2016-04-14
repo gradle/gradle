@@ -17,11 +17,11 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.HashMap;
@@ -45,7 +45,7 @@ public class EstablishBuildEnvironment extends BuildCommandOnly {
         Properties originalSystemProperties = new Properties();
         originalSystemProperties.putAll(System.getProperties());
         Map<String, String> originalEnv = new HashMap<String, String>(System.getenv());
-        File originalProcessDir = GFileUtils.canonicalise(new File("."));
+        File originalProcessDir = FileUtils.canonicalize(new File("."));
 
         for (Map.Entry<String, String> entry : build.getParameters().getSystemProperties().entrySet()) {
             if (SystemProperties.getInstance().getStandardProperties().contains(entry.getKey())) {

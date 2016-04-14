@@ -35,7 +35,7 @@ import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.util.GFileUtils;
 import org.hamcrest.Description;
 import org.jmock.Expectations;

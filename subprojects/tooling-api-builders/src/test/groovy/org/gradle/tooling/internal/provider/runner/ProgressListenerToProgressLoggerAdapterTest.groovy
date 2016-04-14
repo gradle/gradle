@@ -17,8 +17,8 @@
 package org.gradle.tooling.internal.provider.runner
 
 import groovy.transform.TupleConstructor
-import org.gradle.logging.ProgressLogger
-import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.internal.logging.progress.ProgressLogger
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.tooling.ProgressEvent
 import spock.lang.Specification
 import spock.lang.Subject

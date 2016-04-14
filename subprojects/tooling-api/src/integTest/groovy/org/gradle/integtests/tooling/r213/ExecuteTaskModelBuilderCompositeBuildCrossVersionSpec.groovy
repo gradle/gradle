@@ -20,7 +20,9 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.CollectionUtils
+import spock.lang.Ignore
 
+@Ignore("We do not support forTasks(String) on a composite connection for now")
 class ExecuteTaskModelBuilderCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     @TargetGradleVersion(">=1.2")
     def "can call tasks before building composite model"() {

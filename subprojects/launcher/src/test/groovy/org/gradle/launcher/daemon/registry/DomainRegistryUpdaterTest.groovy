@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.registry
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.registry.DaemonRegistry.EmptyRegistryException
 import org.gradle.launcher.daemon.server.DomainRegistryUpdater
-import org.gradle.messaging.remote.Address
+import org.gradle.internal.remote.Address
 import spock.lang.Specification
 
 public class DomainRegistryUpdaterTest extends Specification {

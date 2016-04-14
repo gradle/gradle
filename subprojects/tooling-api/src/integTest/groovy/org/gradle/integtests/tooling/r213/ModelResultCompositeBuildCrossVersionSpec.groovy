@@ -16,62 +16,45 @@
 
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.tooling.connection.BuildIdentity
-import org.gradle.tooling.connection.ModelResult
-import org.gradle.tooling.internal.protocol.DefaultProjectIdentity
+import org.gradle.tooling.model.BuildIdentifier
+import org.gradle.tooling.connection.FailedModelResult
+import org.gradle.tooling.connection.ModelResults
+import org.gradle.tooling.model.ProjectIdentifier
+import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
+import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
 import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.CollectionUtils
 
 class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
-    private Iterable<ModelResult> modelResults
+    private ModelResults<EclipseProject> modelResults
 
     def "can correlate exceptions in composite with multiple single-project participants"() {
         given:
-        def rootDirA = populate("A") {
-            settingsFile << "rootProject.name = '${rootProjectName}'"
-            buildFile << """
-                apply plugin: 'java'
-                group = 'org.A'
-                version = '1.0'
-                throw new GradleException("Failure in A")
-"""
+        def rootDirA = singleProjectBuild("A") {
+            buildFile << "throw new GradleException('Failure in A')"
         }
-        def rootDirB = populate("B") {
-            buildFile << """
-                apply plugin: 'java'
-"""
-        }
-        def rootDirC = populate("C") {
-            settingsFile << "rootProject.name = '${rootProjectName}'"
-            buildFile << """
-                apply plugin: 'java'
-                throw new GradleException("Different failure in C")
-"""
+        def rootDirB = singleProjectBuild("B")
+        def rootDirC = singleProjectBuild("C") {
+            buildFile << "throw new GradleException('Different failure in C')"
         }
         when:
-        def builder = createCompositeBuilder()
-        def participantA = addCompositeParticipant(builder, rootDirA)
-        def participantB = addCompositeParticipant(builder, rootDirB)
-        def participantC = addCompositeParticipant(builder, rootDirC)
-        def connection = builder.build()
-
-        and:
-        modelResults = connection.getModels(EclipseProject)
+        withCompositeConnection([rootDirA, rootDirB, rootDirC]) { connection ->
+            modelResults = connection.getModels(EclipseProject)
+        }
 
         then:
-        def resultA = CollectionUtils.single(findByProjectIdentity(participantA, ':'))
+        def resultA = findFailureByBuildIdentifier(rootDirA)
         assertFailure(resultA.failure,
             "Could not fetch models of type 'EclipseProject'",
             "A problem occurred evaluating root project 'A'.",
             "Failure in A")
 
-        def resultB = findByProjectIdentity(participantB, ':')
-        assertSingleEclipseProject(resultB, 'B', ':')
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirB, ':'), 'B', ':')
 
-        def resultC = CollectionUtils.single(findByProjectIdentity(participantC, ':'))
+        def resultC = findFailureByBuildIdentifier(rootDirC)
         assertFailure(resultC.failure,
             "Could not fetch models of type 'EclipseProject'",
             "A problem occurred evaluating root project 'C'.",
@@ -80,206 +63,126 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
     def "can correlate exceptions in composite with multiple multi-project participants"() {
         given:
-        def rootDirA = populate("A") {
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-                include 'ax', 'ay'
-            """
-
-            buildFile << """
-                allprojects {
-                    apply plugin: 'java'
-                    group = 'org.A'
-                    version = '1.0'
-                }
-            """
+        def rootDirA = multiProjectBuild("A", ['ax', 'ay']) {
             file("ax/build.gradle") << """
                 throw new GradleException("Failure in A::ax")
 """
         }
-        def rootDirB = populate("B") {
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-                include 'bx', 'by'
-            """
+        def rootDirB = multiProjectBuild("B", ['bx', 'by'])
 
-            buildFile << """
-                allprojects {
-                    apply plugin: 'java'
-                    group = 'org.B'
-                    version = '1.0'
-                }
-            """
-        }
         when:
-        def builder = createCompositeBuilder()
-        def participantA = addCompositeParticipant(builder, rootDirA)
-        def participantB = addCompositeParticipant(builder, rootDirB)
-        def connection = builder.build()
-
-        and:
-        modelResults = connection.getModels(EclipseProject)
+        withCompositeConnection([rootDirA, rootDirB]) {
+            modelResults = it.getModels(EclipseProject)
+        }
 
         then:
         // when the build cannot be configured, we return only a failure for the root project
-        def resultA = CollectionUtils.single(findByProjectIdentity(participantA, ':'))
+        def resultA = findFailureByBuildIdentifier(rootDirA)
         assertFailure(resultA.failure,
             "Could not fetch models of type 'EclipseProject'",
             "A problem occurred evaluating project ':ax'.",
             "Failure in A::ax")
-        // cannot find a project by something other than the root project
-        findByProjectIdentity(participantA, ":ax") == []
+        // No models are returned
+        findModelsByBuildIdentifier(rootDirA) == []
 
-        def resultB = findByProjectIdentity(participantB, ':bx')
-        assertSingleEclipseProject(resultB, 'B', ':bx')
-        assertContainsEclipseProjects(findByBuildIdentity(participantB), "B", ":", ":bx", ":by")
+        assertContainsEclipseProjects(findModelsByBuildIdentifier(rootDirB), "B", ":", ":bx", ":by")
     }
 
     def "can correlate models in a single project, single participant composite"() {
         given:
-        def rootDirA = populate("A") {
-            settingsFile << "rootProject.name = '${rootProjectName}'"
-            buildFile << """
-                apply plugin: 'java'
-                group = 'org.A'
-                version = '1.0'
-"""
+        def rootDirA = singleProjectBuild("A")
+
+        when:
+        Iterable<IdeaProject> ideaProjects = []
+        withCompositeConnection([rootDirA]) {
+            modelResults = it.getModels(EclipseProject)
+            ideaProjects = it.getModels(IdeaProject)*.model
         }
+        then:
+        // We can locate the root project by its project identifier
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirA, ':'), "A", ":")
+        // We can locate all projects (just one in this case) by the build identifier for the participant
+        assertSingleEclipseProject(findModelsByBuildIdentifier(rootDirA), "A", ":")
+
         and:
-        def builder = createCompositeBuilder()
-        def participantA = addCompositeParticipant(builder, rootDirA)
-        def connection = builder.build()
-        when:
-        modelResults = connection.getModels(EclipseProject)
-        then:
-        // We can locate the root project by its project identity
-        assertSingleEclipseProject(findByProjectIdentity(participantA, ':'), "A", ":")
-        // We can locate all projects (just one in this case) by the build identity for the participant
-        assertSingleEclipseProject(findByBuildIdentity(participantA), "A", ":")
-
-        when:
-        // We can take the results from one model request and correlate it with other model requests by
-        // the project and build identities
-        def otherModelResults = connection.getModels(IdeaProject)
-        then:
-        containSameIdentifiers(otherModelResults)
-
-        cleanup:
-        connection?.close()
+        ideaProjects.size() == 1
+        containSameIdentifiers(ideaModuleProjectIdentifiers(ideaProjects))
     }
 
     def "can correlate models in a multi-project, single participant composite"() {
         given:
-        def rootDirA = populate("A") {
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-                include 'x', 'y'
-            """
+        def rootDirA = multiProjectBuild("A", ['x', 'y'])
 
-            buildFile << """
-                allprojects {
-                    apply plugin: 'java'
-                    group = 'org.A'
-                    version = '1.0'
-                }
-            """
+        when:
+        def otherHierarchicalModelResults = []
+        def otherPerBuildModelResults = []
+        def ideaProjects = []
+        withCompositeConnection([rootDirA]) {
+            modelResults = it.getModels(EclipseProject)
+            otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.projectIdentifier
+            otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.projectIdentifier
+            ideaProjects = it.getModels(IdeaProject)*.model
         }
+
+        then:
+        // We can locate each project by its project identifier
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirA, ':'), "A", ":")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirA, ':x'), "A", ":x")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirA, ':y'), "A", ":y")
+
+        // We can locate all projects by the build identifier for the participant
+        assertContainsEclipseProjects(findModelsByBuildIdentifier(rootDirA), "A", ":", ":x", ":y")
+
         and:
-        def builder = createCompositeBuilder()
-        def participantA = addCompositeParticipant(builder, rootDirA)
-        def connection = builder.build()
-
-        when:
-        modelResults = connection.getModels(EclipseProject)
-        then:
-        // We can locate each project by its project identity
-        assertSingleEclipseProject(findByProjectIdentity(participantA, ':'), "A", ":")
-        assertSingleEclipseProject(findByProjectIdentity(participantA, ':x'), "A", ":x")
-        assertSingleEclipseProject(findByProjectIdentity(participantA, ':y'), "A", ":y")
-
-        // We can locate all projects by the build identity for the participant
-        assertContainsEclipseProjects(findByBuildIdentity(participantA), "A", ":", ":x", ":y")
-
-        when:
-        // We can take the results from one model request and correlate it with other model requests by
-        // the project and build identities
-        def otherHierarchicalModelResults = connection.getModels(GradleProject)
-        def otherPerBuildModelResults = connection.getModels(BuildEnvironment)
-        then:
         containSameIdentifiers(otherHierarchicalModelResults)
         containSameIdentifiers(otherPerBuildModelResults)
 
-        cleanup:
-        connection?.close()
+        and:
+        ideaProjects.size() == 1
+        containSameIdentifiers(ideaModuleProjectIdentifiers(ideaProjects))
     }
 
     def "can correlate models in a single and multi-project, multi-participant composite"() {
         given:
-        def rootDirA = populate("A") {
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-            """
+        def rootDirA = singleProjectBuild("A")
+        def rootDirB = multiProjectBuild("B", ['x', 'y'])
 
-            buildFile << """
-                apply plugin: 'java'
-                group = 'org.A'
-                version = '1.0'
-            """
+        when:
+        def otherHierarchicalModelResults = []
+        def otherPerBuildModelResults = []
+        def ideaProjects = []
+        withCompositeConnection([rootDirA, rootDirB]) {
+            modelResults = it.getModels(EclipseProject)
+            otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.projectIdentifier
+            otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.projectIdentifier
+            ideaProjects = it.getModels(IdeaProject)*.model
         }
-        def rootDirB = populate("B") {
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-                include 'x', 'y'
-            """
 
-            buildFile << """
-                allprojects {
-                    apply plugin: 'java'
-                    group = 'org.B'
-                    version = '1.0'
-                }
-            """
-        }
+        then:
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirA, ':'), "A", ":")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirB, ':'), "B", ":")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirB, ':x'), "B", ":x")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirB, ':y'), "B", ":y")
+
+        assertContainsEclipseProjects(findModelsByBuildIdentifier(rootDirA), "A", ":")
+        assertContainsEclipseProjects(findModelsByBuildIdentifier(rootDirB), "B", ":", ":x", ":y")
+
         and:
-        def builder = createCompositeBuilder()
-        def participantA = addCompositeParticipant(builder, rootDirA)
-        def participantB = addCompositeParticipant(builder, rootDirB)
-        def connection = builder.build()
-
-        when:
-        modelResults = connection.getModels(EclipseProject)
-        then:
-        // We can locate each project by its project identity
-        assertSingleEclipseProject(findByProjectIdentity(participantA, ':'), "A", ":")
-        assertSingleEclipseProject(findByProjectIdentity(participantB, ':'), "B", ":")
-        assertSingleEclipseProject(findByProjectIdentity(participantB, ':x'), "B", ":x")
-        assertSingleEclipseProject(findByProjectIdentity(participantB, ':y'), "B", ":y")
-
-        // We can locate all projects by the build identity for the participant
-        assertContainsEclipseProjects(findByBuildIdentity(participantA), "A", ":")
-        assertContainsEclipseProjects(findByBuildIdentity(participantB), "B", ":", ":x", ":y")
-
-        when:
-        // We can take the results from one model request and correlate it with other model requests by
-        // the project and build identities
-        def otherHierarchicalModelResults = connection.getModels(GradleProject)
-        def otherPerBuildModelResults = connection.getModels(BuildEnvironment)
-        then:
         containSameIdentifiers(otherHierarchicalModelResults)
         containSameIdentifiers(otherPerBuildModelResults)
 
-        cleanup:
-        connection?.close()
+        and:
+        ideaProjects.size() == 2
+        containSameIdentifiers(ideaModuleProjectIdentifiers(ideaProjects))
     }
 
-    void assertSingleEclipseProject(Iterable<ModelResult<EclipseProject>> modelResults, String rootProjectName, String projectPath) {
+    void assertSingleEclipseProject(Iterable<EclipseProject> modelResults, String rootProjectName, String projectPath) {
         assertContainsEclipseProjects(modelResults, rootProjectName, projectPath)
     }
 
-    void assertContainsEclipseProjects(Iterable<ModelResult<EclipseProject>> modelResults, String rootProjectName, String... projectPaths) {
-        assert modelResults.size() == projectPaths.size()
+    void assertContainsEclipseProjects(Iterable<EclipseProject> eclipseProjects, String rootProjectName, String... projectPaths) {
+        assert eclipseProjects.size() == projectPaths.size()
         projectPaths.each { projectPath ->
-            Iterable<EclipseProject> eclipseProjects = unwrap(modelResults)
             assert eclipseProjects.every { eclipseProject ->
                 EclipseProject rootProject = eclipseProject
                 while (rootProject.parent!=null) {
@@ -291,25 +194,39 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         }
     }
 
-    def findByBuildIdentity(BuildIdentity buildIdentity) {
-        modelResults.findAll { buildIdentity.equals(it.projectIdentity.build) }
+    private findModelsByProjectIdentifier(File rootDir, String projectPath) {
+        def projectIdentifier = new DefaultProjectIdentifier(new DefaultBuildIdentifier(rootDir), projectPath)
+        def results = modelResults.findAll { it.failure == null && projectIdentifier.equals(it.model.gradleProject.projectIdentifier) }
+        return results*.model
     }
 
-    def findByProjectIdentity(BuildIdentity buildIdentity, String projectPath) {
-        def projectIdentity = new DefaultProjectIdentity(buildIdentity, projectPath)
-        modelResults.findAll { projectIdentity.equals(it.projectIdentity) }
+    private findModelsByBuildIdentifier(File rootDir) {
+        BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(rootDir)
+        def results = modelResults.findAll { it.failure == null && buildIdentifier.equals(it.model.gradleProject.projectIdentifier.buildIdentifier) }
+        return results*.model
     }
 
-    void containSameIdentifiers(Iterable<ModelResult> otherModelResults) {
+    private findFailureByBuildIdentifier(File rootDir) {
+        BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(rootDir)
+        def failures = modelResults.findAll { it instanceof FailedModelResult && buildIdentifier.equals(it.buildIdentifier) }
+        return CollectionUtils.single(failures)
+    }
+
+    private ideaModuleProjectIdentifiers(Iterable<IdeaProject> ideaProject) {
+        def modules = ideaProject*.modules.flatten()
+        return modules.collect { it.gradleProject.projectIdentifier }
+    }
+
+    void containSameIdentifiers(Iterable<ProjectIdentifier> otherModelResults) {
         // should contain the same number of results
         assert otherModelResults.size() == modelResults.size()
 
-        def projectIdentities = modelResults.collect { it.projectIdentity }
-        def otherProjectIdentities = otherModelResults.collect { it.projectIdentity }
+        def projectIdentities = modelResults*.model.collect { it.gradleProject.projectIdentifier }
+        def otherProjectIdentities = otherModelResults.collect { it }
         assert projectIdentities.containsAll(otherProjectIdentities)
 
-        def buildIdentities = modelResults.collect { it.projectIdentity.build }
-        def otherBuildIdentities = otherModelResults.collect { it.projectIdentity.build }
+        def buildIdentities = modelResults*.model.collect { it.gradleProject.projectIdentifier.buildIdentifier }
+        def otherBuildIdentities = otherModelResults.collect { it.buildIdentifier }
         assert buildIdentities.containsAll(otherBuildIdentities)
     }
 }

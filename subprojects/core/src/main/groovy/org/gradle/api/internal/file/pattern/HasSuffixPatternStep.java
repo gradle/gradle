@@ -38,6 +38,11 @@ public class HasSuffixPatternStep implements PatternStep {
     }
 
     public boolean matches(String candidate) {
-        return prefixLength + suffixLength <= candidate.length() && candidate.regionMatches(!caseSensitive, candidate.length() - suffixLength, suffix, 0, suffixLength);
+        return isLongEnough(candidate) && candidate.regionMatches(!caseSensitive, candidate.length() - suffixLength, suffix, 0, suffixLength);
+    }
+
+    // Confirms there is enough space in candidate to fit both suffix and prefix.
+    private boolean isLongEnough(String candidate) {
+        return prefixLength + suffixLength <= candidate.length();
     }
 }

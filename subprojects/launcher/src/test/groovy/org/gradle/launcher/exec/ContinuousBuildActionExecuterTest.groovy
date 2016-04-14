@@ -32,7 +32,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.PluginServiceRegistry
-import org.gradle.logging.TestStyledTextOutputFactory
+import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.util.Clock
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule

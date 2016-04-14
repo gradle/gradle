@@ -1,0 +1,25 @@
+allprojects {
+    apply plugin: 'java'
+
+    group "org.sample"
+    version "1.0"
+
+    repositories {
+        ivy {
+            name 'repo'
+            url rootProject.file("../repo")
+        }
+    }
+
+    uploadArchives {
+        repositories {
+            add project.repositories.repo
+        }
+    }
+}
+
+project(":b2") {
+    dependencies {
+        compile "org.sample:projectC:1.0"
+    }
+}

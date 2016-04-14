@@ -49,12 +49,12 @@ class JvmOptionsTest extends Specification {
 
     def "understands quoted system properties and jvm opts"() {
         expect:
-        parse("  -Dfoo=\" hey man! \"  ").getSystemProperties().get("foo") == " hey man! "
+        parse("  -Dfoo=\" hey man! \"  ").getMutableSystemProperties().get("foo") == " hey man! "
     }
 
     def "understands 'empty' system properties and jvm opts"() {
         expect:
-        parse("-Dfoo= -Dbar -Dbaz=\"\"").getSystemProperties() == [foo: '', bar: '', baz: '']
+        parse("-Dfoo= -Dbar -Dbaz=\"\"").getMutableSystemProperties() == [foo: '', bar: '', baz: '']
         parse("-XXfoo=").allJvmArgs.contains('-XXfoo=')
         parse("-XXbar=\"\"").allJvmArgs.contains('-XXbar=')
     }
@@ -222,7 +222,7 @@ class JvmOptionsTest extends Specification {
 
         then:
         opts.allJvmArgs.contains('-Dprops=a:1\nb:2\nc:3')
-        opts.systemProperties['props'] == 'a:1\nb:2\nc:3'
+        opts.mutableSystemProperties['props'] == 'a:1\nb:2\nc:3'
     }
 
     def "options with Win newlines are parsed correctly"() {
@@ -232,7 +232,7 @@ class JvmOptionsTest extends Specification {
 
         then:
         opts.allJvmArgs.contains('-Dprops=a:1\r\nb:2\r\nc:3')
-        opts.systemProperties['props'] == 'a:1\r\nb:2\r\nc:3'
+        opts.mutableSystemProperties['props'] == 'a:1\r\nb:2\r\nc:3'
     }
 
     private JvmOptions createOpts() {

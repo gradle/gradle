@@ -19,9 +19,9 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.logging.internal.DefaultProgressLoggerFactory;
-import org.gradle.logging.internal.ProgressListener;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressListener;
 
 /**
  * Provides logging services per thread.

@@ -15,6 +15,8 @@
  */
 
 package org.gradle.api.plugins.quality
+
+import groovy.transform.NotYetImplemented
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -24,10 +26,12 @@ import org.gradle.util.Resources
 import org.hamcrest.Matcher
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.TextUtil.normaliseFileSeparators
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.startsWith
 
 @TargetCoverage({ JavaVersion.current().isJava6() ? CheckstyleCoverage.JDK6_SUPPORTED : CheckstyleCoverage.ALL})
 class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
@@ -54,6 +58,20 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.Class2"))
         file("build/reports/checkstyle/test.html").assertContents(containsClass("org.gradle.TestClass1"))
         file("build/reports/checkstyle/test.html").assertContents(containsClass("org.gradle.TestClass2"))
+    }
+
+    @NotYetImplemented
+    @Issue("GRADLE-3432")
+    def "analyze bad resources"() {
+        defaultLanguage('en')
+        writeConfigFileForResources()
+        badResources()
+
+        expect:
+        fails('check')
+
+        file("build/reports/checkstyle/main.xml").assertContents(containsLine(containsString("bad.properties")))
+        file("build/reports/checkstyle/main.html").assertContents(containsLine(containsString("bad.properties")))
     }
 
     def "analyze bad code"() {
@@ -178,6 +196,10 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("src/test/groovy/org/gradle/testclass2.java") << "package org.gradle; class testclass2 { }"
     }
 
+    private badResources() {
+        file("src/main/resources/bad.properties") << """hello=World"""
+    }
+
     private sampleStylesheet() {
         normaliseFileSeparators(resources.getResource('/checkstyle-custom-stylesheet.xsl').getAbsolutePath())
     }
@@ -206,6 +228,17 @@ dependencies {
 checkstyle {
     toolVersion = '$version'
 }
+        """
+    }
+
+    private void writeConfigFileForResources() {
+        file("config/checkstyle/checkstyle.xml").text = """
+<!DOCTYPE module PUBLIC
+        "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
+        "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
+<module name="Checker">
+    <module name="NewlineAtEndOfFile"/>
+</module>
         """
     }
 

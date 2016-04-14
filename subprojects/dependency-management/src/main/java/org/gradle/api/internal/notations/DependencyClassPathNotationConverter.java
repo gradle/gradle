@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
+import org.gradle.api.internal.impldeps.GradleImplDepsJarType;
 import org.gradle.api.internal.impldeps.GradleImplDepsProvider;
 import org.gradle.api.internal.impldeps.GradleImplDepsRelocatedJar;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -89,9 +90,9 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
             Collection<File> classpath = classPathRegistry.getClassPath(notation.name()).getAsFiles();
             boolean runningFromInstallation = currentGradleInstallation.getInstallation() != null;
             FileCollectionInternal files;
-            if (runningFromInstallation && notation.equals(FAT_GRADLE_API)) {
+            if (runningFromInstallation && notation.equals(GRADLE_API)) {
                 files = gradleApiFileCollection(classpath);
-            } else if (runningFromInstallation && notation.equals(FAT_GRADLE_TEST_KIT)) {
+            } else if (runningFromInstallation && notation.equals(GRADLE_TEST_KIT)) {
                 files = gradleTestKitFileCollection(classpath);
             } else {
                 files = fileResolver.resolveFiles(classpath);
@@ -105,25 +106,24 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private FileCollectionInternal gradleApiFileCollection(Collection<File> apiClasspath) {
         // Don't inline the Groovy jar as the Groovy “tools locator” searches for it by name
         List<File> groovyImpl = classPathRegistry.getClassPath(LOCAL_GROOVY.name()).getAsFiles();
+        List<File> installationBeacon = classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles();
         apiClasspath.removeAll(groovyImpl);
+        apiClasspath.removeAll(installationBeacon);
 
-        return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "fatGradleApi()", "api")
-            .plus(fileResolver.resolveFiles(
-                groovyImpl,
-                classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles())
-            );
+        return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "gradleApi()", GradleImplDepsJarType.API)
+            .plus(fileResolver.resolveFiles(groovyImpl, installationBeacon));
     }
 
     private FileCollectionInternal gradleTestKitFileCollection(Collection<File> testKitClasspath) {
         List<File> gradleApi = classPathRegistry.getClassPath(GRADLE_API.name()).getAsFiles();
         testKitClasspath.removeAll(gradleApi);
 
-        return (FileCollectionInternal) relocatedDepsJar(testKitClasspath, "fatGradleTestKit()", "test-kit")
+        return (FileCollectionInternal) relocatedDepsJar(testKitClasspath, "gradleTestKit()", GradleImplDepsJarType.TEST_KIT)
             .plus(gradleApiFileCollection(gradleApi));
     }
 
-    private FileCollectionInternal relocatedDepsJar(Collection<File> classpath, String displayName, String name) {
-        File gradleImplDepsJar = gradleImplDepsProvider.getFile(classpath, name);
+    private FileCollectionInternal relocatedDepsJar(Collection<File> classpath, String displayName, GradleImplDepsJarType gradleImplDepsJarType) {
+        File gradleImplDepsJar = gradleImplDepsProvider.getFile(classpath, gradleImplDepsJarType);
         return new FileCollectionAdapter(new GradleImplDepsRelocatedJar(displayName, gradleImplDepsJar));
     }
 }

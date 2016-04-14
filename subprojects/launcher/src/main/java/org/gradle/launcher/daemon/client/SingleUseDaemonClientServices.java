@@ -24,7 +24,7 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.internal.logging.events.OutputEventListener;
 
 import java.io.InputStream;
 

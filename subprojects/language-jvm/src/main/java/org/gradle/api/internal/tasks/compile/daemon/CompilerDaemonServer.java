@@ -15,54 +15,25 @@
  */
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.api.Action;
-import org.gradle.language.base.internal.compile.CompileSpec;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.UncheckedException;
-import org.gradle.process.internal.WorkerProcessContext;
+import org.gradle.language.base.internal.compile.CompileSpec;
+import org.gradle.language.base.internal.compile.Compiler;
 
-import java.io.Serializable;
-import java.util.concurrent.CountDownLatch;
-
-
-public class CompilerDaemonServer implements Action<WorkerProcessContext>, CompilerDaemonServerProtocol, Serializable {
+public class CompilerDaemonServer implements CompilerDaemonProtocol {
     private static final Logger LOGGER = Logging.getLogger(CompilerDaemonServer.class);
 
-    private volatile CompilerDaemonClientProtocol client;
-    private volatile CountDownLatch stop;
-
     @Override
-    public void execute(WorkerProcessContext context) {
-        stop = new CountDownLatch(1);
-        client = context.getServerConnection().addOutgoing(CompilerDaemonClientProtocol.class);
-        context.getServerConnection().addIncoming(CompilerDaemonServerProtocol.class, this);
-        context.getServerConnection().connect();
-        try {
-            stop.await();
-        } catch (InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-
-    }
-
-    @Override
-    public <T extends CompileSpec> void execute(Compiler<T> compiler, T spec) {
+    public <T extends CompileSpec> CompileResult execute(Compiler<T> compiler, T spec) {
         try {
             LOGGER.info("Executing {} in compiler daemon.", compiler);
             WorkResult result = compiler.execute(spec);
             LOGGER.info("Successfully executed {} in compiler daemon.", compiler);
-            client.executed(new CompileResult(result.getDidWork(), null));
+            return new CompileResult(result.getDidWork(), null);
         } catch (Throwable t) {
             LOGGER.info("Exception executing {} in compiler daemon: {}.", compiler, t);
-            client.executed(new CompileResult(true, t));
+            return new CompileResult(true, t);
         }
-    }
-
-    @Override
-    public void stop() {
-        stop.countDown();
     }
 }

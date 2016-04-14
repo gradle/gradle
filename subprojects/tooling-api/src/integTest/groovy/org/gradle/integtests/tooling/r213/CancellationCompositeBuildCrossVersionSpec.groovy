@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r213
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
@@ -38,6 +37,8 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         """
         import org.gradle.initialization.BuildCancellationToken
         import java.util.concurrent.CountDownLatch
+
+        if (!project.hasProperty('waitForCancellation')) { return } // Ignore this stuff when we're creating the composite context
 
         def cancellationToken = services.get(BuildCancellationToken.class)
 
@@ -85,6 +86,7 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         withCompositeConnection([build1, build2, build3]) { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withCancellationToken(cancellationToken.token())
+            modelBuilder.withArguments("-PwaitForCancellation")
             // async ask for results
             modelBuilder.get(resultHandler)
             // wait for model requests to start
@@ -109,60 +111,7 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         !executedAfterCancellingFile.exists()
     }
 
-    // Handling cancellation for task execution in a composite
-    @NotYetImplemented
-    def "can cancel task execution while a participant request is being processed"() {
-        given:
-        def cancelledFile = file("cancelled")
-        def executedAfterCancellingFile = file("executed")
-        def participantCancelledFile = file("participant_cancelled")
-        def buildFileText = cancellationHookText(cancelledFile, executedAfterCancellingFile) + """
-        task run << {
-            ${cancellationBlockingText(participantCancelledFile)}
-        }
-        """
-        def build1 = populate("build-1") {
-            buildFile << buildFileText
-        }
-        def build2 = populate("build-2") {
-            buildFile << buildFileText
-        }
-        def build3 = populate("build-3") {
-            buildFile << buildFileText
-        }
-        when:
-        def cancellationToken = GradleConnector.newCancellationTokenSource()
-        def resultHandler = new ResultCollector()
-        def build1Participant = createGradleBuildParticipant(build1)
-        withCompositeBuildParticipants([build1, build2, build3]) { connection, buildIds ->
-            def buildLauncher = connection.newBuild(buildIds[0])
-            buildLauncher.forTasks("run")
-            buildLauncher.withCancellationToken(cancellationToken.token())
-            // async ask for results
-            buildLauncher.run(resultHandler)
-            // wait for task execution to start
-            server.sync()
-            // make sure no new builds get executed
-            cancelledFile.text = "cancelled"
-            // cancel operation
-            cancellationToken.cancel()
-        }
-
-        then:
-        resultHandler.result.size() == 3
-        // overall operation "succeeded"
-        resultHandler.failure == null
-        // each individual request failed
-        resultHandler.result.each { result ->
-            assertFailureHasCause(result.failure, BuildCancelledException)
-        }
-        // participant should be properly cancelled
-        participantCancelledFile.exists()
-        // no new builds should have been executed after cancelling
-        !executedAfterCancellingFile.exists()
-    }
-
-    def "check that no participant requests are started at all when token is initially cancelled"() {
+    def "check that no participant model requests are started at all when token is initially cancelled"() {
         given:
         def executedAfterCancellingFile = file("executed")
         def buildFileText = """
@@ -191,6 +140,36 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         !executedAfterCancellingFile.exists()
     }
 
+    def "check that no participant tasks are started at all when token is initially cancelled"() {
+        given:
+        def executedAfterCancellingFile = file("executed")
+        def buildFileText = """
+        file("${executedAfterCancellingFile.toURI()}").text = << "executed \${project.name}\\n"
+        throw new RuntimeException("Build should not get executed")
+"""
+        def build1 = populate("build-1") {
+            buildFile << buildFileText
+            buildFile << "task run {}"
+        }
+        def build2 = populate("build-2") {
+            buildFile << buildFileText
+        }
+        when:
+        def cancellationToken = GradleConnector.newCancellationTokenSource()
+        def resultHandler = new ResultCollector()
+        cancellationToken.cancel()
+        withCompositeConnection([build1, build2]) { connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.forTasks(build1, "run")
+            buildLauncher.withCancellationToken(cancellationToken.token())
+            buildLauncher.run(resultHandler)
+        }
+
+        then:
+        resultHandler.failure instanceof BuildCancelledException
+        resultHandler.result == null
+        !executedAfterCancellingFile.exists()
+    }
 
     static class ResultCollector implements ResultHandler {
         ModelResults result

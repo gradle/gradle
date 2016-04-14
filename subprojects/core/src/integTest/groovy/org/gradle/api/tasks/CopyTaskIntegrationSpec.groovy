@@ -18,12 +18,19 @@ package org.gradle.api.tasks
 
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import java.nio.charset.Charset
+
 class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
+
+    @Rule
+    public final TestResources resources = new TestResources(testDirectoryProvider, "copyTestResources")
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2181")
     def "can copy files with unicode characters in name with non-unicode platform encoding"() {
@@ -243,5 +250,73 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         "**/#*#"     | "#"
         "**/%*%"     | "%"
         "**/abc*abc" | "abc"
+    }
+
+    @Unroll
+    def "can copy files with #operationName #operationKind using #charsetDescription charset when filteringCharset is #isSetDescription"() {
+        given:
+        buildScript executionScript
+
+        when:
+        if(platformDefaultCharset) {
+            executer.withDefaultCharacterEncoding(platformDefaultCharset)
+        }
+        executer.withTasks(executionName)
+        executer.run()
+
+        then:
+        file('dest/accents.c').readLines(readCharset)[0] == expected
+
+        where:
+        // UTF8 is the actual encoding of the file accents.c.
+        // Any byte sequence of the file accents.c is a valid ISO-8859-1 character sequence,
+        // so we can read and write it with that encoding as well.
+        operationName | operationKind | platformDefaultCharset | filteringCharset | expected
+        // platform default charset is honored
+        'Copy'        | 'task'        | 'UTF-8'                | null             | 'éàüî 1'
+        'Copy'        | 'method'      | 'UTF-8'                | null             | 'éàüî 1'
+        'Sync'        | 'task'        | 'UTF-8'                | null             | 'éàüî 1'
+        'Sync'        | 'method'      | 'UTF-8'                | null             | 'éàüî 1'
+        // filtering charset is honored
+        'Copy'        | 'task'        | null                   | 'UTF-8'          | 'éàüî 1'
+        'Copy'        | 'task'        | null                   | 'ISO-8859-1'     | new String('éàüî 1'.getBytes('UTF-8'), 'ISO-8859-1')
+        'Copy'        | 'method'      | null                   | 'UTF-8'          | 'éàüî 1'
+        'Copy'        | 'method'      | null                   | 'ISO-8859-1'     | new String('éàüî 1'.getBytes('UTF-8'), 'ISO-8859-1')
+        'Sync'        | 'task'        | null                   | 'UTF-8'          | 'éàüî 1'
+        'Sync'        | 'task'        | null                   | 'ISO-8859-1'     | new String('éàüî 1'.getBytes('UTF-8'), 'ISO-8859-1')
+        'Sync'        | 'method'      | null                   | 'UTF-8'          | 'éàüî 1'
+        'Sync'        | 'method'      | null                   | 'ISO-8859-1'     | new String('éàüî 1'.getBytes('UTF-8'), 'ISO-8859-1')
+        // derived data
+        charsetDescription = filteringCharset ?: "platform default ${platformDefaultCharset ?: Charset.defaultCharset().name()}"
+        isSetDescription = filteringCharset ? 'set' : 'unset'
+        readCharset = filteringCharset ?: platformDefaultCharset
+        executionName = operationName.toLowerCase(Locale.US)
+        executionScript = operationKind == 'task' ? filteringCharsetTask(executionName, operationName, filteringCharset) : filteringCharsetProjectMethod(executionName, executionName, filteringCharset)
+    }
+
+    def filteringCharsetTask(taskName, taskType, filteringCharset) {
+        """
+            task ($taskName, type:$taskType) {
+               from 'src'
+               into 'dest'
+               expand(one: 1)
+               ${filteringCharset ? "filteringCharset = '$filteringCharset'" : ''}
+            }
+        """.stripIndent()
+    }
+
+    def filteringCharsetProjectMethod(taskName, methodName, filteringCharset) {
+        """
+            task ($taskName) {
+                doLast {
+                    project.$methodName {
+                       from 'src'
+                       into 'dest'
+                       expand(one: 1)
+                       ${filteringCharset ? "filteringCharset = '$filteringCharset'" : ''}
+                    }
+                }
+            }
+        """.stripIndent()
     }
 }

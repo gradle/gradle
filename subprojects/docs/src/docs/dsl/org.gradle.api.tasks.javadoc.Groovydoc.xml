@@ -45,6 +45,10 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
+                <td>overviewText</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
                 <td>includePrivate</td>
                 <td><literal>false</literal></td>
             </tr>

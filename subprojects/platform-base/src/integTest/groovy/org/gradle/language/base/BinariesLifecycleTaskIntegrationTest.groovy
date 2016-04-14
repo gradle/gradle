@@ -24,7 +24,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """rootProject.name = 'assemble-binary'"""
         buildFile << """
             plugins {
-                id 'component-base'
+                id 'component-model-base'
             }
             import org.gradle.platform.base.internal.BinaryBuildAbility
 

@@ -30,7 +30,6 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         buildFile << """
             apply plugin: 'java'
         """
-        executer.withStackTraceChecksDisabled() // some tests fail compilation
     }
 
     def "can build when no source dir present"() {

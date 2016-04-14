@@ -18,8 +18,8 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.UncheckedException;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.net.URI;
@@ -42,7 +42,7 @@ public class BasicFileResolver implements Transformer<File, String> {
     public File transform(String original) {
         if (original.startsWith("file:")) {
             try {
-                return GFileUtils.canonicalise(new File(new URI(original)));
+                return FileUtils.canonicalize(new File(new URI(original)));
             } catch (URISyntaxException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
@@ -50,7 +50,7 @@ public class BasicFileResolver implements Transformer<File, String> {
 
         File file = new File(original);
         if (file.isAbsolute()) {
-            return GFileUtils.canonicalise(file);
+            return FileUtils.canonicalize(file);
         }
 
         if (URI_SCHEME.matcher(original).matches()) {
@@ -58,6 +58,6 @@ public class BasicFileResolver implements Transformer<File, String> {
         }
 
         file = new File(baseDir, original);
-        return GFileUtils.canonicalise(file);
+        return FileUtils.canonicalize(file);
     }
 }

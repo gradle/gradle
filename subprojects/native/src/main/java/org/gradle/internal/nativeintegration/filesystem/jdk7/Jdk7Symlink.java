@@ -32,19 +32,30 @@ public class Jdk7Symlink implements Symlink {
     }
 
     private boolean doesSystemSupportSymlinks() {
+        Path sourceFile = null;
+        Path linkFile = null;
         try {
-            Path sourceFile = Files.createTempFile("symlink", "test");
-            Path linkFile = Files.createTempFile("symlink", "test_link");
+            sourceFile = Files.createTempFile("symlink", "test");
+            linkFile = Files.createTempFile("symlink", "test_link");
 
-            sourceFile.toFile().deleteOnExit();
             Files.delete(linkFile);
             Files.createSymbolicLink(linkFile, sourceFile);
-            linkFile.toFile().deleteOnExit();
             return true;
         } catch (IOException e) {
             return false;
         } catch (UnsupportedOperationException e) {
             return false;
+        } finally {
+            try {
+                if (sourceFile != null && sourceFile.toFile().exists()) {
+                    Files.delete(sourceFile);
+                }
+                if (linkFile != null && linkFile.toFile().exists()) {
+                    Files.delete(linkFile);
+                }
+            } catch (IOException e) {
+                // We don't really need to handle this.
+            }
         }
     }
 

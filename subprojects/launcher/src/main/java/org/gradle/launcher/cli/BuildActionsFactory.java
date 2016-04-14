@@ -34,8 +34,8 @@ import org.gradle.launcher.daemon.configuration.BuildProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.exec.*;
-import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.logging.events.OutputEventListener;
 
 import java.lang.management.ManagementFactory;
 import java.util.UUID;

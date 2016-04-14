@@ -75,22 +75,12 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         if (cachedLoader == null) {
             ClassLoader classLoader;
             CachedClassLoader parentCachedLoader = null;
-            final int hashCode = spec.hashCode();
+            final int hashCode = 31 * spec.classPathSnapshot.hashCode() + (spec.filterSpec != null ? spec.filterSpec.hashCode() : 0);
             if (spec.isFiltered()) {
                 parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
-                classLoader = new FilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec) {
-                    @Override
-                    public int hashCode() {
-                        return hashCode;
-                    }
-                };
+                classLoader = new HashedFilteringClassLoader(parentCachedLoader, spec, hashCode);
             } else {
-                classLoader = new MutableURLClassLoader(spec.parent, classPath) {
-                    @Override
-                    public int hashCode() {
-                        return hashCode;
-                    }
-                };
+                classLoader = new HashedMutableURLClassLoader(spec, classPath, hashCode);
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);
@@ -104,6 +94,10 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         synchronized (lock) {
             return bySpec.size();
         }
+    }
+
+    public interface HashedClassLoader {
+        int getClassLoaderHash();
     }
 
     private static class ClassLoaderSpec {
@@ -140,6 +134,34 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
             result = 31 * result + (filterSpec != null ? filterSpec.hashCode() : 0);
             result = 31 * result + (parent != null ? parent.hashCode() : 0);
             return result;
+        }
+    }
+
+    private static class HashedFilteringClassLoader extends FilteringClassLoader implements HashedClassLoader {
+        private final int hashCode;
+
+        public HashedFilteringClassLoader(CachedClassLoader parentCachedLoader, ClassLoaderSpec spec, int hashCode) {
+            super(parentCachedLoader.classLoader, spec.filterSpec);
+            this.hashCode = hashCode;
+        }
+
+        @Override
+        public int getClassLoaderHash() {
+            return hashCode;
+        }
+    }
+
+    private static class HashedMutableURLClassLoader extends MutableURLClassLoader implements HashedClassLoader {
+        private final int hashCode;
+
+        public HashedMutableURLClassLoader(ClassLoaderSpec spec, ClassPath classPath, int hashCode) {
+            super(spec.parent, classPath);
+            this.hashCode = hashCode;
+        }
+
+        @Override
+        public int getClassLoaderHash() {
+            return hashCode;
         }
     }
 

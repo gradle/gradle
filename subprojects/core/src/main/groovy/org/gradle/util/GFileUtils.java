@@ -217,14 +217,6 @@ public class GFileUtils {
         }
     }
 
-    public static File canonicalise(File src) {
-        try {
-            return src.getCanonicalFile();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
     /**
      * Returns a relative path from 'from' to 'to'
      *

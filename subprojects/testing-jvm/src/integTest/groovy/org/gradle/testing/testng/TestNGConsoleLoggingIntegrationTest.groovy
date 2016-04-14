@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        executer.noExtraLogging().withStackTraceChecksDisabled()
+        executer.noExtraLogging()
 
         buildFile << """
             apply plugin: "groovy"
@@ -95,6 +95,7 @@ Gradle test > org.gradle.TestNGTest.badTest FAILED
 
     def customQuietLogging() {
         when:
+        executer.withStackTraceChecksDisabled()
         args "-q"
         fails "test"
 

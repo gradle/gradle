@@ -16,9 +16,9 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.Sets;
+import org.gradle.internal.FileUtils;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -77,7 +77,7 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         void resolved(String rawInclude, File resolved) {
-            File dependencyFile = resolved == null ? null : GFileUtils.canonicalise(resolved);
+            File dependencyFile = resolved == null ? null : FileUtils.canonicalize(resolved);
             dependencies.add(new ResolvedInclude(rawInclude, dependencyFile));
         }
 

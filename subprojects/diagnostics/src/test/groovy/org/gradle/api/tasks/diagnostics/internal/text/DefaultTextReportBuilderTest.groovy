@@ -18,7 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.text
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.internal.SystemProperties
-import org.gradle.logging.TestStyledTextOutput
+import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.reporting.ReportRenderer
 import org.gradle.util.TextUtil
 import spock.lang.Specification

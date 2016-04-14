@@ -27,12 +27,12 @@ import org.gradle.api.tasks.diagnostics.internal.graph.SimpleNodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
 import org.gradle.internal.graph.GraphRenderer;
-import org.gradle.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
 
-import static org.gradle.logging.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 
 /**
  * Simple dependency graph renderer that emits an ASCII tree.

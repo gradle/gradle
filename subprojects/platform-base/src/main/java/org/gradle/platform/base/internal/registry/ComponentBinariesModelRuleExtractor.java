@@ -19,7 +19,10 @@ package org.gradle.platform.base.internal.registry;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Nullable;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.inspect.*;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
@@ -27,8 +30,6 @@ import org.gradle.platform.base.ComponentBinaries;
 import org.gradle.platform.base.VariantComponentSpec;
 
 import java.util.List;
-
-import static org.gradle.model.internal.core.NodePredicate.allDescendants;
 
 public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentBinaries> {
     private static final ModelType<BinarySpec> BINARY_SPEC = ModelType.of(BinarySpec.class);
@@ -86,8 +87,7 @@ public class ComponentBinariesModelRuleExtractor extends AbstractAnnotationDrive
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             ModelReference<C> subject = ModelReference.of(componentType);
             ComponentBinariesRule<S, C> componentBinariesRule = new ComponentBinariesRule<S, C>(subject, componentType, binaryType, getRuleDefinition());
-            ModelAction componentBinariesAction = context.contextualize(componentBinariesRule);
-            target.applyTo(allDescendants(), ModelActionRole.Finalize, componentBinariesAction);
+            RuleExtractorUtils.configureRuleAction(context, RuleApplicationScope.DESCENDANTS, ModelActionRole.Finalize, componentBinariesRule);
         }
 
         @Override

@@ -24,19 +24,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     def "can create composite of a single multi-project build"() {
         given:
-        def singleBuild = populate("single-build") {
-            buildFile << """
-                allprojects {
-                    apply plugin: 'java'
-                    group = 'group'
-                    version = '1.0'
-                }
-"""
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-                include 'a', 'b', 'c'
-"""
-        }
+        def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])
         when:
         def models = withCompositeConnection(singleBuild) { connection ->
             unwrap(connection.getModels(EclipseProject))
@@ -49,16 +37,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
     def "can create composite of a single single-project build"() {
         given:
-        def singleBuild = populate("single-build") {
-            buildFile << """
-                apply plugin: 'java'
-                group = 'group'
-                version = '1.0'
-"""
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-"""
-        }
+        def singleBuild = singleProjectBuild("single-build")
         when:
         def models = withCompositeConnection(singleBuild) { connection ->
             unwrap(connection.getModels(EclipseProject))
@@ -71,15 +50,11 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
     def "participant is always treated as root of a build"() {
         given:
-        def badParentDir = populate("bad-parent") {
+        def badParentDir = multiProjectBuild("bad-parent", ['a', 'b', 'c']) {
             buildFile << """
                 allprojects {
                     throw new RuntimeException("Badly configured project")
                 }
-"""
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-                include 'a', 'b', 'c'
 """
         }
         def goodChildProject = badParentDir.file("c").createDir()
@@ -100,18 +75,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
     def "sees changes to composite build when projects are added"() {
         given:
-        def singleBuild = populate("single-build") {
-            buildFile << """
-                allprojects {
-                    apply plugin: 'java'
-                    group = 'group'
-                    version = '1.0'
-                }
-"""
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-"""
-        }
+        def singleBuild = singleProjectBuild("single-build")
         def composite = createComposite(singleBuild)
 
         when:
@@ -124,11 +88,9 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
         when:
         // make project a multi-project build
-        populate("single-build") {
-            settingsFile << """
+        singleBuild.settingsFile << """
                 include 'a'
 """
-        }
         and:
         def secondRetrieval = unwrap(composite.getModels(EclipseProject))
 
@@ -139,9 +101,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
 
         when:
         // adding more projects to multi-project build
-        populate("single-build") {
-            settingsFile << "include 'b', 'c'"
-        }
+        singleBuild.settingsFile << "include 'b', 'c'"
         and:
         def thirdRetrieval = unwrap(composite.getModels(EclipseProject))
 

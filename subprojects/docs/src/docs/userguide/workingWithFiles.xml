@@ -246,7 +246,7 @@
                 <sourcefile file="build.gradle" snippet="rename-files"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:filtering_files">
             <title>Filtering files</title>
             <sample id="filterOnCopy" dir="userguide/files/copy" title="Filtering files as they are copied">
                 <sourcefile file="build.gradle" snippet="filter-files"/>
@@ -255,6 +255,11 @@
             <ulink url="http://docs.groovy-lang.org/latest/html/api/groovy/text/SimpleTemplateEngine.html">Groovy templates</ulink>
             in which tokens take the form “${tokenName}”. Be aware that you may need to escape parts of your source files when
             using this option, for example if it contains literal “$” or “&lt;%” strings.</para>
+
+            <para>It's a good practice to specify the charset when reading and writing the file, using the <literal>filteringCharset</literal>
+                property. If not specified, the JVM default charset is used, which might not match with the actual charset of the files
+                to filter, and might be different from one machine to another.
+            </para>
         </section>
         <section>
             <title>Using the <classname>CopySpec</classname> class</title>

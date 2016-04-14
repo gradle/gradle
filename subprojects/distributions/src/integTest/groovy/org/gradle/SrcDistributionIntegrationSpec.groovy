@@ -44,7 +44,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
         when:
         executer.with {
-            withDeprecationChecksDisabled()
+            expectDeprecationWarning()
             inDirectory(contentsDir)
             usingExecutable('gradlew')
             withTasks('binZip')

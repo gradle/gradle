@@ -18,7 +18,6 @@ package org.gradle.internal.serialize
 
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
-import org.gradle.messaging.remote.internal.Message
 import spock.lang.Specification
 
 abstract class SerializerSpec extends Specification {

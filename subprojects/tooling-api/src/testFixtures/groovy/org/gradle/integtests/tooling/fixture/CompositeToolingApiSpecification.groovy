@@ -15,11 +15,9 @@
  */
 
 package org.gradle.integtests.tooling.fixture
-
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.connection.BuildIdentity
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.connection.ModelResult
@@ -28,10 +26,15 @@ import org.gradle.util.GradleVersion
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
 @TargetGradleVersion(">=1.0")
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
+    boolean executeTestWithIntegratedComposite = true
+
+    void skipIntegratedComposite() {
+        executeTestWithIntegratedComposite = false
+    }
 
     static GradleVersion getTargetDistVersion() {
         // Create a copy to work around classloader issues
-        GradleVersion.version(targetDist.version.baseVersion.version)
+        GradleVersion.version(targetDist.version.version)
     }
 
     GradleConnection createComposite(File... rootProjectDirectories) {
@@ -49,11 +52,32 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     }
 
     GradleConnectionBuilder createCompositeBuilder() {
-        return toolingApi.createCompositeBuilder()
+        def builder = toolingApi.createCompositeBuilder()
+
+        // TODO:DAZ This isn't quite right: we should be testing _both_ integrated and non-integrated composite for version that support both
+        if (executeTestWithIntegratedComposite && supportsIntegratedComposites()) {
+            builder.integratedComposite(true)
+            builder.useInstallation(targetDist.gradleHomeDir.absoluteFile)
+
+            // TODO:DAZ Ensure that embedded coordinator is robust before enabling on CI
+//            builder.embeddedCoordinator(embedded)
+//            if (useClasspathImplementation) {
+//                builder.useClasspathDistribution()
+//            }
+        }
+        return builder
     }
 
-    BuildIdentity addCompositeParticipant(GradleConnectionBuilder builder, File rootDir) {
-        return toolingApi.addCompositeParticipant(builder, rootDir)
+    boolean supportsIntegratedComposites() {
+        def toolingApiVersion = GradleVersion.current()
+        def targetGradleVersion = targetDistVersion
+
+        def versionSpec = GradleVersionSpec.toSpec(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
+        return versionSpec.isSatisfiedBy(toolingApiVersion) && versionSpec.isSatisfiedBy(targetGradleVersion)
+    }
+
+    void addCompositeParticipant(GradleConnectionBuilder builder, File rootDir) {
+        toolingApi.addCompositeParticipant(builder, rootDir)
     }
 
     def <T> T withCompositeConnection(File rootProjectDir, Closure<T> c) {
@@ -69,17 +93,10 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         }
     }
 
-    def <T> T withCompositeBuildParticipants(List<File> rootProjectDirectories, Closure<T> c) {
-        GradleConnectionBuilder builder = createCompositeBuilder()
-        def buildIds = []
-
-        rootProjectDirectories.each {
-            buildIds << addCompositeParticipant(builder, it)
-        }
-
+    def <T> T withCompositeConnection(GradleConnectionBuilder builder, @ClosureParams(value = SimpleType, options = [ "org.gradle.tooling.connection.GradleConnection" ]) Closure<T> c) {
         GradleConnection connection = builder.build()
         try {
-            return c(connection, buildIds)
+            return c(connection)
         } finally {
             connection?.close()
         }
@@ -93,10 +110,47 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         rootDir.file(path)
     }
 
-    TestFile populate(String projectName, @DelegatesTo(ProjectTestFile) Closure cl) {
+    def populate(String projectName, @DelegatesTo(ProjectTestFile) Closure cl) {
         def project = new ProjectTestFile(rootDir, projectName)
         project.with(cl)
         project
+    }
+
+    def singleProjectBuild(String projectName, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
+        def project = populate(projectName) {
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
+            """
+
+            buildFile << """
+                group = 'org.test'
+                version = '1.0'
+            """
+        }
+        project.with(cl)
+        return project
+    }
+
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
+        String subprojectList = subprojects.collect({"'$it'"}).join(',')
+        def rootMulti = populate(projectName) {
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
+                include ${subprojectList}
+            """
+
+            buildFile << """
+                allprojects {
+                    group = 'org.test'
+                    version = '1.0'
+                }
+            """
+        }
+        rootMulti.with(cl)
+        subprojects.each {
+            rootMulti.file(it, 'dummy.txt') << "temp"
+        }
+        return rootMulti
     }
 
     TestFile projectDir(String project) {
@@ -138,15 +192,15 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         }
     }
 
-    void assertFailureHasCause(Throwable failure, Class<Throwable> cause) {
+    void assertFailureHasCause(Throwable failure, Class<Throwable> expectedType) {
         assert failure != null
         Throwable throwable = failure
         List causes = []
         while (throwable != null) {
-            causes << throwable
+            causes << throwable.getClass().getCanonicalName()
             throwable = throwable.cause
         }
-        assert causes.any { it.getClass().getCanonicalName().equals(cause.getCanonicalName()) }
+        assert causes.contains(expectedType.getCanonicalName())
     }
 
     private static String getCauses(Throwable throwable) {

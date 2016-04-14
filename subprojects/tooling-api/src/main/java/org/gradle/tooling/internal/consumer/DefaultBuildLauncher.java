@@ -63,8 +63,12 @@ public class DefaultBuildLauncher extends AbstractLongRunningOperation<DefaultBu
     }
 
     public BuildLauncher forLaunchables(Iterable<? extends Launchable> launchables) {
+        preprocessLaunchables(launchables);
         operationParamsBuilder.setLaunchables(launchables);
         return this;
+    }
+
+    protected void preprocessLaunchables(Iterable<? extends Launchable> launchables) {
     }
 
     public void run() {

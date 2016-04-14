@@ -127,13 +127,17 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
     }
 
     private void assertListenerReceivedSameEventsInCompositeAndRegularConnections() {
-        assert !progressListenerForRegularBuild.eventDescriptions.isEmpty()
-        assert !progressListenerForComposite.eventDescriptions.isEmpty()
-        progressListenerForRegularBuild.eventDescriptions.each { eventDescription ->
-            if (!(eventDescription in IGNORED_EVENTS)) {
-                assert progressListenerForComposite.eventDescriptions.contains(eventDescription)
-                progressListenerForComposite.eventDescriptions.remove(eventDescription)
-            }
+        def regularBuildEvents = progressListenerForRegularBuild.eventDescriptions
+        regularBuildEvents.removeAll(IGNORED_EVENTS)
+        assert !regularBuildEvents.isEmpty()
+
+        def compositeBuildEvents = progressListenerForComposite.eventDescriptions
+        compositeBuildEvents.removeAll(IGNORED_EVENTS)
+        assert !compositeBuildEvents.isEmpty()
+
+        regularBuildEvents.each { eventDescription ->
+            assert compositeBuildEvents.contains(eventDescription)
+            compositeBuildEvents.remove(eventDescription)
         }
     }
 
@@ -161,27 +165,26 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
     }
 
     private void executeFirstBuild(List<File> builds) {
-        withCompositeBuildParticipants(builds) { connection, List buildIds ->
-            def buildId = buildIds[0]
-            runBuild(connection.newBuild(buildId), progressListenerForComposite)
+        withCompositeConnection(builds) { connection ->
+            BuildLauncher buildLauncher = connection.newBuild()
+            buildLauncher.forTasks(builds[0], "jar")
+            buildLauncher.addProgressListener(progressListenerForComposite)
+            buildLauncher.run()
         }
 
         GradleConnector connector = toolingApi.connector()
         connector.forProjectDirectory(builds[0].absoluteFile)
         toolingApi.withConnection(connector) { ProjectConnection connection ->
-            runBuild(connection.newBuild(), progressListenerForRegularBuild)
+            BuildLauncher buildLauncher = connection.newBuild()
+            buildLauncher.forTasks("jar")
+            buildLauncher.addProgressListener(progressListenerForRegularBuild)
+            buildLauncher.run()
         }
     }
 
     private def getModels(ModelBuilder modelBuilder, progressListener) {
         modelBuilder.addProgressListener(progressListener)
         modelBuilder.get()
-    }
-
-    private void runBuild(BuildLauncher buildLauncher, progressListener) {
-        buildLauncher.forTasks("jar")
-        buildLauncher.addProgressListener(progressListener)
-        buildLauncher.run()
     }
 
     static abstract class AbstractCapturingProgressListener {

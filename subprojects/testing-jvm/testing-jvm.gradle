@@ -35,6 +35,7 @@ test {
 useTestFixtures()
 useTestFixtures(project: ':testingBase', sourceSet: 'testFixtures')
 useTestFixtures(project: ':diagnostics')
+useTestFixtures(project: ":messaging")
 
 // TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
 //useClassycle()

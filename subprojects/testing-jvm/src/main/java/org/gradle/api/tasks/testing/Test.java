@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeElementComparator;
 import org.gradle.api.internal.file.FileTreeElementHasher;
@@ -51,21 +52,20 @@ import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
-import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.logging.ConsoleRenderer;
-import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.messaging.actor.ActorFactory;
+import org.gradle.internal.logging.ConsoleRenderer;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.actor.ActorFactory;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -186,7 +186,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     @Inject
-    protected Factory<WorkerProcessBuilder> getProcessBuilderFactory() {
+    protected WorkerProcessFactory getProcessBuilderFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -207,6 +207,11 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     @Inject
     protected BuildOperationProcessor getBuildOperationProcessor() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ModuleRegistry getModuleRegistry() {
         throw new UnsupportedOperationException();
     }
 
@@ -564,7 +569,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
 
         if (testExecuter == null) {
-            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory());
+            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry());
         }
 
         try {
@@ -796,7 +801,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      */
     @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
     @Incubating
-    public Test setTestNameIncludePattern(List<String> testNamePattern) {
+    public Test setTestNameIncludePatterns(List<String> testNamePattern) {
         filter.setIncludePatterns(testNamePattern.toArray(new String[]{}));
         return this;
     }

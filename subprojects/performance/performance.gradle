@@ -421,6 +421,34 @@ task tinyJavaSwApiJarStubbingWithoutApi(type: JvmProjectGeneratorTask) {
     sourceFiles = 1000
 }
 
+task createSomeTasks(type: JvmProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 0
+    subProjectTemplates = ['task-creation']
+    templateArgs = [
+            taskCount: 1000
+    ]
+    dependencyGraph {
+        size = 0
+    }
+
+    numberOfExternalDependencies = 0
+}
+
+task createLotsOfTasks(type: JvmProjectGeneratorTask) {
+    projects = 1
+    sourceFiles = 0
+    subProjectTemplates = ['task-creation']
+    templateArgs = [
+            taskCount: 15000
+    ]
+    dependencyGraph {
+        size = 0
+    }
+
+    numberOfExternalDependencies = 0
+}
+
 configure([smallJavaSwModelProject, largeJavaSwModelProject,
            smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoidanceWithApi,
            smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi,
@@ -563,7 +591,8 @@ task prepareSamples {
         bigOldJavaMoreSource, lotProjectDependencies, smallJavaSwModelProject, largeJavaSwModelProject,
         nativeMonolithic, nativeMonolithicOverlapping, smallNativeMonolithic, mediumNativeMonolithic,
         smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoidanceWithApi, smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi,
-        tinyJavaSwApiJarStubbingWithoutApi
+        tinyJavaSwApiJarStubbingWithoutApi,
+        createSomeTasks, createLotsOfTasks
     group = "Project Setup"
     description = "Generates all sample projects for automated performance tests"
 }

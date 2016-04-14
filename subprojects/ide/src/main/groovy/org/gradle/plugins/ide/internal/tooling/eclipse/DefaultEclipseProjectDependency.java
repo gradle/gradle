@@ -15,10 +15,12 @@
  */
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
+import java.io.File;
 import java.io.Serializable;
 
 public class DefaultEclipseProjectDependency implements Serializable {
     private final String path;
+    private final File targetProjectDirectory;
 
     private final boolean exported;
     private final DefaultEclipseProject target;
@@ -26,11 +28,23 @@ public class DefaultEclipseProjectDependency implements Serializable {
     public DefaultEclipseProjectDependency(String path, DefaultEclipseProject target, boolean exported) {
         this.target = target;
         this.path = path;
+        this.targetProjectDirectory = target.getProjectDirectory();
+        this.exported = exported;
+    }
+
+    public DefaultEclipseProjectDependency(String path, File targetProjectDirectory, boolean exported) {
+        this.target = null;
+        this.path = path;
+        this.targetProjectDirectory = targetProjectDirectory;
         this.exported = exported;
     }
 
     public DefaultEclipseProject getTargetProject() {
         return target;
+    }
+
+    public File getTargetProjectDirectory() {
+        return targetProjectDirectory;
     }
 
     public String getPath() {

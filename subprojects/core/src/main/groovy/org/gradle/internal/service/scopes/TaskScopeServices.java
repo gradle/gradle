@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.LoggingManagerInternal;
 
 /**
  * Contains the services for a given task.

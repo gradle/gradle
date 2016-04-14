@@ -42,9 +42,17 @@ abstract class AbstractFileSnapshotTaskStateChanges implements TaskStateChanges 
         return getCurrent().iterateContentChangesSince(getPrevious(), Collections.<FileCollectionSnapshot.ChangeFilter>emptySet());
     }
 
-    protected FileCollectionSnapshot createSnapshot(FileCollectionSnapshotter snapshotter, FileCollection fileCollection) {
+    protected FileCollectionSnapshot.PreCheck createSnapshotPreCheck(FileCollectionSnapshotter snapshotter, FileCollection fileCollection) {
         try {
-            return snapshotter.snapshot(fileCollection, isAllowSnapshotReuse());
+            return snapshotter.preCheck(fileCollection, isAllowSnapshotReuse());
+        } catch (UncheckedIOException e) {
+            throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' during up-to-date check.", getInputFileType().toLowerCase(), taskName), e);
+        }
+    }
+
+    protected FileCollectionSnapshot createSnapshot(FileCollectionSnapshotter snapshotter, FileCollectionSnapshot.PreCheck preCheck) {
+        try {
+            return snapshotter.snapshot(preCheck);
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' during up-to-date check.", getInputFileType().toLowerCase(), taskName), e);
         }
@@ -71,6 +79,10 @@ abstract class AbstractFileSnapshotTaskStateChanges implements TaskStateChanges 
                 return endOfData();
             }
         };
+    }
+
+    public void snapshotBeforeTask() {
+        getCurrent();
     }
 
     public void snapshotAfterTask() {

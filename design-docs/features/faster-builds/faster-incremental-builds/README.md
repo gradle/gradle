@@ -18,6 +18,7 @@ Up-to-date checks
 - Write cache updates to the backing persistent store asynchronously (in worker pool)
 - Improve in-heap cache management to evict entries that aren't likely to be used, such as when switching builds.
 - Don't cache the result of `PatternSpec` evaluation. It's now faster to evaluate each time than cache the result
+- Spike using several other hashing functions, eg `murmur3`.
 
 Dependency resolution
 

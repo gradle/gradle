@@ -19,6 +19,7 @@ import groovy.lang.GroovySystem;
 import org.apache.tools.ant.Main;
 import org.gradle.BuildExceptionReporter;
 import org.gradle.api.Action;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
@@ -28,15 +29,14 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.internal.Actions;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.logging.*;
+import org.gradle.internal.logging.LoggingCommandLineConverter;
+import org.gradle.internal.logging.services.LoggingServiceRegistry;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-import org.gradle.logging.LoggingConfiguration;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.logging.internal.LoggingCommandLineConverter;
 import org.gradle.util.GradleVersion;
 
 import java.io.PrintStream;
@@ -61,13 +61,15 @@ public class CommandLineActionFactory {
     public Action<ExecutionListener> convert(List<String> args) {
         ServiceRegistry loggingServices = createLoggingServices();
 
-        LoggingConfiguration loggingConfiguration = new LoggingConfiguration();
+        LoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
 
-        return new ExceptionReportingAction(
-                new WithLogging(loggingServices, args, loggingConfiguration,
+        return new WithLogging(loggingServices,
+                args,
+                loggingConfiguration,
+                new ExceptionReportingAction(
                         new JavaRuntimeValidationAction(
-                            new ParseAndBuildAction(loggingServices, args))),
-                new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
+                                new ParseAndBuildAction(loggingServices, args)),
+                        new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData())));
     }
 
     protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
@@ -199,11 +201,9 @@ public class CommandLineActionFactory {
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevel(loggingConfiguration.getLogLevel());
             loggingManager.start();
-
             try {
                 NativeServices.initialize(buildLayout.getGradleUserHomeDir());
                 loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput());
-
                 action.execute(executionListener);
             } finally {
                 loggingManager.stop();

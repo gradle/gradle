@@ -24,6 +24,23 @@ import java.net.URI;
 
 /**
  * Builds a new composite Gradle connection.
+ *
+ * <pre autoTested=''>
+ * GradleConnectionBuilder builder = GradleConnector.newGradleConnection();
+ * // Add a participant with root directory 'someFolder' using the Gradle version defined in the build
+ * builder.addParticipant(new File("someFolder"));
+ * // Add a participant with root directory 'someOtherFolder' using Gradle Version 2.6
+ * builder.addParticipant(new File("someOtherFolder")).useGradleVersion("2.6");
+ * // Set the Gradle user home for the entire connection
+ * builder.useGradleUserHomeDir(new File("/path/to/.gradle"));
+ * GradleConnection connection = builder.build();
+ *
+ * try {
+ *    // Use connection
+ * } finally {
+ *    connection.close();
+ * }
+ * </pre>
  */
 @Incubating
 public interface GradleConnectionBuilder {
@@ -36,38 +53,13 @@ public interface GradleConnectionBuilder {
     GradleConnectionBuilder useGradleUserHomeDir(File gradleUserHomeDir);
 
     /**
-     * Specifies the Gradle distribution for the coordinator to use.
-     *
-     * @param gradleHome The Gradle installation directory.
-     * @return this
-     */
-    GradleConnectionBuilder useInstallation(File gradleHome);
-
-    /**
-     * Specifies the version of Gradle for the coordinator to use.
-     *
-     * @param gradleVersion The version to use.
-     * @return this
-     */
-    GradleConnectionBuilder useGradleVersion(String gradleVersion);
-
-    /**
-     * Specifies the Gradle distribution for the coordinator to use.
-     *
-     * @param gradleDistribution The distribution to use.
-     *
-     * @return this
-     */
-    GradleConnectionBuilder useDistribution(URI gradleDistribution);
-
-    /**
-     * Creates a new participant builder instance for creating Gradle composite participants.
+     * Adds a new participant build to this connection, returning a build for further configuration.
      *
      * @param projectDirectory The root project directory for the participant.
      *
      * @return The builder. Never returns null.
      */
-    ParticipantBuilder newParticipant(File projectDirectory);
+    ParticipantBuilder addParticipant(File projectDirectory);
 
     /**
      * Builds the connection. You should call {@link GradleConnection#close()} when you are finished with the connection.
@@ -112,12 +104,5 @@ public interface GradleConnectionBuilder {
          * @return this
          */
         ParticipantBuilder useDistribution(URI gradleDistribution);
-
-        /**
-         * Creates the participant and adds it to the Gradle connection.
-         *
-         * @return The identity of the created participant.
-         */
-        BuildIdentity create();
     }
 }

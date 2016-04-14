@@ -21,13 +21,13 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.internal.serialize.SerializerRegistry;
+import org.gradle.api.internal.file.FileTreeElementHasher;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapshotter {
     protected final FileSnapshotter snapshotter;
@@ -42,54 +42,107 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
         this.fileResolver = fileResolver;
     }
 
-    public void registerSerializers(SerializerRegistry<FileCollectionSnapshot> registry) {
-        registry.register(FileCollectionSnapshotImpl.class, new DefaultFileSnapshotterSerializer(stringInterner));
-    }
-
     public FileCollectionSnapshot emptySnapshot() {
         return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap());
     }
 
-    public FileCollectionSnapshot snapshot(final FileCollection input, boolean allowReuse) {
-        final List<FileTreeElement> fileTreeElements = Lists.newLinkedList();
-        final List<File> missingFiles = Lists.newArrayList();
+    public FileCollectionSnapshot.PreCheck preCheck(final FileCollection files, final boolean allowReuse) {
+        return new DefaultFileCollectionSnapshotPreCheck(files, allowReuse);
+    }
 
-        visitFiles(input, fileTreeElements, missingFiles, allowReuse);
+    private Integer calculatePreCheckHash(Collection<VisitedTree> visitedTrees) {
+        Collection<FileTreeElement> fileTreeElements = new ArrayList<FileTreeElement>();
+        for (VisitedTree tree : visitedTrees) {
+            fileTreeElements.addAll(tree.getEntries());
+        }
+        return FileTreeElementHasher.calculateHashForFileMetadata(fileTreeElements);
+    }
 
-        if (fileTreeElements.isEmpty() && missingFiles.isEmpty()) {
+    public FileCollectionSnapshot snapshot(final FileCollectionSnapshot.PreCheck preCheck) {
+        if (preCheck.isEmpty()) {
             return emptySnapshot();
         }
 
-        final Map<String, IncrementalFileSnapshot> snapshots = new HashMap<String, IncrementalFileSnapshot>();
-
+        final List<TreeSnapshot> treeSnapshots = new ArrayList<TreeSnapshot>();
         cacheAccess.useCache("Create file snapshot", new Runnable() {
             public void run() {
-                for (FileTreeElement fileDetails : fileTreeElements) {
-                    String absolutePath = getInternedAbsolutePath(fileDetails.getFile());
-                    if (!snapshots.containsKey(absolutePath)) {
-                        if (fileDetails.isDirectory()) {
-                            snapshots.put(absolutePath, DirSnapshot.getInstance());
-                        } else {
-                            snapshots.put(absolutePath, new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash(), fileDetails.getLastModified()));
-                        }
+                final List<VisitedTree> nonShareableTrees = new ArrayList<VisitedTree>();
+                for (VisitedTree tree : preCheck.getVisitedTrees()) {
+                    if (tree.isShareable()) {
+                        treeSnapshots.add(tree.maybeCreateSnapshot(snapshotter, stringInterner));
+                    } else {
+                        nonShareableTrees.add(tree);
                     }
                 }
-                for (File missingFile : missingFiles) {
-                    String absolutePath = getInternedAbsolutePath(missingFile);
-                    if (!snapshots.containsKey(absolutePath)) {
-                        snapshots.put(absolutePath, MissingFileSnapshot.getInstance());
-                    }
+                if (!nonShareableTrees.isEmpty() || !preCheck.getMissingFiles().isEmpty()) {
+                    VisitedTree nonShareableTree = createJoinedTree(nonShareableTrees, preCheck.getMissingFiles());
+                    treeSnapshots.add(nonShareableTree.maybeCreateSnapshot(snapshotter, stringInterner));
                 }
             }
         });
-
-        return new FileCollectionSnapshotImpl(snapshots);
+        return new FileCollectionSnapshotImpl(treeSnapshots);
     }
+
+    private Collection<FileSnapshotWithKey> createMissingFileSnapshots(Collection<File> missingFiles) {
+        List<FileSnapshotWithKey> missingFileSnapshots = new ArrayList<FileSnapshotWithKey>();
+        for (File missingFile : missingFiles) {
+            missingFileSnapshots.add(new FileSnapshotWithKey(getInternedAbsolutePath(missingFile), MissingFileSnapshot.getInstance()));
+        }
+        return missingFileSnapshots;
+    }
+
+    abstract VisitedTree createJoinedTree(List<VisitedTree> nonShareableTrees, Collection<File> missingFiles);
 
     private String getInternedAbsolutePath(File file) {
         return stringInterner.intern(file.getAbsolutePath());
     }
 
-    abstract protected void visitFiles(FileCollection input, List<FileTreeElement> fileTreeElements, List<File> missingFiles, boolean allowReuse);
+    abstract protected void visitFiles(FileCollection input, List<VisitedTree> visitedTrees, List<File> missingFiles, boolean allowReuse);
 
+    private final class DefaultFileCollectionSnapshotPreCheck implements FileCollectionSnapshot.PreCheck {
+        private final List<VisitedTree> visitedTrees;
+        private final List<File> missingFiles;
+        private final FileCollection files;
+        private Integer hash;
+
+        public DefaultFileCollectionSnapshotPreCheck(FileCollection files, boolean allowReuse) {
+            this.files = files;
+            visitedTrees = Lists.newLinkedList();
+            missingFiles = Lists.newArrayList();
+            visitFiles(files, visitedTrees, missingFiles, allowReuse);
+        }
+
+        @Override
+        public Integer getHash() {
+            if (hash == null) {
+                hash = calculatePreCheckHash(visitedTrees);
+            }
+            return hash;
+        }
+
+        @Override
+        public FileCollection getFiles() {
+            return files;
+        }
+
+        @Override
+        public Collection<VisitedTree> getVisitedTrees() {
+            return visitedTrees;
+        }
+
+        @Override
+        public Collection<File> getMissingFiles() {
+            return missingFiles;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            for (VisitedTree tree : visitedTrees) {
+                if (!tree.getEntries().isEmpty()) {
+                    return false;
+                }
+            }
+            return missingFiles.isEmpty();
+        }
+    }
 }

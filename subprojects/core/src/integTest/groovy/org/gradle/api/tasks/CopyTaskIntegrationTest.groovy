@@ -62,6 +62,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         usingBuildFile(buildFile).withTasks("copy").run()
         testFile('dest').assertHasDescendants(
                 'root.a',
+                'accents.c',
                 'one/one.a',
                 'two/two.a',
         )
@@ -132,6 +133,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'root.renamed',
                 'root.b',
+                'accents.c',
                 'one/renamed_one.renamed',
                 'one/renamed_one.b',
                 'one/sub/onesub.renamed',
@@ -156,6 +158,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'root.a',
                 'root.b',
+                'accents.c',
                 'one/one.a',
                 'one/one.b',
                 'one/sub/onesub.a',
@@ -230,6 +233,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'root.renamed_twice',
                 'root.b',
+                'accents.c',
                 'prefix/one/one.renamed_twice',
                 'prefix/one/one.b',
                 'prefix/one_sub/onesub.renamed_twice',
@@ -255,6 +259,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'root.a',
                 'root.b',
+                'accents.c',
                 'one/one.a',
                 'one/one.b',
                 'two/two.a',
@@ -278,6 +283,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'root.a',
                 'root.b',
+                'accents.c',
                 'one/one.a',
                 'one/one.b',
                 'two/two.a',
@@ -304,6 +310,7 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
         usingBuildFile(buildFile).withTasks("copy").run()
         testFile('dest').assertHasDescendants(
                 'root.a',
+                'accents.c',
                 'one/one.a',
                 'two/two.a',
                 'three/three.a',
@@ -567,10 +574,9 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
 
         '''
 
-        def result = usingBuildFile(buildFile).withTasks("copy").run()
+        usingBuildFile(buildFile).withTasks("copy").run()
         file('dest').assertHasDescendants('path/file.txt')
         file('dest/path/file.txt').assertContents(Matchers.containsText("f1"))
-        assertFalse(result.output.contains('deprecated'))
     }
 
     @Test
@@ -591,10 +597,9 @@ public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
                     eachFile { it.duplicatesStrategy = 'exclude' }
                 }
             '''
-        def result = usingBuildFile(buildFile).withTasks("copy").run()
+        usingBuildFile(buildFile).withTasks("copy").run()
         file('dest').assertHasDescendants('path/file.txt')
         file('dest/path/file.txt').assertContents(Matchers.containsText("file1"))
-        assertFalse(result.output.contains('deprecated'))
     }
 
     @Test

@@ -2,13 +2,38 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-task printModel << {
+
+def createComposite() {
     def builder = GradleConnector.newGradleConnection()
-    rootProjectDirectories().each {
+    builder.useInstallation(gradle.gradleHomeDir)
+    compositeRootDirs().each {
         println "Adding project $it.absolutePath to composite"
-        builder.newParticipant(it).useInstallation(gradle.gradleHomeDir).create()
+        builder.addParticipant(it).useInstallation(gradle.gradleHomeDir)
     }
-    def connection = builder.build()
+
+    // builder.integratedComposite(true)
+    builder.build()
+}
+
+task executeTasks << {
+    def targetBuildDir = compositeRootDirs().find { it.toString().endsWith(project.targetBuild) }
+    def targetTasks = project.targetTasks
+    println "Running tasks '$targetTasks' in $targetBuild"
+
+    def connection = createComposite()
+
+    def buildLauncher = connection.newBuild()
+    buildLauncher.forTasks(targetBuildDir, targetTasks.split(','))
+    buildLauncher.standardOutput = System.out
+    buildLauncher.standardError = System.err
+    println "-------------"
+    buildLauncher.run()
+    println "-------------\n\n"
+    connection.close()
+}
+
+task printModel << {
+    def connection = createComposite()
 
     def eclipseProjects = connection.getModels(EclipseProject).collect { it.model }
     def rootProjects = eclipseProjects.grep({ findRootProject(it) == it }).sort({ it.projectDirectory })
@@ -21,9 +46,9 @@ task printModel << {
         println "GradleProject: " + gradleProject.path
     }
 
-    def publicationResults = connection.getModels(org.gradle.tooling.model.gradle.ProjectPublications)
+    def publicationResults = connection.getModels(org.gradle.tooling.model.gradle.ProjectPublications).collect {it.model}
     publicationResults.each { publicationResult ->
-        println "Pubs: " + publicationResult.projectIdentity + " :: " + publicationResult.model.publications*.id
+        println "Pubs: " + publicationResult.projectIdentifier + " :: " + publicationResult.publications*.id
     }
 
     def buildEnvironments = connection.getModels(org.gradle.tooling.model.build.BuildEnvironment).collect { it.model }
@@ -32,29 +57,7 @@ task printModel << {
     }
 }
 
-task executeTasks << {
-    def builder = GradleConnector.newGradleConnection()
-    def buildIds = []
-    rootProjectDirectories().each {
-        println "Adding project $it.absolutePath to composite"
-        buildIds << builder.newParticipant(it.absoluteFile).useInstallation(gradle.gradleHomeDir).create()
-    }
-    def connection = builder.build()
-    def targetBuild = buildIds.find { it.rootDirectory.toString().endsWith(project.targetProject) }
-    def targetTasks = project.targetTasks
-    println "Running tasks '${targetTasks}' in $targetBuild"
-    def buildLauncher = connection.newBuild(targetBuild)
-    buildLauncher.forTasks(targetTasks.split(","))
-    buildLauncher.withArguments("--info")
-    buildLauncher.standardOutput = System.out
-    buildLauncher.standardError = System.err
-    println "-------------"
-    buildLauncher.run()
-    println "-------------\n\n"
-    connection.close()
-}
-
-def rootProjectDirectories() {
+def compositeRootDirs() {
     file("demo.composite").readLines().collect { new File(it) }
 }
 

@@ -18,7 +18,7 @@ package org.gradle.internal.filewatch;
 
 import com.google.common.collect.Maps;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.io.File;
 import java.util.Map;

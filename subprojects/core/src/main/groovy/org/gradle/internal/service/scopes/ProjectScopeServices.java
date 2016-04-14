@@ -36,7 +36,7 @@ import org.gradle.api.internal.plugins.*;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ant.AntLoggingAdapter;
+import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -53,7 +53,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.DefaultTypeConverter;
 import org.gradle.internal.typeconversion.TypeConverter;
-import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
@@ -125,7 +125,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected Factory<AntBuilder> createAntBuilderFactory() {
-        return new DefaultAntBuilderFactory(new AntLoggingAdapter(), project);
+        return new DefaultAntBuilderFactory(project, new DefaultAntLoggingAdapterFactory());
     }
 
     protected ToolingModelBuilderRegistry createToolingModelRegistry() {
@@ -154,6 +154,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new ProjectFinder() {
             public ProjectInternal getProject(String path) {
                 return project.project(path);
+            }
+
+            @Override
+            public ProjectInternal findProject(String path) {
+                return project.findProject(path);
             }
         };
     }

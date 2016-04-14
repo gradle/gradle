@@ -479,6 +479,42 @@ class DefaultModuleResolutionFilterTest extends Specification {
         union.specs.contains(spec3)
     }
 
+    // Regression test for GRADLE-3275, also exercises GRADLE-3434
+    def "intersection propagates through child union rules"() {
+        def rule1 = excludeRule("org", "module")
+        def rule2 = regexpExcludeRule("org", "module2")
+        def rule3 = regexpExcludeRule("org", "module3")
+        def spec = DefaultModuleResolutionFilter.excludeAny(rule1)
+        def spec2 = DefaultModuleResolutionFilter.excludeAny(rule1, rule2)
+        def spec3 = DefaultModuleResolutionFilter.excludeAny(rule3)
+
+        def excludeBacked1 = spec.intersect(spec2);         // module + module2
+        def union = spec2.union(spec3);                     // module, module2, module3
+        def excludeBacked2 = spec2.intersect(union);        // module, module2
+        def finalUnion = spec3.union(excludeBacked2);       // module
+
+        expect:
+        // Sanity checks.
+        excludeBacked1 == spec2
+        def specs = []
+        union.unpackUnion(specs)
+        specs == [spec2, spec3];
+        
+        // Verify test is exercising the function it's supposed to.
+        excludeBacked1 instanceof DefaultModuleResolutionFilter.ExcludeRuleBackedSpec
+        excludeBacked2 instanceof DefaultModuleResolutionFilter.ExcludeRuleBackedSpec
+
+        union instanceof DefaultModuleResolutionFilter.UnionSpec
+        finalUnion instanceof DefaultModuleResolutionFilter.UnionSpec
+
+        spec2.acceptModule(moduleId("org", "module4"))
+
+        // Verify that this function passes the intersection operation through to union2's rules.
+        finalUnion.acceptModule(moduleId("org", "module"))
+        finalUnion.acceptModule(moduleId("org", "module2"))
+        finalUnion.acceptModule(moduleId("org", "module3"))
+    }
+
     def "union accept module that is accepted by any merged exclude rule"() {
         def rule1 = excludeRule("org", "module")
         def rule2 = excludeRule("org", "module2")

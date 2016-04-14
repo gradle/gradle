@@ -20,6 +20,7 @@ import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
 import org.gradle.api.internal.changedetection.state.FileSnapshot
 import org.gradle.api.internal.initialization.ClassLoaderIds
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
+import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.CacheValidator
@@ -30,8 +31,8 @@ import org.gradle.groovy.scripts.Transformer
 import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.internal.hash.HashValue
 import org.gradle.internal.resource.TextResource
-import org.gradle.logging.ProgressLogger
-import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.internal.logging.progress.ProgressLogger
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import spock.lang.Specification
 
 class FileCacheBackedScriptClassCompilerTest extends Specification {
@@ -44,9 +45,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final PersistentCache globalCache = Mock()
     final ScriptSource source = Mock()
     final TextResource resource = Mock()
-    final ClassLoader classLoader = Mock() {
-        hashCode() >> 9999
-    }
+    final ClassLoader classLoader = new MockClassLoader()
     final Transformer transformer = Mock()
     final CompileOperation<?> operation = Mock()
     final CachingFileSnapshotter snapshotter = Mock()
@@ -86,7 +85,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         then:
         result == Script
         1 * snapshotter.snapshot(resource) >> Stub(FileSnapshot) { getHash() >> new HashValue("123") }
-        1 * cacheRepository.cache("scripts-remapped/ScriptClassName/83/TransformerId9999") >> localCacheBuilder
+        1 * cacheRepository.cache("scripts-remapped/ScriptClassName/83/TransformerId309980") >> localCacheBuilder
         1 * localCacheBuilder.withInitializer(!null) >> { args ->
             initializer = args[0]
             localCacheBuilder
@@ -98,7 +97,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
             localCache
         }
 
-        1 * cacheRepository.cache('scripts/83/TransformerId/TransformerId9999') >> globalCacheBuilder
+        1 * cacheRepository.cache('scripts/83/TransformerId/TransformerId309980') >> globalCacheBuilder
         1 * globalCacheBuilder.withDisplayName(!null) >> globalCacheBuilder
         1 * globalCacheBuilder.withInitializer(!null) >> globalCacheBuilder
         1 * globalCacheBuilder.withValidator(!null) >> globalCacheBuilder
@@ -111,7 +110,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     def "passes CacheValidator to cache builders"() {
         setup:
         snapshotter.snapshot(resource) >> Stub(FileSnapshot) { getHash() >> new HashValue("123") }
-        cacheRepository.cache("scripts-remapped/ScriptClassName/83/TransformerId9999") >> localCacheBuilder
+        cacheRepository.cache("scripts-remapped/ScriptClassName/83/TransformerId309980") >> localCacheBuilder
         localCacheBuilder.withProperties(!null) >> localCacheBuilder
         localCacheBuilder.withInitializer(!null) >> localCacheBuilder
         localCacheBuilder.withDisplayName(!null) >> localCacheBuilder
@@ -138,7 +137,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         then:
         result == Script
         1 * snapshotter.snapshot(resource) >> Stub(FileSnapshot) { getHash() >> new HashValue("123") }
-        1 * cacheRepository.cache('scripts-remapped/ScriptClassName/83/TransformerId9999') >> localCacheBuilder
+        1 * cacheRepository.cache('scripts-remapped/ScriptClassName/83/TransformerId309980') >> localCacheBuilder
         1 * localCacheBuilder.withInitializer(!null) >> { args ->
             initializer = args[0]
             localCacheBuilder
@@ -150,7 +149,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
             localCache
         }
 
-        1 * cacheRepository.cache('scripts/83/TransformerId/TransformerId9999') >> globalCacheBuilder
+        1 * cacheRepository.cache('scripts/83/TransformerId/TransformerId309980') >> globalCacheBuilder
         1 * globalCacheBuilder.withDisplayName(!null) >> globalCacheBuilder
         1 * globalCacheBuilder.withInitializer(!null) >> { args ->
             globalInitializer = args[0]
@@ -190,5 +189,12 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
         then:
         1 * logger.completed()
+    }
+
+    private static class MockClassLoader extends ClassLoader implements DefaultClassLoaderCache.HashedClassLoader {
+        @Override
+        int getClassLoaderHash() {
+            9999
+        }
     }
 }

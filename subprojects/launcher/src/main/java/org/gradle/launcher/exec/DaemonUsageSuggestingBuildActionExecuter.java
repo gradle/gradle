@@ -22,8 +22,8 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 public class DaemonUsageSuggestingBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     public static final String PLEASE_USE_DAEMON_MESSAGE_PREFIX = "This build could be faster, please consider using the Gradle Daemon: ";

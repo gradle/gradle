@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.*;
 
 import java.io.File;
@@ -31,6 +32,7 @@ import java.util.*;
 // Be careful running “Optimize Imports” as it will wipe this out.
 // If there's no import below this comment, this has happened.
 import org.gradle.api.tasks.Optional;
+import org.gradle.util.SingleMessageLogger;
 
 /**
  * <p>Generates HTML API documentation for Groovy source, and optionally, Java source.
@@ -62,7 +64,7 @@ public class Groovydoc extends SourceTask {
 
     private String footer;
 
-    private String overview;
+    private TextResource overview;
 
     private Set<Link> links = new HashSet<Link>();
 
@@ -75,8 +77,9 @@ public class Groovydoc extends SourceTask {
     @TaskAction
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
-        getAntGroovydoc().execute(getSource(), getDestinationDir(), isUse(), isNoTimestamp(), isNoVersionStamp(), getWindowTitle(), getDocTitle(), getHeader(),
-                getFooter(), getOverview(), isIncludePrivate(), getLinks(), getGroovyClasspath(), getClasspath(), getProject());
+        getAntGroovydoc().execute(getSource(), getDestinationDir(), isUse(), isNoTimestamp(), isNoVersionStamp(), getWindowTitle(),
+                getDocTitle(), getHeader(), getFooter(), getOverviewText(), isIncludePrivate(), getLinks(), getGroovyClasspath(),
+                getClasspath(), getProject());
     }
 
     private void checkGroovyClasspathNonEmpty(Collection<File> classpath) {
@@ -268,16 +271,48 @@ public class Groovydoc extends SourceTask {
 
     /**
      * Returns a HTML file to be used for overview documentation. Set to {@code null} when there is no overview file.
+     *
+     * @deprecated please use {@link #getOverviewText()} instead
      */
+    @Deprecated
     public String getOverview() {
-        return overview;
+        reportOverviewDeprecation();
+
+        if (overview == null) {
+            return null;
+        } else {
+            return overview.asFile().getAbsolutePath();
+        }
     }
 
     /**
      * Sets a HTML file to be used for overview documentation (optional).
+     *
+     * @deprecated please use {@link #setOverviewText(TextResource)} instead
      */
+    @Deprecated
     public void setOverview(String overview) {
-        this.overview = overview;
+        reportOverviewDeprecation();
+
+        this.overview = getProject().getResources().getText().fromFile(overview);
+    }
+
+    /**
+     * Returns a HTML text to be used for overview documentation. Set to {@code null} when there is no overview text.
+     */
+    @Nested
+    @Optional
+    public TextResource getOverviewText() {
+        return overview;
+    }
+
+    /**
+     * Sets a HTML text to be used for overview documentation (optional).
+     * <p>
+     * <b>Example:</b> {@code overviewText = resources.text.fromFile("/overview.html")}
+     */
+    public void setOverviewText(TextResource overviewText) {
+        this.overview = overviewText;
     }
 
     /**
@@ -321,6 +356,10 @@ public class Groovydoc extends SourceTask {
      */
     public void link(String url, String... packages) {
         links.add(new Link(url, packages));
+    }
+
+    private static final void reportOverviewDeprecation() {
+        SingleMessageLogger.nagUserOfDeprecated("The overview property", "Please use the overviewText property instead");
     }
 
     /**

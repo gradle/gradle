@@ -56,7 +56,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
     protected ClassLoader tapiClassLoader
 
-    public Class<?> tapiClass(Class<?> clazz) {
+    public <T> Class<T> tapiClass(Class<T> clazz) {
         tapiClassLoader.loadClass(clazz.name)
     }
 

@@ -22,8 +22,8 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.messaging.actor.Actor;
-import org.gradle.messaging.actor.ActorFactory;
+import org.gradle.internal.actor.Actor;
+import org.gradle.internal.actor.ActorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

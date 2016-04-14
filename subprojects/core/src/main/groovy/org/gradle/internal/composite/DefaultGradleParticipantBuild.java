@@ -52,4 +52,9 @@ public class DefaultGradleParticipantBuild implements GradleParticipantBuild, Se
     public String getGradleVersion() {
         return gradleVersion;
     }
+
+    @Override
+    public String toString() {
+        return String.format("connectionParticipant[rootDir=%s]", projectDir.getPath());
+    }
 }

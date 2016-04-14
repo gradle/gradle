@@ -112,6 +112,7 @@ project.logger.debug("debug logging");
         targetDist.executer(temporaryFolder)
             .requireGradleHome()
             .withArgument("--no-daemon") //suppress daemon usage suggestions
+            .withBuildJvmOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
             .run()
     }
 

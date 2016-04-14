@@ -21,9 +21,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.FailureResolutionAware;
-import org.gradle.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
-import static org.gradle.logging.StyledTextOutput.Style.UserInput;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 @Contextual
 public class TaskConfigurationException extends GradleException implements FailureResolutionAware {

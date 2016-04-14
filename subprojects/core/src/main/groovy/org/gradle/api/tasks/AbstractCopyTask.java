@@ -399,4 +399,17 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public String getFilteringCharset() {
+        return getMainSpec().getFilteringCharset();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setFilteringCharset(String charset) {
+        getMainSpec().setFilteringCharset(charset);
+    }
 }

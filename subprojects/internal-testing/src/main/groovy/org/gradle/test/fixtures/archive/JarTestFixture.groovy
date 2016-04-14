@@ -16,14 +16,12 @@
 
 package org.gradle.test.fixtures.archive
 
-import org.apache.commons.io.IOUtils
+import org.apache.tools.zip.ZipFile
 import org.gradle.api.JavaVersion
 import org.gradle.test.fixtures.file.ClassFile
 
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
-import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
 
 class JarTestFixture extends ZipTestFixture {
     final int classFileDescriptor = 0xCAFEBABE
@@ -33,8 +31,8 @@ class JarTestFixture extends ZipTestFixture {
     /**
      * Asserts that the Jar file is well-formed
      */
-     JarTestFixture(File file) {
-         super(file)
+     JarTestFixture(File file, String metadataCharset = 'UTF-8', String contentCharset = null) {
+         super(file, metadataCharset, contentCharset)
          this.file = file
          isManifestPresentAndFirstEntry()
      }
@@ -50,19 +48,17 @@ class JarTestFixture extends ZipTestFixture {
      * Asserts that the manifest file is present and first entry in this jar file.
      */
     void isManifestPresentAndFirstEntry() {
-        ZipInputStream zip = new ZipInputStream(new FileInputStream(file))
+        def zipFile = new ZipFile(file, metadataCharset)
         try {
-            ZipEntry zipEntry = zip.getNextEntry()
-
-            if (zipEntry.getName().equalsIgnoreCase("META-INF/")) {
-                zipEntry = zip.getNextEntry()
+            def entries = zipFile.getEntries()
+            def zipEntry = entries.nextElement();
+            if(zipEntry.getName().equalsIgnoreCase('META-INF/')) {
+                zipEntry = entries.nextElement()
             }
-
-            String firstEntryName = zipEntry.getName()
+            def firstEntryName = zipEntry.getName()
             assert firstEntryName.equalsIgnoreCase(JarFile.MANIFEST_NAME)
-        }
-        finally {
-            IOUtils.closeQuietly(zip)
+        } finally {
+            zipFile.close()
         }
     }
 

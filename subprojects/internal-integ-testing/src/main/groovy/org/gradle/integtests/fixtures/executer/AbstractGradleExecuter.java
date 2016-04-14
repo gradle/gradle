@@ -17,10 +17,12 @@ package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
+import com.google.common.io.CharSource;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
@@ -40,11 +42,9 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
 
-import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY;
+import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
-import static org.gradle.util.Matchers.containsLine;
-import static org.gradle.util.Matchers.matchesRegexp;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected static Set<String> propagatedSystemProperties = Sets.newHashSet();
@@ -92,9 +92,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> commandLineJvmOpts = new ArrayList<String>();
     private boolean useOnlyRequestedJvmOpts;
     private boolean requireGradleHome;
-    private boolean daemonStartingMessageDisabled = true;
 
-    private boolean deprecationChecksOn = true;
+    private int expectedDeprecationWarnings;
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
 
@@ -142,7 +141,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         commandLineJvmOpts.clear();
         buildJvmOpts.clear();
         useOnlyRequestedJvmOpts = false;
-        deprecationChecksOn = true;
+        expectedDeprecationWarnings = 0;
         stackTraceChecksOn = true;
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
@@ -244,8 +243,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         executer.noExtraLogging();
 
-        if (!deprecationChecksOn) {
-            executer.withDeprecationChecksDisabled();
+        for (int i = 0; i < expectedDeprecationWarnings; i++) {
+            executer.expectDeprecationWarning();
         }
         if (!eagerClassLoaderCreationChecksOn) {
             executer.withEagerClassLoaderCreationCheckDisabled();
@@ -255,9 +254,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (requireGradleHome) {
             executer.requireGradleHome();
-        }
-        if (!daemonStartingMessageDisabled) {
-            executer.withDaemonStartingMessageEnabled();
         }
         if (requireDaemon) {
             executer.requireDaemon();
@@ -337,7 +333,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * Adjusts the calculated invocation prior to execution. This method is responsible for handling the implicit launcher JVM args in some way, by mutating the invocation appropriately.
      */
     protected void transformInvocation(GradleInvocation gradleInvocation) {
-        gradleInvocation.launcherJvmArgs.addAll(gradleInvocation.implicitLauncherJvmArgs);
+        gradleInvocation.launcherJvmArgs.addAll(0, gradleInvocation.implicitLauncherJvmArgs);
         gradleInvocation.implicitLauncherJvmArgs.clear();
     }
 
@@ -671,10 +667,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             properties.put(DaemonParameters.INTERACTIVE_TOGGLE, "true");
         }
 
-        if (daemonStartingMessageDisabled) {
-            properties.put(DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY, "true");
-        }
-
         return properties;
     }
 
@@ -758,56 +750,60 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected Action<ExecutionResult> getResultAssertion() {
-        ActionBroadcast<ExecutionResult> assertions = new ActionBroadcast<ExecutionResult>();
+        return new Action<ExecutionResult>() {
+            int expectedDeprecationWarnings = AbstractGradleExecuter.this.expectedDeprecationWarnings;
+            boolean expectStackTraces = !AbstractGradleExecuter.this.stackTraceChecksOn;
 
-        if (stackTraceChecksOn) {
-            assertions.add(new Action<ExecutionResult>() {
-                public void execute(ExecutionResult executionResult) {
-                    assertNoStackTraces(executionResult.getOutput(), "Standard output");
+            @Override
+            public void execute(ExecutionResult executionResult) {
+                validate(executionResult.getNormalizedOutput(), "Standard output");
+                String error = executionResult.getError();
+                if (executionResult instanceof ExecutionFailure) {
+                    // Axe everything after the expected exception
+                    int pos = error.indexOf("* Exception is:\n");
+                    if (pos >= 0) {
+                        error = error.substring(0, pos);
+                    }
+                }
+                validate(error, "Standard error");
+            }
 
-                    String error = executionResult.getError();
-                    if (executionResult instanceof ExecutionFailure) {
-                        // Axe everything after the expected exception
-                        int pos = error.indexOf("* Exception is:\n");
-                        if (pos >= 0) {
-                            error = error.substring(0, pos);
+            private void validate(String output, String displayName) {
+                List<String> lines;
+                try {
+                    lines = CharSource.wrap(output).readLines();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+                int i = 0;
+                while (i < lines.size()) {
+                    String line = lines.get(i);
+                    if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
+                        // A javac warning, ignore
+                        i++;
+                    } else if (line.matches(".*\\s+deprecated.*")) {
+                        if (expectedDeprecationWarnings <= 0) {
+                            throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i+1, line, output));
                         }
-                    }
-                    assertNoStackTraces(error, "Standard error");
-                }
-
-                private void assertNoStackTraces(String output, String displayName) {
-                    if (containsLine(matchesRegexp("\\s+(at\\s+)?[\\w.$_]+\\([\\w._]+:\\d+\\)")).matches(output)) {
-                        throw new AssertionError(String.format("%s contains an unexpected stack trace:%n=====%n%s%n=====%n", displayName, output));
-                    }
-                }
-            });
-        }
-
-        if (deprecationChecksOn) {
-            assertions.add(new Action<ExecutionResult>() {
-                public void execute(ExecutionResult executionResult) {
-                    assertNoDeprecationWarnings(executionResult.getOutput(), "Standard output");
-                    assertNoDeprecationWarnings(executionResult.getError(), "Standard error");
-                }
-
-                private void assertNoDeprecationWarnings(String output, String displayName) {
-                    boolean javacWarning = containsLine(matchesRegexp(".*use(s)? or override(s)? a deprecated API\\.")).matches(output);
-                    boolean deprecationWarning = containsLine(matchesRegexp(".* deprecated.*")).matches(output);
-                    if (deprecationWarning && !javacWarning) {
-                        throw new AssertionError(String.format("%s contains a deprecation warning:%n=====%n%s%n=====%n", displayName, output));
+                        expectedDeprecationWarnings--;
+                        // skip over stack trace
+                        i++;
+                        while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+                            i++;
+                        }
+                    } else if (!expectStackTraces && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size()-1 && STACK_TRACE_ELEMENT.matcher(lines.get(i+1)).matches()) {
+                        // 2 or more lines that look like stack trace elements
+                        throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i+1, line, output));
+                    } else {
+                        i++;
                     }
                 }
-            });
-        }
-
-        return assertions;
+            }
+        };
     }
 
-    public GradleExecuter withDeprecationChecksDisabled() {
-        deprecationChecksOn = false;
-        // turn off stack traces too
-        stackTraceChecksOn = false;
+    public GradleExecuter expectDeprecationWarning() {
+        expectedDeprecationWarnings++;
         return this;
     }
 
@@ -840,11 +836,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public GradleExecuter requireGradleHome() {
         this.requireGradleHome = true;
-        return this;
-    }
-
-    public GradleExecuter withDaemonStartingMessageEnabled() {
-        daemonStartingMessageDisabled = false;
         return this;
     }
 

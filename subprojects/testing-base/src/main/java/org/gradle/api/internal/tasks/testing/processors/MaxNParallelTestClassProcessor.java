@@ -22,9 +22,9 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.actor.Actor;
-import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.messaging.dispatch.DispatchException;
+import org.gradle.internal.actor.Actor;
+import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.dispatch.DispatchException;
 
 import java.util.ArrayList;
 import java.util.List;

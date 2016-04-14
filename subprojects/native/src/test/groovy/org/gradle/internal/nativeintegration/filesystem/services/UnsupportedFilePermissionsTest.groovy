@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.nativeintegration.filesystem.services
 
-import org.gradle.logging.ConfigureLogging
-import org.gradle.logging.TestOutputEventListener
+import org.gradle.internal.logging.ConfigureLogging
+import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

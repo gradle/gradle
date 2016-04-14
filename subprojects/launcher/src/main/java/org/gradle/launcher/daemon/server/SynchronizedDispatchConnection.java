@@ -17,8 +17,8 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.launcher.daemon.protocol.OutputMessage;
-import org.gradle.messaging.remote.internal.MessageIOException;
-import org.gradle.messaging.remote.internal.RemoteConnection;
+import org.gradle.internal.remote.internal.MessageIOException;
+import org.gradle.internal.remote.internal.RemoteConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +36,7 @@ public class SynchronizedDispatchConnection<T> implements RemoteConnection<T> {
     public SynchronizedDispatchConnection(RemoteConnection<T> delegate) {
         this.delegate = delegate;
     }
-    
+
     public void dispatch(final T message) {
         if (!(message instanceof OutputMessage)) {
             LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());

@@ -69,6 +69,7 @@ class Antlr3PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
         expect:
         fails("generateGrammarSource")
+        failure.assertHasCause("There were 9 errors during grammar generation")
         assertAntlrVersion(3)
     }
 

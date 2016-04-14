@@ -46,6 +46,7 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.instanceOf
 import static org.junit.Assert.*
@@ -366,9 +367,10 @@ println 'hi'
         1 * verifier.execute(!null)
     }
 
+    @Unroll
     @Issue('GRADLE-3382')
-    def testCompileToDirWithUnknownClass() {
-        ScriptSource source = new StringScriptSource("script.gradle", "new unknownclass()")
+    def "test compile with #unknownClass"() {
+        ScriptSource source = new StringScriptSource("script.gradle", "new ${unknownClass}()")
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
@@ -376,10 +378,40 @@ println 'hi'
         then:
         ScriptCompilationException e = thrown()
         e.lineNumber == 1
-        e.cause.message.contains("script.gradle: 1: unable to resolve class unknownclass")
+        e.cause.message.contains("script.gradle: 1: unable to resolve class ${unknownClass}")
 
         and:
         checkScriptCacheEmpty()
+
+        where:
+        unknownClass << [ 'unknownclass', 'fully.qualified.unknownclass', 'not.java.util.Map.Entry' ]
+    }
+
+    @Issue('GRADLE-3423')
+    def testCompileWithInnerClassReference() {
+        ScriptSource source = new StringScriptSource("script.gradle", innerClass)
+
+        when:
+        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        innerClass << [
+            "Map.Entry entry = null",
+            "java.util.Map.Entry entry = null",
+            """
+import java.util.Map.Entry
+Entry entry = null
+""",
+            """
+class Outer {
+    static class Inner { }
+}
+Outer.Inner entry = null
+"""
+        ]
     }
 
     private void checkScriptClassesInCache(boolean empty = false) {

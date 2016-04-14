@@ -18,7 +18,7 @@
 
 package org.gradle.internal.progress
 
-import org.gradle.logging.ProgressLogger
+import org.gradle.internal.logging.progress.ProgressLogger
 import spock.lang.Specification
 import spock.lang.Subject
 

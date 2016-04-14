@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal
 
 import org.gradle.api.Rule
-import org.gradle.logging.TestStyledTextOutput
+import org.gradle.internal.logging.text.TestStyledTextOutput
 
 class TaskReportRendererTest extends AbstractTaskModelSpec {
     private final TestStyledTextOutput writer = new TestStyledTextOutput().ignoreStyle()

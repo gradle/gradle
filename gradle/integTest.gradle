@@ -267,7 +267,7 @@ allprojects {
 
 integTestTasks.all { Test task ->
     dependsOn ':intTestImage'
-    dependsOn ':toolingApi:jarjarJar'
+    dependsOn ':toolingApi:shadedJar'
     dependsOn ':cleanUpCaches'
     finalizedBy ':cleanUpDaemons'
     shouldRunAfter 'test'
@@ -295,7 +295,7 @@ integTestTasks.all { Test task ->
             systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
             systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
             systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
-            systemProperties['integTest.toolingApiLibsDir'] = rootProject.project(':toolingApi').libsDir
+            systemProperties['integTest.toolingApiShadedJarDir'] = rootProject.project(':toolingApi').shadedJar.outputDir
 
             // If the projects int test need the distributions, they should add:
             // inputs.files rootProject.buildDists

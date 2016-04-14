@@ -57,6 +57,6 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
         } catch (RuntimeException e) {
             throw exceptionTransformer.transform(e);
         }
-        return adapter.adapt(type, result.getModel(), getCompatibilityMapperAction());
+        return adapter.adapt(type, result.getModel(), getCompatibilityMapperAction(operationParameters));
     }
 }

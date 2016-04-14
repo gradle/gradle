@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.impldeps
 
-import org.gradle.logging.ProgressLogger
-import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.api.Action
+import org.gradle.internal.IoActions
+import org.gradle.internal.logging.progress.ProgressLogger
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
@@ -29,6 +32,7 @@ import spock.lang.Specification
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
+@UsesNativeServices
 class GradleImplDepsRelocatedJarCreatorTest extends Specification {
 
     @Rule
@@ -37,19 +41,17 @@ class GradleImplDepsRelocatedJarCreatorTest extends Specification {
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
     def progressLogger = Mock(ProgressLogger)
     GradleImplDepsRelocatedJarCreator relocatedJarCreator = new GradleImplDepsRelocatedJarCreator(progressLoggerFactory)
+    File outputJar = new File(tmpDir.testDirectory, 'gradle-api.jar')
 
-    def "throws exception if non-JAR files are provided"() {
+    def "creates JAR file for input directory"() {
         given:
-        def outputJar = new File(tmpDir.testDirectory, 'gradle-api.jar')
         def inputFilesDir = tmpDir.createDir('inputFiles')
-        def textFile = inputFilesDir.file('text.txt')
+        writeClass(inputFilesDir, "org/gradle/MyClass")
 
         when:
-        relocatedJarCreator.create(outputJar, [textFile])
+        relocatedJarCreator.create(outputJar, [inputFilesDir])
 
         then:
-        RuntimeException e = thrown(RuntimeException)
-        e.message == "non JAR on classpath: $textFile.absolutePath"
         1 * progressLoggerFactory.newOperation(GradleImplDepsRelocatedJarCreator) >> progressLogger
         1 * progressLogger.setDescription('Gradle JARs generation')
         1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
@@ -57,17 +59,18 @@ class GradleImplDepsRelocatedJarCreatorTest extends Specification {
         1 * progressLogger.progress(_)
         1 * progressLogger.completed()
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
-        contents.length == 0
+        contents.length == 1
+        contents[0] == outputJar
     }
 
     def "creates fat JAR file for multiple input JAR files"() {
         given:
-        def outputJar = new File(tmpDir.testDirectory, 'gradle-api.jar')
+        def className = 'org/gradle/MyClass'
         def inputFilesDir = tmpDir.createDir('inputFiles')
         def jarFile1 = inputFilesDir.file('lib1.jar')
-        createJarFileWithClassFile(jarFile1)
+        createJarFileWithClassFiles(jarFile1, [className])
         def jarFile2 = inputFilesDir.file('lib2.jar')
-        createJarFileWithClassFile(jarFile2)
+        createJarFileWithClassFiles(jarFile2, [className])
 
         when:
         relocatedJarCreator.create(outputJar, [jarFile1, jarFile2])
@@ -86,7 +89,6 @@ class GradleImplDepsRelocatedJarCreatorTest extends Specification {
 
     def "merges provider-configuration file with the same name"() {
         given:
-        def outputJar = new File(tmpDir.testDirectory, 'gradle-api.jar')
         def inputFilesDir = tmpDir.createDir('inputFiles')
         def serviceType = 'org.gradle.internal.service.scopes.PluginServiceRegistry'
         def jarFile1 = inputFilesDir.file('lib1.jar')
@@ -118,36 +120,119 @@ org.gradle.api.internal.tasks.CompileServices
         contents.length == 1
         def relocatedJar = contents[0]
         relocatedJar == outputJar
-        def relocatedJarFile = new JarFile(relocatedJar)
-        JarEntry providerConfigJarEntry = relocatedJarFile.getJarEntry("META-INF/services/$serviceType")
-        relocatedJarFile.getInputStream(providerConfigJarEntry).text == """org.gradle.api.internal.artifacts.DependencyServices
+
+        handleAsJarFile(relocatedJar) { JarFile jar ->
+            JarEntry providerConfigJarEntry = jar.getJarEntry("META-INF/services/$serviceType")
+            IoActions.withResource(jar.getInputStream(providerConfigJarEntry), new Action<InputStream>() {
+                void execute(InputStream inputStream) {
+                    assert inputStream.text == """org.gradle.api.internal.artifacts.DependencyServices
 org.gradle.plugin.use.internal.PluginUsePluginServiceRegistry
 org.gradle.api.internal.tasks.CompileServices"""
+                }
+            })
+        }
     }
 
-    private void createJarFileWithClassFile(TestFile jar) {
-        TestFile contents = tmpDir.createDir('contents')
-        TestFile classFile = contents.createFile('org/gradle/MyClass.class')
+    def "relocates Gradle impl dependency classes"() {
+        given:
+        def noRelocationClassNames = ['org/gradle/MyClass',
+                                      'java/lang/String',
+                                      'javax/inject/Inject',
+                                      'groovy/util/XmlSlurper',
+                                      'groovyjarjarantlr/TokenStream',
+                                      'net/rubygrapefruit/platform/FileInfo',
+                                      'org/codehaus/groovy/ant/Groovyc',
+                                      'org/apache/tools/ant/taskdefs/Ant',
+                                      'org/slf4j/Logger',
+                                      'org/apache/commons/logging/Log',
+                                      'org/apache/log4j/Logger',
+                                      'org/apache/xerces/parsers/SAXParser',
+                                      'org/w3c/dom/Document',
+                                      'org/xml/sax/XMLReader']
+        def relocationClassNames = ['org/apache/commons/lang3/StringUtils',
+                                    'com/google/common/collect/Lists']
+        def classNames = noRelocationClassNames + relocationClassNames
+        def inputFilesDir = tmpDir.createDir('inputFiles')
+        def jarFile = inputFilesDir.file('lib.jar')
+        createJarFileWithClassFiles(jarFile, classNames)
 
+        when:
+        relocatedJarCreator.create(outputJar, [jarFile])
+
+        then:
+        1 * progressLoggerFactory.newOperation(GradleImplDepsRelocatedJarCreator) >> progressLogger
+        1 * progressLogger.setDescription('Gradle JARs generation')
+        1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
+        1 * progressLogger.started()
+        1 * progressLogger.progress(_)
+        1 * progressLogger.completed()
+        TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
+        contents.length == 1
+        def relocatedJar = contents[0]
+        relocatedJar == outputJar
+
+        handleAsJarFile(relocatedJar) { JarFile jar ->
+            assert jar.getJarEntry('org/gradle/MyClass.class')
+            assert jar.getJarEntry('java/lang/String.class')
+            assert jar.getJarEntry('javax/inject/Inject.class')
+            assert jar.getJarEntry('groovy/util/XmlSlurper.class')
+            assert jar.getJarEntry('groovyjarjarantlr/TokenStream.class')
+            assert jar.getJarEntry('net/rubygrapefruit/platform/FileInfo.class')
+            assert jar.getJarEntry('org/codehaus/groovy/ant/Groovyc.class')
+            assert jar.getJarEntry('org/apache/tools/ant/taskdefs/Ant.class')
+            assert jar.getJarEntry('org/slf4j/Logger.class')
+            assert jar.getJarEntry('org/apache/commons/logging/Log.class')
+            assert jar.getJarEntry('org/apache/log4j/Logger.class')
+            assert jar.getJarEntry('org/apache/xerces/parsers/SAXParser.class')
+            assert jar.getJarEntry('org/w3c/dom/Document.class')
+            assert jar.getJarEntry('org/xml/sax/XMLReader.class')
+            assert jar.getJarEntry('org/gradle/impldep/org/apache/commons/lang3/StringUtils.class')
+            assert jar.getJarEntry('org/gradle/impldep/com/google/common/collect/Lists.class')
+        }
+    }
+
+    private void createJarFileWithClassFiles(TestFile jar, List<String> classNames) {
+        TestFile contents = tmpDir.createDir("contents/$jar.name")
+
+        classNames.each { className ->
+            writeClass(contents, className)
+        }
+
+        contents.zipTo(jar)
+    }
+
+    private void writeClass(TestFile outputDir, String className) {
+        TestFile classFile = outputDir.createFile("${className}.class")
         ClassNode classNode = new ClassNode()
         classNode.version = Opcodes.V1_6
         classNode.access = Opcodes.ACC_PUBLIC
-        classNode.name = 'org/gradle/MyClass'
+        classNode.name = className
         classNode.superName = 'java/lang/Object'
 
         ClassWriter cw = new ClassWriter(0)
         classNode.accept(cw)
 
-        classFile.withDataOutputStream {
+        classFile.withOutputStream {
             it.write(cw.toByteArray())
         }
-
-        contents.zipTo(jar)
     }
 
     private void createJarFileWithProviderConfigurationFile(TestFile jar, String serviceType, String serviceProvider) {
         TestFile contents = tmpDir.createDir("contents/$jar.name")
         contents.createFile("META-INF/services/$serviceType") << serviceProvider
         contents.zipTo(jar)
+    }
+
+    static void handleAsJarFile(TestFile jar, Closure c) {
+        def jarFile
+
+        try {
+            jarFile = new JarFile(jar)
+            c(jarFile)
+        } finally {
+            if (jarFile != null) {
+                jarFile.close()
+            }
+        }
     }
 }

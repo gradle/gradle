@@ -60,6 +60,8 @@ import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderFactory;
@@ -78,12 +80,10 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.logging.LoggingConfiguration;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.logging.ShowStacktrace;
-import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.messaging.actor.internal.DefaultActorFactory;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.profile.ProfileEventAdapter;
@@ -151,8 +151,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected IsolatedAntBuilder createIsolatedAntBuilder() {
-        return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class), get(ClassLoaderFactory.class));
+    protected IsolatedAntBuilder createIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory, ModuleRegistry moduleRegistry) {
+        return new DefaultIsolatedAntBuilder(classPathRegistry, classLoaderFactory, moduleRegistry);
     }
 
     protected ActorFactory createActorFactory() {

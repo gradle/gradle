@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.bootstrap
 import org.gradle.api.GradleException
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.launcher.daemon.logging.DaemonMessages
-import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddress
 import org.gradle.process.ExecResult
 import spock.lang.Specification
 

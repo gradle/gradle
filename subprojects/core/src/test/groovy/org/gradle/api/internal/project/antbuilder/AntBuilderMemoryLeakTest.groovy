@@ -44,7 +44,7 @@ class AntBuilderMemoryLeakTest extends Specification {
 
     def "should release cache when cleanup is called"() {
         classLoaderFactory = new DefaultClassLoaderFactory()
-        def builder = new DefaultIsolatedAntBuilder(registry, classLoaderFactory)
+        def builder = new DefaultIsolatedAntBuilder(registry, classLoaderFactory, moduleRegistry)
 
         when:
         builder.withClasspath([new File('foo')]).execute {
@@ -61,7 +61,7 @@ class AntBuilderMemoryLeakTest extends Specification {
         builder.classLoaderCache.isEmpty()
 
         cleanup:
-        builder.stop()
+        builder?.stop()
     }
 
     @Ignore("Test doesn't fail fast enough")

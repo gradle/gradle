@@ -16,14 +16,18 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -40,7 +44,13 @@ public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter
     }
 
     @Override
-    protected void visitFiles(FileCollection input, final List<FileTreeElement> fileTreeElements, final List<File> missingFiles, boolean allowReuse) {
+    VisitedTree createJoinedTree(List<VisitedTree> nonShareableTrees, Collection<File> missingFiles) {
+        return CachingTreeVisitor.createJoinedTree(-1, nonShareableTrees, missingFiles);
+    }
+
+    @Override
+    protected void visitFiles(FileCollection input, List<VisitedTree> visitedTrees, List<File> missingFiles, boolean allowReuse) {
+        final List<FileTreeElement> fileTreeElements = new ArrayList<FileTreeElement>();
         for (File file : input.getFiles()) {
             if (file.exists()) {
                 fileTreeElements.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
@@ -48,5 +58,11 @@ public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter
                 missingFiles.add(file);
             }
         }
+        visitedTrees.add(new DefaultVisitedTree(ImmutableList.<FileTreeElement>copyOf(fileTreeElements), false, -1, null));
+    }
+
+    @Override
+    public void registerSerializers(SerializerRegistry registry) {
+
     }
 }

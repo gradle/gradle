@@ -26,6 +26,7 @@ import org.gradle.api.publication.maven.internal.VersionRangeMapper;
 import java.util.*;
 
 class DefaultPomDependenciesConverter implements PomDependenciesConverter {
+    private static final List<Exclusion> EXCLUDE_ALL = initExcludeAll();
     private ExcludeRuleConverter excludeRuleConverter;
     private VersionRangeMapper versionRangeMapper;
 
@@ -155,6 +156,9 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
     }
 
     private List<Exclusion> getExclusions(ModuleDependency dependency, Set<Configuration> configurations) {
+        if (!dependency.isTransitive()) {
+            return EXCLUDE_ALL;
+        }
         List<Exclusion> mavenExclusions = new ArrayList<Exclusion>();
         Set<ExcludeRule> excludeRules = new HashSet<ExcludeRule>(dependency.getExcludeRules());
         for (Configuration configuration : configurations) {
@@ -167,6 +171,13 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
             }
         }
         return mavenExclusions;
+    }
+
+    private static List<Exclusion> initExcludeAll() {
+        Exclusion excludeAll = new Exclusion();
+        excludeAll.setGroupId("*");
+        excludeAll.setArtifactId("*");
+        return Collections.singletonList(excludeAll);
     }
 
     public ExcludeRuleConverter getExcludeRuleConverter() {

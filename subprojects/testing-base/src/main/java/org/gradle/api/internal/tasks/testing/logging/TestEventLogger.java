@@ -21,7 +21,7 @@ import org.gradle.api.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
-import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.TextUtil;
 
 /**

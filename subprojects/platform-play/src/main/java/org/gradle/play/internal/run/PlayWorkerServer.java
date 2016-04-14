@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.process.internal.WorkerProcessContext;
+import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.IOException;
 import java.io.Serializable;

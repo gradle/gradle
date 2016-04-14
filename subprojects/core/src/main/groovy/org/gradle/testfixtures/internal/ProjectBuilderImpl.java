@@ -30,13 +30,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
-import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.util.GFileUtils;
+import org.gradle.internal.logging.services.LoggingServiceRegistry;
 
 import java.io.File;
 
@@ -65,13 +65,15 @@ public class ProjectBuilderImpl {
     public Project createProject(String name, File inputProjectDir) {
         File projectDir = prepareProjectDir(inputProjectDir);
 
+        final File homeDir = new File(projectDir, "gradleHome");
+
         StartParameter startParameter = new StartParameter();
         File userHomeDir = new File(projectDir, "userHome");
         startParameter.setGradleUserHomeDir(userHomeDir);
 
         NativeServices.initialize(userHomeDir);
 
-        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(getGlobalServices(), startParameter);
+        ServiceRegistry topLevelRegistry = new TestBuildScopeServices(getGlobalServices(), startParameter, homeDir);
         GradleInternal gradle = CLASS_GENERATOR.newInstance(DefaultGradle.class, null, startParameter, topLevelRegistry.get(ServiceRegistryFactory.class));
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, new DefaultProjectDescriptorRegistry(),
@@ -106,7 +108,7 @@ public class ProjectBuilderImpl {
             // TODO deleteOnExit won't clean up non-empty directories (and it leaks memory for long-running processes).
             projectDir.deleteOnExit();
         } else {
-            projectDir = GFileUtils.canonicalise(projectDir);
+            projectDir = FileUtils.canonicalize(projectDir);
         }
         return projectDir;
     }

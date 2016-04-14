@@ -29,6 +29,14 @@ import org.gradle.api.Nullable;
 @Incubating
 public interface Launchable {
     /**
+     * Returns the identifier for the Gradle project that this model originated from.
+     *
+     * @since 2.13
+     */
+    @Incubating
+    ProjectIdentifier getProjectIdentifier();
+
+    /**
      * Returns a human-consumable display name for this launchable.
      *
      * @return Display name of this launchable.

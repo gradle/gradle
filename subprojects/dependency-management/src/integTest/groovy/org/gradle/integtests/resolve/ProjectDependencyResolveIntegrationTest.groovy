@@ -307,7 +307,7 @@ project(':b') {
 
         when:
         if (fluidDependencies) {
-            executer.withDeprecationChecksDisabled()
+            executer.expectDeprecationWarning()
         }
         succeeds ":test"
 
@@ -566,7 +566,7 @@ project('c') {
 """
 
         when:
-        executer.withDeprecationChecksDisabled()
+        executer.expectDeprecationWarning()
         succeeds("impl:check")
 
         then:

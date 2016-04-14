@@ -37,6 +37,7 @@ public class FileTreeCopyIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'root.a',
                 'root.b',
+                'accents.c',
                 'one/one.a',
                 'one/one.b',
                 'one/sub/onesub.a',
@@ -56,6 +57,7 @@ public class FileTreeCopyIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'root.a',
                 'root.b',
+                'accents.c',
                 'one/one.a',
                 'one/one.b',
                 'one/sub/onesub.a',
@@ -75,6 +77,7 @@ public class FileTreeCopyIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'root.a',
                 'root.b',
+                'accents.c',
                 'one/one.a',
                 'one/one.b',
                 'two/two.a',
@@ -92,6 +95,7 @@ public class FileTreeCopyIntegrationTest extends AbstractIntegrationTest {
         testFile('dest').assertHasDescendants(
                 'root.a',
                 'root.b',
+                'accents.c',
                 'one/one.a',
                 'one/one.b',
                 'two/two.a',

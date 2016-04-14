@@ -17,12 +17,19 @@
 package org.gradle.tooling.internal.connection;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.Transformer;
+import org.gradle.internal.composite.DefaultGradleParticipantBuild;
+import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.connection.*;
+import org.gradle.tooling.connection.GradleConnection;
+import org.gradle.tooling.connection.GradleConnectionBuilder;
 import org.gradle.tooling.internal.consumer.DefaultCompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.DistributionFactory;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
@@ -30,14 +37,24 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderInternal {
-    private final Set<GradleConnectionParticipant> participants = Sets.newLinkedHashSet();
+    private static final String WARNING_MESSAGE =
+        "Integrated composite build is an incubating feature.\n"
+        + "   - All participant builds will be executed in a single daemon process.\n"
+        + "   - Java home settings for participants will be ignored.\n"
+        + "   - Immutable JVM arguments (e.g. memory settings) for participants will be ignored.\n";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGradleConnectionBuilder.class);
+
+    private final Set<DefaultGradleConnectionParticipantBuilder> participantBuilders = Sets.newLinkedHashSet();
     private final GradleConnectionFactory gradleConnectionFactory;
     private final DistributionFactory distributionFactory;
     private File gradleUserHomeDir;
-    private Boolean embeddedCoordinator;
     private Integer daemonMaxIdleTimeValue;
     private TimeUnit daemonMaxIdleTimeUnits;
     private File daemonBaseDir;
+
+    private boolean integrated;
+    private boolean embeddedCoordinator;
     private Distribution coordinatorDistribution;
 
     public DefaultGradleConnectionBuilder(GradleConnectionFactory gradleConnectionFactory, DistributionFactory distributionFactory) {
@@ -46,25 +63,27 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     }
 
     @Override
-    public GradleConnectionBuilder useGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir;
-        return this;
-    }
-
-    @Override
-    public ParticipantBuilder newParticipant(File projectDirectory) {
-        return new DefaultGradleConnectionParticipantBuilder(projectDirectory);
+    public ParticipantBuilder addParticipant(File projectDirectory) {
+        DefaultGradleConnectionParticipantBuilder participantBuilder = new DefaultGradleConnectionParticipantBuilder(projectDirectory);
+        participantBuilders.add(participantBuilder);
+        return participantBuilder;
     }
 
     @Override
     public GradleConnection build() throws GradleConnectionException {
-        if (participants.isEmpty()) {
+        if (participantBuilders.isEmpty()) {
             throw new IllegalStateException("At least one participant must be specified before creating a connection.");
         }
         return createGradleConnection();
     }
 
     private GradleConnection createGradleConnection() {
+        Set<GradleParticipantBuild> participants = CollectionUtils.collect(participantBuilders, new Transformer<GradleParticipantBuild, DefaultGradleConnectionParticipantBuilder>() {
+            @Override
+            public GradleParticipantBuild transform(DefaultGradleConnectionParticipantBuilder participantBuilder) {
+                return participantBuilder.build();
+            }
+        });
         DefaultCompositeConnectionParameters.Builder compositeConnectionParametersBuilder = DefaultCompositeConnectionParameters.builder();
         compositeConnectionParametersBuilder.setBuilds(participants);
         compositeConnectionParametersBuilder.setGradleUserHomeDir(gradleUserHomeDir);
@@ -75,16 +94,24 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
 
         DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
 
-        Distribution distribution = coordinatorDistribution;
-        if (distribution == null) {
-            distribution = distributionFactory.getDistribution(GradleVersion.current().getVersion());
+        if (integrated) {
+            LOGGER.warn(WARNING_MESSAGE);
+            // TODO:DAZ Work out why we can't use the deprecation logger (get NoClassDefFoundError in forkingIntegTest)
+            // DeprecationLogger.incubatingFeatureUsed("Integrated composite build", WARNING_MESSAGE);
+            Distribution distribution = coordinatorDistribution;
+            if (distribution == null) {
+                distribution = distributionFactory.getDistribution(GradleVersion.current().getVersion());
+            }
+            return gradleConnectionFactory.create(distribution, connectionParameters, true);
+        } else {
+            // The distribution is effectively ignored
+            return gradleConnectionFactory.create(distributionFactory.getClasspathDistribution(), connectionParameters, false);
         }
-        return gradleConnectionFactory.create(distribution, connectionParameters, false);
     }
 
     @Override
-    public GradleConnectionBuilderInternal embeddedCoordinator(boolean embedded) {
-        this.embeddedCoordinator = embedded;
+    public GradleConnectionBuilder useGradleUserHomeDir(File gradleUserHomeDir) {
+        this.gradleUserHomeDir = gradleUserHomeDir;
         return this;
     }
 
@@ -102,8 +129,14 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     }
 
     @Override
-    public GradleConnectionBuilderInternal useClasspathDistribution() {
-        this.coordinatorDistribution = distributionFactory.getClasspathDistribution();
+    public GradleConnectionBuilderInternal integratedComposite(boolean integrated) {
+        this.integrated = integrated;
+        return this;
+    }
+
+    @Override
+    public GradleConnectionBuilderInternal embeddedCoordinator(boolean embedded) {
+        this.embeddedCoordinator = embedded;
         return this;
     }
 
@@ -114,14 +147,8 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     }
 
     @Override
-    public GradleConnectionBuilder useDistribution(URI gradleDistribution) {
-        this.coordinatorDistribution = distributionFactory.getDistribution(gradleDistribution);
-        return this;
-    }
-
-    @Override
-    public GradleConnectionBuilder useGradleVersion(String gradleVersion) {
-        this.coordinatorDistribution = distributionFactory.getDistribution(gradleVersion);
+    public GradleConnectionBuilderInternal useClasspathDistribution() {
+        this.coordinatorDistribution = distributionFactory.getClasspathDistribution();
         return this;
     }
 
@@ -165,11 +192,8 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
             return this;
         }
 
-        @Override
-        public BuildIdentity create() {
-            DefaultGradleConnectionParticipant gradleBuild = new DefaultGradleConnectionParticipant(projectDir, gradleHome, gradleDistribution, gradleVersion);
-            participants.add(gradleBuild);
-            return gradleBuild.toBuildIdentity();
+        public GradleParticipantBuild build() {
+            return new DefaultGradleParticipantBuild(projectDir, gradleHome, gradleDistribution, gradleVersion);
         }
 
         private void resetDistribution() {

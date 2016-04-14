@@ -24,11 +24,18 @@ public class ReportingBasePluginTest extends Specification {
 
     DefaultProject project = TestUtil.createRootProject();
 
-    def setup() {
-        project.pluginManager.apply(ReportingBasePlugin)
+    def "can apply plugin by id"() {
+        given:
+        project.apply plugin: 'reporting-base'
+
+        expect:
+        project.plugins.hasPlugin(ReportingBasePlugin)
     }
 
     def "adds reporting extension"() {
+        given:
+        project.pluginManager.apply(ReportingBasePlugin)
+
         expect:
         project.reporting instanceof ReportingExtension
 

@@ -31,6 +31,30 @@ import org.gradle.tooling.ResultHandler;
  *
  * <p>Operations (fetching models, executing tasks, etc) are performed across all Gradle projects in a composite.</p>
  *
+ * <pre autoTested=''>
+ * GradleConnectionBuilder builder = GradleConnector.newGradleConnection();
+ * builder.addParticipant(new File("someFolder"));
+ * GradleConnection connection = builder.build();
+ *
+ * try {
+ *    // obtain some information from the build
+ *    ModelResults<BuildInvocations> invocations = connection.models(BuildInvocations.class)
+ *      .get();
+ *
+ *    // run some tasks
+ *    BuildInvocations firstBuild = invocations.iterator().next().getModel();
+ *    TaskSelector taskToRun = firstBuild.getTaskSelectors().getAt(0);
+ *
+ *    connection.newBuild()
+ *      .forLaunchables(taskToRun)
+ *      .setStandardOutput(System.out)
+ *      .run();
+ *
+ * } finally {
+ *    connection.close();
+ * }
+ * </pre>
+ *
  * @since 2.13
  */
 @Incubating
@@ -41,10 +65,10 @@ public interface GradleConnection {
      *
      * <p>This method is simply a convenience for calling {@code models(modelType).get()}</p>
      *
-     * @param modelType
-     * @param <T>
-     * @throws GradleConnectionException
-     * @throws IllegalStateException
+     * @param modelType The model type.
+     * @param <T> The model type.
+     * @throws GradleConnectionException On failure using the connection.
+     * @throws IllegalStateException When this connection has been closed or is closing.
      */
     <T> ModelResults<T> getModels(Class<T> modelType) throws GradleConnectionException, IllegalStateException;
 
@@ -60,10 +84,10 @@ public interface GradleConnection {
      *
      * <p>This method is simply a convenience for calling {@code models(modelType).get(handler)}</p>
      *
-     * @param modelType
-     * @param handler
-     * @param <T>
-     * @throws IllegalStateException
+     * @param modelType The model type.
+     * @param handler The handler that will be notified of results.
+     * @param <T> The model type.
+     * @throws IllegalStateException When this connection has been closed or is closing.
      */
     <T> void getModels(Class<T> modelType, ResultHandler<? super ModelResults<T>> handler) throws IllegalStateException;
 
@@ -90,14 +114,17 @@ public interface GradleConnection {
      *
      * <p>A build may also expose additional custom tooling models. You can use this method to query these models.
      *
-     * @param modelType
-     * @param <T>
+     * @param modelType The model type.
+     * @param <T> The model type.
      */
     <T> ModelBuilder<ModelResults<T>> models(Class<T> modelType);
 
-
-    BuildLauncher newBuild(BuildIdentity buildIdentity);
-
+    /**
+     * Creates a launcher which can be used to execute a build.
+     *
+     * @return The launcher.
+     */
+    BuildLauncher newBuild();
 
     /**
      * Closes this connection. Blocks until any pending operations are complete. Once this method has returned, no more notifications will be delivered by any threads.

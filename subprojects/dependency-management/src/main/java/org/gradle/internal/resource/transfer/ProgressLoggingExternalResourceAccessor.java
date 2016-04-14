@@ -18,7 +18,7 @@ package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.Nullable;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;

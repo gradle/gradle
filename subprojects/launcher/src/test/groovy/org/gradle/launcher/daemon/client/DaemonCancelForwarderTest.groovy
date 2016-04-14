@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.client
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.protocol.Cancel
-import org.gradle.messaging.dispatch.Dispatch
+import org.gradle.internal.dispatch.Dispatch
 import org.gradle.util.ConcurrentSpecification
 
 import java.util.concurrent.LinkedBlockingQueue

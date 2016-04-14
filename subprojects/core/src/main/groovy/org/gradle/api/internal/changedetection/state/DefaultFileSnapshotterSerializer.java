@@ -19,53 +19,67 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.HashValueSerializer;
 import org.gradle.internal.serialize.Serializer;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 class DefaultFileSnapshotterSerializer implements Serializer<FileCollectionSnapshotImpl> {
-    private final HashValueSerializer hashValueSerializer = new HashValueSerializer();
     private final StringInterner stringInterner;
+    private final TreeSnapshotRepository treeSnapshotRepository;
+    private final IncrementalFileSnapshotSerializer incrementalFileSnapshotSerializer = new IncrementalFileSnapshotSerializer();
 
-    public DefaultFileSnapshotterSerializer(StringInterner stringInterner) {
+    public DefaultFileSnapshotterSerializer(StringInterner stringInterner, TreeSnapshotRepository treeSnapshotRepository) {
         this.stringInterner = stringInterner;
+        this.treeSnapshotRepository = treeSnapshotRepository;
     }
 
     public FileCollectionSnapshotImpl read(Decoder decoder) throws Exception {
-        Map<String, IncrementalFileSnapshot> snapshots = new HashMap<String, IncrementalFileSnapshot>();
-        FileCollectionSnapshotImpl snapshot = new FileCollectionSnapshotImpl(snapshots);
-        int snapshotsCount = decoder.readSmallInt();
-        for (int i = 0; i < snapshotsCount; i++) {
-            String key = stringInterner.intern(decoder.readString());
-            byte fileSnapshotKind = decoder.readByte();
-            if (fileSnapshotKind == 1) {
-                snapshots.put(key, DirSnapshot.getInstance());
-            } else if (fileSnapshotKind == 2) {
-                snapshots.put(key, MissingFileSnapshot.getInstance());
-            } else if (fileSnapshotKind == 3) {
-                snapshots.put(key, new FileHashSnapshot(hashValueSerializer.read(decoder)));
-            } else {
-                throw new RuntimeException("Unable to read serialized file collection snapshot. Unrecognized value found in the data stream.");
-            }
+        List<TreeSnapshot> treeSnapshots = new ArrayList<TreeSnapshot>();
+        int sharedTreeCount = decoder.readSmallInt();
+        for (int i = 0; i < sharedTreeCount; i++) {
+            long treeId = decoder.readLong();
+            treeSnapshots.add(treeSnapshotRepository.getTreeSnapshot(treeId));
         }
-        return snapshot;
+        TreeSnapshot nonShared = TreeSnapshotSerializer.readStoredTreeSnapshot(-1, decoder, incrementalFileSnapshotSerializer, stringInterner);
+        if (!nonShared.getFileSnapshots().isEmpty()) {
+            treeSnapshots.add(nonShared);
+        }
+        return new FileCollectionSnapshotImpl(treeSnapshots);
     }
 
     public void write(Encoder encoder, FileCollectionSnapshotImpl value) throws Exception {
-        encoder.writeSmallInt(value.snapshots.size());
-        for (String key : value.snapshots.keySet()) {
-            encoder.writeString(key);
-            IncrementalFileSnapshot incrementalFileSnapshot = value.snapshots.get(key);
-            if (incrementalFileSnapshot instanceof DirSnapshot) {
-                encoder.writeByte((byte) 1);
-            } else if (incrementalFileSnapshot instanceof MissingFileSnapshot) {
-                encoder.writeByte((byte) 2);
-            } else if (incrementalFileSnapshot instanceof FileHashSnapshot) {
-                encoder.writeByte((byte) 3);
-                hashValueSerializer.write(encoder, ((FileHashSnapshot) incrementalFileSnapshot).hash);
+        final List<TreeSnapshot> treeSnapshots = value.treeSnapshots;
+        if (treeSnapshots != null) {
+            TreeSnapshot nonShared = null;
+            for (TreeSnapshot snapshot : treeSnapshots) {
+                if (!snapshot.isShareable()) {
+                    if (nonShared != null) {
+                        throw new RuntimeException("Multiple non-shared snapshots aren't supported.");
+                    }
+                    nonShared = snapshot;
+                }
+            }
+            encoder.writeSmallInt(treeSnapshots.size() - ((nonShared != null) ? 1 : 0));
+            for (TreeSnapshot snapshot : treeSnapshots) {
+                if (snapshot.isShareable()) {
+                    encoder.writeLong(treeSnapshotRepository.maybeStoreTreeSnapshot(snapshot));
+                }
+            }
+            if (nonShared != null) {
+                TreeSnapshotSerializer.writeTreeSnapshot(nonShared, encoder, incrementalFileSnapshotSerializer);
+            } else {
+                encoder.writeSmallInt(0);
+            }
+        } else {
+            encoder.writeSmallInt(0);
+            encoder.writeSmallInt(value.snapshots.size());
+            for (Map.Entry<String, IncrementalFileSnapshot> entry : value.snapshots.entrySet()) {
+                encoder.writeString(entry.getKey());
+                incrementalFileSnapshotSerializer.write(encoder, entry.getValue());
             }
         }
     }
+
 }

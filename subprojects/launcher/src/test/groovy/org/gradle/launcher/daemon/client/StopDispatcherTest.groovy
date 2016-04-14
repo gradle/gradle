@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.launcher.daemon.protocol.Stop
-import org.gradle.messaging.remote.internal.Connection
+import org.gradle.internal.remote.internal.Connection
 import spock.lang.Specification
 
 public class StopDispatcherTest extends Specification {

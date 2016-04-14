@@ -1,10 +1,62 @@
-Daemon uses fewer resources on developer machine.
+# Daemon uses fewer resources on developer machine.
 
-## Implementation plan
+## Feature: Expire daemons in a smarter way
 
-- Expire daemons in a smarter way
-- Reduce wasted heap in the daemon  
-- Reduce default heap sizes for the daemon
+### Story: Daemon quits when daemon registry not available
+
+#### Implementation
+
+- Introduce concept `DaemonExpirationStrategy` for Daemons to re-consider whether it should still be running.
+- let idle daemon sleep for 60 seconds and then reevaluate its registered `DaemonExpirationStrategy`s.
+- register `DaemonExpirationStrategy` to exit daemon if daemon registry can not be found.
+
+##### Test Coverage
+
+- all daemons stop when their registry is deleted.
+- starting new build recreates registry.
+
+### Story: Expire least recently daemons exists if accumulated total heap size hits threshold
+
+#### Implementation
+
+- Define total max heap memory used by daemons (can be referenced by internal system property ('org.gradle.daemon.expiration.hint.totalheapsize', defaulting to __4096m__).
+- register `DaemonExpirationStrategy` with strategy:
+    - if more than max defined heap size is used and I'm the least recently used, exit daemon.
+
+##### Test Coverage
+
+- starting daemon that causes the total heap size to exceed does stop least recently used daemon
+- exceeding total heap size is possible for parallel running (`busy`) daemons.
+- 'org.gradle.daemon.expiration.hint.totalheapsize' systemproperty is respected.
+
+### Story: Expire least recently daemons exists if accumulated total heap size hits threshold
+
+### Story: Apply expiration metrics across daemons from all versions >= 2.14)
+
+#### Implementation
+
+- TBD.
+- Note from planning meeting: Use shared store.
+
+### Story: Expire daemons lest recently used to run a particular build
+
+If the daemon was used for a build and another daemon has ran the same build more recently, exit the daemon.
+
+#### Implementation
+
+TBD.
+
+### Story: Expire daemons from least recently used builds based on accumulated total percentage of available heap size
+
+##### Implementation
+
+##### Open questions
+
+- How to gather these Statistics of current machine? (Add logic to native platform)
+
+## Feature: Reduce wasted heap in the daemon
+
+## Feature: Reduce default heap sizes for the daemon
 
 ## Candidate improvements
 

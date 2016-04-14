@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.resolve.ResolveTestFixture
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.IvyHttpModule

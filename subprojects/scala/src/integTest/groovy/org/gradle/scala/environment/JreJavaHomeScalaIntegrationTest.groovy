@@ -60,15 +60,16 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                         compile 'org.scala-lang:scala-library:2.11.1'
                     }
 
-                    DeprecationLogger.whileDisabled {
-                        compileScala {
-                            scalaCompileOptions.useAnt = ${useAnt}
-                            scalaCompileOptions.fork = ${forkMode}
-                        }
+                    compileScala {
+                        scalaCompileOptions.useAnt = ${useAnt}
+                        scalaCompileOptions.fork = ${forkMode}
                     }
                     """
         when:
-        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileScala").run().output
+        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
+        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileScala").run()
+
         then:
         file("build/classes/main/org/test/JavaClazz.class").exists()
         file("build/classes/main/org/test/ScalaClazz.class").exists()

@@ -20,13 +20,34 @@ import org.gradle.api.Project;
 
 public class IdeProjectDependency extends IdeDependency {
     private final Project project;
+    private final String projectPath;
 
     public IdeProjectDependency(String declaredConfiguration, Project project) {
         super(declaredConfiguration);
         this.project = project;
+        this.projectPath = project.getPath();
+    }
+
+    public IdeProjectDependency(String declaredConfiguration, String projectPath) {
+        super(declaredConfiguration);
+        this.project = null;
+        this.projectPath = projectPath;
     }
 
     public Project getProject() {
         return project;
+    }
+
+    public String getProjectPath() {
+        return projectPath;
+    }
+
+    public String getModuleName() {
+        // TODO:DAZ This is just a hack to allow 'idea' task to function reasonably in a composite
+        if (projectPath.endsWith("::")) {
+            return projectPath.substring(0, projectPath.length() - 2);
+        }
+        int index = projectPath.lastIndexOf(':');
+        return projectPath.substring(index + 1);
     }
 }

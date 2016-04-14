@@ -30,7 +30,10 @@ import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultHasher;
-import org.gradle.api.internal.initialization.loadercache.*;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter;
+import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
+import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
 import org.gradle.api.tasks.util.internal.PatternSets;
@@ -56,6 +59,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleFatJar;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -63,9 +67,9 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.internal.MessagingServices;
-import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
+import org.gradle.internal.remote.MessagingServer;
+import org.gradle.internal.remote.services.MessagingServices;
+import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractor;
 import org.gradle.model.internal.inspect.MethodModelRuleExtractors;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
@@ -76,10 +80,7 @@ import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.process.internal.DefaultExecActionFactory;
-import org.gradle.util.GradleVersion;
 
-import java.net.URL;
-import java.security.CodeSource;
 import java.util.List;
 
 /**
@@ -155,12 +156,8 @@ public class GlobalScopeServices {
     }
 
     ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
-        CodeSource codeSource = getClass().getProtectionDomain().getCodeSource();
-        if (codeSource != null) {
-            URL location = codeSource.getLocation();
-            if (location.getProtocol().equals("file") && location.getPath().endsWith("gradle-api-" + GradleVersion.current().getVersion() + ".jar")) {
-                return new FlatClassLoaderRegistry(getClass().getClassLoader());
-            }
+        if (GradleFatJar.containsMarkerFile(getClass())) {
+            return new FlatClassLoaderRegistry(getClass().getClassLoader());
         }
 
         return new DefaultClassLoaderRegistry(classPathRegistry, classLoaderFactory);

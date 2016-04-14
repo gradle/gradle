@@ -35,7 +35,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.logging.ShowStacktrace;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.util.GUtil;
 
 import java.io.File;

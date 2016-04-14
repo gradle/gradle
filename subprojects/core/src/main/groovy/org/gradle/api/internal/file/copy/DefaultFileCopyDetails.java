@@ -30,7 +30,7 @@ import java.util.Map;
 public class DefaultFileCopyDetails extends AbstractFileTreeElement implements FileVisitDetails, FileCopyDetailsInternal {
     private final FileVisitDetails fileDetails;
     private final CopySpecResolver specResolver;
-    private final FilterChain filterChain = new FilterChain();
+    private final FilterChain filterChain;
     private RelativePath relativePath;
     private boolean excluded;
     private Integer mode;
@@ -38,6 +38,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
 
     public DefaultFileCopyDetails(FileVisitDetails fileDetails, CopySpecResolver specResolver, Chmod chmod) {
         super(chmod);
+        this.filterChain = new FilterChain(specResolver.getFilteringCharset());
         this.fileDetails = fileDetails;
         this.specResolver = specResolver;
         this.duplicatesStrategy = specResolver.getDuplicatesStrategy();

@@ -51,7 +51,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
-import org.gradle.logging.LoggingManagerInternal
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
@@ -120,7 +120,7 @@ class DefaultProjectTest {
     void setUp() {
         rootDir = new File("/path/root").absoluteFile
 
-        testAntBuilder = new DefaultAntBuilder()
+        testAntBuilder = new DefaultAntBuilder(null, null)
 
         context.checking {
             allowing(antBuilderFactoryMock).create(); will(returnValue(testAntBuilder))

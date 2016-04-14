@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.maven.PomFilterContainer
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer
-import org.gradle.logging.LoggingManagerInternal
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.util.JUnit4GroovyMockery
 import org.junit.Test
 import org.junit.runner.RunWith

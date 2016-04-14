@@ -22,11 +22,11 @@ import edu.umd.cs.findbugs.IFindBugsEngine;
 import edu.umd.cs.findbugs.TextUICommandLine;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.List;
 
-public class FindBugsExecuter implements Serializable {
-    FindBugsResult runFindbugs(FindBugsSpec spec) throws IOException, InterruptedException {
+public class FindBugsExecuter implements FindBugsWorker {
+    @Override
+    public FindBugsResult runFindbugs(FindBugsSpec spec) throws IOException, InterruptedException {
         final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
             final List<String> args = spec.getArguments();

@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.copy;
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.ChainingTransformer;
@@ -33,6 +34,7 @@ import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.io.FilterReader;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -51,6 +53,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     private Boolean caseSensitive;
     private Boolean includeEmptyDirs;
     private DuplicatesStrategy duplicatesStrategy;
+    private String filteringCharset;
 
 
     public DefaultCopySpec(FileResolver resolver, Instantiator instantiator) {
@@ -167,7 +170,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     public CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action) {
         Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
         return eachFile(
-                new MatchingCopyAction(matcher, action));
+            new MatchingCopyAction(matcher, action));
     }
 
     public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
@@ -342,6 +345,20 @@ public class DefaultCopySpec implements CopySpecInternal {
         return this.new DefaultCopySpecResolver(null);
     }
 
+    public String getFilteringCharset() {
+        return buildRootResolver().getFilteringCharset();
+    }
+
+    public void setFilteringCharset(String charset) {
+        if (charset == null) {
+            throw new InvalidUserDataException("filteringCharset must not be null");
+        }
+        if (!Charset.isSupported(charset)) {
+            throw new InvalidUserDataException(String.format("filteringCharset %s is not supported by your JVM", charset));
+        }
+        this.filteringCharset = charset;
+    }
+
     public class DefaultCopySpecResolver implements CopySpecResolver {
 
         private CopySpecResolver parentResolver;
@@ -500,6 +517,18 @@ public class DefaultCopySpec implements CopySpecInternal {
                 child.buildResolverRelativeToParent(this).walk(action);
             }
         }
+
+        public String getFilteringCharset() {
+            if (filteringCharset != null) {
+                return filteringCharset;
+            }
+            if (parentResolver != null) {
+                return parentResolver.getFilteringCharset();
+            }
+            return Charset.defaultCharset().name();
+        }
+
+
     }
 
 }

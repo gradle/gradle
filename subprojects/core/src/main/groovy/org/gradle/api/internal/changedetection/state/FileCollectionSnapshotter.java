@@ -22,7 +22,7 @@ public interface FileCollectionSnapshotter {
     /**
      * Registers the serializer(s) that can be used to serialize the {@link FileCollectionSnapshot} implementations produced by this snapshotter.
      */
-    void registerSerializers(SerializerRegistry<FileCollectionSnapshot> registry);
+    void registerSerializers(SerializerRegistry registry);
 
     /**
      * Creates an empty snapshot, which changes can be later merged into.
@@ -32,11 +32,19 @@ public interface FileCollectionSnapshotter {
     FileCollectionSnapshot emptySnapshot();
 
     /**
-     * Creates a snapshot of the contents of the given collection
+     * Creates an actual snapshot based on the precheck information
+     *
+     * @param preCheck The precheck information returned from preCheck method
+     * @return The snapshot.
+     */
+    FileCollectionSnapshot snapshot(FileCollectionSnapshot.PreCheck preCheck);
+
+    /**
+     * Creates the 1. phase of a snapshot of the contents of the given collection
      *
      * @param files The files to snapshot
      * @param allowReuse When true, can use cached snapshot trees
-     * @return The snapshot.
+     * @return The snapshot precheck.
      */
-    FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse);
+    FileCollectionSnapshot.PreCheck preCheck(FileCollection files, boolean allowReuse);
 }

@@ -22,8 +22,8 @@ import java.util.regex.Matcher
 
 class ModelReportParser {
 
-    public static final int HEADING_LINE_NUMBER = 3
-    public static final int FIRST_NODE_LINE_NUMBER = 6
+    public static final int HEADING_LINE_NUMBER = 1
+    public static final int FIRST_NODE_LINE_NUMBER = 4
     public static final String NODE_LEFT_PADDING = '    '
     public static final String NODE_SYMBOL = '+'
     public static final String END_OF_REPORT_MARKER = 'BUILD SUCCESSFUL'
@@ -32,6 +32,11 @@ class ModelReportParser {
     static ParsedModelReport parse(String text) {
         validate(text)
         def reportLines = text.readLines()
+        int firstLine = reportLines.findIndexOf { it.matches("-+") }
+        if (firstLine < 0) {
+            throw new AssertionError("No header found in report output")
+        }
+        reportLines = reportLines[firstLine..-1]
         def nodeLines = reportLines[FIRST_NODE_LINE_NUMBER..-1]
 
         return new ParsedModelReport(
@@ -45,7 +50,7 @@ class ModelReportParser {
     private static void validate(String text) {
         assert text: 'Report text must not be blank'
         def reportLines = text.readLines()
-        assert reportLines.size() > FIRST_NODE_LINE_NUMBER: "Should have at least ${FIRST_NODE_LINE_NUMBER + 1} lines"
+        assert reportLines.size() >= 5: "Should have at least 5 lines"
         assert text.contains(END_OF_REPORT_MARKER): "Expected to find an end of report marker '${END_OF_REPORT_MARKER}'"
     }
 

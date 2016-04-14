@@ -608,7 +608,7 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
 :ideaWorkspace
 :idea
 """
-        result.assertOutputEquals(expected, true, false)
+        result.assertOutputContains(expected)
     }
 
     @Test

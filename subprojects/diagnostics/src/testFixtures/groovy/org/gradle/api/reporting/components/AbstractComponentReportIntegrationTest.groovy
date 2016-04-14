@@ -31,7 +31,8 @@ abstract class AbstractComponentReportIntegrationTest extends AbstractIntegratio
         settingsFile << "rootProject.name = 'test'"
     }
 
-    boolean outputMatches(String actualOutput, String expectedOutput) {
+    boolean outputMatches(String expectedOutput) {
+        def actualOutput = result.normalizedOutput
         String cleaned = actualOutput.substring(0, actualOutput.lastIndexOf("BUILD SUCCESSFUL"))
         cleaned = cleaned.replaceAll(/Download .*\n/, "")
         assert cleaned == expected(expectedOutput)

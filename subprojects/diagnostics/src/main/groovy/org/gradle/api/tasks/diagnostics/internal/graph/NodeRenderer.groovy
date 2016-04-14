@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.graph
 
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency
-import org.gradle.logging.StyledTextOutput
+import org.gradle.internal.logging.text.StyledTextOutput
 
 interface NodeRenderer {
     void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered);

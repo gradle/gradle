@@ -156,8 +156,7 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
         file('build.gradle') << "println 'javaHome=' + org.gradle.internal.jvm.Jvm.current().javaHome.absolutePath"
 
         when:
-        // Need the forking executer for this to work. Embedded executer will not fork a new process if jvm doesn't match.
-        def out = executer.requireGradleHome().useDefaultBuildJvmArgs().run().output
+        def out = executer.useDefaultBuildJvmArgs().run().output
 
         then:
         out.contains("javaHome=" + alternateJavaHome.canonicalPath)

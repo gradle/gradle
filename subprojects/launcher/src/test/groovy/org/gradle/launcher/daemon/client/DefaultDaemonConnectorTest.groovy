@@ -21,11 +21,11 @@ import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
-import org.gradle.messaging.remote.Address
-import org.gradle.messaging.remote.internal.ConnectCompletion
-import org.gradle.messaging.remote.internal.ConnectException
-import org.gradle.messaging.remote.internal.OutgoingConnector
-import org.gradle.messaging.remote.internal.RemoteConnection
+import org.gradle.internal.remote.Address
+import org.gradle.internal.remote.internal.ConnectCompletion
+import org.gradle.internal.remote.internal.ConnectException
+import org.gradle.internal.remote.internal.OutgoingConnector
+import org.gradle.internal.remote.internal.RemoteConnection
 import spock.lang.Specification
 
 class DefaultDaemonConnectorTest extends Specification {
@@ -104,7 +104,7 @@ class DefaultDaemonConnectorTest extends Specification {
         given:
         startIdleDaemon()
         startIdleDaemon()
-        
+
         expect:
         def connection = connector.maybeConnect({it.pid < 12} as ExplainingSpec)
         connection && connection.connection.num < 12

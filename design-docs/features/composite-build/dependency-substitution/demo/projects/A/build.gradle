@@ -1,14 +1,19 @@
 apply plugin: 'java'
 apply plugin: 'maven'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
 
 group = 'org'
 version = '1.0'
 
 dependencies {
-    compile 'org:y:1.0'
+    compile 'log4j:log4j:1.2.17'
+    compile 'org:b1:1.0'
+    compile 'org:b2:1.0'
 }
 
 repositories {
+    mavenCentral()
     maven {
         url("file://" + file("../repo"))
     }

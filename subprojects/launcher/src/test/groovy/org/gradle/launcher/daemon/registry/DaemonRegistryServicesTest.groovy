@@ -22,7 +22,7 @@ import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
-import org.gradle.messaging.remote.internal.inet.SocketInetAddress
+import org.gradle.internal.remote.internal.inet.SocketInetAddress
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -43,9 +43,9 @@ class DaemonRegistryServicesTest extends Specification {
         registry("a").get(DaemonRegistry).is(registry("a").get(DaemonRegistry))
         !registry("a").get(DaemonRegistry).is(registry("b").get(DaemonRegistry))
     }
-    
+
     @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
-    
+
     def "the registry can be concurrently written to"() {
         when:
         def registry = registry("someDir").get(DaemonRegistry)

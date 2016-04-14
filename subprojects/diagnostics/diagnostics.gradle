@@ -29,3 +29,4 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ':dependencyManagement')
 useTestFixtures(project: ':platformNative', sourceSet: 'testFixtures')
+useTestFixtures(project: ":logging")

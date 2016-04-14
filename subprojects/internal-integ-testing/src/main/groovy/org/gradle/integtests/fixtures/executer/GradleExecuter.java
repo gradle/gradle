@@ -256,9 +256,9 @@ public interface GradleExecuter {
     TestDirectoryProvider getTestDirectoryProvider();
 
     /**
-     * Disables asserting that the execution did not trigger any deprecation warnings.
+     * Expects exactly one deprecation warning in the build output. Call multiple times to expect multiple warnings.
      */
-    GradleExecuter withDeprecationChecksDisabled();
+    GradleExecuter expectDeprecationWarning();
 
     /**
      * Disables asserting that class loaders were not eagerly created, potentially leading to performance problems.
@@ -320,8 +320,6 @@ public interface GradleExecuter {
      * @return The passed in executer
      */
     GradleExecuter copyTo(GradleExecuter executer);
-
-    GradleExecuter withDaemonStartingMessageEnabled();
 
     /**
      * Where possible, starts the Gradle build process in suspended debug mode.

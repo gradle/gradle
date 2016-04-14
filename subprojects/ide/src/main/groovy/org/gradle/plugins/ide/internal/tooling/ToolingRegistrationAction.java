@@ -30,7 +30,7 @@ public class ToolingRegistrationAction implements ProjectConfigureAction {
 
         GradleProjectBuilder gradleProjectBuilder  = new GradleProjectBuilder();
         IdeaModelBuilder ideaModelBuilder = new IdeaModelBuilder(gradleProjectBuilder);
-        modelBuilderRegistry.register(new EclipseModelBuilder(gradleProjectBuilder));
+        modelBuilderRegistry.register(new EclipseModelBuilder(gradleProjectBuilder, project.getServices()));
         modelBuilderRegistry.register(ideaModelBuilder);
         modelBuilderRegistry.register(gradleProjectBuilder);
         modelBuilderRegistry.register(new GradleBuildBuilder());

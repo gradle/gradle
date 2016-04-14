@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 public interface TestFramework {
 

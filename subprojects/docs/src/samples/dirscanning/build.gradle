@@ -1,0 +1,25 @@
+gradle.advice.DirectoryScanningInterceptor.install()
+gradle.buildFinished {
+   def countDirectoryScans = Gradle.class.getClassLoader().loadClass("gradle.advice.CountDirectoryScans")
+   // serialize counts to file
+   file('countDirectoryScans.ser').withOutputStream {
+      new ObjectOutputStream(it).writeObject(countDirectoryScans.COUNTS)
+   }
+   if (countDirectoryScans.TRACK_LOCATIONS) {
+       // serialize locations to file
+       file('directoryScanLocations.ser').withOutputStream {
+          new ObjectOutputStream(it).writeObject(countDirectoryScans.LOCATIONS)
+       }
+   }
+   countDirectoryScans.reset()
+   
+   def countCacheUsage = Gradle.class.getClassLoader().loadClass("gradle.advice.CountCacheStats")
+   file('cacheHits.ser').withOutputStream {
+      new ObjectOutputStream(it).writeObject(countCacheUsage.HITS)
+   }
+   file('cacheMisses.ser').withOutputStream {
+      new ObjectOutputStream(it).writeObject(countCacheUsage.MISSES)
+   }
+   countCacheUsage.reset()
+}
+Gradle.class.getClassLoader().loadClass("gradle.advice.CountDirectoryScans").TRACK_LOCATIONS = project.hasProperty('trackLocations')

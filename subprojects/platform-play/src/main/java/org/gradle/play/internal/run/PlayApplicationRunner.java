@@ -17,18 +17,18 @@
 package org.gradle.play.internal.run;
 
 import org.gradle.api.GradleException;
-import org.gradle.internal.Factory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.WorkerProcess;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcess;
+import org.gradle.process.internal.worker.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
 
 public class PlayApplicationRunner {
-    private final Factory<WorkerProcessBuilder> workerFactory;
+    private final WorkerProcessFactory workerFactory;
     private final VersionedPlayRunAdapter adapter;
 
-    public PlayApplicationRunner(Factory<WorkerProcessBuilder> workerFactory, VersionedPlayRunAdapter adapter) {
+    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter) {
         this.workerFactory = workerFactory;
         this.adapter = adapter;
     }
@@ -49,8 +49,8 @@ public class PlayApplicationRunner {
         }
     }
 
-    private static WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, PlayRunSpec spec, VersionedPlayRunAdapter adapter) {
-        WorkerProcessBuilder builder = workerFactory.create();
+    private static WorkerProcess createWorkerProcess(File workingDir, WorkerProcessFactory workerFactory, PlayRunSpec spec, VersionedPlayRunAdapter adapter) {
+        WorkerProcessBuilder builder = workerFactory.create(new PlayWorkerServer(spec, adapter));
         builder.setBaseName("Gradle Play Worker");
         builder.sharedPackages("org.gradle.play.internal.run");
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
@@ -58,6 +58,6 @@ public class PlayApplicationRunner {
         javaCommand.setMinHeapSize(spec.getForkOptions().getMemoryInitialSize());
         javaCommand.setMaxHeapSize(spec.getForkOptions().getMemoryMaximumSize());
         javaCommand.setJvmArgs(spec.getForkOptions().getJvmArgs());
-        return builder.worker(new PlayWorkerServer(spec, adapter)).build();
+        return builder.build();
     }
 }

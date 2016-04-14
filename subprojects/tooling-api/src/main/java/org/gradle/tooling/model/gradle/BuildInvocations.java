@@ -17,10 +17,8 @@
 package org.gradle.tooling.model.gradle;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.Model;
-import org.gradle.tooling.model.Task;
-import org.gradle.tooling.model.TaskSelector;
+import org.gradle.tooling.model.ProjectIdentifier;
+import org.gradle.tooling.model.*;
 
 /**
  * A model providing access to {@link org.gradle.tooling.model.Launchable} instances that can be used
@@ -33,6 +31,15 @@ import org.gradle.tooling.model.TaskSelector;
  */
 @Incubating
 public interface BuildInvocations extends Model {
+
+    /**
+     * Returns the identifier for the Gradle project that these invocations originate from.
+     *
+     * @since 2.13
+     */
+    @Incubating
+    ProjectIdentifier getProjectIdentifier();
+
     /**
      * Returns tasks selectors that can be used to execute a build.
      *

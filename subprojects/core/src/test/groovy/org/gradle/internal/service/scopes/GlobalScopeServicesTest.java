@@ -43,12 +43,12 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.logging.internal.DefaultLoggingManagerFactory;
-import org.gradle.logging.internal.DefaultProgressLoggerFactory;
-import org.gradle.messaging.remote.MessagingServer;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.services.LoggingServiceRegistry;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.logging.services.DefaultLoggingManagerFactory;
+import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
+import org.gradle.internal.remote.MessagingServer;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.junit.Test;
 

@@ -101,6 +101,10 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
         return allDependencies;
     }
 
+    public List<ExcludeRule> getExcludeRules() {
+        return allExcludeRules;
+    }
+
     @Override
     public Set<String> getConfigurationNames() {
         return allConfigurations.keySet();
