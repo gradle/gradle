@@ -54,6 +54,23 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
         return new CompositePluginResolver(resolvers);
     }
 
+    /**
+     * Returns the default PluginResolvers used by Gradle.
+     * <p>
+     * The plugins will be searched in a chain from the first to the last until a plugin is found.
+     * So, order matters.
+     * <p>
+     * <ol>
+     *     <li>{@link NoopPluginResolver} - Only used in tests.</li>
+     *     <li>{@link CorePluginResolver} - distributed with Gradle</li>
+     *     <li>{@link InjectedClasspathPluginResolver} - from a TestKit test's ClassPath</li>
+     *     <li>{@link CustomRepositoryPluginResolver} - from custom Maven/Ivy repositories</li>
+     *     <li>{@link PluginResolutionServiceResolver} - from Gradle Plugin Portal</li>
+     * </ol>
+     * <p>
+     * This order is optimized for both performance and to allow resolvers earlier in the order
+     * to mask plugins which would have been found later in the order.
+     */
     private void addDefaultResolvers(List<PluginResolver> resolvers) {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
@@ -62,8 +79,6 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
             resolvers.add(injectedClasspathPluginResolver);
         }
 
-        // Order Matters. We want to look in custom plugin repositories before
-        // the Gradle Plugin Portal.
         resolvers.add(customRepositoryPluginResolver);
         resolvers.add(pluginResolutionServiceResolver);
     }

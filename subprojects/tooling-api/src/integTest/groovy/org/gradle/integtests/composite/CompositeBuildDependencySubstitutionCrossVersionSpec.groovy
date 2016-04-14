@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.composite
-
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
@@ -24,7 +23,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.BuildException
-
 /**
  * Tests for dependency substitution within a composite build.
  * Note that this test should be migrated to use the command-line entry point for composite build, when this is developed.
@@ -398,7 +396,21 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
             dependencies {
                 compile "org.test:b1:1.0"
             }
+
+            task checkFailure << {
+                def deps = configurations.compile.incoming.resolutionResult.allDependencies as List
+                assert deps.size() == 1
+                assert deps[0].attempted.group == 'org.test'
+                assert deps[0].attempted.module == 'b1'
+                assert deps[0].attempted.version == '1.0'
+                assert deps[0].attemptedReason.description == 'requested'
+                assert deps[0].failure.message.contains("Module version 'org.test:b1:1.0' is not unique in composite")
+                assert deps[0].requested.version == '1.0'
+            }
 """
+
+        expect:
+        execute(buildA, ":checkFailure")
 
         when:
         checkDependencies()
@@ -478,10 +490,14 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
     }
 
     private void checkDependencies() {
+        execute(buildA, ":checkDeps")
+    }
+
+    private void execute(File build, String... tasks) {
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(System.out)
-            buildLauncher.forTasks(buildA, ":checkDeps")
+            buildLauncher.forTasks(build, tasks)
             buildLauncher.run()
         }
     }

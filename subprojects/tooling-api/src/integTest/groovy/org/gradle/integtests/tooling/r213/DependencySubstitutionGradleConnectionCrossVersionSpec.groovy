@@ -15,52 +15,91 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.junit.Assume
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
 
 /**
  * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
  */
-@TargetGradleVersion(">=1.4") // Dependencies task fails for missing dependencies with older Gradle versions
+@TargetGradleVersion(">=1.4")
+// Dependencies task fails for missing dependencies with older Gradle versions
 class DependencySubstitutionGradleConnectionCrossVersionSpec extends CompositeToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
+    def buildA
+    def buildB
+    def builds = []
+    def mavenRepo
 
-    def "dependencies report shows external dependencies substituted with project dependencies"() {
-        given:
-        def buildA = singleProjectBuild("buildA") {
-                    buildFile << """
+    def setup() {
+        mavenRepo = new MavenFileRepository(file("maven-repo"))
+        mavenRepo.module("org.test", "buildB", "1.0").publish()
+
+        buildA = singleProjectBuild("buildA") {
+            buildFile << """
         configurations { compile }
         dependencies {
             compile "org.test:buildB:1.0"
         }
+        repositories {
+            maven { url '${mavenRepo.uri}' }
+        }
 """
-}
-        def buildB = singleProjectBuild("buildB") {
-                    buildFile << """
+        }
+        buildB = singleProjectBuild("buildB") {
+            buildFile << """
         apply plugin: 'base'
 """
-}
+        }
+        builds << buildA << buildB
+    }
 
-        def expectedOutput = "org.test:buildB:1.0 FAILED"
+    def "dependencies report shows external dependencies substituted with project dependencies"() {
+        given:
+        def expectedOutput = "org.test:buildB:1.0"
         if (supportsIntegratedComposites()) {
             expectedOutput = "org.test:buildB:1.0 -> project buildB::"
         }
 
         when:
-        withCompositeConnection([buildA, buildB]) { connection ->
-            def buildLauncher = connection.newBuild()
-            buildLauncher.setStandardOutput(stdOut)
-            buildLauncher.forTasks(buildA, "dependencies")
-            buildLauncher.run()
-        }
+        dependencies()
 
         then:
         output.contains """
 compile
 \\--- $expectedOutput
 """
+    }
+
+    def "dependencies report displays failure for dependency that cannot be resolved in composite"() {
+        Assume.assumeTrue(supportsIntegratedComposites())
+
+        given:
+        // Add a project that makes 'buildB' ambiguous in the composite
+        def buildC = multiProjectBuild('buildC', ['buildB'])
+        builds << buildC
+
+        when:
+        dependencies()
+
+        then:
+        output.contains """
+compile
+\\--- org.test:buildB:1.0 FAILED
+"""
+    }
+
+    private Object dependencies() {
+        withCompositeConnection(builds) { connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.setStandardOutput(stdOut)
+            buildLauncher.forTasks(buildA, "dependencies")
+            buildLauncher.run()
+        }
     }
 
     def getOutput() {

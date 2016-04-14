@@ -100,6 +100,8 @@ We should allow it while retaining backward compatibility.
 
 ## Open Questions
 
+Currently scripts are compiled using the current locale. Obviously this is an issue if the build script contains system-dependent characters and is used on a different platform. What should we do in that case?
+
 [//]: # (Any?)
 
 ## Stories
@@ -271,35 +273,33 @@ Gradle use the platform default character set to encode the manifest content.
 Manifests must be encoded using UTF-8.
 This is a bug and it should be fixed, see [GRADLE-3374](https://issues.gradle.org/browse/GRADLE-3374).
 
-While fixing the default behaviour we should provide a way to control the character set used for encoding/decoding
-manifests:
+Manifests can be merged and so Gradle read manifests from files.
+The platform default charset is also used to decode the merged manifests content.
+
+In order to both fix the bug and keep backward compatibility, by default, all manifests should be encoded using UTF-8, all merged manifests should be decoded using the platform
+default charset.
+
+Read merged manifest using the default platform charset, write the manifest using UTF-8:
 
     task jar(type: Jar) {
         manifest {
-            contentCharset = 'windows-1252'
+            from('src/config/javabasemanifest.txt')
         }
     }
 
-When merging manifests from files:
+Previous behaviour:
 
     task jar(type: Jar) {
         manifest {
-            // Encode the JAR manifest using the charset below
-            contentCharset = Charset.defaultCharset().name()
             from('src/config/javabasemanifest.txt') {
-                // Read this manifest to merge using the charset below
-                contentCharset = 'windows-1252'
+                contentCharset = Charset.defaultCharset().name()
             }
         }
     }
 
-This is a potential breaking change.
-To get the old behaviour, simply use `Charset.defaultCharset().name()` as `contentCharset` value.
-
 #### Tests
 
-- by default, whatever the platform default character set, JAR/WAR/EAR manifests are encoded/decoded using UTF-8
+- by default, whatever the platform default character set, JAR/WAR/EAR manifests are encoded using UTF-8
+- by default, merged manifests are decoded using the platform default charset
 - build author can control which character set is used for both encoding/decoding JAR manifests
 - See existing tests in `JarIntegrationTest` for manifest content encoding
-
-[//]: # (TODO add tests)

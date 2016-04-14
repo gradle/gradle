@@ -16,33 +16,34 @@
 
 package org.gradle.plugin.use.resolve.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.plugins.PluginInspector;
-import org.gradle.internal.Factories;
-import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.Factory;
+import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
 public class CustomRepositoryPluginResolver implements PluginResolver {
-    private static final String REPO_SYSTEM_PROPERTY = "org.gradle.plugin.repoUrl";
+    static final String REPO_SYSTEM_PROPERTY = "org.gradle.plugin.repoUrl";
     private static final String UNSET_REPO_SYSTEM_PROPERTY = "repo-url-unset-in-system-properties";
 
-    private final ClassLoaderScope parentScope;
     private final VersionSelectorScheme versionSelectorScheme;
-    private final PluginInspector pluginInspector;
-    private final PluginClassPathResolver pluginClassPathResolver;
+    private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
     private String repoUrl;
 
-    public CustomRepositoryPluginResolver(ClassLoaderScope parentScope, VersionSelectorScheme versionSelectorScheme, PluginInspector pluginInspector, PluginClassPathResolver pluginClassPathResolver) {
-        this.parentScope = parentScope;
+    public CustomRepositoryPluginResolver(VersionSelectorScheme versionSelectorScheme, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
         this.versionSelectorScheme = versionSelectorScheme;
-        this.pluginInspector = pluginInspector;
-        this.pluginClassPathResolver = pluginClassPathResolver;
+        this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
     }
 
     @Override
-    public void resolve(PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
+    public void resolve(final PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         if (getRepoUrl().equals(UNSET_REPO_SYSTEM_PROPERTY)) {
             return;
         }
@@ -58,13 +59,51 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
             result.notFound(getDescription(), "dynamic plugin versions are not supported");
             return;
         }
-        final String artifactNotation = pluginRequest.getId() + ":" + pluginRequest.getId() + ":" + pluginRequest.getVersion();
-        try {
-            ClassPath classPath = pluginClassPathResolver.resolvePluginDependencies(getRepoUrl(), artifactNotation);
-            result.found(getDescription(), new ClassPathPluginResolution(pluginRequest.getId(), parentScope, Factories.constant(classPath), pluginInspector));
-        } catch (PluginClassPathResolver.DependencyResolutionException e) {
-            result.notFound(getDescription(), String.format("Could not resolve plugin artifact '%s'", artifactNotation));
+        if (exists(pluginRequest)) {
+            handleFound(pluginRequest, result);
+        } else {
+            handleNotFound(pluginRequest, result);
         }
+    }
+
+    private boolean exists(PluginRequest request) {
+        DependencyResolutionServices resolution = dependencyResolutionServicesFactory.create();
+
+        RepositoryHandler repositories = resolution.getResolveRepositoryHandler();
+        repositories.maven(new Action<MavenArtifactRepository>() {
+            public void execute(MavenArtifactRepository mavenArtifactRepository) {
+                mavenArtifactRepository.setUrl(getRepoUrl());
+            }
+        });
+
+        Dependency dependency = resolution.getDependencyHandler().create(getMarkerCoordinates(request));
+
+        ConfigurationContainer configurations = resolution.getConfigurationContainer();
+        Configuration configuration = configurations.detachedConfiguration(dependency);
+        configuration.setTransitive(false);
+
+        return !configuration.getResolvedConfiguration().hasError();
+    }
+
+    private void handleFound(final PluginRequest pluginRequest, PluginResolutionResult result) {
+        result.found(getDescription(), new PluginResolution() {
+            @Override
+            public PluginId getPluginId() {
+                return pluginRequest.getId();
+            }
+
+            public void execute(PluginResolveContext context) {
+                context.addLegacy(pluginRequest.getId(), getRepoUrl(), getMarkerCoordinates(pluginRequest));
+            }
+        });
+    }
+
+    private void handleNotFound(PluginRequest pluginRequest, PluginResolutionResult result) {
+        result.notFound(getDescription(), String.format("Could not resolve plugin artifact '%s'", getMarkerCoordinates(pluginRequest)));
+    }
+
+    private String getMarkerCoordinates(PluginRequest pluginRequest) {
+        return pluginRequest.getId() + ":" + pluginRequest.getId() + ":" + pluginRequest.getVersion();
     }
 
     // Caches the repoUrl so that we create minimal lock contention on System.getProperty() calls.

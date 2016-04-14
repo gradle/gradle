@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.component.model.*;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -38,16 +39,24 @@ public class CompositeProjectDependencyResolver implements DependencyToComponent
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
         if (dependency.getSelector() instanceof ModuleComponentSelector) {
-            ModuleComponentSelector selector = (ModuleComponentSelector) dependency.getSelector();
-            String projectPath = projectComponentRegistry.getReplacementProject(selector);
-            if (projectPath == null) {
-                return;
+            try {
+                maybeResolveInComposite(dependency, result);
+            } catch (ModuleVersionResolveException e) {
+                result.failed(e);
             }
-
-            LocalComponentMetaData metaData = projectComponentRegistry.getProject(projectPath);
-            result.resolved(metaData);
-            result.setSelectionReason(VersionSelectionReasons.COMPOSITE_BUILD);
         }
+    }
+
+    public void maybeResolveInComposite(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
+        ModuleComponentSelector selector = (ModuleComponentSelector) dependency.getSelector();
+        String projectPath = projectComponentRegistry.getReplacementProject(selector);
+        if (projectPath == null) {
+            return;
+        }
+
+        LocalComponentMetaData metaData = projectComponentRegistry.getProject(projectPath);
+        result.resolved(metaData);
+        result.setSelectionReason(VersionSelectionReasons.COMPOSITE_BUILD);
     }
 
     @Override

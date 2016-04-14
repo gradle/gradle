@@ -17,17 +17,39 @@ package org.gradle.api.java.archives;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
 /**
  * Specifies how the entries of multiple manifests should be merged together.
  */
 public interface ManifestMergeSpec {
+
+    /**
+     * The character set used to decode the merged manifest content.
+     * Defaults to the platform's default character set.
+     *
+     * @return the character set used to decode the merged manifest content
+     * @since 2.14
+     */
+    @Incubating
+    String getContentCharset();
+
+    /**
+     * The character set used to decode the merged manifest content.
+     * Defaults to the platform's default character set.
+     *
+     * @param contentCharset the character set used to decode the merged manifest content
+     * @since 2.14
+     */
+    @Incubating
+    void setContentCharset(String contentCharset);
+
     /**
      * Adds a merge path to a manifest that should be merged into the base manifest. A merge path can be either another
      * {@link org.gradle.api.java.archives.Manifest} or a path that is evaluated as per
      * {@link org.gradle.api.Project#files(Object...)} . If multiple merge paths are specified, the manifest are merged
      * in the order in which they are added.
-     * 
+     *
      * @param mergePaths The paths of manifests to be merged
      * @return this
      */

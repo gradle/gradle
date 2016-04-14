@@ -6,9 +6,9 @@
 - [x] [Tooling Client cancels composite build request](cancel-request.md)
 - [x] [Tooling Client provides progress listener for composite build request](progress-listener.md)
 - [x] [Tooling Client captures output for composite build request](capture-output.md)
-- [x] [Tooling Client provides additional arguments for composite build request](provide-arguments.md)
+- [x] [Tooling Client specifies arguments that apply to all participants in a composite](provide-arguments.md)
 
 ## Further validation and improvements
 
-- [ ] [Tooling Client provides per-participant configuration for composite build request](per-participant-configuration.md)
+- [ ] [Tooling Client specifies arguments that apply to one participant in a composite ](per-participant-configuration.md)
 - [ ] [GradleConnection performs validation when building composite](composite-validation.md)

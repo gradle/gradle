@@ -135,7 +135,13 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
             } else if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
-                projectDependencies.add(new DefaultEclipseProjectDependency(path, projectMapping.get(projectDependency.getGradlePath()), projectDependency.isExported()));
+                // TODO:DAZ Better handling of project dependencies within a composite
+                DefaultEclipseProject targetProject = projectMapping.get(projectDependency.getGradlePath());
+                if (targetProject == null) {
+                    projectDependencies.add(new DefaultEclipseProjectDependency(projectDependency.getGradlePath(), null, false));
+                } else {
+                    projectDependencies.add(new DefaultEclipseProjectDependency(path, targetProject, projectDependency.isExported()));
+                }
             } else if (entry instanceof SourceFolder) {
                 final SourceFolder sourceFolder = (SourceFolder) entry;
                 String path = sourceFolder.getPath();
