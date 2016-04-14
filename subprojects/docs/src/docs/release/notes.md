@@ -20,7 +20,7 @@ You can now define the character set to use when reading and writing filtered fi
         filteringCharset = 'UTF-8'
     }
 
-See the “[Filtering files](userguide/working_with_files.html#sec:filtering_files)” section of the “Working with files chapter” in the user guide for more information and examples of using this new feature.
+See the “[Filtering files](userguide/working_with_files.html#sec:filtering_files)” section of the “Working with files” chapter in the user guide for more information and examples of using this new feature.
 
 This was contributed by [Jean-Baptiste Nizet](https://github.com/jnizet).
 
