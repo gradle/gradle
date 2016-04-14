@@ -123,6 +123,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         StartParameter startParameter = compositeAction.getStartParameter().newInstance();
         startParameter.setProjectDir(compositeParameters.getTargetBuild().getProjectDir());
         startParameter.setSearchUpwards(false);
+        startParameter.setSystemPropertiesArgs(Collections.singletonMap("org.gradle.resolution.assumeFluidDependencies", "true"));
 
         // Use a ModelActionRunner to ensure that model events are emitted
         BuildActionRunner runner = new SubscribableBuildActionRunner(new BuildModelActionRunner());
@@ -132,12 +133,6 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         ServiceRegistry buildScopedServices = new BuildSessionScopeServices(compositeServices, startParameter, ClassPath.EMPTY);
 
         buildActionExecuter.execute(participantAction, requestContext, null, buildScopedServices);
-    }
-
-    private DefaultBuildRequestContext createRequestContext(BuildRequestContext buildRequestContext) {
-        // TODO:DAZ Not sure that we can't just use the provided request context
-        BuildRequestMetaData metaData = new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), System.currentTimeMillis());
-        return new DefaultBuildRequestContext(metaData, buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(), buildRequestContext.getErrorListener());
     }
 
     private Exception unwrap(ReportedException e) {
@@ -184,5 +179,11 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             buildActionExecuter.execute(configureAction, requestContext, null, sharedServices);
         }
         return builder.build();
+    }
+
+    private DefaultBuildRequestContext createRequestContext(BuildRequestContext buildRequestContext) {
+        // TODO:DAZ Not sure that we can't just use the provided request context
+        BuildRequestMetaData metaData = new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), System.currentTimeMillis());
+        return new DefaultBuildRequestContext(metaData, buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(), buildRequestContext.getErrorListener());
     }
 }

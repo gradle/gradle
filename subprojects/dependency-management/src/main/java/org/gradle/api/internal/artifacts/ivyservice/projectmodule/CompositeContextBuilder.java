@@ -16,15 +16,17 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.gradle.api.Project;
-import org.gradle.api.Transformer;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.component.local.model.*;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
@@ -35,7 +37,9 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.util.CollectionUtils;
 
+import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
 import java.util.Set;
 
 public class CompositeContextBuilder implements BuildActionRunner {
@@ -67,7 +71,7 @@ public class CompositeContextBuilder implements BuildActionRunner {
 
     private void registerProject(String buildName, ProjectInternal project) {
         String projectPath = buildName + ":" + project.getPath();
-        ComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(projectPath);
+        ProjectComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(projectPath);
 
         ProjectComponentRegistry projectComponentRegistry = project.getServices().get(ProjectComponentRegistry.class);
 
@@ -77,14 +81,16 @@ public class CompositeContextBuilder implements BuildActionRunner {
         context.register(localComponentMetaData.getId().getModule(), projectPath, localComponentMetaData, project.getProjectDir());
     }
 
-    private LocalComponentMetaData createCompositeCopy(ComponentIdentifier componentIdentifier, DefaultLocalComponentMetaData projectComponentMetadata) {
+    private LocalComponentMetaData createCompositeCopy(ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetaData projectComponentMetadata) {
         DefaultLocalComponentMetaData compositeComponentMetadata = new DefaultLocalComponentMetaData(projectComponentMetadata.getId(), componentIdentifier, projectComponentMetadata.getStatus());
 
         for (String configurationName : projectComponentMetadata.getConfigurationNames()) {
             LocalConfigurationMetaData configuration = projectComponentMetadata.getConfiguration(configurationName);
+            // TODO:DAZ Should really be doing this per-artifact, rather than having a configuration dependency
+            TaskDependency configurationTaskDependency = createTaskDependency(componentIdentifier.getProjectPath(), configuration);
             compositeComponentMetadata.addConfiguration(configurationName,
                 configuration.getDescription(), configuration.getExtendsFrom(), configuration.getHierarchy(),
-                configuration.isVisible(), configuration.isTransitive(), new DefaultTaskDependency());
+                configuration.isVisible(), configuration.isTransitive(), configurationTaskDependency);
 
 
             // TODO:DAZ Probably shouldn't need to convert back into PublishArtifact.
@@ -111,6 +117,63 @@ public class CompositeContextBuilder implements BuildActionRunner {
     public CompositeBuildContext build() {
         return context;
     }
+
+    private TaskDependency createTaskDependency(final String projectPath, LocalConfigurationMetaData configuration) {
+        final Set<String> targetTaskNames = determineTaskNames(configuration);
+        final String taskName = "composite_" + projectPath + "_" + configuration.getName();
+        return new TaskDependency() {
+            @Override
+            public Set<? extends Task> getDependencies(Task task) {
+                TaskContainer tasks = task.getProject().getRootProject().getTasks();
+                Task depTask = tasks.findByName(taskName);
+                if (depTask == null) {
+                    depTask = tasks.create(taskName, CompositeProjectBuild.class, new Action<CompositeProjectBuild>() {
+                        @Override
+                        public void execute(CompositeProjectBuild buildTask) {
+                            buildTask.conf(projectPath, targetTaskNames);
+                        }
+                    });
+                }
+                return Collections.singleton(depTask);
+            }
+        };
+    }
+
+    private Set<String> determineTaskNames(LocalConfigurationMetaData configuration) {
+        Set<String> taskNames = Sets.newLinkedHashSet();
+        for (ComponentArtifactMetaData artifactMetaData : configuration.getArtifacts()) {
+            if (artifactMetaData instanceof Buildable) {
+                Buildable publishArtifact = (Buildable) artifactMetaData;
+                Set<? extends Task> dependencies = publishArtifact.getBuildDependencies().getDependencies(null);
+                for (Task dependency : dependencies) {
+                    taskNames.add(dependency.getName());
+                }
+            }
+        }
+        return taskNames;
+    }
+
+    public static class CompositeProjectBuild extends DefaultTask {
+        private final CompositeProjectArtifactBuilder artifactBuilder;
+        private String projectPath;
+        private Set<String> taskNames;
+
+        @Inject
+        public CompositeProjectBuild(CompositeProjectArtifactBuilder artifactBuilder) {
+            this.artifactBuilder = artifactBuilder;
+        }
+
+        public void conf(String path, Set<String> taskNames) {
+            projectPath = path;
+            this.taskNames = taskNames;
+        }
+
+        @TaskAction
+        public void build() {
+            artifactBuilder.build(projectPath, taskNames);
+        }
+    }
+
 
     private static class DetachedPublishArtifact extends DefaultPublishArtifact {
         public DetachedPublishArtifact(IvyArtifactName ivyArtifactName, File artifactFile) {

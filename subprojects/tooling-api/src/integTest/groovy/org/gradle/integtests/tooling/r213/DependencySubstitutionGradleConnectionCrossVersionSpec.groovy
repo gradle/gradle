@@ -52,7 +52,7 @@ class DependencySubstitutionGradleConnectionCrossVersionSpec extends CompositeTo
         }
         buildB = singleProjectBuild("buildB") {
             buildFile << """
-        apply plugin: 'base'
+        apply plugin: 'java'
 """
         }
         builds << buildA << buildB
@@ -90,6 +90,30 @@ compile
         output.contains """
 compile
 \\--- org.test:buildB:1.0 FAILED
+"""
+    }
+
+    def "builds artifacts for substituted dependencies"() {
+        Assume.assumeTrue(supportsIntegratedComposites())
+        given:
+        buildA.buildFile << """
+            task printDeps(type: Copy) {
+                from configurations.compile
+                into project.buildDir
+            }
+"""
+
+        when:
+        withCompositeConnection(builds) { connection ->
+            def buildLauncher = connection.newBuild()
+            buildLauncher.setStandardOutput(stdOut)
+            buildLauncher.forTasks(buildA, "printDeps")
+            buildLauncher.run()
+        }
+
+        then:
+        output.contains """
+:buildB:jar
 """
     }
 

@@ -16,14 +16,20 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
+import org.gradle.internal.service.ServiceRegistry;
 
 public class CompositeScopeServices {
     ResolverProviderFactory createCompositeResolverProviderFactory(CompositeProjectComponentRegistry projectComponentRegistry) {
         return new CompositeProjectResolverProviderFactory(projectComponentRegistry);
+    }
+
+    CompositeProjectArtifactBuilder createCompositeProjectArtifactBuilder(CompositeProjectComponentRegistry projectComponentRegistry, StartParameter startParameter, ServiceRegistry serviceRegistry) {
+        return new DefaultCompositeProjectArtifactBuilder(projectComponentRegistry, startParameter, serviceRegistry);
     }
 
     private static class CompositeProjectResolverProviderFactory implements ResolverProviderFactory {
