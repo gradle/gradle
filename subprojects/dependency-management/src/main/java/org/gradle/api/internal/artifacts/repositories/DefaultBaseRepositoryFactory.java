@@ -89,6 +89,12 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         return mavenRepository;
     }
 
+    public MavenArtifactRepository createGradleRepository() {
+        MavenArtifactRepository mavenRepository = createMavenRepository();
+        mavenRepository.setUrl(DefaultRepositoryHandler.GRADLE_REPO_URL);
+        return mavenRepository;
+    }
+
     public MavenArtifactRepository createMavenCentralRepository() {
         MavenArtifactRepository mavenRepository = createMavenRepository();
         mavenRepository.setUrl(RepositoryHandler.MAVEN_CENTRAL_URL);
