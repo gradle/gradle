@@ -1,4 +1,4 @@
-## Tooling client executes tasks for specified project within a composite
+## Tooling client executes task within a composite using `Launchable` instance
 
 ### Overview
 
@@ -32,8 +32,3 @@ public interface CompositeBuildLauncher extends BuildLauncher {
 - test that progress listener events get forwarded to TAPI client
   - compare events from task execution from a composite build and a regular build
 
-### Documentation
-
-### Open issues
-
-- Public API for executing tasks without a `Launchable` instance?
