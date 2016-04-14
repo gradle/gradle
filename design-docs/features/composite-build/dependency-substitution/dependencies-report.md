@@ -161,6 +161,9 @@ Other improvements:
         - B::(n..z) where n depends on o depends on p...
         - For scenario 1, composite substitution is disabled, so the participants generated eclipse projects are independent.
         - For scenario 2, composite substitution is enabled, so the participants generated eclipse projects should have a long chain of dependencies (a depends on b ... y depends on z).
-
 - Provide way of detecting feature set of composite build?
+- Automatically enable integrated composite for suitable participants
+    - Consider JVM args and java home
+    - Consider version of Gradle configured
+    - Possibly permit override to force composite
 
