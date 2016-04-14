@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.composite
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -83,6 +82,21 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         assertFailure(t,
             "A problem occurred evaluating root project 'buildC'.",
             "exception thrown on configure")
+    }
+
+    def "reports failure for duplicate project path"() {
+        given:
+        def buildC = singleProjectBuild("buildC")
+        buildC.settingsFile.text = "rootProject.name = 'buildB'"
+        builds << buildC
+
+        when:
+        checkDependencies()
+
+        then:
+        def t = thrown(BuildException)
+        assertFailure(t,
+            "Project path 'buildB::' is not unique in composite.")
     }
 
     def "does no substitution when no project matches external dependencies"() {
@@ -313,7 +327,6 @@ class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeTool
         }
     }
 
-    @NotYetImplemented
     def "substitutes dependency in composite containing participants with same root directory name"() {
         given:
         buildA.buildFile << """

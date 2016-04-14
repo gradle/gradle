@@ -16,14 +16,21 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.initialization.ReportedException;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.SortedSet;
 
 public class DefaultCompositeBuildContext implements CompositeBuildContext {
     private final Multimap<ModuleIdentifier, String> replacementProjects = ArrayListMultimap.create();
@@ -51,8 +58,11 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
 
     @Override
     public void register(ModuleIdentifier moduleId, String projectPath, LocalComponentMetaData localComponentMetaData) {
-        System.out.println(String.format("Registering project participant: %s | %s", moduleId, projectPath));
         replacementProjects.put(moduleId, projectPath);
+        if (projectMetadata.containsKey(projectPath)) {
+            String failureMessage = String.format("Project path '%s' is not unique in composite.", projectPath);
+            throw new ReportedException(new GradleException(failureMessage));
+        }
         projectMetadata.put(projectPath, localComponentMetaData);
     }
 }

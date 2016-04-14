@@ -52,7 +52,7 @@ public class CompositeContextBuilder implements BuildActionRunner {
             GradleInternal gradle = buildController.configure();
             ProjectInternal rootProject = gradle.getRootProject();
 
-            String participantName = rootProject.getProjectDir().getName();
+            String participantName = rootProject.getName();
             for (Project project : rootProject.getAllprojects()) {
                 registerProject(participantName, (ProjectInternal) project);
             }
