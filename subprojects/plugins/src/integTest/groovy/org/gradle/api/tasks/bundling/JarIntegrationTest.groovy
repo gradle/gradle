@@ -18,7 +18,6 @@ package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -403,7 +402,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildScript """
             task jar(type: Jar) {
-                metadataCharset = 'CP1047'
+                metadataCharset = 'ISO-8859-15'
                 from file('test')
                 destinationDir = file('dest')
                 archiveName = 'test.jar'
@@ -411,15 +410,16 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         createDir('test') {
-            file 'mojibake.txt'
+            file 'mojibak€.txt'
         }
+        assert new String('mojibak€.txt').getBytes('ISO-8859-15') != new String('mojibak€.txt').getBytes('UTF-8')
 
         when:
         succeeds 'jar'
 
         then:
-        def jar = new JarTestFixture(file('dest/test.jar'), 'CP1047')
-        jar.assertContainsFile('mojibake.txt')
+        def jar = new JarTestFixture(file('dest/test.jar'), 'ISO-8859-15')
+        jar.assertContainsFile('mojibak€.txt')
     }
 
     @Issue('GRADLE-3374')
@@ -447,7 +447,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         manifest.contains('moji: bake☡')
     }
 
-    @Ignore
     @Issue("GRADLE-3374")
     def "merge manifest read using platform default charset"() {
         given:
@@ -457,20 +456,20 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 destinationDir = file('dest')
                 archiveName = 'test.jar'
                 manifest {
-                    from('manifest-CP1047.txt')
+                    from('manifest-ISO-8859-15.txt')
                 }
             }
         """.stripIndent()
-        file('manifest-CP1047.txt').setText('bake: möjì!', 'CP1047')
+        file('manifest-ISO-8859-15.txt').setText('moji: bak€', 'ISO-8859-15')
 
         when:
-        executer.withDefaultCharacterEncoding('CP1047').withTasks('jar')
+        executer.withDefaultCharacterEncoding('ISO-8859-15').withTasks('jar')
         executer.run()
 
         then:
         def jar = new JarTestFixture(file('dest/test.jar'), 'UTF-8', 'UTF-8')
         def manifest = jar.content('META-INF/MANIFEST.MF')
-        manifest.contains('bake: möjì!')
+        manifest.contains('moji: bak€')
     }
 
     @Issue('GRADLE-3374')
@@ -482,8 +481,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 destinationDir = file('dest')
                 archiveName = 'test.jar'
                 manifest {
-                    contentCharset = 'CP1047'
-                    attributes 'moji': 'bãké!'
+                    contentCharset = 'ISO-8859-15'
+                    attributes 'moji': 'bak€'
                 }
             }
         """.stripIndent()
@@ -493,12 +492,11 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         executer.run()
 
         then:
-        def jar = new JarTestFixture(file('dest/test.jar'), 'UTF-8', 'CP1047')
+        def jar = new JarTestFixture(file('dest/test.jar'), 'UTF-8', 'ISO-8859-15')
         def manifest = jar.content('META-INF/MANIFEST.MF')
-        manifest.contains('moji: bãké!')
+        manifest.contains('moji: bak€')
     }
 
-    @Ignore
     @Issue('GRADLE-3374')
     def "merge manifests using user defined character sets"() {
         given:
@@ -509,26 +507,26 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 archiveName = 'test.jar'
                 manifest {
                     // Charset used to encode the generated manifest content
-                    contentCharset = 'ISO-8859-1'
-                    attributes 'moji': 'bãké!'
-                    from('manifest-CP1047.txt') {
+                    contentCharset = 'ISO-8859-15'
+                    attributes 'moji': 'bak€'
+                    from('manifest-UTF-8.txt') {
                         // Charset used to decode the read manifest content
-                        contentCharset = 'CP1047'
+                        contentCharset = 'UTF-8'
                     }
                 }
             }
         """.stripIndent()
-        file('manifest-CP1047.txt').setText('bake: möjì!', 'CP1047')
+        file('manifest-UTF-8.txt').setText('bake: moji€', 'UTF-8')
 
         when:
-        executer.withDefaultCharacterEncoding('UTF-8').withTasks('jar')
+        executer.withDefaultCharacterEncoding('windows-1252').withTasks('jar')
         executer.run()
 
         then:
-        def jar = new JarTestFixture(file('dest/test.jar'), 'UTF-8', 'ISO-8859-1')
+        def jar = new JarTestFixture(file('dest/test.jar'), 'UTF-8', 'ISO-8859-15')
         def manifest = jar.content('META-INF/MANIFEST.MF')
-        manifest.contains('moji: bãké!')
-        manifest.contains('bake: möjì!')
+        manifest.contains('moji: bak€')
+        manifest.contains('bake: moji€')
     }
 
     @Issue('GRADLE-3374')
