@@ -18,6 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 
+import java.io.File;
+
 public interface CompositeProjectComponentRegistry extends ProjectComponentRegistry {
     String getReplacementProject(ModuleComponentSelector selector);
+    File getProjectDirectory(String projectPath);
 }

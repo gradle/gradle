@@ -19,6 +19,9 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeProjectDirectoryMapper;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
@@ -32,6 +35,7 @@ import java.util.*;
 
 public class EclipseModelBuilder implements ProjectToolingModelBuilder {
     private final GradleProjectBuilder gradleProjectBuilder;
+    private final Transformer<File, String> compositeProjectMapper;
 
     private boolean projectDependenciesOnly;
     private DefaultEclipseProject result;
@@ -40,8 +44,9 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
     private DefaultGradleProject<?> rootGradleProject;
     private Project currentProject;
 
-    public EclipseModelBuilder(GradleProjectBuilder gradleProjectBuilder) {
+    public EclipseModelBuilder(GradleProjectBuilder gradleProjectBuilder, ServiceRegistry services) {
         this.gradleProjectBuilder = gradleProjectBuilder;
+        compositeProjectMapper = new CompositeProjectDirectoryMapper(services);
     }
 
     public boolean canBuild(String modelName) {
@@ -135,10 +140,10 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
             } else if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
-                // TODO:DAZ Better handling of project dependencies within a composite
                 DefaultEclipseProject targetProject = projectMapping.get(projectDependency.getGradlePath());
                 if (targetProject == null) {
-                    projectDependencies.add(new DefaultEclipseProjectDependency(projectDependency.getGradlePath(), (File) null, false));
+                    File projectDirectory = compositeProjectMapper.transform(projectDependency.getGradlePath());
+                    projectDependencies.add(new DefaultEclipseProjectDependency(path, projectDirectory, projectDependency.isExported()));
                 } else {
                     projectDependencies.add(new DefaultEclipseProjectDependency(path, targetProject, projectDependency.isExported()));
                 }

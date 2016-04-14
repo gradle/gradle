@@ -28,6 +28,7 @@ import org.gradle.initialization.ReportedException;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.SortedSet;
@@ -35,6 +36,7 @@ import java.util.SortedSet;
 public class DefaultCompositeBuildContext implements CompositeBuildContext {
     private final Multimap<ModuleIdentifier, String> replacementProjects = ArrayListMultimap.create();
     private final Map<String, LocalComponentMetaData> projectMetadata = Maps.newHashMap();
+    private final Map<String, File> projectDirectories = Maps.newHashMap();
 
     @Override
     public String getReplacementProject(ModuleComponentSelector selector) {
@@ -53,16 +55,33 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
 
     @Override
     public LocalComponentMetaData getProject(String projectPath) {
-        return projectMetadata.get(projectPath);
+        LocalComponentMetaData localComponentMetaData = projectMetadata.get(projectPath);
+        checkNotNull(projectPath, localComponentMetaData);
+        return localComponentMetaData;
     }
 
     @Override
-    public void register(ModuleIdentifier moduleId, String projectPath, LocalComponentMetaData localComponentMetaData) {
+    public File getProjectDirectory(String projectPath) {
+        File file = projectDirectories.get(projectPath);
+        checkNotNull(projectPath, file);
+        return file;
+    }
+
+    public void checkNotNull(String projectPath, Object requested) {
+        // This should not happen, but is a failsafe to prevent NPE's in the future.
+        if (requested == null) {
+            throw new IllegalStateException(String.format("Requested project path %s which was never registered", projectPath));
+        }
+    }
+
+    @Override
+    public void register(ModuleIdentifier moduleId, String projectPath, LocalComponentMetaData localComponentMetaData, File projectDirectory) {
         replacementProjects.put(moduleId, projectPath);
         if (projectMetadata.containsKey(projectPath)) {
             String failureMessage = String.format("Project path '%s' is not unique in composite.", projectPath);
             throw new ReportedException(new GradleException(failureMessage));
         }
         projectMetadata.put(projectPath, localComponentMetaData);
+        projectDirectories.put(projectPath, projectDirectory);
     }
 }

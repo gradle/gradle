@@ -73,8 +73,9 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeTooling
             assert eclipseProjectA.classpath.empty
             assert eclipseProjectA.projectDependencies.size() == 1
             with(eclipseProjectA.projectDependencies.first()) {
-                assert path == 'buildB::'
+                assert path == 'buildB'
                 assert targetProject == null
+                assert targetProjectDirectory == buildB.absoluteFile
             }
         } else {
             assert eclipseProjectA.projectDependencies.empty

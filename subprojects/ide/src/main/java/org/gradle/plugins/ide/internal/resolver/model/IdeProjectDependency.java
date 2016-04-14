@@ -44,6 +44,9 @@ public class IdeProjectDependency extends IdeDependency {
 
     public String getModuleName() {
         // TODO:DAZ This is just a hack to allow 'idea' task to function reasonably in a composite
+        if (projectPath.endsWith("::")) {
+            return projectPath.substring(0, projectPath.length() - 2);
+        }
         int index = projectPath.lastIndexOf(':');
         return projectPath.substring(index + 1);
     }
