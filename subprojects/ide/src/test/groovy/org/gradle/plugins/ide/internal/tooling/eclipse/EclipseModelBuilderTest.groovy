@@ -24,6 +24,7 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.plugins.scala.ScalaPlugin
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
 import org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder
@@ -246,6 +247,6 @@ class EclipseModelBuilderTest extends Specification {
     private def createEclipseModelBuilder() {
         def gradleProjectBuilder = Mock(GradleProjectBuilder)
         gradleProjectBuilder.buildAll(_) >> Mock(DefaultGradleProject)
-        new EclipseModelBuilder(gradleProjectBuilder)
+        new EclipseModelBuilder(gradleProjectBuilder, new DefaultServiceRegistry())
     }
 }
