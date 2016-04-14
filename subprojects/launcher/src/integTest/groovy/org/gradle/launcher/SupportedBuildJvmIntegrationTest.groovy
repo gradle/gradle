@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 
-class SupportedJavaVersionsIntegrationTest extends AbstractIntegrationSpec {
+class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
     @IgnoreIf({ AvailableJavaHomes.java5 == null })
     def "provides reasonable failure message when attempting to run under java 5"() {
         def jdk = AvailableJavaHomes.java5

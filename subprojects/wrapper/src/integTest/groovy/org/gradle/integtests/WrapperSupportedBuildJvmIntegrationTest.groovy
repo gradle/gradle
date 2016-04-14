@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 
-class WrapperSupportedJavaVersionsIntegrationTest extends AbstractWrapperIntegrationSpec {
+class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegrationSpec {
     @IgnoreIf({ AvailableJavaHomes.java5 == null })
     def "provides reasonable failure message when attempting to run under java 5"() {
         def jdk = AvailableJavaHomes.java5
