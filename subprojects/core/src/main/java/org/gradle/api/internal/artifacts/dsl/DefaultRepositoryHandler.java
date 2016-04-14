@@ -36,8 +36,8 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
 
     public static final String DEFAULT_BINTRAY_JCENTER_REPO_NAME = "BintrayJCenter";
     public static final String BINTRAY_JCENTER_URL = "https://jcenter.bintray.com/";
-    public static final String DEFAULT_GRADLE_REPO_NAME = "GradleRepo";
-    public static final String GRADLE_REPO_URL = "https://plugins.gradle.org/m2/";
+    public static final String DEFAULT_PLUGIN_REPO_NAME = "PluginRepo";
+    public static final String PLUGIN_REPO_URL = "https://plugins.gradle.org/m2/";
 
     public static final String FLAT_DIR_DEFAULT_NAME = "flatDir";
     private static final String MAVEN_REPO_DEFAULT_NAME = "maven";
@@ -78,8 +78,8 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
         return addRepository(repositoryFactory.createJCenterRepository(), DEFAULT_BINTRAY_JCENTER_REPO_NAME, action);
     }
 
-    public MavenArtifactRepository gradleRepo() {
-        return addRepository(repositoryFactory.createGradleRepository(), DEFAULT_GRADLE_REPO_NAME);
+    public MavenArtifactRepository pluginRepo() {
+        return addRepository(repositoryFactory.createPluginRepoRepository(), DEFAULT_PLUGIN_REPO_NAME);
     }
 
     public MavenArtifactRepository mavenCentral(Map<String, ?> args) {

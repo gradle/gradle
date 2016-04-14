@@ -35,5 +35,5 @@ public interface BaseRepositoryFactory {
 
     MavenArtifactRepository createMavenRepository();
 
-    MavenArtifactRepository createGradleRepository();
+    MavenArtifactRepository createPluginRepoRepository();
 }

@@ -79,17 +79,17 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
         repo.url == jcenterUrl
     }
 
-    def testCreateGradleRepo() {
+    def testCreateGradlePluginRepo() {
         given:
-        def gradleRepoUrl = new URI(DefaultRepositoryHandler.GRADLE_REPO_URL)
+        def pluginRepoUrl = new URI(DefaultRepositoryHandler.PLUGIN_REPO_URL)
 
         when:
-        fileResolver.resolveUri(DefaultRepositoryHandler.GRADLE_REPO_URL) >> gradleRepoUrl
+        fileResolver.resolveUri(DefaultRepositoryHandler.PLUGIN_REPO_URL) >> pluginRepoUrl
 
         then:
         def repo = factory.createJCenterRepository()
         repo instanceof DefaultMavenArtifactRepository
-        repo.url == gradleRepoUrl
+        repo.url == pluginRepoUrl
     }
 
     def testCreateMavenCentralRepo() {

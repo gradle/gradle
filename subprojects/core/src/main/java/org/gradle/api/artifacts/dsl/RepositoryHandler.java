@@ -124,20 +124,20 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
      * Adds a repository which looks in the Gradle's official repository for dependencies. The URL used to access this repository is
-     * {@value org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler#GRADLE_REPO_URL}. The name of the repository is
-     * {@value org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler#DEFAULT_GRADLE_REPO_NAME}.
+     * {@value org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler#PLUGIN_REPO_URL}. The name of the repository is
+     * {@value org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler#DEFAULT_PLUGIN_REPO_NAME}.
      *
      * <p>Examples:
      * <pre autoTested="">
      * repositories {
-     *     gradleRepo()
+     *     pluginRepo()
      * }
      * </pre>
      * </p>
      *
      * @return the added resolver
      */
-    MavenArtifactRepository gradleRepo();
+    MavenArtifactRepository pluginRepo();
 
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
