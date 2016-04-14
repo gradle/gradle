@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.*;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.GradleInternal;
@@ -81,20 +82,20 @@ public class CompositeContextBuilder implements BuildActionRunner {
         context.register(localComponentMetaData.getId().getModule(), projectPath, localComponentMetaData, project.getProjectDir());
     }
 
-    private LocalComponentMetaData createCompositeCopy(ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetaData projectComponentMetadata) {
-        DefaultLocalComponentMetaData compositeComponentMetadata = new DefaultLocalComponentMetaData(projectComponentMetadata.getId(), componentIdentifier, projectComponentMetadata.getStatus());
+    private LocalComponentMetaData createCompositeCopy(ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetaData originalComponentMetadata) {
+        DefaultLocalComponentMetaData compositeComponentMetadata = new DefaultLocalComponentMetaData(originalComponentMetadata.getId(), componentIdentifier, originalComponentMetadata.getStatus());
 
-        for (String configurationName : projectComponentMetadata.getConfigurationNames()) {
-            LocalConfigurationMetaData configuration = projectComponentMetadata.getConfiguration(configurationName);
-            // TODO:DAZ Should really be doing this per-artifact, rather than having a configuration dependency
-            TaskDependency configurationTaskDependency = createTaskDependency(componentIdentifier.getProjectPath(), configuration);
+        for (String configurationName : originalComponentMetadata.getConfigurationNames()) {
+            LocalConfigurationMetaData originalConfiguration = originalComponentMetadata.getConfiguration(configurationName);
+            // TODO:DAZ Should really be doing this per-artifact, rather than having a single configuration dependency
+            TaskDependency configurationTaskDependency = createTaskDependency(componentIdentifier.getProjectPath(), originalConfiguration);
             compositeComponentMetadata.addConfiguration(configurationName,
-                configuration.getDescription(), configuration.getExtendsFrom(), configuration.getHierarchy(),
-                configuration.isVisible(), configuration.isTransitive(), configurationTaskDependency);
+                originalConfiguration.getDescription(), originalConfiguration.getExtendsFrom(), originalConfiguration.getHierarchy(),
+                originalConfiguration.isVisible(), originalConfiguration.isTransitive(), configurationTaskDependency);
 
 
             // TODO:DAZ Probably shouldn't need to convert back into PublishArtifact.
-            Set<ComponentArtifactMetaData> artifacts = configuration.getArtifacts();
+            Set<ComponentArtifactMetaData> artifacts = originalConfiguration.getArtifacts();
             Set<PublishArtifact> detachedArtifacts = CollectionUtils.collect(artifacts, new Transformer<PublishArtifact, ComponentArtifactMetaData>() {
                 @Override
                 public PublishArtifact transform(ComponentArtifactMetaData componentArtifactMetaData) {
@@ -104,10 +105,10 @@ public class CompositeContextBuilder implements BuildActionRunner {
 
             compositeComponentMetadata.addArtifacts(configurationName, detachedArtifacts);
         }
-        for (DependencyMetaData dependency : projectComponentMetadata.getDependencies()) {
+        for (DependencyMetaData dependency : originalComponentMetadata.getDependencies()) {
             compositeComponentMetadata.addDependency(dependency);
         }
-        for (ExcludeRule excludeRule : projectComponentMetadata.getExcludeRules()) {
+        for (ExcludeRule excludeRule : originalComponentMetadata.getExcludeRules()) {
             compositeComponentMetadata.addExcludeRule(excludeRule);
         }
 
@@ -119,8 +120,8 @@ public class CompositeContextBuilder implements BuildActionRunner {
     }
 
     private TaskDependency createTaskDependency(final String projectPath, LocalConfigurationMetaData configuration) {
-        final Set<String> targetTaskNames = determineTaskNames(configuration);
-        final String taskName = "composite_" + projectPath + "_" + configuration.getName();
+        final String taskName = createSyntheticTaskName(projectPath, configuration.getName());
+        final Set<String> targetTaskNames = determineTargetTaskNames(configuration);
         return new TaskDependency() {
             @Override
             public Set<? extends Task> getDependencies(Task task) {
@@ -130,7 +131,8 @@ public class CompositeContextBuilder implements BuildActionRunner {
                     depTask = tasks.create(taskName, CompositeProjectBuild.class, new Action<CompositeProjectBuild>() {
                         @Override
                         public void execute(CompositeProjectBuild buildTask) {
-                            buildTask.conf(projectPath, targetTaskNames);
+                            buildTask.projectPath = projectPath;
+                            buildTask.taskNames = targetTaskNames;
                         }
                     });
                 }
@@ -139,7 +141,21 @@ public class CompositeContextBuilder implements BuildActionRunner {
         };
     }
 
-    private Set<String> determineTaskNames(LocalConfigurationMetaData configuration) {
+    private String createSyntheticTaskName(String projectPath, String configurationName) {
+        StringBuilder builder = new StringBuilder("compositeBuild-");
+        if (projectPath.endsWith("::")) {
+            builder.append(projectPath, 0, projectPath.length() - 2);
+        } else {
+            builder.append(projectPath.replaceFirst("::", "-").replaceAll(":", "-"));
+        }
+
+        if (!Dependency.DEFAULT_CONFIGURATION.equals(configurationName)) {
+            builder.append("-").append(configurationName);
+        }
+        return builder.toString();
+    }
+
+    private Set<String> determineTargetTaskNames(LocalConfigurationMetaData configuration) {
         Set<String> taskNames = Sets.newLinkedHashSet();
         for (ComponentArtifactMetaData artifactMetaData : configuration.getArtifacts()) {
             if (artifactMetaData instanceof Buildable) {
@@ -155,17 +171,12 @@ public class CompositeContextBuilder implements BuildActionRunner {
 
     public static class CompositeProjectBuild extends DefaultTask {
         private final CompositeProjectArtifactBuilder artifactBuilder;
-        private String projectPath;
-        private Set<String> taskNames;
+        String projectPath;
+        Set<String> taskNames;
 
         @Inject
         public CompositeProjectBuild(CompositeProjectArtifactBuilder artifactBuilder) {
             this.artifactBuilder = artifactBuilder;
-        }
-
-        public void conf(String path, Set<String> taskNames) {
-            projectPath = path;
-            this.taskNames = taskNames;
         }
 
         @TaskAction

@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r213
 
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -30,6 +31,7 @@ import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSepara
 // Dependencies task fails for missing dependencies with older Gradle versions
 class DependencySubstitutionGradleConnectionCrossVersionSpec extends CompositeToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
+    def stdErr = new ByteArrayOutputStream()
     def buildA
     def buildB
     def builds = []
@@ -97,9 +99,8 @@ compile
         Assume.assumeTrue(supportsIntegratedComposites())
         given:
         buildA.buildFile << """
-            task printDeps(type: Copy) {
-                from configurations.compile
-                into project.buildDir
+            task printConfiguration(dependsOn: configurations.compile) << {
+                configurations.compile.each { println it }
             }
 """
 
@@ -107,14 +108,19 @@ compile
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(stdOut)
-            buildLauncher.forTasks(buildA, "printDeps")
+            buildLauncher.setStandardError(stdErr)
+            buildLauncher.forTasks(buildA, "printConfiguration")
             buildLauncher.run()
         }
 
         then:
-        output.contains """
-:buildB:jar
-"""
+        result.assertTasksExecuted(
+            ":compositeBuild-buildB",
+            ":buildB:compileJava",
+            ":buildB:processResources",
+            ":buildB:classes",
+            ":buildB:jar",
+            ":printConfiguration")
     }
 
     private Object dependencies() {
@@ -126,7 +132,15 @@ compile
         }
     }
 
+    def getResult() {
+        return new OutputScrapingExecutionResult(stdOut.toString(), stdErr.toString())
+    }
+
     def getOutput() {
         normaliseLineSeparators(stdOut.toString())
+    }
+
+    def getError() {
+        normaliseLineSeparators(stdErr.toString())
     }
 }
