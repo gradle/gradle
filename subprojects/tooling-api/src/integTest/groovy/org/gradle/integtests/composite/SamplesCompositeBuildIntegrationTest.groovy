@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 import org.junit.Rule
+import spock.lang.Ignore
 
 import java.util.regex.Matcher
 
@@ -78,6 +79,31 @@ compile - Dependencies for source set 'main'.
 \\--- org.sample:b2:1.0 -> project projectB::b2
      \\--- org.sample:projectC:1.0 -> project projectC::
 """)
+    }
+
+    @Ignore
+    @UsesSample('compositeBuild')
+    def "can build with dependencies in integrated composite"() {
+        given:
+        tweakProject()
+
+        when:
+        executer.inDirectory(sample.dir)
+        executer.withArgument("-Pintegrated")
+        succeeds('build')
+
+        then:
+        result.assertTasksExecuted(
+            ":compositeBuild-projectC",
+            ":projectC:compileJava",
+            ":projectC:processResources",
+            ":projectC:classes",
+            ":projectC:jar",
+            ":b2:compileJava",
+            ":b2:processResources",
+            ":b2:classes",
+            ":b2:jar",
+            ":b2:assemble")
     }
 
     private void tweakProject(TestFile projectDir = sample.dir) {

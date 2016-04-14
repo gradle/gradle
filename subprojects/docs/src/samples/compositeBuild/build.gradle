@@ -6,6 +6,11 @@ task showDependencies << {
     executeTask(connection, "projectA", ":dependencies")
 }
 
+task build << {
+    def connection = openCompositeConnection()
+    executeTask(connection, "projectB", ":b2:assemble")
+}
+
 task publishAll << {
     def connection = openCompositeConnection()
     executeTask(connection, "projectC", ":uploadArchives")
