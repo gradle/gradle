@@ -101,6 +101,14 @@ With this version of Gradle proper class relocation has been implemented
 
 `ComponentModelBasePlugin` can no longer be applied using id `component-base`. Its new id is `component-model-base`.
 
+### JAR metadata and Manifest content encoding
+
+Previous versions of Gradle used to encode JAR/WAR/EAR files metadata and Manifests content using the platform default character set instead of UTF-8. Both are bugs and have been fixed in this release, see the related fixed issues above.
+
+In order to keep backward compatibility, merged manifests are still read using the platform default character set.
+
+If necessary, convenience properties have been added to [`Jar`](dsl/org.gradle.api.tasks.bundling.Jar.html), [`War`](dsl/org.gradle.api.tasks.bundling.War.html), [`Ear`](dsl/org.gradle.plugins.ear.Ear.html) tasks and both [`Manifest`](javadoc/org/gradle/api/java/archives/Manifest.html) and [`ManifestMergeSpec`](javadoc/org/gradle/api/java/archives/ManifestMergeSpec.html) types to control which character set to use when merging manifests.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
