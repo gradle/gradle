@@ -51,16 +51,23 @@ mainClassName = 'TestClient'
 """
         file('src/main/java/TestClient.java') << """
 import org.gradle.tooling.GradleConnector;
+import org.gradle.tooling.ProjectConnection;
+import java.io.File;
+import java.net.URI;
 
 public class TestClient {
     public static void main(String[] args) {
         try {
-            GradleConnector.newConnector();
-        } catch(Exception t) {
+            ProjectConnection connection = GradleConnector
+                .newConnector()
+                .forProjectDirectory(new File(new URI("${projectDir.toURI()}")))
+                .useInstallation(new File(new URI("${buildContext.gradleHomeDir.toURI()}")))
+                .connect();
+            connection.newBuild().run();
+        } catch(Throwable t) {
             t.printStackTrace(System.out);
-            System.exit(0);
         }
-        System.exit(1);
+        System.exit(0);
     }
 }
 """
@@ -95,7 +102,7 @@ public class TestClient {
         executer.workingDir(projectDir)
         executer.standardOutput = outStr
         executer.commandLine("build/install/test/bin/test")
-        executer.run().assertNormalExitValue()
+        executer.run()
         println outStr
         return outStr.toString()
     }
