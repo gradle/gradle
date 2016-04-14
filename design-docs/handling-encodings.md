@@ -21,10 +21,8 @@ specifications prevail.
 <a name="impl-notes"></a>
 ## Implementation notes
 
-When writing tests, the `CP1047` character set, aka. EBCDIC, is a good candidate as it is
-[very different](https://kb.iu.edu/d/aesh) than `ASCII` and its cousins.
-It makes it very easy to exhibit problems when encoding/decoding with wrong character sets.
-Almost all characters turn into mojibakes.
+When it comes to testing character encoding related issues, a good candidate is the `€` symbol which is encoded
+differently in `ISO-8859-15` (`0xA4`) than in `UTF-8` (`0x20AC`).
 
 <a name="jar"></a>
 ## About ZIP/JAR
