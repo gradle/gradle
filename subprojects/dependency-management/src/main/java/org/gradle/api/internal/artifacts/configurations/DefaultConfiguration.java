@@ -21,7 +21,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
@@ -394,13 +393,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void markReferencedProjectConfigurationsObserved(final InternalState requestedState) {
+        // TODO:DAZ See if we can use the ProjectComponentRegistry here.
         for (ResolvedProjectConfiguration projectResult : cachedResolverResults.getResolvedLocalComponents().getResolvedProjectConfigurations()) {
-            try {
-                ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
+            ProjectInternal project = projectFinder.findProject(projectResult.getId().getProjectPath());
+            if (project != null) {
                 ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
                 targetConfig.markAsObserved(requestedState);
-            } catch (UnknownProjectException e) {
-                // TODO:DAZ Don't use exception for flow control (even better, use the ProjectComponentRegistry here)
             }
         }
     }

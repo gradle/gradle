@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
+import org.gradle.api.UnknownProjectException;
 import org.gradle.api.internal.project.ProjectInternal;
 
-public interface ProjectFinder {
-    /**
-     * Locates the project with the provided path, failing if not found.
-     *
-     * @param path Can be relative or absolute
-     * @return The project belonging to the path, never null.
-     */
-    ProjectInternal getProject(String path);
+public class UnknownProjectFinder implements ProjectFinder {
+    private final String exceptionMessage;
 
-    /**
-     * Locates the project with the provided path, or <code>null</code> if not found.
-     *
-     * @param path Can be relative or absolute
-     * @return The project belonging to the path, or null if not found.
-     */
-    ProjectInternal findProject(String path);
+    public UnknownProjectFinder(String exceptionMessage) {
+        this.exceptionMessage = exceptionMessage;
+    }
+
+    @Override
+    public ProjectInternal findProject(String path) {
+        return null;
+    }
+
+    @Override
+    public ProjectInternal getProject(String path) {
+        throw new UnknownProjectException(exceptionMessage);
+    }
 }

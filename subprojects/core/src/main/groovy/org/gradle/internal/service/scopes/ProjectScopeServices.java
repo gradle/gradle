@@ -155,6 +155,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             public ProjectInternal getProject(String path) {
                 return project.project(path);
             }
+
+            @Override
+            public ProjectInternal findProject(String path) {
+                return project.findProject(path);
+            }
         };
     }
 
