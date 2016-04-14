@@ -28,11 +28,13 @@ public class HasCompatibilityMapperAction {
 
     private final Action<SourceObjectMapping> taskPropertyHandlerMapper;
     private final Action<SourceObjectMapping> ideaProjectCompatibilityMapper;
+    private final Action<SourceObjectMapping> eclipseProjectDependencyCompatibilityMapper;
     private final Action<SourceObjectMapping> gradleProjectIdentifierMapper;
 
     public HasCompatibilityMapperAction(VersionDetails versionDetails) {
         taskPropertyHandlerMapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
         ideaProjectCompatibilityMapper = new IdeaProjectCompatibilityMapper(versionDetails);
+        eclipseProjectDependencyCompatibilityMapper = new EclipseProjectDependencyCompatibilityMapper(versionDetails);
         gradleProjectIdentifierMapper = new GradleProjectIdentifierMapping();
     }
 
@@ -50,6 +52,7 @@ public class HasCompatibilityMapperAction {
         return CompositeMappingAction.builder()
             .add(taskPropertyHandlerMapper)
             .add(ideaProjectCompatibilityMapper)
+            .add(eclipseProjectDependencyCompatibilityMapper)
             .add(gradleProjectIdentifierMapper)
             .add(requestScopedMapping)
             .build();

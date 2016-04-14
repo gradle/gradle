@@ -15,7 +15,10 @@
  */
 package org.gradle.tooling.model.eclipse;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.ProjectDependency;
+
+import java.io.File;
 
 /**
  * Represents a dependency on another Eclipse project.
@@ -24,9 +27,18 @@ public interface EclipseProjectDependency extends ProjectDependency {
     /**
     * Returns the target of this dependency.
     *
-    * @return The target project. Does not return null.
+    * @return The target project, or null for a dependency on a different build within a composite.
     */
     HierarchicalEclipseProject getTargetProject();
+
+    /**
+     * Returns the project directory of the target eclipse project.
+     *
+     * @return The target project directory, never null.
+     * @since 2.14
+     */
+    @Incubating
+    File getTargetProjectDirectory();
 
     /**
      * Returns the path to use for this project dependency.

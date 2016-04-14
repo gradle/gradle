@@ -138,7 +138,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
                 // TODO:DAZ Better handling of project dependencies within a composite
                 DefaultEclipseProject targetProject = projectMapping.get(projectDependency.getGradlePath());
                 if (targetProject == null) {
-                    projectDependencies.add(new DefaultEclipseProjectDependency(projectDependency.getGradlePath(), null, false));
+                    projectDependencies.add(new DefaultEclipseProjectDependency(projectDependency.getGradlePath(), (File) null, false));
                 } else {
                     projectDependencies.add(new DefaultEclipseProjectDependency(path, targetProject, projectDependency.isExported()));
                 }
