@@ -58,7 +58,48 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         handler.flatDir([name: 'libs'] + [dirs: ['a', 'b']]).is(repository)
     }
 
-    public void testMavenCentralWithNoArgs() {
+    def testJcenterWithNoArgs() {
+        when:
+        MavenArtifactRepository repository = Mock(TestMavenArtifactRepository) { getName() >> "name" }
+        1 * repositoryFactory.createJCenterRepository() >> repository
+        repository.getName() >> "name"
+
+        then:
+        handler.jcenter().is(repository)
+    }
+
+    def createJcenterUsingAction() {
+        when:
+        def repository = Mock(TestMavenArtifactRepository) { getName() >> "name" }
+        def action = Mock(Action)
+        1 * repositoryFactory.createJCenterRepository() >> repository
+
+        then:
+        handler.jcenter(action).is repository
+    }
+
+    def testGradlePluginPortalWithNoArgs() {
+        when:
+        MavenArtifactRepository repository = Mock(TestMavenArtifactRepository) { getName() >> "name" }
+        1 * repositoryFactory.createGradlePluginPortalRepository() >> repository
+        repository.getName() >> "name"
+
+        then:
+        handler.gradlePluginPortal().is(repository)
+    }
+
+    def testGradlePluginPortalWithMap() {
+        when:
+        MavenArtifactRepository repository = Mock(TestMavenArtifactRepository) { getName() >> "name" }
+        1 * repositoryFactory.createGradlePluginPortalRepository() >> repository
+        1 * repository.setArtifactUrls(["abc"])
+        repository.getName() >> "name"
+
+        then:
+        handler.gradlePluginPortal(artifactUrls: ["abc"]).is(repository)
+    }
+
+    def testMavenCentralWithNoArgs() {
         when:
         MavenArtifactRepository repository = Mock(TestMavenArtifactRepository) { getName() >> "name" }
         1 * repositoryFactory.createMavenCentralRepository() >> repository
@@ -68,7 +109,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         handler.mavenCentral().is(repository)
     }
 
-    public void testMavenCentralWithMap() {
+    def testMavenCentralWithMap() {
         when:
         MavenArtifactRepository repository = Mock(TestMavenArtifactRepository) { getName() >> "name" }
         1 * repositoryFactory.createMavenCentralRepository() >> repository
@@ -89,7 +130,7 @@ class DefaultRepositoryHandlerTest extends DefaultArtifactRepositoryContainerTes
         handler.mavenLocal().is(repository)
     }
 
-    public void createIvyRepositoryUsingClosure() {
+    def createIvyRepositoryUsingClosure() {
         when:
         def repository = Mock(TestIvyArtifactRepository) { getName() >> "name" }
         1 * repositoryFactory.createIvyRepository() >> repository

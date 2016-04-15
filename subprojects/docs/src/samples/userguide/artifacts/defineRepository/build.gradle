@@ -50,6 +50,12 @@ repositories {
 }
 //END SNIPPET maven-ivy-s3-repository
 
+//START SNIPPET gradle-plugin-portal
+repositories {
+    gradlePluginPortal()
+}
+//END SNIPPET gradle-plugin-portal
+
 //START SNIPPET maven-central
 repositories {
     mavenCentral()

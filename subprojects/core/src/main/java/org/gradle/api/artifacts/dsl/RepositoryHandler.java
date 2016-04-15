@@ -124,20 +124,55 @@ public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
      * Adds a repository which looks in the Gradle's official repository for dependencies. The URL used to access this repository is
-     * {@value org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler#PLUGIN_REPO_URL}. The name of the repository is
+     * {@value org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler#GRADLE_PLUGIN_PORTAL_REPO_URL}.
+     *
+     * <p>The following parameter are accepted as keys for the map:
+     *
+     * <table summary="Shows property keys and associated values">
+     * <tr><th>Key</th>
+     *     <th>Description of Associated Value</th></tr>
+     * <tr><td><code>name</code></td>
+     *     <td><em>(optional)</em> The name of the repository. The default is
+     * {@value org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler#DEFAULT_PLUGIN_REPO_NAME} is used as the name. A name
+     * must be unique amongst a repository group.
+     * </td></tr>
+     * <tr><td><code>artifactUrls</code></td>
+     *     <td>A single jar repository or a collection of jar repositories containing additional artifacts not found in the Gradle's official repository.
+     * But be aware that the POM must exist in Maven central.
+     * The provided values are evaluated as per {@link org.gradle.api.Project#uri(Object)}.</td></tr>
+     * </table>
+     *
+     * <p>Examples:
+     * <pre autoTested="">
+     * repositories {
+     *     gradlePluginPortal artifactUrls: ["http://www.mycompany.com/artifacts1", "http://www.mycompany.com/artifacts2"]
+     *     gradlePluginPortal name: "nonDefaultName", artifactUrls: ["http://www.mycompany.com/artifacts1"]
+     * }
+     * </pre>
+     * </p>
+     *
+     * @param args A list of urls of repositories to look for artifacts only.
+     * @return the added repository
+     */
+    MavenArtifactRepository gradlePluginPortal(Map<String, ?> args);
+
+    /**
+     * Adds a repository which looks in the Gradle's official repository for dependencies. The URL used to access this repository is
+     * {@value org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler#GRADLE_PLUGIN_PORTAL_REPO_URL}. The name of the repository is
      * {@value org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler#DEFAULT_PLUGIN_REPO_NAME}.
      *
      * <p>Examples:
      * <pre autoTested="">
      * repositories {
-     *     pluginRepo()
+     *     gradlePluginPortal()
      * }
      * </pre>
      * </p>
      *
      * @return the added resolver
+     * @see #gradlePluginPortal(java.util.Map)
      */
-    MavenArtifactRepository pluginRepo();
+    MavenArtifactRepository gradlePluginPortal();
 
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is

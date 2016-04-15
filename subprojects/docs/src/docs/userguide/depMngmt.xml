@@ -646,6 +646,12 @@
             </thead>
             <tr>
                 <td>
+                    <link linkend="sub:gradle_plugin_portal">Gradle Official Plugin Repository</link>
+                </td>
+                <td>A pre-configured repository that looks for dependencies in Gradle Official Plugin Repository.</td>
+            </tr>
+            <tr>
+                <td>
                     <link linkend="sub:maven_central">Maven central repository</link>
                 </td>
                 <td>A pre-configured repository that looks for dependencies in Maven Central.</td>
@@ -681,6 +687,16 @@
                 <td>A simple repository on the local filesystem. Does not support any meta-data formats.</td>
             </tr>
         </table>
+
+        <section id='sub:gradle_plugin_portal'>
+            <title>Gradle Official Plugin Repository</title>
+            <para>To add the central Gradle Official Plugin repository (<ulink url='https://plugins.gradle.org/m2/'/>) simply add this to your build script:
+            </para>
+            <sample id="gradlePluginPortal" dir="userguide/artifacts/defineRepository" title="Adding Gradle Official Plugin Repository">
+                <sourcefile file="build.gradle" snippet="gradle-plugin-portal"/>
+            </sample>
+            <para>Now Gradle will look for your dependencies in this repository.</para>
+        </section>
 
         <section id='sub:maven_central'>
             <title>Maven central repository</title>
