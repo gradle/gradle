@@ -18,8 +18,10 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.testkit.runner.fixtures.NoDebug
+import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import spock.lang.IgnoreIf
 
+@NonCrossVersion
 class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerIntegrationTest {
     @IgnoreIf({AvailableJavaHomes.jdk6 == null})
     @NoDebug
