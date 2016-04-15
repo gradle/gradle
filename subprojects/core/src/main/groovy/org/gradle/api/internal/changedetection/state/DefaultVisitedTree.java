@@ -31,7 +31,7 @@ class DefaultVisitedTree implements VisitedTree {
     private final boolean shareable;
     private final long nextId;
     private final Collection<File> missingFiles;
-    private Long assignedId;
+    private TreeSnapshot treeSnapshot;
 
     public DefaultVisitedTree(ImmutableList<FileTreeElement> entries, boolean shareable, long nextId, Collection<File> missingFiles) {
         this.entries = entries;
@@ -46,7 +46,14 @@ class DefaultVisitedTree implements VisitedTree {
     }
 
     @Override
-    public TreeSnapshot maybeCreateSnapshot(final FileSnapshotter fileSnapshotter, final StringInterner stringInterner) {
+    public synchronized TreeSnapshot maybeCreateSnapshot(final FileSnapshotter fileSnapshotter, final StringInterner stringInterner) {
+        if (treeSnapshot == null) {
+            treeSnapshot = createTreeSnapshot(fileSnapshotter, stringInterner);
+        }
+        return treeSnapshot;
+    }
+
+    private TreeSnapshot createTreeSnapshot(final FileSnapshotter fileSnapshotter, final StringInterner stringInterner) {
         final Collection<FileSnapshotWithKey> fileSnapshots = CollectionUtils.collect(entries, new Transformer<FileSnapshotWithKey, FileTreeElement>() {
             @Override
             public FileSnapshotWithKey transform(FileTreeElement fileTreeElement) {
@@ -65,31 +72,7 @@ class DefaultVisitedTree implements VisitedTree {
                 fileSnapshots.add(new FileSnapshotWithKey(getInternedAbsolutePath(file, stringInterner), MissingFileSnapshot.getInstance()));
             }
         }
-        return new TreeSnapshot() {
-            @Override
-            public boolean isShareable() {
-                return shareable;
-            }
-
-            @Override
-            public Collection<FileSnapshotWithKey> getFileSnapshots() {
-                return fileSnapshots;
-            }
-
-            @Override
-            public Long getAssignedId() {
-                return assignedId;
-            }
-
-            @Override
-            public synchronized Long maybeStoreEntry(Action<Long> storeEntryAction) {
-                if (assignedId == null) {
-                    assignedId = nextId;
-                    storeEntryAction.execute(assignedId);
-                }
-                return assignedId;
-            }
-        };
+        return new DefaultTreeSnapshot(fileSnapshots, shareable, nextId);
     }
 
     private String getInternedAbsolutePath(File file, StringInterner stringInterner) {
@@ -99,5 +82,42 @@ class DefaultVisitedTree implements VisitedTree {
     @Override
     public boolean isShareable() {
         return shareable;
+    }
+
+    private static class DefaultTreeSnapshot implements TreeSnapshot {
+        private final Collection<FileSnapshotWithKey> fileSnapshots;
+        private final boolean shareable;
+        private final long nextId;
+        private Long assignedId;
+
+        public DefaultTreeSnapshot(Collection<FileSnapshotWithKey> fileSnapshots, boolean shareable, long nextId) {
+            this.fileSnapshots = fileSnapshots;
+            this.shareable = shareable;
+            this.nextId = nextId;
+        }
+
+        @Override
+        public boolean isShareable() {
+            return shareable;
+        }
+
+        @Override
+        public Collection<FileSnapshotWithKey> getFileSnapshots() {
+            return fileSnapshots;
+        }
+
+        @Override
+        public Long getAssignedId() {
+            return assignedId;
+        }
+
+        @Override
+        public synchronized Long maybeStoreEntry(Action<Long> storeEntryAction) {
+            if (assignedId == null) {
+                assignedId = nextId;
+                storeEntryAction.execute(assignedId);
+            }
+            return assignedId;
+        }
     }
 }
