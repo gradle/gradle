@@ -18,8 +18,6 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.testkit.runner.fixtures.NoDebug
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerIntegrationTest {
@@ -35,14 +33,4 @@ class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerInteg
         then:
         result.output.contains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
     }
-
-    @Requires(TestPrecondition.JDK6)
-    def "warns when running build on Java 6"() {
-        when:
-        def result = runner().build()
-
-        then:
-        result.output.contains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
-    }
-
 }
