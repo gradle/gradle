@@ -32,7 +32,8 @@ import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.TimeProvider;
 
 /**
- * Adapts various events to build a {@link BuildProfile} model, and then notifies a {@link ReportGeneratingProfileListener} when the model is ready.
+ * Adapts various events to build a {@link BuildProfile} model, and then notifies a {@link ReportGeneratingProfileListener} or
+ * a {@link ReportAsJsonGeneratingProfileListener} when the model is ready.
  */
 public class ProfileEventAdapter implements BuildListener, ProjectEvaluationListener, TaskExecutionListener, DependencyResolutionListener, BuildCompletionListener {
     private final BuildRequestMetaData buildMetaData;

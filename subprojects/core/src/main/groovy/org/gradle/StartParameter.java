@@ -72,6 +72,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     private boolean dryRun;
     private boolean rerunTasks;
     private boolean profile;
+    private boolean profileAsJson;
     private boolean continueOnFailure;
     private boolean offline;
     private File projectCacheDir;
@@ -230,6 +231,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
         p.setConsoleOutput(getConsoleOutput());
         p.setShowStacktrace(getShowStacktrace());
         p.profile = profile;
+        p.profileAsJson = profileAsJson;
         p.continueOnFailure = continueOnFailure;
         p.offline = offline;
         p.rerunTasks = rerunTasks;
@@ -567,6 +569,22 @@ public class StartParameter implements LoggingConfiguration, Serializable {
      */
     public boolean isProfile() {
         return profile;
+    }
+
+    /**
+     * Specifies if a profile report should be generated as json data.
+     *
+     * @param profileAsJson true if a profile report should be generated
+     */
+    public void setProfileAsJson(boolean profileAsJson) {
+        this.profileAsJson = profileAsJson;
+    }
+
+    /**
+     * Returns true if a profile report will be generated as json data.
+     */
+    public boolean isProfileAsJson() {
+        return profileAsJson;
     }
 
     /**

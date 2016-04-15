@@ -275,6 +275,12 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
     }
 
     @Test
+    public void withProfileAsJson() {
+        expectedProfileAsJson = true;
+        checkConversion("--profile-as-json");
+    }
+
+    @Test
     public void withContinue() {
         expectedContinue = true;
         checkConversion("--continue");
