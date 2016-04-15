@@ -95,12 +95,17 @@ public class TaskExecutionServices {
         return new CachingTreeVisitor();
     }
 
+    CachingTreeVisitorCleaner createTreeVisitorCleaner(CachingTreeVisitor cachingTreeVisitor, Gradle gradle) {
+        return new CachingTreeVisitorCleaner(cachingTreeVisitor, gradle);
+    }
+
     TreeSnapshotRepository createTreeSnapshotCache(TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner) {
         return new TreeSnapshotRepository(cacheAccess, stringInterner);
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter, FileSnapshotter fileSnapshotter,
-                                                                  StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem, FileCollectionFactory fileCollectionFactory, CachingTreeVisitor treeVisitor, TreeSnapshotRepository treeSnapshotRepository) {
+                                                                  StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem, FileCollectionFactory fileCollectionFactory,
+                                                                  CachingTreeVisitor treeVisitor, TreeSnapshotRepository treeSnapshotRepository, CachingTreeVisitorCleaner treeVisitorCleaner) {
         FileCollectionSnapshotter fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileResolver, treeVisitor, treeSnapshotRepository);
         FileCollectionSnapshotter discoveredFileCollectionSnapshotter = new MinimalFileSetSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileResolver, fileSystem);
 
