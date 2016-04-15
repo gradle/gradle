@@ -17,35 +17,40 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.StartParameter;
-import org.gradle.initialization.GradleLauncher;
-import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.*;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 
 import java.io.File;
 
 public class DefaultCompositeProjectArtifactBuilder implements CompositeProjectArtifactBuilder {
     private final CompositeProjectComponentRegistry registry;
+    private final GradleLauncherFactory gradleLauncherFactory;
     private final StartParameter requestedStartParameter;
     private final ServiceRegistry serviceRegistry;
 
     public DefaultCompositeProjectArtifactBuilder(CompositeProjectComponentRegistry registry,
+                                                  GradleLauncherFactory gradleLauncherFactory,
                                                   StartParameter requestedStartParameter,
                                                   ServiceRegistry serviceRegistry) {
         this.registry = registry;
+        this.gradleLauncherFactory = gradleLauncherFactory;
         this.requestedStartParameter = requestedStartParameter;
         this.serviceRegistry = serviceRegistry;
     }
 
     @Override
     public void build(String projectPath, Iterable<String> taskNames) {
-        GradleLauncherFactory gradleLauncherFactory = serviceRegistry.get(GradleLauncherFactory.class);
-
         File projectDirectory = registry.getProjectDirectory(projectPath);
         StartParameter param = requestedStartParameter.newBuild();
         param.setProjectDir(projectDirectory);
         param.setTaskNames(taskNames);
 
-        GradleLauncher launcher = gradleLauncherFactory.newInstance(param);
+        ServiceRegistry buildSessionServices = new BuildSessionScopeServices(serviceRegistry, requestedStartParameter, ClassPath.EMPTY);
+        DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer());
+
+        GradleLauncher launcher = gradleLauncherFactory.newInstance(param, requestContext, buildSessionServices);
         try {
             launcher.run();
         } finally {

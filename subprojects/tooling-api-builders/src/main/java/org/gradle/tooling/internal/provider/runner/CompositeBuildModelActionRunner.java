@@ -160,7 +160,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             .parent(sharedServices)
             .build();
         compositeServices.add(CompositeBuildContext.class, context);
-        compositeServices.addProvider(new CompositeScopeServices());
+        compositeServices.addProvider(new CompositeScopeServices(modelAction.getStartParameter(), compositeServices));
         return compositeServices;
     }
 

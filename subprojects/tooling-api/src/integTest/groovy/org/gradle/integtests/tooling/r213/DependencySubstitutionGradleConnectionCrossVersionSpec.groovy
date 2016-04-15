@@ -103,6 +103,17 @@ compile
                 configurations.compile.each { println it }
             }
 """
+        buildB.buildFile << """
+            dependencies {
+                compile "org.test:buildC:1.0"
+            }
+"""
+        def buildC = singleProjectBuild('buildC') {
+            buildFile << """
+                apply plugin: 'java'
+"""
+        }
+        builds << buildC
 
         when:
         withCompositeConnection(builds) { connection ->
@@ -114,12 +125,23 @@ compile
         }
 
         then:
+        println output
         result.assertTasksExecuted(
             ":compositeBuild-buildB",
+            ":buildB:compositeBuild-buildC",
+            ":buildC:compileJava",
+            ":buildC:processResources",
+            ":buildC:classes",
+            ":buildC:jar",
             ":buildB:compileJava",
             ":buildB:processResources",
             ":buildB:classes",
             ":buildB:jar",
+            ":compositeBuild-buildC",
+            ":buildC:compileJava",
+            ":buildC:processResources",
+            ":buildC:classes",
+            ":buildC:jar",
             ":printConfiguration")
     }
 
