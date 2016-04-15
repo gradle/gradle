@@ -134,71 +134,6 @@ This was done to prevent issues where Gradle would attempt to delete files outsi
 
 This was contributed by [Ethan Hall](https://github.com/ethankhall).
 
-### Generated POM files now include classifiers and all artifacts for project dependencies
-
-When publishing from a multi-project build to a Maven repository, Gradle needs to map project dependencies to `<dependency>` declarations in the generated POM file. Previously, Gradle was ignoring the classifier attribute on any project artifacts, and would simply create a single `<dependency>` entry in the POM for any project dependency. This meant that the published POM for a project didn't contain the necessary dependencies to allow that project to be propertly resolved from a Maven repository.
-
-The mapping of project dependencies into POM file dependencies has been improved, and Gradle will now produce correct POM files for the following cases:
-
- - When the depended-on project configuration produces a single artifact with a classifier: this classifier will be included in the POM `<dependency>` entry.
- - The depended-on project configuration produces multiple artifacts: a `<dependency>` entry will be created for each artifact, with the appropriate classifier attribute for each.
-
-As an example, given the following project definitions in Gradle:
-
-    project(':project1') {
-        dependencies {
-            compile project(':project2')
-            testCompile project(path: 'project2', configuration: 'testRuntime')
-        }
-    }
-
-    project(':project2') {
-        jar {
-            classifier = 'defaultJar'
-        }
-
-        task testJar(type: Jar, dependsOn: classes) {
-            from sourceSets.test.output
-            classifier = 'tests'
-        }
-
-        artifacts {
-            testRuntime  testJar
-        }
-    }
-
-The generated POM file for `project1` will include these dependency entries:
-
-    ...
-    <dependencies>
-      <dependency>
-        <groupId>org.gradle.test</groupId>
-        <artifactId>project2</artifactId>
-        <version>1.9</version>
-        <classifier>defaultJar</classifier>
-        <scope>compile</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.gradle.test</groupId>
-        <artifactId>project2</artifactId>
-        <version>1.9</version>
-        <classifier>defaultJar</classifier>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.gradle.test</groupId>
-        <artifactId>project2</artifactId>
-        <version>1.9</version>
-        <classifier>tests</classifier>
-        <scope>test</scope>
-      </dependency>
-    </dependencies>
-    ...
-
-Previously, only a single `<dependency>` entry would have been generated for 'project2', omitting the 'classifier' attribute altogether.
-
-Many thanks to [Raymond Navarette](https://github.com/rnavarette) for contributing this feature.
-
 ### Clickable links to sections in User Guide
 
 The Gradle User Guide now includes clickable links to section headers.
@@ -246,10 +181,6 @@ If you need `project.delete('somepath')` to follow symlinks, replace it with:
         delete 'somepath'
         followSymlinks = true
     }
-
-### Additional POM `<dependency>` attributes generated for some project dependencies
-
-As described above, generated POM files now include classifiers and all artifacts for project dependencies. This improvement may break existing Gradle builds, particularly those that include a specific workaround for the previous behaviour. These workarounds should no longer be required, and may need to be removed to ensure that Gradle 2.13 will create correct `<dependency>` attributes for project dependencies.
 
 ### Task input property names now follow the JavaBean specification
 
@@ -325,7 +256,6 @@ We would like to thank the following community members for making contributions 
 * [Guillaume Laforge](https://github.com/glaforge) - remove extraneous `public` keywords from build.gradle
 * [Peter Ledbrook](https://github.com/pledbrook) - clickable section headers
 * [Evgeny Mandrikov](https://github.com/Godin) - upgrade default JaCoCo version to 0.7.6
-* [Raymond Navarette](https://github.com/rnavarette) - add classifiers for project dependencies in generated POM files ([GRADLE-3030](https://issues.gradle.org/browse/GRADLE-3030))
 * [Pierre-Etienne Poirot](https://github.com/pepoirot) - support for stylesheets with FindBugs and Checkstyle
 * [Oliver Reissig](https://github.com/oreissig) - improve error message when `tools.jar` is not found
 * [Andrew Reitz](https://github.com/pieces029) - fix a broken link to the groovy documentation
