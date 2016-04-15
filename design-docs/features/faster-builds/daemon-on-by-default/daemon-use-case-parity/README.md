@@ -32,6 +32,8 @@ Also deprecate changing the log level from build logic. This kind of global stat
 
 - Handle enums and changing buildscript classpath [GRADLE-3018](https://issues.gradle.org/browse/GRADLE-3018)
 
+## Non-blocking
+
 ### Story - Build logic prompts user for password
 
 (out of scope for enabling daemon by default)
