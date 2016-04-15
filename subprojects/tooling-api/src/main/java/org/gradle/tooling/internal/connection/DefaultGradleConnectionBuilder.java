@@ -27,9 +27,8 @@ import org.gradle.tooling.internal.consumer.DefaultCompositeConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.DistributionFactory;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
@@ -38,12 +37,9 @@ import java.util.concurrent.TimeUnit;
 
 public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderInternal {
     private static final String WARNING_MESSAGE =
-        "Integrated composite build is an incubating feature.\n"
-        + "   - All participant builds will be executed in a single daemon process.\n"
+        "   - All participant builds will be executed in a single daemon process.\n"
         + "   - Java home settings for participants will be ignored.\n"
-        + "   - Immutable JVM arguments (e.g. memory settings) for participants will be ignored.\n";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGradleConnectionBuilder.class);
+        + "   - Immutable JVM arguments (e.g. memory settings) will be ignored.\n";
 
     private final Set<DefaultGradleConnectionParticipantBuilder> participantBuilders = Sets.newLinkedHashSet();
     private final GradleConnectionFactory gradleConnectionFactory;
@@ -95,9 +91,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
         DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
 
         if (integrated) {
-            LOGGER.warn(WARNING_MESSAGE);
-            // TODO:DAZ Work out why we can't use the deprecation logger (get NoClassDefFoundError in forkingIntegTest)
-            // DeprecationLogger.incubatingFeatureUsed("Integrated composite build", WARNING_MESSAGE);
+            DeprecationLogger.incubatingFeatureUsed("Integrated composite build", WARNING_MESSAGE);
             Distribution distribution = coordinatorDistribution;
             if (distribution == null) {
                 distribution = distributionFactory.getDistribution(GradleVersion.current().getVersion());
