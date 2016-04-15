@@ -114,7 +114,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
              */
             FileResolver fileResolver = fileLookup.getFileResolver(new File("").getAbsoluteFile());
             final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
-            return new CustomRepositoryPluginResolver(versionSelectorScheme, dependencyResolutionServicesFactory);
+            return new CustomRepositoryPluginResolver(versionSelectorScheme, fileResolver, dependencyResolutionServicesFactory);
         }
 
         private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider) {

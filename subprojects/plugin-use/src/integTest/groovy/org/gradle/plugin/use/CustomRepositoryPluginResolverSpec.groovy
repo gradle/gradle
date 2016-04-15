@@ -53,7 +53,11 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
         args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir()}")
     }
 
-    def "can resolve plugin from maven-repo"() {
+    def useRelativeCustomRepository() {
+        args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir().getName()}")
+    }
+
+    def "can resolve plugin from absolute maven-repo"() {
         given:
         buildScript """
           plugins {
@@ -63,6 +67,22 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
 
         when:
         useCustomRepository()
+
+        then:
+        succeeds("pluginTask")
+        output.contains("from plugin")
+    }
+
+    def "can resolve plugin from relative maven-repo"() {
+        given:
+        buildScript """
+          plugins {
+              id "org.example.plugin" version "1.1"
+          }
+        """
+
+        when:
+        useRelativeCustomRepository()
 
         then:
         succeeds("pluginTask")
@@ -81,7 +101,7 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
         """
 
         when:
-        args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir()}")
+        useCustomRepository()
 
         then:
         succeeds("pluginTask")
@@ -124,6 +144,25 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
 - User-defined Plugin Repository (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
 - Gradle Central Plugin Repository (no 'org.example.foo' plugin available - see https://plugins.gradle.org for available plugins)"""
         )
+    }
+
+    def "Works with subprojects and relative repo specification."() {
+        given:
+        def subprojectScript = file("subproject/build.gradle")
+        subprojectScript << """
+          plugins {
+              id "org.example.plugin" version "1.1"
+          }
+        """
+        settingsFile << """
+          include 'subproject'
+        """
+
+        when:
+        useRelativeCustomRepository()
+
+        then:
+        succeeds("subproject:pluginTask")
     }
 
     @Requires(TestPrecondition.ONLINE)

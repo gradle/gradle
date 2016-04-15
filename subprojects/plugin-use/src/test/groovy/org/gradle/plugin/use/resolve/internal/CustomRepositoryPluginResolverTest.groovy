@@ -18,6 +18,7 @@ package org.gradle.plugin.use.resolve.internal
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.use.internal.DefaultPluginRequest
 import org.gradle.plugin.use.internal.PluginRequest
@@ -32,8 +33,11 @@ class CustomRepositoryPluginResolverTest extends Specification {
 
     def versionSelectorScheme = new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme())
     def result = Mock(PluginResolutionResult)
+    def fileResolver = Mock(FileResolver) {
+        1 * resolveUri("test") >> URI.create("test")
+    }
 
-    def resolver = new CustomRepositoryPluginResolver(versionSelectorScheme, null);
+    def resolver = new CustomRepositoryPluginResolver(versionSelectorScheme, fileResolver, null);
 
     PluginRequest request(String id, String version = null) {
         new DefaultPluginRequest(id, version, 1, new StringScriptSource("test", "test"))

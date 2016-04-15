@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.Factory;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
@@ -35,10 +36,13 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
 
     private final VersionSelectorScheme versionSelectorScheme;
     private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
+    private final FileResolver fileResolver;
     private String repoUrl;
 
-    public CustomRepositoryPluginResolver(VersionSelectorScheme versionSelectorScheme, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
+    public CustomRepositoryPluginResolver(VersionSelectorScheme versionSelectorScheme, FileResolver fileResolver,
+                                          Factory<DependencyResolutionServices> dependencyResolutionServicesFactory) {
         this.versionSelectorScheme = versionSelectorScheme;
+        this.fileResolver = fileResolver;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
     }
 
@@ -110,6 +114,9 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
     private String getRepoUrl() {
         if (repoUrl == null) {
             repoUrl = System.getProperty(REPO_SYSTEM_PROPERTY, UNSET_REPO_SYSTEM_PROPERTY);
+            if (!repoUrl.equals(UNSET_REPO_SYSTEM_PROPERTY)) {
+                repoUrl = fileResolver.resolveUri(repoUrl).toString();
+            }
         }
         return repoUrl;
     }
