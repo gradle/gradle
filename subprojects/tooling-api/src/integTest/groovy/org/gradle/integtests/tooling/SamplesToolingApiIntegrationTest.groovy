@@ -174,6 +174,7 @@ repositories {
                     .requireGradleHome()
                     .inDirectory(dir)
                     .withTasks(task)
+                    .expectDeprecationWarning() // tapi on java 6
                     .run()
         } catch (Exception e) {
             throw new IntegrationTestHint(e);

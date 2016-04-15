@@ -37,6 +37,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         tweakProject()
 
         when:
+        executer.expectDeprecationWarning() // tapi on java 6
         executer.inDirectory(sample.dir)
         succeeds('publishAll')
 
@@ -46,6 +47,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         result.assertOutputContains("Running tasks [:uploadArchives] in participant: projectA")
 
         when:
+        executer.expectDeprecationWarning() // tapi on java 6
         executer.inDirectory(sample.dir)
         succeeds('showDependencies')
 
@@ -64,6 +66,7 @@ compile - Dependencies for source set 'main'.
         tweakProject()
 
         when:
+        executer.expectDeprecationWarning() // tapi on java 6
         executer.inDirectory(sample.dir)
         executer.withArgument("-Pintegrated")
         succeeds('showDependencies')
