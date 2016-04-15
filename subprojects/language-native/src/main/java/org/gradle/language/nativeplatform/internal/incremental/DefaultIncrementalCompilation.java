@@ -32,18 +32,22 @@ public class DefaultIncrementalCompilation implements IncrementalCompilation {
         this.discoveredInputs = discoveredInputs;
     }
 
+    @Override
     public List<File> getRecompile() {
         return recompile;
     }
 
+    @Override
     public List<File> getRemoved() {
         return removed;
     }
 
+    @Override
     public CompilationState getFinalState() {
         return finalState;
     }
 
+    @Override
     public Set<File> getDiscoveredInputs() {
         return discoveredInputs;
     }

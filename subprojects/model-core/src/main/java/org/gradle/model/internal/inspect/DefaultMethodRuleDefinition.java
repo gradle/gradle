@@ -104,7 +104,7 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
 
     @Override
     public ModelRuleDescriptor getDescriptor() {
-        return new MethodModelRuleDescriptor(method);
+        return MethodModelRuleDescriptor.of(method);
     }
 
     @Override

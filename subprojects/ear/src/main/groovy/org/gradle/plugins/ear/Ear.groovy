@@ -52,6 +52,7 @@ class Ear extends Jar {
 
     Ear() {
         extension = EAR_EXTENSION
+        metadataCharset = 'UTF-8'
         lib = rootSpec.addChildBeforeSpec(mainSpec).into {
             getLibDirName()
         }

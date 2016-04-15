@@ -35,6 +35,7 @@ public class RegexBackedCSourceParser implements CSourceParser {
         this.includePattern = Pattern.compile(INCLUDE_IMPORT_PATTERN, Pattern.CASE_INSENSITIVE);
     }
 
+    @Override
     public IncludeDirectives parseSource(File sourceFile) {
         DefaultIncludeDirectives sourceIncludes = new DefaultIncludeDirectives();
         sourceIncludes.addAll(parseFile(sourceFile));

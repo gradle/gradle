@@ -35,30 +35,37 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
 
+    @Override
     public File getSharedLibraryFile() {
         return sharedLibraryFile;
     }
 
+    @Override
     public void setSharedLibraryFile(File sharedLibraryFile) {
         this.sharedLibraryFile = sharedLibraryFile;
     }
 
+    @Override
     public File getSharedLibraryLinkFile() {
         return sharedLibraryLinkFile;
     }
 
+    @Override
     public void setSharedLibraryLinkFile(File sharedLibraryLinkFile) {
         this.sharedLibraryLinkFile = sharedLibraryLinkFile;
     }
 
+    @Override
     public File getPrimaryOutput() {
         return getSharedLibraryFile();
     }
 
+    @Override
     public FileCollection getLinkFiles() {
         return getFileCollectionFactory().create(new SharedLibraryLinkOutputs());
     }
 
+    @Override
     public FileCollection getRuntimeFiles() {
         return getFileCollectionFactory().create(new SharedLibraryRuntimeOutputs());
     }
@@ -68,6 +75,7 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         return tasks.getLink();
     }
 
+    @Override
     public SharedLibraryBinarySpec.TasksCollection getTasks() {
         return tasks;
     }
@@ -77,6 +85,7 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
             super(delegate);
         }
 
+        @Override
         public LinkSharedLibrary getLink() {
             return findSingleTaskWithType(LinkSharedLibrary.class);
         }

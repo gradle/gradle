@@ -34,6 +34,7 @@ import org.gradle.testing.base.TestSuiteContainer;
 public class GoogleTestConventionPlugin implements Plugin<Project> {
 
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(GoogleTestPlugin.class);
     }

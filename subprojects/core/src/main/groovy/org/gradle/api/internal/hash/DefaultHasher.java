@@ -16,11 +16,12 @@
 package org.gradle.api.internal.hash;
 
 import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.HashValue;
 
 import java.io.File;
 
 public class DefaultHasher implements Hasher {
-    public byte[] hash(File file) {
-        return HashUtil.createHash(file, "MD5").asByteArray();
+    public HashValue hash(File file) {
+        return HashUtil.createHash(file, "MD5");
     }
 }

@@ -20,7 +20,7 @@ import org.gradle.performance.fixture.CrossBuildPerformanceResults;
 
 import java.io.File;
 
-public class CrossBuildResultsStore extends BaseCrossBuildResultsStore {
+public class CrossBuildResultsStore extends BaseCrossBuildResultsStore<CrossBuildPerformanceResults> {
 
     public CrossBuildResultsStore() {
         super(new File(System.getProperty("user.home"), ".gradle-performance-test-data/cross-build-results"));

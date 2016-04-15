@@ -33,17 +33,17 @@ import org.gradle.plugins.javascript.rhino.RhinoExtension
 import org.gradle.plugins.javascript.rhino.RhinoPlugin
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory
 import org.gradle.plugins.javascript.rhino.worker.internal.DefaultRhinoWorkerHandleFactory
-import org.gradle.process.internal.WorkerProcessBuilder
+import org.gradle.process.internal.worker.WorkerProcessFactory
 
 import javax.inject.Inject
 
 import static org.gradle.plugins.javascript.envjs.EnvJsExtension.*
 
 class EnvJsPlugin implements Plugin<Project> {
-    private final Factory<WorkerProcessBuilder> workerProcessBuilderFactory
+    private final WorkerProcessFactory workerProcessBuilderFactory
 
     @Inject
-    EnvJsPlugin(Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
+    EnvJsPlugin(WorkerProcessFactory workerProcessBuilderFactory) {
         this.workerProcessBuilderFactory = workerProcessBuilderFactory
     }
 

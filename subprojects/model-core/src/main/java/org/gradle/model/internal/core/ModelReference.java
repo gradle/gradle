@@ -18,8 +18,11 @@ package org.gradle.model.internal.core;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
+import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
 
 /**
@@ -35,6 +38,8 @@ import org.gradle.model.internal.type.ModelType;
  */
 @ThreadSafe
 public class ModelReference<T> {
+    private final static Interner<ModelReference<?>> INTERNER = Interners.newWeakInterner();
+
     @Nullable
     private final ModelPath path;
     private final ModelType<T> type;
@@ -43,6 +48,8 @@ public class ModelReference<T> {
     private final ModelNode.State state;
     @Nullable
     private final String description;
+
+    private int hashCode;
 
     private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, @Nullable ModelNode.State state, @Nullable String description) {
         this.path = path;
@@ -57,7 +64,7 @@ public class ModelReference<T> {
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type, String description) {
-        return new ModelReference<T>(path, type, null, null, description);
+        return Cast.uncheckedCast(INTERNER.intern(new ModelReference<T>(path, type, null, null, description)));
     }
 
     public static <T> ModelReference<T> of(String path, ModelType<T> type, String description) {
@@ -65,11 +72,11 @@ public class ModelReference<T> {
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type) {
-        return new ModelReference<T>(path, type, null, null, null);
+        return Cast.uncheckedCast(INTERNER.intern(new ModelReference<T>(path, type, null, null, null)));
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type, ModelNode.State state) {
-        return new ModelReference<T>(path, type, null, state, null);
+        return Cast.uncheckedCast(INTERNER.intern(new ModelReference<T>(path, type, null, state, null)));
     }
 
     public static <T> ModelReference<T> of(ModelPath path, Class<T> type) {
@@ -144,18 +151,18 @@ public class ModelReference<T> {
         if (scope.equals(this.scope)) {
             return this;
         }
-        return new ModelReference<T>(path, type, scope, state, description);
+        return Cast.uncheckedCast(INTERNER.intern(new ModelReference<T>(path, type, scope, state, description)));
     }
 
     public ModelReference<T> withPath(ModelPath path) {
-        return new ModelReference<T>(path, type, scope, state, description);
+        return Cast.uncheckedCast(INTERNER.intern(new ModelReference<T>(path, type, scope, state, description)));
     }
 
     public ModelReference<T> atState(ModelNode.State state) {
         if (state.equals(this.state)) {
             return this;
         }
-        return new ModelReference<T>(path, type, scope, state, description);
+        return Cast.uncheckedCast(INTERNER.intern(new ModelReference<T>(path, type, scope, state, description)));
     }
 
     @Override
@@ -168,15 +175,21 @@ public class ModelReference<T> {
         }
 
         ModelReference<?> that = (ModelReference<?>) o;
-        return Objects.equal(path, that.path) && Objects.equal(scope, that.scope) && type.equals(that.type) && state.equals(that.state);
+        return Objects.equal(path, that.path) && Objects.equal(scope, that.scope) && type.equals(that.type) && state.equals(that.state) && Objects.equal(description, that.description);
     }
 
     @Override
     public int hashCode() {
-        int result = path == null ? 0 : path.hashCode();
+        int result = hashCode;
+        if (result != 0) {
+            return result;
+        }
+        result = path == null ? 0 : path.hashCode();
         result = 31 * result + (scope == null ? 0 : scope.hashCode());
         result = 31 * result + type.hashCode();
         result = 31 * result + state.hashCode();
+        result = 31 * result + (description == null ? 0 : description.hashCode());
+        hashCode = result;
         return result;
     }
 

@@ -21,6 +21,9 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.*;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.cli.converter.LayoutToPropertiesConverter;
 import org.gradle.launcher.cli.converter.PropertiesToDaemonParametersConverter;
@@ -30,10 +33,6 @@ import org.gradle.launcher.daemon.client.JvmVersionDetector;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.logging.internal.OutputEventRenderer;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.tooling.internal.build.DefaultBuildEnvironment;
 import org.gradle.tooling.internal.consumer.parameters.FailsafeBuildProgressListenerAdapter;
@@ -108,6 +107,20 @@ public class ProviderConnection {
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
     }
 
+    public Object buildModels(String modelName, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
+        List<String> tasks = providerParameters.getTasks();
+        if (modelName.equals(ModelIdentifier.NULL_MODEL) && tasks == null) {
+            throw new IllegalArgumentException("No model type or tasks specified.");
+        }
+        Parameters params = initParams(providerParameters);
+        Class<?> type = new ModelMapping().getProtocolTypeFromModelName(modelName);
+
+        StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
+        ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
+        BuildAction action = new BuildModelsAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
+        return run(action, cancellationToken, listenerConfig, providerParameters, params);
+    }
+
     public Object run(InternalBuildAction<?> clientAction, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
         SerializedPayload serializedAction = payloadSerializer.serialize(clientAction);
         Parameters params = initParams(providerParameters);
@@ -149,7 +162,7 @@ public class ProviderConnection {
         } else {
             LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
             loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
-            loggingServices.get(OutputEventRenderer.class).configure(operationParameters.getBuildLogLevel());
+            loggingManager.setLevel(operationParameters.getBuildLogLevel());
             InputStream standardInput = operationParameters.getStandardInput();
             ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(loggingServices.get(OutputEventListener.class), params.daemonParams, standardInput == null ? SafeStreams.emptyInput() : standardInput);
             executer = clientServices.get(DaemonClient.class);

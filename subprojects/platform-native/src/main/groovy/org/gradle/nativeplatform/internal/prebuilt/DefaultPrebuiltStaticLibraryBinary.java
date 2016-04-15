@@ -33,22 +33,27 @@ public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryB
         super(name, library, buildType, targetPlatform, flavor, fileCollectionFactory);
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("prebuilt static library '%s:%s'", getComponent().getName(), getName());
     }
 
+    @Override
     public void setStaticLibraryFile(File staticLibraryFile) {
         this.staticLibraryFile = staticLibraryFile;
     }
 
+    @Override
     public File getStaticLibraryFile() {
         return staticLibraryFile;
     }
 
+    @Override
     public FileCollection getLinkFiles() {
         return createFileCollection(getStaticLibraryFile(), "Link files", "Static library file");
     }
 
+    @Override
     public FileCollection getRuntimeFiles() {
         return fileCollectionFactory.empty("Runtime files for " + getDisplayName());
     }

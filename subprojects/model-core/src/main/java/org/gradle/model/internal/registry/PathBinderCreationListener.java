@@ -36,6 +36,7 @@ class PathBinderCreationListener extends ModelBinding {
         return predicate.getReference().isUntyped() || state.isAtLeast(ModelNode.State.Discovered);
     }
 
+    @Override
     public void doOnBind(ModelNodeInternal node) {
         if (predicate.matches(node)) {
             boundTo = node;

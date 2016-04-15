@@ -27,7 +27,6 @@ public class NativePlatforms {
     private static final String OS_UNIX = "unix";
     private static final String ARCH_X86 = "x86";
 
-    // TODO:DAZ This config should be used via platforms.create {}
     public Set<DefaultNativePlatform> defaultPlatformDefinitions() {
         Set<DefaultNativePlatform> platforms = new LinkedHashSet<DefaultNativePlatform>();
 
@@ -96,7 +95,6 @@ public class NativePlatforms {
         OperatingSystemInternal os = defaultPlatform.getOperatingSystem();
         ArchitectureInternal architecture = defaultPlatform.getArchitecture();
 
-        // TODO:DAZ This is a very limited implementation of defaults, just to get the build passing
         if (os.isWindows()) {
             // Always use x86 as default on windows
             return platformName(OS_WINDOWS, ARCH_X86);

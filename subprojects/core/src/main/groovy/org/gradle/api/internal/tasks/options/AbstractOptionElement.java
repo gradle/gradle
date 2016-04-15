@@ -79,9 +79,9 @@ abstract class AbstractOptionElement implements OptionElement {
         return notationParser;
     }
 
-    protected static <T> NotationParser<CharSequence, T> createNotationParserOrFail(OptionNotationParserFactory optionNotationParserFactory, String optionName, Class<T> optionType, Class<?> declaringClass) {
+    protected static <T> NotationParser<CharSequence, T> createNotationParserOrFail(OptionValueNotationParserFactory optionValueNotationParserFactory, String optionName, Class<T> optionType, Class<?> declaringClass) {
         try {
-            return optionNotationParserFactory.toComposite(optionType);
+            return optionValueNotationParserFactory.toComposite(optionType);
         } catch (OptionValidationException ex) {
             throw new OptionValidationException(String.format("Option '%s' cannot be casted to type '%s' in class '%s'.",
                     optionName, optionType.getName(), declaringClass.getName()));

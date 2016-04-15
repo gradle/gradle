@@ -16,8 +16,7 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.tooling.BuildCancelledException
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
 import org.gradle.tooling.internal.consumer.LoggingProvider
@@ -44,25 +43,10 @@ class LazyConsumerActionExecutorTest extends Specification {
         then:
         1 * loggingProvider.progressLoggerFactory >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> consumerConnection
-        _ * cancellationToken.cancellationRequested >> false
         _ * action.parameters >> params
         _ * params.cancellationToken >> cancellationToken
         1 * action.run(consumerConnection)
         0 * _._
-    }
-
-    def doesNotInvokeActionRunWhenCancellationRequested() {
-        when:
-        connection.run(action)
-
-        then:
-        _ * cancellationToken.cancellationRequested >> true
-        _ * action.parameters >> params
-        _ * params.cancellationToken >> cancellationToken
-        0 * _._
-
-        and:
-        BuildCancelledException e = thrown()
     }
 
     def reusesConnection() {
@@ -75,14 +59,12 @@ class LazyConsumerActionExecutorTest extends Specification {
         then:
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> consumerConnection
-        1 * cancellationToken.cancellationRequested >> false
         _ * action.parameters >> params
         1 * params.cancellationToken >> cancellationToken
         1 * action.run(consumerConnection)
         0 * _._
 
         then:
-        _ * cancellationToken.cancellationRequested >> false
         _ * action2.parameters >> params
         _ * params.cancellationToken >> cancellationToken
         1 * action2.run(consumerConnection)
@@ -108,7 +90,6 @@ class LazyConsumerActionExecutorTest extends Specification {
         e == failure
         1 * loggingProvider.getProgressLoggerFactory() >> progressLoggerFactory
         1 * implementationLoader.create(distribution, progressLoggerFactory, connectionParams, cancellationToken) >> { throw failure }
-        _ * cancellationToken.cancellationRequested >> false
         _ * action.parameters >> params
         _ * params.cancellationToken >> cancellationToken
 

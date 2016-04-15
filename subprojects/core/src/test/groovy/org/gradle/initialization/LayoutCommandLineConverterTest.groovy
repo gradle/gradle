@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.util.GFileUtils.canonicalise
+import static org.gradle.internal.FileUtils.canonicalize
 
 class LayoutCommandLineConverterTest extends Specification {
 
@@ -34,9 +34,9 @@ class LayoutCommandLineConverterTest extends Specification {
 
     def "has reasonable defaults"() {
         expect:
-        convert().currentDir == canonicalise(SystemProperties.instance.getCurrentDir())
+        convert().currentDir == canonicalize(SystemProperties.instance.getCurrentDir())
         convert().projectDir == null
-        convert().gradleUserHomeDir == canonicalise(BuildLayoutParameters.DEFAULT_GRADLE_USER_HOME)
+        convert().gradleUserHomeDir == canonicalize(BuildLayoutParameters.DEFAULT_GRADLE_USER_HOME)
         convert().searchUpwards
     }
 

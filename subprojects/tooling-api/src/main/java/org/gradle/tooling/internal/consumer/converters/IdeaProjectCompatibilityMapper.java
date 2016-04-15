@@ -26,10 +26,10 @@ import java.io.Serializable;
 
 public class IdeaProjectCompatibilityMapper implements Action<SourceObjectMapping>, Serializable {
 
-    private final VersionDetails versionDetails;
+    private final String version;
 
     public IdeaProjectCompatibilityMapper(VersionDetails versionDetails) {
-        this.versionDetails = versionDetails;
+        version = versionDetails.getVersion();
     }
 
     @Override
@@ -41,7 +41,7 @@ public class IdeaProjectCompatibilityMapper implements Action<SourceObjectMappin
     }
 
     private boolean versionSupportsIdeaJavaSourceSettings() {
-        GradleVersion targetGradleVersion = GradleVersion.version(versionDetails.getVersion());
+        GradleVersion targetGradleVersion = GradleVersion.version(version);
         // return 'true' for 2.11 snapshots too
         return targetGradleVersion.getBaseVersion().compareTo(GradleVersion.version("2.11")) >= 0;
     }

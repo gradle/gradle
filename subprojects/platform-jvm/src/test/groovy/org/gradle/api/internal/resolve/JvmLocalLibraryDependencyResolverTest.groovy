@@ -48,6 +48,7 @@ import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.platform.base.ComponentSpecContainer
 import org.gradle.platform.base.LibrarySpec
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer
 import org.gradle.platform.base.internal.VariantAspectExtractionStrategy
 import spock.lang.Specification
@@ -236,9 +237,9 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
                 lib.dependencies >> new DefaultDependencySpecContainer()
                 lib.sources >> sources
 
-                def apiJar = new DefaultJarFile()
+                def apiJar = newDefaultJarFile("apiJar")
                 apiJar.setFile(new File("api.jar"))
-                def runtimeJar = new DefaultJarFile()
+                def runtimeJar = newDefaultJarFile("runtimeJar")
                 runtimeJar.setFile(new File('runtime.jar'))
 
                 def binaries = Mock(ModelMap)
@@ -273,5 +274,9 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
             map
             components.withType(_) >> map
         }
+    }
+
+    private DefaultJarFile newDefaultJarFile(String componentName) {
+        new DefaultJarFile(new DefaultComponentSpecIdentifier(":", componentName))
     }
 }

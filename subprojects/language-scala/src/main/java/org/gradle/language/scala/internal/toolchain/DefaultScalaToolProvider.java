@@ -46,6 +46,7 @@ public class DefaultScalaToolProvider implements ToolProvider {
         this.resolvedZincClasspath = resolvedZincClasspath;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
         if (ScalaJavaJointCompileSpec.class.isAssignableFrom(spec)) {
@@ -60,10 +61,12 @@ public class DefaultScalaToolProvider implements ToolProvider {
         throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
     }
 
+    @Override
     public boolean isAvailable() {
         return true;
     }
 
+    @Override
     public void explain(TreeVisitor<? super String> visitor) {
 
     }

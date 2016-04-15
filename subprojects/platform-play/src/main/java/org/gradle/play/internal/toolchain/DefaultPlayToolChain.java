@@ -25,14 +25,13 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.internal.Factory;
 import org.gradle.internal.text.TreeFormatter;
-import org.gradle.language.base.internal.compile.*;
+import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.play.internal.javascript.GoogleClosureCompiler;
 import org.gradle.play.internal.routes.RoutesCompilerFactory;
 import org.gradle.play.internal.twirl.TwirlCompilerFactory;
 import org.gradle.play.platform.PlayPlatform;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.TreeVisitor;
 
@@ -45,9 +44,9 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     private CompilerDaemonManager compilerDaemonManager;
     private final ConfigurationContainer configurationContainer;
     private final DependencyHandler dependencyHandler;
-    private final Factory<WorkerProcessBuilder> workerProcessBuilderFactory;
+    private final WorkerProcessFactory workerProcessBuilderFactory;
 
-    public DefaultPlayToolChain(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
+    public DefaultPlayToolChain(FileResolver fileResolver, CompilerDaemonManager compilerDaemonManager, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory) {
         this.fileResolver = fileResolver;
         this.compilerDaemonManager = compilerDaemonManager;
         this.configurationContainer = configurationContainer;
@@ -55,14 +54,17 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
     }
 
+    @Override
     public String getName() {
         return String.format("PlayToolchain");
     }
 
+    @Override
     public String getDisplayName() {
         return String.format("Default Play Toolchain");
     }
 
+    @Override
     public PlayToolProvider select(PlayPlatform targetPlatform) {
         try {
             Set<File> twirlClasspath = resolveToolClasspath(TwirlCompilerFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();

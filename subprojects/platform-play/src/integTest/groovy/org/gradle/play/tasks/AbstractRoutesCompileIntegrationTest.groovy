@@ -28,10 +28,10 @@ abstract class AbstractRoutesCompileIntegrationTest extends MultiVersionIntegrat
     def destinationDirPath = "build/src/play/binary/routesScalaSources"
     def destinationDir = file(destinationDirPath)
 
-    abstract getRoutesJavaFileNameTemplate(String packageName, String namespace);
-    abstract getRoutesReverseFileNameTemplate(String packageName, String namespace);
-    abstract getRoutesScalaFileNameTemplate(String packageName, String namespace);
-    abstract getOtherRoutesFilesTemplates();
+    abstract getScalaRoutesFileName(String packageName, String namespace);
+    abstract getJavaRoutesFileName(String packageName, String namespace);
+    abstract getReverseRoutesFileName(String packageName, String namespace);
+    abstract getOtherRoutesFileNames();
 
     def destinationDir(String sourceSetName) {
         return file("build/src/play/binary/${sourceSetName}")
@@ -53,14 +53,6 @@ model {
 }
 
 ${PLAY_REPOSITORIES}
-
-def startAt = System.nanoTime()
-gradle.buildFinished {
-    long sinceStart = (System.nanoTime() - startAt) / 1000000L
-    if (sinceStart > 0 && sinceStart < 1000) {
-      sleep(1000 - sinceStart)
-    }
-}
 """
     }
 
@@ -80,11 +72,14 @@ gradle.buildFinished {
 
         and:
         destinationDir.assertHasDescendants(createRouteFileList() as String[])
-        def routesFirstCompileSnapshot = file(destinationDirPath, getRoutesJavaFileNameTemplate('','')).snapshot();
-        def revRoutingFirstCompileSnapshot = file(destinationDirPath, getRoutesReverseFileNameTemplate('','')).snapshot();
-        def routingFirstCompileSnapshot = file(destinationDirPath, getRoutesScalaFileNameTemplate('','')).snapshot();
+        def scalaRoutesFileSnapshot = getScalaRoutesFile().snapshot();
+        def javaRoutesFileSnapshot = getJavaRoutesFile().snapshot();
+        def reverseRoutesFileSnapshot = getReverseRoutesFile().snapshot();
 
         when:
+        // Wait to ensure timestamp on input file is different from previous compilation
+        // I suspect that the Play routes compiler has some incremental check based on timestamp
+        sleep(1000)
         templateFile << """
 GET     /newroute                          controllers.Application.index()
 """
@@ -96,15 +91,27 @@ GET     /newroute                          controllers.Application.index()
         executedAndNotSkipped ":compilePlayBinaryPlayRoutes"
 
         and:
-        file(destinationDirPath, getRoutesJavaFileNameTemplate('','')).assertHasChangedSince(routesFirstCompileSnapshot)
-        file(destinationDirPath, getRoutesReverseFileNameTemplate('','')).assertHasChangedSince(revRoutingFirstCompileSnapshot);
-        file(destinationDirPath, getRoutesScalaFileNameTemplate('','')).assertHasChangedSince(routingFirstCompileSnapshot);
+        getScalaRoutesFile().assertContentsHaveChangedSince(scalaRoutesFileSnapshot);
+        getJavaRoutesFile().assertContentsHaveChangedSince(javaRoutesFileSnapshot)
+        getReverseRoutesFile().assertContentsHaveChangedSince(reverseRoutesFileSnapshot);
 
         when:
         succeeds "compilePlayBinaryPlayRoutes"
 
         then:
         skipped ":compilePlayBinaryPlayRoutes"
+    }
+
+    private TestFile getScalaRoutesFile() {
+        file(destinationDirPath, getScalaRoutesFileName('', ''))
+    }
+
+    private TestFile getJavaRoutesFile() {
+        file(destinationDirPath, getJavaRoutesFileName('', ''))
+    }
+
+    private TestFile getReverseRoutesFile() {
+        file(destinationDirPath, getReverseRoutesFileName('', ''))
     }
 
     def "compiles additional routes file and cleans up output on removal"(){
@@ -252,7 +259,7 @@ object Application extends Controller {
     }
 
     def createRouteFileList(String packageName = '', String namespace='') {
-        [getRoutesJavaFileNameTemplate(packageName, namespace), getRoutesReverseFileNameTemplate(packageName, namespace), getRoutesScalaFileNameTemplate(packageName, namespace)] + otherRoutesFilesTemplates.collect { it(packageName, namespace) }
+        [getJavaRoutesFileName(packageName, namespace), getReverseRoutesFileName(packageName, namespace), getScalaRoutesFileName(packageName, namespace)] + otherRoutesFileNames.collect { it(packageName, namespace) }
     }
 
     def withExtraSourceSets() {
@@ -296,7 +303,7 @@ model {
         expect:
         succeeds("compilePlayBinaryPlayRoutes")
         and:
-        destinationDir.file(getRoutesReverseFileNameTemplate('', '')).text.contains("extra.package")
-        destinationDir.file(getRoutesScalaFileNameTemplate('', '')).text.contains("extra.package")
+        destinationDir.file(getReverseRoutesFileName('', '')).text.contains("extra.package")
+        destinationDir.file(getScalaRoutesFileName('', '')).text.contains("extra.package")
     }
 }

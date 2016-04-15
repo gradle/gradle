@@ -15,13 +15,11 @@
  */
 
 package org.gradle.api.internal.changedetection.rules
+
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.FilesSnapshotSet
-import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
+import org.gradle.api.internal.changedetection.state.*
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.tasks.TaskInputs
 import spock.lang.Issue
@@ -30,7 +28,7 @@ import spock.lang.Specification
 class TaskUpToDateStateTest extends Specification {
     private TaskInternal stubTask
     private TaskHistoryRepository.History stubHistory
-    private FileCollectionSnapshotter stubOutputFileSnapshotter
+    private OutputFilesCollectionSnapshotter stubOutputFileSnapshotter
     private FileCollectionSnapshotter stubInputFileSnapshotter
     private FileCollectionSnapshotter stubDiscoveredInputFileSnapshotter
     private FileCollectionFactory fileCollectionFactory = Mock(FileCollectionFactory)
@@ -44,7 +42,7 @@ class TaskUpToDateStateTest extends Specification {
             _ * getOutputs() >> stubOutputs
         }
         this.stubHistory = Stub(TaskHistoryRepository.History)
-        this.stubOutputFileSnapshotter = Stub(FileCollectionSnapshotter)
+        this.stubOutputFileSnapshotter = Stub(OutputFilesCollectionSnapshotter)
         this.stubInputFileSnapshotter = Stub(FileCollectionSnapshotter)
         this.stubDiscoveredInputFileSnapshotter = Stub(FileCollectionSnapshotter)
     }
@@ -54,25 +52,26 @@ class TaskUpToDateStateTest extends Specification {
         FileCollectionSnapshot stubSnapshot = Stub(FileCollectionSnapshot) {
             _ * getSnapshot() >> Stub(FilesSnapshotSet)
         }
-        FileCollectionSnapshotter mockOutputFileSnapshotter = Mock(FileCollectionSnapshotter)
+        OutputFilesCollectionSnapshotter mockOutputFileSnapshotter = Mock(OutputFilesCollectionSnapshotter)
         FileCollectionSnapshotter mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
         FileCollectionSnapshotter mockDiscoveredInputFileSnapshotter = Mock(FileCollectionSnapshotter)
-
+        FileCollectionSnapshot.PreCheck inputPreCheck = Mock(FileCollectionSnapshot.PreCheck)
+        FileCollectionSnapshot.PreCheck outputPreCheck = Mock(FileCollectionSnapshot.PreCheck)
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, mockInputFileSnapshotter, mockDiscoveredInputFileSnapshotter, fileCollectionFactory)
 
         then:
         noExceptionThrown()
-        1 * mockOutputFileSnapshotter.snapshot(_)
-        1 * mockInputFileSnapshotter.snapshot(_) >> stubSnapshot
+        1 * mockOutputFileSnapshotter.preCheck(_, _) >> outputPreCheck
+        1 * mockInputFileSnapshotter.preCheck(_, _) >> inputPreCheck
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "constructor adds context when input snapshot throws UncheckedIOException" () {
         setup:
         def cause = new UncheckedIOException("thrown from stub")
-        _ * stubInputFileSnapshotter.snapshot(_) >> { throw cause }
+        _ * stubInputFileSnapshotter.preCheck(_, _) >> { throw cause }
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory)
@@ -89,7 +88,7 @@ class TaskUpToDateStateTest extends Specification {
     def "constructor adds context when output snapshot throws UncheckedIOException" () {
         setup:
         def cause = new UncheckedIOException("thrown from stub")
-         _ * stubOutputFileSnapshotter.snapshot(_) >> { throw cause }
+         _ * stubOutputFileSnapshotter.preCheck(_, _) >> { throw cause }
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory)

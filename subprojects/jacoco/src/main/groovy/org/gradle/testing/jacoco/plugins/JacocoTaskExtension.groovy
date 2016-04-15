@@ -65,6 +65,15 @@ class JacocoTaskExtension {
     List<String> excludeClassLoaders = []
 
     /**
+     * Whether or not classes without source location should be instrumented.
+     * Defaults to {@code false}.
+     *
+     * This property is only taken into account if the used JaCoCo version
+     * supports this option (JaCoCo version >= 0.7.6)
+     */
+    boolean includeNoLocationClasses = false
+
+    /**
      * An identifier for the session written to the execution data. Defaults
      * to an auto-generated identifier.
      */
@@ -76,7 +85,7 @@ class JacocoTaskExtension {
     boolean dumpOnExit = true
 
     /**
-     * THe type of output to generate. Defaults to {@link Output#FILE}.
+     * The type of output to generate. Defaults to {@link Output#FILE}.
      */
     Output output = Output.FILE
 
@@ -156,6 +165,9 @@ class JacocoTaskExtension {
         arg 'includes', getIncludes()
         arg 'excludes', getExcludes()
         arg 'exclclassloader', getExcludeClassLoaders()
+        if (agent.supportsInclNoLocationClasses()) {
+            arg 'inclnolocationclasses', getIncludeNoLocationClasses()
+        }
         arg 'sessionid', getSessionId()
         arg 'dumponexit', getDumpOnExit()
         arg 'output', getOutput().asArg

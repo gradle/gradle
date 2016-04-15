@@ -18,13 +18,10 @@ package org.gradle.api.publish.maven.internal.publication;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.DependencyArtifact;
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.*;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.Usage;
@@ -51,6 +48,14 @@ import java.util.Set;
 
 public class DefaultMavenPublication implements MavenPublicationInternal {
 
+    /**
+     * Maven supports wildcards in exclusion rules according to:
+     * http://www.smartjava.org/content/maven-and-wildcard-exclusions
+     * https://issues.apache.org/jira/browse/MNG-3832
+     * This should be used for non-transitive dependencies
+     * @return
+     */
+    private static final Set<ExcludeRule> EXCLUDE_ALL_RULE = Collections.<ExcludeRule>singleton(new DefaultExcludeRule("*", "*"));
     private final String name;
     private final MavenPomInternal pom;
     private final MavenProjectIdentity projectIdentity;
@@ -113,12 +118,16 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
     private void addProjectDependency(ProjectDependency dependency) {
         ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(dependency);
-        runtimeDependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.<DependencyArtifact>emptyList(), dependency.getExcludeRules()));
+        runtimeDependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion(), Collections.<DependencyArtifact>emptyList(), getExcludeRules(dependency)));
     }
 
     private void addModuleDependency(ModuleDependency dependency) {
-        runtimeDependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), dependency.getArtifacts(), dependency.getExcludeRules()));
-     }
+        runtimeDependencies.add(new DefaultMavenDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), dependency.getArtifacts(), getExcludeRules(dependency)));
+    }
+
+    private static Set<ExcludeRule> getExcludeRules(ModuleDependency dependency) {
+        return dependency.isTransitive() ? dependency.getExcludeRules() : EXCLUDE_ALL_RULE;
+    }
 
     public MavenArtifact artifact(Object source) {
         return mavenArtifacts.artifact(source);

@@ -17,18 +17,18 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.api.UnknownProjectException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.BasicDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
@@ -37,7 +37,10 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.plugin.use.resolve.internal.CustomRepositoryPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.*;
+
+import java.io.File;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -82,22 +85,13 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
                                                                               StartParameter startParameter, final DependencyManagementServices dependencyManagementServices,
                                                                               final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider,
                                                                               ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector) {
-            final ProjectFinder projectFinder = new ProjectFinder() {
-                public ProjectInternal getProject(String path) {
-                    throw new UnknownProjectException("Cannot use project dependencies in a plugin resolution definition.");
-                }
-            };
-
-            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter, classLoaderScopeRegistry.getCoreScope(), new Factory<DependencyResolutionServices>() {
-                public DependencyResolutionServices create() {
-                    return dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, new BasicDomainObjectContext());
-                }
-            }, pluginInspector);
+            final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
+            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter, classLoaderScopeRegistry.getCoreScope(), dependencyResolutionServicesFactory, pluginInspector);
         }
 
         PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver,
-                                                          InjectedClasspathPluginResolver injectedClasspathPluginResolver) {
-            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, injectedClasspathPluginResolver);
+                                                          CustomRepositoryPluginResolver customRepositoryPluginResolver, InjectedClasspathPluginResolver injectedClasspathPluginResolver) {
+            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, customRepositoryPluginResolver, injectedClasspathPluginResolver);
         }
 
         PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory) {
@@ -106,6 +100,33 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
 
         InjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector, InjectedPluginClasspath injectedPluginClasspath) {
             return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, injectedPluginClasspath.getClasspath());
+        }
+
+        CustomRepositoryPluginResolver createCustomRepositoryPluginResolver(VersionSelectorScheme versionSelectorScheme,
+                                                                            final DependencyManagementServices dependencyManagementServices, final FileLookup fileLookup,
+                                                                            final DependencyMetaDataProvider dependencyMetaDataProvider) {
+            /*
+             * TODO this is a workaround for the fact that this code currently runs in a
+             * context that does not have a base dir, so the identity file resolver is used.
+             * That resolver cannot deal with relative paths. We use the current working dir
+             * as a workaround. In the final implementation, the repository handler will live
+             * in a context that hase a base dir (settings scope or project scope).
+             */
+            FileResolver fileResolver = fileLookup.getFileResolver(new File("").getAbsoluteFile());
+            final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
+            return new CustomRepositoryPluginResolver(versionSelectorScheme, fileResolver, dependencyResolutionServicesFactory);
+        }
+
+        private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider) {
+            return new Factory<DependencyResolutionServices>() {
+                public DependencyResolutionServices create() {
+                    return dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, makeUnknownProjectFinder(), new BasicDomainObjectContext());
+                }
+            };
+        }
+
+        private ProjectFinder makeUnknownProjectFinder() {
+            return new UnknownProjectFinder("Cannot use project dependencies in a plugin resolution definition.");
         }
     }
 }

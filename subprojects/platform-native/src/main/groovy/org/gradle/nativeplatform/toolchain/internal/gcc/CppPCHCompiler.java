@@ -28,6 +28,7 @@ public class CppPCHCompiler extends GccCompatibleNativeCompiler<CppPCHCompileSpe
     }
 
     private static class CppPCHCompileArgsTransformer extends GccCompilerArgsTransformer<CppPCHCompileSpec> {
+        @Override
         protected String getLanguage() {
             return "c++-header";
         }

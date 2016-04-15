@@ -38,11 +38,13 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
         this.timeProvider = timeProvider;
     }
 
+    @Override
     public void testClassStarted(String testClassName) {
         currentTestClass = new DefaultTestClassDescriptor(idGenerator.generateId(), testClassName);
         resultProcessor.started(currentTestClass, new TestStartEvent(timeProvider.getCurrentTime()));
     }
 
+    @Override
     public void testClassFinished(Throwable failure) {
         long now = timeProvider.getCurrentTime();
         try {
@@ -68,21 +70,25 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
         }
     }
 
+    @Override
     public void started(TestDescriptorInternal test, TestStartEvent event) {
         resultProcessor.started(test, event);
         testsStarted = true;
         currentTests.add(test.getId());
     }
 
+    @Override
     public void completed(Object testId, TestCompleteEvent event) {
         currentTests.remove(testId);
         resultProcessor.completed(testId, event);
     }
 
+    @Override
     public void output(Object testId, TestOutputEvent event) {
         resultProcessor.output(testId, event);
     }
 
+    @Override
     public void failure(Object testId, Throwable result) {
         resultProcessor.failure(testId, result);
     }

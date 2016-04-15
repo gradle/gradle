@@ -21,6 +21,8 @@ import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.SourceComponentSpec;
+import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.CollectionUtils;
 
@@ -36,9 +38,15 @@ public class ComponentRenderer extends ReportRenderer<ComponentSpec, TextReportB
     @Override
     public void render(ComponentSpec component, TextReportBuilder builder) {
         builder.heading(StringUtils.capitalize(component.getDisplayName()));
-        builder.getOutput().println();
-        builder.collection("Source sets", CollectionUtils.sort(component.getSources().values(), SourceSetRenderer.SORT_ORDER), sourceSetRenderer, "source sets");
-        builder.getOutput().println();
-        builder.collection("Binaries", CollectionUtils.sort(component.getBinaries().values(), TypeAwareBinaryRenderer.SORT_ORDER), binaryRenderer, "binaries");
+        if (component instanceof SourceComponentSpec) {
+            SourceComponentSpec sourceComponentSpec = (SourceComponentSpec) component;
+            builder.getOutput().println();
+            builder.collection("Source sets", CollectionUtils.sort(sourceComponentSpec.getSources().values(), SourceSetRenderer.SORT_ORDER), sourceSetRenderer, "source sets");
+        }
+        if (component instanceof VariantComponentSpec) {
+            VariantComponentSpec variantComponentSpec = (VariantComponentSpec) component;
+            builder.getOutput().println();
+            builder.collection("Binaries", CollectionUtils.sort(variantComponentSpec.getBinaries().values(), TypeAwareBinaryRenderer.SORT_ORDER), binaryRenderer, "binaries");
+        }
     }
 }

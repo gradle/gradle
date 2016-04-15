@@ -23,10 +23,7 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.invocation.Gradle;
@@ -837,11 +834,29 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * Deletes files and directories.
+     * <p>
+     * This will not follow symlinks. If you need to follow symlinks too use {@link #delete(Action)}.
      *
      * @param paths Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      * @return true if anything got deleted, false otherwise
      */
     boolean delete(Object... paths);
+
+    /**
+     * Deletes the specified files.  The given action is used to configure a {@link DeleteSpec}, which is then used to
+     * delete the files.
+     * <p>Example:
+     * <pre>
+     * project.delete {
+     *     delete 'somefile'
+     *     followSymlinks = true
+     * }
+     * </pre>
+     *
+     * @param action Action to configure the DeleteSpec
+     * @return {@link WorkResult} that can be used to check if delete did any work.
+     */
+    WorkResult delete(Action<? super DeleteSpec> action);
 
     /**
      * Executes a Java main class. The closure configures a {@link org.gradle.process.JavaExecSpec}.
@@ -1169,8 +1184,40 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param propertyName The name of the property.
      * @return The value of the property, possibly null.
      * @throws MissingPropertyException When the given property is unknown.
+     * @see Project#findProperty(String)
      */
     Object property(String propertyName) throws MissingPropertyException;
+
+    /**
+     * <p>Returns the value of the given property or null if not found.
+     * This method locates a property as follows:</p>
+     *
+     * <ol>
+     *
+     * <li>If this project object has a property with the given name, return the value of the property.</li>
+     *
+     * <li>If this project has an extension with the given name, return the extension.</li>
+     *
+     * <li>If this project's convention object has a property with the given name, return the value of the
+     * property.</li>
+     *
+     * <li>If this project has an extra property with the given name, return the value of the property.</li>
+     *
+     * <li>If this project has a task with the given name, return the task.</li>
+     *
+     * <li>Search up through this project's ancestor projects for a convention property or extra property with the
+     * given name.</li>
+     *
+     * <li>If not found, null value is returned.</li>
+     *
+     * </ol>
+     *
+     * @param propertyName The name of the property.
+     * @return The value of the property, possibly null or null if not found.
+     * @see Project#property(String)
+     */
+    @Incubating
+    Object findProperty(String propertyName);
 
     /**
      * <p>Returns the logger for this project. You can use this in your build file to write log messages.</p>

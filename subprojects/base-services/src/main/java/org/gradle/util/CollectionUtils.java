@@ -17,6 +17,7 @@ package org.gradle.util;
 
 import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -639,4 +640,7 @@ public abstract class CollectionUtils {
         }));
     }
 
+    public static String asCommandLine(Iterable<String> arguments) {
+        return Joiner.on(" ").join(collect(arguments, Transformers.asSafeCommandLineArgument()));
+    }
 }

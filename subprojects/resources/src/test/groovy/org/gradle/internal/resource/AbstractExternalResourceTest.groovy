@@ -26,9 +26,15 @@ import spock.lang.Specification
 class AbstractExternalResourceTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def resource = new TestResource("abc")
+
+    def "calculates display name from uri"() {
+        expect:
+        resource.displayName == "scheme:thing"
+        resource.toString() == resource.displayName
+    }
 
     def "writes contents to file"() {
-        def resource = new TestResource("abc")
         def file = tmpDir.file("out")
 
         when:
@@ -39,7 +45,6 @@ class AbstractExternalResourceTest extends Specification {
     }
 
     def "writes contents to output stream"() {
-        def resource = new TestResource("abc")
         def outstr = new ByteArrayOutputStream()
 
         when:
@@ -50,7 +55,6 @@ class AbstractExternalResourceTest extends Specification {
     }
 
     def "writes contents to output stream action"() {
-        def resource = new TestResource("abc")
         def action = Mock(Action)
 
         when:
@@ -63,7 +67,6 @@ class AbstractExternalResourceTest extends Specification {
     }
 
     def "propagates stream action failure"() {
-        def resource = new TestResource("abc")
         def action = Mock(Action)
         def failure = new RuntimeException()
 
@@ -77,7 +80,6 @@ class AbstractExternalResourceTest extends Specification {
     }
 
     def "writes contents to output stream transformer"() {
-        def resource = new TestResource("abc")
         def action = Mock(Transformer)
 
         when:
@@ -92,7 +94,6 @@ class AbstractExternalResourceTest extends Specification {
     }
 
     def "propagates stream transformer failure"() {
-        def resource = new TestResource("abc")
         def action = Mock(Transformer)
         def failure = new RuntimeException()
 
@@ -106,7 +107,6 @@ class AbstractExternalResourceTest extends Specification {
     }
 
     def "writes contents to content action"() {
-        def resource = new TestResource("abc")
         def action = Mock(ExternalResource.ContentAction)
 
         when:
@@ -121,7 +121,6 @@ class AbstractExternalResourceTest extends Specification {
     }
 
     def "propagates content action failure"() {
-        def resource = new TestResource("abc")
         def action = Mock(ExternalResource.ContentAction)
         def failure = new RuntimeException()
 
@@ -148,7 +147,7 @@ class AbstractExternalResourceTest extends Specification {
 
         @Override
         URI getURI() {
-            return null
+            return new URI("scheme:thing")
         }
 
         @Override

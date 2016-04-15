@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
+import com.google.common.base.Charsets;
 import com.google.common.io.CharSource;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
@@ -24,7 +25,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.resources.CharSourceBackedTextResource;
 import org.gradle.api.resources.TextResource;
 import org.gradle.internal.io.IoUtils;
-import org.gradle.internal.resource.CharsetUtil;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator;
 import org.gradle.util.TextUtil;
@@ -80,14 +80,14 @@ public class DefaultTemplateBasedStartScriptGenerator implements TemplateBasedSc
     }
 
     protected static TextResource utf8ClassPathResource(final Class<?> clazz, final String filename) {
-        return new CharSourceBackedTextResource(new CharSource() {
+        return new CharSourceBackedTextResource("Classpath resource '" + filename + "'", new CharSource() {
             @Override
             public Reader openStream() throws IOException {
                 InputStream stream = clazz.getResourceAsStream(filename);
                 if (stream == null) {
                     throw new IllegalStateException("Could not find class path resource " + filename + " relative to " + clazz.getName());
                 }
-                return new BufferedReader(new InputStreamReader(stream, CharsetUtil.UTF_8));
+                return new BufferedReader(new InputStreamReader(stream, Charsets.UTF_8));
             }
         });
     }

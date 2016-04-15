@@ -61,8 +61,9 @@
 <section>
 <title>Environment variables</title>
 
-<para>For running Gradle, add <filename><replaceable>GRADLE_HOME</replaceable>/bin</filename> to your <envar>PATH</envar>
-    environment variable. Usually, this is sufficient to run Gradle.
+<para>For running Gradle, firstly add the environment variable <envar>GRADLE_HOME</envar>. This should point to the unpacked files from the 
+    Gradle website. Next add <filename><replaceable>GRADLE_HOME</replaceable>/bin</filename> to your <envar>PATH</envar> environment variable. 
+    Usually, this is sufficient to run Gradle.
 </para>
 </section>
 

@@ -44,7 +44,7 @@ import org.gradle.api.publication.maven.internal.MavenFactory;
 import org.gradle.api.tasks.Upload;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Factory;
-import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.LoggingManagerInternal;
 
 import javax.inject.Inject;
 

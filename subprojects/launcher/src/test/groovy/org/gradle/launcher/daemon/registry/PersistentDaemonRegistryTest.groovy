@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.registry
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DaemonContextBuilder
-import org.gradle.messaging.remote.Address
+import org.gradle.internal.remote.Address
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -30,7 +30,7 @@ import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockU
 class PersistentDaemonRegistryTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
-    
+
     int addressCounter = 0
     def lockManager = createDefaultFileLockManager()
     def file = tmp.file("registry")
@@ -106,7 +106,7 @@ class PersistentDaemonRegistryTest extends Specification {
             create()
         }
     }
-    
+
     Address address(int i = addressCounter++) {
         new TestAddress(i.toString())
     }

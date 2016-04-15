@@ -21,7 +21,9 @@ import spock.lang.Specification
 
 class DefaultProjectConnectionTest extends Specification {
     final AsyncConsumerActionExecutor protocolConnection = Mock()
-    final ConnectionParameters parameters = Mock()
+    final ProjectConnectionParameters parameters = Stub() {
+        getProjectDir() >> new File("foo")
+    }
     final DefaultProjectConnection connection = new DefaultProjectConnection(protocolConnection, parameters)
 
     def canCreateAModelBuilder() {

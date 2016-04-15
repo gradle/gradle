@@ -32,7 +32,7 @@ import spock.lang.Specification
 import static org.gradle.util.WrapUtil.*
 
 public class DefaultPomDependenciesConverterTest extends Specification {
-    
+
     private DefaultPomDependenciesConverter dependenciesConverter;
     private conf2ScopeMappingContainerMock = Mock(Conf2ScopeMappingContainer)
     private excludeRuleConverterMock = Mock(ExcludeRuleConverter)
@@ -76,7 +76,7 @@ public class DefaultPomDependenciesConverterTest extends Specification {
     private Configuration createNamedConfigurationStubWithDependencies(final String confName, final ModuleDependency... dependencies) {
         return createNamedConfigurationStubWithDependencies(confName, new HashSet<ExcludeRule>(), dependencies);
     }
-    
+
     private Configuration createNamedConfigurationStubWithDependencies(final String confName, final Set<ExcludeRule> excludeRules, final ModuleDependency... dependencies) {
         final DependencySet dependencySet = Stub(DependencySet) {
             withType(ModuleDependency) >> toDomainObjectSet(ModuleDependency, dependencies)
@@ -181,6 +181,28 @@ public class DefaultPomDependenciesConverterTest extends Specification {
         mavenDependency.exclusions.size() == 1
         mavenDependency.exclusions[0].groupId == "a"
         mavenDependency.exclusions[0].artifactId == "b"
+    }
+
+    @Issue('GRADLE-1574')
+    def convertWithWildcardDependencyExcludes() {
+        when:
+        def someConfigurationStub = createNamedConfigurationStubWithDependencies("someConfiguration", dependency1)
+
+        dependency1.transitive = false
+
+        _ * conf2ScopeMappingContainerMock.getMapping(toSet(someConfigurationStub)) >> createMapping(compileConfStub, "compile")
+
+        then:
+        def actualMavenDependencies = dependenciesConverter.convert(conf2ScopeMappingContainerMock, toSet(someConfigurationStub))
+
+        and:
+        actualMavenDependencies.size() == 1
+        hasDependency(actualMavenDependencies, "org1", "name1", "rev1", null, "compile", null, false)
+
+        def mavenDependency = actualMavenDependencies.get(0);
+        mavenDependency.exclusions.size() == 1
+        mavenDependency.exclusions[0].groupId == "*"
+        mavenDependency.exclusions[0].artifactId == "*"
     }
 
     def convertWithConvertibleConfigurationExcludes() {

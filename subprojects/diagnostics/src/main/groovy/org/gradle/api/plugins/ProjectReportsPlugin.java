@@ -37,6 +37,7 @@ public class ProjectReportsPlugin implements Plugin<Project> {
     public static final String HTML_DEPENDENCY_REPORT = "htmlDependencyReport";
     public static final String PROJECT_REPORT = "projectReport";
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
         final ProjectReportsPluginConvention convention = new ProjectReportsPluginConvention(project);

@@ -26,7 +26,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Actions;
-import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.transport.http.*;
 import org.gradle.plugin.use.internal.PluginRequest;
 import org.gradle.util.GradleVersion;
@@ -114,7 +114,7 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
                 response.close();
             }
         } catch (IOException e) {
-            throw ResourceException.getFailed(requestUri, e);
+            throw ResourceExceptions.getFailed(requestUri, e);
         }
     }
 

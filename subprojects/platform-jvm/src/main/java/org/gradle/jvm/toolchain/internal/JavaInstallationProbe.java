@@ -19,6 +19,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.io.Files;
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
@@ -161,7 +162,7 @@ public class JavaInstallationProbe {
             return error(ex.getMessage());
         } finally {
             try {
-                org.apache.commons.io.FileUtils.deleteDirectory(workingDir);
+                FileUtils.deleteDirectory(workingDir);
             } catch (IOException e) {
                 throw new GradleException("Unable to delete temp directory", e);
             }
@@ -181,13 +182,15 @@ public class JavaInstallationProbe {
         } else if (vendor.contains("oracle") || vendor.contains("sun")) {
             String vm = metadata.get(JavaInstallationProbe.SysProp.VM);
             if (vm != null && vm.contains("OpenJDK")) {
-                return "OpenJDK";
+                return result == InstallType.IS_JDK ? "OpenJDK" : "OpenJDK JRE";
             }
             return "Oracle " + basename;
         } else if (vendor.contains("ibm")) {
             return "IBM " + basename;
         } else if (vendor.contains("azul systems")) {
-            return "Zulu";
+            return "Zulu " + basename;
+        } else if (vendor.contains("hewlett-packard")) {
+            return "HP-UX " + basename;
         }
 
         return basename;

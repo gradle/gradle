@@ -40,14 +40,14 @@ public interface FindBugsReports extends ReportContainer<SingleFileReport> {
      * @return The findbugs HTML report
      */
     SingleFileReport getHtml();
-    
+
     /**
      * The findbugs Text report
      *
      * @return The findbugs Text report
      */
     SingleFileReport getText();
-    
+
     /**
      * The findbugs Emacs report
      *

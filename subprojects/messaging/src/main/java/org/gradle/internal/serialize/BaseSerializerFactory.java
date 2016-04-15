@@ -17,7 +17,6 @@
 package org.gradle.internal.serialize;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.messaging.remote.internal.Message;
 
 import java.io.File;
 import java.util.Map;

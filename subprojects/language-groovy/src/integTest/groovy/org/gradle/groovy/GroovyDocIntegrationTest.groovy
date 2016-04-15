@@ -16,14 +16,16 @@
 
 package org.gradle.groovy
 
+import org.apache.commons.lang.StringEscapeUtils
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.fixture.GroovydocCoverage
 import spock.lang.Issue
 
-@TargetVersions(['1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.2.2', '2.3.10', '2.4.4'])
+@TargetCoverage({GroovydocCoverage.ALL_COVERAGE})
 class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
 
-    @Issue("https://issues.gradle.org//browse/GRADLE-3116")
+    @Issue("https://issues.gradle.org/browse/GRADLE-3116")
     def "can run groovydoc"() {
         when:
         buildFile << """
@@ -58,4 +60,56 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         module << ['groovy']
     }
 
+    @Issue("https://issues.gradle.org/browse/GRADLE-3349")
+    def "changes to overview causes groovydoc to be out of date"() {
+        File overviewFile = file("overview.html")
+        String escapedOverviewPath = StringEscapeUtils.escapeJava(overviewFile.absolutePath)
+
+        when:
+        buildFile << """
+            apply plugin: "groovy"
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                compile "org.codehaus.groovy:${module}:${version}"
+            }
+
+            groovydoc {
+                overviewText = resources.text.fromFile("${escapedOverviewPath}")
+            }
+        """
+
+        overviewFile.text = """
+<b>Hello World</b>
+"""
+        file("src/main/groovy/pkg/Thing.groovy") << """
+            package pkg
+
+            class Thing {}
+        """
+
+        then:
+        succeeds "groovydoc"
+
+        and:
+        def overviewSummary = file('build/docs/groovydoc/overview-summary.html')
+        overviewSummary.exists()
+        overviewSummary.text.contains("Hello World")
+
+        when:
+        overviewFile.text = """
+<b>Goodbye World</b>
+"""
+        and:
+        succeeds "groovydoc"
+        then:
+        result.assertTaskNotSkipped(":groovydoc")
+        overviewSummary.text.contains("Goodbye World")
+
+        where:
+        module << ['groovy']
+    }
 }

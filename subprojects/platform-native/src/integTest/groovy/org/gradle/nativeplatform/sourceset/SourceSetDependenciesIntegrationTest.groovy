@@ -22,10 +22,10 @@ import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
-// TODO:DAZ Test incremental
-// TODO:DAZ Test dependency on functional source set
-// TODO:DAZ Test dependency on source set that is not HeaderExportingSourceSet
-// TODO:DAZ Sad day tests
+// TODO: Test incremental
+// TODO: Test dependency on functional source set
+// TODO: Test dependency on source set that is not HeaderExportingSourceSet
+// TODO: Sad day tests
 @LeaksFileHandles
 class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 

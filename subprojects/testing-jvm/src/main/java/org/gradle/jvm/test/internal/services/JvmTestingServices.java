@@ -21,6 +21,7 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.test.internal.JUnitTestSuiteBinaryRenderer;
 
 public class JvmTestingServices implements PluginServiceRegistry {
+    @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JUnitTestSuiteBinaryRenderer.class);
     }

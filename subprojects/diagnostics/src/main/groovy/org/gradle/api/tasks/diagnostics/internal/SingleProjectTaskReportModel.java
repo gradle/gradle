@@ -88,11 +88,13 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
         }
         return false;
     }
-    
+
+    @Override
     public Set<String> getGroups() {
         return groups.keySet();
     }
 
+    @Override
     public Set<TaskDetails> getTasksForGroup(String group) {
         if (!groups.containsKey(group)) {
             throw new IllegalArgumentException(String.format("Unknown group '%s'", group));
@@ -113,10 +115,12 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
             this.dependencies = dependencies;
         }
 
+        @Override
         public Path getPath() {
             return details.getPath();
         }
 
+        @Override
         public String getDescription() {
             return details.getDescription();
         }
@@ -130,10 +134,12 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
             return task;
         }
 
+        @Override
         public Set<TaskDetails> getDependencies() {
             return dependencies;
         }
 
+        @Override
         public Set<TaskDetails> getChildren() {
             return children;
         }

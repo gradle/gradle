@@ -17,10 +17,10 @@
 package org.gradle.launcher.daemon.protocol;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.progress.OperationIdentifier;
+import org.gradle.internal.logging.events.OperationIdentifier;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.events.*;
 import org.gradle.internal.serialize.*;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.internal.*;
 
 import java.util.List;
 
@@ -29,7 +29,7 @@ public class DaemonMessageSerializer {
         BaseSerializerFactory factory = new BaseSerializerFactory();
         Serializer<LogLevel> logLevelSerializer = factory.getSerializerFor(LogLevel.class);
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
-        DefaultSerializerRegistry<Message> registry = new DefaultSerializerRegistry<Message>();
+        DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
 
         registry.register(BuildEvent.class, new BuildEventSerializer());
         registry.register(Failure.class, new FailureSerializer(throwableSerializer));
@@ -39,19 +39,18 @@ public class DaemonMessageSerializer {
         registry.register(CloseInput.class, new CloseInputSerializer());
 
         // Output events
-        DefaultSerializerRegistry<OutputEvent> outputEventRegistry = new DefaultSerializerRegistry<OutputEvent>();
-        outputEventRegistry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
-        outputEventRegistry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
-        outputEventRegistry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
-        outputEventRegistry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());
-        outputEventRegistry.register(ProgressEvent.class, new ProgressEventSerializer());
-        outputEventRegistry.register(LogLevelChangeEvent.class, new LogLevelChangeEventSerializer(logLevelSerializer));
-        registry.register(OutputMessage.class, new OutputMessageSerializer(outputEventRegistry.build()));
+        registry.register(LogEvent.class, new LogEventSerializer(logLevelSerializer, throwableSerializer));
+        registry.register(StyledTextOutputEvent.class, new StyledTextOutputEventSerializer(logLevelSerializer, new ListSerializer<StyledTextOutputEvent.Span>(new SpanSerializer(factory.getSerializerFor(StyledTextOutput.Style.class)))));
+        registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
+        registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());
+        registry.register(ProgressEvent.class, new ProgressEventSerializer());
+        registry.register(LogLevelChangeEvent.class, new LogLevelChangeEventSerializer(logLevelSerializer));
+        registry.register(OutputMessage.class, new OutputMessageSerializer(registry.build(OutputEvent.class)));
 
         // Default for everything else
         registry.useJavaSerialization(Message.class);
 
-        return registry.build();
+        return registry.build(Message.class);
     }
 
     private static class FailureSerializer implements Serializer<Failure> {

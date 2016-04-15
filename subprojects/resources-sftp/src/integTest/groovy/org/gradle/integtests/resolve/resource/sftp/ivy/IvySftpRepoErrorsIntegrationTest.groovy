@@ -207,7 +207,7 @@ Required by:
         projectA.ivy.expectMetadataRetrieveBroken()
 
         and:
-        failure = executer.withStackTraceChecksDisabled().withTasks('retrieve').runWithFailure()
+        failure = executer.withTasks('retrieve').runWithFailure()
 
         then:
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")

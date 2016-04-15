@@ -32,6 +32,7 @@ public class GroovyStackTraceSpec implements Spec<StackTraceElement> {
                     + "|sun.reflect\\..*"
     );
 
+    @Override
     public boolean isSatisfiedBy(StackTraceElement element) {
         return !isInternalClass(element) && !isGeneratedMethod(element);
     }

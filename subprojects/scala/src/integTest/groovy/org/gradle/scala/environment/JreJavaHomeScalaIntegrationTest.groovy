@@ -66,14 +66,17 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
                     }
                     """
         when:
-        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileScala").run().output
+        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
+        executer.withEnvironmentVars("JAVA_HOME": jreJavaHome.absolutePath).withTasks("compileScala").run()
+
         then:
         file("build/classes/main/org/test/JavaClazz.class").exists()
         file("build/classes/main/org/test/ScalaClazz.class").exists()
 
         where:
         forkMode | useAnt
-//        false    | false
+//      false    | false
         false    | true
         true     | false
         true     | true

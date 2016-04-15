@@ -3,14 +3,9 @@
 Root project
 ------------------------------------------------------------
 
-+ binaries
-      | Type:   	org.gradle.platform.base.BinaryContainer
-      | Creator: 	BinaryBasePlugin.Rules#binaries
-      | Rules:
-         ⤷ ComponentModelBasePlugin.PluginRules#collectBinaries
 + components
       | Type:   	org.gradle.platform.base.ComponentSpecContainer
-      | Creator: 	ComponentModelBasePlugin.PluginRules#components
+      | Creator: 	ComponentBasePlugin.PluginRules#components
       | Rules:
          ⤷ components { ... } @ build.gradle line 42, column 5
          ⤷ MyPlugin#mutateMyComponents
@@ -18,43 +13,20 @@ Root project
           | Type:   	MyComponent
           | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
           | Rules:
-             ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet
-             ⤷ ComponentModelBasePlugin.PluginRules#initializeComponentSourceSets
-             ⤷ ComponentModelBasePlugin.PluginRules#inputRules
              ⤷ MyPlugin#mutateMyComponents > all()
-        + binaries
-              | Type:   	org.gradle.model.ModelMap<org.gradle.platform.base.BinarySpec>
-              | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
-              | Rules:
-                 ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets
         + publicData
               | Type:   	java.lang.String
               | Value:  	Some PUBLIC data
               | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
-        + sources
-              | Type:   	org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet>
-              | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
-+ platforms
-      | Type:   	org.gradle.platform.base.PlatformContainer
-      | Value:  	[]
-      | Creator: 	ComponentModelBasePlugin.PluginRules#platforms
-+ sources
-      | Type:   	org.gradle.language.base.ProjectSourceSet
-      | Value:  	[]
-      | Creator: 	LanguageBasePlugin.Rules#sources
 + tasks
       | Type:   	org.gradle.model.ModelMap<org.gradle.api.Task>
       | Creator: 	Project.<init>.tasks()
-      | Rules:
-         ⤷ BinaryBasePlugin.Rules#copyBinaryTasksToTaskContainer
-         ⤷ ComponentModelBasePlugin.PluginRules#createSourceTransformTasks
     + assemble
           | Type:   	org.gradle.api.DefaultTask
           | Value:  	task ':assemble'
           | Creator: 	tasks.addPlaceholderAction(assemble)
           | Rules:
              ⤷ copyToTaskContainer
-             ⤷ ComponentModelBasePlugin.PluginRules#attachBinariesToAssembleLifecycle
     + build
           | Type:   	org.gradle.api.DefaultTask
           | Value:  	task ':build'

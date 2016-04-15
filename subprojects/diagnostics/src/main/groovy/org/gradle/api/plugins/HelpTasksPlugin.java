@@ -48,6 +48,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
     public static final String COMPONENTS_TASK = "components";
     public static final String MODEL_TASK = "model";
 
+    @Override
     public void apply(final ProjectInternal project) {
         final TaskContainerInternal tasks = project.getTasks();
 
@@ -77,6 +78,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
     }
 
     private static class HelpAction implements Action<Help> {
+        @Override
         public void execute(Help task) {
             task.setDescription("Displays a help message.");
             task.setGroup(HELP_GROUP);
@@ -91,6 +93,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
             this.project = projectName;
         }
 
+        @Override
         public void execute(ProjectReportTask task) {
             task.setDescription("Displays the sub-projects of " + project + ".");
             task.setGroup(HELP_GROUP);
@@ -107,6 +110,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
             this.noChildren = noChildren;
         }
 
+        @Override
         public void execute(TaskReportTask task) {
             String description;
             if (noChildren) {
@@ -127,6 +131,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
             this.projectName = projectName;
         }
 
+        @Override
         public void execute(PropertyReportTask task) {
             task.setDescription("Displays the properties of " + projectName + ".");
             task.setGroup(HELP_GROUP);
@@ -141,6 +146,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
             this.projectName = projectName;
         }
 
+        @Override
         public void execute(final DependencyInsightReportTask task) {
             task.setDescription("Displays the insight into a specific dependency in " + projectName + ".");
             task.setGroup(HELP_GROUP);
@@ -155,6 +161,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
             this.projectName = projectName;
         }
 
+        @Override
         public void execute(DependencyReportTask task) {
             task.setDescription("Displays all dependencies declared in " + projectName + ".");
             task.setGroup(HELP_GROUP);
@@ -169,6 +176,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
             this.projectName = projectName;
         }
 
+        @Override
         public void execute(BuildEnvironmentReportTask task) {
             task.setDescription("Displays all buildscript dependencies declared in " + projectName + ".");
             task.setGroup(HELP_GROUP);
@@ -183,6 +191,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
             this.projectName = projectName;
         }
 
+        @Override
         public void execute(ComponentReport task) {
             task.setDescription("Displays the components produced by " + projectName + ". [incubating]");
             task.setGroup(HELP_GROUP);
@@ -197,6 +206,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
             this.projectName = projectName;
         }
 
+        @Override
         public void execute(ModelReport task) {
             task.setDescription("Displays the configuration model of " + projectName + ". [incubating]");
             task.setGroup(HELP_GROUP);

@@ -18,7 +18,7 @@ package org.gradle.internal.operations.logging;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
-import org.gradle.logging.ConsoleRenderer;
+import org.gradle.internal.logging.ConsoleRenderer;
 
 import java.io.PrintWriter;
 

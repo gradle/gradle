@@ -34,6 +34,7 @@ class IncrementalCompilationFinalizer implements Compiler<JavaCompileSpec> {
         this.updater = updater;
     }
 
+    @Override
     public WorkResult execute(JavaCompileSpec spec) {
         WorkResult out = delegate.execute(spec);
 

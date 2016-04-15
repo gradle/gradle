@@ -23,7 +23,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
 import org.gradle.groovy.scripts.DefaultScript
-import org.gradle.logging.StandardOutputCapture
+import org.gradle.internal.logging.StandardOutputCapture
 
 abstract class ProjectScript extends DefaultScript {
 

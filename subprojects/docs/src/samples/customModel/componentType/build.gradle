@@ -32,11 +32,11 @@ interface ImageBinary extends BinarySpec {
 
 class MyImageRenderingPlugin extends RuleSource {
     @ComponentType
-    void register(ComponentTypeBuilder<ImageComponent> builder) {
+    void registerComponent(TypeBuilder<ImageComponent> builder) {
     }
 
-    @BinaryType
-    void register(BinaryTypeBuilder<ImageBinary> builder) {
+    @ComponentType
+    void registerBinary(TypeBuilder<ImageBinary> builder) {
     }
 
     @ComponentBinaries

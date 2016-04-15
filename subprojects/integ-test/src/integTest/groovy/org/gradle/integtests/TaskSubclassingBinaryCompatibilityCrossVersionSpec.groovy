@@ -27,6 +27,7 @@ import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.War
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.compile.GroovyCompile
+import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
@@ -56,7 +57,6 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
                 War,
                 ScalaCompile,
                 GroovyCompile,
-//                JavaCompile,
                 CodeNarc,
                 Checkstyle,
                 Ear,
@@ -70,6 +70,10 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
         if (previous.version >= GradleVersion.version("1.1")) {
             // Breaking changes were made to Test between 1.0 and 1.1
             taskClasses << Test
+        }
+        if (previous.version >= GradleVersion.version("2.0")) {
+            // Breaking changes were made to JavaCompile prior to 2.0
+            taskClasses << JavaCompile
         }
 
         Map<String, String> subclasses = taskClasses.collectEntries { ["custom" + it.simpleName, it.name] }

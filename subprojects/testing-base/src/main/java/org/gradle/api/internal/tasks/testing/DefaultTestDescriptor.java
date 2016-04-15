@@ -31,10 +31,12 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor implements Ser
         return String.format("Test %s(%s)", getName(), className);
     }
 
+    @Override
     public boolean isComposite() {
         return false;
     }
 
+    @Override
     public String getClassName() {
         return className;
     }

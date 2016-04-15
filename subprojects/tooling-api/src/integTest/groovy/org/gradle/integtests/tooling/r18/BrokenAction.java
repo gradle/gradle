@@ -19,7 +19,7 @@ package org.gradle.integtests.tooling.r18;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 
-class BrokenAction implements BuildAction<String> {
+public class BrokenAction implements BuildAction<String> {
     public String execute(BuildController controller) {
         throw new CustomException();
     }

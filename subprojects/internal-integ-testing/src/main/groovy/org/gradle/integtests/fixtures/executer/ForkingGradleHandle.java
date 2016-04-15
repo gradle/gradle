@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import com.google.common.base.Joiner;
 import org.apache.commons.io.output.CloseShieldOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.api.Action;
@@ -82,6 +83,15 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
         execBuilder.setStandardOutput(new CloseShieldOutputStream(new TeeOutputStream(System.out, standardOutput)));
         execBuilder.setErrorOutput(new CloseShieldOutputStream(new TeeOutputStream(System.err, errorOutput)));
         execHandle = execBuilder.build();
+
+        System.out.println("Starting build with: " + execHandle.getCommand() + " " + Joiner.on(" ").join(execHandle.getArguments()));
+        System.out.println("Working directory: " + execHandle.getDirectory());
+        System.out.println("Environment vars:");
+        System.out.println(String.format("    JAVA_HOME: %s", execHandle.getEnvironment().get("JAVA_HOME")));
+        System.out.println(String.format("    GRADLE_HOME: %s", execHandle.getEnvironment().get("GRADLE_HOME")));
+        System.out.println(String.format("    GRADLE_USER_HOME: %s", execHandle.getEnvironment().get("GRADLE_USER_HOME")));
+        System.out.println(String.format("    JAVA_OPTS: %s", execHandle.getEnvironment().get("JAVA_OPTS")));
+        System.out.println(String.format("    GRADLE_OPTS: %s", execHandle.getEnvironment().get("GRADLE_OPTS")));
 
         execHandle.start();
 

@@ -19,6 +19,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.Factory;
+import org.gradle.internal.FileUtils;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 
@@ -34,7 +35,7 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider, Seri
     }
 
     public File newTemporaryFile(String... path) {
-        return GFileUtils.canonicalise(new File(baseDirFactory.create(), CollectionUtils.join("/", path)));
+        return FileUtils.canonicalize(new File(baseDirFactory.create(), CollectionUtils.join("/", path)));
     }
 
     public File createTemporaryFile(String prefix, @Nullable String suffix, String... path) {

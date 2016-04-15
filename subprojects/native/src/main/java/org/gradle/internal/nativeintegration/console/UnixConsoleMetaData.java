@@ -29,14 +29,17 @@ public class UnixConsoleMetaData implements ConsoleMetaData {
         this.stderr = stderr;
     }
 
+    @Override
     public boolean isStdOut() {
         return stdout;
     }
 
+    @Override
     public boolean isStdErr() {
         return stderr;
     }
 
+    @Override
     public int getCols() {
         final String columns = System.getenv("COLUMNS");
         if (columns != null) {

@@ -32,7 +32,7 @@ class FileChange implements TaskStateChange, InputFileDetails {
     }
 
     public String getMessage() {
-        return String.format("%s file %s %s.", fileType, path, change.describe());
+        return fileType + " file " + path + " " + change.describe() + ".";
     }
 
     @Override

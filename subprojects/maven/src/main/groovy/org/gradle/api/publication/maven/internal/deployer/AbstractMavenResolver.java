@@ -37,7 +37,7 @@ import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
 import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
 import org.gradle.listener.ActionBroadcast;
-import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.apache.maven.settings.building.SettingsBuildingException;
 
 import java.io.File;

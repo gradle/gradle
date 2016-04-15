@@ -24,10 +24,12 @@ import org.gradle.platform.base.BinarySpec;
 
 public abstract class NativeLanguageTransform<U extends LanguageSourceSet> implements LanguageTransform<U, ObjectFile> {
 
+    @Override
     public boolean applyToBinary(BinarySpec binary) {
         return binary instanceof NativeBinarySpec;
     }
 
+    @Override
     public Class<ObjectFile> getOutputType() {
         return ObjectFile.class;
     }

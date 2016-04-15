@@ -40,6 +40,7 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
         this.inProcessCompilerDaemonFactory = inProcessCompilerDaemonFactory;
     }
 
+    @Override
     public Compiler<GroovyJavaJointCompileSpec> newCompiler(GroovyJavaJointCompileSpec spec) {
         GroovyCompileOptions groovyOptions = spec.getGroovyCompileOptions();
         Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(spec.getClass());

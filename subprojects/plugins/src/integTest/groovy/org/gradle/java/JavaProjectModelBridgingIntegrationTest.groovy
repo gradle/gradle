@@ -31,10 +31,10 @@ model {
             doLast {
                 def binaries = $.binaries
                 assert binaries.size() == 2
-                assert binaries.mainClasses instanceof ClassDirectoryBinarySpec
-                assert binaries.mainClasses.buildTask.name == 'classes'
-                assert binaries.testClasses instanceof ClassDirectoryBinarySpec
-                assert binaries.testClasses.buildTask.name == 'testClasses'
+                assert binaries.main instanceof ClassDirectoryBinarySpec
+                assert binaries.main.buildTask.name == 'classes'
+                assert binaries.test instanceof ClassDirectoryBinarySpec
+                assert binaries.test.buildTask.name == 'testClasses'
                 def sources = $.sources
                 assert sources.size() == 4
                 assert sources.withType(JavaSourceSet).size() == 2
@@ -64,7 +64,7 @@ afterEvaluate {
 }
 
 model {
-    binaries.mainClasses {
+    binaries.main {
         inputs.withType(JavaSourceSet) {
             assert source.srcDirs.name == ['before1', 'before2']
             source.srcDirs = ['src']

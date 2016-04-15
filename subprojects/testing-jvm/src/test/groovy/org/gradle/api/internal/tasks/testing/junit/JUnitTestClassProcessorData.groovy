@@ -29,12 +29,25 @@ import org.junit.runner.RunWith
 import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
+import org.junit.runners.Parameterized
+import org.junit.runners.Suite
+import org.junit.runners.model.RunnerBuilder
 
 import static org.junit.Assume.assumeTrue
 
 public class ATestClass {
     @Test
     public void ok() {
+    }
+}
+
+public class BTestClass {
+    @Test
+    public void ok() {
+    }
+
+    @Test
+    public void coolName() {
     }
 }
 
@@ -134,6 +147,11 @@ public class AJunit3TestClass extends TestCase {
     }
 }
 
+public class BJunit3TestClass extends TestCase {
+    public void testOk() {
+    }
+}
+
 public class AJunit3TestThatRenamesItself extends TestCase {
     public void testOk() {
         setName('another test')
@@ -150,7 +168,7 @@ public class ABrokenJunit3TestClass extends TestCase {
 
 public class ATestClassWithSuiteMethod {
     public static junit.framework.Test suite() {
-        return new junit.framework.TestSuite(AJunit3TestClass.class, AJunit3TestClass.class)
+        return new junit.framework.TestSuite(AJunit3TestClass.class, BJunit3TestClass.class)
     }
 }
 
@@ -290,4 +308,50 @@ public class ATestClassWithSeveralMethods {
 public class ATestClassWithSlowMethods {
     @Test public void pass() {}
     @Test public void passSlowly() {}
+}
+
+@RunWith(Suite.class)
+@Suite.SuiteClasses([ATestClass.class, BTestClass.class])
+public class ATestSuite {
+}
+
+@RunWith(Suite.class)
+@Suite.SuiteClasses([])
+public class AnEmptyTestSuite {
+}
+
+public class CustomSuiteRunner extends Suite {
+    public CustomSuiteRunner(Class<?> klass, RunnerBuilder builder) {
+        super(builder, klass, [ATestClass.class, BTestClass.class])
+    }
+}
+
+@RunWith(CustomSuiteRunner.class)
+public class ACustomSuite {
+}
+
+@RunWith(Parameterized.class)
+public class AParameterizedTest {
+    @Parameterized.Parameters
+    public static Object[] data() {
+        return [1, 3]
+    }
+
+    public AParameterizedTest(Integer parameter) {}
+
+    @Test public void helpfulTest() {}
+    @Test public void unhelpfulTest() {}
+}
+
+@RunWith(Parameterized.class)
+public class AnEmptyParameterizedTest {
+    @Parameterized.Parameters
+    public static Object[] data() {
+        return []
+    }
+
+    public AnEmptyParameterizedTest(Integer parameter) {}
+
+    @Test public void helpfulTest() {}
+    @Test public void unhelpfulTest() {}
 }

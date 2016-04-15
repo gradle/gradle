@@ -24,7 +24,7 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
-import org.gradle.messaging.remote.Address;
+import org.gradle.internal.remote.Address;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -124,7 +124,13 @@ public class Daemon implements Stoppable {
 
             stateCoordinator = new DaemonStateCoordinator(executorFactory, onStartCommand, onFinishCommand);
             connectionHandler = new DefaultIncomingConnectionHandler(commandExecuter, daemonContext, stateCoordinator, executorFactory);
-            connectorAddress = connector.start(connectionHandler);
+            Runnable connectionErrorHandler = new Runnable() {
+                @Override
+                public void run() {
+                    stateCoordinator.stop();
+                }
+            };
+            connectorAddress = connector.start(connectionHandler, connectionErrorHandler);
             LOGGER.debug("Daemon starting at: {}, with address: {}", new Date(), connectorAddress);
             registryUpdater.onStart(connectorAddress);
         } finally {

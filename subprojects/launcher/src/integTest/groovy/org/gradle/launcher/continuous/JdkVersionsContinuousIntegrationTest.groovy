@@ -18,8 +18,8 @@ package org.gradle.launcher.continuous
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.JavaInfo
+import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 
 class JdkVersionsContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
@@ -35,15 +35,12 @@ class JdkVersionsContinuousIntegrationTest extends AbstractContinuousIntegration
         failureDescriptionContains("Continuous build requires Java 7 or later.")
     }
 
-    @Requires(adhoc = { JdkVersionsContinuousIntegrationTest.java6() && JdkVersionsContinuousIntegrationTest.java7OrBetter() &&
-            // This test doesn't work on Java 1.6 CI commit builds as these builds rebuild the distribution using Java 6 rather than reuse
-            // the distribution that is shared by the coverage builds. The following approximates "don't run this test on the Java 1.6 CI commit builds"
-            (JavaVersion.current().java7Compatible || !GradleContextualExecuter.embedded) })
+    @Requires(adhoc = { JdkVersionsContinuousIntegrationTest.java6() && JavaVersion.current().java7Compatible })
     def "can use java6 client with later build runtime"() {
         given:
         executer
             .withJavaHome(java6().javaHome)
-            .withArgument("-Dorg.gradle.java.home=${java7OrBetter().javaHome}")
+            .withArgument("-Dorg.gradle.java.home=${Jvm.current().javaHome}")
             .useDefaultBuildJvmArgs()
             .requireGradleHome()
         file("a").text = "foo"
@@ -72,9 +69,4 @@ class JdkVersionsContinuousIntegrationTest extends AbstractContinuousIntegration
     static JavaInfo java6() {
         AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
     }
-
-    static JavaInfo java7OrBetter() {
-        AvailableJavaHomes.getAvailableJdk { it.javaVersion.isJava7Compatible() }
-    }
-
 }

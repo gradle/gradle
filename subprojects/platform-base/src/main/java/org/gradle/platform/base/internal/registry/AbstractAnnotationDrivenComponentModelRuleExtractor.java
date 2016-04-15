@@ -34,23 +34,28 @@ public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T exte
             return;
         }
 
-        ModelType<?> builder = ruleDefinition.getSubjectReference().getType();
-
-        if (!ModelType.of(ModelMap.class).isAssignableFrom(builder)) {
+        ModelType<?> subjectType = ruleDefinition.getSubjectReference().getType();
+        if (!isModelMap(subjectType)) {
             problems.add(ruleDefinition, String.format("The first parameter of a method %s must be of type %s.", getDescription(), ModelMap.class.getName()));
             return;
         }
-        if (builder.getTypeVariables().size() != 1) {
+
+        List<ModelType<?>> typeVariables = subjectType.getTypeVariables();
+        if (typeVariables.size() != 1) {
             problems.add(ruleDefinition, String.format("Parameter of type %s must declare a type parameter extending %s.", ModelMap.class.getSimpleName(), typeParameter.getDisplayName()));
             return;
         }
-        ModelType<?> subType = builder.getTypeVariables().get(0);
 
-        if (subType.isWildcard()) {
-            problems.add(ruleDefinition, String.format("%s type %s cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", typeParameter.getDisplayName(), subType.getDisplayName()));
+        ModelType<?> elementType = typeVariables.get(0);
+        if (elementType.isWildcard()) {
+            problems.add(ruleDefinition, String.format("%s type %s cannot be a wildcard type (i.e. cannot use ? super, ? extends etc.).", typeParameter.getDisplayName(), elementType.getDisplayName()));
             return;
         }
-        dataCollector.parameterTypes.put(typeParameter, subType);
+        dataCollector.parameterTypes.put(typeParameter, elementType);
+    }
+
+    private boolean isModelMap(ModelType<?> modelType) {
+        return ModelType.of(ModelMap.class).isAssignableFrom(modelType);
     }
 
     protected class RuleMethodDataCollector {

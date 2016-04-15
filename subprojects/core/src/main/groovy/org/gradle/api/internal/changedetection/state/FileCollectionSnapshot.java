@@ -16,50 +16,52 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.util.ChangeListener;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * An immutable snapshot of the contents of a collection of files.
+ * An immutable snapshot of the contents and meta-data of a collection of files or directories.
  */
 public interface FileCollectionSnapshot {
+    enum ChangeFilter {
+        IgnoreAddedFiles
+    }
 
-    ChangeIterator<String> iterateChangesSince(FileCollectionSnapshot oldSnapshot);
+    boolean isEmpty();
 
-    Diff changesSince(FileCollectionSnapshot oldSnapshot);
+    /**
+     * Returns an iterator over the changes to file contents since the given snapshot, subject to the given filters.
+     *
+     * <p>Note: Ignores changes to file meta-data, such as last modified time. This should be made a {@link ChangeFilter} at some point.
+     */
+    ChangeIterator<String> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, Set<ChangeFilter> filters);
 
     Collection<File> getFiles();
 
+    Map<String, IncrementalFileSnapshot> getSnapshots();
+
     FilesSnapshotSet getSnapshot();
-
-    interface Diff {
-        /**
-         * Applies this diff to the given snapshot. Adds any added or changed files in this diff to the given snapshot.
-         * Removes any removed files in this diff from the given snapshot.
-         *
-         * @param snapshot the snapshot to apply the changes to.
-         * @param listener the listener to notify of changes. The listener can veto a particular change.
-         * @return an updated copy of the provided snapshot
-         */
-        FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot, ChangeListener<Merge> listener);
-
-        /**
-         * Applies this diff to the given snapshot. Adds any added or changed files in this diff to the given snapshot.
-         * Removes any removed files in this diff from the given snapshot.
-         *
-         * @param snapshot the snapshot to apply the changes to.
-         * @return an updated copy of the provided snapshot
-         */
-        FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot);
-    }
-
-    interface Merge {
-        void ignore();
-    }
 
     interface ChangeIterator<T> {
         boolean next(ChangeListener<T> listener);
     }
+
+    interface PreCheck {
+        Integer getHash();
+
+        FileCollection getFiles();
+
+        Collection<VisitedTree> getVisitedTrees();
+
+        Collection<File> getMissingFiles();
+
+        boolean isEmpty();
+    }
+
+    Collection<Long> getTreeSnapshotIds();
 }

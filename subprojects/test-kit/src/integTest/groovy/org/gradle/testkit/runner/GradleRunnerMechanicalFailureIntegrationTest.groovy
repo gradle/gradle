@@ -17,57 +17,40 @@
 package org.gradle.testkit.runner
 
 import org.gradle.api.GradleException
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
-import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
-import org.gradle.testkit.runner.fixtures.annotations.InspectsExecutedTasks
-import org.gradle.testkit.runner.fixtures.annotations.NoDebug
+import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
+import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.tooling.GradleConnectionException
 
-import static org.gradle.util.TextUtil.normaliseLineSeparators
+class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
-@InspectsExecutedTasks
-class GradleRunnerMechanicalFailureIntegrationTest extends GradleRunnerIntegrationTest {
-
-    @InspectsBuildOutput
-    def "build execution for script with invalid Groovy syntax"() {
+    def "treats invalid argument as build failure and throws if not expected"() {
         given:
-        buildFile << """
-            task helloWorld {
-                doLast {
-                    'Hello world!"
-                }
-            }
-        """
+        buildScript helloWorldTask()
 
         when:
-        def result = runner('helloWorld').buildAndFail()
+        runner('helloWorld', '--unknown').build()
 
         then:
-        result.output.contains('Could not compile build file')
-        result.tasks.empty
+        thrown UnexpectedBuildFailure
+    }
+
+    def "treats invalid argument as build failure and does not throw if expected"() {
+        given:
+        buildScript helloWorldTask()
+
+        when:
+        runner('helloWorld', '--unknown').buildAndFail()
+
+        then:
+        noExceptionThrown()
     }
 
     @InspectsBuildOutput
-    def "build execution for script with unknown Gradle API method class"() {
-        given:
-        buildFile << """
-            task helloWorld {
-                doSomething {
-                    println 'Hello world!'
-                }
-            }
-        """
-
-        when:
-        def result = runner('helloWorld').buildAndFail()
-
-        then:
-        result.output.contains('Could not find method doSomething()')
-        result.tasks.empty
-    }
-
-    @InspectsBuildOutput
-    def "build execution with badly formed argument"() {
+    @InspectsExecutedTasks
+    def "invalid argument build failure includes diagnostic output when not expected"() {
         given:
         buildFile << helloWorldTask()
 
@@ -75,23 +58,53 @@ class GradleRunnerMechanicalFailureIntegrationTest extends GradleRunnerIntegrati
         runner('helloWorld', '--unknown').build()
 
         then:
-        def t = thrown(UnexpectedBuildFailure)
+        def t = thrown UnexpectedBuildFailure
         t.message.contains("Unknown command-line option '--unknown'.")
         t.message.contains('Problem configuring task :helloWorld from command line.')
         def result = t.buildResult
         result.output.contains('BUILD FAILED')
         result.output.contains("Unknown command-line option '--unknown'.")
         result.output.contains("Problem configuring task :helloWorld from command line.")
+        result.tasks.empty
     }
 
     @InspectsBuildOutput
-    def "build execution with non-existent working directory"() {
+    @InspectsExecutedTasks
+    def "invalid argument build failure includes diagnostic output when expected"() {
         given:
-        File nonExistentWorkingDir = new File('some/path/that/does/not/exist')
         buildFile << helloWorldTask()
 
         when:
-        runner('helloWorld')
+        def result = runner('helloWorld', '--unknown').buildAndFail()
+
+        then:
+        result.output.contains('BUILD FAILED')
+        result.output.contains("Unknown command-line option '--unknown'.")
+        result.output.contains("Problem configuring task :helloWorld from command line.")
+    }
+
+    def "build fails if project directory does not exist"() {
+        given:
+        buildFile << helloWorldTask()
+
+        when:
+        runner()
+            .withProjectDir(new File('some/path/that/does/not/exist'))
+            .build()
+
+        then:
+        thrown UnexpectedBuildFailure
+    }
+
+    @InspectsBuildOutput
+    @InspectsExecutedTasks
+    def "build fails if project directory does not exist and provides diagnostic information"() {
+        given:
+        buildScript helloWorldTask()
+        def nonExistentWorkingDir = new File('some/path/that/does/not/exist')
+
+        when:
+        runner()
             .withProjectDir(nonExistentWorkingDir)
             .build()
 
@@ -128,6 +141,7 @@ class GradleRunnerMechanicalFailureIntegrationTest extends GradleRunnerIntegrati
             task helloWorld {
                 doLast {
                     println 'Hello world!'
+                    sleep(500)
                     Runtime.runtime.halt(0)
                     println 'Bye world!'
                 }
@@ -143,9 +157,9 @@ class GradleRunnerMechanicalFailureIntegrationTest extends GradleRunnerIntegrati
         t.cause.cause.class.name == DaemonDisappearedException.name // not the same class because it's coming from the tooling client
 
         and:
-        normaliseLineSeparators(t.message) == """An error occurred executing build with args 'helloWorld' in directory '$testDirectory.canonicalPath'. Output before error:
+        OutputScrapingExecutionResult.normalize(t.message) == """An error occurred executing build with args 'helloWorld' in directory '$testDirectory.canonicalPath'. Output before error:
 :helloWorld
 Hello world!
-""".toString()
+"""
     }
 }

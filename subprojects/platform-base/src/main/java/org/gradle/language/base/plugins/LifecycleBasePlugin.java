@@ -43,6 +43,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     private static final String CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG = "Defining custom '%s' task when using the standard Gradle lifecycle plugins";
     private final Set<String> placeholders = new HashSet<String>();
 
+    @Override
     public void apply(ProjectInternal project) {
         addClean(project);
         addCleanRule(project);

@@ -21,13 +21,14 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.util.Clock;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationQueue;
+import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.util.Clock;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -35,32 +36,32 @@ public class Binary2JUnitXmlReportGenerator {
 
     private final File testResultsDir;
     private final TestResultsProvider testResultsProvider;
-    JUnitXmlResultWriter saxWriter;
+    private JUnitXmlResultWriter xmlWriter;
+    private final BuildOperationProcessor buildOperationProcessor;
     private final static Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
 
-    public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, TestOutputAssociation outputAssociation) {
+    public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, TestOutputAssociation outputAssociation, BuildOperationProcessor buildOperationProcessor) {
         this.testResultsDir = testResultsDir;
         this.testResultsProvider = testResultsProvider;
-        this.saxWriter = new JUnitXmlResultWriter(getHostname(), testResultsProvider, outputAssociation);
+        this.xmlWriter = new JUnitXmlResultWriter(getHostname(), testResultsProvider, outputAssociation);
+        this.buildOperationProcessor = buildOperationProcessor;
     }
 
     public void generate() {
         Clock clock = new Clock();
-        testResultsProvider.visitClasses(new Action<TestClassResult>() {
-            public void execute(TestClassResult result) {
-                File file = new File(testResultsDir, getReportFileName(result));
-                OutputStream output = null;
-                try {
-                    output = new BufferedOutputStream(new FileOutputStream(file));
-                    saxWriter.write(result, output);
-                    output.close();
-                } catch (Exception e) {
-                    throw new GradleException(String.format("Could not write XML test results for %s to file %s.", result.getClassName(), file), e);
-                } finally {
-                    IOUtils.closeQuietly(output);
-                }
+
+        buildOperationProcessor.run(new Action<BuildOperationQueue<JUnitXmlReportFileGenerator>>() {
+            @Override
+            public void execute(final BuildOperationQueue<JUnitXmlReportFileGenerator> queue) {
+                testResultsProvider.visitClasses(new Action<TestClassResult>() {
+                    public void execute(final TestClassResult result) {
+                        final File reportFile = new File(testResultsDir, getReportFileName(result));
+                        queue.add(new JUnitXmlReportFileGenerator(result, reportFile, xmlWriter));
+                    }
+                });
             }
         });
+
         LOG.info("Finished generating test XML results ({}) into: {}", clock.getTime(), testResultsDir);
     }
 
@@ -73,6 +74,37 @@ public class Binary2JUnitXmlReportGenerator {
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
             return "localhost";
+        }
+    }
+
+    private static class JUnitXmlReportFileGenerator implements RunnableBuildOperation {
+        private final TestClassResult result;
+        private final File reportFile;
+        private final JUnitXmlResultWriter xmlWriter;
+
+        public JUnitXmlReportFileGenerator(TestClassResult result, File reportFile, JUnitXmlResultWriter xmlWriter) {
+            this.result = result;
+            this.reportFile = reportFile;
+            this.xmlWriter = xmlWriter;
+        }
+
+        @Override
+        public String getDescription() {
+            return "generating junit xml test report for ".concat(result.getClassName());
+        }
+
+        @Override
+        public void run() {
+            FileOutputStream output = null;
+            try {
+                output = new FileOutputStream(reportFile);
+                xmlWriter.write(result, output);
+                output.close();
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not write XML test results for %s to file %s.", result.getClassName(), reportFile), e);
+            } finally {
+                IOUtils.closeQuietly(output);
+            }
         }
     }
 }

@@ -22,14 +22,14 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.graph.GraphRenderer;
-import org.gradle.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
 import java.util.List;
 
-import static org.gradle.logging.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 
 /**
  * <p>Displays a list of projects in the build. An instance of this type is used when you execute the {@code projects}

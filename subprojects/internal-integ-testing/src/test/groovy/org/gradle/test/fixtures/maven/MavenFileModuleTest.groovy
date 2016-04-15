@@ -57,7 +57,7 @@ class MavenFileModuleTest extends Specification {
         then:
         dependencies != null
         dependencies.size() == 1
-        dependencies.get(0) == [groupId: 'my-company', artifactId: 'dep1', version: '1.0', type: 'jar', scope: 'compile', classifier: null]
+        dependencies.get(0) == [groupId: 'my-company', artifactId: 'dep1', version: '1.0', type: 'jar', scope: 'compile', classifier: null, exclusions: null]
     }
 
     def "Check packaging for set packaging"() {

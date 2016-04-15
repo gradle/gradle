@@ -23,7 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.Matchers
 
-@RequiresInstalledToolChain(ToolChainRequirement.VisualCpp)
+@RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP)
 @LeaksFileHandles
 class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CHelloWorldApp()

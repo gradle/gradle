@@ -28,6 +28,13 @@ import java.io.File;
 @Incubating
 @Managed
 public interface LocalJava extends Named {
+    /**
+     * Returns the path to the local Java installation.
+     */
     File getPath();
+
+    /**
+     * Sets the path to the local Java installation.
+     */
     void setPath(File path);
 }

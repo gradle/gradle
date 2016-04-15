@@ -21,7 +21,7 @@ import org.gradle.api.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
-import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.TextUtil;
 
 /**
@@ -39,22 +39,27 @@ public class TestEventLogger extends AbstractTestLogger implements TestListener,
         this.testLogging = testLogging;
     }
 
+    @Override
     public void beforeSuite(TestDescriptor descriptor) {
         before(descriptor);
     }
 
+    @Override
     public void afterSuite(TestDescriptor descriptor, TestResult result) {
         after(descriptor, result);
     }
 
+    @Override
     public void beforeTest(TestDescriptor descriptor) {
         before(descriptor);
     }
 
+    @Override
     public void afterTest(TestDescriptor descriptor, TestResult result) {
         after(descriptor, result);
     }
 
+    @Override
     public void onOutput(TestDescriptor descriptor, TestOutputEvent outputEvent) {
         if (outputEvent.getDestination() == TestOutputEvent.Destination.StdOut
                 && isLoggedEventType(TestLogEvent.STANDARD_OUT)) {

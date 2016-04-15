@@ -35,6 +35,7 @@ public abstract class AbstractDependencyReportTask extends AbstractReportTask {
 
     private Set<Configuration> configurations;
 
+    @Override
     public ReportRenderer getRenderer() {
         return renderer;
     }
@@ -46,6 +47,7 @@ public abstract class AbstractDependencyReportTask extends AbstractReportTask {
         this.renderer = renderer;
     }
 
+    @Override
     public void generate(Project project) throws IOException {
         SortedSet<Configuration> sortedConfigurations = new TreeSet<Configuration>(new Comparator<Configuration>() {
             public int compare(Configuration conf1, Configuration conf2) {

@@ -34,6 +34,7 @@ public interface ExtensionContainer {
      *
      * @param name Will be used as a sort of namespace of properties/methods.
      * @param extension Any object whose methods and properties will extend the target object
+     * @throws IllegalArgumentException When an extension with the given name already exists.
      */
     void add(String name, Object extension);
 
@@ -48,6 +49,7 @@ public interface ExtensionContainer {
      * @param type The type of the extension
      * @param constructionArguments The arguments to be used to construct the extension instance
      * @return The created instance
+     * @throws IllegalArgumentException When an extension with the given name already exists.
      */
     <T> T create(String name, Class<T> type, Object... constructionArguments);
 

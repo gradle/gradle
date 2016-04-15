@@ -47,7 +47,7 @@ class PlayPlatformComponentReportIntegrationTest extends AbstractComponentReport
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 Play Application 'play'
 -----------------------
 

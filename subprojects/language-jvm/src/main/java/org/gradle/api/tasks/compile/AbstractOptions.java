@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
 import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -42,15 +43,20 @@ public abstract class AbstractOptions implements Serializable {
 
     public Map<String, Object> optionMap() {
         final Class<?> thisClass = getClass();
-        Map<String, Object> map = Maps.newHashMap();
+        final Map<String, Object> map = Maps.newHashMap();
         Class<?> currClass = thisClass;
         if (currClass.getName().endsWith("_Decorated")) {
             currClass = currClass.getSuperclass();
         }
         while (currClass != AbstractOptions.class) {
-            for (Field field : currClass.getDeclaredFields()) {
+            for (final Field field : currClass.getDeclaredFields()) {
                 if (isOptionField(field)) {
-                    addValueToMapIfNotNull(map, field);
+                    DeprecationLogger.whileDisabled(new Runnable() {
+                        @Override
+                        public void run() {
+                            addValueToMapIfNotNull(map, field);
+                        }
+                    });
                 }
             }
             currClass = currClass.getSuperclass();

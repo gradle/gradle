@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.resolve.ResolveTestFixture
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 class MavenVersionRangeResolveIntegrationTest extends AbstractDependencyResolutionTest {

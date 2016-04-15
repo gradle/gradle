@@ -40,6 +40,7 @@ import org.gradle.process.internal.ExecActionFactory;
 @Incubating
 public class GccCompilerPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);
     }

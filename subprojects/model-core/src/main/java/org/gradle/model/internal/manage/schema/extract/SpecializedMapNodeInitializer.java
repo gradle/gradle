@@ -55,7 +55,7 @@ public class SpecializedMapNodeInitializer<T, E> implements NodeInitializer {
                 new BiAction<MutableModelNode, NodeInitializerRegistry>() {
                     @Override
                     public void execute(MutableModelNode modelNode, NodeInitializerRegistry nodeInitializerRegistry) {
-                        ChildNodeInitializerStrategy<E> childFactory = NodeBackedModelMap.createUsingRegistry(schema.getElementType(), nodeInitializerRegistry);
+                        ChildNodeInitializerStrategy<E> childFactory = NodeBackedModelMap.createUsingRegistry(nodeInitializerRegistry);
                         modelNode.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
                     }
                 }

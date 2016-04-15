@@ -56,7 +56,6 @@ public class OutputStreamBackedEncoder extends AbstractEncoder implements Closea
     }
 
     public void flush() throws IOException {
-        outputStream.flush();
     }
 
     public void close() throws IOException {

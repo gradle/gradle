@@ -62,7 +62,7 @@ class StringToEnumTransformerTest extends Specification {
 
         then:
         def e = thrown TypeConversionException
-        e.message.contains TestEnum.values().toString() // error message shows valid values
+        TestEnum.values().every { e.message.contains(it.name()) }
     }
 
 }

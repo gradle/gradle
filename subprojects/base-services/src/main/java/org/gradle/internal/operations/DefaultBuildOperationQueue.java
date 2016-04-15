@@ -22,43 +22,68 @@ import com.google.common.util.concurrent.*;
 import org.gradle.internal.UncheckedException;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T> {
     private final ListeningExecutorService executor;
     private final BuildOperationWorker<T> worker;
 
-    private final List<ListenableFuture> operations;
-    private final String logLocation;
+    private final List<QueuedOperation> operations;
 
-    private boolean waitingForCompletion;
+    private String logLocation;
 
-    DefaultBuildOperationQueue(ExecutorService executor, BuildOperationWorker<T> worker, String logLocation) {
-        this.logLocation = logLocation;
+    private final AtomicBoolean waitingForCompletion = new AtomicBoolean();
+    private final AtomicBoolean canceled = new AtomicBoolean();
+
+    DefaultBuildOperationQueue(ExecutorService executor, BuildOperationWorker<T> worker) {
         this.executor = MoreExecutors.listeningDecorator(executor);
         this.worker = worker;
-        this.operations = Lists.newLinkedList();
+        this.operations = Collections.synchronizedList(Lists.<QueuedOperation>newArrayList());
     }
 
     public void add(final T operation) {
-        if (waitingForCompletion) {
+        if (waitingForCompletion.get()) {
             throw new IllegalStateException("BuildOperationQueue cannot be reused once it has started completion.");
         }
-        ListenableFuture<?> future = executor.submit(new OperationHolder(operation));
-        operations.add(future);
+        OperationHolder operationHolder = new OperationHolder(operation);
+        ListenableFuture<?> future = executor.submit(operationHolder);
+        operations.add(new QueuedOperation(operationHolder, future));
+    }
+
+    @Override
+    public void cancel() {
+        canceled.set(true);
+        for (QueuedOperation operation : operations) {
+            // Although we can cancel the future of a running operation, we have no way of knowing
+            // that the operation was canceled after it began executing (i.e. isCanceled always returns
+            // true) which is a problem because we need to know whether to wait on the result or not.
+            // So we have to maintain the running state ourselves and only cancel operations we know
+            // have not started executing.
+            if (!operation.operationHolder.isStarted()) {
+                operation.future.cancel(false);
+            }
+        }
     }
 
     public void waitForCompletion() throws MultipleBuildOperationFailures {
-        waitingForCompletion = true;
+        waitingForCompletion.set(true);
 
         CountDownLatch finished = new CountDownLatch(operations.size());
         Queue<Throwable> failures = Queues.newConcurrentLinkedQueue();
 
-        for (ListenableFuture operation : operations) {
-            Futures.addCallback(operation, new CompletionCallback(finished, failures));
+        for (QueuedOperation operation : operations) {
+            if (operation.future.isCancelled()) {
+                // If it's canceled, we'll never get a callback, so we just remove it from
+                // operations we're waiting for.
+                finished.countDown();
+            } else {
+                Futures.addCallback(operation.future, new CompletionCallback(finished, failures));
+            }
         }
 
         try {
@@ -73,7 +98,12 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
     }
 
-    private String getFailureMessage(Collection<Throwable> failures) {
+    @Override
+    public void setLogLocation(String logLocation) {
+        this.logLocation = logLocation;
+    }
+
+    private static String getFailureMessage(Collection<? extends Throwable> failures) {
         if (failures.size() == 1) {
             return "A build operation failed.";
         }
@@ -99,15 +129,34 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         }
     }
 
+    private class QueuedOperation {
+        final OperationHolder operationHolder;
+        final ListenableFuture future;
+
+        public QueuedOperation(OperationHolder operationHolder, ListenableFuture future) {
+            this.operationHolder = operationHolder;
+            this.future = future;
+        }
+    }
+
     private class OperationHolder implements Runnable {
         private final T operation;
+        private final AtomicBoolean started = new AtomicBoolean();
 
         OperationHolder(T operation) {
             this.operation = operation;
         }
 
         public void run() {
-            worker.execute(operation);
+            // Don't execute if the queue has been canceled
+            started.set(!canceled.get());
+            if (started.get()) {
+                worker.execute(operation);
+            }
+        }
+
+        public boolean isStarted() {
+            return started.get();
         }
 
         public String toString() {

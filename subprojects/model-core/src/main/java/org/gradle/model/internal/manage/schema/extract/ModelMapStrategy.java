@@ -31,6 +31,7 @@ public class ModelMapStrategy implements ModelSchemaExtractionStrategy {
 
     // TODO extract common stuff from this and ModelSet and reuse
 
+    @Override
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
         if (MODEL_MAP_MODEL_TYPE.isAssignableFrom(type)) {

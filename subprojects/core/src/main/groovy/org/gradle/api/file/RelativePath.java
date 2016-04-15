@@ -233,7 +233,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
         while (k < lim) {
             String c1 = v1[k];
             String c2 = v2[k];
-            int compareResult = c1.compareTo(c2);
+            int compareResult = c1 == c2 ? 0 : c1.compareTo(c2);
             if (compareResult != 0) {
                 return compareResult;
             }

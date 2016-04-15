@@ -57,6 +57,7 @@ public class PlayPlatformNotationParser {
             visitor.candidate("The name of a Play platform").example("'play-" + DefaultPlayPlatform.DEFAULT_PLAY_VERSION + "'.");
         }
 
+        @Override
         public void convert(String notation, NotationConvertResult<? super PlatformRequirement> result) throws TypeConversionException {
             result.converted(new DefaultPlatformRequirement(notation));
         }

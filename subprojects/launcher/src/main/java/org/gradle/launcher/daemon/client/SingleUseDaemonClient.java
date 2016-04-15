@@ -30,7 +30,7 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.protocol.BuildAndStop;
 import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.internal.logging.events.OutputEventListener;
 
 import java.io.InputStream;
 

@@ -46,7 +46,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
 
     private String encoding;
 
-    private String force = "never";
+    private boolean force;
 
     private List<String> additionalParameters;
 
@@ -134,15 +134,14 @@ public class BaseScalaCompileOptions extends AbstractOptions {
     /**
      * Whether to force the compilation of all files.
      * Legal values:
-     * - never (only compile modified files)
-     * - changed (compile all files when at least one file is modified)
-     * - always (always recompile all files)
+     * - false (only compile modified files)
+     * - true (always recompile all files)
      */
-    public String getForce() {
+    public boolean isForce() {
         return force;
     }
 
-    public void setForce(String force) {
+    public void setForce(boolean force) {
         this.force = force;
     }
 

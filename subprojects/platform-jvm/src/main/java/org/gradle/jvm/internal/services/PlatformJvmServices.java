@@ -40,21 +40,26 @@ import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.process.internal.ExecActionFactory;
 
 public class PlatformJvmServices implements PluginServiceRegistry {
+    @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JarBinaryRenderer.class);
         registration.add(VariantAxisCompatibilityFactory.class, DefaultVariantAxisCompatibilityFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantAxisCompatibility()));
     }
 
+    @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildScopeServices());
     }
 
+    @Override
     public void registerGradleServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerProjectServices(ServiceRegistration registration) {
     }
 

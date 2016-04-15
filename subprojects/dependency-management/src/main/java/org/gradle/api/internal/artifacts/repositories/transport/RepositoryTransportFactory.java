@@ -29,7 +29,7 @@ import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transport.ResourceConnectorRepositoryTransport;
 import org.gradle.internal.resource.transport.file.FileTransport;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.util.Collection;

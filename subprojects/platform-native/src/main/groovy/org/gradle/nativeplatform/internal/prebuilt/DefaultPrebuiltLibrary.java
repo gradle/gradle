@@ -35,14 +35,17 @@ public class DefaultPrebuiltLibrary implements PrebuiltLibrary {
         binaries = new DefaultDomainObjectSet<NativeLibraryBinary>(NativeLibraryBinary.class);
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public SourceDirectorySet getHeaders() {
         return headers;
     }
 
+    @Override
     public DomainObjectSet<NativeLibraryBinary> getBinaries() {
         return binaries;
     }

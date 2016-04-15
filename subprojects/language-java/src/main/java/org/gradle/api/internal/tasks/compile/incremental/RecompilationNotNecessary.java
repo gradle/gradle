@@ -20,6 +20,7 @@ import org.gradle.api.tasks.WorkResult;
 
 public class RecompilationNotNecessary implements WorkResult {
 
+    @Override
     public boolean getDidWork() {
         return true;
     }

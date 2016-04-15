@@ -16,11 +16,11 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.internal.ProgressCompleteEvent;
-import org.gradle.logging.internal.ProgressEvent;
-import org.gradle.logging.internal.ProgressListener;
-import org.gradle.logging.internal.ProgressStartEvent;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.events.ProgressCompleteEvent;
+import org.gradle.internal.logging.events.ProgressEvent;
+import org.gradle.internal.logging.progress.ProgressListener;
+import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;

@@ -38,6 +38,7 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
         REASONS.put((byte) 4, CONFLICT_RESOLUTION);
         REASONS.put((byte) 5, SELECTED_BY_RULE);
         REASONS.put((byte) 6, CONFLICT_RESOLUTION_BY_RULE);
+        REASONS.put((byte) 7, COMPOSITE_BUILD);
     }
 
     public ComponentSelectionReason read(Decoder decoder) throws IOException {

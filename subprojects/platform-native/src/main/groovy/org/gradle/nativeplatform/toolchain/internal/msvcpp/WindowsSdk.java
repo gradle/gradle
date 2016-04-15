@@ -67,6 +67,7 @@ public class WindowsSdk implements Named {
         this.name = name;
     }
 
+    @Override
     public String getName() {
         return name;
     }

@@ -55,6 +55,7 @@ public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec 
         return installation;
     }
 
+    @Override
     public File getPrimaryOutput() {
         return getExecutableFile();
     }
@@ -75,10 +76,12 @@ public class DefaultNativeExecutableBinarySpec extends AbstractNativeBinarySpec 
             super(delegate);
         }
 
+        @Override
         public LinkExecutable getLink() {
             return findSingleTaskWithType(LinkExecutable.class);
         }
 
+        @Override
         public InstallExecutable getInstall() {
             return findSingleTaskWithType(InstallExecutable.class);
         }

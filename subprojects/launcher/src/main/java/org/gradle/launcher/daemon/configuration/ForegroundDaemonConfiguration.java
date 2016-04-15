@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.configuration;
 
+import org.gradle.process.internal.CurrentProcess;
+
 import java.io.File;
 
 public class ForegroundDaemonConfiguration extends DefaultDaemonServerConfiguration {

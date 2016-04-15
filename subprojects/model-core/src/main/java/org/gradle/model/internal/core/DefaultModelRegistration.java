@@ -36,6 +36,7 @@ public class DefaultModelRegistration implements ModelRegistration {
         this.actions = Preconditions.checkNotNull(actions, "actions");
     }
 
+    @Override
     public ModelPath getPath() {
         return path;
     }

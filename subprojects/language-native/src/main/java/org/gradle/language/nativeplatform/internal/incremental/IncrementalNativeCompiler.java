@@ -66,6 +66,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
         this.importsAreIncludes = Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass());
     }
 
+    @Override
     public WorkResult execute(final T spec) {
         final PersistentStateCache<CompilationState> compileStateCache = compilationStateCacheFactory.create(task.getPath());
         final IncrementalCompilation compilation = cacheAccess.useCache("process source files", new Factory<IncrementalCompilation>() {

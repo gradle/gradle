@@ -30,7 +30,7 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.ConfigureUtil
 
 /**
- * Is mixed in into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
+ * Is mixed into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
  * {@link org.gradle.api.plugins.JavaPlugin}.
  */
 class JavaPluginConvention {

@@ -45,8 +45,8 @@ version = '1.0'
 repositories { mavenCentral() }
 configurations { custom }
 dependencies {
-    custom 'commons-collections:commons-collections:3.2'
-    runtime 'commons-collections:commons-collections:3.2'
+    custom 'commons-collections:commons-collections:3.2.2'
+    runtime 'commons-collections:commons-collections:3.2.2'
 }
 uploadArchives {
     repositories {
@@ -445,5 +445,34 @@ uploadArchives {
         then:
         !localM2Repo.module("group", "root", "1.0").artifactFile(type: "jar").exists()
         customLocalRepo.module("group", "root", "1.0").assertPublishedAsJavaModule()
+    }
+
+    @Issue('GRADLE-1574')
+    def "can publish pom with wildcard exclusions for non-transitive dependencies"() {
+        given:
+        def localM2Repo = m2.mavenRepo()
+        executer.beforeExecute(m2)
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+
+            dependencies {
+                compile ('commons-collections:commons-collections:3.2.2') { transitive = false }
+            }
+        """
+
+        when:
+        succeeds 'install'
+
+        then:
+        def pom = localM2Repo.module("group", "root", "1.0").parsedPom
+        def exclusions = pom.scopes.compile.dependencies['commons-collections:commons-collections:3.2.2'].exclusions
+        exclusions.size() == 1 && exclusions[0].groupId=='*' && exclusions[0].artifactId=='*'
     }
 }

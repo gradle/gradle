@@ -27,18 +27,17 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
-import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.ExecHandleFactory;
-import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
+import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider;
 
 /**
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
@@ -64,8 +63,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultDeploymentRegistry();
     }
 
-    Factory<WorkerProcessBuilder> createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
-                                                             TemporaryFileProvider temporaryFileProvider, ExecHandleFactory execHandleFactory) {
+    WorkerProcessFactory createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
+                                                    TemporaryFileProvider temporaryFileProvider, ExecHandleFactory execHandleFactory) {
         return new DefaultWorkerProcessFactory(
             startParameter.getLogLevel(),
             messagingServer,
@@ -83,7 +82,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
-        return new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry);
+    WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository) {
+        return new WorkerProcessClassPathProvider(cacheRepository);
     }
 }

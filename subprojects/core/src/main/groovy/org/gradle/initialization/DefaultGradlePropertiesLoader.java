@@ -100,9 +100,9 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     }
 
     private void setSystemProperties(Map<String, String> properties) {
-        System.getProperties().putAll(properties);
         addSystemPropertiesFromGradleProperties(defaultProperties);
         addSystemPropertiesFromGradleProperties(overrideProperties);
+        System.getProperties().putAll(properties);
     }
 
     private void addSystemPropertiesFromGradleProperties(Map<String, String> properties) {

@@ -33,6 +33,7 @@ class NestedModelRuleDescriptor extends AbstractModelRuleDescriptor {
         this.child = child;
     }
 
+    @Override
     public void describeTo(Appendable appendable) {
         parent.describeTo(appendable);
         try {

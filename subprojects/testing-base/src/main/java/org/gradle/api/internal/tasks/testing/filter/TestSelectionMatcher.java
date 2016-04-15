@@ -17,15 +17,17 @@ package org.gradle.api.internal.tasks.testing.filter;
 
 import com.google.common.base.Splitter;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
 public class TestSelectionMatcher {
 
-    private List<Pattern> includePatterns = new LinkedList<Pattern>();
+    private final List<Pattern> includePatterns;
 
-    public TestSelectionMatcher(Iterable<String> includedTests) {
+    public TestSelectionMatcher(Collection<String> includedTests) {
+        includePatterns = new ArrayList<Pattern>(includedTests.size());
         for (String includedTest : includedTests) {
             includePatterns.add(preparePattern(includedTest));
         }

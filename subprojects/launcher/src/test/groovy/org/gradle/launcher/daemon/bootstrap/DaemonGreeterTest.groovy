@@ -19,7 +19,7 @@ package org.gradle.launcher.daemon.bootstrap
 import org.gradle.api.GradleException
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.launcher.daemon.logging.DaemonMessages
-import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddress
 import org.gradle.process.ExecResult
 import spock.lang.Specification
 
@@ -41,7 +41,7 @@ another line of output...
         def output = new String(outputStream.toByteArray())
 
         when:
-        def daemonStartupInfo = new DaemonGreeter(registry).parseDaemonOutput(output, Mock(ExecResult))
+        def daemonStartupInfo = new DaemonGreeter(registry).parseDaemonOutput(output)
 
         then:
         daemonStartupInfo.address == address
@@ -59,7 +59,7 @@ another line of output..."""
         ExecResult result = Mock()
 
         when:
-        new DaemonGreeter(registry).parseDaemonOutput(output, result);
+        new DaemonGreeter(registry).parseDaemonOutput(output);
 
         then:
         def ex = thrown(GradleException)
@@ -69,7 +69,7 @@ another line of output..."""
 
     def "shouts if daemon broke completely..."() {
         when:
-        new DaemonGreeter(registry).parseDaemonOutput("", Mock(ExecResult))
+        new DaemonGreeter(registry).parseDaemonOutput("")
 
         then:
         def ex = thrown(GradleException)

@@ -40,7 +40,8 @@ class DeprecatedTask extends DefaultTask {
 """
 
         when:
-        executer.withDeprecationChecksDisabled()
+        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
         run()
 
         then:
@@ -51,7 +52,8 @@ class DeprecatedTask extends DefaultTask {
 
         // Run again to ensure logging is reset
         when:
-        executer.withDeprecationChecksDisabled()
+        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
         run()
 
         then:
@@ -84,7 +86,7 @@ def someFeature() {
 """
 
         when:
-        executer.withDeprecationChecksDisabled().usingInitScript(initScript)
+        executer.expectDeprecationWarning().usingInitScript(initScript)
         run()
 
         then:
@@ -105,7 +107,7 @@ someFeature()
         buildFile << "allprojects { apply from: 'project.gradle' }"
 
         when:
-        executer.withDeprecationChecksDisabled()
+        executer.expectDeprecationWarning()
         run()
 
         then:

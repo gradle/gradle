@@ -61,7 +61,7 @@ On completion of this story, it will be possible to convert Buildship to use thi
      */
     public abstract class CompositeBuildConnector {
          public static CompositeBuildConnector newComposite() { ... }
-         public abstract CompositeParticipant withParticipant(CompositeParticipant participant) { ... }
+         public abstract CompositeParticipant addParticipant(File rootProjectDirectory) { ... }
          public abstract CompositeBuildConnection connect() throws GradleConnectionException { ... }
     }
 
@@ -84,12 +84,13 @@ On completion of this story, it will be possible to convert Buildship to use thi
 
 ##### Usage
 
-    CompositeBuildConnection connection = CompositeBuildConnector.newComposite()
-        .withParticipant("project-1")
-        .withParticipant("project-2")
-        .connect();
+    CompositeBuildConnection connection = null;
 
     try {
+        connection = CompositeBuildConnector.newComposite();
+        connection.addParticipant("project-1");
+        connection.addParticipant("project-2").useGradleVersion("2.8");
+        connection.connect();
         Set<ModelResult<EclipseProject>> modelResult = connection.getModels(EclipseProject.class);
 
         for (ModelResult modelResult : modelResult) {
@@ -97,7 +98,9 @@ On completion of this story, it will be possible to convert Buildship to use thi
             System.out.println(eclipseProject.getName());
         }
     } finally {
-        connection.close();
+        if (connection != null) {
+            connection.close();
+        }
     }
 
 ##### Implementation
@@ -106,11 +109,16 @@ On completion of this story, it will be possible to convert Buildship to use thi
 participates in the composite.
     - Adding any `CompositeParticipant` effectively adds the Gradle build that _contains_ the referenced project to the composite.
     - For each `CompositeParticipant` a new `ProjectConnection` is created internally.
+    - A `CompositeParticipant` can provide a Gradle distribution for use with the underlying `ProjectConnection`. If no Gradle distribution is provided, the Gradle distribution of the
+    build is used.
 - The only model type that can be requested for a `CompositeBuildConnection` is `EclipseProject`
     - On request for a `EclipseProject`, the underlying `ProjectConnection` will be queried for the `EclipseProject` model. This model represents the hierarchy of all eclipse projects
     for all participating Gradle builds of a composite.
     - The instance of `ModelResult` will be constructed directly by the `CompositeBuildConnection` instance, by traversing the hierarchy of the `EclipseProject` obtained.
     - The `EclipseProject`s still contain the information about their hierarchy, so Buildship can potentially display them in a hierarchical layout.
+- The order in which participants are added doesn't not make any guarantees over the order of returned model results.
+- The method on `CompositeBuildConnection` returning a `ModelBuilder` does only allow for providing a cancellation token or a progress listener. Any other method on the `ModelBuilder`
+interface is not supported. The returned `ModelBuilder` can provide a `ResultHandler` when retrieving the model.
 
 ##### Test cases
 
@@ -134,10 +142,14 @@ The `Set<ModelResult<EclipseProject>>` contains all `EclipseProject`s of that hi
     - multiple single project builds
     - multiple multi-project builds
     - a combination of both
+- A participant uses the provided Gradle distribution to resolve the model.
 - An exception is thrown if any of the `ProjectConnection`s fail to properly resolve the model.
 - An exception is thrown if any of the resolved `EclipseProject`s have the same name.
-- An exception is thrown if a dependency cycle is detected e.g. project A depends on B and B depends on A.
-- When building a composite, a cancellation token can be provided. If the build is cancelled with the cancellation token, building the composite fails and `BuildCancelledException` is thrown.
+- When building a composite, a cancellation token can be provided. If the build is cancelled with the cancellation token, building the composite fails and `BuildCancelledException`
+is thrown.
+- When building a composite, a progress listener can be provided. The progress listener captures the relevant events.
+- Unsupported methods of the `ModelBuilder` throw an `UnsupportedMethodException`.
+- A result handler can be used to capture the result of the operation upon completion or the exception of the failed operation.
 
 ##### Open issues
 
@@ -160,9 +172,12 @@ The `ToolingClient` will be expanded to provide methods for managing and queryin
         public abstract <T> CompositeModelRequest<T> newCompositeModelRequest(Class<T> modelType);
     }
 
-    public interface CompositeModelRequest {
-        List<GradleBuildIdentifier> getParticipants();
-    }
+The `CompositeModelRequest` clients can specify the composite participants in a write-only manner
+
+     public interface CompositeModelRequest {
+         CompositeRequest<T> participants(GradleBuildIdentifier... buildIdentifiers);
+         CompositeRequest<T> addParticipants(GradleBuildIdentifier... buildIdentifiers);
+     }
 
 A new `CompositeModelRepository` will be added in order to query composites from Buildship
 
@@ -216,9 +231,18 @@ subproject already depends on tooling-api and it's easy to adapt the current cod
   - The current implementation lacks de-duplication for root project names. This has to be added.
   - The current `ModuleNameDeduper` implementation is not functional style. The logic mutates state between steps and it makes it hard to understand the de-dup logic. Consider
   rewriting the implementation.
-- Project names must remain stable, i.e. de-duping renames projects in the order of the composite's participants. As a result, Buildship will rename newly imported projects in favor of renaming already existing projects.
-- the renaming algorithm will prepend the root project name when a duplicate name is found. If prepending the root project name still does not yield a unique name, then it appends an increasing counter.
+- the renaming algorithm will prepend the parent project names when a duplicate name is found. If prepending the all parents up to the root project name still does not yield a unique name, then it appends an increasing counter.
 - the algorithm should be implemented completely in Java (the existing one is partially written in Groovy)
+- the algorithm will rename all projects that are part of a name conflict so they all end up with the same number of prefixes
+- if a subproject already has the correct prefix, it is not prefixed again
+- parent projects are de-duped first to avoid unnecessary counters in child project
+
+##### Examples
+
+foo:sub and bar:sub become foo-sub and bar-sub (prefixed with parent)
+foo and foo become foo1 and foo2 (suffixed with counter)
+foo:sub and bar:bar-sub become foo-sub and bar-sub (not prefixed twice)
+foo:sub and foo:sub become foo1-sub and foo2-sub (parent projects are de-duped first)
 
 ##### Test cases
 
@@ -228,7 +252,7 @@ subproject already depends on tooling-api and it's easy to adapt the current cod
 - Multi-project builds can contain duplicate project names in any leaf of the project hierarchy.
 - De-dup the names of root projects that have the same project name.
 - Buildship uses de-duplicated names for Eclipse projects when multiple Gradle builds are imported containing duplicate names.
-- Three projects with the path foo:bar = > the first project gets name "bar", the second project gets the name "foo-bar", the third project gets the name "foo-bar2"
+- see examples above
 
 ### Story - Model for a composite does not contain project names that conflict with non-Gradle projects
 
@@ -379,9 +403,6 @@ _Use cases:_
 - There should be no change to Buildship as the majority of the implementation previously used to the live in Tooling Commons.
 
 ### Story - Buildship can rename projects when importing/refreshing
-
-This story was initially thought to be an integral part of name deduplication. However, it is not needed as long as the de-duper uses
-a stable algorithm, i.e. renames newly added projects instead of renaming existing projects.
 
 Buildship will need to react to name changes by renaming projects. One limitation is that Eclipse requires projects that are physically contained in the workspace location to have the
 same name as their folder. Buildship cannot rename such projects and should warn the user if synchronization becomes impossible due to this problem. Another important corner case is

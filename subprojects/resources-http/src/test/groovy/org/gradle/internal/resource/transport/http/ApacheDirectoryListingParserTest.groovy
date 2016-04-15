@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.gradle.internal.resource.ResourceException
+import org.gradle.api.resources.ResourceException
 import org.gradle.util.Resources
 import org.junit.Rule
 import spock.lang.Specification
@@ -99,16 +99,16 @@ class ApacheDirectoryListingParserTest extends Specification {
     @Unroll
     def "parse ignores #descr"() {
         expect:
-        parser.parse(baseUrl, new ByteArrayInputStream("<a href=\"${href}\">link</a>".toString().bytes), CONTENT_TYPE).isEmpty()
+        parser.parse(baseUrl, new ByteArrayInputStream(href.bytes), CONTENT_TYPE).isEmpty()
 
         where:
         href                                                | descr
-        "http://anothertestrepo/"                           | "URLs which aren't children of base URL"
-        "../"                                               | "links to parent URLs of base URL"
-        "http://[2h:23:3]"                                  | "invalid URLs"
-        "dir1/subdir1"                                      | "links to nested subdirectories"
+        "<a href=\"http://anothertestrepo\">link</a>/"      | "URLs which aren't children of base URL"
+        "<a href=\"../\">link</a>"                          | "links to parent URLs of base URL"
+        "<a href=\"http://[2h:23:3]\">link</a>"             | "invalid URLs"
+        "<a href=\"dir1/subdir1\">link</a>"                 | "links to nested subdirectories"
         "<![CDATA[<a href=\"directory2\">directory2</a>]]>" | "links in CDATA blocks"
-        "#achor"                                            | "anchor links"
+        "<a href=\"#anchor\">link</a>"                      | "anchor links"
         "<a name=\"anchorname\">headline</a>"               | "anchor definitions"
     }
 

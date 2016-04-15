@@ -21,13 +21,13 @@ import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.execution.TaskSelector;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
 
-import static org.gradle.logging.StyledTextOutput.Style.UserInput;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 
 public class Help extends DefaultTask {
     private String taskPath;

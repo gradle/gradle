@@ -32,6 +32,7 @@ public class GroupsJavadocOptionFileOption extends AbstractJavadocOptionFileOpti
         super(option, new LinkedHashMap<String, List<String>>());
     }
 
+    @Override
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
         if (value != null && !value.isEmpty()) {
             for (final String group : value.keySet()) {

@@ -17,7 +17,10 @@ package org.gradle.api.file;
 
 /**
  * Deletes files and directories.
+ *
+ * @deprecated Use {@link DeleteSpec} or {@link org.gradle.api.tasks.Delete} instead.
  */
+@Deprecated
 public interface DeleteAction {
     /**
      * Deletes files and directories.

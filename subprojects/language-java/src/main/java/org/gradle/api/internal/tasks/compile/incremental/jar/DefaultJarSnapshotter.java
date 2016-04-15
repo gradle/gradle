@@ -21,6 +21,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnalyzer;
+import org.gradle.internal.hash.HashValue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,12 +36,12 @@ class DefaultJarSnapshotter {
         this.analyzer = analyzer;
     }
 
-    public JarSnapshot createSnapshot(byte[] hash, JarArchive jarArchive) {
+    public JarSnapshot createSnapshot(HashValue hash, JarArchive jarArchive) {
         return createSnapshot(hash, jarArchive.contents, new ClassFilesAnalyzer(analyzer));
     }
 
-    JarSnapshot createSnapshot(byte[] hash, FileTree classes, final ClassFilesAnalyzer analyzer) {
-        final Map<String, byte[]> hashes = new HashMap<String, byte[]>();
+    JarSnapshot createSnapshot(HashValue hash, FileTree classes, final ClassFilesAnalyzer analyzer) {
+        final Map<String, HashValue> hashes = new HashMap<String, HashValue>();
         classes.visit(new FileVisitor() {
             public void visitDir(FileVisitDetails dirDetails) {
             }
@@ -48,7 +49,7 @@ class DefaultJarSnapshotter {
             public void visitFile(FileVisitDetails fileDetails) {
                 analyzer.visitFile(fileDetails);
                 String className = fileDetails.getPath().replaceAll("/", ".").replaceAll("\\.class$", "");
-                byte[] classHash = hasher.hash(fileDetails.getFile());
+                HashValue classHash = hasher.hash(fileDetails.getFile());
                 hashes.put(className, classHash);
             }
         });

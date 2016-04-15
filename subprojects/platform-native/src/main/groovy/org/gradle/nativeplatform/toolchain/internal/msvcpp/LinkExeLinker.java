@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.internal.operations.BuildOperationProcessor;
@@ -48,20 +49,28 @@ class LinkExeLinker implements Compiler<LinkerSpec> {
         this.specTransformer = specTransformer;
     }
 
-    public WorkResult execute(LinkerSpec spec) {
-        BuildOperationQueue<CommandLineToolInvocation> queue = buildOperationProcessor.newQueue(commandLineToolInvocationWorker, spec.getOperationLogger().getLogLocation());
+    @Override
+    public WorkResult execute(final LinkerSpec spec) {
         LinkerSpec transformedSpec = specTransformer.transform(spec);
         List<String> args = argsTransformer.transform(transformedSpec);
         invocationContext.getArgAction().execute(args);
         new VisualCppOptionsFileArgsWriter(spec.getTempDir()).execute(args);
-        CommandLineToolInvocation invocation = invocationContext.createInvocation(
+        final CommandLineToolInvocation invocation = invocationContext.createInvocation(
                 String.format("linking %s", spec.getOutputFile().getName()), args, spec.getOperationLogger());
-        queue.add(invocation);
-        queue.waitForCompletion();
+
+        buildOperationProcessor.run(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
+            @Override
+            public void execute(BuildOperationQueue<CommandLineToolInvocation> buildQueue) {
+                buildQueue.setLogLocation(spec.getOperationLogger().getLogLocation());
+                buildQueue.add(invocation);
+            }
+        });
+
         return new SimpleWorkResult(true);
     }
 
     private static class LinkerArgsTransformer implements ArgsTransformer<LinkerSpec> {
+        @Override
         public List<String> transform(LinkerSpec spec) {
             List<String> args = new ArrayList<String>();
             args.addAll(escapeUserArgs(spec.getAllArgs()));

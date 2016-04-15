@@ -25,22 +25,22 @@ import org.gradle.util.TestPrecondition
 @Requires(TestPrecondition.JDK7_OR_LATER)
 class Play23RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegrationTest {
     @Override
-    def getRoutesJavaFileNameTemplate(String packageName, String namespace) {
+    def getJavaRoutesFileName(String packageName, String namespace) {
         return "${namespace ? namespace + '/' :''}controllers/${packageName ? packageName + '/' :''}routes.java"
     }
 
     @Override
-    def getRoutesReverseFileNameTemplate(String packageName, String namespace) {
+    def getReverseRoutesFileName(String packageName, String namespace) {
         return "${packageName ? packageName + '/' :''}routes_reverseRouting.scala"
     }
 
     @Override
-    def getRoutesScalaFileNameTemplate(String packageName, String namespace) {
+    def getScalaRoutesFileName(String packageName, String namespace) {
         return "${packageName ? packageName + '/' :''}routes_routing.scala"
     }
 
     @Override
-    def getOtherRoutesFilesTemplates() {
+    def getOtherRoutesFileNames() {
         return []
     }
 

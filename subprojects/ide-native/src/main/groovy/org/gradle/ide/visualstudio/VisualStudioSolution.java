@@ -17,8 +17,7 @@
 package org.gradle.ide.visualstudio;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.Named;
-import org.gradle.api.BuildableModelElement;
+import org.gradle.api.BuildableComponentSpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
 
 import java.util.Set;
@@ -46,7 +45,7 @@ import java.util.Set;
  * </pre>
  */
 @Incubating
-public interface VisualStudioSolution extends Named, BuildableModelElement {
+public interface VisualStudioSolution extends BuildableComponentSpec {
     /**
      * The set of projects included in this solution.
      */

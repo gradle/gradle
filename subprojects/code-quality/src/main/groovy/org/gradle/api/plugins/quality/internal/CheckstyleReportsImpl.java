@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality.internal;
 import org.gradle.api.Task;
 import org.gradle.api.plugins.quality.CheckstyleReports;
 import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.reporting.internal.CustomizableHtmlReportImpl;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
 
@@ -26,7 +27,7 @@ public class CheckstyleReportsImpl extends TaskReportContainer<SingleFileReport>
     public CheckstyleReportsImpl(Task task) {
         super(SingleFileReport.class, task);
 
-        add(TaskGeneratedSingleFileReport.class, "html", task);
+        add(CustomizableHtmlReportImpl.class, "html", task);
         add(TaskGeneratedSingleFileReport.class, "xml", task);
     }
 

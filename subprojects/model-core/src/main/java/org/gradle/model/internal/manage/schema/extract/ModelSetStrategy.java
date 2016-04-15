@@ -34,6 +34,7 @@ public class ModelSetStrategy implements ModelSchemaExtractionStrategy {
         };
     }
 
+    @Override
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
         if (modelType.isAssignableFrom(type)) {

@@ -36,6 +36,11 @@ dependencies {
 
 test {
     jvmArgs '-XX:MaxPermSize=512m', '-XX:+HeapDumpOnOutOfMemoryError'
+    <% if (binding.hasVariable("fullTestLogging")) { %>
+        testLogging {
+            events "started", "skipped", "failed", "passed", "standard_out", "standard_error"
+        }
+    <% } %>
 }
 
 <% if (groovyProject) { %>

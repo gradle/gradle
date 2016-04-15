@@ -21,9 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.cpp.plugins.CppLangPlugin;
-import org.gradle.model.Finalize;
 import org.gradle.model.ModelMap;
 import org.gradle.model.Path;
 import org.gradle.model.RuleSource;
@@ -32,8 +30,9 @@ import org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteBinary;
 import org.gradle.nativeplatform.test.googletest.internal.DefaultGoogleTestTestSuiteSpec;
 import org.gradle.nativeplatform.test.plugins.NativeBinariesTestPlugin;
-import org.gradle.platform.base.*;
-import org.gradle.testing.base.TestSuiteContainer;
+import org.gradle.platform.base.ComponentBinaries;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
 
 import java.io.File;
 
@@ -45,6 +44,7 @@ import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNat
 @Incubating
 public class GoogleTestPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(NativeBinariesTestPlugin.class);
         project.getPluginManager().apply(CppLangPlugin.class);
@@ -54,21 +54,12 @@ public class GoogleTestPlugin implements Plugin<Project> {
     static class Rules extends RuleSource {
 
         @ComponentType
-        public void registerGoogleTestSuiteSpecTest(ComponentTypeBuilder<GoogleTestTestSuiteSpec> builder) {
+        public void registerGoogleTestSuiteSpecTest(TypeBuilder<GoogleTestTestSuiteSpec> builder) {
             builder.defaultImplementation(DefaultGoogleTestTestSuiteSpec.class);
         }
 
-        @Finalize
-        public void configureGoogleTestTestSuiteSources(TestSuiteContainer testSuites) {
-            for (final GoogleTestTestSuiteSpec suite : testSuites.withType(GoogleTestTestSuiteSpec.class).values()) {
-                if (!suite.getSources().containsKey("cpp")) {
-                    suite.getSources().create("cpp", CppSourceSet.class);
-                }
-            }
-        }
-
-        @BinaryType
-        public void registerGoogleTestSuiteBinaryType(BinaryTypeBuilder<GoogleTestTestSuiteBinarySpec> builder) {
+        @ComponentType
+        public void registerGoogleTestSuiteBinaryType(TypeBuilder<GoogleTestTestSuiteBinarySpec> builder) {
             builder.defaultImplementation(DefaultGoogleTestTestSuiteBinary.class);
         }
 

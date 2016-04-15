@@ -31,7 +31,7 @@ import java.beans.Introspector
 
 class ModelRuleExtractorTest extends ProjectRegistrySpec {
     def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(SCHEMA_STORE), MANAGED_PROXY_FACTORY, SCHEMA_STORE, STRUCT_BINDINGS_STORE)
-    ModelRegistry registry = new DefaultModelRegistry(extractor)
+    ModelRegistry registry = new DefaultModelRegistry(extractor, null)
 
     static class ModelThing {
         final String name

@@ -18,6 +18,9 @@ package org.gradle.performance;
 import org.gradle.api.Action;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.LinkedList;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -38,13 +41,22 @@ public enum SourceUpdateCardinality {
     }
 
     public void onSourceFile(File dir, String extension, Action<? super File> action) {
+        onSourceFile(dir, extension, false, action);
+    }
+
+    public void onSourceFile(File dir, String extension, boolean recurse, Action<? super File> action) {
         int idx = 0;
-        for (File f: dir.listFiles()) {
+        Deque<File> queue = new LinkedList<File>();
+        Collections.addAll(queue, dir.listFiles());
+        while (!queue.isEmpty()) {
+            File f = queue.removeFirst();
             if (hasExtension(f, extension)) {
                 action.execute(f);
-            }
-            if (++idx==maxNumberOfUpdatedSourceFiles) {
-                return;
+                if (++idx == maxNumberOfUpdatedSourceFiles) {
+                    return;
+                }
+            } else if (recurse && f.isDirectory()) {
+                Collections.addAll(queue, f.listFiles());
             }
         }
     }

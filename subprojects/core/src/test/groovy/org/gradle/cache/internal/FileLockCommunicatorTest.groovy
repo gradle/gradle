@@ -17,7 +17,7 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.messaging.remote.internal.inet.InetAddressFactory
+import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.util.ConcurrentSpecification
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll

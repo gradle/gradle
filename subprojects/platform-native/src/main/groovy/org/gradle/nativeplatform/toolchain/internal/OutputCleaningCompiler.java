@@ -33,6 +33,7 @@ public class OutputCleaningCompiler<T extends NativeCompileSpec> implements Comp
         this.outputFileSuffix = outputFileSuffix;
     }
 
+    @Override
     public WorkResult execute(T spec) {
         boolean didRemove = deleteOutputsForRemovedSources(spec);
         boolean didCompile = compileSources(spec);

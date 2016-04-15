@@ -28,12 +28,13 @@ import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.messaging.remote.MessagingServer
-import org.gradle.process.internal.DefaultWorkerProcessFactory
+import org.gradle.internal.remote.MessagingServer
+import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
 import org.gradle.process.internal.ExecHandleFactory
-import org.gradle.process.internal.WorkerProcessBuilder
-import org.gradle.process.internal.child.WorkerProcessClassPathProvider
+import org.gradle.process.internal.worker.WorkerProcessFactory
+import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -48,7 +49,7 @@ class BuildSessionScopeServicesTest extends Specification {
     def setup() {
         startParameter.gradleUserHomeDir = tmpDir.testDirectory
         parent.get(CacheFactory) >> Stub(CacheFactory)
-        parent.get(ModuleRegistry) >> new DefaultModuleRegistry()
+        parent.get(ModuleRegistry) >> new DefaultModuleRegistry(CurrentGradleInstallation.get())
         parent.get(FileResolver) >> Stub(FileResolver)
     }
 
@@ -71,8 +72,8 @@ class BuildSessionScopeServicesTest extends Specification {
         expectParentServiceLocated(ExecHandleFactory)
 
         expect:
-        registry.getFactory(WorkerProcessBuilder) instanceof DefaultWorkerProcessFactory
-        registry.getFactory(WorkerProcessBuilder) == registry.getFactory(WorkerProcessBuilder)
+        registry.get(WorkerProcessFactory) instanceof DefaultWorkerProcessFactory
+        registry.get(WorkerProcessFactory) == registry.get(WorkerProcessFactory)
     }
 
     def "provides a ClassPathRegistry"() {

@@ -16,13 +16,11 @@
 
 package org.gradle.api.internal.file.archive.compression;
 
-import org.gradle.api.resources.ResourceException;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
+import org.gradle.internal.resource.ResourceExceptions;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -39,11 +37,12 @@ public class GzipArchiver extends AbstractArchiver {
         // this is not very beautiful but at some point we will
         // get rid of ArchiveOutputStreamFactory in favor of the writable Resource
         return new ArchiveOutputStreamFactory() {
-            public OutputStream createArchiveOutputStream(File destination) {
+            public OutputStream createArchiveOutputStream(File destination) throws FileNotFoundException {
+                OutputStream outStr = new FileOutputStream(destination);
                 try {
-                    OutputStream outStr = new FileOutputStream(destination);
                     return new GZIPOutputStream(outStr);
                 } catch (Exception e) {
+                    IOUtils.closeQuietly(outStr);
                     String message = String.format("Unable to create gzip output stream for file %s.", destination);
                     throw new RuntimeException(message, e);
                 }
@@ -56,9 +55,8 @@ public class GzipArchiver extends AbstractArchiver {
         try {
             return new GZIPInputStream(is);
         } catch (Exception e) {
-            String message = String.format("Unable to create gzip input stream for resource %s.", resource.getDisplayName());
-            throw new ResourceException(message, e);
+            IOUtils.closeQuietly(is);
+            throw ResourceExceptions.readFailed(resource.getDisplayName(), e);
         }
     }
-
 }

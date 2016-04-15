@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.resolve.ResolveTestFixture
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.id.UUIDGenerator
 import spock.lang.Issue
 

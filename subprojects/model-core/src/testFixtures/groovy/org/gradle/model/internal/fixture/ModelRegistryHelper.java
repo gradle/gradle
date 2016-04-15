@@ -22,11 +22,11 @@ import org.gradle.model.internal.type.ModelType;
 
 public class ModelRegistryHelper extends DefaultModelRegistry {
     public ModelRegistryHelper() {
-        super(ProjectRegistrySpec.MODEL_RULE_EXTRACTOR);
+        super(ProjectRegistrySpec.MODEL_RULE_EXTRACTOR, null);
     }
 
     public ModelRegistryHelper(ModelRuleExtractor ruleExtractor) {
-        super(ruleExtractor);
+        super(ruleExtractor, null);
     }
 
     public static <T> ModelType<RuleAwarePolymorphicNamedEntityInstantiator<T>> instantiatorType(Class<T> typeClass) {

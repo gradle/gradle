@@ -33,6 +33,7 @@ public class MultilineStringsJavadocOptionFileOption extends AbstractListJavadoc
         super(option, value, JOIN_BY);
     }
 
+    @Override
     public void writeCollectionValue(JavadocOptionFileWriterContext writerContext) throws IOException {
         if (value != null && !value.isEmpty()) {
             writerContext.writeMultilineValuesOption(option, value);

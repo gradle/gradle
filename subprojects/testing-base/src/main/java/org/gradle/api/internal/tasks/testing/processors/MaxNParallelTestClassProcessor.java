@@ -22,9 +22,9 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.actor.Actor;
-import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.messaging.dispatch.DispatchException;
+import org.gradle.internal.actor.Actor;
+import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.dispatch.DispatchException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,11 +49,13 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
         this.actorFactory = actorFactory;
     }
 
+    @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
         resultProcessorActor = actorFactory.createActor(resultProcessor);
         this.resultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
     }
 
+    @Override
     public void processTestClass(TestClassRunInfo testClass) {
         TestClassProcessor processor;
         if (processors.size() < maxProcessors) {
@@ -70,6 +72,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
         processor.processTestClass(testClass);
     }
 
+    @Override
     public void stop() {
         try {
             CompositeStoppable.stoppable(processors).add(actors).add(resultProcessorActor).stop();

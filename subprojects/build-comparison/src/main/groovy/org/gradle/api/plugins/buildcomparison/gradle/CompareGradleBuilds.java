@@ -38,9 +38,9 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.PathNormalisingKeyFileStore;
-import org.gradle.logging.ConsoleRenderer;
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.ConsoleRenderer;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;

@@ -16,12 +16,12 @@
 package org.gradle.internal.graph;
 
 import org.gradle.api.Action;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.internal.StreamingStyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 
 import java.util.*;
 
-import static org.gradle.logging.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
 public class DirectedGraphRenderer<N> {
     private final GraphNodeRenderer<N> nodeRenderer;

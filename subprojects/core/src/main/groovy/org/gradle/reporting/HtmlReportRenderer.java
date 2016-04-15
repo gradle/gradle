@@ -94,16 +94,17 @@ public class HtmlReportRenderer {
         }
 
         Resource addResource(URL source) {
-            String name = StringUtils.substringAfterLast(source.getPath(), "/");
-            String type = StringUtils.substringAfterLast(source.getPath(), ".");
-            if (type.equalsIgnoreCase("png") || type.equalsIgnoreCase("gif")) {
-                type = "images";
-            }
-            String path = String.format("%s/%s", type, name);
-            Resource resource = resources.get(path);
+            String urlString = source.toString();
+            Resource resource = resources.get(urlString);
             if (resource == null) {
+                String name = StringUtils.substringAfterLast(source.getPath(), "/");
+                String type = StringUtils.substringAfterLast(source.getPath(), ".");
+                if (type.equalsIgnoreCase("png") || type.equalsIgnoreCase("gif")) {
+                    type = "images";
+                }
+                String path = type + "/" + name;
                 resource = new Resource(source, path);
-                resources.put(path, resource);
+                resources.put(urlString, resource);
             }
             return resource;
         }

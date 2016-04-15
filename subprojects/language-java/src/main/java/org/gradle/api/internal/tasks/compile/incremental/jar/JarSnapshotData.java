@@ -17,21 +17,22 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
+import org.gradle.internal.hash.HashValue;
 
 import java.util.Map;
 
 public class JarSnapshotData {
 
-    final Map<String, byte[]> hashes;
+    final Map<String, HashValue> hashes;
     final ClassSetAnalysisData data;
-    final byte[] hash;
+    final HashValue hash;
 
     /**
      * @param hash of this jar
      * @param hashes hashes of all classes from the jar
      * @param data of classes analysis in this jar
      */
-    public JarSnapshotData(byte[] hash, Map<String, byte[]> hashes, ClassSetAnalysisData data) {
+    public JarSnapshotData(HashValue hash, Map<String, HashValue> hashes, ClassSetAnalysisData data) {
         assert hash != null;
         assert hashes != null;
         assert data != null;

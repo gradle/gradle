@@ -1275,7 +1275,7 @@ model {
 
             class ComponentTypeRules extends RuleSource {
                 @ComponentType
-                void registerCustomComponentType(ComponentTypeBuilder<CustomLibrary> builder) {}
+                void registerCustomComponentType(TypeBuilder<CustomLibrary> builder) {}
             }
 
             apply type: ComponentTypeRules

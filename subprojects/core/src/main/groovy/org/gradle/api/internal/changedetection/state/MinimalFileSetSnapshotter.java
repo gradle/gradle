@@ -16,14 +16,18 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -31,7 +35,7 @@ import java.util.List;
  * in the input FileCollection without visiting the files on disk.  This allows files that do not exist yet to be considered part of the
  * FileCollectionSnapshot without that information being lost.
  */
-public class MinimalFileSetSnapshotter extends DefaultFileCollectionSnapshotter {
+public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter {
     private final FileSystem fileSystem;
 
     public MinimalFileSetSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem) {
@@ -40,13 +44,25 @@ public class MinimalFileSetSnapshotter extends DefaultFileCollectionSnapshotter 
     }
 
     @Override
-    protected void visitFiles(FileCollection input, final List<FileVisitDetails> allFileVisitDetails, final List<File> missingFiles) {
+    VisitedTree createJoinedTree(List<VisitedTree> nonShareableTrees, Collection<File> missingFiles) {
+        return CachingTreeVisitor.createJoinedTree(-1, nonShareableTrees, missingFiles);
+    }
+
+    @Override
+    protected void visitFiles(FileCollection input, List<VisitedTree> visitedTrees, List<File> missingFiles, boolean allowReuse) {
+        final List<FileTreeElement> fileTreeElements = new ArrayList<FileTreeElement>();
         for (File file : input.getFiles()) {
             if (file.exists()) {
-                allFileVisitDetails.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
+                fileTreeElements.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
             } else {
                 missingFiles.add(file);
             }
         }
+        visitedTrees.add(new DefaultVisitedTree(ImmutableList.<FileTreeElement>copyOf(fileTreeElements), false, -1, null));
+    }
+
+    @Override
+    public void registerSerializers(SerializerRegistry registry) {
+
     }
 }

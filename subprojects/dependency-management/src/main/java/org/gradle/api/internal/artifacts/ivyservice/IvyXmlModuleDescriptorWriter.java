@@ -27,7 +27,10 @@ import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMeta
 import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.util.CollectionUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -64,7 +67,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     private void doWrite(ModuleDescriptor md, Collection<Artifact> artifacts, File output) {
         try {
             output.getParentFile().mkdirs();
-            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(output));
+            OutputStream outputStream = new FileOutputStream(output);
             try {
                 SimpleXmlWriter xmlWriter = new SimpleXmlWriter(outputStream, "  ");
                 writeTo(md, artifacts, xmlWriter);

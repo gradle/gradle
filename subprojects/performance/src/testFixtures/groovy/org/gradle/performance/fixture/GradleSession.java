@@ -16,13 +16,11 @@
 
 package org.gradle.performance.fixture;
 
-public interface GradleSession {
+public interface GradleSession extends InvocationExecutorProvider<GradleInvocationCustomizer> {
 
     GradleInvocationSpec getInvocation();
 
     void prepare();
-
-    Runnable runner(GradleInvocationCustomizer invocationCustomizer);
 
     void cleanup();
 

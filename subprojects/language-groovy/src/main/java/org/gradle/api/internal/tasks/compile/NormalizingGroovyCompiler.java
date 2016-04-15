@@ -45,6 +45,7 @@ public class NormalizingGroovyCompiler implements Compiler<GroovyJavaJointCompil
         this.delegate = delegate;
     }
 
+    @Override
     public WorkResult execute(GroovyJavaJointCompileSpec spec) {
         resolveAndFilterSourceFiles(spec);
         resolveClasspath(spec);

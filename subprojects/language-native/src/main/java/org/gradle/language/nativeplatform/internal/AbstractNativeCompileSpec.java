@@ -40,80 +40,99 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private String preCompiledHeader;
     private DiscoveredInputRecorder discoveredInputRecorder;
 
+    @Override
     public List<File> getIncludeRoots() {
         return includeRoots;
     }
 
+    @Override
     public void include(File... includeRoots) {
         Collections.addAll(this.includeRoots, includeRoots);
     }
 
+    @Override
     public void include(Iterable<File> includeRoots) {
         addAll(this.includeRoots, includeRoots);
     }
 
+    @Override
     public List<File> getSourceFiles() {
         return sourceFiles;
     }
 
+    @Override
     public void source(Iterable<File> sources) {
         addAll(sourceFiles, sources);
     }
 
+    @Override
     public void setSourceFiles(Collection<File> sources) {
         sourceFiles.clear();
         sourceFiles.addAll(sources);
     }
 
+    @Override
     public List<File> getRemovedSourceFiles() {
         return removedSourceFiles;
     }
 
+    @Override
     public void removedSource(Iterable<File> sources) {
         addAll(removedSourceFiles, sources);
     }
 
+    @Override
     public void setRemovedSourceFiles(Collection<File> sources) {
         removedSourceFiles.clear();
         removedSourceFiles.addAll(sources);
     }
 
+    @Override
     public boolean isIncrementalCompile() {
         return incrementalCompile;
     }
 
+    @Override
     public void setIncrementalCompile(boolean flag) {
         incrementalCompile = flag;
     }
 
+    @Override
     public File getObjectFileDir() {
         return objectFileDir;
     }
 
+    @Override
     public void setObjectFileDir(File objectFileDir) {
         this.objectFileDir = objectFileDir;
     }
 
+    @Override
     public Map<String, String> getMacros() {
         return macros;
     }
 
+    @Override
     public void setMacros(Map<String, String> macros) {
         this.macros = macros;
     }
 
+    @Override
     public void define(String name) {
         macros.put(name, null);
     }
 
+    @Override
     public void define(String name, String value) {
         macros.put(name, value);
     }
 
+    @Override
     public boolean isPositionIndependentCode() {
         return positionIndependentCode;
     }
 
+    @Override
     public void setPositionIndependentCode(boolean positionIndependentCode) {
         this.positionIndependentCode = positionIndependentCode;
     }
@@ -154,26 +173,32 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
         }
     }
 
+    @Override
     public BuildOperationLogger getOperationLogger() {
         return oplogger;
     }
 
+    @Override
     public void setOperationLogger(BuildOperationLogger oplogger) {
         this.oplogger = oplogger;
     }
 
+    @Override
     public Map<File, IncludeDirectives> getSourceFileIncludeDirectives() {
         return sourceFileIncludeDirectives;
     }
 
+    @Override
     public void setSourceFileIncludeDirectives(Map<File, IncludeDirectives> map) {
         this.sourceFileIncludeDirectives = map;
     }
 
+    @Override
     public void setDiscoveredInputRecorder(DiscoveredInputRecorder inputs) {
         this.discoveredInputRecorder = inputs;
     }
 
+    @Override
     public DiscoveredInputRecorder getDiscoveredInputRecorder() {
         return discoveredInputRecorder;
     }

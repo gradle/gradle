@@ -29,40 +29,49 @@ public class AbstractBinaryToolSpec implements BinaryToolSpec {
     private NativePlatform platform;
     private BuildOperationLogger oplogger;
 
+    @Override
     public NativePlatform getTargetPlatform() {
         return platform;
     }
 
+    @Override
     public void setTargetPlatform(NativePlatform platform) {
         this.platform = platform;
     }
 
+    @Override
     public File getTempDir() {
         return tempDir;
     }
 
+    @Override
     public void setTempDir(File tempDir) {
         this.tempDir = tempDir;
     }
 
+    @Override
     public List<String> getArgs() {
         return args;
     }
 
+    @Override
     public void args(List<String> args) {
         this.args.addAll(args);
     }
 
+    @Override
     public List<String> getSystemArgs() {
         return systemArgs;
     }
 
+    @Override
     public void systemArgs(List<String> args) {
        if(!systemArgs.containsAll(args)){
            systemArgs.addAll(args);
        }
     }
 
+    @Override
     public List<String> getAllArgs() {
         List<String> allArgs = new ArrayList<String>(systemArgs.size() + args.size());
         allArgs.addAll(systemArgs);
@@ -70,10 +79,12 @@ public class AbstractBinaryToolSpec implements BinaryToolSpec {
         return allArgs;
     }
 
+    @Override
     public BuildOperationLogger getOperationLogger() {
         return oplogger;
     }
 
+    @Override
     public void setOperationLogger(BuildOperationLogger oplogger) {
         this.oplogger = oplogger;
     }

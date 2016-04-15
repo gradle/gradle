@@ -64,10 +64,6 @@ sourceSets.each {
         scala.include "org/gradle/$name/**"
     }
 }
-
-tasks.withType(ScalaCompile) {
-    scalaCompileOptions.useAnt = false
-}
 '''
         file('src/org/gradle/main/resource.txt') << 'some text'
         file('src/org/gradle/test/resource.txt') << 'some text'

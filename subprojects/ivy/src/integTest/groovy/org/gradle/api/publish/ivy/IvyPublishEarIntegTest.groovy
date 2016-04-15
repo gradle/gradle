@@ -36,7 +36,7 @@ class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
             }
 
             dependencies {
-                compile "commons-collections:commons-collections:3.2.1"
+                compile "commons-collections:commons-collections:3.2.2"
                 runtime "commons-io:commons-io:1.4"
             }
 

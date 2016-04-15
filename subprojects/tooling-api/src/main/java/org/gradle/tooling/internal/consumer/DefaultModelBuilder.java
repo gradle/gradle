@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.api.Transformer;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
@@ -31,11 +32,12 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
     private final Class<T> modelType;
     private final AsyncConsumerActionExecutor connection;
 
-    public DefaultModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
+    public DefaultModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ProjectConnectionParameters parameters) {
         super(parameters);
         this.modelType = modelType;
         this.connection = connection;
         operationParamsBuilder.setEntryPoint("ModelBuilder API");
+        operationParamsBuilder.setRootDirectory(parameters.getProjectDir());
     }
 
     @Override
@@ -79,16 +81,16 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
 
     private class ResultHandlerAdapter<T> extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<T> {
         public ResultHandlerAdapter(ResultHandler<? super T> handler) {
-            super(handler);
-        }
-
-        @Override
-        protected String connectionFailureMessage(Throwable failure) {
-            String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
-            if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
-                message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
-            }
-            return message;
+            super(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
+                @Override
+                public String transform(Throwable failure) {
+                    String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
+                    if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
+                        message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
+                    }
+                    return message;
+                }
+            }));
         }
     }
 }

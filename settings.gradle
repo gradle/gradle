@@ -16,6 +16,7 @@
 include 'distributions'
 include 'baseServices'
 include 'baseServicesGroovy'
+include 'logging'
 include 'core'
 include 'dependencyManagement'
 include 'wrapper'
@@ -74,6 +75,7 @@ include 'testingNative'
 include 'testingJvm'
 include 'platformPlay'
 include 'testKit'
+include 'installationBeacon'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->

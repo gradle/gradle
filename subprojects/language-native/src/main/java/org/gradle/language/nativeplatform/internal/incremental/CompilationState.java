@@ -16,10 +16,12 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import java.io.File;
-import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-public class CompilationState implements Serializable {
+public class CompilationState {
     List<File> sourceInputs = new ArrayList<File>();
     Map<File, CompilationFileState> fileStates = new HashMap<File, CompilationFileState>();
 

@@ -36,9 +36,14 @@ import java.util.TreeSet;
 
 public abstract class TaskReportContainer<T extends Report> extends DefaultReportContainer<T> {
 
-    private final TaskInternal task;
+    private static final Transformer<String, Report> REPORT_NAME = new Transformer<String, Report>() {
+        public String transform(Report report) {
+            return report.getName();
+        }
+    };
 
-    final Transformer<File, Report> toFile = new Transformer<File, Report>() {
+
+    private final static Transformer<File, Report> TO_FILE = new Transformer<File, Report>() {
         public File transform(Report original) {
             return original.getDestination();
         }
@@ -52,31 +57,30 @@ public abstract class TaskReportContainer<T extends Report> extends DefaultRepor
 
     private static final Spec<Report> IS_FILE_OUTPUT_TYPE = Specs.negate(IS_DIRECTORY_OUTPUT_TYPE);
 
+    private final TaskInternal task;
+
+
     public TaskReportContainer(Class<? extends T> type, final Task task) {
         super(type, ((ProjectInternal) task.getProject()).getServices().get(Instantiator.class));
         this.task = (TaskInternal) task;
     }
-    
+
     protected Task getTask() {
         return task;
     }
 
     @OutputDirectories
     public Set<File> getEnabledDirectoryReportDestinations() {
-        return CollectionUtils.collect(CollectionUtils.filter(getEnabled(), IS_DIRECTORY_OUTPUT_TYPE), toFile);
+        return CollectionUtils.collect(CollectionUtils.filter(getEnabled(), IS_DIRECTORY_OUTPUT_TYPE), TO_FILE);
     }
 
     @OutputFiles
     public Set<File> getEnabledFileReportDestinations() {
-        return CollectionUtils.collect(CollectionUtils.filter(getEnabled(), IS_FILE_OUTPUT_TYPE), toFile);
+        return CollectionUtils.collect(CollectionUtils.filter(getEnabled(), IS_FILE_OUTPUT_TYPE), TO_FILE);
     }
-    
+
     @Input
     public SortedSet<String> getEnabledReportNames() {
-        return CollectionUtils.collect(getEnabled(), new TreeSet<String>(), new Transformer<String, Report>() {
-            public String transform(Report report) {
-                return report.getName();
-            }
-        });        
+        return CollectionUtils.collect(getEnabled(), new TreeSet<String>(), REPORT_NAME);
     }
 }

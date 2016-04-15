@@ -34,6 +34,7 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
     }
 
     // Converts the binaries of a project library into regular binary instances
+    @Override
     public DomainObjectSet<NativeLibraryBinary> getBinaries(NativeLibraryRequirement requirement) {
         ModelRegistry projectModel = findProject(requirement);
         ComponentSpecContainer components = projectModel.find("components", ComponentSpecContainer.class);

@@ -16,16 +16,14 @@
 
 package org.gradle.testkit.runner.internal;
 
+import org.gradle.internal.SystemProperties;
+
 import java.io.File;
 
 public class TempTestKitDirProvider extends ConstantTestKitDirProvider {
 
-    public TempTestKitDirProvider() {
-        this(new File(System.getProperty("java.io.tmpdir")));
-    }
-
-    TempTestKitDirProvider(File rootDir) {
-        super(new File(rootDir, String.format(".gradle-test-kit-%s", System.getProperty("user.name"))));
+    public TempTestKitDirProvider(SystemProperties systemProperties) {
+        super(new File(systemProperties.getJavaIoTmpDir(), ".gradle-test-kit-".concat(systemProperties.getUserName())));
     }
 
 }

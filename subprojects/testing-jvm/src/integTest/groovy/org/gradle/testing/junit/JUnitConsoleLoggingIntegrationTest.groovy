@@ -28,7 +28,7 @@ class JUnitConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
     def setup() {
-        executer.noExtraLogging().withStackTraceChecksDisabled()
+        executer.noExtraLogging()
     }
 
     def "defaultLifecycleLogging"() {
@@ -44,6 +44,7 @@ org.gradle.JUnit4Test > badTest FAILED
 
     def "customQuietLogging"() {
         when:
+        executer.withStackTraceChecksDisabled()
         args("-q")
         fails("test")
 

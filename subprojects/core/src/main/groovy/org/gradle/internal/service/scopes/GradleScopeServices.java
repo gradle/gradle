@@ -96,6 +96,11 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             public ProjectInternal getProject(String path) {
                 return gradle.getRootProject().project(path);
             }
+
+            @Override
+            public ProjectInternal findProject(String path) {
+                return gradle.getRootProject().findProject(path);
+            }
         };
     }
 

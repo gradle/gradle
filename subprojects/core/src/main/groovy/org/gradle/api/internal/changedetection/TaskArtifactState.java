@@ -46,7 +46,7 @@ public interface TaskArtifactState {
     /**
      * Called when this state is finished with.
      */
-    void finished();
+    void finished(boolean wasUpToDate);
 
     /**
      * Returns the history for this task.

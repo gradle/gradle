@@ -30,6 +30,7 @@ public class VisualStudioInstall implements Named {
         this.visualCppInstall = visualCppInstall;
     }
 
+    @Override
     public String getName() {
         return visualCppInstall.getName();
     }

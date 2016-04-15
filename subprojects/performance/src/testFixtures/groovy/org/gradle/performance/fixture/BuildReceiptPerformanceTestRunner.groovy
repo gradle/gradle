@@ -29,11 +29,8 @@ class BuildReceiptPerformanceTestRunner extends CrossBuildPerformanceTestRunner 
     }
 
     @Override
-    public CrossBuildPerformanceResults run() {
-        assert !specs.empty
-        assert testId
-
-        def results = new CrossBuildPerformanceResults(
+    CrossBuildPerformanceResults newResult() {
+        new CrossBuildPerformanceResults(
             testId: testId,
             testGroup: testGroup,
             jvm: Jvm.current().toString(),
@@ -43,11 +40,6 @@ class BuildReceiptPerformanceTestRunner extends CrossBuildPerformanceTestRunner 
             vcsCommits: [Git.current().commitId, pluginCommitSha],
             testTime: System.currentTimeMillis()
         )
-        runAllSpecifications(results)
-
-        results.assertEveryBuildSucceeds()
-        reporter.report(results)
-
-        return results
     }
+
 }

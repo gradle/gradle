@@ -18,8 +18,8 @@ package org.gradle.launcher.bootstrap;
 import org.gradle.BuildExceptionReporter;
 import org.gradle.api.Action;
 import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.logging.LoggingConfiguration;
-import org.gradle.logging.internal.StreamingStyledTextOutputFactory;
+import org.gradle.internal.logging.DefaultLoggingConfiguration;
+import org.gradle.internal.logging.text.StreamingStyledTextOutputFactory;
 
 /**
  * An entry point is the point at which execution will never return from.
@@ -62,7 +62,7 @@ public abstract class EntryPoint {
     }
 
     protected Action<Throwable> createErrorHandler() {
-        return new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new LoggingConfiguration(), new GradleLauncherMetaData());
+        return new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new DefaultLoggingConfiguration(), new GradleLauncherMetaData());
     }
 
     protected abstract void doAction(String[] args, ExecutionListener listener);

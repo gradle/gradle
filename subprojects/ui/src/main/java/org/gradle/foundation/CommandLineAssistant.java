@@ -15,7 +15,7 @@
  */
 package org.gradle.foundation;
 
-import org.gradle.logging.internal.LoggingCommandLineConverter;
+import org.gradle.internal.logging.LoggingCommandLineConverter;
 import org.gradle.util.internal.ArgumentsSplitter;
 
 import java.util.Iterator;

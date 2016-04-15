@@ -21,10 +21,15 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 
 @LeaksFileHandles
 class IvyHttpsRepoResolveIntegrationTest extends AbstractHttpsRepoResolveIntegrationTest {
-    protected String setupRepo() {
+    protected String setupRepo(boolean useAuth = false) {
         def module = ivyHttpRepo('repo1').module('my-group', 'my-module').publish()
-        module.ivy.allowGetOrHead()
-        module.jar.allowGetOrHead()
+        if (useAuth) {
+            module.ivy.allowGetOrHead('user', 'secret')
+            module.jar.allowGetOrHead('user', 'secret')
+        } else {
+            module.ivy.allowGetOrHead()
+            module.jar.allowGetOrHead()
+        }
         "ivy"
     }
 }

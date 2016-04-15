@@ -24,7 +24,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException
 import org.gradle.tooling.internal.protocol.ModelIdentifier
-import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder
+import org.gradle.tooling.provider.model.internal.ProjectSensitiveToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.UnknownModelException

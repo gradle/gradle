@@ -66,48 +66,50 @@ class JavaInstallationProbeTest extends Specification {
             }
         }
         def probeResult = probe.checkJdk(javaHome)
-        if (expectedResult == IS_JDK) {
+        if (expectedResult == IS_JDK || expectedResult == IS_JRE) {
             probeResult.configure(install)
         }
 
         then:
         probeResult.installType == expectedResult
-        if (expectedResult == IS_JDK) {
+        if (expectedResult == IS_JDK || expectedResult == IS_JRE) {
             assert install.javaVersion == javaVersion
             assert displayName == null || install.displayName == displayName
         }
 
         where:
-        jdk                                   | systemProperties | javaVersion             | displayName    | exists | jre   | expectedResult
-        'localGradle'                         | currentGradle()  | JavaVersion.current()   | null           | true   | false | IS_JDK
-        'localGradle'                         | currentGradle()  | JavaVersion.current()   | null           | true   | true  | IS_JRE
-        'localGradle'                         | currentGradle()  | JavaVersion.current()   | null           | false  | false | NO_SUCH_DIRECTORY
-        'openJdk4'                            | openJdk('4')     | JavaVersion.VERSION_1_4 | 'OpenJDK 4'    | true   | false | IS_JDK
-        'openJdk5'                            | openJdk('5')     | JavaVersion.VERSION_1_5 | 'OpenJDK 5'    | true   | false | IS_JDK
-        'openJdk6'                            | openJdk('6')     | JavaVersion.VERSION_1_6 | 'OpenJDK 6'    | true   | false | IS_JDK
-        'openJdk7'                            | openJdk('7')     | JavaVersion.VERSION_1_7 | 'OpenJDK 7'    | true   | false | IS_JDK
-        'openJdk8'                            | openJdk('8')     | JavaVersion.VERSION_1_8 | 'OpenJDK 8'    | true   | false | IS_JDK
-        'openJdk9'                            | openJdk('9')     | JavaVersion.VERSION_1_9 | 'OpenJDK 9'    | true   | false | IS_JDK
-        'openJdk9'                            | openJdk('9')     | JavaVersion.VERSION_1_9 | 'OpenJDK 9'    | true   | true  | IS_JRE
-        'oracleJdk4'                          | oracleJdk('4')   | JavaVersion.VERSION_1_4 | 'Oracle JDK 4' | true   | false | IS_JDK
-        'oracleJre4'                          | oracleJdk('4')   | JavaVersion.VERSION_1_4 | 'Oracle JRE 4' | true   | true  | IS_JRE
-        'oracleJdk5'                          | oracleJdk('5')   | JavaVersion.VERSION_1_5 | 'Oracle JDK 5' | true   | false | IS_JDK
-        'oracleJdk6'                          | oracleJdk('6')   | JavaVersion.VERSION_1_6 | 'Oracle JDK 6' | true   | false | IS_JDK
-        'oracleJdk7'                          | oracleJdk('7')   | JavaVersion.VERSION_1_7 | 'Oracle JDK 7' | true   | false | IS_JDK
-        'oracleJdk8'                          | oracleJdk('8')   | JavaVersion.VERSION_1_8 | 'Oracle JDK 8' | true   | false | IS_JDK
-        'oracleJdk9'                          | oracleJdk('9')   | JavaVersion.VERSION_1_9 | 'Oracle JDK 9' | true   | false | IS_JDK
-        'oracleJdk9'                          | oracleJdk('9')   | JavaVersion.VERSION_1_9 | 'Oracle JDK 9' | true   | true  | IS_JRE
-        'ibmJdk4'                             | ibmJdk('4')      | JavaVersion.VERSION_1_4 | 'IBM JDK 4'    | true   | false | IS_JDK
-        'ibmJre4'                             | ibmJdk('4')      | JavaVersion.VERSION_1_4 | 'IBM JRE 4'    | true   | true  | IS_JRE
-        'ibmJdk5'                             | ibmJdk('5')      | JavaVersion.VERSION_1_5 | 'IBM JDK 5'    | true   | false | IS_JDK
-        'ibmJdk6'                             | ibmJdk('6')      | JavaVersion.VERSION_1_6 | 'IBM JDK 6'    | true   | false | IS_JDK
-        'ibmJdk7'                             | ibmJdk('7')      | JavaVersion.VERSION_1_7 | 'IBM JDK 7'    | true   | false | IS_JDK
-        'ibmJdk8'                             | ibmJdk('8')      | JavaVersion.VERSION_1_8 | 'IBM JDK 8'    | true   | false | IS_JDK
-        'ibmJdk9'                             | ibmJdk('9')      | JavaVersion.VERSION_1_9 | 'IBM JDK 9'    | true   | false | IS_JDK
-        'zulu8'                               | zulu('8')        | JavaVersion.VERSION_1_8 | 'Zulu 8'       | true   | false | IS_JDK
-        'binary that has invalid output'      | invalidOutput()  | null                    | null           | true   | false | INVALID_JDK
-        'binary that returns unknown version' | invalidVersion() | null                    | null           | true   | false | INVALID_JDK
-
+        jdk                                   | systemProperties | javaVersion             | displayName     | exists | jre   | expectedResult
+        'localGradle'                         | currentGradle()  | JavaVersion.current()   | null            | true   | false | IS_JDK
+        'localGradle'                         | currentGradle()  | JavaVersion.current()   | null            | true   | true  | IS_JRE
+        'localGradle'                         | currentGradle()  | null                    | null            | false  | false | NO_SUCH_DIRECTORY
+        'openJdk4'                            | openJdkJvm('4')  | JavaVersion.VERSION_1_4 | 'OpenJDK 4'     | true   | false | IS_JDK
+        'openJdk5'                            | openJdkJvm('5')  | JavaVersion.VERSION_1_5 | 'OpenJDK 5'     | true   | false | IS_JDK
+        'openJdk6'                            | openJdkJvm('6')  | JavaVersion.VERSION_1_6 | 'OpenJDK 6'     | true   | false | IS_JDK
+        'openJdk7'                            | openJdkJvm('7')  | JavaVersion.VERSION_1_7 | 'OpenJDK 7'     | true   | false | IS_JDK
+        'openJdk8'                            | openJdkJvm('8')  | JavaVersion.VERSION_1_8 | 'OpenJDK 8'     | true   | false | IS_JDK
+        'openJdk9'                            | openJdkJvm('9')  | JavaVersion.VERSION_1_9 | 'OpenJDK 9'     | true   | false | IS_JDK
+        'openJdk9'                            | openJdkJvm('9')  | JavaVersion.VERSION_1_9 | 'OpenJDK JRE 9' | true   | true  | IS_JRE
+        'oracleJdk4'                          | oracleJvm('4')   | JavaVersion.VERSION_1_4 | 'Oracle JDK 4'  | true   | false | IS_JDK
+        'oracleJre4'                          | oracleJvm('4')   | JavaVersion.VERSION_1_4 | 'Oracle JRE 4'  | true   | true  | IS_JRE
+        'oracleJdk5'                          | oracleJvm('5')   | JavaVersion.VERSION_1_5 | 'Oracle JDK 5'  | true   | false | IS_JDK
+        'oracleJdk6'                          | oracleJvm('6')   | JavaVersion.VERSION_1_6 | 'Oracle JDK 6'  | true   | false | IS_JDK
+        'oracleJdk7'                          | oracleJvm('7')   | JavaVersion.VERSION_1_7 | 'Oracle JDK 7'  | true   | false | IS_JDK
+        'oracleJdk8'                          | oracleJvm('8')   | JavaVersion.VERSION_1_8 | 'Oracle JDK 8'  | true   | false | IS_JDK
+        'oracleJdk9'                          | oracleJvm('9')   | JavaVersion.VERSION_1_9 | 'Oracle JDK 9'  | true   | false | IS_JDK
+        'oracleJre9'                          | oracleJvm('9')   | JavaVersion.VERSION_1_9 | 'Oracle JRE 9'  | true   | true  | IS_JRE
+        'ibmJdk4'                             | ibmJvm('4')      | JavaVersion.VERSION_1_4 | 'IBM JDK 4'     | true   | false | IS_JDK
+        'ibmJre4'                             | ibmJvm('4')      | JavaVersion.VERSION_1_4 | 'IBM JRE 4'     | true   | true  | IS_JRE
+        'ibmJdk5'                             | ibmJvm('5')      | JavaVersion.VERSION_1_5 | 'IBM JDK 5'     | true   | false | IS_JDK
+        'ibmJdk6'                             | ibmJvm('6')      | JavaVersion.VERSION_1_6 | 'IBM JDK 6'     | true   | false | IS_JDK
+        'ibmJdk7'                             | ibmJvm('7')      | JavaVersion.VERSION_1_7 | 'IBM JDK 7'     | true   | false | IS_JDK
+        'ibmJdk8'                             | ibmJvm('8')      | JavaVersion.VERSION_1_8 | 'IBM JDK 8'     | true   | false | IS_JDK
+        'ibmJdk9'                             | ibmJvm('9')      | JavaVersion.VERSION_1_9 | 'IBM JDK 9'     | true   | false | IS_JDK
+        'zuluJre6'                            | zuluJvm('6')     | JavaVersion.VERSION_1_6 | 'Zulu JRE 6'    | true   | true  | IS_JRE
+        'zuluJdk8'                            | zuluJvm('8')     | JavaVersion.VERSION_1_8 | 'Zulu JDK 8'    | true   | false | IS_JDK
+        'hpuxJre6'                            | hpuxJvm('6')     | JavaVersion.VERSION_1_6 | 'HP-UX JRE 6'   | true   | true  | IS_JRE
+        'hpuxJdk7'                            | hpuxJvm('7')     | JavaVersion.VERSION_1_7 | 'HP-UX JDK 7'   | true   | false | IS_JDK
+        'binary that has invalid output'      | invalidOutput()  | null                    | null            | true   | false | INVALID_JDK
+        'binary that returns unknown version' | invalidVersion() | null                    | null            | true   | false | INVALID_JDK
     }
 
     private static Map<String, String> invalidOutput() {
@@ -131,7 +133,7 @@ class JavaInstallationProbeTest extends Specification {
         ['java.version', 'java.vendor', 'os.arch', 'java.vm.name', 'java.vm.version', 'java.runtime.name'].collectEntries { [it, System.getProperty(it)] }
     }
 
-    private static Map<String, String> openJdk(String version) {
+    private static Map<String, String> openJdkJvm(String version) {
         ['java.version': "1.${version}.0",
          'java.vendor': "Oracle Corporation",
          'os.arch': "amd64",
@@ -141,17 +143,17 @@ class JavaInstallationProbeTest extends Specification {
         ]
     }
 
-    private static Map<String, String> oracleJdk(String version) {
+    private static Map<String, String> oracleJvm(String version) {
         ['java.version': "1.${version}.0",
          'java.vendor': "Oracle Corporation",
          'os.arch': "amd64",
-         'java.vm.name': "Java HotSpot(TM) 64-Bit Server VM`",
+         'java.vm.name': "Java HotSpot(TM) 64-Bit Server VM",
          'java.vm.version': "25.40-b25",
          'java.runtime.name': "Java(TM) SE Runtime Environment"
         ]
     }
 
-    private static Map<String, String> ibmJdk(String version) {
+    private static Map<String, String> ibmJvm(String version) {
         ['java.version': "1.${version}.0",
          'java.vendor': "IBM Corporation",
          'os.arch': "amd64",
@@ -161,13 +163,23 @@ class JavaInstallationProbeTest extends Specification {
         ]
     }
 
-    private static Map<String, String> zulu(String version) {
+    private static Map<String, String> zuluJvm(String version) {
         ['java.version': "1.${version}.0_66",
          'java.vendor': "Azul Systems, Inc.",
          'os.arch': "amd64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
          'java.vm.version': "25.66-b17",
          'java.runtime.name': "OpenJDK Runtime Environment"
+        ]
+    }
+
+    private static Map<String, String> hpuxJvm(String version) {
+        ['java.version': "1.${version}.0_66",
+         'java.vendor': "Hewlett-Packard Co.",
+         'os.arch': "ia64",
+         'java.vm.name': "Java HotSpot(TM) 64-Bit Server VM",
+         'java.vm.version': "25.66-b17",
+         'java.runtime.name': "Java(TM) SE Runtime Environment"
         ]
     }
 

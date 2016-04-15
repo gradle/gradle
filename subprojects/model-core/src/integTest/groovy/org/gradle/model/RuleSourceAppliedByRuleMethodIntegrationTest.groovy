@@ -22,59 +22,59 @@ import org.gradle.language.base.LanguageSourceSet
 class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSpec {
     def "@Rule method can apply rules to a particular target"() {
         buildFile << '''
-@Managed
-interface Thing {
-    String getName()
-    void setName(String name)
-}
-
-class MyPlugin extends RuleSource {
-    @Model
-    void p1(Thing t) {
-        assert t.name == 'default'
-        t.name = 'p1'
-    }
-
-    @Model
-    void p2(Thing t) {
-        assert t.name == null
-        t.name = 'p2'
-    }
-
-    @Rules
-    void rules(CalculateName rules, @Path('p1') Thing t) {
-        println "applying rules to $t"
-        assert rules != null
-        assert t != null
-    }
-}
-
-class CalculateName extends RuleSource {
-    @Defaults
-    void defaultName(Thing t) {
-        t.name = 'default'
-    }
-
-    @Finalize
-    void finalizeName(Thing t) {
-        assert t.name == 'p1'
-        t.name = 'p1 finalized'
-    }
-}
-
-apply plugin: MyPlugin
-
-model {
-    tasks {
-        show(Task) {
-            doLast {
-                println "p1 = " + $.p1.name
-                println "p2 = " + $.p2.name
+            @Managed
+            interface Thing {
+                String getName()
+                void setName(String name)
             }
-        }
-    }
-}
-'''
+
+            class MyPlugin extends RuleSource {
+                @Model
+                void p1(Thing t) {
+                    assert t.name == 'default'
+                    t.name = 'p1'
+                }
+
+                @Model
+                void p2(Thing t) {
+                    assert t.name == null
+                    t.name = 'p2'
+                }
+
+                @Rules
+                void rules(CalculateName rules, @Path('p1') Thing t) {
+                    println "applying rules to $t"
+                    assert rules != null
+                    assert t != null
+                }
+            }
+
+            class CalculateName extends RuleSource {
+                @Defaults
+                void defaultName(Thing t) {
+                    t.name = 'default'
+                }
+
+                @Finalize
+                void finalizeName(Thing t) {
+                    assert t.name == 'p1'
+                    t.name = 'p1 finalized'
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                tasks {
+                    show(Task) {
+                        doLast {
+                            println "p1 = " + $.p1.name
+                            println "p2 = " + $.p2.name
+                        }
+                    }
+                }
+            }
+        '''
 
         when:
         run 'show'
@@ -87,53 +87,53 @@ model {
 
     def "@Rule method can apply rules to target of current rule source"() {
         buildFile << '''
-@Managed
-interface Thing {
-    String getName()
-    void setName(String name)
-}
-
-class MyPlugin extends RuleSource {
-    @Model
-    void p1(Thing t) {
-    }
-
-    @Rules
-    void rules(CalculateName rules, Thing t) {
-    }
-}
-
-class CalculateName extends RuleSource {
-    @Rules
-    void rules(SpecializeName rules, Thing t) {
-    }
-}
-
-class SpecializeName extends RuleSource {
-    @Defaults
-    void defaultName(Thing t) {
-        t.name = 'default'
-    }
-
-    @Finalize
-    void finalizeName(Thing t) {
-        assert t.name == 'default'
-        t.name = 'finalized'
-    }
-}
-
-apply plugin: MyPlugin
-
-model {
-    tasks {
-        show(Task) {
-            doLast {
-                println "p1 = " + $.p1.name
+            @Managed
+            interface Thing {
+                String getName()
+                void setName(String name)
             }
-        }
-    }
-}
-'''
+
+            class MyPlugin extends RuleSource {
+                @Model
+                void p1(Thing t) {
+                }
+
+                @Rules
+                void rules(CalculateName rules, Thing t) {
+                }
+            }
+
+            class CalculateName extends RuleSource {
+                @Rules
+                void rules(SpecializeName rules, Thing t) {
+                }
+            }
+
+            class SpecializeName extends RuleSource {
+                @Defaults
+                void defaultName(Thing t) {
+                    t.name = 'default'
+                }
+
+                @Finalize
+                void finalizeName(Thing t) {
+                    assert t.name == 'default'
+                    t.name = 'finalized'
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                tasks {
+                    show(Task) {
+                        doLast {
+                            println "p1 = " + $.p1.name
+                        }
+                    }
+                }
+            }
+        '''
 
         when:
         run 'show'
@@ -144,45 +144,45 @@ model {
 
     def "@Rule method can apply abstract RuleSource"() {
         buildFile << '''
-@Managed
-interface Thing {
-    String getName()
-    void setName(String name)
-}
-
-class MyPlugin extends RuleSource {
-    @Model
-    void p1(Thing t) {
-    }
-
-    @Rules
-    void rules(CalculateName rules, Thing t) {
-        println "applying " + rules + " to " + t
-        assert rules == rules
-    }
-}
-
-abstract class CalculateName extends RuleSource {
-    @Defaults
-    void defaultName(Thing t) {
-        println "applying defaults from " + toString()
-        assert this == this
-        t.name = 'default'
-    }
-}
-
-apply plugin: MyPlugin
-
-model {
-    tasks {
-        show(Task) {
-            doLast {
-                println "p1 = " + $.p1.name
+            @Managed
+            interface Thing {
+                String getName()
+                void setName(String name)
             }
-        }
-    }
-}
-'''
+
+            class MyPlugin extends RuleSource {
+                @Model
+                void p1(Thing t) {
+                }
+
+                @Rules
+                void rules(CalculateName rules, Thing t) {
+                    println "applying " + rules + " to " + t
+                    assert rules == rules
+                }
+            }
+
+            abstract class CalculateName extends RuleSource {
+                @Defaults
+                void defaultName(Thing t) {
+                    println "applying defaults from " + toString()
+                    assert this == this
+                    t.name = 'default'
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                tasks {
+                    show(Task) {
+                        doLast {
+                            println "p1 = " + $.p1.name
+                        }
+                    }
+                }
+            }
+        '''
 
         when:
         run 'show'
@@ -195,49 +195,49 @@ model {
 
     def "@Rule method can apply abstract RuleSource with scalar input properties"() {
         buildFile << '''
-@Managed
-interface Thing {
-    String getName()
-    void setName(String name)
-}
-
-class MyPlugin extends RuleSource {
-    @Model
-    void p1(Thing t) {
-    }
-
-    @Rules
-    void rules(CalculateName rules, Thing t) {
-        assert rules.defaultName == null
-        rules.defaultName = 'default'
-        assert rules.defaultName == 'default'
-    }
-}
-
-abstract class CalculateName extends RuleSource {
-    @RuleInput
-    abstract String getDefaultName()
-    abstract void setDefaultName(String n)
-
-    @Defaults
-    void defaultName(Thing t) {
-        assert defaultName == 'default'
-        t.name = defaultName
-    }
-}
-
-apply plugin: MyPlugin
-
-model {
-    tasks {
-        show(Task) {
-            doLast {
-                println "p1 = " + $.p1.name
+            @Managed
+            interface Thing {
+                String getName()
+                void setName(String name)
             }
-        }
-    }
-}
-'''
+
+            class MyPlugin extends RuleSource {
+                @Model
+                void p1(Thing t) {
+                }
+
+                @Rules
+                void rules(CalculateName rules, Thing t) {
+                    assert rules.defaultName == null
+                    rules.defaultName = 'default'
+                    assert rules.defaultName == 'default'
+                }
+            }
+
+            abstract class CalculateName extends RuleSource {
+                @RuleInput
+                abstract String getDefaultName()
+                abstract void setDefaultName(String n)
+
+                @Defaults
+                void defaultName(Thing t) {
+                    assert defaultName == 'default'
+                    t.name = defaultName
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                tasks {
+                    show(Task) {
+                        doLast {
+                            println "p1 = " + $.p1.name
+                        }
+                    }
+                }
+            }
+        '''
 
         when:
         run 'show'
@@ -248,72 +248,72 @@ model {
 
     def "elements referenced by @RuleInput property are treated as implicit input of rules on RuleSource"() {
         buildFile << '''
-@Managed
-interface SomeThings {
-    Thing getThingA()
-    Thing getThingB()
-    Thing getThingC()
-}
-
-@Managed
-interface Thing {
-    String getName()
-    void setName(String name)
-}
-
-class MyPlugin extends RuleSource {
-    @Model
-    void things(SomeThings t) {
-    }
-
-    @Rules
-    void rules(CalculateName rules, SomeThings t) {
-        assert rules.thing == null
-        rules.thing = t.thingA
-        assert rules.thing == t.thingA
-    }
-}
-
-abstract class CalculateName extends RuleSource {
-    @RuleInput
-    abstract Thing getThing()
-    abstract void setThing(Thing t)
-
-    @Defaults
-    void defaultB(@Path('thingB') Thing thingB) {
-        assert thing.name == 'thing a from dsl'
-        thingB.name = thing.name
-    }
-
-    @Finalize
-    void defaultC(@Path('thingC') Thing thingC) {
-        assert thing.name == 'thing a from dsl'
-        thingC.name = 'thing c from rule'
-    }
-}
-
-apply plugin: MyPlugin
-
-model {
-    things.thingA {
-        name = 'thing a from dsl'
-    }
-    things.thingB {
-        assert name == 'thing a from dsl'
-        name = 'thing b from dsl'
-    }
-    tasks {
-        show(Task) {
-            doLast {
-                def things = $.things
-                println "thingA = " + things.thingA.name
-                println "thingB = " + things.thingB.name
-                println "thingC = " + things.thingC.name
+            @Managed
+            interface SomeThings {
+                Thing getThingA()
+                Thing getThingB()
+                Thing getThingC()
             }
-        }
-    }
-}
-'''
+
+            @Managed
+            interface Thing {
+                String getName()
+                void setName(String name)
+            }
+
+            class MyPlugin extends RuleSource {
+                @Model
+                void things(SomeThings t) {
+                }
+
+                @Rules
+                void rules(CalculateName rules, SomeThings t) {
+                    assert rules.thing == null
+                    rules.thing = t.thingA
+                    assert rules.thing == t.thingA
+                }
+            }
+
+            abstract class CalculateName extends RuleSource {
+                @RuleInput
+                abstract Thing getThing()
+                abstract void setThing(Thing t)
+
+                @Defaults
+                void defaultB(@Path('thingB') Thing thingB) {
+                    assert thing.name == 'thing a from dsl'
+                    thingB.name = thing.name
+                }
+
+                @Finalize
+                void defaultC(@Path('thingC') Thing thingC) {
+                    assert thing.name == 'thing a from dsl'
+                    thingC.name = 'thing c from rule'
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                things.thingA {
+                    name = 'thing a from dsl'
+                }
+                things.thingB {
+                    assert name == 'thing a from dsl'
+                    name = 'thing b from dsl'
+                }
+                tasks {
+                    show(Task) {
+                        doLast {
+                            def things = $.things
+                            println "thingA = " + things.thingA.name
+                            println "thingB = " + things.thingB.name
+                            println "thingC = " + things.thingC.name
+                        }
+                    }
+                }
+            }
+        '''
 
         when:
         run 'show'
@@ -326,72 +326,72 @@ model {
 
     def "element referenced by @RuleTarget property is treated as target of RuleSource"() {
         buildFile << '''
-@Managed
-interface SomeThings {
-    Thing getThingA()
-    Thing getThingB()
-}
-
-@Managed
-interface Thing {
-    String getName()
-    void setName(String name)
-    Address getAddress()
-}
-
-@Managed
-interface Address {
-    String getName()
-    void setName(String name)
-}
-
-class MyPlugin extends RuleSource {
-    @Model
-    void things(SomeThings t) {
-    }
-
-    @Rules
-    void rules(CalculateName rules, SomeThings t) {
-        assert rules.thing == null
-        rules.thing = t.thingA
-        assert rules.thing == t.thingA
-    }
-}
-
-abstract class CalculateName extends RuleSource {
-    @RuleTarget
-    abstract Thing getThing()
-    abstract void setThing(Thing t)
-
-    @Mutate
-    void name(Thing subject) {
-        assert subject == thing
-        subject.name = 'thing a from rule'
-        subject.address.name = 'address a from rule'
-    }
-
-    @Mutate
-    void name(Address address) {
-        assert address == thing.address
-        assert address.name == 'address a from rule'
-        address.name = 'modified address'
-    }
-}
-
-apply plugin: MyPlugin
-
-model {
-    tasks {
-        show(Task) {
-            doLast {
-                def things = $.things
-                println "thingA = " + things.thingA.name
-                println "thingA.address = " + things.thingA.address.name
+            @Managed
+            interface SomeThings {
+                Thing getThingA()
+                Thing getThingB()
             }
-        }
-    }
-}
-'''
+
+            @Managed
+            interface Thing {
+                String getName()
+                void setName(String name)
+                Address getAddress()
+            }
+
+            @Managed
+            interface Address {
+                String getName()
+                void setName(String name)
+            }
+
+            class MyPlugin extends RuleSource {
+                @Model
+                void things(SomeThings t) {
+                }
+
+                @Rules
+                void rules(CalculateName rules, SomeThings t) {
+                    assert rules.thing == null
+                    rules.thing = t.thingA
+                    assert rules.thing == t.thingA
+                }
+            }
+
+            abstract class CalculateName extends RuleSource {
+                @RuleTarget
+                abstract Thing getThing()
+                abstract void setThing(Thing t)
+
+                @Mutate
+                void name(Thing subject) {
+                    assert subject == thing
+                    subject.name = 'thing a from rule'
+                    subject.address.name = 'address a from rule'
+                }
+
+                @Mutate
+                void name(Address address) {
+                    assert address == thing.address
+                    assert address.name == 'address a from rule'
+                    address.name = 'modified address'
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                tasks {
+                    show(Task) {
+                        doLast {
+                            def things = $.things
+                            println "thingA = " + things.thingA.name
+                            println "thingA.address = " + things.thingA.address.name
+                        }
+                    }
+                }
+            }
+        '''
 
         when:
         run 'show'
@@ -403,21 +403,22 @@ model {
 
     def "reports exception thrown by @Rules method"() {
         buildFile << '''
-class MyPlugin extends RuleSource {
-    @Model
-    void strings(List<String> s) {}
+            class MyPlugin extends RuleSource {
+                @Model
+                void strings(List<String> s) {}
 
-    @Rules
-    void rules(OtherRules rules, List<String> s) {
-        throw new RuntimeException("broken")
-    }
-}
+                @Rules
+                void rules(OtherRules rules, List<String> s) {
+                    throw new RuntimeException("broken")
+                }
+            }
 
-class OtherRules extends RuleSource {
-}
+            class OtherRules extends RuleSource {
+            }
 
-apply plugin: MyPlugin
-'''
+            apply plugin: MyPlugin
+        '''
+
         expect:
         fails("model")
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
@@ -426,31 +427,31 @@ apply plugin: MyPlugin
 
     def "reports exception thrown by rule method on applied RuleSource"() {
         buildFile << '''
-@Managed
-interface Thing {
-    String getName()
-    void setName(String name)
-}
+            @Managed
+            interface Thing {
+                String getName()
+                void setName(String name)
+            }
 
-class MyPlugin extends RuleSource {
-    @Model
-    void p1(Thing t) {
-    }
+            class MyPlugin extends RuleSource {
+                @Model
+                void p1(Thing t) {
+                }
 
-    @Rules
-    void rules(CalculateName rules, Thing t) {
-    }
-}
+                @Rules
+                void rules(CalculateName rules, Thing t) {
+                }
+            }
 
-class CalculateName extends RuleSource {
-    @Defaults
-    void defaultName(Thing t) {
-        throw new RuntimeException("broken")
-    }
-}
+            class CalculateName extends RuleSource {
+                @Defaults
+                void defaultName(Thing t) {
+                    throw new RuntimeException("broken")
+                }
+            }
 
-apply plugin: MyPlugin
-'''
+            apply plugin: MyPlugin
+        '''
 
         expect:
         fails 'model'
@@ -460,30 +461,30 @@ apply plugin: MyPlugin
 
     def "reports exception thrown by rule source constructor"() {
         buildFile << '''
-@Managed
-interface Thing {
-    String getName()
-    void setName(String name)
-}
+            @Managed
+            interface Thing {
+                String getName()
+                void setName(String name)
+            }
 
-class MyPlugin extends RuleSource {
-    @Model
-    void p1(Thing t) {
-    }
+            class MyPlugin extends RuleSource {
+                @Model
+                void p1(Thing t) {
+                }
 
-    @Rules
-    void rules(CalculateName rules, Thing t) {
-    }
-}
+                @Rules
+                void rules(CalculateName rules, Thing t) {
+                }
+            }
 
-class CalculateName extends RuleSource {
-    CalculateName() {
-        throw new RuntimeException("broken")
-    }
-}
+            class CalculateName extends RuleSource {
+                CalculateName() {
+                    throw new RuntimeException("broken")
+                }
+            }
 
-apply plugin: MyPlugin
-'''
+            apply plugin: MyPlugin
+        '''
 
         expect:
         fails 'model'
@@ -493,18 +494,19 @@ apply plugin: MyPlugin
 
     def "@Rules method is not executed when target is not required"() {
         buildFile << '''
-class MyPlugin extends RuleSource {
-    @Model
-    void strings(List<String> s) {}
+            class MyPlugin extends RuleSource {
+                @Model
+                void strings(List<String> s) {}
 
-    @Rules
-    void rules(RuleSource rules, List<String> s) {
-        throw new RuntimeException("broken")
-    }
-}
+                @Rules
+                void rules(RuleSource rules, List<String> s) {
+                    throw new RuntimeException("broken")
+                }
+            }
 
-apply plugin: MyPlugin
-'''
+            apply plugin: MyPlugin
+        '''
+
         expect:
         succeeds("tasks")
         fails("model")
@@ -512,13 +514,13 @@ apply plugin: MyPlugin
 
     def "first parameter of @Rules method must be assignable to RuleSource"() {
         buildFile << '''
-class MyPlugin extends RuleSource {
-    @Rules
-    void rules(LanguageSourceSet lss, String string) {
-    }
-}
-apply plugin: MyPlugin
-'''
+            class MyPlugin extends RuleSource {
+                @Rules
+                void rules(LanguageSourceSet lss, String string) {
+                }
+            }
+            apply plugin: MyPlugin
+        '''
 
         expect:
         fails 'model'
@@ -528,22 +530,23 @@ apply plugin: MyPlugin
 
     def "reports declaration problem with applied RuleSource"() {
         buildFile << '''
-class MyPlugin extends RuleSource {
-    @Model
-    void strings(List<String> s) {}
+            class MyPlugin extends RuleSource {
+                @Model
+                void strings(List<String> s) {}
 
-    @Rules
-    void rules(BrokenRuleSource rules, List<String> s) {
-    }
-}
+                @Rules
+                void rules(BrokenRuleSource rules, List<String> s) {
+                }
+            }
 
-class BrokenRuleSource extends RuleSource {
-    @Validate
-    private void broken() { }
-}
+            class BrokenRuleSource extends RuleSource {
+                @Validate
+                private void broken() { }
+            }
 
-apply plugin: MyPlugin
-'''
+            apply plugin: MyPlugin
+        '''
+
         expect:
         fails("model")
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#rules")
@@ -554,22 +557,22 @@ apply plugin: MyPlugin
 
     def "reports unbound parameters for rules on applied RuleSource"() {
         buildScript '''
-class UnboundRuleSource extends RuleSource {
-    @Mutate
-    void unboundRule(String string, Integer integer, @Path("some.inner.path") String withPath) {
-    }
-}
+            class UnboundRuleSource extends RuleSource {
+                @Mutate
+                void unboundRule(String string, Integer integer, @Path("some.inner.path") String withPath) {
+                }
+            }
 
-class MyPlugin extends RuleSource {
-    @Model
-    void strings(List<String> s) {}
+            class MyPlugin extends RuleSource {
+                @Model
+                void strings(List<String> s) {}
 
-    @Rules
-    void rules(UnboundRuleSource rules, List<String> s) {
-    }
-}
+                @Rules
+                void rules(UnboundRuleSource rules, List<String> s) {
+                }
+            }
 
-apply type: MyPlugin
+            apply type: MyPlugin
         '''
 
         expect:
@@ -585,5 +588,4 @@ apply type: MyPlugin
       - strings.some.inner.path String (parameter 3) [*]
 ''')
     }
-
 }

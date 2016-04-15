@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
@@ -59,6 +60,8 @@ import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderFactory;
@@ -77,12 +80,10 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.logging.LoggingConfiguration;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.logging.ShowStacktrace;
-import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.messaging.actor.internal.DefaultActorFactory;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.profile.ProfileEventAdapter;
@@ -150,8 +151,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected IsolatedAntBuilder createIsolatedAntBuilder() {
-        return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class), get(ClassLoaderFactory.class));
+    protected IsolatedAntBuilder createIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory, ModuleRegistry moduleRegistry) {
+        return new DefaultIsolatedAntBuilder(classPathRegistry, classLoaderFactory, moduleRegistry);
     }
 
     protected ActorFactory createActorFactory() {
@@ -186,15 +187,11 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager, FileCacheBackedScriptClassCompiler scriptCompiler, ClassLoaderCache classLoaderCache) {
+    protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager, FileCacheBackedScriptClassCompiler scriptCompiler,
+                                                               CrossBuildInMemoryCachingScriptClassCache cache) {
         ScriptExecutionListener scriptExecutionListener = listenerManager.getBroadcaster(ScriptExecutionListener.class);
         return new DefaultScriptCompilerFactory(
-            new CachingScriptClassCompiler(
-                new ShortCircuitEmptyScriptCompiler(
-                    scriptCompiler,
-                    classLoaderCache
-                )
-            ),
+            new BuildScopeInMemoryCachingScriptClassCompiler(cache, scriptCompiler),
             new DefaultScriptRunnerFactory(
                 scriptExecutionListener,
                 DirectInstantiator.INSTANCE
@@ -204,7 +201,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
         CacheRepository cacheRepository, final StartParameter startParameter,
-        ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader) {
+        ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader,
+        CachingFileSnapshotter snapshotter, ClassLoaderRegistry registry) {
         CacheValidator scriptCacheInvalidator = new CacheValidator() {
             public boolean isValid() {
                 return !startParameter.isRecompileScripts();
@@ -214,8 +212,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             cacheRepository,
             scriptCacheInvalidator,
             new DefaultScriptCompilationHandler(classLoaderCache, importsReader),
-            progressLoggerFactory
-        );
+            progressLoggerFactory,
+            snapshotter,
+            classLoaderCache,
+            registry);
     }
 
     protected ScriptPluginFactory createScriptObjectConfigurerFactory() {

@@ -34,10 +34,12 @@ public abstract class AbstractHeaderExportingSourceSet extends BaseLanguageSourc
         this.implicitHeaders = sourceDirectorySetFactory.create("implicit headers");
     }
 
+    @Override
     public SourceDirectorySet getExportedHeaders() {
         return exportedHeaders;
     }
 
+    @Override
     public SourceDirectorySet getImplicitHeaders() {
         return implicitHeaders;
     }

@@ -39,6 +39,7 @@ class TestNGTestMethodDetecter extends MethodVisitor {
         testMethodAnnotations.add("Lorg/testng/annotations/Factory;");
     }
 
+    @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
         if (testMethodAnnotations.contains(desc)) {
             testClassDetecter.setTest(true);

@@ -27,6 +27,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.resource.ResourceLocation;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -35,7 +36,7 @@ import java.net.URI;
 public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInternal {
     private static final Logger LOGGER = Logging.getLogger(DefaultScriptHandler.class);
 
-    private final ScriptSource scriptSource;
+    private final ResourceLocation scriptResource;
     private final ClassLoaderScope classLoaderScope;
     private final DependencyResolutionServices dependencyResolutionServices;
     // The following values are relatively expensive to create, so defer creation until required
@@ -46,7 +47,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
 
     public DefaultScriptHandler(ScriptSource scriptSource, DependencyResolutionServices dependencyResolutionServices, ClassLoaderScope classLoaderScope) {
         this.dependencyResolutionServices = dependencyResolutionServices;
-        this.scriptSource = scriptSource;
+        this.scriptResource = scriptSource.getResource().getLocation();
         this.classLoaderScope = classLoaderScope;
     }
 
@@ -102,16 +103,16 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
     }
 
     public File getSourceFile() {
-        return scriptSource.getResource().getFile();
+        return scriptResource.getFile();
     }
 
     public URI getSourceURI() {
-        return scriptSource.getResource().getURI();
+        return scriptResource.getURI();
     }
 
     public ClassLoader getClassLoader() {
         if (!classLoaderScope.isLocked()) {
-            LOGGER.debug("Eager creation of script class loader for {}. This may result in performance issues.", scriptSource);
+            LOGGER.debug("Eager creation of script class loader for {}. This may result in performance issues.", scriptResource.getDisplayName());
         }
         return classLoaderScope.getLocalClassLoader();
     }

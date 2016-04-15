@@ -36,6 +36,7 @@ class DefaultCommandLineToolInvocation implements CommandLineToolInvocation {
         this.oplogger = oplogger;
     }
 
+    @Override
     public Iterable<String> getArgs() {
         return args;
     }
@@ -45,18 +46,22 @@ class DefaultCommandLineToolInvocation implements CommandLineToolInvocation {
         return oplogger;
     }
 
+    @Override
     public File getWorkDirectory() {
         return workDirectory;
     }
 
+    @Override
     public List<File> getPath() {
         return context.getPath();
     }
 
+    @Override
     public Map<String, String> getEnvironment() {
         return context.getEnvironment();
     }
 
+    @Override
     public String getDescription() {
         return description;
     }

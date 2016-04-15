@@ -26,7 +26,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.publication.maven.internal.deployer.BaseMavenInstaller;
 import org.gradle.api.publication.maven.internal.deployer.DefaultGroovyMavenDeployer;
 import org.gradle.internal.Factory;
-import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.LoggingManagerInternal;
 
 public class DefaultDeployerFactory implements DeployerFactory {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;

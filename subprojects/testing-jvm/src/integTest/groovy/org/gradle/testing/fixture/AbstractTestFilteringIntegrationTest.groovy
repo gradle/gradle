@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrationSpec {
 
@@ -186,5 +187,63 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         then:
         !result.skippedTasks.contains(":test")
         new DefaultTestExecutionResult(testDirectory).testClass("FooTest").assertTestsExecuted("pass", "pass2")
+    }
+
+    @Unroll
+    def "can select multiple tests from commandline #scenario"() {
+        given:
+        file("src/test/java/Foo1Test.java") << """import $imports;
+            public class Foo1Test {
+                @Test public void pass1() {}
+                @Test public void bar() {}
+            }
+        """
+        file("src/test/java/Foo2Test.java") << """import $imports;
+            public class Foo2Test {
+                @Test public void pass2() {}
+                @Test public void bar() {}
+            }
+        """
+        file("src/test/java/BarTest.java") << """import $imports;
+            public class BarTest {
+                @Test public void bar() {}
+            }
+        """
+        file("src/test/java/OtherTest.java") << """import $imports;
+            public class OtherTest {
+                @Test public void pass3() {}
+                @Test public void bar() {}
+            }
+        """
+
+        when:
+        run(stringArrayOf(command))
+
+        then:
+
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted(stringArrayOf(classesExecuted))
+        if (!foo1TestsExecuted.isEmpty()) {
+            result.testClass("Foo1Test").assertTestsExecuted(stringArrayOf(foo1TestsExecuted))
+        }
+        if (!foo2TestsExecuted.isEmpty()) {
+            result.testClass("Foo2Test").assertTestsExecuted(stringArrayOf(foo2TestsExecuted))
+        }
+        if (!barTestsExecuted.isEmpty()) {
+            result.testClass("BarTest").assertTestsExecuted(stringArrayOf(barTestsExecuted))
+        }
+        if (!otherTestsExecuted.isEmpty()) {
+            result.testClass("OtherTest").assertTestsExecuted(stringArrayOf(otherTestsExecuted))
+        }
+
+        where:
+        scenario         | command                                                  | classesExecuted                                  | foo1TestsExecuted | foo2TestsExecuted | barTestsExecuted | otherTestsExecuted
+        "no options"     | ["test"]                                                 | ["Foo1Test", "Foo2Test", "BarTest", "OtherTest"] | ["bar", "pass1"]  | ["bar", "pass2"]  | ["bar"]          | ["bar", "pass3"]
+        "pass and Ohter" | ["test", "--tests", "*.pass1", "--tests", "*OtherTest*"] | ["Foo1Test", "OtherTest"]                        | ["pass1"]         | []                | []               | ["bar", "pass3"]
+        "pass and *ar"   | ["test", "--tests", "*.pass1", "--tests", "*arTest"]     | ["BarTest", "Foo1Test"]                          | ["pass1"]         | []                | ["bar"]          | []
+    }
+
+    def String[] stringArrayOf(List<String> strings) {
+        return strings.toArray()
     }
 }

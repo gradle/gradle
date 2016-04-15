@@ -31,6 +31,7 @@ public class DefaultSourceIncludesParser implements SourceIncludesParser {
         this.importAware = importAware;
     }
 
+    @Override
     public IncludeDirectives parseIncludes(File sourceFile) {
         IncludeDirectives parsedIncludes = sourceParser.parseSource(sourceFile);
         if (importAware) {

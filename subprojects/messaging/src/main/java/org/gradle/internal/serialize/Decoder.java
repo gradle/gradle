@@ -23,7 +23,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Provides a way to decode structured data from a backing byte stream.
+ * Provides a way to decode structured data from a backing byte stream. Implementations may buffer incoming bytes read
+ * from the backing stream prior to decoding.
  */
 public interface Decoder {
     /**

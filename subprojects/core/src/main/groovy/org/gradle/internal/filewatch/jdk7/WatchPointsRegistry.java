@@ -18,10 +18,11 @@ package org.gradle.internal.filewatch.jdk7;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.file.ImmutableDirectoryTree;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.FileUtils;
@@ -30,42 +31,48 @@ import java.io.File;
 
 class WatchPointsRegistry {
     private final static Logger LOG = Logging.getLogger(WatchPointsRegistry.class);
-    private FileSystemSubset combinedFileSystemSubset;
+    private final CombinedRootSubset rootSubset = new CombinedRootSubset();
     private ImmutableSet<? extends File> allRequestedRoots;
-    private ImmutableCollection<? extends File> currentWatchPoints;
     private final boolean createNewStartingPointsUnderExistingRoots;
 
     public WatchPointsRegistry(boolean createNewStartingPointsUnderExistingRoots) {
         this.createNewStartingPointsUnderExistingRoots = createNewStartingPointsUnderExistingRoots;
-        combinedFileSystemSubset = FileSystemSubset.builder().build();
-        currentWatchPoints = ImmutableSet.of();
         allRequestedRoots = ImmutableSet.of();
     }
 
-    public Delta appendFileSystemSubset(FileSystemSubset fileSystemSubset) {
-        return new Delta(fileSystemSubset);
+    public Delta appendFileSystemSubset(FileSystemSubset fileSystemSubset, Iterable<? extends File> currentWatchPoints) {
+        return new Delta(fileSystemSubset, ImmutableSet.copyOf(currentWatchPoints));
     }
 
     public boolean shouldFire(File file) {
-        return combinedFileSystemSubset.contains(file);
+        return rootSubset.contains(file);
+    }
+
+    public boolean shouldWatch(File directory) {
+        final boolean result = rootSubset.isInRootsOrAncestorOrAnyRoot(directory) || isAncestorOfAnyRoot(directory, allRequestedRoots, true);
+        if (!result && LOG.isDebugEnabled()) {
+            LOG.debug("not watching directory: {} allRequestedRoots: {} roots: {} unfiltered: {}", directory, allRequestedRoots, rootSubset.roots, rootSubset.combinedFileSystemSubset);
+        }
+        return result;
     }
 
     class Delta {
         private FileSystemSubset fileSystemSubset;
         private Iterable<? extends File> roots;
-        private FileSystemSubset unfiltered;
+        private FileSystemSubset combinedRoots;
         private Iterable<? extends File> startingWatchPoints;
+        private ImmutableSet<? extends File> currentWatchPoints;
 
-        private Delta(FileSystemSubset fileSystemSubset) {
+        private Delta(FileSystemSubset fileSystemSubset, ImmutableSet<? extends File> currentWatchPoints) {
             this.fileSystemSubset = fileSystemSubset;
+            this.currentWatchPoints = currentWatchPoints;
             init();
         }
 
         private Delta init() {
             roots = fileSystemSubset.getRoots();
-            allRequestedRoots = ImmutableSet.<File>builder().addAll(allRequestedRoots).addAll(roots).build();
-            unfiltered = fileSystemSubset.unfiltered();
-            Iterable<? extends File> startingWatchPointCandidates = calculateStartingWatchPoints(roots, unfiltered);
+            combinedRoots = fileSystemSubset.unfiltered();
+            Iterable<? extends File> startingWatchPointCandidates = calculateStartingWatchPoints(roots, combinedRoots);
             if (!currentWatchPoints.isEmpty()) {
                 if (createNewStartingPointsUnderExistingRoots) {
                     startingWatchPoints = filterCurrentWatchPoints(startingWatchPointCandidates);
@@ -75,19 +82,20 @@ class WatchPointsRegistry {
                     startingWatchPoints = filterCurrentWatchPoints(combinedRoots);
                     currentWatchPoints = ImmutableSet.copyOf(combinedRoots);
                 }
-                combinedFileSystemSubset = FileSystemSubset.builder().add(combinedFileSystemSubset).add(fileSystemSubset).build();
+                rootSubset.append(fileSystemSubset);
             } else {
                 startingWatchPoints = startingWatchPointCandidates;
-                combinedFileSystemSubset = fileSystemSubset;
+                rootSubset.append(fileSystemSubset);
                 currentWatchPoints = ImmutableSet.copyOf(startingWatchPoints);
             }
+            allRequestedRoots = ImmutableSet.<File>builder().addAll(allRequestedRoots).addAll(roots).build();
             return this;
         }
 
         private ImmutableSet<File> filterCurrentWatchPoints(Iterable<? extends File> startingWatchPointCandidates) {
             final ImmutableSet.Builder<File> newStartingPoints = ImmutableSet.builder();
             for (File file : startingWatchPointCandidates) {
-                if (!currentWatchPoints.contains(file)) {
+                if (!allRequestedRoots.contains(file) || !currentWatchPoints.contains(file)) {
                     newStartingPoints.add(file);
                 }
             }
@@ -111,31 +119,13 @@ class WatchPointsRegistry {
             return Iterables.filter(FileUtils.calculateRoots(enclosingDirsThatExist), new Predicate<File>() {
                 @Override
                 public boolean apply(File input) {
-                    return inUnfilteredSubsetOrAncestorOfAnyRoot(input, roots, unfiltered);
+                    return inCombinedRootsOrAncestorOfAnyRoot(input, roots, unfiltered);
                 }
             });
         }
 
-        private boolean inUnfilteredSubsetOrAncestorOfAnyRoot(File file, Iterable<? extends File> roots, FileSystemSubset unfilteredFileSystemSubset) {
-            return unfilteredFileSystemSubset.contains(file) || isAncestorOfAnyRoot(file, roots, false);
-        }
-
-        private boolean isAncestorOfAnyRoot(File file, Iterable<? extends File> roots) {
-            return isAncestorOfAnyRoot(file, roots, true);
-        }
-
-        private boolean isAncestorOfAnyRoot(File file, Iterable<? extends File> roots, boolean onlyAncestors) {
-            String absolutePathWithSeparator = file.getAbsolutePath() + File.separator;
-            for (File root : roots) {
-                if ((!onlyAncestors && root.equals(file)) || root.getAbsolutePath().startsWith(absolutePathWithSeparator)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private boolean inUnfilteredSubsetOrAncestorOfAnyRoot(File file) {
-            return inUnfilteredSubsetOrAncestorOfAnyRoot(file, roots, unfiltered);
+        private boolean inCombinedRootsOrAncestorOfAnyRootThis(File file) {
+            return inCombinedRootsOrAncestorOfAnyRoot(file, roots, combinedRoots);
         }
 
         public Iterable<? extends File> getStartingWatchPoints() {
@@ -143,11 +133,58 @@ class WatchPointsRegistry {
         }
 
         public boolean shouldWatch(File file) {
-            boolean result = (inUnfilteredSubsetOrAncestorOfAnyRoot(file) || isAncestorOfAnyRoot(file, allRequestedRoots)) && !isAncestorOfAnyRoot(file, currentWatchPoints);
+            boolean result = (inCombinedRootsOrAncestorOfAnyRootThis(file) || isAncestorOfAnyRoot(file, allRequestedRoots)) && !isAncestorOfAnyRoot(file, currentWatchPoints);
             if (!result) {
-                LOG.debug("not watching file: {} currentWatchPoints: {} allRequestedRoots: {} roots: {} unfiltered: {}", file, currentWatchPoints, allRequestedRoots, roots, unfiltered);
+                LOG.debug("not watching file: {} currentWatchPoints: {} allRequestedRoots: {} roots: {} unfiltered: {}", file, currentWatchPoints, allRequestedRoots, roots, combinedRoots);
             }
             return result;
+        }
+    }
+
+    static private boolean inCombinedRootsOrAncestorOfAnyRoot(File file, Iterable<? extends File> roots, FileSystemSubset combinedRootsSubset) {
+        return combinedRootsSubset.contains(file) || isAncestorOfAnyRoot(file, roots, true);
+    }
+
+    static private boolean isAncestorOfAnyRoot(File file, Iterable<? extends File> roots) {
+        return isAncestorOfAnyRoot(file, roots, false);
+    }
+
+    static private boolean isAncestorOfAnyRoot(File file, Iterable<? extends File> roots, boolean acceptItSelf) {
+        String absolutePathWithSeparator = file.getAbsolutePath() + File.separator;
+        for (File root : roots) {
+            if ((acceptItSelf && root.equals(file)) || root.getAbsolutePath().startsWith(absolutePathWithSeparator)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static class CombinedRootSubset {
+        private FileSystemSubset combinedFileSystemSubset;
+        private Iterable<? extends File> roots;
+        private FileSystemSubset unfiltered;
+
+        public CombinedRootSubset() {
+            combinedFileSystemSubset = FileSystemSubset.builder().build();
+            updateRoots();
+        }
+
+        public void append(FileSystemSubset fileSystemSubset) {
+            combinedFileSystemSubset = FileSystemSubset.builder().add(combinedFileSystemSubset).add(fileSystemSubset).build();
+            updateRoots();
+        }
+
+        private void updateRoots() {
+            roots = combinedFileSystemSubset.getRoots();
+            unfiltered = new FileSystemSubset(ImmutableList.copyOf(roots), ImmutableList.<ImmutableDirectoryTree>of());
+        }
+
+        public boolean isInRootsOrAncestorOrAnyRoot(File directory) {
+            return inCombinedRootsOrAncestorOfAnyRoot(directory, roots, unfiltered);
+        }
+
+        public boolean contains(File file) {
+            return combinedFileSystemSubset.contains(file);
         }
     }
 }

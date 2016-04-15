@@ -22,7 +22,7 @@ class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
-    @Managed interface SampleLibrary extends ComponentSpec {}
+    @Managed interface SampleLibrary extends GeneralComponentSpec {}
     @Managed interface SampleBinary extends BinarySpec {}
     @Managed interface LibrarySourceSet extends LanguageSourceSet {}
 
@@ -31,14 +31,13 @@ class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
         static class ComponentModel extends RuleSource {
             @ComponentType
-            void register(ComponentTypeBuilder<SampleLibrary> builder) {}
+            void registerLibrary(TypeBuilder<SampleLibrary> builder) {}
 
-            @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {}
+            @ComponentType
+            void registerBinary(TypeBuilder<SampleBinary> builder) {}
 
-            @LanguageType
-            void registerSourceSet(LanguageTypeBuilder<LibrarySourceSet> builder) {
-                builder.setLanguageName("librarySource")
+            @ComponentType
+            void registerSourceSet(TypeBuilder<LibrarySourceSet> builder) {
             }
         }
     }
@@ -51,7 +50,7 @@ class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
 class Dump extends RuleSource {
     @Mutate
-    void tasks(ModelMap<Task> tasks, ModelMap<BinarySpec> binaries) {
+    void tasks(ModelMap<Task> tasks, BinaryContainer binaries) {
         tasks.create("verify") {
             doLast {
                 binaries.each { binary ->
@@ -126,8 +125,8 @@ model {
 '''
         expect:
         succeeds "verify"
-        output.contains """Binary sources: [LibrarySourceSet 'sampleLib:binaryA', LibrarySourceSet 'sampleLib:binaryB', LibrarySourceSet 'sampleLib:binaryC', LibrarySourceSet 'sampleLib:binaryD']"""
-        output.contains """Binary inputs: [LibrarySourceSet 'sampleLib:compA', LibrarySourceSet 'sampleLib:compB', LibrarySourceSet 'sampleLib:compC', LibrarySourceSet 'sampleLib:compD', LibrarySourceSet 'sampleLib:binaryA', LibrarySourceSet 'sampleLib:binaryB', LibrarySourceSet 'sampleLib:binaryC', LibrarySourceSet 'sampleLib:binaryD']"""
+        output.contains """Binary sources: [Library source 'sampleLib:bin:binaryA', Library source 'sampleLib:bin:binaryB', Library source 'sampleLib:bin:binaryC', Library source 'sampleLib:bin:binaryD']"""
+        output.contains """Binary inputs: [Library source 'sampleLib:compA', Library source 'sampleLib:compB', Library source 'sampleLib:compC', Library source 'sampleLib:compD', Library source 'sampleLib:bin:binaryA', Library source 'sampleLib:bin:binaryB', Library source 'sampleLib:bin:binaryC', Library source 'sampleLib:bin:binaryD']"""
     }
 
     def "fail when multiple source sets are registered with the same name"() {
@@ -159,8 +158,8 @@ model {
         fails("components")
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: sampleLib { ... } @ build.gradle line 38, column 9")
-        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.bin.sources.main' using creation rule 'sampleLib { ... } @ build.gradle line 38, column 9 > create(main)' as the rule 'sampleLib(SampleLibrary) { ... } @ build.gradle line 27, column 9 > create(bin) > create(main)' is already registered to create this model element.")
+        failure.assertHasCause("Exception thrown while executing model rule: sampleLib { ... } @ build.gradle line 37, column 9")
+        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.bin.sources.main' using creation rule 'sampleLib { ... } @ build.gradle line 37, column 9 > create(main)' as the rule 'sampleLib(SampleLibrary) { ... } @ build.gradle line 26, column 9 > create(bin) > create(main)' is already registered to create this model element.")
     }
 
     def "user can attach unmanaged internal views to custom unmanaged `LanguageSourceSet`"() {
@@ -180,9 +179,8 @@ model {
             }
 
             class HaxeRules extends RuleSource {
-                @LanguageType
-                void registerHaxeLanguageSourceSetType(LanguageTypeBuilder<HaxeSourceSet> builder) {
-                    builder.setLanguageName("haxe")
+                @ComponentType
+                void registerHaxeLanguageSourceSetType(TypeBuilder<HaxeSourceSet> builder) {
                     builder.defaultImplementation(DefaultHaxeSourceSet)
                     builder.internalView(HaxeSourceSetInternal)
                 }
@@ -231,16 +229,15 @@ model {
         buildFile << """
             interface HaxeSourceSet extends LanguageSourceSet {}
             class HaxeRules extends RuleSource {
-                @LanguageType
-                void registerHaxeLanguageSourceSetType(LanguageTypeBuilder<HaxeSourceSet> builder) {
-                    builder.setLanguageName("haxe")
+                @ComponentType
+                void registerHaxeLanguageSourceSetType(TypeBuilder<HaxeSourceSet> builder) {
                 }
             }
             apply plugin: HaxeRules
 
             model {
                 components {
-                    myComponent(ComponentSpec) {
+                    myComponent(GeneralComponentSpec) {
                         sources {
                             haxe(HaxeSourceSet)
                         }
@@ -264,9 +261,8 @@ model {
                 void setSomeProperty(String value)
             }
             class CustomManagedLSSPlugin extends RuleSource {
-                @LanguageType
-                void registerCustomManagedLSSType(LanguageTypeBuilder<CustomManagedLSS> builder) {
-                    builder.setLanguageName("managed")
+                @ComponentType
+                void registerCustomManagedLSSType(TypeBuilder<CustomManagedLSS> builder) {
                 }
             }
             apply plugin: CustomManagedLSSPlugin
@@ -312,9 +308,8 @@ model {
         buildFile << """
             @Managed interface ChildCustomManagedLSS extends LanguageSourceSet {}
             class ChildCustomManagedLSSPlugin extends RuleSource {
-                @LanguageType
-                void registerChildCustomManagedLSSPType(LanguageTypeBuilder<ChildCustomManagedLSS> builder) {
-                    builder.setLanguageName("childcustom")
+                @ComponentType
+                void registerChildCustomManagedLSSPType(TypeBuilder<ChildCustomManagedLSS> builder) {
                 }
             }
             apply plugin: ChildCustomManagedLSSPlugin
@@ -353,9 +348,8 @@ model {
                 void setInternal(String internal)
             }
             class CustomManagedLSSPlugin extends RuleSource {
-                @LanguageType
-                void registerCustomManagedLSSType(LanguageTypeBuilder<CustomManagedLSS> builder) {
-                    builder.setLanguageName("managed")
+                @ComponentType
+                void registerCustomManagedLSSType(TypeBuilder<CustomManagedLSS> builder) {
                     builder.internalView(CustomManagedLSSInternal)
                 }
             }

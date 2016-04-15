@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.ObjectInstantiationException;
@@ -32,6 +35,22 @@ import java.util.List;
  * An {@link Instantiator} that applies JSR-330 style dependency injection.
  */
 public class DependencyInjectingInstantiator implements Instantiator {
+    private final LoadingCache<Class<?>, CachedConstructor> cachedConstructors = CacheBuilder.newBuilder()
+        .weakKeys()
+        .build(new CacheLoader<Class<?>, CachedConstructor>() {
+            @Override
+            public CachedConstructor load(final Class<?> type) throws Exception {
+                try {
+                    validateType(type);
+                    Constructor<?> constructor = selectConstructor(type);
+                    constructor.setAccessible(true);
+                    return CachedConstructor.of(constructor);
+                } catch (Throwable e) {
+                    return CachedConstructor.of(e);
+                }
+            }
+        });
+
     private final ServiceRegistry services;
 
     public DependencyInjectingInstantiator(ServiceRegistry services) {
@@ -40,9 +59,11 @@ public class DependencyInjectingInstantiator implements Instantiator {
 
     public <T> T newInstance(Class<? extends T> type, Object... parameters) {
         try {
-            validateType(type);
-            Constructor<?> constructor = selectConstructor(type);
-            constructor.setAccessible(true);
+            CachedConstructor cached = cachedConstructors.getUnchecked(type);
+            if (cached.error != null) {
+                throw cached.error;
+            }
+            Constructor<?> constructor = cached.constructor;
             Object[] resolvedParameters = convertParameters(type, constructor, parameters);
             try {
                 return type.cast(constructor.newInstance(resolvedParameters));
@@ -127,5 +148,24 @@ public class DependencyInjectingInstantiator implements Instantiator {
         if (Modifier.isAbstract(type.getModifiers())) {
             throw new IllegalArgumentException(String.format("Class %s is an abstract class.", type.getName()));
         }
+    }
+
+    private static class CachedConstructor {
+        private final Constructor<?> constructor;
+        private final Throwable error;
+
+        private CachedConstructor(Constructor<?> constructor, Throwable error) {
+            this.constructor = constructor;
+            this.error = error;
+        }
+
+        public static CachedConstructor of(Constructor<?> ctor) {
+            return new CachedConstructor(ctor, null);
+        }
+
+        public static CachedConstructor of(Throwable err) {
+            return new CachedConstructor(null, err);
+        }
+
     }
 }

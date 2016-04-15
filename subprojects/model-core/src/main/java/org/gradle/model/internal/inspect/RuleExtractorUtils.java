@@ -22,10 +22,10 @@ import org.gradle.model.internal.registry.ModelReferenceNode;
 import org.gradle.model.internal.registry.ModelRegistry;
 
 public class RuleExtractorUtils {
-    public static void configureRuleAction(MethodModelRuleApplicationContext context, ChildTraversalType childTraversal, ModelActionRole role, MethodRuleAction ruleAction) {
+    public static void configureRuleAction(MethodModelRuleApplicationContext context, RuleApplicationScope ruleApplicationScope, ModelActionRole role, MethodRuleAction ruleAction) {
         ModelAction action = context.contextualize(ruleAction);
         ModelRegistry registry = context.getRegistry();
-        switch (childTraversal) {
+        switch (ruleApplicationScope) {
             case SELF:
                 registry.configure(role, action);
                 break;

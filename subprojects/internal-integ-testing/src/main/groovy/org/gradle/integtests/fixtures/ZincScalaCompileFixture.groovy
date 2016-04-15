@@ -24,18 +24,13 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 
 class ZincScalaCompileFixture extends InitScriptExecuterFixture {
     ZincScalaCompileFixture(GradleExecuter executer, TestDirectoryProvider testDir) {
-        super(executer, testDir)
+        super(executer.expectDeprecationWarning(), testDir)
     }
 
     @Override
     String initScriptContent() {
         return """
             allprojects {
-                allprojects {
-                    tasks.withType(ScalaCompile) {
-                        scalaCompileOptions.useAnt = false
-                    }
-                }
                 $disableScalaDocIfInDaemonMode
             }
         """

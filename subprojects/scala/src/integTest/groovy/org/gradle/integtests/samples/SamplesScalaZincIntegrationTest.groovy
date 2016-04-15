@@ -31,7 +31,7 @@ class SamplesScalaZincIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         // Build and test projects
-        executer.inDirectory(projectDir).withTasks('clean', 'build').run()
+        executer.expectDeprecationWarning().inDirectory(projectDir).withTasks('clean', 'build').run()
 
         then:
         // Check contents of Jar

@@ -82,6 +82,7 @@ public class TestOutputStore {
             }
         }
 
+        @Override
         public void close() {
             output.close();
             writeIndex();
@@ -276,6 +277,7 @@ public class TestOutputStore {
             }
         }
 
+        @Override
         public void close() throws IOException {
             if (dataFile != null) {
                 dataFile.close();

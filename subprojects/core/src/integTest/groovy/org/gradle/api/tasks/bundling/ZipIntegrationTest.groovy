@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 
 import spock.lang.Unroll
 
+import java.nio.charset.Charset
+
 class ZipIntegrationTest extends AbstractIntegrationSpec {
 
     def ensureDuplicatesIncludedWithoutWarning() {
@@ -107,10 +109,9 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "can create Zip file with #encoding encoding"() {
+    def "can create Zip file with #metadataCharset metadata charset"() {
         given:
-        createTestFilesWithEncoding(filename, encoding)
-        def encodingStr = encoding == null ? "null" : "'$encoding'"
+        createTestFilesWithEncoding(filename, metadataCharset)
         buildFile << """
             task zip(type: Zip) {
                 from 'dir1'
@@ -118,7 +119,7 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir3'
                 destinationDir = buildDir
                 archiveName = 'test.zip'
-                encoding = $encodingStr
+                metadataCharset = '$metadataCharset'
             }
             """
 
@@ -126,17 +127,17 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'zip'
 
         then:
-        def theZip = new ZipTestFixture(file('build/test.zip'), encoding)
+        def theZip = new ZipTestFixture(file('build/test.zip'), metadataCharset)
         theZip.hasDescendants("${filename}1.txt", "${filename}2.txt", "${filename}3.txt")
 
         where:
-        encoding        | filename
-        null            | 'file'
-        'UTF-8'         | '中文'
-        'ISO-8859-1'    | 'ÈÇ'
+        metadataCharset                 | filename
+        Charset.defaultCharset().name() | 'file'
+        'UTF-8'                         | '中文'
+        'ISO-8859-1'                    | 'ÈÇ'
     }
 
-    def "will convert characters to ASCII with encoding"() {
+    def "can convert metadata to ASCII"() {
         given:
         def filename = 'file-éö'
         createTestFilesWithEncoding(filename, 'ISO-8859-1')
@@ -147,7 +148,7 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir3'
                 destinationDir = buildDir
                 archiveName = 'test.zip'
-                encoding = 'US-ASCII'
+                metadataCharset = 'US-ASCII'
             }
             """
 
@@ -156,20 +157,20 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def garbledFileName = "file-%U00E9%U00F6"
-        def theZip = new ZipTestFixture(file('build/test.zip'))
+        def theZip = new ZipTestFixture(file('build/test.zip'), 'UTF-8')
         theZip.hasDescendants("${garbledFileName}1.txt", "${garbledFileName}2.txt", "${garbledFileName}3.txt")
     }
 
-    def "reports error for unsupported encoding"() {
+    def "reports error for unsupported metadata charset"() {
         given:
-        def encoding = 'unsupported encoding'
         createTestFiles()
+        settingsFile << "rootProject.name = 'root'"
         buildFile << """
             task zip(type: Zip) {
                 from 'dir1'
                 destinationDir = buildDir
                 archiveName = 'test.zip'
-                encoding = '$encoding'
+                metadataCharset = 'UNSUPPORTED'
             }
             """
 
@@ -177,8 +178,8 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         fails 'zip'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':zip'.")
-        failure.assertHasCause('unsupported encoding')
+        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
+        failure.assertHasCause("Charset for metadataCharset 'UNSUPPORTED' is not supported by your JVM")
     }
 
     private def createTestFiles() {

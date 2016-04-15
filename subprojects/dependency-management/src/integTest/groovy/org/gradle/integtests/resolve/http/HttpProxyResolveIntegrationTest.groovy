@@ -16,9 +16,27 @@
 
 package org.gradle.integtests.resolve.http
 
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
+
 class HttpProxyResolveIntegrationTest extends AbstractProxyResolveIntegrationTest {
     @Override
-    protected String getProxyScheme() {
+    MavenHttpRepository getRepo() {
+        return mavenHttpRepo
+    }
+
+    @Override
+    String getProxyScheme() {
         return 'http'
     }
+
+    @Override
+    String getRepoServerUrl() {
+        mavenHttpRepo.uri
+    }
+
+    @Override
+    boolean isTunnel() { false }
+
+    @Override
+    void setupServer() {}
 }

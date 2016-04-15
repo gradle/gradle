@@ -16,23 +16,26 @@
 
 package org.gradle.groovy.scripts;
 
-import org.gradle.internal.resource.Resource;
-import org.gradle.internal.resource.UriResource;
+import org.gradle.internal.resource.TextResource;
+import org.gradle.internal.resource.UriTextResource;
 
 import java.io.File;
+import java.io.Reader;
+import java.io.StringReader;
+import java.nio.charset.Charset;
 
 public class NonExistentFileScriptSource extends AbstractUriScriptSource {
 
-    private final Resource resource;
+    private final TextResource resource;
     private final File file;
 
     public NonExistentFileScriptSource(String description, File file) {
-        this.resource = new EmptyFileResource(description, file);
+        this.resource = new EmptyFileTextResource(description, file);
         this.file = file;
     }
 
     @Override
-    public Resource getResource() {
+    public TextResource getResource() {
         return resource;
     }
 
@@ -46,9 +49,34 @@ public class NonExistentFileScriptSource extends AbstractUriScriptSource {
         return resource.getDisplayName();
     }
 
-    private static class EmptyFileResource extends UriResource {
-        public EmptyFileResource(String description, File sourceFile) {
+    private static class EmptyFileTextResource extends UriTextResource {
+        public EmptyFileTextResource(String description, File sourceFile) {
             super(description, sourceFile);
+        }
+
+        @Override
+        public boolean isContentCached() {
+            return true;
+        }
+
+        @Override
+        public boolean getHasEmptyContent() {
+            return true;
+        }
+
+        @Override
+        public File getFile() {
+            return null;
+        }
+
+        @Override
+        public Charset getCharset() {
+            return null;
+        }
+
+        @Override
+        public Reader getAsReader() {
+            return new StringReader("");
         }
 
         @Override
@@ -58,7 +86,7 @@ public class NonExistentFileScriptSource extends AbstractUriScriptSource {
 
         @Override
         public boolean getExists() {
-            return false;
+            return true;
         }
     }
 }

@@ -1,0 +1,2 @@
+rootProject.name = 'projectB'
+include 'b1', 'b2'

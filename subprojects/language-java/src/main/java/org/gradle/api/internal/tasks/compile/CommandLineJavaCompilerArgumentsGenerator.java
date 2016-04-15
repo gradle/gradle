@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public class CommandLineJavaCompilerArgumentsGenerator implements CompileSpecToArguments<JavaCompileSpec>, Serializable {
+    @Override
     public void collectArguments(JavaCompileSpec spec, ArgCollector collector) {
         for (String arg : generate(spec)) {
             collector.args(arg);

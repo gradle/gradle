@@ -27,7 +27,7 @@ import java.util.Map;
 
 public class DefaultExtraPropertiesExtension extends GroovyObjectSupport implements ExtraPropertiesExtension {
 
-    Map<String, Object> storage = new HashMap<String, Object>();
+    private final Map<String, Object> storage = new HashMap<String, Object>();
 
     public boolean has(String name) {
         return storage.containsKey(name);
@@ -35,7 +35,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
 
     public Object get(String name) {
         if (storage.containsKey(name)) {
-            return storage.get(name);    
+            return storage.get(name);
         } else {
             throw new UnknownPropertyException(this, name);
         }
@@ -71,10 +71,10 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
     public Object methodMissing(String name, Object args) {
         Object item = storage.get(name);
         if (item != null && item instanceof Closure) {
-            Closure closure = (Closure)item;
-            return closure.call((Object[])args);
+            Closure closure = (Closure) item;
+            return closure.call((Object[]) args);
         } else {
-            throw new groovy.lang.MissingMethodException(name, getClass(), (Object[])args);
+            throw new groovy.lang.MissingMethodException(name, getClass(), (Object[]) args);
         }
     }
 

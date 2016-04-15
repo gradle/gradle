@@ -24,7 +24,10 @@ import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.model.gradle.BuildInvocations;
+import org.gradle.tooling.model.gradle.ProjectPublications;
 import org.gradle.util.GradleVersion;
+
+import java.io.File;
 
 /**
  * An adapter for {@link InternalBuildActionExecutor}.
@@ -71,7 +74,7 @@ public class ActionAwareConsumerConnection extends AbstractPost12ConsumerConnect
 
         @Override
         public boolean maySupportModel(Class<?> modelType) {
-            return modelType != BuildInvocations.class;
+            return modelType != ProjectPublications.class && modelType != BuildInvocations.class;
         }
     }
 
@@ -103,8 +106,10 @@ public class ActionAwareConsumerConnection extends AbstractPost12ConsumerConnect
         public <T> T run(final BuildAction<T> action, ConsumerOperationParameters operationParameters)
                 throws UnsupportedOperationException, IllegalStateException {
             BuildResult<T> result;
+
+            File rootDir = operationParameters.getProjectDir();
             try {
-                result = executor.run(new InternalBuildActionAdapter<T>(action, adapter), operationParameters);
+                result = executor.run(new InternalBuildActionAdapter<T>(action, adapter, rootDir), operationParameters);
             } catch (InternalBuildActionFailureException e) {
                 throw new BuildActionFailureException("The supplied build action failed with an exception.", e.getCause());
             }

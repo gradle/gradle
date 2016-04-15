@@ -17,7 +17,8 @@
 package org.gradle.launcher.daemon.server;
 
 import org.gradle.launcher.daemon.protocol.OutputMessage;
-import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.internal.remote.internal.MessageIOException;
+import org.gradle.internal.remote.internal.RemoteConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,19 +27,14 @@ import org.slf4j.LoggerFactory;
  *
  * The plan is to replace this with a Connection implementation that queues outgoing messages and dispatches them from a worker thread.
  */
-public class SynchronizedDispatchConnection<T> implements Connection<T> {
+public class SynchronizedDispatchConnection<T> implements RemoteConnection<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SynchronizedDispatchConnection.class);
     private final Object lock = new Object();
-    private final Connection<T> delegate;
+    private final RemoteConnection<T> delegate;
     private boolean dispatching;
 
-    public SynchronizedDispatchConnection(Connection<T> delegate) {
+    public SynchronizedDispatchConnection(RemoteConnection<T> delegate) {
         this.delegate = delegate;
-    }
-    
-    public void requestStop() {
-        LOGGER.debug("thread {}: requesting stop for connection", Thread.currentThread().getId());
-        delegate.requestStop();
     }
 
     public void dispatch(final T message) {
@@ -56,6 +52,13 @@ public class SynchronizedDispatchConnection<T> implements Connection<T> {
             } finally {
                 dispatching = false;
             }
+        }
+    }
+
+    @Override
+    public void flush() throws MessageIOException {
+        synchronized (lock) {
+            delegate.flush();
         }
     }
 

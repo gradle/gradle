@@ -21,8 +21,9 @@ import org.gradle.groovy.scripts.internal.CompileOperation
 import org.gradle.groovy.scripts.internal.CompiledScript
 import org.gradle.groovy.scripts.internal.ScriptClassCompiler
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory
+import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.logging.StandardOutputCapture
+import org.gradle.internal.logging.StandardOutputCapture
 import spock.lang.Specification
 
 class DefaultScriptCompilerFactoryTest extends Specification {
@@ -30,6 +31,7 @@ class DefaultScriptCompilerFactoryTest extends Specification {
     final ScriptClassCompiler scriptClassCompiler = Mock()
     final ScriptSource source = Mock() {
         getFileName() >> "script.file"
+        getResource() >> Stub(TextResource)
     }
     final ScriptRunner<TestScript, ?> runner = Mock()
     final ClassLoader classLoader = Mock()
@@ -50,10 +52,8 @@ class DefaultScriptCompilerFactoryTest extends Specification {
         then:
         result == runner
 
-        1 * scriptClassCompiler.compile({
-            it instanceof CachingScriptSource
-        }, classLoader, ClassLoaderIds.buildScript(source.fileName, operation.id), operation, Script, verifier) >> compiledScript
-        1 * scriptRunnerFactory.create(compiledScript, { it instanceof CachingScriptSource }, classLoader) >> runner
+        1 * scriptClassCompiler.compile({ it instanceof CachingScriptSource}, classLoader, ClassLoaderIds.buildScript(source.fileName, operation.id), operation, Script, verifier) >> compiledScript
+        1 * scriptRunnerFactory.create(compiledScript, { it instanceof CachingScriptSource}, classLoader) >> runner
         0 * scriptRunnerFactory._
         0 * scriptClassCompiler._
     }

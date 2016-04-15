@@ -215,7 +215,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    public JavaExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
+    public JavaExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
         super.setIgnoreExitValue(ignoreExitValue);
         return this;
     }

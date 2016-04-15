@@ -16,7 +16,7 @@
 
 package org.gradle.groovy.scripts;
 
-import org.gradle.internal.resource.UriResource;
+import org.gradle.internal.resource.UriTextResource;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.junit.Before;
@@ -24,12 +24,14 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 
 import static org.gradle.util.Matchers.matchesRegexp;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 public class UriScriptSourceTest {
     private TestFile testDir;
@@ -54,25 +56,64 @@ public class UriScriptSourceTest {
     }
 
     @Test
-    public void canConstructSourceFromFile() {
+    public void canConstructSourceFromFile() throws IOException {
+        scriptFile.createNewFile();
         UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
-        assertThat(source.getResource(), instanceOf(UriResource.class));
+        assertThat(source.getResource(), instanceOf(UriTextResource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
     }
 
     @Test
-    public void canConstructSourceFromFileURI() {
-        UriScriptSource source = new UriScriptSource("<file-type>", scriptFileUri);
-        assertThat(source.getResource(), instanceOf(UriResource.class));
+    public void convenienceMethodScriptForFileThatHasContent() {
+        new TestFile(scriptFile).write("content");
+        ScriptSource source = UriScriptSource.file("<file-type>", scriptFile);
+        assertThat(source, instanceOf(UriScriptSource.class));
         assertThat(source.getResource().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getCharset(), equalTo(Charset.forName("utf-8")));
+        assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
+        assertThat(source.getResource().getText(), equalTo("content"));
+        assertFalse(source.getResource().isContentCached());
+        assertFalse(source.getResource().getHasEmptyContent());
+        assertTrue(source.getResource().getExists());
+    }
+
+    @Test
+    public void convenienceMethodReplacesFileThatDoesNotExistWithEmptyScript() {
+        ScriptSource source = UriScriptSource.file("<file-type>", scriptFile);
+        assertThat(source, instanceOf(NonExistentFileScriptSource.class));
+        assertNull(source.getResource().getFile());
+        assertNull(source.getResource().getCharset());
+        assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
+        assertThat(source.getResource().getText(), equalTo(""));
+        assertTrue(source.getResource().isContentCached());
+        assertTrue(source.getResource().getHasEmptyContent());
+        assertTrue(source.getResource().getExists()); // exists == has content
+    }
+
+    @Test
+    public void canConstructSourceFromFileURI() throws IOException {
+        scriptFile.createNewFile();
+        UriScriptSource source = new UriScriptSource("<file-type>", scriptFileUri);
+        assertThat(source.getResource(), instanceOf(UriTextResource.class));
+        assertThat(source.getResource().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getCharset(), equalTo(Charset.forName("utf-8")));
+        assertThat(source.getResource().getLocation().getFile(), equalTo(scriptFile));
+        assertThat(source.getResource().getLocation().getURI(), equalTo(scriptFileUri));
     }
 
     @Test
     public void canConstructSourceFromJarURI() throws URISyntaxException {
         URI uri = createJar();
         UriScriptSource source = new UriScriptSource("<file-type>", uri);
-        assertThat(source.getResource(), instanceOf(UriResource.class));
-        assertThat(source.getResource().getURI(), equalTo(uri));
+        assertThat(source.getResource(), instanceOf(UriTextResource.class));
+        assertNull(source.getResource().getFile());
+        assertNull(source.getResource().getCharset());
+        assertNull(source.getResource().getLocation().getFile());
+        assertThat(source.getResource().getLocation().getURI(), equalTo(uri));
     }
 
     @Test

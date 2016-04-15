@@ -21,14 +21,20 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
 import org.gradle.initialization.DistributionInitScriptFinder;
 import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
-import org.gradle.logging.LoggingConfiguration;
-import org.gradle.util.GFileUtils;
+import org.gradle.internal.FileUtils;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.internal.logging.DefaultLoggingConfiguration;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.io.Serializable;
@@ -39,10 +45,8 @@ import java.util.*;
  * Gradle.
  *
  * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
- *
- * @see org.gradle.initialization.GradleLauncher
  */
-public class StartParameter extends LoggingConfiguration implements Serializable {
+public class StartParameter implements LoggingConfiguration, Serializable {
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = BuildLayoutParameters.GRADLE_USER_HOME_PROPERTY_KEY;
 
     /**
@@ -50,6 +54,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public static final File DEFAULT_GRADLE_USER_HOME = new BuildLayoutParameters().getGradleUserHomeDir();
 
+    private final DefaultLoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
     private List<TaskExecutionRequest> taskRequests = new ArrayList<TaskExecutionRequest>();
     private Set<String> excludedTaskNames = new LinkedHashSet<String>();
     private boolean buildProjectDependencies = true;
@@ -78,6 +83,74 @@ public class StartParameter extends LoggingConfiguration implements Serializable
     private boolean continuous;
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public LogLevel getLogLevel() {
+        return loggingConfiguration.getLogLevel();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setLogLevel(LogLevel logLevel) {
+        loggingConfiguration.setLogLevel(logLevel);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ShowStacktrace getShowStacktrace() {
+        return loggingConfiguration.getShowStacktrace();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setShowStacktrace(ShowStacktrace showStacktrace) {
+        loggingConfiguration.setShowStacktrace(showStacktrace);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Deprecated
+    public boolean isColorOutput() {
+        DeprecationLogger.nagUserOfReplacedProperty("StartParameter.colorOutput", "consoleOutput");
+        return loggingConfiguration.isColorOutput();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Deprecated
+    public void setColorOutput(boolean colorOutput) {
+        DeprecationLogger.nagUserOfReplacedProperty("StartParameter.colorOutput", "consoleOutput");
+        loggingConfiguration.setColorOutput(colorOutput);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ConsoleOutput getConsoleOutput() {
+        return loggingConfiguration.getConsoleOutput();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setConsoleOutput(ConsoleOutput colorOutput) {
+        loggingConfiguration.setConsoleOutput(colorOutput);
+    }
+
+    /**
      * Sets the project's cache location. Set to null to use the default location.
      */
     public void setProjectCacheDir(File projectCacheDir) {
@@ -97,7 +170,12 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the command-line with no arguments.
      */
     public StartParameter() {
-        gradleHomeDir = new DefaultGradleDistributionLocator().getGradleHome();
+        GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
+        if (gradleInstallation == null) {
+            gradleHomeDir = null;
+        } else {
+            gradleHomeDir = gradleInstallation.getGradleHome();
+        }
 
         BuildLayoutParameters layoutParameters = new BuildLayoutParameters();
         searchUpwards = layoutParameters.getSearchUpwards();
@@ -160,6 +238,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
         p.parallelProjectExecution = parallelProjectExecution;
         p.configureOnDemand = configureOnDemand;
         p.maxWorkerCount = maxWorkerCount;
+        p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
         return p;
     }
 
@@ -190,7 +269,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
             this.buildFile = null;
             setCurrentDir(null);
         } else {
-            this.buildFile = GFileUtils.canonicalise(buildFile);
+            this.buildFile = FileUtils.canonicalize(buildFile);
             setProjectDir(this.buildFile.getParentFile());
         }
     }
@@ -303,7 +382,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      */
     public void setCurrentDir(File currentDir) {
         if (currentDir != null) {
-            this.currentDir = GFileUtils.canonicalise(currentDir);
+            this.currentDir = FileUtils.canonicalize(currentDir);
         } else {
             this.currentDir = new BuildLayoutParameters().getCurrentDir();
         }
@@ -348,7 +427,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
      * @param gradleUserHomeDir The home directory. May be null.
      */
     public void setGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = gradleUserHomeDir == null ? new BuildLayoutParameters().getGradleUserHomeDir() : GFileUtils.canonicalise(gradleUserHomeDir);
+        this.gradleUserHomeDir = gradleUserHomeDir == null ? new BuildLayoutParameters().getGradleUserHomeDir() : FileUtils.canonicalize(gradleUserHomeDir);
     }
 
     /**
@@ -386,7 +465,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
             this.settingsFile = null;
         } else {
             this.useEmptySettings = false;
-            this.settingsFile = GFileUtils.canonicalise(settingsFile);
+            this.settingsFile = FileUtils.canonicalize(settingsFile);
             currentDir = this.settingsFile.getParentFile();
         }
     }
@@ -457,7 +536,7 @@ public class StartParameter extends LoggingConfiguration implements Serializable
             setCurrentDir(null);
             this.projectDir = null;
         } else {
-            File canonicalFile = GFileUtils.canonicalise(projectDir);
+            File canonicalFile = FileUtils.canonicalize(projectDir);
             currentDir = canonicalFile;
             this.projectDir = canonicalFile;
         }

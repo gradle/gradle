@@ -17,7 +17,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
 import org.gradle.initialization.BuildClientMetaData;
-import org.gradle.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.io.File;
 import java.io.IOException;

@@ -35,7 +35,7 @@ import java.util.Collection;
 public interface MavenDeployer extends MavenResolver {
 
     /**
-     * Returns the repository o be used for uploading artifacts.
+     * Returns the repository to be used for uploading artifacts.
      *
      * @see #setRepository(Object)
      */
@@ -50,7 +50,7 @@ public interface MavenDeployer extends MavenResolver {
     void setRepository(Object repository);
 
     /**
-     * Returns the repository o be used for uploading snapshot artifacts.
+     * Returns the repository to be used for uploading snapshot artifacts.
      *
      * @see #setSnapshotRepository(Object)
      */

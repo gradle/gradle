@@ -90,8 +90,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return dependsOn(module.groupId, module.artifactId, module.version)
     }
 
-    MavenModule dependsOn(String group, String artifactId, String version, String type = null, String scope = null, String classifier = null) {
-        this.dependencies << [groupId: group, artifactId: artifactId, version: version, type: type, scope: scope, classifier: classifier]
+    MavenModule dependsOn(String group, String artifactId, String version, String type = null, String scope = null, String classifier = null, Collection<Map> exclusions = null) {
+        this.dependencies << [groupId: group, artifactId: artifactId, version: version, type: type, scope: scope, classifier: classifier, exclusions: exclusions]
         return this
     }
 
@@ -283,6 +283,16 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                                 }
                                 if (dep.classifier) {
                                     classifier(dep.classifier)
+                                }
+                                if (dep.exclusions) {
+                                    exclusions {
+                                        for (exc in dep.exclusions) {
+                                            exclusion {
+                                                groupId(exc.groupId)
+                                                artifactId(exc.artifactId)
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }

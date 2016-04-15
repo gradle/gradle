@@ -16,65 +16,34 @@
 
 package org.gradle.internal.filewatch
 
-import org.gradle.api.Action
+import org.gradle.api.file.DirectoryTree
 import org.gradle.api.internal.file.FileSystemSubset
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Pair
 import org.gradle.internal.concurrent.DefaultExecutorFactory
-import org.gradle.logging.ConfigureLogging
-import org.gradle.logging.internal.LogEvent
-import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
-import org.spockframework.lang.ConditionBlock
-import spock.lang.AutoCleanup
-import spock.lang.Specification
+import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
-import spock.util.concurrent.BlockingVariable
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ExecutionException
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicReference
 
+@UsesNativeServices
 @Requires(TestPrecondition.JDK7_OR_LATER)
-class DefaultFileWatcherFactoryTest extends Specification {
-    @Rule
-    ConfigureLogging logging = new ConfigureLogging({
-        if (it instanceof LogEvent) {
-            println "[${it.timestamp}] ${it}"
-            it.throwable?.printStackTrace()
-        }
-    })
-
-    @Rule
-    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
-    FileWatcherFactory fileWatcherFactory
-    long waitForEventsMillis = 3500L
-
-    @AutoCleanup("stop")
+class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
     FileWatcher fileWatcher
-
-    Throwable thrownInWatchExecution
-    Action<? super Throwable> onError = {
-        thrownInWatchExecution = it
-    }
-
-    FileSystemSubset fileSystemSubset
+    FileWatcherFactory fileWatcherFactory
 
     void setup() {
-        NativeServicesTestFixture.initialize()
         fileWatcherFactory = new DefaultFileWatcherFactory(new DefaultExecutorFactory())
         fileSystemSubset = FileSystemSubset.builder().add(testDir.testDirectory).build()
     }
 
     void cleanup() {
         fileWatcher?.stop()
-        fileWatcherFactory?.stop()
-        if (thrownInWatchExecution) {
-            throw new ExecutionException("Exception was catched in executing watch", thrownInWatchExecution)
+        if (fileWatcherFactory instanceof Stoppable) {
+            fileWatcherFactory.stop()
         }
     }
 
@@ -238,7 +207,7 @@ class DefaultFileWatcherFactoryTest extends Specification {
 
         fileWatcher = fileWatcherFactory.watch(onError) { watcher, event ->
             eventReceivedLatch.countDown()
-            filesAddedLatch.await()
+            waitOn(filesAddedLatch)
             if (event.type == FileWatcherEvent.Type.CREATE) {
                 totalLatch.countDown()
             }
@@ -246,13 +215,13 @@ class DefaultFileWatcherFactoryTest extends Specification {
         fileWatcher.watch(fileSystemSubset)
 
         testDir.file("1").createDir()
-        eventReceivedLatch.await()
+        waitOn(eventReceivedLatch)
 
         testDir.file("1/2/3/4/5/6/7/8/9/10").createDir()
         filesAddedLatch.countDown()
 
         then:
-        totalLatch.await()
+        waitOn(totalLatch)
     }
 
     def "watcher doesn't add directories that have been deleted after change detection"() {
@@ -265,7 +234,7 @@ class DefaultFileWatcherFactoryTest extends Specification {
         fileWatcher.watch(fileSystemSubset)
 
         testDir.file("testdir").createDir()
-        eventReceivedLatch.await()
+        waitOn(eventReceivedLatch)
         sleep(500)
 
         then:
@@ -337,63 +306,6 @@ class DefaultFileWatcherFactoryTest extends Specification {
         //'neither exists'                 | false         | false         | false
     }
 
-    def "checks for scenario when the first directory to watch doesn't exist"() {
-        // corner case scenario where the directory to watch doesn't exist
-        // internally it's parent will be watched for changes
-        //
-        // src/main/java is the missing directory here, src/main/groovy exists.
-        given:
-        def listener = Mock(FileWatcherListener)
-        def fileEventMatchedLatchReference = new AtomicReference(new CountDownLatch(1))
-        def subdir1 = testDir.file('src/main/java')
-        def subdir1File = subdir1.file("SomeFile.java")
-        def subdir2 = testDir.file('src/main/groovy')
-        def subdir2File = subdir2.file("SomeFile.groovy")
-        def subdir2File2 = subdir2.file("SomeFile2.groovy")
-        def filesSeen = ([] as Set).asSynchronized()
-        listener.onChange(_, _) >> { FileWatcher watcher, FileWatcherEvent event ->
-            if (event.file.isFile()) {
-                filesSeen.add(event.file.absolutePath)
-                fileEventMatchedLatchReference.get().countDown()
-            }
-        }
-        subdir2.mkdirs()
-
-        // check that filtering works in this case and change events for
-        // non-watched siblings don't get delivered
-        when: 'Adds watch for non-existing directory'
-        fileWatcher = fileWatcherFactory.watch(onError, listener)
-        fileWatcher.watch(FileSystemSubset.builder().add(subdir1).build())
-
-        and: 'Content in non-watched sibling directory changes'
-        subdir2File.text = 'Some content'
-        fileEventMatchedLatchReference.get().await(2000L, TimeUnit.MILLISECONDS)
-
-        then: 'No changes should have been seen'
-        filesSeen.isEmpty()
-
-        // check that adding watch for sibling (src/main/groovy) later on is supported
-        when: 'Adds watch for sibling directory and creates file'
-        fileWatcher.watch(FileSystemSubset.builder().add(subdir2).build())
-        subdir2File2.text = 'Some content'
-        waitOn(fileEventMatchedLatchReference.get())
-
-        then: 'New file should be seen'
-        filesSeen == [subdir2File2.absolutePath] as Set
-
-        // check that watching changes to src/main/java works after it gets created
-        when: 'New file is created in first originally non-existing directory'
-        filesSeen.clear()
-        fileEventMatchedLatchReference.set(new CountDownLatch(1))
-        subdir1.createDir()
-        subdir1File.text = 'Some content'
-        waitOn(fileEventMatchedLatchReference.get())
-
-        then: 'New file should be seen'
-        filesSeen == [subdir1File.absolutePath] as Set
-    }
-
-
     def "should support watching directory that didn't exist when watching started"() {
         given:
         def listener = Mock(FileWatcherListener)
@@ -421,21 +333,45 @@ class DefaultFileWatcherFactoryTest extends Specification {
         filesSeen[0] == subdirFile.absolutePath
     }
 
-    private void waitOn(CountDownLatch latch, boolean checkLatch = true) {
-        //println "waiting..."
-        latch.await(waitForEventsMillis, TimeUnit.MILLISECONDS)
-        sleep(100)
-        if (checkLatch) {
-            assert latch.count == 0 : "CountDownLatch didn't count down to zero within $waitForEventsMillis ms"
+    @Unroll
+    def "should watch changes in sub directory when watching first for single file in parent directory where usesDirectoryTree: #usesDirectoryTree"() {
+        given:
+        def listener = Mock(FileWatcherListener)
+        def fileEventMatchedLatch = new CountDownLatch(1)
+        def filesSeen = ([] as Set).asSynchronized()
+        listener.onChange(_, _) >> { FileWatcher watcher, FileWatcherEvent event ->
+            if (event.file.isFile()) {
+                filesSeen.add(event.file.absolutePath)
+                fileEventMatchedLatch.countDown()
+            }
         }
+        fileWatcher = fileWatcherFactory.watch(onError, listener)
+        def subdir = testDir.file('src/subdirectory')
+        def subdirFile = subdir.file("nested.txt")
+
+        // watch for file in parent directory initially
+        def singleFile = testDir.file('src/topLevel.txt').createFile()
+        fileWatcher.watch(FileSystemSubset.builder().add(singleFile).build())
+
+        when: 'Adds watch for sub directory'
+        subdir.mkdirs()
+        fileWatcher.watch(FileSystemSubset.builder().add(usesDirectoryTree ? new SimpleDirectoryTree(dir: subdir) : subdir).build())
+
+        and: 'Create file'
+        subdirFile.createFile().text = 'Some content'
+        waitOn(fileEventMatchedLatch)
+
+        then: 'File should have been noticed'
+        filesSeen.size() == 1
+        filesSeen[0] == subdirFile.absolutePath
+
+        where:
+        usesDirectoryTree << [false, true]
     }
 
-    @ConditionBlock
-    private void await(Closure<?> closure) {
-        ConcurrentTestUtil.poll(waitForEventsMillis / 1000 as int, closure)
+    private static class SimpleDirectoryTree implements DirectoryTree {
+        File dir
+        PatternSet patterns = new PatternSet()
     }
 
-    private <T> BlockingVariable<T> blockingVar() {
-        new BlockingVariable<T>(waitForEventsMillis / 1000)
-    }
 }

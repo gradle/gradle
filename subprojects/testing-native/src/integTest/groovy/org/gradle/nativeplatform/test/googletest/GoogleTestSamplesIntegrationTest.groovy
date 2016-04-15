@@ -19,11 +19,12 @@ package org.gradle.nativeplatform.test.googletest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.nativeplatform.fixtures.AvailableToolChains
+import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import static org.junit.Assume.*
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -35,10 +36,9 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
 
     def "googleTest"() {
         given:
-        // GoogleTest sample only works out of the box with VS2013 on windows
-        if (OperatingSystem.current().windows && !isVisualCpp2013()) {
-            return
-        }
+        // On windows, GoogleTest sample only works out of the box with VS2013
+        assumeTrue(!OperatingSystem.current().windows || isVisualCpp2013())
+
         sample googleTest
 
         when:
@@ -74,6 +74,6 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
     }
 
     private static boolean isVisualCpp2013() {
-        return (AbstractInstalledToolChainIntegrationSpec.toolChain.visualCpp && (AbstractInstalledToolChainIntegrationSpec.toolChain as AvailableToolChains.InstalledVisualCpp).version.major == "12")
+        return toolChain.meets(ToolChainRequirement.VISUALCPP_2013)
     }
 }

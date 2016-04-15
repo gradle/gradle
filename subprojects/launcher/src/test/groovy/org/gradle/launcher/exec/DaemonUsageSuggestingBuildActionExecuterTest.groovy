@@ -24,8 +24,8 @@ import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.logging.StyledTextOutput
-import org.gradle.logging.StyledTextOutputFactory
+import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.internal.logging.text.StyledTextOutputFactory
 import spock.lang.Specification
 import spock.lang.Unroll
 

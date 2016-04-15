@@ -64,6 +64,7 @@ public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyz
         return out;
     }
 
+    @Override
     public ClassAnalysis getClassAnalysis(String className, File classFile) {
         FileInputStream input = GFileUtils.openInputStream(classFile);
         try {

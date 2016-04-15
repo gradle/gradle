@@ -29,22 +29,27 @@ public class DependencyReportHeader implements RenderableDependency {
         this.dependency = dependency;
     }
 
+    @Override
     public ComponentIdentifier getId() {
         return dependency.getActual();
     }
 
+    @Override
     public String getName() {
         return getId().getDisplayName();
     }
 
+    @Override
     public String getDescription() {
         return getReasonDescription(dependency.getReason());
     }
 
+    @Override
     public boolean isResolvable() {
         return dependency.isResolvable();
     }
 
+    @Override
     public Set<? extends RenderableDependency> getChildren() {
         return Collections.emptySet();
     }

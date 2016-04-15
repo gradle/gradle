@@ -34,12 +34,12 @@ import org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.Model;
-import org.gradle.model.ModelMap;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
+import org.gradle.platform.base.BinaryContainer;
 
 
 /**
@@ -48,18 +48,19 @@ import org.gradle.nativeplatform.plugins.NativeComponentModelPlugin;
 @Incubating
 public class VisualStudioPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(Project project) {
         project.getPluginManager().apply(NativeComponentModelPlugin.class);
     }
 
     static class Rules extends RuleSource {
         @Model
-        public static VisualStudioExtensionInternal visualStudio(ServiceRegistry serviceRegistry) {
+        public static VisualStudioExtensionInternal visualStudio(ServiceRegistry serviceRegistry, ProjectIdentifier projectIdentifier) {
             Instantiator instantiator = serviceRegistry.get(Instantiator.class);
             ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
             FileResolver fileResolver = serviceRegistry.get(FileResolver.class);
 
-            return instantiator.newInstance(DefaultVisualStudioExtension.class, instantiator, projectModelResolver, fileResolver);
+            return instantiator.newInstance(DefaultVisualStudioExtension.class, projectIdentifier, instantiator, projectModelResolver, fileResolver);
         }
 
         @Mutate
@@ -74,9 +75,8 @@ public class VisualStudioPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        @SuppressWarnings("GroovyUnusedDeclaration")
-        public static void createVisualStudioModelForBinaries(VisualStudioExtensionInternal visualStudioExtension, ModelMap<NativeBinarySpec> nativeBinaries) {
-            for (NativeBinarySpec binary : nativeBinaries) {
+        public static void createVisualStudioModelForBinaries(VisualStudioExtensionInternal visualStudioExtension, BinaryContainer binaries) {
+            for (NativeBinarySpec binary : binaries.withType(NativeBinarySpec.class)) {
                 VisualStudioProjectConfiguration configuration = visualStudioExtension.getProjectRegistry().addProjectConfiguration(binary);
 
                 // Only create a solution if one of the binaries is buildable
@@ -88,7 +88,6 @@ public class VisualStudioPlugin implements Plugin<Project> {
         }
 
         @Mutate
-        @SuppressWarnings("GroovyUnusedDeclaration")
         public static void createTasksForVisualStudio(TaskContainer tasks, VisualStudioExtensionInternal visualStudioExtension) {
             for (VisualStudioProject vsProject : visualStudioExtension.getProjects()) {
                 vsProject.builtBy(createProjectsFileTask(tasks, vsProject));

@@ -1,107 +1,107 @@
-## Composite build
+## What is a Composite Build?
 
-This feature spec introduces the concept of a ‘Gradle composite build’. A composite build is a lightweight assembly of Gradle projects that a developer is working on. These projects may come from different Gradle builds, but when assembled into a composite Gradle is able to coordinate these projects so that they appear in some way as a single build unit.
+In the past, Gradle tended to support 2 main patterns for software composition:
 
-#### Composite build participants
+ - Multiple software components were sourced from a single VCS repository, configured in one multi-project build, and integrated via with project dependencies.
+ - Multiple software components were sourced from separate VCS repositories, with each built and published separately, integrating via binary (repository) dependencies.
 
-Each separate Gradle build that provides projects for a composite build is a _build participant_. Each build participant has a version of Gradle that is used for building. A composite build is defined as _homogeneous_ if every participant is built with the same Gradle version.
+The composite build feature in Gradle aims to break down this strong separation of external repository (binary) dependencies and project (source) dependencies. Building on the existing dependency substitution support in Gradle, composite build will allow multiple discrete Gradle builds to be combined in a way to support common development use cases.
 
-TAPI clients must use >= Gradle 2.12 to use composite builds. Participant projects can be mixed, but not all features of a composite build may be supported.
+Dependency substitution was introduced in Gradle 2.8, and brought the ability to replace external dependencies with project dependencies (and vice-versa) in a multiproject build. This works well for Gradle projects that have been designed to work together; either by working on a subset of a large functional multi-project build, or by combining selected Gradle builds that have been specifically designed to function together.
 
-#### Independent configuration models
+The composite build feature takes this much further, by enabling arbitrary combinations of Gradle builds to work together, without imposing restrictions on how those builds are structured. Each participant in a Gradle composite build is complete in itself, and is able to be built independently. Participant builds declare dependencies on other projects via binary dependencies, and the composite build infrastructure effectively facilitates integration via source dependencies.
 
-Gradle builds within a composite will be configured independently, and will have no direct access to the configuration model of other builds within the composite. This will permit these builds to be configured lazily and in parallel.
+By facilitating temporary integration of discrete Gradle builds, composite build will vastly improve the development experience when working with components sourced from different VCS repositories (a multi-repo architecture), and will enable development and testing of ad-hoc arrangements of software components.
 
-#### Project dependency substitution
+## Use cases
 
-Where possible, external dependencies will be replaced with project dependencies within a composite. In this way, a composite build will perform similarly to a multi-project build containing all of the projects.
+#### Library developer executes tests of consumer project with local changes to library
 
-So, for example, application A and library B might normally be built separately, as part of different builds. In this instance, application A would have a binary dependency on library B, consuming it as a jar downloaded from a binary repository. When application A and library B are both imported in the same composite, however, application A would have a source dependency on library B.
+This is probably the most obvious case. It can be thought of as a more convenient and performant workflow for testing speculative (i.e non-committed) changes than the traditional `./gradlew install` of the library and then subsequent build of the consumer. This would allow the library developer to make changes to the source of the library, then run `./gradlew consumer:test` and have it compile against and use the local changes to the library directly.
 
-#### Composite builds in the IDE
+#### Library developer works with consumer projects within IDE
 
-A tooling API client will be able to define a composite and query it in a similar way to how a `ProjectConnection` can be queried. While the projects contained in a composite may come from separate Gradle builds, where possible the composite will present as if it were a single, unified Gradle build containing all of the projects for each participating Gradle build.
+Composite build will enhance the development experience in multi-repo scenarios, by easing the process of configuring the IDE with multiple Gradle Builds in a single workspace. By importing a library project together with its consumer projects, a developer can easily locate, update and test changes to the library API in the consumers.
 
-This will provide the developer with a view of all the projects in the composite, so that the developer can search for usages or make changes to any of these projects. When the developer compiles or runs tests from withing the IDE, these changes will be picked up for any dependent project. However, IDE actions that delegate to Gradle (such as task execution) will not operate on a composite build, as these actions will not (yet) be composite-aware.
+#### Continuous integration tests library against some consumer projects
 
-#### Composite builds from the command-line
+This is similar to the local development use case, but would instead test consumer projects post commit on the CI server. This could happen prior to any publishing by the CI loop, allowing the consumer tests to act as a gate to prevent breakages becoming visible to the consumer project.
 
-A command-line client will be able to point to a composite build definition, and execute tasks for the composite as a whole.
+#### Developer implements Gradle Plugin in the context of a consumer build
 
-## Milestones
+Similar to developing a library, developing a Gradle Plugin requires testing with consumer builds. By defining a composite, a plugin developer can develop the plugin directly along with the consumer project build scripts. This functionality will eventually remove the special-case handling of the `buildSrc` project in Gradle, making it easier to transition from internal build logic to a published plugin, and providing improved IDE support.
 
-### Milestone: Tooling client can define composite and request IDE models
+#### And many more:
 
-After this milestone, a Tooling client can define a composite build, and request the `EclipseProject` model for each included project.
+ - Implement a delivery pipeline
+ - Provision source for upstream and downstream dependencies on a local machine
+ - Recreate historical build from source, using VCS revisions
 
-##### Core stories
+## Feature highlights
 
-- [ ] [Tooling client provides model for "composite" with one multi-project participant](tooling-api-model/single-build)
-- [ ] [Tooling client provides model for composite containing multiple participants](tooling-api-model/multiple-builds)
-- [ ] [Tooling models for composite are produced by a single daemon instance](tooling-api-model/composed-in-daemon)
+#### Flexible assembly of participant builds into a composite
 
-##### Further stories
+Participants in a composite build will not require build logic changes when added to a composite: the same stand-alone build will function within a composite unchanged. This will make it more convenient to use Gradle in a multi-repository source architecture.
 
-- [ ] Tooling client cancels composite model request
-- [ ] Tooling client provides progress listener for composite model request
-- [ ] Tooling client specifies stdout and stderr for composite model request
-- [ ] Tooling client provides common args, JVM args and stdin for in composite model request
-- [ ] Tooling client provides separate args, JVM args and stdin for each participant in composite model request
+#### Participant builds are coupled only via dependency resolution
 
-##### Open questions
+Unlike multi project builds where different projects can inject configuration into or alter configuration of other projects, the configuration of one participant will not be arbitrarily readable or writable by another. This feature will reduce the risk of ‘contamination’ between different projects in a composite, and will eventually allow for full parallelization and distribution of participant builds.
 
-### Milestone: IDE models for homogeneous composite include dependency substitution
+#### Designed with IDEs in mind
 
-After this milestone, when a Tooling client defines a _homogeneous_ composite build (one where all participants use the same, recent version of Gradle),  the `EclipseProject` model returned will have external dependencies replaced with project dependencies.
+By starting with the Tooling API, we will ensure that the composite build feature is designed for IDEs, making it easier for a developer to work on software in a multi-repo scenario. The new Tooling API types will provide a more powerful way for IDEs to interact with a Gradle build, and will work for single builds and composites alike.
 
-##### Stories:
+## Milestone Delivery for Composite Builds
 
-Tooling client defines a homogeneous composite and:
+#### M1: Programmatic API for defining a composite build and executing tasks
 
-- [ ] [IDE models have external dependencies directly replaced with project dependencies](dependency-substitution/direct-replacement)
-- [ ] [IDE models are resolved with project dependencies substituted for external dependencies](dependency-substitution/resolved-substitution)
+ - Developer can use the Gradle Tooling API to define a composite build.
+ - Developer can use the Gradle Tooling API to execute a task (or tasks) in one composite build participant.
 
-##### Open questions
+#### M2: Programmatic API for requesting IDE models for a composite build
 
-- Gracefully degrade for heterogeneous composites:
-    - Same Gradle version, different JVM args or java versions
-    - Different Gradle versions >= 2.12
-    - Gradle versions < 2.12 (Do we do naive substitution, or no substitution?)
-- Will need to report 'capabilities' of composite back to client
+ - Buildship developers can use Tooling API to define a composite build and configure Eclipse with all projects in the composite.
+ - Jetbrains developers can use Tooling API to define a composite build and configure IntelliJ IDEA with all projects in the composite.
 
-### Milestone: Tooling client can define composite and execute tasks
+#### M3: Dependency substitution for Java projects in a composite build
 
-After this milestone, a Tooling client can define a composite build, and execute tasks for projects within the composite. Where possible, external dependencies will be replaced with appropriate project dependencies when performing dependency resolution for tasks.
+ - For a Java project included in a composite build, external dependencies are substituted with project dependencies for other projects in the composite.
+ - When executing the core ‘dependencies’ task, project dependencies are displayed in place of external dependencies.
+ - When executing any task in a composite build, artifacts for project dependencies are built on demand.
+ - When accessing an IDE model for a composite build, external dependencies are mapped to IDE project dependencies.
 
-##### Stories:
+#### M4: Generation of IntelliJ IDEA metadata files for composite build
 
-Tooling client defines a composite and:
+ - Developer can generate required project and module descriptor files in order to work on a composite build in IntelliJ IDEA.
+ - This is required pending full support for importing composite builds into IntelliJ IDEA.
 
-- [ ] Executes task in a single project within a heterogeneous composite
-    - Need API that provides a `BuildLauncher` for a particular project
-- [ ] Executes `dependencies` task for a single project, demonstrating appropriate dependency substitution
-- [ ] Executes task that uses artifacts from substituted dependency: assumes artifact was built previously
-- [ ] Executes task that uses artifacts from substituted dependency: artifact is built on demand
+#### M5: Caching of project models in a composite build to significantly reduce wait time for developers when starting a composite build
 
-##### Further stories
+ - When executing any task in a composite, the potential outputs of every project in the composite must be determined. Without caching, this will require configuring every project. Smart caching will eliminate this need, significantly reducing the overhead added by composite build.
+ - This change will significantly reduce the wait time for developers on every use of a composite build
 
-- [ ] Execute all tasks with name across all projects in composite
+#### M6: Parallel execution of projects within a composite to significantly reduce wait time for developers when starting a composite build
 
-### Milestone: Command-line user can execute tasks in composite build
+ - Significant improvements to build times within a composite will be achieved by executing dependent projects in parallel.
+ - Parallel execution will behave similarly to parallel project execution, with the additional benefit of parallel configuration.
 
-After this milestone, a Build author can define a homogeneous composite and use the command line to executes tasks for a project within the composite. The mechanism(s) for defining a composite outside of the Tooling API have not yet been determined.
+#### M7: Persistent DSL format for defining a composite build
 
-- [ ] Developer executes tasks in a single project with implicit composite defined by directory
-    - New command-line switch to indicate composite build (or possibly the presense of an empty composite descriptor)
-    - Command-line switch to target a particular project within the composite (likely the same switch)
-    - All directories in the current directory are considered to be builds participating in a composite
-- [ ] Developer declares composite participants using composite descriptor
-- More TBD...
+ - Developers can define, share and persist a composite build structure.
+ - Command-line user can directly reference a composite build descriptor when executing tasks.
 
+#### M8: Dependency substitution for Play projects in a composite build
 
-## Later
+ - For a Play project included in a composite build, external dependencies are substituted with project dependencies for other Play and Java projects in the composite.
 
-- Model/task support for heterogeneous composites (different versions of Gradle)
-- Model/task support for older Gradle versions
+#### M9: Support for continuous build in a composite
+
+ - In a composite, developer can start a task with continuous build. Changes to source files of the project owning the task will trigger a rebuild.
+ - In a composite, developer can start a task with continuous build. Changes to source files in any project that is substituted into the build will trigger a rebuild.
+
+## Future work
+
+- Will need to report 'capabilities' of composite back to Tooling client (and command line client)
+- Use composite build to model `buildSrc` project
 - Support for composite builds in Gradle TestKit
 

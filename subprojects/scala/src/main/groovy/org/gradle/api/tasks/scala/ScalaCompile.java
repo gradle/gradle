@@ -22,10 +22,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.api.internal.tasks.scala.CleaningScalaCompiler;
-import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
-import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
-import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.scala.*;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
@@ -44,7 +41,7 @@ public class ScalaCompile extends AbstractScalaCompile {
 
     @Inject
     public ScalaCompile() {
-        super(new ScalaCompileOptions());
+        super(new ScalaCompileOptionsInternal());
     }
 
     @Nested
@@ -93,7 +90,7 @@ public class ScalaCompile extends AbstractScalaCompile {
             JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, javaCompilerFactory, compilerDaemonFactory, getScalaClasspath(), getZincClasspath(), getProject().getGradle().getGradleUserHomeDir());
             compiler = scalaCompilerFactory.newCompiler(spec);
-            if (getScalaCompileOptions().isUseAnt()) {
+            if (((ScalaCompileOptionsInternal) getScalaCompileOptions()).internalIsUseAnt()) {
                 compiler = new CleaningScalaCompiler(compiler, getOutputs());
             }
         }
@@ -102,7 +99,7 @@ public class ScalaCompile extends AbstractScalaCompile {
 
     @Override
     protected void configureIncrementalCompilation(ScalaCompileSpec spec) {
-        if (getScalaCompileOptions().isUseAnt()) {
+        if (((ScalaCompileOptionsInternal) getScalaCompileOptions()).internalIsUseAnt()) {
             // Don't use incremental compilation with ant-backed compiler
             return;
         }

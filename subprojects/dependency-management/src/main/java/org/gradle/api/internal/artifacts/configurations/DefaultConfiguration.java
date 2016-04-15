@@ -393,10 +393,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void markReferencedProjectConfigurationsObserved(final InternalState requestedState) {
+        // TODO:DAZ See if we can use the ProjectComponentRegistry here.
         for (ResolvedProjectConfiguration projectResult : cachedResolverResults.getResolvedLocalComponents().getResolvedProjectConfigurations()) {
-            ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
-            ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
-            targetConfig.markAsObserved(requestedState);
+            ProjectInternal project = projectFinder.findProject(projectResult.getId().getProjectPath());
+            if (project != null) {
+                ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
+                targetConfig.markAsObserved(requestedState);
+            }
         }
     }
 
@@ -545,7 +548,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolutionStrategy;
     }
 
-    // TODO:DAZ ResolveContext should have-a Configuration, not be one
     public ComponentResolveMetaData toRootComponentMetaData() {
         ModuleInternal module = getModule();
         Set<? extends Configuration> configurations = getAll();

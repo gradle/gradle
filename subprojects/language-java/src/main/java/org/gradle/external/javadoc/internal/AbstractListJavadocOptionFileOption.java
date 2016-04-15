@@ -37,10 +37,12 @@ public abstract class AbstractListJavadocOptionFileOption<T extends List<?>> ext
         this.joinBy = joinBy;
     }
 
+    @Override
     public T getValue() {
         return value;
     }
 
+    @Override
     public void setValue(T value) {
         if (value == null) {
             this.value.clear();
@@ -49,6 +51,7 @@ public abstract class AbstractListJavadocOptionFileOption<T extends List<?>> ext
         }
     }
 
+    @Override
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
         if (value != null && !value.isEmpty()) {
             writeCollectionValue(writerContext);

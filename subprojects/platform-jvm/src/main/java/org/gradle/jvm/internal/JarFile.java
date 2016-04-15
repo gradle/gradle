@@ -16,11 +16,11 @@
 
 package org.gradle.jvm.internal;
 
-import org.gradle.api.BuildableModelElement;
+import org.gradle.api.BuildableComponentSpec;
 
 import java.io.File;
 
-public interface JarFile extends BuildableModelElement {
+public interface JarFile extends BuildableComponentSpec {
     /**
      * The jar file output for this binary.
      */

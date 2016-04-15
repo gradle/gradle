@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.internal.resolver.model;
 
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.io.File;
@@ -25,7 +24,7 @@ public class IdeRepoFileDependency extends IdeDependency {
     private final File file;
     private ModuleVersionIdentifier id;
 
-    public IdeRepoFileDependency(Configuration declaredConfiguration, File file) {
+    public IdeRepoFileDependency(String declaredConfiguration, File file) {
         super(declaredConfiguration);
         this.file = file;
     }

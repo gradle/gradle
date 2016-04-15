@@ -31,6 +31,7 @@ public class CleaningPlayToolCompiler<T extends PlayCompileSpec> implements Comp
         this.taskOutputs = taskOutputs;
     }
 
+    @Override
     public WorkResult execute(T spec) {
         SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(taskOutputs);
         cleaner.setDestinationDir(spec.getDestinationDir());

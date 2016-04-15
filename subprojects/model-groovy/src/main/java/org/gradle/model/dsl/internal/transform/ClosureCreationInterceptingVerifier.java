@@ -30,6 +30,7 @@ public class ClosureCreationInterceptingVerifier implements Action<ClassNode> {
 
     public static final Action<ClassNode> INSTANCE = new ClosureCreationInterceptingVerifier();
 
+    @Override
     public void execute(ClassNode node) {
         if (node.implementsInterface(ClassHelper.GENERATED_CLOSURE_Type)) {
             RulesVisitor.visitGeneratedClosure(node);

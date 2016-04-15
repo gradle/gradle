@@ -58,9 +58,8 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
 
     public LinkMetaData getMethod(String method) {
         MethodLinkMetaData methodMetaData = findMethod(method);
-        String displayName;
         String urlFragment = methodMetaData.getUrlFragment(className);
-        displayName = String.format("%s.%s", simpleName, methodMetaData.getDisplayName());
+        String displayName = String.format("%s.%s", simpleName, methodMetaData.getDisplayName());
         return new LinkMetaData(methodMetaData.style, displayName, urlFragment);
     }
 
@@ -138,7 +137,7 @@ public class ClassLinkMetaData implements Serializable, Attachable<ClassLinkMeta
         }
 
         public String getDisplayName() {
-            return String.format("%s()", name);
+            return signature;
         }
         
         public String getUrlFragment(String className) {

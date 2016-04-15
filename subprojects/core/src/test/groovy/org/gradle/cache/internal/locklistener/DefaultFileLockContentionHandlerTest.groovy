@@ -18,7 +18,7 @@ package org.gradle.cache.internal.locklistener
 
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.concurrent.StoppableExecutor
-import org.gradle.messaging.remote.internal.inet.InetAddressFactory
+import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.util.ConcurrentSpecification
 
 import java.util.concurrent.atomic.AtomicBoolean

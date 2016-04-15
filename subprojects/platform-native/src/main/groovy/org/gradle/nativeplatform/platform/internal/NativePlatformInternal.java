@@ -18,7 +18,9 @@ package org.gradle.nativeplatform.platform.internal;
 import org.gradle.nativeplatform.platform.NativePlatform;
 
 public interface NativePlatformInternal extends NativePlatform {
+    @Override
     ArchitectureInternal getArchitecture();
 
+    @Override
     OperatingSystemInternal getOperatingSystem();
 }

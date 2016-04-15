@@ -31,26 +31,32 @@ public abstract class AbstractTargetedNativeComponentSpec extends AbstractNative
     private final Set<String> buildTypes = new HashSet<String>();
     private final Set<String> flavors = new HashSet<String>();
 
+    @Override
     public List<PlatformRequirement> getTargetPlatforms() {
         return Collections.unmodifiableList(targetPlatforms);
     }
 
+    @Override
     public void targetPlatform(String targetPlatform) {
         this.targetPlatforms.add(DefaultPlatformRequirement.create(targetPlatform));
     }
 
+    @Override
     public void targetFlavors(String... flavorSelectors) {
         Collections.addAll(flavors, flavorSelectors);
     }
 
+    @Override
     public void targetBuildTypes(String... buildTypeSelectors) {
         Collections.addAll(buildTypes, buildTypeSelectors);
     }
 
+    @Override
     public Set<Flavor> chooseFlavors(Set<? extends Flavor> candidates) {
         return chooseElements(Flavor.class, candidates, flavors);
     }
 
+    @Override
     public Set<BuildType> chooseBuildTypes(Set<? extends BuildType> candidates) {
         return chooseElements(BuildType.class, candidates, buildTypes);
     }

@@ -16,8 +16,8 @@
 
 package org.gradle.internal.resource.transfer;
 
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks.testing.processors
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.messaging.actor.Actor
-import org.gradle.messaging.actor.ActorFactory
+import org.gradle.internal.actor.Actor
+import org.gradle.internal.actor.ActorFactory
 import spock.lang.Specification
 import org.gradle.internal.Factory
 
@@ -43,7 +43,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
 
     def doesNothingWhenNoTestsProcessed() {
         startProcessor()
-        
+
         when:
         processor.stop()
 

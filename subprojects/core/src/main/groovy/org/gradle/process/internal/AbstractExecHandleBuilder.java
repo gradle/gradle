@@ -92,7 +92,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         return ignoreExitValue;
     }
 
-    public BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
+    public AbstractExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
         this.ignoreExitValue = ignoreExitValue;
         return this;
     }

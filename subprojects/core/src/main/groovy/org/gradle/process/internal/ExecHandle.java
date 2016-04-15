@@ -42,12 +42,12 @@ public interface ExecHandle {
     ExecHandleState getState();
 
     /**
-     * Aborts the process, blocking until the process has exited.
+     * Aborts the process, blocking until the process has exited. Does nothing if the process has already completed.
      */
     void abort();
 
     /**
-     * Waits for the process to finish.
+     * Waits for the process to finish. Returns immediately if the process has already completed.
      *
      * @return result
      */

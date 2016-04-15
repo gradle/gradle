@@ -29,18 +29,22 @@ public abstract class AbstractTestDescriptor implements TestDescriptorInternal, 
         this.name = name;
     }
 
+    @Override
     public Object getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public String getClassName() {
         return null;
     }
 
+    @Override
     public TestDescriptorInternal getParent() {
         return null;
     }

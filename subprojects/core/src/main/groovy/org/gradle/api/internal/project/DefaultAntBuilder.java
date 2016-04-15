@@ -26,6 +26,7 @@ import org.apache.tools.ant.ProjectHelper;
 import org.apache.tools.ant.PropertyHelper;
 import org.apache.tools.ant.Target;
 import org.gradle.api.*;
+import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
@@ -40,9 +41,11 @@ import java.util.*;
 public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
 
     private final Project gradleProject;
+    private final AntLoggingAdapter loggingAdapter;
 
-    public DefaultAntBuilder(Project gradleProject) {
+    public DefaultAntBuilder(Project gradleProject, AntLoggingAdapter loggingAdapter) {
         this.gradleProject = gradleProject;
+        this.loggingAdapter = loggingAdapter;
     }
 
     public void propertyMissing(String property, Object newValue) {
@@ -156,6 +159,16 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
 
             previous = dependency;
         }
+    }
+
+    @Override
+    public void setLifecycleLogLevel(AntMessagePriority logLevel) {
+        loggingAdapter.setLifecycleLogLevel(logLevel);
+    }
+
+    @Override
+    public AntMessagePriority getLifecycleLogLevel() {
+        return loggingAdapter.getLifecycleLogLevel();
     }
 
     private static class AntTargetsTaskDependency implements TaskDependency {

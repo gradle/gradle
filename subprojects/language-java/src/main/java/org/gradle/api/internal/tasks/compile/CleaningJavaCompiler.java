@@ -39,6 +39,7 @@ public class CleaningJavaCompiler extends CleaningJavaCompilerSupport<JavaCompil
         return compiler;
     }
 
+    @Override
     protected StaleClassCleaner createCleaner(JavaCompileSpec spec) {
         //TODO SF do we want to keep useDepend? The docs advertise that this option makes sense only when useAnt is on
         //but the latter has been removed in 2.* Either we need to fix the the docs or deprecate useDepend

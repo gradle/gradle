@@ -42,7 +42,6 @@ class ClientShutdownCrossVersionSpec extends ToolingApiSpecification {
 
         when:
         GradleConnector.newConnector()
-
         then:
         IllegalStateException e = thrown()
     }
@@ -136,6 +135,6 @@ task slow << { new URL("${server.uri}").text }
     private GradleExecuter daemonExecutor() {
         // Need to use the same JVM args to start daemon as those used by tooling api fixture
         // TODO - use more sane JVM args here and for the daemons started using tooling api fixture
-        targetDist.executer(temporaryFolder).withDaemonBaseDir(toolingApi.daemonBaseDir).withBuildJvmOpts("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError").useDefaultBuildJvmArgs().requireDaemon()
+        targetDist.executer(temporaryFolder).withNoExplicitTmpDir().withDaemonBaseDir(toolingApi.daemonBaseDir).withBuildJvmOpts("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError").useDefaultBuildJvmArgs().requireDaemon()
     }
 }

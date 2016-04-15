@@ -139,6 +139,7 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     protected void compile() {
         DefaultJavaCompileSpec spec = createSpec();
         performCompilation(spec, createCompiler(spec));

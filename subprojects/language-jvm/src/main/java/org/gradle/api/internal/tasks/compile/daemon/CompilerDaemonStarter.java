@@ -18,20 +18,19 @@ package org.gradle.api.internal.tasks.compile.daemon;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.Factory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.WorkerProcess;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.MultiRequestWorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.Clock;
 
 import java.io.File;
 
 public class CompilerDaemonStarter {
     private final static Logger LOG = Logging.getLogger(CompilerDaemonStarter.class);
-    private final Factory<WorkerProcessBuilder> workerFactory;
+    private final WorkerProcessFactory workerFactory;
     private final StartParameter startParameter;
 
-    public CompilerDaemonStarter(Factory<WorkerProcessBuilder> workerFactory, StartParameter startParameter) {
+    public CompilerDaemonStarter(WorkerProcessFactory workerFactory, StartParameter startParameter) {
         this.workerFactory = workerFactory;
         this.startParameter = startParameter;
     }
@@ -39,23 +38,20 @@ public class CompilerDaemonStarter {
     public CompilerDaemonClient startDaemon(File workingDir, DaemonForkOptions forkOptions) {
         LOG.debug("Starting Gradle compiler daemon with fork options {}.", forkOptions);
         Clock clock = new Clock();
-        WorkerProcessBuilder builder = workerFactory.create();
+        MultiRequestWorkerProcessBuilder<CompilerDaemonWorker> builder = workerFactory.multiRequestWorker(CompilerDaemonWorker.class, CompilerDaemonProtocol.class, CompilerDaemonServer.class);
+        builder.setBaseName("Gradle Compiler Daemon");
         builder.setLogLevel(startParameter.getLogLevel()); // NOTE: might make sense to respect per-compile-task log level
         builder.applicationClasspath(forkOptions.getClasspath());
         builder.sharedPackages(forkOptions.getSharedPackages());
-        builder.setLoadApplicationInSystemClassLoader(true);
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setMinHeapSize(forkOptions.getMinHeapSize());
         javaCommand.setMaxHeapSize(forkOptions.getMaxHeapSize());
         javaCommand.setJvmArgs(forkOptions.getJvmArgs());
         javaCommand.setWorkingDir(workingDir);
-        WorkerProcess process = builder.worker(new CompilerDaemonServer()).setBaseName("Gradle Compiler Daemon").build();
-        process.start();
+        CompilerDaemonWorker worker = builder.build();
+        worker.start();
 
-        CompilerDaemonServerProtocol server = process.getConnection().addOutgoing(CompilerDaemonServerProtocol.class);
-        CompilerDaemonClient client = new CompilerDaemonClient(forkOptions, process, server);
-        process.getConnection().addIncoming(CompilerDaemonClientProtocol.class, client);
-        process.getConnection().connect();
+        CompilerDaemonClient client = new CompilerDaemonClient(forkOptions, worker);
 
         LOG.info("Started Gradle compiler daemon ({}) with fork options {}.", clock.getTime(), forkOptions);
 

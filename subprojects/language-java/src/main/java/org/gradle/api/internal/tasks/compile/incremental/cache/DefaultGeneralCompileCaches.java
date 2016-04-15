@@ -29,10 +29,12 @@ public class DefaultGeneralCompileCaches implements GeneralCompileCaches {
         this.jarSnapshotCache = jarSnapshotCache;
     }
 
+    @Override
     public ClassAnalysisCache getClassAnalysisCache() {
         return classAnalysisCache;
     }
 
+    @Override
     public JarSnapshotCache getJarSnapshotCache() {
         return jarSnapshotCache;
     }

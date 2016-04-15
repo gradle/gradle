@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.local;
 
-import org.gradle.internal.resource.ResourceNotFoundException;
+import org.gradle.internal.resource.ResourceExceptions;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,7 +39,7 @@ public class FileLocalResource implements LocalResource {
         try {
             return new FileInputStream(file);
         } catch (FileNotFoundException e) {
-            throw new ResourceNotFoundException(file.toURI(), String.format("File '%s' does not exist.", file), e);
+            throw ResourceExceptions.readMissing(file, e);
         }
     }
 }

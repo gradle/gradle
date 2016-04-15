@@ -16,17 +16,17 @@
 
 package org.gradle.internal.featurelifecycle;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.SystemProperties;
 import org.gradle.util.SingleMessageLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler {
-    private static final Logger LOGGER = Logging.getLogger(LoggingDeprecatedFeatureHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
 

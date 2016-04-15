@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.reporting.model.ModelReport;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -34,7 +34,7 @@ import org.gradle.reporting.ReportRenderer;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static org.gradle.logging.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 
 public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuilder> {
 
@@ -84,10 +84,8 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
         boolean hasValue = value != null && value.isPresent();
         String intro = omitDetails() && model.getLinkCount() == 0 && hasValue ? "|" : "+";
         styledTextoutput.withStyle(Identifier).format("%s %s", intro, model.getPath().getName());
-        if (omitDetails()) {
-            if (hasValue) {
-                styledTextoutput.withStyle(Description).format(" = %s", value.get());
-            }
+        if (omitDetails() && hasValue) {
+            styledTextoutput.withStyle(Description).format(" = %s", value.get());
         }
         styledTextoutput.println();
     }

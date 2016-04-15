@@ -19,24 +19,33 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
+import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.model.gradle.GradleBuild;
+import org.gradle.tooling.model.GradleProject;
+import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.Model;
+import org.gradle.tooling.model.gradle.BasicGradleProject;
+import org.gradle.tooling.model.gradle.GradleBuild;
 import org.gradle.tooling.model.internal.Exceptions;
+
+import java.io.File;
 
 class BuildControllerAdapter implements BuildController {
     private final InternalBuildController buildController;
     private final ProtocolToModelAdapter adapter;
     private final ModelMapping modelMapping;
+    private final File rootDir;
 
-    public BuildControllerAdapter(ProtocolToModelAdapter adapter, InternalBuildController buildController, ModelMapping modelMapping) {
+    public BuildControllerAdapter(ProtocolToModelAdapter adapter, InternalBuildController buildController, ModelMapping modelMapping, File rootDir) {
         this.adapter = adapter;
         this.buildController = buildController;
         this.modelMapping = modelMapping;
+        this.rootDir = rootDir;
     }
 
     public <T> T getModel(Class<T> modelType) throws UnknownModelException {
@@ -76,6 +85,23 @@ class BuildControllerAdapter implements BuildController {
             throw Exceptions.unknownModel(modelType, e);
         }
 
+        if (rootDir != null) {
+            DefaultProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(rootDir, getProjectPath(target));
+            return adapter.adapt(modelType, result.getModel(), new FixedBuildIdentifierProvider(projectIdentifier));
+        }
         return adapter.adapt(modelType, result.getModel());
+    }
+
+    private String getProjectPath(Model target) {
+        if (target instanceof GradleProject) {
+            return ((GradleProject) target).getPath();
+         }
+        if (target instanceof BasicGradleProject) {
+            return ((BasicGradleProject) target).getPath();
+        }
+        if (target instanceof HasGradleProject) {
+            return ((HasGradleProject) target).getGradleProject().getPath();
+        }
+        return ":";
     }
 }

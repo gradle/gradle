@@ -236,10 +236,5 @@ public class IvyDescriptorFileGenerator {
             }
             return this;
         }
-
-        public OptionalAttributeXmlWriter attribute(String name, String value, String defaultValue) throws IOException {
-            super.attribute(name, value == null ? defaultValue : value);
-            return this;
-        }
     }
 }

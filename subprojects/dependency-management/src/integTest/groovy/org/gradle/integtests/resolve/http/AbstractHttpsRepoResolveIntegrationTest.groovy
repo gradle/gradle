@@ -18,7 +18,9 @@ package org.gradle.integtests.resolve.http
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
+import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
 
@@ -26,14 +28,16 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
     @Rule TestResources resources = new TestResources(temporaryFolder)
     TestKeyStore keyStore
 
-    abstract protected String setupRepo()
+    abstract protected String setupRepo(boolean useAuth)
 
-    def "resolve with server certificate"() {
+    @Unroll
+    def "resolve with server certificate and #authSchemeName authentication"() {
         keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerCert(server)
+        server.authenticationScheme = authScheme
 
-        def repoType = setupRepo()
-        setupBuildFile(repoType)
+        def repoType = setupRepo(useAuth)
+        setupBuildFile(repoType, useAuth)
 
         when:
         keyStore.configureServerCert(executer)
@@ -41,6 +45,15 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
 
         then:
         file('libs').assertHasDescendants('my-module-1.0.jar')
+        and:
+        server.authenticationAttempts.asList() == authenticationAttempts
+
+        where:
+        useAuth | authScheme                   | authSchemeName | authenticationAttempts
+        false   | null                         | 'no'           | ['None']
+        true    | HttpServer.AuthScheme.BASIC  | 'basic'        | ['None', 'Basic']
+        true    | HttpServer.AuthScheme.DIGEST | 'digest'       | ['None', 'Digest']
+        true    | HttpServer.AuthScheme.NTLM   | 'ntlm'         | ['None', 'NTLM']
     }
 
     def "resolve with server and client certificate"() {
@@ -92,10 +105,20 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
         failure.error.contains("at org.apache.http.conn.ssl.SSLConnectionSocketFactory.createLayeredSocket")
     }
 
-    private void setupBuildFile(String repoType) {
+    private void setupBuildFile(String repoType, boolean withCredentials = false) {
+        def credentials = """
+credentials {
+    username 'user'
+    password 'secret'
+}
+"""
+
         buildFile << """
 repositories {
-    $repoType { url '${server.uri}/repo1' }
+    $repoType {
+        url '${server.uri}/repo1'
+        ${withCredentials ? credentials : ''}
+    }
 }
 configurations { compile }
 dependencies {

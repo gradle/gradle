@@ -31,10 +31,12 @@ public class LocalClassSetAnalysisStore implements Loader<ClassSetAnalysisData>,
         this.store = new SingleOperationPersistentStore<ClassSetAnalysisData>(cacheRepository, scope, "local class set analysis", new ClassSetAnalysisData.Serializer());
     }
 
+    @Override
     public void put(ClassSetAnalysisData analysis) {
         store.putAndClose(analysis);
     }
 
+    @Override
     public ClassSetAnalysisData get() {
         return store.getAndClose();
     }

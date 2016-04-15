@@ -30,6 +30,7 @@ class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetect
         super(classFileExtractionManager);
     }
 
+    @Override
     protected TestNGTestClassDetecter createClassVisitor() {
         return new TestNGTestClassDetecter(this);
     }
@@ -39,6 +40,7 @@ class TestNGDetector extends AbstractTestFrameworkDetector<TestNGTestClassDetect
      * class is a test class. First the package of the parent class is checked, if it is a java.lang or groovy.lang the class can't be a test class, otherwise the parent class is scanned. <p/> When a
      * parent class is a test class all the extending classes are marked as test classes.
      */
+    @Override
     protected boolean processTestClass(final File testClassFile, boolean superClass) {
         final TestClassVisitor classVisitor = classVisitor(testClassFile);
 

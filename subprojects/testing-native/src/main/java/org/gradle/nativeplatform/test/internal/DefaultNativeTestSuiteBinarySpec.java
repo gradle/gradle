@@ -47,10 +47,12 @@ public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec i
         return getComponent();
     }
 
+    @Override
     public NativeBinarySpec getTestedBinary() {
         return testedBinary;
     }
 
+    @Override
     public void setTestedBinary(NativeBinarySpecInternal testedBinary) {
         this.testedBinary = testedBinary;
         setTargetPlatform(testedBinary.getTargetPlatform());
@@ -60,6 +62,7 @@ public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec i
         setFlavor(testedBinary.getFlavor());
     }
 
+    @Override
     public File getExecutableFile() {
         return getExecutable().getFile();
     }
@@ -74,6 +77,7 @@ public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec i
         return executable;
     }
 
+    @Override
     public File getPrimaryOutput() {
         return getExecutableFile();
     }
@@ -83,6 +87,7 @@ public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec i
         return tasks.getLink();
     }
 
+    @Override
     public NativeTestSuiteBinarySpec.TasksCollection getTasks() {
         return tasks;
     }
@@ -92,14 +97,17 @@ public class DefaultNativeTestSuiteBinarySpec extends AbstractNativeBinarySpec i
             super(delegate);
         }
 
+        @Override
         public LinkExecutable getLink() {
             return findSingleTaskWithType(LinkExecutable.class);
         }
 
+        @Override
         public InstallExecutable getInstall() {
             return findSingleTaskWithType(InstallExecutable.class);
         }
 
+        @Override
         public RunTestExecutable getRun() {
             return findSingleTaskWithType(RunTestExecutable.class);
         }

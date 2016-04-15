@@ -116,7 +116,7 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         1 * target.run(GradleProject.class, parameters) >> result
         _ * result.model >> Stub(GradleProject.class)
         1 * adapter.adapt(GradleProject.class, _, _) >> adapted
-        1 * adapter.adapt(GradleBuild.class, _) >> adaptedGradleBuild
+        1 * adapter.adapt(GradleBuild.class, _, _) >> adaptedGradleBuild
         0 * target._
     }
 

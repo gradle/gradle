@@ -20,13 +20,21 @@ import org.gradle.api.Project;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.ModuleDependency;
+import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 
 class ModuleDependencyBuilder {
-    public ModuleDependency create(Project project, String scope) {
-        if (project.getPlugins().hasPlugin(IdeaPlugin.class)) {
-            return new ModuleDependency(((IdeaModel) project.getExtensions().getByName("idea")).getModule().getName(), scope);
+    public ModuleDependency create(IdeProjectDependency dependency, String scope) {
+        return new ModuleDependency(determineProjectName(dependency), scope);
+    }
+
+    private String determineProjectName(IdeProjectDependency dependency) {
+        Project project = dependency.getProject();
+        if (project == null) {
+            return dependency.getModuleName();
+        } else if (project.getPlugins().hasPlugin(IdeaPlugin.class)) {
+            return ((IdeaModel) project.getExtensions().getByName("idea")).getModule().getName();
         } else {
-            return new ModuleDependency(project.getName(), scope);
+            return project.getName();
         }
     }
 }

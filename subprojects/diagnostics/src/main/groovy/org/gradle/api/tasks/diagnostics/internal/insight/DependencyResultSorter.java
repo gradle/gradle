@@ -44,6 +44,7 @@ public class DependencyResultSorter {
             this.versionComparator = versionComparator.asStringComparator();
         }
 
+        @Override
         public int compare(DependencyEdge left, DependencyEdge right) {
             checkRequestedComponentSelectorType(left);
             checkRequestedComponentSelectorType(right);

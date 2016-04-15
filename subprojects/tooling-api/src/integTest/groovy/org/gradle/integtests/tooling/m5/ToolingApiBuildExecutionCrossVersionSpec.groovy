@@ -109,7 +109,7 @@ task c
 '''
 
         when:
-        EclipseProject project = withConnection { connection -> connection.getModel(EclipseProject.class) }
+        EclipseProject project = loadToolingModel(EclipseProject)
 
         then:
         def taskA = project.gradleProject.tasks.find { it.name == 'a' }

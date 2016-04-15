@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.eclipse.model.internal
-
 import org.gradle.api.Project
+import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -23,13 +23,14 @@ class ProjectDependencyBuilderTest extends Specification {
 
     def Project project = TestUtil.createRootProject()
     def ProjectDependencyBuilder builder = new ProjectDependencyBuilder()
+    def IdeProjectDependency ideProjectDependency = new IdeProjectDependency("compile", project)
 
     def "should create dependency using project name"() {
         when:
-        def dependency = builder.build(project, 'compile')
+        def dependency = builder.build(ideProjectDependency)
 
         then:
-        dependency.path == "/$project.name"
+        dependency.path == "/" + project.name
         dependency.declaredConfigurationName == 'compile'
     }
 
@@ -39,7 +40,7 @@ class ProjectDependencyBuilderTest extends Specification {
         project.eclipse.project.name = 'foo'
 
         when:
-        def dependency = builder.build(project, 'runtime')
+        def dependency = builder.build(ideProjectDependency)
 
         then:
         dependency.path == '/foo'

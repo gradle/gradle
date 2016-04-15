@@ -26,7 +26,7 @@ import static java.util.Arrays.asList
 
 public class JavaExecHandleBuilderTest extends Specification {
     JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver())
-    
+
     public void cannotSetAllJvmArgs() {
         when:
         builder.setAllJvmArgs(asList("arg"))
@@ -61,7 +61,7 @@ public class JavaExecHandleBuilderTest extends Specification {
         then:
         String executable = Jvm.current().getJavaExecutable().getAbsolutePath()
         commandLine == [executable,  '-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
-        
+
         where:
         inputEncoding | expectedEncoding
         null          | Charset.defaultCharset().name()

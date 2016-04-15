@@ -37,6 +37,9 @@ public class JUnitXmlResultWriter {
         this.outputAssociation = outputAssociation;
     }
 
+    /**
+     * @param output The destination, unbuffered
+     */
     public void write(TestClassResult result, OutputStream output) {
         String className = result.getClassName();
         long classId = result.getId();

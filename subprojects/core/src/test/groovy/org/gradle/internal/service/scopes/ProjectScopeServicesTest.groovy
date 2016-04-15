@@ -48,7 +48,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.logging.LoggingManagerInternal
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.model.internal.inspect.ModelRuleExtractor
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.model.internal.registry.ModelRegistry

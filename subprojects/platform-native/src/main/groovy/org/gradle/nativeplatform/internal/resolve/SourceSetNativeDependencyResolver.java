@@ -38,6 +38,7 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
         this.fileCollectionFactory = fileCollectionFactory;
     }
 
+    @Override
     public void resolve(NativeBinaryResolveResult nativeBinaryResolveResult) {
         for (NativeBinaryRequirementResolveResult resolution : nativeBinaryResolveResult.getPendingResolutions()) {
             if (resolution.getInput() instanceof LanguageSourceSet) {
@@ -56,14 +57,17 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
     }
 
     private static class EmptyNativeDependencySet implements NativeDependencySet {
+        @Override
         public FileCollection getIncludeRoots() {
             return empty();
         }
 
+        @Override
         public FileCollection getLinkFiles() {
             return empty();
         }
 
+        @Override
         public FileCollection getRuntimeFiles() {
             return empty();
         }
@@ -82,6 +86,7 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
             this.fileCollectionFactory = fileCollectionFactory;
         }
 
+        @Override
         public FileCollection getIncludeRoots() {
             return fileCollectionFactory.create(new HeaderFileCollection());
         }

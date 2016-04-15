@@ -24,6 +24,7 @@ public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec im
     private GroovyCompileOptions compileOptions;
     private Iterable<File> groovyClasspath;
 
+    @Override
     public GroovyCompileOptions getGroovyCompileOptions() {
         return compileOptions;
     }
@@ -32,10 +33,12 @@ public class DefaultGroovyJavaJointCompileSpec extends DefaultJavaCompileSpec im
         this.compileOptions = compileOptions;
     }
 
+    @Override
     public Iterable<File> getGroovyClasspath() {
         return groovyClasspath;
     }
 
+    @Override
     public void setGroovyClasspath(Iterable<File> groovyClasspath) {
         this.groovyClasspath = groovyClasspath;
     }
