@@ -65,6 +65,23 @@ class AnsiConsoleTest extends Specification {
         0 * ansi._
     }
 
+    def appendsStyledTextWithTabsToMainArea() {
+        when:
+        console.mainArea.withStyle(StyledTextOutput.Style.Header).append('12\t3')
+        console.mainArea.append("\t4\t\t")
+
+        then:
+        1 * ansi.fg(Color.YELLOW)
+        1 * ansi.a('12')
+        6 * ansi.a(' ')
+        1 * ansi.a('3')
+        1 * ansi.fg(Color.DEFAULT)
+        7 * ansi.a(' ')
+        1 * ansi.a('4')
+        15 * ansi.a(' ')
+        0 * ansi._
+    }
+
     def flushDisplaysStatusBarWithNonEmptyText() {
         when:
         console.statusBar.text = 'text'
@@ -249,6 +266,36 @@ class AnsiConsoleTest extends Specification {
         0 * ansi._
     }
 
+    def appendsTextContainingTabCharsWhenStatusBarIsPresent() {
+        given:
+        console.statusBar.text = 'status'
+        console.flush()
+
+        when:
+        console.mainArea.append("\t");
+        console.mainArea.append("12\t345\t6$EOL");
+
+        then:
+        1 * ansi.cursorLeft(6)
+        8 * ansi.a(' ')
+        1 * ansi.a('12')
+        6 * ansi.a(' ')
+        1 * ansi.a('345')
+        5 * ansi.a(' ')
+        1 * ansi.a('6')
+        1 * ansi.newline()
+        0 * ansi._
+
+        when:
+        console.flush()
+
+        then:
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('status')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        0 * ansi._
+    }
+
     def appendsTextWithNoEOLWhenStatusBarIsPresent() {
         given:
         console.statusBar.text = 'status'
@@ -280,6 +327,50 @@ class AnsiConsoleTest extends Specification {
         1 * ansi.cursorUp(1)
         1 * ansi.cursorRight(8)
         1 * ansi.a('message2')
+        0 * ansi._
+
+        when:
+        console.flush()
+
+        then:
+        0 * ansi._ // no update required
+    }
+
+    def appendsTextWithTabsAndNoEOLWhenStatusBarIsPresent() {
+        given:
+        console.statusBar.text = 'status'
+        console.flush()
+
+        when:
+        console.mainArea.append("\t12\t3\t");
+
+        then:
+        1 * ansi.cursorLeft(6)
+        8 * ansi.a(' ')
+        1 * ansi.a('12')
+        6 * ansi.a(' ')
+        1 * ansi.a('3')
+        7 * ansi.a(' ')
+        0 * ansi._
+
+        when:
+        console.flush()
+
+        then:
+        1 * ansi.newline()
+        1 * ansi.a(Ansi.Attribute.INTENSITY_BOLD)
+        1 * ansi.a('status')
+        1 * ansi.a(Ansi.Attribute.RESET)
+        0 * ansi._
+
+        when:
+        console.mainArea.append("456");
+
+        then:
+        1 * ansi.cursorLeft(6)
+        1 * ansi.cursorUp(1)
+        1 * ansi.cursorRight(24)
+        1 * ansi.a('456')
         0 * ansi._
 
         when:

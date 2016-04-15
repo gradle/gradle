@@ -24,6 +24,7 @@ import java.io.Flushable;
 import java.io.IOException;
 
 public class AnsiConsole implements Console {
+    private static final int CHARS_PER_TAB_STOP = 8;
     private final Appendable target;
     private final Flushable flushable;
     private final LabelImpl statusBar;
@@ -129,6 +130,9 @@ public class AnsiConsole implements Console {
         int row; // count from bottom of screen, 0 = bottom most, 1 == 2nd from bottom
 
         public void copyFrom(Cursor position) {
+            if (position == this) {
+                return;
+            }
             this.col = position.col;
             this.row = position.row;
         }
@@ -207,10 +211,30 @@ public class AnsiConsole implements Console {
             positionCursorAt(writePos, ansi);
             ColorMap.Color color = colorMap.getColourFor(getStyle());
             color.on(ansi);
-            ansi.a(text.toString());
+
+            String textStr = text.toString();
+            int pos = 0;
+            while (pos < text.length()) {
+                int next = textStr.indexOf('\t', pos);
+                if (next == pos) {
+                    int charsToNextStop = CHARS_PER_TAB_STOP - (writePos.col % CHARS_PER_TAB_STOP);
+                    for(int i = 0; i < charsToNextStop; i++) {
+                        ansi.a(" ");
+                    }
+                    charactersWritten(writePos, charsToNextStop);
+                    pos++;
+                } else if (next > pos) {
+                    ansi.a(textStr.substring(pos, next));
+                    charactersWritten(writePos, next - pos);
+                    pos = next;
+                } else {
+                    ansi.a(textStr.substring(pos, textStr.length()));
+                    charactersWritten(writePos, textStr.length() - pos);
+                    pos = textStr.length();
+                }
+            }
             color.off(ansi);
             write(ansi);
-            charactersWritten(writePos, text.length());
         }
 
         @Override
