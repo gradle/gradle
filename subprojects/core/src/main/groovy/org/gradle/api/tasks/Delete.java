@@ -48,13 +48,13 @@ public class Delete extends ConventionTask implements DeleteSpec {
     private boolean followSymlinks;
 
     @Inject
-    public FileSystem getFileSystem() {
+    protected FileSystem getFileSystem() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
 
     @Inject
-    public FileResolver getFileResolver() {
+    protected FileResolver getFileResolver() {
         // Decoration takes care of the implementation
         throw new UnsupportedOperationException();
     }
