@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import com.google.common.collect.*;
 import org.gradle.StartParameter;
 import org.gradle.initialization.*;
 import org.gradle.internal.classpath.ClassPath;
@@ -23,12 +24,14 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 
 import java.io.File;
+import java.util.List;
 
 public class DefaultCompositeProjectArtifactBuilder implements CompositeProjectArtifactBuilder {
     private final CompositeProjectComponentRegistry registry;
     private final GradleLauncherFactory gradleLauncherFactory;
     private final StartParameter requestedStartParameter;
     private final ServiceRegistry serviceRegistry;
+    private final Multimap<String, String> executedTasks = LinkedHashMultimap.create();
 
     public DefaultCompositeProjectArtifactBuilder(CompositeProjectComponentRegistry registry,
                                                   GradleLauncherFactory gradleLauncherFactory,
@@ -41,11 +44,21 @@ public class DefaultCompositeProjectArtifactBuilder implements CompositeProjectA
     }
 
     @Override
-    public void build(String projectPath, Iterable<String> taskNames) {
+    public boolean build(String projectPath, Iterable<String> taskNames) {
+        List<String> tasksToExecute = Lists.newArrayList();
+        for (String taskName : taskNames) {
+            if (executedTasks.put(projectPath, taskName)) {
+                tasksToExecute.add(taskName);
+            }
+        }
+        if (tasksToExecute.isEmpty()) {
+            return false;
+        }
+
         File projectDirectory = registry.getProjectDirectory(projectPath);
         StartParameter param = requestedStartParameter.newBuild();
         param.setProjectDir(projectDirectory);
-        param.setTaskNames(taskNames);
+        param.setTaskNames(tasksToExecute);
 
         ServiceRegistry buildSessionServices = new BuildSessionScopeServices(serviceRegistry, requestedStartParameter, ClassPath.EMPTY);
         DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer());
@@ -56,5 +69,6 @@ public class DefaultCompositeProjectArtifactBuilder implements CompositeProjectA
         } finally {
             launcher.stop();
         }
+        return true;
     }
 }

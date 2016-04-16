@@ -181,7 +181,8 @@ public class CompositeContextBuilder implements BuildActionRunner {
 
         @TaskAction
         public void build() {
-            artifactBuilder.build(projectPath, taskNames);
+            boolean didBuild = artifactBuilder.build(projectPath, taskNames);
+            setDidWork(didBuild);
         }
     }
 

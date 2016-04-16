@@ -125,7 +125,6 @@ compile
         }
 
         then:
-        println output
         result.assertTasksExecuted(
             ":compositeBuild-buildB",
             ":buildB:compositeBuild-buildC",
@@ -138,11 +137,10 @@ compile
             ":buildB:classes",
             ":buildB:jar",
             ":compositeBuild-buildC",
-            ":buildC:compileJava",
-            ":buildC:processResources",
-            ":buildC:classes",
-            ":buildC:jar",
             ":printConfiguration")
+        result.assertTaskNotSkipped(":compositeBuild-buildB")
+        result.assertTaskNotSkipped(":buildB:compositeBuild-buildC")
+        result.assertTaskSkipped(":compositeBuild-buildC")
     }
 
     private Object dependencies() {
