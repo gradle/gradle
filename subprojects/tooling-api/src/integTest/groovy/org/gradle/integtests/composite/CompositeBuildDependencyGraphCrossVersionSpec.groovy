@@ -29,7 +29,7 @@ import org.gradle.tooling.BuildException
  */
 @TargetGradleVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
-class CompositeBuildDependencySubstitutionCrossVersionSpec extends CompositeToolingApiSpecification {
+class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiSpecification {
     def buildA
     def buildB
     List builds
