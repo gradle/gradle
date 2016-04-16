@@ -70,7 +70,12 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         sharedServices.get(ListenerManager.class).removeListener(listener);
     }
 
+    @Override
     public GradleLauncher newInstance(StartParameter startParameter) {
+        return newInstance(startParameter, sharedServices);
+    }
+
+    public GradleLauncher newInstance(StartParameter startParameter, ServiceRegistry parentRegistry) {
         BuildRequestMetaData requestMetaData;
         BuildCancellationToken cancellationToken;
         BuildEventConsumer buildEventConsumer;
@@ -85,7 +90,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             buildEventConsumer = new NoOpBuildEventConsumer();
         }
 
-        final BuildScopeServices buildScopeServices = BuildScopeServices.singleSession(sharedServices, startParameter);
+        final BuildScopeServices buildScopeServices = BuildScopeServices.singleSession(parentRegistry, startParameter);
         return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices);
     }
 

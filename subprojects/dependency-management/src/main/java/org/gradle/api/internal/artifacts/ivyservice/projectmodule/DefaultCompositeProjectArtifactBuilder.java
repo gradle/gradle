@@ -18,10 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import com.google.common.collect.*;
 import org.gradle.StartParameter;
-import org.gradle.initialization.*;
-import org.gradle.internal.classpath.ClassPath;
+import org.gradle.initialization.GradleLauncher;
+import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 
 import java.io.File;
 import java.util.List;
@@ -60,10 +59,7 @@ public class DefaultCompositeProjectArtifactBuilder implements CompositeProjectA
         param.setProjectDir(projectDirectory);
         param.setTaskNames(tasksToExecute);
 
-        ServiceRegistry buildSessionServices = new BuildSessionScopeServices(serviceRegistry, requestedStartParameter, ClassPath.EMPTY);
-        DefaultBuildRequestContext requestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(System.currentTimeMillis()), new DefaultBuildCancellationToken(), new NoOpBuildEventConsumer());
-
-        GradleLauncher launcher = gradleLauncherFactory.newInstance(param, requestContext, buildSessionServices);
+        GradleLauncher launcher = gradleLauncherFactory.newInstance(param, serviceRegistry);
         try {
             launcher.run();
         } finally {
