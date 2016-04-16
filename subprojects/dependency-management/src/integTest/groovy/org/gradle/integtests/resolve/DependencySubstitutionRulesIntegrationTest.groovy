@@ -358,6 +358,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 configurations.conf.resolutionStrategy.dependencySubstitution {
                     substitute module("$selector") with project(":api")
                 }
+
+                task("buildConf", dependsOn: configurations.conf)
             }
 """
 
@@ -365,8 +367,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         run ":impl:checkDeps"
 
         then:
-        executedAndNotSkipped ":api:jar"
-
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
                 edge("org.utils:api:1.5", "project :api", "depsub:api:") {
@@ -375,6 +375,12 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
         }
+
+        when:
+        run ":impl:buildConf"
+
+        then:
+        executedAndNotSkipped ":api:jar"
 
         where:
         name                 | selector
@@ -488,6 +494,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 configurations.conf.resolutionStrategy.dependencySubstitution {
                     substitute module("org.utils:api") with project(":api")
                 }
+
+                task("buildConf", dependsOn: configurations.conf)
             }
 """
 
@@ -495,8 +503,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         run ":test:checkDeps"
 
         then:
-        executedAndNotSkipped ":api:jar"
-
         resolve.expectGraph {
             root(":test", "depsub:test:") {
                 module("org.utils:impl:1.5") {
@@ -507,6 +513,12 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
             }
         }
+
+        when:
+        run ":test:buildConf"
+
+        then:
+        executedAndNotSkipped ":api:jar"
     }
 
     void "can replace client module dependency with project dependency"()
@@ -1374,8 +1386,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
             task jar(type: Jar) { baseName = project.name }
             artifacts { conf jar }
-
-            task resolveConf(dependsOn: configurations.conf) << { configurations.conf.files }
         }
 
         def moduleId(String group, String name, String version) {
