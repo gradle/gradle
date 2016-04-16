@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.tooling.r214
-
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -55,7 +54,9 @@ task openCompositeConnection << {
 }
 """
         when:
-        def result = targetDist.executer(temporaryFolder).inDirectory(tapiProject).withTasks("openCompositeConnection").run()
+        def executer = targetDist.executer(temporaryFolder)
+        executer.expectDeprecationWarning() // tapi on java 6
+        def result = executer.inDirectory(tapiProject).withTasks("openCompositeConnection").run()
 
         then:
         result.assertOutputContains("Integrated composite build is an incubating feature.")
