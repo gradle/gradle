@@ -194,6 +194,24 @@ public interface TreeSnapshot {
 }
 ```
 
+#### Open issues
+
+##### Memory consumption increased for incremental builds
+
+For large builds, the current visited tree cache invalidation strategy is insufficient.
+Currently the cache is flushed when a task gets executed.
+When all tasks are up-to-date, no tasks are executed and the visited trees pile up in memory because no cache flushing
+is happening. This increases the build-time memory consumption of current builds.
+  1. The visited trees created in task output snapshotting should be removed from the cache after the downstream tasks
+have been executed.
+  2. Only those input file collections that are inputs for several tasks should be kept in cache until all
+tasks using the inputs have executed.
+
+### Improvement: Add caching for visiting configurations
+
+Configurations can be considered immutable after they have been resolved. File visiting of configurations should be cached
+and shared.
+
 ### Improvement: Use relative paths in Jdk7DirectoryWalker and in snapshots
 
 Currently the snapshot uses absolute paths. Absolute paths contain a lot of redundant information.
