@@ -16,7 +16,6 @@
 
 
 package org.gradle.integtests.composite
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
@@ -24,7 +23,6 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 import org.junit.Rule
-import spock.lang.Ignore
 
 import java.util.regex.Matcher
 
@@ -81,7 +79,6 @@ compile - Dependencies for source set 'main'.
 """)
     }
 
-    @Ignore
     @UsesSample('compositeBuild')
     def "can build with dependencies in integrated composite"() {
         given:
@@ -93,17 +90,29 @@ compile - Dependencies for source set 'main'.
         succeeds('build')
 
         then:
-        result.assertTasksExecuted(
-            ":compositeBuild-projectC",
-            ":projectC:compileJava",
-            ":projectC:processResources",
-            ":projectC:classes",
-            ":projectC:jar",
-            ":b2:compileJava",
-            ":b2:processResources",
-            ":b2:classes",
-            ":b2:jar",
-            ":b2:assemble")
+        result.assertOutputContains("""
+:compositeBuild-projectB-b1
+:projectB:b1:compileJava
+:projectB:b1:processResources UP-TO-DATE
+:projectB:b1:classes
+:projectB:b1:jar
+:compositeBuild-projectB-b2
+:projectB:compositeBuild-projectC
+:projectC:compileJava
+:projectC:processResources UP-TO-DATE
+:projectC:classes
+:projectC:jar
+:projectB:b2:compileJava
+:projectB:b2:processResources UP-TO-DATE
+:projectB:b2:classes
+:projectB:b2:jar
+:compositeBuild-projectC UP-TO-DATE
+:compileJava
+:processResources UP-TO-DATE
+:classes
+:jar
+:assemble
+""")
     }
 
     private void tweakProject(TestFile projectDir = sample.dir) {

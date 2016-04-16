@@ -8,7 +8,7 @@ task showDependencies << {
 
 task build << {
     def connection = openCompositeConnection()
-    executeTask(connection, "projectB", ":b2:assemble")
+    executeTask(connection, "projectA", ":assemble")
 }
 
 task publishAll << {
