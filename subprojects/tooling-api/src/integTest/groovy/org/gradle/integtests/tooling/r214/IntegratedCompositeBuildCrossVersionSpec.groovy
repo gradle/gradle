@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling.r214
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import spock.lang.IgnoreIf
 
@@ -32,6 +33,7 @@ class IntegratedCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecif
     def "warning when using integrated composite"() {
         given:
         def buildA = singleProjectBuild("buildA")
+        def participantPath = TextUtil.normaliseFileSeparators(buildA.absolutePath)
 
         def tapiProject = file("tapi")
 
@@ -42,12 +44,10 @@ import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.connection.GradleConnection
 
 task openCompositeConnection << {
-    def projectA = file("${buildA.absolutePath}")
-
     def gradleHome = project.gradle.gradleHomeDir
 
     def builder = GradleConnector.newGradleConnection()
-    builder.addParticipant(file("${buildA.absolutePath}"))
+    builder.addParticipant(file("${participantPath}"))
     builder.integratedComposite(true)
 
     def connection = builder.build()
