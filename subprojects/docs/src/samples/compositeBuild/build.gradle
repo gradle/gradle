@@ -3,19 +3,31 @@ import org.gradle.tooling.connection.GradleConnection
 
 task showDependencies << {
     def connection = openCompositeConnection()
-    executeTask(connection, "projectA", ":dependencies")
+    try {
+        executeTask(connection, "projectA", ":dependencies")
+    } finally {
+        connection.close()
+    }
 }
 
 task build << {
     def connection = openCompositeConnection()
-    executeTask(connection, "projectA", ":assemble")
+    try {
+        executeTask(connection, "projectA", ":assemble")
+    } finally {
+        connection.close()
+    }
 }
 
 task publishAll << {
     def connection = openCompositeConnection()
-    executeTask(connection, "projectC", ":uploadArchives")
-    executeTask(connection, "projectB", ":b1:uploadArchives", ":b2:uploadArchives")
-    executeTask(connection, "projectA", ":uploadArchives")
+    try {
+        executeTask(connection, "projectC", ":uploadArchives")
+        executeTask(connection, "projectB", ":b1:uploadArchives", ":b2:uploadArchives")
+        executeTask(connection, "projectA", ":uploadArchives")
+    } finally {
+        connection.close()
+    }
 }
 
 private openCompositeConnection() {

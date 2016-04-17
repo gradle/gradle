@@ -50,7 +50,8 @@ task openCompositeConnection << {
     builder.addParticipant(file("${buildA.absolutePath}"))
     builder.integratedComposite(true)
 
-    builder.build()
+    def connection = builder.build()
+    connection.close()
 }
 """
         when:
