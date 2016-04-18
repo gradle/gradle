@@ -45,7 +45,9 @@ public class DefaultModelRegistry implements ModelRegistryInternal {
     private final ModelGraph modelGraph;
     private final RuleBindings ruleBindings;
     private final ModelRuleExtractor ruleExtractor;
-    private final Set<RuleBinder> unboundRules = Sets.newIdentityHashSet();
+    // Use of a LinkedList for 2 reasons: `Set` proved to have a significant negative impact on performance
+    // And list will see a lot of removals, which ArrayList isn't very well suited for.
+    private final List<RuleBinder> unboundRules = new LinkedList<RuleBinder>();
 
     public DefaultModelRegistry(ModelRuleExtractor ruleExtractor, String projectPath) {
         this.ruleExtractor = ruleExtractor;
