@@ -20,7 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.WeakHashMap;
 
 public class DirectInstantiator implements Instantiator {
 
@@ -37,9 +38,6 @@ public class DirectInstantiator implements Instantiator {
 
     public <T> T newInstance(Class<? extends T> type, Object... params) {
         try {
-            if (params.length==0) {
-                return type.newInstance();
-            }
             Constructor<?> match = doGetConstructor(type, constructorCache.get(type), params);
             return type.cast(match.newInstance(params));
         } catch (InvocationTargetException e) {
@@ -51,12 +49,14 @@ public class DirectInstantiator implements Instantiator {
 
     private <T> Constructor<?> doGetConstructor(Class<? extends T> type, Constructor<?>[] constructors, Object[] params) {
         Constructor<?> match = null;
-        for (Constructor<?> constructor : constructors) {
-            if (isMatch(constructor, params)) {
-                if (match != null) {
-                    throw new IllegalArgumentException(String.format("Found multiple public constructors for %s which accept parameters %s.", type, Arrays.toString(params)));
+        if (constructors.length > 0) {
+            for (Constructor<?> constructor : constructors) {
+                if (isMatch(constructor, params)) {
+                    if (match != null) {
+                        throw new IllegalArgumentException(String.format("Found multiple public constructors for %s which accept parameters %s.", type, Arrays.toString(params)));
+                    }
+                    match = constructor;
                 }
-                match = constructor;
             }
         }
         if (match == null) {
