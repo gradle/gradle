@@ -21,8 +21,8 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 class OutputFilesSnapshotSerializer implements Serializer<OutputFilesCollectionSnapshotter.OutputFilesSnapshot> {
     private final Serializer<FileCollectionSnapshot> serializer;
@@ -34,11 +34,11 @@ class OutputFilesSnapshotSerializer implements Serializer<OutputFilesCollectionS
     }
 
     public OutputFilesCollectionSnapshotter.OutputFilesSnapshot read(Decoder decoder) throws Exception {
-        Set<String> roots = new LinkedHashSet<String>();
+        Map<String, Boolean> roots = new HashMap<String, Boolean>();
         int rootFileIdsCount = decoder.readSmallInt();
         for (int i = 0; i < rootFileIdsCount; i++) {
-            String path = stringInterner.intern(decoder.readString());
-            roots.add(path);
+            String key = stringInterner.intern(decoder.readString());
+            roots.put(key, decoder.readBoolean());
         }
         FileCollectionSnapshot snapshot = serializer.read(decoder);
 
@@ -46,10 +46,11 @@ class OutputFilesSnapshotSerializer implements Serializer<OutputFilesCollectionS
     }
 
     public void write(Encoder encoder, OutputFilesCollectionSnapshotter.OutputFilesSnapshot value) throws Exception {
-        int rootFileIds = value.roots.size();
-        encoder.writeSmallInt(rootFileIds);
-        for (String key : value.roots) {
-            encoder.writeString(key);
+        int roots = value.roots.size();
+        encoder.writeSmallInt(roots);
+        for (Map.Entry<String, Boolean> entry : value.roots.entrySet()) {
+            encoder.writeString(entry.getKey());
+            encoder.writeBoolean(entry.getValue());
         }
 
         serializer.write(encoder, value.filesSnapshot);

@@ -26,7 +26,7 @@ class OutputFilesSnapshotSerializerTest extends SerializerSpec {
 
     def "reads and writes the snapshot"() {
         def snapshot = Stub(FileCollectionSnapshot)
-        def outputSnapshot = new OutputFilesCollectionSnapshotter.OutputFilesSnapshot(["x", "y"] as Set, snapshot)
+        def outputSnapshot = new OutputFilesCollectionSnapshotter.OutputFilesSnapshot([x: true, y: false], snapshot)
 
         given:
         1 * targetSerializer.write(_, snapshot)
@@ -36,7 +36,7 @@ class OutputFilesSnapshotSerializerTest extends SerializerSpec {
         OutputFilesCollectionSnapshotter.OutputFilesSnapshot out = serialize(outputSnapshot, serializer)
 
         then:
-        out.roots == ["x", "y"] as Set
+        out.roots == [x: true, y: false]
         out.filesSnapshot == snapshot
     }
 }

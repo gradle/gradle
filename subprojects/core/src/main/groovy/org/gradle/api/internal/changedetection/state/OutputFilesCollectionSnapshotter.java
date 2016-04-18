@@ -44,7 +44,7 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     public FileCollectionSnapshot emptySnapshot() {
-        return new OutputFilesSnapshot(Collections.<String>emptySet(), snapshotter.emptySnapshot());
+        return new OutputFilesSnapshot(Collections.<String, Boolean>emptyMap(), snapshotter.emptySnapshot());
     }
 
     @Override
@@ -52,10 +52,10 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         return snapshotter.preCheck(files, allowReuse);
     }
 
-    private Set<String> getRoots(FileCollection files) {
-        Set<String> roots = new LinkedHashSet<String>();
+    private Map<String, Boolean> getRoots(FileCollection files) {
+        Map<String, Boolean> roots = new HashMap<String, Boolean>();
         for (File file : files.getFiles()) {
-            roots.add(stringInterner.intern(file.getAbsolutePath()));
+            roots.put(stringInterner.intern(file.getAbsolutePath()), file.exists());
         }
         return roots;
     }
@@ -103,10 +103,10 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     static class OutputFilesSnapshot implements FileCollectionSnapshot {
-        final Set<String> roots;
+        final Map<String, Boolean> roots;
         final FileCollectionSnapshot filesSnapshot;
 
-        public OutputFilesSnapshot(Set<String> roots, FileCollectionSnapshot filesSnapshot) {
+        public OutputFilesSnapshot(Map<String, Boolean> roots, FileCollectionSnapshot filesSnapshot) {
             this.roots = roots;
             this.filesSnapshot = filesSnapshot;
         }
@@ -154,13 +154,23 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         private ChangeIterator<String> iterateRootFileIdChanges(final OutputFilesSnapshot other) {
-            Set<String> added = new LinkedHashSet<String>(roots);
-            added.removeAll(other.roots);
-            final Iterator<String> addedIterator = added.iterator();
+            Map<String, Boolean> added = new HashMap<String, Boolean>(roots);
+            added.keySet().removeAll(other.roots.keySet());
+            final Iterator<String> addedIterator = added.keySet().iterator();
 
-            Set<String> removed = new LinkedHashSet<String>(other.roots);
-            removed.removeAll(roots);
-            final Iterator<String> removedIterator = removed.iterator();
+            Map<String, Boolean> removed = new HashMap<String, Boolean>(other.roots);
+            removed.keySet().removeAll(roots.keySet());
+            final Iterator<String> removedIterator = removed.keySet().iterator();
+
+            Set<String> changed = new HashSet<String>();
+            for (Map.Entry<String, Boolean> current : roots.entrySet()) {
+                Boolean otherValue = other.roots.get(current.getKey());
+                // Only care about roots that used to exist and have been removed
+                if (otherValue != null && otherValue.booleanValue() && !otherValue.equals(current.getValue())) {
+                    changed.add(current.getKey());
+                }
+            }
+            final Iterator<String> changedIterator = changed.iterator();
 
             return new ChangeIterator<String>() {
                 public boolean next(ChangeListener<String> listener) {
@@ -170,6 +180,10 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
                     }
                     if (removedIterator.hasNext()) {
                         listener.removed(removedIterator.next());
+                        return true;
+                    }
+                    if (changedIterator.hasNext()) {
+                        listener.changed(changedIterator.next());
                         return true;
                     }
 
