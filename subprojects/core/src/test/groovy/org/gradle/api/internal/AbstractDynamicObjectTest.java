@@ -37,14 +37,14 @@ public class AbstractDynamicObjectTest {
             object.getProperty("something");
             fail();
         } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("Could not find property 'something' on <display-name>."));
+            assertThat(e.getMessage(), equalTo("Could not get unknown property 'something' for <display-name>."));
         }
 
         try {
             object.setProperty("something", "value");
             fail();
         } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("Could not find property 'something' on <display-name>."));
+            assertThat(e.getMessage(), equalTo("Could not set unknown property 'something' for <display-name>."));
         }
     }
 
@@ -56,7 +56,7 @@ public class AbstractDynamicObjectTest {
             object.invokeMethod("method", "b");
             fail();
         } catch (MissingMethodException e) {
-            // Expected
+            assertThat(e.getMessage(), equalTo("Could not find method method() for arguments [b] on <display-name>."));
         }
     }
 }

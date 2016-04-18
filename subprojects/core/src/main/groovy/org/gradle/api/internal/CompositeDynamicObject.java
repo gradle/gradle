@@ -71,7 +71,7 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
                 return true;
             }
         }
-        return super.hasProperty(name);
+        return false;
     }
 
     @Override
@@ -94,7 +94,7 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
             }
         }
 
-        return super.getProperty(name);
+        throw getMissingProperty(name);
     }
 
     @Override
@@ -119,7 +119,7 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
             }
         }
 
-        updateObjects[updateObjects.length - 1].setProperty(name, value);
+        throw setMissingProperty(name);
     }
 
     @Override
@@ -140,7 +140,7 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
                 return true;
             }
         }
-        return super.hasMethod(name, arguments);
+        return false;
     }
 
     @Override

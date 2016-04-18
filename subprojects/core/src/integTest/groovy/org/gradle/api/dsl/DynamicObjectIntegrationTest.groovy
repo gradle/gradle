@@ -448,7 +448,19 @@ assert 'overridden value' == global
         executer.withTasks("run").run()
     }
 
-    @Test void failsWhenNewPropertiesAreAddedDirectlyOnProject() {
+    @Test void failsWhenGettingUnknownPropertyOnProject() {
+        file('settings.gradle') << "rootProject.name = 'test'"
+        buildFile << """
+            assert !hasProperty("p1")
+            prinln p1
+        """
+
+        def result = executer.withTasks("run").runWithFailure()
+        result.assertHasLineNumber(3)
+        result.assertHasCause("Could not get unknown property 'p1' for root project 'test'.")
+    }
+
+    @Test void failsWhenSettingUnknownPropertyOnProject() {
         file('settings.gradle') << "rootProject.name = 'test'"
         buildFile << """
             assert !hasProperty("p1")
@@ -457,10 +469,37 @@ assert 'overridden value' == global
         """
 
         def result = executer.withTasks("run").runWithFailure()
-        result.assertHasCause("Could not find property 'p1' on task set.")
+        result.assertHasLineNumber(4)
+        result.assertHasCause("Could not set unknown property 'p1' for root project 'test'.")
     }
 
-    @Test void failsWhenNewPropertiesAreAddedDirectlyOnDecoratedObject() {
+    @Test void failsWhenInvokingUnknownMethodOnProject() {
+        file('settings.gradle') << "rootProject.name = 'test'"
+        buildFile << """
+            unknown(12, "things")
+        """
+
+        def result = executer.withTasks("run").runWithFailure()
+        result.assertHasLineNumber(2)
+        result.assertHasCause("Could not find method unknown() for arguments [12, things] on root project 'test'.")
+    }
+
+    @Test void failsWhenGettingUnknownPropertyOnDecoratedObject() {
+        file('settings.gradle') << "rootProject.name = 'test'"
+        buildFile << """
+            task p
+            tasks.p {
+                assert !hasProperty("p1")
+                println p1
+            }
+        """
+
+        def result = executer.runWithFailure()
+        result.assertHasLineNumber(5)
+        result.assertHasCause("Could not get unknown property 'p1' for task ':p'.")
+    }
+
+    @Test void failsWhenSettingUnknownPropertyOnDecoratedObject() {
         file('settings.gradle') << "rootProject.name = 'test'"
         buildFile << """
             task p
@@ -471,7 +510,22 @@ assert 'overridden value' == global
         """
 
         def result = executer.withTasks("run").runWithFailure()
-        result.assertHasCause("No such property: p1 for class: org.gradle.api.plugins.Convention")
+        result.assertHasLineNumber(5)
+        result.assertHasCause("Could not set unknown property 'p1' for task ':p'.")
+    }
+
+    @Test void failsWhenInvokingUnknownMethodOnDecoratedObject() {
+        file('settings.gradle') << "rootProject.name = 'test'"
+        buildFile << """
+            task p
+            tasks.p {
+                unknown(12, "things")
+            }
+        """
+
+        def result = executer.withTasks("run").runWithFailure()
+        result.assertHasLineNumber(4)
+        result.assertHasCause("Could not find method unknown() for arguments [12, things] on root project 'test'.")
     }
 
     @Issue("GRADLE-2163")

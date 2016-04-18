@@ -32,15 +32,20 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     public Object getProperty(String name) throws MissingPropertyException {
-        throw propertyMissingException(name);
+        throw getMissingProperty(name);
     }
 
     public void setProperty(String name, Object value) throws MissingPropertyException {
-        throw propertyMissingException(name);
+        throw setMissingProperty(name);
     }
 
-    protected MissingPropertyException propertyMissingException(String name) {
-        return new MissingPropertyException(String.format("Could not find property '%s' on %s.", name,
+    protected MissingPropertyException getMissingProperty(String name) {
+        return new MissingPropertyException(String.format("Could not get unknown property '%s' for %s.", name,
+                getDisplayName()), name, null);
+    }
+
+    protected MissingPropertyException setMissingProperty(String name) {
+        return new MissingPropertyException(String.format("Could not set unknown property '%s' for %s.", name,
                 getDisplayName()), name, null);
     }
 

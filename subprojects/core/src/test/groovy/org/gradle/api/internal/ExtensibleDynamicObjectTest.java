@@ -367,7 +367,7 @@ public class ExtensibleDynamicObjectTest {
             bean.getProperty("unknown");
             fail();
         } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("Could not find property 'unknown' on <bean>."));
+            assertThat(e.getMessage(), equalTo("Could not get unknown property 'unknown' for <bean>."));
         }
 
         bean.setParent(new Bean() {
@@ -381,7 +381,19 @@ public class ExtensibleDynamicObjectTest {
             bean.getProperty("unknown");
             fail();
         } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("Could not find property 'unknown' on <bean>."));
+            assertThat(e.getMessage(), equalTo("Could not get unknown property 'unknown' for <bean>."));
+        }
+    }
+
+    @Test
+    public void setPropertyFailsForUnknownProperty() {
+        Bean bean = new Bean();
+
+        try {
+            bean.setProperty("unknown", 12);
+            fail();
+        } catch (MissingPropertyException e) {
+            assertThat(e.getMessage(), equalTo("Could not set unknown property 'unknown' for <bean>."));
         }
     }
 
@@ -719,7 +731,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void canGetObjectAsDynamicObject() {
         Bean bean = new Bean();
-        assertThat(DynamicObjectUtil.asDynamicObject(bean), sameInstance((DynamicObject) bean.getAsDynamicObject()));
+        assertThat(DynamicObjectUtil.asDynamicObject(bean), sameInstance(bean.getAsDynamicObject()));
 
         AbstractProject project = (AbstractProject) ProjectBuilder.builder().build();
         assertThat(DynamicObjectUtil.asDynamicObject(project), sameInstance(project.getAsDynamicObject()));

@@ -150,7 +150,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
         public Object getProperty(String name) throws MissingPropertyException {
             if (!includeProperties) {
-                throw propertyMissingException(name);
+                throw getMissingProperty(name);
             }
 
             MetaProperty property = getMetaClass().hasProperty(bean, name);
@@ -174,7 +174,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
         public void setProperty(final String name, Object value) throws MissingPropertyException {
             if (!includeProperties) {
-                throw propertyMissingException(name);
+                throw setMissingProperty(name);
             }
 
             MetaClass metaClass = getMetaClass();
