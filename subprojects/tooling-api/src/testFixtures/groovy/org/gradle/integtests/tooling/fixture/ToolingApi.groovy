@@ -203,7 +203,19 @@ class ToolingApi implements TestRule {
         builder.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
         builder.daemonBaseDir(new File(daemonBaseDir.path))
         builder.daemonMaxIdleTime(120, TimeUnit.SECONDS)
+        builder.embedded(embedded)
+
+        // TODO:DAZ Enable using classpathDistribution for composite build integration tests
+//        if (useClasspathImplementation) {
+//            builder.useClasspathDistribution()
+//        }
         builder
+    }
+
+    def createIntegratedCompositeBuilder() {
+        def builder = createCompositeBuilder()
+        builder.integratedComposite(true)
+        builder.useInstallation(dist.gradleHomeDir.absoluteFile)
     }
 
     void addCompositeParticipant(def builder, File rootDir) {
