@@ -349,7 +349,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    protected static interface Index<T> {
+    protected interface Index<T> {
         void put(String name, T value);
 
         T get(String name);
