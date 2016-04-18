@@ -6,7 +6,19 @@ import org.gradle.performance.generator.tasks.MonolithicNativeProjectGeneratorTa
 import org.gradle.performance.generator.tasks.NativeProjectGeneratorTask
 import org.gradle.performance.generator.tasks.ProjectGeneratorTask
 
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath 'gradle.plugin.me.champeau.gradle:jmh-gradle-plugin:0.3.0'
+    }
+}
+
 apply plugin: 'javascript-base'
+apply plugin: 'me.champeau.gradle.jmh'
 
 configurations {
     junit
@@ -23,6 +35,8 @@ dependencies {
     reports "flot:flot:0.8.1:min@js"
 
     compile libraries.groovy
+    compile project(':baseServices')
+
     testFixturesCompile libraries.slf4j_api
     testFixturesCompile project(':internalIntegTesting')
     testFixturesCompile 'com.googlecode.jatl:jatl:0.2.2'
@@ -36,6 +50,16 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ':toolingApi', sourceSet: 'testFixtures')
 useClassycle()
+
+jmh {
+    jmhVersion = '1.12'
+    include = 'org\\.gradle\\.experiments\\.reflection\\..*'
+    includeTests = false
+    warmupIterations = 10
+    threads = 2
+    synchronizeIterations = false
+    fork = 4
+}
 
 task reportResources(type: Copy) {
     from configurations.reports
