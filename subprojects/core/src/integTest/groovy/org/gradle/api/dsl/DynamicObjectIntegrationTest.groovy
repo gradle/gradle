@@ -19,6 +19,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        file('settings.gradle') << "rootProject.name = 'test'"
+    }
 
     def canAddDynamicPropertiesToProject() {
         file("settings.gradle").writelns("include 'child'")
@@ -448,10 +451,9 @@ assert 'overridden value' == global
     }
 
     def failsWhenGettingUnknownPropertyOnProject() {
-        file('settings.gradle') << "rootProject.name = 'test'"
         buildFile << """
             assert !hasProperty("p1")
-            prinln p1
+            println p1
         """
 
         expect:
@@ -461,7 +463,6 @@ assert 'overridden value' == global
     }
 
     def failsWhenSettingUnknownPropertyOnProject() {
-        file('settings.gradle') << "rootProject.name = 'test'"
         buildFile << """
             assert !hasProperty("p1")
 
@@ -475,7 +476,6 @@ assert 'overridden value' == global
     }
 
     def failsWhenInvokingUnknownMethodOnProject() {
-        file('settings.gradle') << "rootProject.name = 'test'"
         buildFile << """
             unknown(12, "things")
         """
@@ -487,7 +487,19 @@ assert 'overridden value' == global
     }
 
     def failsWhenGettingUnknownPropertyOnDecoratedObject() {
-        file('settings.gradle') << "rootProject.name = 'test'"
+        buildFile << """
+            task p
+            assert !tasks.p.hasProperty("p1")
+            println tasks.p.p1
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(4)
+        failure.assertHasCause("Could not get unknown property 'p1' for task ':p'.")
+    }
+
+    def failsWhenGettingUnknownPropertyOnDecoratedObjectThatIsSubjectOfConfigureClosure() {
         buildFile << """
             task p
             tasks.p {
@@ -503,7 +515,19 @@ assert 'overridden value' == global
     }
 
     def failsWhenSettingUnknownPropertyOnDecoratedObject() {
-        file('settings.gradle') << "rootProject.name = 'test'"
+        buildFile << """
+            task p
+            assert !tasks.p.hasProperty("p1")
+            tasks.p.p1 = 1
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(4)
+        failure.assertHasCause("Could not set unknown property 'p1' for task ':p'.")
+    }
+
+    def failsWhenSettingUnknownPropertyOnDecoratedObjectWhenSubjectOfConfigureClosure() {
         buildFile << """
             task p
             tasks.p {
@@ -519,7 +543,18 @@ assert 'overridden value' == global
     }
 
     def failsWhenInvokingUnknownMethodOnDecoratedObject() {
-        file('settings.gradle') << "rootProject.name = 'test'"
+        buildFile << """
+            task p
+            tasks.p.unknown(12, "things")
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(3)
+        failure.assertHasCause("Could not find method unknown() for arguments [12, things] on task ':p'.")
+    }
+
+    def failsWhenInvokingUnknownMethodOnDecoratedObjectWhenSubjectOfConfigureClosure() {
         buildFile << """
             task p
             tasks.p {
@@ -530,6 +565,7 @@ assert 'overridden value' == global
         expect:
         fails()
         failure.assertHasLineNumber(4)
+        // This error message has the wrong subject (the project - should be the task). Just documenting the behaviour.
         failure.assertHasCause("Could not find method unknown() for arguments [12, things] on root project 'test'.")
     }
 
@@ -554,6 +590,98 @@ assert 'overridden value' == global
 
         expect:
         succeeds("run")
+    }
+
+    def ignoresDynamicBehaviourOfMixIn() {
+        buildFile << """
+            class DynamicThing {
+                def methods = [:]
+                def props = [:]
+
+                def methodMissing(String name, args) {
+                    methods[name] = args.toList()
+                }
+
+                def propertyMissing(String name) {
+                    props[name]
+                }
+
+                def propertyMissing(String name, value) {
+                    props[name] = value
+                }
+            }
+
+            convention.plugins.test = new DynamicThing()
+
+            props
+
+            try {
+                m1(1,2,3)
+                fail()
+            } catch (MissingMethodException e) {
+                assert e.message == "Could not find method m1() for arguments [1, 2, 3] on root project 'test'."
+            }
+
+            try {
+                p1 = 1
+                fail()
+            } catch (MissingPropertyException e) {
+                assert e.message == "Could not set unknown property 'p1' for root project 'test'."
+            }
+
+            try {
+                p1 += 1
+                fail()
+            } catch (MissingPropertyException e) {
+                assert e.message == "Could not get unknown property 'p1' for root project 'test'."
+            }
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def canHaveDynamicDecoratedObject() {
+        buildFile << """
+            class DynamicTask extends DefaultTask {
+                def methods = [:]
+                def props = [:]
+
+                def methodMissing(String name, args) {
+                    methods[name] = args.toList()
+                }
+
+                def propertyMissing(String name) {
+                    props[name]
+                }
+
+                def propertyMissing(String name, value) {
+                    props[name] = value
+                }
+            }
+
+            task t(type: DynamicTask)
+            t.props
+            t.m1(1,2,3)
+            t.p1 = 1
+            t.p1 += 1
+
+            assert t.methods.size() == 1
+            assert t.props.p1 == 2
+
+            t {
+                props
+                m1(1,2,3)
+                p1 = 4
+                p1 += 1
+            }
+
+            assert t.methods.size() == 1
+            assert t.props.p1 == 5
+        """
+
+        expect:
+        succeeds()
     }
 
     @Issue("GRADLE-2417")
@@ -584,14 +712,19 @@ assert 'overridden value' == global
                 p1 += 1
             }
 
-            task run << {
-                assert dynamic.methods.size() == 1
-                assert dynamic.props.p1 == 2
-            }
+            assert dynamic.methods.size() == 1
+            assert dynamic.props.p1 == 2
+
+            dynamic.m1(1,2,3)
+            dynamic.p1 = 5
+            dynamic.p1 += 1
+
+            assert dynamic.methods.size() == 1
+            assert dynamic.props.p1 == 6
         """
 
         expect:
-        succeeds("run")
+        succeeds()
     }
 
     def findPropertyShouldReturnValueIfFound() {
