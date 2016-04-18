@@ -264,7 +264,7 @@ class RuleBindings {
             for (ModelNode.State state : ModelNode.State.values()) {
                 Map<String, List<RuleBinder>> byState = getByState(state);
                 List<RuleBinder> remove = byState.remove(node.getPath().toString());
-                if (remove!=null) {
+                if (remove != null) {
                     for (RuleBinder rule : remove) {
                         unbind(rule, node);
                     }
@@ -283,7 +283,7 @@ class RuleBindings {
 
         private List<RuleBinder> getByPath(Map<String, List<RuleBinder>> byState, String path) {
             List<RuleBinder> ruleBinders = byState.get(path);
-            if (ruleBinders==null) {
+            if (ruleBinders == null) {
                 ruleBinders = new LinkedList<RuleBinder>();
                 byState.put(path, ruleBinders);
             }
@@ -301,7 +301,7 @@ class RuleBindings {
             unbind(ruleBinder, node);
             for (ModelNode.State state : ModelNode.State.values()) {
                 Map<String, List<RuleBinder>> byState = getByState(state);
-                getByPath(byState,node.getPath().toString()).clear();
+                getByPath(byState, node.getPath().toString()).clear();
             }
         }
 

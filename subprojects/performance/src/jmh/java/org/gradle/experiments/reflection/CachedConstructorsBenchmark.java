@@ -42,7 +42,7 @@ public class CachedConstructorsBenchmark {
         }
     }
 
-    private int i = 0;
+    private int i;
 
     @Benchmark
     public void uncached(Blackhole bh) {
