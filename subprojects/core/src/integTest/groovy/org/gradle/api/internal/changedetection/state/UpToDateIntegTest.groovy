@@ -16,14 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
 
 class UpToDateIntegTest extends AbstractIntegrationSpec {
 
 
-    @NotYetImplemented
     def "empty output directories created automatically are part of up-to-date checking"() {
         given:
         buildFile << '''
