@@ -118,7 +118,7 @@ subprojects {
                 moduleBuild += testNg(moduleDependencies)
 
                 if (submoduleBuildFile.exists()) {
-                    submoduleBuildFile.renameTo(new File("build.gradle.bak"))
+                    submoduleBuildFile.renameTo(new File(projectDir(module), "build.gradle.bak"))
                 }
                 def packageTests = packageTests(module);
                 if (packageTests) {
