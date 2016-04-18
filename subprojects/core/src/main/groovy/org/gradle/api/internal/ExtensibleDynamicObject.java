@@ -102,7 +102,6 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         if (addedParent) {
             idx--;
         }
-        delegates[idx++] = extraPropertiesDynamicObject;
         objects = new DynamicObject[idx];
         System.arraycopy(delegates, 0, objects, 0, idx);
         setObjectsForUpdate(objects);
@@ -155,7 +154,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         return new InheritedDynamicObject();
     }
 
-    private ExtensibleDynamicObject snapshotInheritable() {
+    private DynamicObject snapshotInheritable() {
         AbstractDynamicObject emptyBean = new AbstractDynamicObject() {
             @Override
             protected String getDisplayName() {
@@ -189,7 +188,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
             return snapshotInheritable().getProperty(name);
         }
 
-        public Map<String, Object> getProperties() {
+        public Map<String, ?> getProperties() {
             return snapshotInheritable().getProperties();
         }
 

@@ -448,26 +448,30 @@ assert 'overridden value' == global
         executer.withTasks("run").run()
     }
 
-    @Test void failsWhenNewPropertiesAreAddedDirectlyOnTargetObject() {
+    @Test void failsWhenNewPropertiesAreAddedDirectlyOnProject() {
         file('settings.gradle') << "rootProject.name = 'test'"
         buildFile << """
             assert !hasProperty("p1")
 
             p1 = 1
+        """
 
-            assert p1 == 1
-            assert ext.p1 == 1
+        def result = executer.withTasks("run").runWithFailure()
+        result.assertHasCause("Could not find property 'p1' on task set.")
+    }
 
-            task run << { task ->
-                p2 = 2
-
-                assert p2 == 2
-                assert task.ext.p2 == 2
+    @Test void failsWhenNewPropertiesAreAddedDirectlyOnDecoratedObject() {
+        file('settings.gradle') << "rootProject.name = 'test'"
+        buildFile << """
+            task p
+            tasks.p {
+                assert !hasProperty("p1")
+                p1 = 1
             }
         """
 
         def result = executer.withTasks("run").runWithFailure()
-        result.assertHasCause("No such property: p1 for class: org.gradle.api.internal.project.DefaultProject_Decorated")
+        result.assertHasCause("No such property: p1 for class: org.gradle.api.plugins.Convention")
     }
 
     @Issue("GRADLE-2163")
