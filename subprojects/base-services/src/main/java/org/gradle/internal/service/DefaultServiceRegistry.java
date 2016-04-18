@@ -90,7 +90,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     public DefaultServiceRegistry(String displayName, Collection<? extends ServiceRegistry> parents) {
-        this.displayName = displayName != null ? displayName : getClass().getSimpleName().intern();
+        this.displayName = displayName;
         this.parentServices = parents.isEmpty() ? null : new CompositeProvider();
         this.ownServices = new OwnServices();
         allServices.providers.add(ownServices);
@@ -115,9 +115,13 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         return registry;
     }
 
+    private String getDisplayName() {
+        return displayName == null ? getClass().getSimpleName() : displayName;
+    }
+
     @Override
     public String toString() {
-        return displayName;
+        return getDisplayName();
     }
 
     static class RelevantMethods {
@@ -361,7 +365,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         synchronized (lock) {
             mutable = false;
             if (closed) {
-                throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.", format(serviceType), displayName));
+                throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.", format(serviceType), getDisplayName()));
             }
             List<T> result = new ArrayList<T>();
             DefaultLookupContext context = new DefaultLookupContext();
@@ -383,7 +387,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         synchronized (lock) {
             mutable = false;
             if (closed) {
-                throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.", format(serviceType), displayName));
+                throw new IllegalStateException(String.format("Cannot locate service of type %s, as %s has been closed.", format(serviceType), getDisplayName()));
             }
             ServiceProvider provider = providerCache.get(serviceType);
             if (provider == null) {
@@ -397,7 +401,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     private ServiceProvider getServiceProvider(Type serviceType) {
         ServiceProvider provider = new DefaultLookupContext().find(serviceType, allServices);
         if (provider == null) {
-            throw new UnknownServiceException(serviceType, String.format("No service of type %s available in %s.", format(serviceType), displayName));
+            throw new UnknownServiceException(serviceType, String.format("No service of type %s available in %s.", format(serviceType), getDisplayName()));
         }
         return provider;
     }
@@ -405,7 +409,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     public <T> Factory<T> getFactory(Class<T> type) {
         synchronized (lock) {
             if (closed) {
-                throw new IllegalStateException(String.format("Cannot locate factory for objects of type %s, as %s has been closed.", format(type), displayName));
+                throw new IllegalStateException(String.format("Cannot locate factory for objects of type %s, as %s has been closed.", format(type), getDisplayName()));
             }
 
             DefaultLookupContext context = new DefaultLookupContext();
@@ -414,7 +418,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                 return (Factory<T>) factory.get();
             }
 
-            throw new UnknownServiceException(type, String.format("No factory for objects of type %s available in %s.", format(type), displayName));
+            throw new UnknownServiceException(type, String.format("No factory for objects of type %s available in %s.", format(type), getDisplayName()));
         }
     }
 
@@ -473,7 +477,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             }
 
             Formatter formatter = new Formatter();
-            formatter.format("Multiple factories for objects of type %s available in %s:", format(type), displayName);
+            formatter.format("Multiple factories for objects of type %s available in %s:", format(type), getDisplayName());
             for (String description : descriptions) {
                 formatter.format("%n   - %s", description);
             }
@@ -502,7 +506,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             }
 
             Formatter formatter = new Formatter();
-            formatter.format("Multiple services of type %s available in %s:", format(serviceType.getType()), displayName);
+            formatter.format("Multiple services of type %s available in %s:", format(serviceType.getType()), getDisplayName());
             for (String description : descriptions) {
                 formatter.format("%n   - %s", description);
             }
@@ -762,7 +766,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     private ServiceProvider getThisAsProvider() {
         return new ServiceProvider() {
             public String getDisplayName() {
-                return String.format("ServiceRegistry %s", displayName);
+                return String.format("ServiceRegistry %s", getDisplayName());
             }
 
             public Object get() {
