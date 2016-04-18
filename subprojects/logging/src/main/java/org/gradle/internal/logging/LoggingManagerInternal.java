@@ -32,5 +32,5 @@ public interface LoggingManagerInternal extends LoggingManager, StandardOutputCa
 
     LoggingManagerInternal captureStandardError(LogLevel level);
 
-    LoggingManagerInternal setLevel(LogLevel logLevel);
+    LoggingManagerInternal setLevelInternal(LogLevel logLevel);
 }

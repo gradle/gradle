@@ -61,7 +61,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         // Read logging config and setup logging
         int logLevel = decoder.readSmallInt();
         LoggingManagerInternal loggingManager = createLoggingManager();
-        loggingManager.setLevel(LogLevel.values()[logLevel]).start();
+        loggingManager.setLevelInternal(LogLevel.values()[logLevel]).start();
 
         // Read server address and start connecting
         MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);

@@ -54,7 +54,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
         ProgressListenerVersion1 progressListener = actionParameters.getProgressListener();
         OutputEventListenerAdapter listener = new OutputEventListenerAdapter(progressListener);
         loggingManager.addOutputEventListener(listener);
-        loggingManager.setLevel(actionParameters.getBuildLogLevel());
+        loggingManager.setLevelInternal(actionParameters.getBuildLogLevel());
         loggingManager.start();
         try {
             return executer.execute(action, buildRequestContext, actionParameters, contextServices);

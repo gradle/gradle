@@ -1,4 +1,5 @@
 dependencies {
+    compile libraries.groovy
     compile libraries.slf4j_api
     compile libraries.jul_to_slf4j
     compile libraries.ant
@@ -7,9 +8,12 @@ dependencies {
     compile project(":messaging")
     compile project(":cli")
 
+    testCompile project(":internalTesting")
+
     runtime libraries.log4j_to_slf4j
     runtime libraries.jcl_to_slf4j
 }
 
 useTestFixtures()
-useClassycle()
+
+useClassycle(exclude: ["org/gradle/internal/featurelifecycle/**"])

@@ -69,5 +69,6 @@ public interface LoggingManager extends LoggingOutput {
      * @param logLevel The minimum logging level.
      * @return this
      */
+    @Deprecated
     LoggingManager setLevel(LogLevel logLevel);
 }

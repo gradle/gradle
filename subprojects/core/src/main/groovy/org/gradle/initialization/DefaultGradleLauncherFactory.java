@@ -117,7 +117,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         serviceRegistry.add(BuildCancellationToken.class, cancellationToken);
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
         LoggingManagerInternal loggingManager = serviceRegistry.newInstance(LoggingManagerInternal.class);
-        loggingManager.setLevel(startParameter.getLogLevel());
+        loggingManager.setLevelInternal(startParameter.getLogLevel());
 
         //this hooks up the ListenerManager and LoggingConfigurer so you can call Gradle.addListener() with a StandardOutputListener.
         loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));

@@ -166,7 +166,7 @@ public class DaemonMain extends EntryPoint {
 
         //Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
         //Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)
-        loggingManager.setLevel(LogLevel.DEBUG);
+        loggingManager.setLevelInternal(LogLevel.DEBUG);
 
         loggingManager.start();
     }

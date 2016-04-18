@@ -68,6 +68,6 @@ class LoggingBridgingBuildActionExecuterTest extends Specification {
         executer.execute(action, buildRequestContext, parameters, contextServices)
 
         then:
-        1 * loggingManager.setLevel(LogLevel.QUIET)
+        1 * loggingManager.setLevelInternal(LogLevel.QUIET)
     }
 }

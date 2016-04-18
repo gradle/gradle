@@ -199,7 +199,7 @@ public class CommandLineActionFactory {
             }
 
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
-            loggingManager.setLevel(loggingConfiguration.getLogLevel());
+            loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
             loggingManager.start();
             try {
                 NativeServices.initialize(buildLayout.getGradleUserHomeDir());

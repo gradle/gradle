@@ -89,7 +89,7 @@ class LoggingServiceRegistryTest extends Specification {
         outputEventListener.toString() == '[WARN before]'
 
         when:
-        loggingManager.level = LogLevel.INFO
+        loggingManager.levelInternal = LogLevel.INFO
         loggingManager.start()
         logger.info("ignored")
         logger.warn("warning")
@@ -114,7 +114,7 @@ class LoggingServiceRegistryTest extends Specification {
         0 * listener._
 
         when:
-        loggingManager.level = LogLevel.WARN
+        loggingManager.levelInternal = LogLevel.WARN
         loggingManager.start()
         logger.info("ignored")
         logger.warn("warning")
@@ -148,7 +148,7 @@ class LoggingServiceRegistryTest extends Specification {
         0 * listener._
 
         when:
-        loggingManager.level = LogLevel.WARN
+        loggingManager.levelInternal = LogLevel.WARN
         loggingManager.start()
         logger.info("ignored")
         logger.warning("warning")
@@ -316,7 +316,7 @@ class LoggingServiceRegistryTest extends Specification {
         outputs.stdErr == ''
 
         when:
-        loggingManager.level = LogLevel.WARN
+        loggingManager.levelInternal = LogLevel.WARN
         loggingManager.start()
         logger.warn("warning")
         logger.error("error")
@@ -334,7 +334,7 @@ class LoggingServiceRegistryTest extends Specification {
         def listener = Mock(StandardOutputListener)
 
         when:
-        loggingManager.level = LogLevel.WARN
+        loggingManager.levelInternal = LogLevel.WARN
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
         loggingManager.start()
@@ -356,7 +356,7 @@ class LoggingServiceRegistryTest extends Specification {
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
         loggingManager.addStandardOutputListener(listener)
-        loggingManager.setLevel(LogLevel.INFO)
+        loggingManager.setLevelInternal(LogLevel.INFO)
         loggingManager.start()
 
         when:
@@ -377,7 +377,7 @@ class LoggingServiceRegistryTest extends Specification {
         given:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
-        loggingManager.level = LogLevel.WARN
+        loggingManager.levelInternal = LogLevel.WARN
         loggingManager.start()
         def logger = Logger.getLogger("category")
 
@@ -398,7 +398,7 @@ class LoggingServiceRegistryTest extends Specification {
         def logger = Logger.getLogger("category")
         def loggingManager = registry.newInstance(LoggingManagerInternal)
         loggingManager.addStandardOutputListener(listener)
-        loggingManager.level = LogLevel.WARN
+        loggingManager.levelInternal = LogLevel.WARN
         loggingManager.start()
 
         when:
@@ -429,7 +429,7 @@ class LoggingServiceRegistryTest extends Specification {
         when:
         def registry = LoggingServiceRegistry.newEmbeddableLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
-        loggingManager.level = LogLevel.INFO
+        loggingManager.levelInternal = LogLevel.INFO
         loggingManager.start()
 
         then:
@@ -487,7 +487,7 @@ class LoggingServiceRegistryTest extends Specification {
         def listener = Mock(StandardOutputListener)
 
         when:
-        loggingManager.level = LogLevel.WARN
+        loggingManager.levelInternal = LogLevel.WARN
         loggingManager.addStandardOutputListener(listener)
         loggingManager.addStandardErrorListener(listener)
         loggingManager.start()
@@ -502,7 +502,7 @@ class LoggingServiceRegistryTest extends Specification {
         given:
         def registry = LoggingServiceRegistry.newNestedLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
-        loggingManager.level = LogLevel.WARN
+        loggingManager.levelInternal = LogLevel.WARN
         loggingManager.start()
         def logger = Logger.getLogger("category")
 
@@ -519,7 +519,7 @@ class LoggingServiceRegistryTest extends Specification {
         when:
         def registry = LoggingServiceRegistry.newNestedLogging()
         def loggingManager = registry.newInstance(LoggingManagerInternal)
-        loggingManager.level = LogLevel.WARN
+        loggingManager.levelInternal = LogLevel.WARN
         loggingManager.start()
 
         then:

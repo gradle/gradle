@@ -78,7 +78,7 @@ public class ProviderConnection {
         LogLevel providerLogLevel = parameters.getVerboseLogging() ? LogLevel.DEBUG : LogLevel.INFO;
         LOGGER.debug("Configuring logging to level: {}", providerLogLevel);
         LoggingManagerInternal loggingManager = loggingServices.newInstance(LoggingManagerInternal.class);
-        loggingManager.setLevel(providerLogLevel);
+        loggingManager.setLevelInternal(providerLogLevel);
         loggingManager.start();
     }
 
@@ -162,7 +162,7 @@ public class ProviderConnection {
         } else {
             LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
             loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
-            loggingManager.setLevel(operationParameters.getBuildLogLevel());
+            loggingManager.setLevelInternal(operationParameters.getBuildLogLevel());
             InputStream standardInput = operationParameters.getStandardInput();
             ServiceRegistry clientServices = daemonClientFactory.createBuildClientServices(loggingServices.get(OutputEventListener.class), params.daemonParams, standardInput == null ? SafeStreams.emptyInput() : standardInput);
             executer = clientServices.get(DaemonClient.class);
