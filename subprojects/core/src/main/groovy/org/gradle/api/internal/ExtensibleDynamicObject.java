@@ -53,7 +53,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
      * @see org.gradle.api.internal.plugins.DefaultConvention#DefaultConvention()
      */
     public ExtensibleDynamicObject(Object delegate) {
-        this(delegate, new BeanDynamicObject(delegate), new DefaultConvention());
+        this(delegate, createDynamicObject(delegate), new DefaultConvention());
     }
 
     public ExtensibleDynamicObject(Object delegate, Instantiator instantiator) {
