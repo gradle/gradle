@@ -253,7 +253,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
     /*
        The GroovyObject interface defines dynamic property and dynamic method methods. Implementers
-       are free to implement their own logic in  these methods which makes it invisible to the metaclass.
+       are free to implement their own logic in these methods which makes it invisible to the metaclass.
 
        The most notable case of this is Closure.
 
