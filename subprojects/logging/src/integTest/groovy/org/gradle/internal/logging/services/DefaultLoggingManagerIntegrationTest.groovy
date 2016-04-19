@@ -17,8 +17,10 @@
 package org.gradle.internal.logging.services
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
-
+@IgnoreIf({ GradleContextualExecuter.daemon })
 class DefaultLoggingManagerIntegrationTest extends AbstractIntegrationSpec {
     def "deprecation message when log level is set from a task"() {
         executer.expectDeprecationWarning()
