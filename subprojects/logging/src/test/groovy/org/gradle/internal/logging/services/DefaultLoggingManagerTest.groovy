@@ -21,7 +21,6 @@ import org.gradle.internal.logging.LoggingOutputInternal
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.source.LoggingSystem
 import org.gradle.util.RedirectStdOutAndErr
-import org.junit.Ignore
 import org.junit.Rule
 import spock.lang.Specification
 
