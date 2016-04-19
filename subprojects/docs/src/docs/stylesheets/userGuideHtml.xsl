@@ -23,6 +23,12 @@
     <xsl:param name="chunk.quietly">1</xsl:param>
     <xsl:param name="use.id.as.filename">1</xsl:param>
 
+    <xsl:param name="generate.toc">
+        book toc,title,example
+        part toc,title
+        chapter toc,title
+    </xsl:param>
+
     <!-- HEADERS AND FOOTERS -->
 
     <!-- Use custom header -->

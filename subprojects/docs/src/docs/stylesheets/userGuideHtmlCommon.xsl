@@ -41,7 +41,6 @@
 
     <xsl:param name="generate.toc">
         book toc,title,example
-        part toc,title
     </xsl:param>
 
     <xsl:param name="formal.title.placement">
