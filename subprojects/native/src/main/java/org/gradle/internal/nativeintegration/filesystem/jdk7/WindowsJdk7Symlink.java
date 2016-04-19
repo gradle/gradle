@@ -27,9 +27,9 @@ import java.io.IOException;
  * have permission to use them.
  */
 public class WindowsJdk7Symlink extends Jdk7Symlink {
-    @Override
-    public boolean isSymlinkSupported() {
-        return false;
+
+    public WindowsJdk7Symlink() {
+        super(false);
     }
 
     @Override
