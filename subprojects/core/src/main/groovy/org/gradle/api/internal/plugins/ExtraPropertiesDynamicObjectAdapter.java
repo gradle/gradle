@@ -32,10 +32,12 @@ public class ExtraPropertiesDynamicObjectAdapter extends BeanDynamicObject {
         this.extension = extension;
     }
 
+    @Override
     public boolean hasProperty(String name) {
         return super.hasProperty(name) || extension.has(name);
     }
 
+    @Override
     public Map<String, ?> getProperties() {
         return extension.getProperties();
     }

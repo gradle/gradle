@@ -27,14 +27,24 @@ import java.util.Arrays;
 public abstract class AbstractDynamicObject implements DynamicObject {
     protected abstract String getDisplayName();
 
+    @Override
     public boolean hasProperty(String name) {
         return false;
     }
 
+    @Override
+    public void getProperty(String name, GetPropertyResult result) {
+        if (hasProperty(name)) {
+            result.result(getProperty(name));
+        }
+    }
+
+    @Override
     public Object getProperty(String name) throws MissingPropertyException {
         throw getMissingProperty(name);
     }
 
+    @Override
     public void setProperty(String name, Object value) throws MissingPropertyException {
         throw setMissingProperty(name);
     }
@@ -49,22 +59,27 @@ public abstract class AbstractDynamicObject implements DynamicObject {
                 getDisplayName()), name, null);
     }
 
+    @Override
     public Map<String, ?> getProperties() {
         return Collections.emptyMap();
     }
 
+    @Override
     public boolean hasMethod(String name, Object... arguments) {
         return false;
     }
 
+    @Override
     public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
         throw methodMissingException(name, arguments);
     }
 
+    @Override
     public boolean isMayImplementMissingMethods() {
         return false;
     }
 
+    @Override
     public boolean isMayImplementMissingProperties() {
         return false;
     }

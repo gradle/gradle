@@ -174,36 +174,49 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         return extensibleDynamicObject;
     }
 
-    private class InheritedDynamicObject implements DynamicObject {
+    private class InheritedDynamicObject extends AbstractDynamicObject {
+        @Override
+        protected String getDisplayName() {
+            return dynamicDelegate.getDisplayName();
+        }
+
+        @Override
         public void setProperty(String name, Object value) {
             throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
                     dynamicDelegate.getDisplayName()));
         }
 
+        @Override
         public boolean hasProperty(String name) {
             return snapshotInheritable().hasProperty(name);
         }
 
+        @Override
         public Object getProperty(String name) {
             return snapshotInheritable().getProperty(name);
         }
 
+        @Override
         public Map<String, ?> getProperties() {
             return snapshotInheritable().getProperties();
         }
 
+        @Override
         public boolean hasMethod(String name, Object... arguments) {
             return snapshotInheritable().hasMethod(name, arguments);
         }
 
+        @Override
         public Object invokeMethod(String name, Object... arguments) {
             return snapshotInheritable().invokeMethod(name, arguments);
         }
 
+        @Override
         public boolean isMayImplementMissingMethods() {
             return snapshotInheritable().isMayImplementMissingMethods();
         }
 
+        @Override
         public boolean isMayImplementMissingProperties() {
             return snapshotInheritable().isMayImplementMissingProperties();
         }

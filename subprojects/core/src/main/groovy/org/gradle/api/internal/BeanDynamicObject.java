@@ -77,6 +77,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         return getDisplayName();
     }
 
+    @Override
     protected String getDisplayName() {
         return bean.toString();
     }
@@ -142,12 +143,18 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
     }
 
-    private class MetaClassAdapter implements DynamicObject {
+    private class MetaClassAdapter extends AbstractDynamicObject {
+        @Override
+        protected String getDisplayName() {
+            return BeanDynamicObject.this.getDisplayName();
+        }
 
+        @Override
         public boolean hasProperty(String name) {
             return includeProperties && getMetaClass().hasProperty(bean, name) != null;
         }
 
+        @Override
         public Object getProperty(String name) throws MissingPropertyException {
             if (!includeProperties) {
                 throw getMissingProperty(name);
@@ -172,6 +179,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
         }
 
+        @Override
         public void setProperty(final String name, Object value) throws MissingPropertyException {
             if (!includeProperties) {
                 throw setMissingProperty(name);
@@ -204,6 +212,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
         }
 
+        @Override
         public Map<String, ?> getProperties() {
             if (!includeProperties) {
                 return Collections.emptyMap();
@@ -227,10 +236,12 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return properties;
         }
 
+        @Override
         public boolean hasMethod(final String name, final Object... arguments) {
             return !getMetaClass().respondsTo(bean, name, arguments).isEmpty();
         }
 
+        @Override
         public Object invokeMethod(final String name, final Object... arguments) throws MissingMethodException {
             try {
                 return getMetaClass().invokeMethod(bean, name, arguments);
@@ -242,10 +253,12 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
         }
 
+        @Override
         public boolean isMayImplementMissingMethods() {
             return true;
         }
 
+        @Override
         public boolean isMayImplementMissingProperties() {
             return true;
         }
@@ -261,7 +274,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
      */
     private class GroovyObjectAdapter extends MetaClassAdapter {
         private final GroovyObject groovyObject = (GroovyObject) bean;
-
 
         @Override
         public Object getProperty(String name) throws MissingPropertyException {

@@ -30,6 +30,8 @@ import java.util.Map;
 public interface DynamicObject {
     boolean hasProperty(String name);
 
+    void getProperty(String name, GetPropertyResult result);
+
     Object getProperty(String name) throws MissingPropertyException;
 
     void setProperty(String name, Object value) throws MissingPropertyException;

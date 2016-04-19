@@ -20,6 +20,7 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.AbstractDynamicObject;
 import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.plugins.Convention;
@@ -145,7 +146,13 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         add(name, value);
     }
     
-    private class ExtensionsDynamicObject implements DynamicObject {
+    private class ExtensionsDynamicObject extends AbstractDynamicObject {
+        @Override
+        protected String getDisplayName() {
+            return "extensions";
+        }
+
+        @Override
         public boolean hasProperty(String name) {
             if (extensionsStorage.hasExtension(name)) {
                 return true;
@@ -158,6 +165,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             return false;
         }
 
+        @Override
         public Map<String, Object> getProperties() {
             Map<String, Object> properties = new HashMap<String, Object>();
             List<Object> reverseOrder = new ArrayList<Object>(plugins.values());
@@ -169,6 +177,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             return properties;
         }
 
+        @Override
         public Object getProperty(String name) throws MissingPropertyException {
             if (extensionsStorage.hasExtension(name)) {
                 return extensionsStorage.getByName(name);
@@ -186,6 +195,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             return getProperty(name);
         }
 
+        @Override
         public void setProperty(String name, Object value) {
             extensionsStorage.checkExtensionIsNotReassigned(name);
             for (Object object : plugins.values()) {
@@ -202,6 +212,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             setProperty(name, value);
         }
 
+        @Override
         public Object invokeMethod(String name, Object... args) {
             if (extensionsStorage.isConfigureExtensionMethod(name, args)) {
                 return extensionsStorage.configureExtension(name, args);
@@ -215,10 +226,12 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             throw new MissingMethodException(name, Convention.class, args);
         }
 
+        @Override
         public boolean isMayImplementMissingMethods() {
             return false;
         }
 
+        @Override
         public boolean isMayImplementMissingProperties() {
             return false;
         }
@@ -227,6 +240,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             return invokeMethod(name, (Object[])args);
         }
         
+        @Override
         public boolean hasMethod(String name, Object... args) {
             if (extensionsStorage.isConfigureExtensionMethod(name, args)) {
                 return true;
