@@ -55,7 +55,7 @@ allprojects {
                                 e2.printStackTrace()
                             }
                             def clickableUrl = {
-                                new org.gradle.logging.ConsoleRenderer().asClickableFileUrl(it)
+                                new URI("file", "", it.toURI().getPath(), null, null).toString()
                             }
                             throw new RuntimeException("Classycle check failed: $e.message. See failure report at ${clickableUrl(reportFile)} and analysis report at ${clickableUrl(analysisFile)}", e)
                         }
