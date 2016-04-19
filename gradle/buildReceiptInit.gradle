@@ -1,10 +1,11 @@
 initscript {
     repositories {
-        maven { url "https://plugins.gradle.org/m2" }
+        maven { url "https://repo.gradle.org/gradle/gradlecom-libs-snapshots-local" }
     }
     dependencies {
-        classpath "com.gradle:build-receipt-plugin:1.1"
+        classpath "com.gradle:build-receipt-plugin:latest.integration"
     }
+    configurations.classpath.resolutionStrategy.cacheDynamicVersionsFor 0, 'SECONDS'
 }
 rootProject {
     apply plugin: com.gradle.receipts.plugin.BuildReceiptPlugin
