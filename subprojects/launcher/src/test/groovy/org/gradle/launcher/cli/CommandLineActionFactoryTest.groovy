@@ -223,7 +223,6 @@ Gradle ${version.version}
 ------------------------------------------------------------
 
 Build time:   $version.buildTime
-Build number: $version.buildNumber
 Revision:     $version.revision
 
 Groovy:       $GroovySystem.version

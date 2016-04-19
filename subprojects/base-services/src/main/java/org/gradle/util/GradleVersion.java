@@ -42,7 +42,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
     private final int majorPart;
     private final String buildTime;
     private final String commitId;
-    private final String buildNumber;
     private final Long snapshot;
     private final String versionPart;
     private final Stage stage;
@@ -62,11 +61,10 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
             String version = properties.get("versionNumber").toString();
             String buildTimestamp = properties.get("buildTimestamp").toString();
-            String buildNumber = properties.get("buildNumber").toString();
             String commitId = properties.get("commitId").toString();
             Date buildTime = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(buildTimestamp);
 
-            CURRENT = new GradleVersion(version, buildTime, buildNumber, commitId);
+            CURRENT = new GradleVersion(version, buildTime, commitId);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not load version details from resource '%s'.", resource), e);
         } finally {
@@ -90,12 +88,11 @@ public class GradleVersion implements Comparable<GradleVersion> {
      * @throws IllegalArgumentException On unrecognized version string.
      */
     public static GradleVersion version(String version) throws IllegalArgumentException {
-        return new GradleVersion(version, null, null, null);
+        return new GradleVersion(version, null, null);
     }
 
-    private GradleVersion(String version, Date buildTime, String buildNumber, String commitId) {
+    private GradleVersion(String version, Date buildTime, String commitId) {
         this.version = version;
-        this.buildNumber = buildNumber;
         this.commitId = commitId;
         this.buildTime = buildTime == null ? null : formatBuildTime(buildTime);
         Matcher matcher = VERSION_PATTERN.matcher(version);
@@ -157,10 +154,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
     public String getBuildTime() {
         return buildTime;
-    }
-
-    public String getBuildNumber() {
-        return buildNumber;
     }
 
     public String getRevision() {

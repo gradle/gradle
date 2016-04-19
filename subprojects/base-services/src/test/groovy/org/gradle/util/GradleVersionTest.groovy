@@ -43,7 +43,6 @@ class GradleVersionTest extends Specification {
     def "current version has non-null parts"() {
         expect:
         version.version
-        version.buildTime
         version.nextMajor
         version.baseVersion
     }

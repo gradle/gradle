@@ -150,8 +150,6 @@ public class CommandLineActionFactory {
             sb.append(currentVersion.getVersion());
             sb.append("\n------------------------------------------------------------\n\nBuild time:   ");
             sb.append(currentVersion.getBuildTime());
-            sb.append("\nBuild number: ");
-            sb.append(currentVersion.getBuildNumber());
             sb.append("\nRevision:     ");
             sb.append(currentVersion.getRevision());
             sb.append("\n\nGroovy:       ");
