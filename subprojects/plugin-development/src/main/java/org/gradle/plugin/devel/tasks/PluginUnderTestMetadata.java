@@ -91,8 +91,8 @@ public class PluginUnderTestMetadata extends DefaultTask {
             // As these files are inputs into this task, they have just been snapshotted by the task up-to-date checking.
             // We should be reusing those persistent snapshots to avoid reading into memory again.
             HashClassPathSnapshotter classPathSnapshotter = new HashClassPathSnapshotter(new DefaultHasher());
-            long hash = classPathSnapshotter.snapshot(new DefaultClassPath(getPluginClasspath())).getStrongHash().asLong();
-            properties.setProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY, Long.toString(hash));
+            String hash = classPathSnapshotter.snapshot(new DefaultClassPath(getPluginClasspath())).getStrongHash().toString();
+            properties.setProperty(IMPLEMENTATION_CLASSPATH_HASH_PROP_KEY, hash);
         }
 
         File outputFile = new File(getOutputDirectory(), METADATA_FILE_NAME);
