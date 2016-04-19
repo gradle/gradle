@@ -38,7 +38,7 @@ public class Bzip2Archiver extends AbstractArchiver {
         // get rid of ArchiveOutputStreamFactory in favor of the writable Resource
         return new ArchiveOutputStreamFactory() {
             public OutputStream createArchiveOutputStream(File destination) throws FileNotFoundException {
-                OutputStream outStr = new FileOutputStream(destination);
+                OutputStream outStr = new BufferedOutputStream(new FileOutputStream(destination));
                 try {
                     outStr.write('B');
                     outStr.write('Z');
