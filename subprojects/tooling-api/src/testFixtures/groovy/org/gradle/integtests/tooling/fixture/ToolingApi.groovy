@@ -169,7 +169,7 @@ class ToolingApi implements TestRule {
 
     boolean isUseClasspathImplementation() {
         // Use classpath implementation only when running tests in embedded mode and for the current Gradle version
-        return GradleContextualExecuter.embedded && GradleVersion.current() == dist.version
+        return embedded && GradleVersion.current() == dist.version
     }
 
     boolean isEmbedded() {
