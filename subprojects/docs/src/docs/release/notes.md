@@ -40,6 +40,71 @@ Some gradle core plugins can now be applied by id:
         id 'visualcpp-compiler' // MicrosoftVisualCppPlugin
     }
 
+### Generated POM files now include classifiers and all artifacts for project dependencies
+
+When publishing from a multi-project build to a Maven repository, Gradle needs to map project dependencies to `<dependency>` declarations in the generated POM file. Previously, Gradle was ignoring the classifier attribute on any project artifacts, and would simply create a single `<dependency>` entry in the POM for any project dependency. This meant that the published POM for a project didn't contain the necessary dependencies to allow that project to be properly resolved from a Maven repository.
+
+The mapping of project dependencies into POM file dependencies has been improved, and Gradle will now produce correct POM files for the following cases:
+
+ - When the depended-on project configuration produces a single artifact with a classifier: this classifier will be included in the POM `<dependency>` entry.
+ - The depended-on project configuration produces multiple artifacts: a `<dependency>` entry will be created for each artifact, with the appropriate classifier attribute for each.
+
+As an example, given the following project definitions in Gradle:
+
+    project(':project1') {
+        dependencies {
+            compile project(':project2')
+            testCompile project(path: 'project2', configuration: 'testRuntime')
+        }
+    }
+
+    project(':project2') {
+        jar {
+            classifier = 'defaultJar'
+        }
+
+        task testJar(type: Jar, dependsOn: classes) {
+            from sourceSets.test.output
+            classifier = 'tests'
+        }
+
+        artifacts {
+            testRuntime  testJar
+        }
+    }
+
+The generated POM file for `project1` will include these dependency entries:
+
+    ...
+    <dependencies>
+      <dependency>
+        <groupId>org.gradle.test</groupId>
+        <artifactId>project2</artifactId>
+        <version>1.9</version>
+        <classifier>defaultJar</classifier>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.gradle.test</groupId>
+        <artifactId>project2</artifactId>
+        <version>1.9</version>
+        <classifier>defaultJar</classifier>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.gradle.test</groupId>
+        <artifactId>project2</artifactId>
+        <version>1.9</version>
+        <classifier>tests</classifier>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+    ...
+
+Previously, only a single `<dependency>` entry would have been generated for 'project2', omitting the 'classifier' attribute altogether.
+
+Many thanks to [Raymond Navarette](https://github.com/rnavarette) for contributing this feature.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -109,6 +174,10 @@ In order to keep backward compatibility, merged manifests are still read using t
 
 If necessary, convenience properties have been added to [`Jar`](dsl/org.gradle.api.tasks.bundling.Jar.html), [`War`](dsl/org.gradle.api.tasks.bundling.War.html), [`Ear`](dsl/org.gradle.plugins.ear.Ear.html) tasks and both [`Manifest`](javadoc/org/gradle/api/java/archives/Manifest.html) and [`ManifestMergeSpec`](javadoc/org/gradle/api/java/archives/ManifestMergeSpec.html) types to control which character set to use when merging manifests.
 
+### Additional POM `<dependency>` attributes generated for some project dependencies
+
+As described above, generated POM files now include classifiers and all artifacts for project dependencies. This improvement may break existing Gradle builds, particularly those that include a specific workaround for the previous behaviour. These workarounds should no longer be required, and may need to be removed to ensure that Gradle 2.14 will create correct `<dependency>` attributes for project dependencies.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -117,6 +186,7 @@ We would like to thank the following community members for making contributions 
 - [Sandu Turcan](https://github.com/idlsoft) - add wildcard exclusion for non-transitive dependencies in POM ([GRADLE-1574](https://issues.gradle.org/browse/GRADLE-1574))
 - [Jean-Baptiste Nizet](https://github.com/jnizet) - add `filteringCharset` property to `CopySpec` ([GRADLE-1267](https://issues.gradle.org/browse/GRADLE-1267))
 - [Simon Herter](https://github.com/sherter) - add thrown exception to Javadocs for `ExtensionContainer`
+- [Raymond Navarette](https://github.com/rnavarette) - add classifiers for project dependencies in generated POM files ([GRADLE-3030](https://issues.gradle.org/browse/GRADLE-3030))
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
