@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 
 public class GradleVersion implements Comparable<GradleVersion> {
     public static final String URL = "http://www.gradle.org";
-    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(\\d{14}([-+]\\d{4})?))?");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
     private static final int STAGE_MILESTONE = 0;
 
     private final String version;
@@ -120,7 +120,11 @@ public class GradleVersion implements Comparable<GradleVersion> {
             stage = null;
         }
 
-        if (matcher.group(8) != null) {
+        if (matcher.group(8) == null) {
+            snapshot = null;
+        } else if ("SNAPSHOT".equals(matcher.group(8))) {
+            snapshot = 0L;
+        } else {
             try {
                 if (matcher.group(9) != null) {
                     snapshot = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(8)).getTime();
@@ -132,8 +136,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
             } catch (ParseException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
-        } else {
-            snapshot = null;
         }
     }
 

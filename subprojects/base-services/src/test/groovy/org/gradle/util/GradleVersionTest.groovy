@@ -85,7 +85,8 @@ class GradleVersionTest extends Specification {
         version << [
                 '0.9-20101220110000+1100',
                 '0.9-20101220110000-0800',
-                '1.2-20120501110000'
+                '1.2-20120501110000',
+                '1.2-SNAPSHOT',
         ]
     }
 
