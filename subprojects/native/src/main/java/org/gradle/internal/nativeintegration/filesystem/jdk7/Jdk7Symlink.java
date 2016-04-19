@@ -17,6 +17,8 @@
 package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Jdk7Symlink implements Symlink {
+    private static Logger LOGGER = LoggerFactory.getLogger(Jdk7Symlink.class);
 
     private final boolean symlinksSupported;
 
@@ -61,6 +64,14 @@ public class Jdk7Symlink implements Symlink {
             Files.delete(linkFile);
             Files.createSymbolicLink(linkFile, sourceFile);
             return true;
+        } catch (InternalError e) {
+            if (e.getMessage().contains("Should not get here")) {
+                // probably facing JDK-8046686
+                LOGGER.debug("Unable to create a symlink. Your system is hitting JDK bug id JDK-8046686. Symlink support disabled.", e);
+            } else {
+                LOGGER.debug("Unexpected internal error", e);
+            }
+            return false;
         } catch (IOException e) {
             return false;
         } catch (UnsupportedOperationException e) {
