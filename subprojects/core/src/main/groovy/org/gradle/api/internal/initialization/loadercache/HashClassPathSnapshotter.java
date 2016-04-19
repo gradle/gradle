@@ -19,15 +19,18 @@ package org.gradle.api.internal.initialization.loadercache;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.io.File;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.zip.Adler32;
 
 public class HashClassPathSnapshotter implements ClassPathSnapshotter {
 
@@ -41,13 +44,17 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
         final List<String> visitedFilePaths = Lists.newLinkedList();
         final Set<File> visitedDirs = Sets.newLinkedHashSet();
         final List<File> cpFiles = classPath.getAsFiles();
-
-        final Adler32 checksum = new Adler32();
+        MessageDigest checksum;
+        try {
+            checksum = MessageDigest.getInstance("md5");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
         hash(checksum, visitedFilePaths, visitedDirs, cpFiles.iterator());
-        return new HashClassPathSnapshot(visitedFilePaths, checksum.getValue());
+        return new HashClassPathSnapshot(visitedFilePaths, checksum.digest());
     }
 
-    private void hash(Adler32 combinedHash, List<String> visitedFilePaths, Set<File> visitedDirs, Iterator<File> toHash) {
+    private void hash(MessageDigest combinedHash, List<String> visitedFilePaths, Set<File> visitedDirs, Iterator<File> toHash) {
         while (toHash.hasNext()) {
             File file = FileUtils.canonicalize(toHash.next());
             if (file.isDirectory()) {
@@ -66,17 +73,17 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
 
     public static class HashClassPathSnapshot implements ClassPathSnapshot {
         private final List<String> files;
-        private final long hash;
+        private final byte[] hash;
 
-        public HashClassPathSnapshot(List<String> files, long hash) {
+        public HashClassPathSnapshot(List<String> files, byte[] hash) {
             assert files != null;
 
             this.files = files;
             this.hash = hash;
         }
 
-        public long getHash() {
-            return hash;
+        public HashCode getStrongHash() {
+            return HashCode.fromBytes(hash);
         }
 
         @Override
@@ -90,13 +97,13 @@ public class HashClassPathSnapshotter implements ClassPathSnapshotter {
 
             HashClassPathSnapshot that = (HashClassPathSnapshot) o;
 
-            return hash == that.hash && files.equals(that.files);
+            return Arrays.equals(hash, that.hash) && files.equals(that.files);
         }
 
         @Override
         public int hashCode() {
             int result = files.hashCode();
-            result = 31 * result + (int) (hash ^ (hash >>> 32));
+            result = 31 * result + Arrays.hashCode(hash);
             return result;
         }
     }
