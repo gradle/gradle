@@ -28,8 +28,16 @@ import java.util.Map;
  * The {@link ExtensibleDynamicObject} implementation on the other hand does provide extra functionality.
  */
 public interface DynamicObject {
+    /**
+     * Returns true when this object is known to have the given property.
+     *
+     * <p>Note that not every property is known. Some properties are require an attempt to get or set its value.</p>
+     */
     boolean hasProperty(String name);
 
+    /**
+     * Gets the value of the given property, attaching it to the given result using {@link GetPropertyResult#result(Object)}.
+     */
     void getProperty(String name, GetPropertyResult result);
 
     Object getProperty(String name) throws MissingPropertyException;
