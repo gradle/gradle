@@ -4,7 +4,12 @@ if (buildTypes.promotionBuild.active) {
 
 ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
 ext.finalRelease = project.hasProperty("finalRelease")
-ext.timestampedVersion = project.hasProperty("timestampedVersion")
+if (project.hasProperty("timestampedVersion")) {
+    def value = project.property("timestampedVersion")
+    ext.timestampedVersion = value != "false"
+} else {
+    ext.timestampedVersion = gradle.startParameter.taskNames.contains("install") || gradle.startParameter.taskNames.contains("installAll")
+}
 if (rcNumber != null && finalRelease) {
     throw new InvalidUserDataException("Cannot set rcNumber and finalRelease at the same time")
 }
