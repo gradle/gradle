@@ -21,6 +21,7 @@ import org.gradle.internal.logging.LoggingOutputInternal
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.source.LoggingSystem
 import org.gradle.util.RedirectStdOutAndErr
+import org.junit.Ignore
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -63,17 +64,6 @@ public class DefaultLoggingManagerTest extends Specification {
 
         then:
         loggingManager.getLevel() == LogLevel.ERROR
-    }
-
-    public void "changing log level using public method produces deprecation message"() {
-        when:
-        loggingManager.setLevel(LogLevel.ERROR)
-
-        then:
-        loggingManager.getLevel() == LogLevel.ERROR
-
-        and:
-        outputs.stdOut.contains("LoggingManager.setLevel(LogLevel) has been deprecated")
     }
 
     public void "can start and stop with capture level set"() {
