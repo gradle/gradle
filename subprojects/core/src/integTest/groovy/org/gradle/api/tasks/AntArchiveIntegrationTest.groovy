@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Clock
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
@@ -100,6 +101,7 @@ task assertGradleNotSlowerThanAnt() {
 """
     }
 
+    @Ignore("too flaky on CI")
     @Unroll
     def "gradle is not slower than ant for #compression"() {
         given:
