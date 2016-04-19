@@ -26,7 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Jdk7Symlink implements Symlink {
-    private static Logger LOGGER = LoggerFactory.getLogger(Jdk7Symlink.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Jdk7Symlink.class);
 
     private final boolean symlinksSupported;
 
