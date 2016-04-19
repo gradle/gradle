@@ -129,7 +129,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     }
 
     @Override
-    public GradleConnectionBuilderInternal embedded(boolean embedded) {
+    public GradleConnectionBuilderInternal embeddedCoordinator(boolean embedded) {
         this.embeddedCoordinator = embedded;
         return this;
     }

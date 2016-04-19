@@ -30,7 +30,7 @@ public interface GradleConnectionBuilderInternal extends GradleConnectionBuilder
     GradleConnectionBuilderInternal integratedComposite(boolean integrated);
 
     // The following only have an effect with `integratedComposite(true)
-    GradleConnectionBuilderInternal embedded(boolean embedded);
+    GradleConnectionBuilderInternal embeddedCoordinator(boolean embedded);
 
     GradleConnectionBuilder useInstallation(File gradleHome);
 
