@@ -1,9 +1,14 @@
-def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
-timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
-
 if (buildTypes.promotionBuild.active) {
     logger.lifecycle "Invocation tasks: $gradle.startParameter.taskNames\nInvocation properties: $gradle.startParameter.projectProperties"
 }
+
+ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
+ext.finalRelease = project.hasProperty("finalRelease")
+ext.timestampedVersion = project.hasProperty("timestampedVersion")
+if (rcNumber != null && finalRelease) {
+    throw new InvalidUserDataException("Cannot set rcNumber and finalRelease at the same time")
+}
+ext.snapshotBuild = rcNumber == null && !finalRelease && !timestampedVersion;
 
 if (incomingDistributionsBuildReceipt) {
     ext.versionBase = incomingDistributionsBuildReceipt.versionBase
@@ -11,36 +16,37 @@ if (incomingDistributionsBuildReceipt) {
 } else {
     ext.versionBase = rootProject.file("version.txt").text.trim()
 
-    if (project.hasProperty("buildTimestamp")) {
-        ext.buildTime = timestampFormat.parse(buildTimestamp)
+    if (snapshotBuild) {
+        ext.buildTimestamp = "unknown";
     } else {
-        File timestampFile = file("$buildDir/timestamp.txt")
-        if (timestampFile.isFile()) {
-            boolean uptodate = true
-            def modified = timestampFile.lastModified()
-            project(':core').fileTree('src/main').visit {fte ->
-                if (fte.file.isFile() && fte.lastModified > modified) {
-                    uptodate = false
-                    fte.stopVisiting()
-                }
-            }
-            if (!uptodate) {
-                timestampFile.setLastModified(new Date().time)
-            }
+        def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
+        timestampFormat.timeZone = TimeZone.getTimeZone("UTC")
+        Date buildTime
+        if (project.hasProperty("buildTimestamp")) {
+            buildTime = timestampFormat.parse(buildTimestamp)
         } else {
-            timestampFile.parentFile.mkdirs()
-            timestampFile.createNewFile()
-        }
+            File timestampFile = file("$buildDir/timestamp.txt")
+            if (timestampFile.isFile()) {
+                boolean uptodate = true
+                def modified = timestampFile.lastModified()
+                project(':core').fileTree('src/main').visit {fte ->
+                    if (fte.file.isFile() && fte.lastModified > modified) {
+                        uptodate = false
+                        fte.stopVisiting()
+                    }
+                }
+                if (!uptodate) {
+                    timestampFile.setLastModified(new Date().time)
+                }
+            } else {
+                timestampFile.parentFile.mkdirs()
+                timestampFile.createNewFile()
+            }
 
-        ext.buildTime = new Date(timestampFile.lastModified())
+            buildTime = new Date(timestampFile.lastModified())
+        }
         ext.buildTimestamp = timestampFormat.format(buildTime)
     }
-}
-
-ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
-ext.finalRelease = project.hasProperty("finalRelease")
-if (rcNumber != null && finalRelease) {
-    throw new InvalidUserDataException("Cannot set rcNumber and finalRelease at the same time")
 }
 
 version = versionBase
@@ -50,7 +56,10 @@ if (finalRelease) {
     // use version base
 } else if (rcNumber != null) {
     version += "-rc-$rcNumber"
-} else {
+} else if (timestampedVersion) {
     isSnapshot = true
     version += "-$buildTimestamp"
+} else {
+    isSnapshot = true
+    version += "-SNAPSHOT"
 }

@@ -50,7 +50,8 @@ class GradleVersionTest extends Specification {
     @Issue("https://issues.gradle.org/browse/GRADLE-1892")
     def "build time should always print in UTC"() {
         expect:
-        version.buildTime.endsWith("UTC")
+        // Note: buildTime is null when running a local build
+        version.buildTime == null || version.buildTime.endsWith("UTC")
     }
 
     def equalsAndHashCode() {

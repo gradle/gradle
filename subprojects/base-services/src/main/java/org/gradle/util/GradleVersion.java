@@ -62,7 +62,12 @@ public class GradleVersion implements Comparable<GradleVersion> {
             String version = properties.get("versionNumber").toString();
             String buildTimestamp = properties.get("buildTimestamp").toString();
             String commitId = properties.get("commitId").toString();
-            Date buildTime = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(buildTimestamp);
+            Date buildTime;
+            if ("unknown".equals(buildTimestamp)) {
+                buildTime = null;
+            } else {
+                buildTime = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(buildTimestamp);
+            }
 
             CURRENT = new GradleVersion(version, buildTime, commitId);
         } catch (Exception e) {
