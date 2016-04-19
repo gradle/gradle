@@ -111,6 +111,11 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
+    public void getProperty(String name, GetPropertyResult result) {
+        delegate.getProperty(name, result);
+    }
+
+    @Override
     public void setProperty(final String name, Object value) throws MissingPropertyException {
         delegate.setProperty(name, value);
     }
@@ -156,13 +161,30 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
         @Override
         public Object getProperty(String name) throws MissingPropertyException {
-            if (!includeProperties) {
+            GetPropertyResult result = new GetPropertyResult();
+            getProperty(name, result);
+            if (!result.isFound()) {
                 throw getMissingProperty(name);
+            }
+            return result.getValue();
+        }
+
+        @Override
+        public void getProperty(String name, GetPropertyResult result) {
+            if (!includeProperties) {
+                return;
             }
 
             MetaProperty property = getMetaClass().hasProperty(bean, name);
             if (property == null) {
-                return getMetaClass().invokeMissingProperty(bean, name, null, true);
+                try {
+                    result.result(getOpaqueProperty(name));
+                } catch (MissingPropertyException e) {
+                    if (!name.equals(e.getProperty())) {
+                        throw e;
+                    }
+                }
+                return;
             }
             if (property instanceof MetaBeanProperty && ((MetaBeanProperty) property).getGetter() == null) {
                 throw new GroovyRuntimeException(String.format(
@@ -170,13 +192,17 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
 
             try {
-                return property.getProperty(bean);
+                result.result(property.getProperty(bean));
             } catch (InvokerInvocationException e) {
                 if (e.getCause() instanceof RuntimeException) {
                     throw (RuntimeException) e.getCause();
                 }
                 throw e;
             }
+        }
+
+        protected Object getOpaqueProperty(String name) throws MissingPropertyException {
+            return getMetaClass().invokeMissingProperty(bean, name, null, true);
         }
 
         @Override
@@ -276,7 +302,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         private final GroovyObject groovyObject = (GroovyObject) bean;
 
         @Override
-        public Object getProperty(String name) throws MissingPropertyException {
+        protected Object getOpaqueProperty(String name) throws MissingPropertyException {
             return groovyObject.getProperty(name);
         }
 

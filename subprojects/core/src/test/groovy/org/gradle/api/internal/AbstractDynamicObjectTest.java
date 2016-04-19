@@ -40,6 +40,10 @@ public class AbstractDynamicObjectTest {
             assertThat(e.getMessage(), equalTo("Could not get unknown property 'something' for <display-name>."));
         }
 
+        GetPropertyResult result = new GetPropertyResult();
+        object.getProperty("something", result);
+        assertFalse(result.isFound());
+
         try {
             object.setProperty("something", "value");
             fail();

@@ -749,7 +749,7 @@ public class ExtensibleDynamicObjectTest {
             object.getProperty("additional");
             fail();
         } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("No such property: additional for class: org.gradle.api.internal.DynamicGroovyBean"));
+            assertThat(e.getMessage(), equalTo("Could not get unknown property 'additional' for " + object + "."));
         }
 
         try {

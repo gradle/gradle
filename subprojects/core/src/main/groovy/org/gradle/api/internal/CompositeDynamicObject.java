@@ -92,20 +92,6 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
                 return;
             }
         }
-
-        for (DynamicObject object : objects) {
-            if (object.isMayImplementMissingProperties()) {
-                try {
-                    Object value = object.getProperty(name);
-                    result.result(value);
-                    return;
-                } catch (MissingPropertyException e) {
-                    if (e.getProperty() == null || !e.getProperty().equals(name)) {
-                        throw e;
-                    }
-                }
-            }
-        }
     }
 
     @Override

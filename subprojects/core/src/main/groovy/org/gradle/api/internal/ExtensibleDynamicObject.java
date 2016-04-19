@@ -174,12 +174,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         return extensibleDynamicObject;
     }
 
-    private class InheritedDynamicObject extends AbstractDynamicObject {
-        @Override
-        protected String getDisplayName() {
-            return dynamicDelegate.getDisplayName();
-        }
-
+    private class InheritedDynamicObject implements DynamicObject {
         @Override
         public void setProperty(String name, Object value) {
             throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
@@ -194,6 +189,11 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         @Override
         public Object getProperty(String name) {
             return snapshotInheritable().getProperty(name);
+        }
+
+        @Override
+        public void getProperty(String name, GetPropertyResult result) {
+            snapshotInheritable().getProperty(name, result);
         }
 
         @Override

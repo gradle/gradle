@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins;
 
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.BeanDynamicObject;
+import org.gradle.api.internal.GetPropertyResult;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 
 import java.util.Map;
@@ -34,12 +35,19 @@ public class ExtraPropertiesDynamicObjectAdapter extends BeanDynamicObject {
 
     @Override
     public boolean hasProperty(String name) {
-        return super.hasProperty(name) || extension.has(name);
+        return extension.has(name);
     }
 
     @Override
     public Map<String, ?> getProperties() {
         return extension.getProperties();
+    }
+
+    @Override
+    public void getProperty(String name, GetPropertyResult result) {
+        if (hasProperty(name)) {
+            super.getProperty(name, result);
+        }
     }
 
     @Override

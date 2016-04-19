@@ -65,10 +65,18 @@ public class ExtraPropertiesDynamicObjectAdapterTest extends Specification {
         !adapter.hasMethod("other")
     }
     
-    def "getting or setting missing property throws MPE"() {
+    def "getting missing property throws MPE"() {
         when:
         adapter.getProperty("foo")
         
+        then:
+        thrown(MissingPropertyException)
+    }
+
+    def "setting missing property throws MPE"() {
+        when:
+        adapter.setProperty("foo", 12)
+
         then:
         thrown(MissingPropertyException)
     }
@@ -80,16 +88,4 @@ public class ExtraPropertiesDynamicObjectAdapterTest extends Specification {
         then:
         thrown(groovy.lang.MissingMethodException)
     }
-
-    def "has property 'properties'"() {
-        expect:
-        adapter.hasProperty("properties")
-
-        and:
-        new ExtraPropertiesDynamicObjectAdapter(String.class, new NamedExtraPropertiesExtension()).hasProperty("name")
-    }
-}
-
-class NamedExtraPropertiesExtension extends DefaultExtraPropertiesExtension {
-    String name
 }
