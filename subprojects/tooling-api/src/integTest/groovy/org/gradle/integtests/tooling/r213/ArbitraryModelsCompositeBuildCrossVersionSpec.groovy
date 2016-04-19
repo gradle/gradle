@@ -159,13 +159,12 @@ class ArbitraryModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiS
     private static List<Class<?>> supportedModels() {
         List<Class<?>> supportedModels = [] + HIERARCHICAL_MODELS + BUILD_MODELS
         // Need to create a copy of the dist GradleVersion, due to classloader issues
-        def targetVersion = getTargetDistVersion()
-        if (targetVersion >= GradleVersion.version("1.1")) {
+        if (targetDistVersion >= GradleVersion.version("1.1")) {
             // Idea models fail to apply with 1.0 on because JavaVersion.current() fails
             supportedModels += HIERARCHICAL_IDEA_MODELS
         }
         supportedModels << BuildInvocations
-        if (targetVersion >= GradleVersion.version("1.12")) {
+        if (targetDistVersion >= GradleVersion.version("1.12")) {
             supportedModels << ProjectPublications
         }
         supportedModels

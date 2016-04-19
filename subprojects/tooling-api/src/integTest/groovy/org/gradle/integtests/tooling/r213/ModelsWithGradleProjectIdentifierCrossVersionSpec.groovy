@@ -156,7 +156,7 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
 
     private static getModelsHavingGradleProjectIdentifier() {
         List<Class<?>> models = [BuildInvocations]
-        if (getTargetDistVersion() >= GradleVersion.version("1.12")) {
+        if (targetDistVersion >= GradleVersion.version("1.12")) {
             models += ProjectPublications
         }
         return models
