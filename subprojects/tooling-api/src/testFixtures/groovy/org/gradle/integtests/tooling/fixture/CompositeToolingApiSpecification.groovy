@@ -52,20 +52,11 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     }
 
     GradleConnectionBuilder createCompositeBuilder() {
-        def builder = toolingApi.createCompositeBuilder()
-
         // TODO:DAZ This isn't quite right: we should be testing _both_ integrated and non-integrated composite for version that support both
         if (executeTestWithIntegratedComposite && supportsIntegratedComposites()) {
-            builder.integratedComposite(true)
-            builder.useInstallation(targetDist.gradleHomeDir.absoluteFile)
-
-            // TODO:DAZ Ensure that embedded coordinator is robust before enabling on CI
-//            builder.embeddedCoordinator(embedded)
-//            if (useClasspathImplementation) {
-//                builder.useClasspathDistribution()
-//            }
+            return toolingApi.createIntegratedCompositeBuilder()
         }
-        return builder
+        return toolingApi.createCompositeBuilder()
     }
 
     boolean supportsIntegratedComposites() {
