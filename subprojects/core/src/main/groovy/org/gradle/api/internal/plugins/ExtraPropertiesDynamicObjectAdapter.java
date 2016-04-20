@@ -44,9 +44,17 @@ public class ExtraPropertiesDynamicObjectAdapter extends BeanDynamicObject {
     }
 
     @Override
+    public Object getProperty(String name) throws MissingPropertyException {
+        if (extension.has(name)) {
+            return extension.get(name);
+        }
+        throw getMissingProperty(name);
+    }
+
+    @Override
     public void getProperty(String name, GetPropertyResult result) {
-        if (hasProperty(name)) {
-            super.getProperty(name, result);
+        if (extension.has(name)) {
+            result.result(extension.get(name));
         }
     }
 

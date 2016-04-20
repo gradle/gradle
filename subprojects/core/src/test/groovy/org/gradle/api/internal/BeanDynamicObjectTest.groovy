@@ -27,7 +27,24 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.getProperty("prop") == "value"
     }
 
-    def "fails when get value of unknown property"() {
+    def "can get metaClass of groovy object"() {
+        def bean = new Bean(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.getProperty("metaClass") == bean.metaClass
+    }
+
+    def "can get property of dynamic groovy object"() {
+        def bean = new BeanWithDynamicProperties(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.getProperty("prop") == "value"
+        dynamicObject.getProperty("dyno") == "ok"
+    }
+
+    def "fails when get value of unknown property of groovy object"() {
         def bean = new Bean(prop: "value")
         def dynamicObject = new BeanDynamicObject(bean)
 
@@ -39,7 +56,30 @@ class BeanDynamicObjectTest extends Specification {
         e.message == "Could not get unknown property 'unknown' for ${bean}."
     }
 
-    class Bean {
+    def "fails when get value of unknown property of dynamic groovy object"() {
+        def bean = new BeanWithDynamicProperties(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.getProperty("unknown")
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.message == "Could not get unknown property 'unknown' for ${bean}."
+    }
+
+    static class Bean {
         String prop
+    }
+}
+
+class BeanWithDynamicProperties {
+    String prop
+
+    Object propertyMissing(String name) {
+        if (name == "dyno") {
+            return "ok"
+        }
+        throw new MissingPropertyException(name, DynamicBean)
     }
 }
