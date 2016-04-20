@@ -98,6 +98,24 @@ Previously, only a single `<dependency>` entry would have been generated for 'pr
 
 Many thanks to [Raymond Navarette](https://github.com/rnavarette) for contributing this feature.
 
+### Better control over Ant message logging
+
+In previous versions of Gradle, the mapping of Ant message priorities to Gradle logging levels was fixed and the default "lifecycle"
+log level was set in between the Ant "warn" and "info" priorities.  This meant that to show output from Ant tasks logged at the common "info"
+priority, the Gradle logging level had to be set to a higher verbosity, potentially exposing unwanted output.  Similarly, to suppress
+unwanted messages from Ant tasks, the Gradle logging level would need to be set to a lower verbosity, potentially suppressing other
+desirable output.
+
+You can now control the level of Ant logging by changing the message priority that maps to the Gradle lifecycle logging level:
+
+    ant {
+        lifecycleLogLevel = "INFO"
+    }
+
+This causes any Ant messages logged at the specified priority to be logged at the lifecycle logging level.  Any messages logged at a
+higher priority will also be logged at lifecycle level (or above if it is already mapped to a higher logging level).  Messages logged
+at a lower priority than the specified priority will be logged at the "info" logging level or below.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -117,6 +135,12 @@ Features that have become superseded or irrelevant due to the natural evolution 
 in the next major Gradle version (Gradle 3.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
+
+### Setting the log level from build logic
+
+The ability to set the log level from build logic using [LoggingManager.setLevel()](javadoc/org/gradle/api/logging/LoggingManager.html#setLevel%28org.gradle.api.logging.LogLevel%29)
+is now deprecated and scheduled for removal in the next release of Gradle.  If you are using this feature to control logging of messages from Ant
+tasks, please use the [AntBuilder.setLifecycleLogLevel()](javadoc/org/gradle/api/AntBuilder.html#setLifecycleLogLevel%28java.lang.String%29) method instead.
 
 ### Support for running Gradle on Java 6
 
