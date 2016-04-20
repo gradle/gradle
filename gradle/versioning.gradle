@@ -66,5 +66,5 @@ if (finalRelease) {
     version += "-$buildTimestamp"
 } else {
     isSnapshot = true
-    version += "-SNAPSHOT"
+    version += "-snapshot-1"
 }
