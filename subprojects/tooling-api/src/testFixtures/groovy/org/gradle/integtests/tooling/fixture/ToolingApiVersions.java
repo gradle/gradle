@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling.fixture;
 
 import org.gradle.api.specs.Spec;
-import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.util.GradleVersion;
 
 /**
@@ -34,14 +33,9 @@ public class ToolingApiVersions {
     public static final String SUPPORTS_COMPOSITE_BUILD = ">=2.13";
     public static final String SUPPORTS_INTEGRATED_COMPOSITE = ">=2.14";
 
-    public static boolean supportsIntegratedComposite(GradleDistribution toolingDistribution, GradleDistribution targetDistribution) {
+    public static boolean supportsIntegratedComposite(GradleVersion toolingDistribution, GradleVersion targetDistribution) {
         Spec<GradleVersion> gradleVersionSpec = GradleVersionSpec.toSpec(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE);
 
-        return gradleVersionSpec.isSatisfiedBy(version(toolingDistribution))
-            && gradleVersionSpec.isSatisfiedBy(version(targetDistribution));
-    }
-
-    private static GradleVersion version(GradleDistribution distribution) {
-        return GradleVersion.version(distribution.getVersion().getVersion());
+        return gradleVersionSpec.isSatisfiedBy(toolingDistribution) && gradleVersionSpec.isSatisfiedBy(targetDistribution);
     }
 }

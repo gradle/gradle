@@ -37,6 +37,10 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         GradleVersion.version(targetDist.version.version)
     }
 
+    static GradleVersion getToolingApiVersion() {
+        GradleVersion.current()
+    }
+
     GradleConnection createComposite(File... rootProjectDirectories) {
         createComposite(rootProjectDirectories.toList())
     }
@@ -61,7 +65,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
 
     // TODO:DAZ Integrate this into the test runner with an annotation
     boolean supportsIntegratedComposites() {
-        ToolingApiVersions.supportsIntegratedComposite(dist, targetDist)
+        ToolingApiVersions.supportsIntegratedComposite(toolingApiVersion, targetDistVersion)
     }
 
     void addCompositeParticipant(GradleConnectionBuilder builder, File rootDir) {
