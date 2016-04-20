@@ -17,7 +17,6 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.plugin.use.resolve.internal.CustomRepositoryPluginResolver
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
@@ -120,7 +119,7 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
         fails("pluginTask")
 
         then:
-        !failure.output.contains(CustomRepositoryPluginResolver.description)
+        !failure.output.contains("maven")
     }
 
     def "Fails gracefully if a plugin is not found"() {
@@ -141,7 +140,7 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
         failure.assertHasDescription("""Plugin [id: 'org.example.foo', version: '1.1'] was not found in any of the following sources:
 
 - Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-- User-defined Plugin Repository (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
+- maven (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
 - Gradle Central Plugin Repository (no 'org.example.foo' plugin available - see https://plugins.gradle.org for available plugins)"""
         )
     }

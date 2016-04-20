@@ -17,11 +17,13 @@
 package org.gradle.api.internal.plugins.repositories;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Represents a repository from which Gradle plugins can be resolved.
  */
 @Incubating
+@HasInternalProtocol
 public interface PluginRepository {
     /**
      * Returns the name for this repository. A name must be unique amongst a repository set. A

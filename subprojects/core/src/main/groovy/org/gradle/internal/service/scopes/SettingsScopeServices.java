@@ -16,17 +16,21 @@
 
 package org.gradle.internal.service.scopes;
 
+import org.gradle.api.Action;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.*;
+import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
+import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class SettingsScopeServices extends DefaultServiceRegistry {
@@ -35,6 +39,28 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
     public SettingsScopeServices(ServiceRegistry parent, final SettingsInternal settings) {
         super(parent);
         this.settings = settings;
+        /*
+         * While we don't have the pluginRepositories {} block, allow
+         * adding a plugin repository using a system property
+         */
+        register(new Action<ServiceRegistration>() {
+            @Override
+            public void execute(ServiceRegistration serviceRegistration) {
+            final String customRepoUrl = System.getProperty("org.gradle.plugin.repoUrl");
+            if (customRepoUrl != null) {
+                PluginRepositoryHandler pluginRepositoryHandler = get(PluginRepositoryHandler.class);
+                FileResolver fileResolver = get(FileResolver.class);
+                final String normalizedUrl = fileResolver.resolveUri(customRepoUrl).toString();
+                pluginRepositoryHandler.maven(new Action<MavenPluginRepository>() {
+                    @Override
+                    public void execute(MavenPluginRepository mavenPluginRepository) {
+                        mavenPluginRepository.setName("maven");
+                        mavenPluginRepository.setUrl(normalizedUrl);
+                    }
+                });
+            }
+            }
+        });
     }
 
     protected FileResolver createFileResolver() {
