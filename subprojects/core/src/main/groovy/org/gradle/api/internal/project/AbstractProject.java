@@ -348,7 +348,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         } else if (this == rootProject) {
             return "";
         }
-        return rootProject.getName() + (getParent() == rootProject ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
+        group = rootProject.getName() + (getParent() == rootProject ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
+        return group;
     }
 
     public void setGroup(Object group) {
