@@ -41,8 +41,9 @@ public class RecompilationSpecProvider {
         //creating an action that will be executed against all changes
         RecompilationSpec spec = new RecompilationSpec();
         JavaChangeProcessor javaChangeProcessor = new JavaChangeProcessor(previousCompilation, sourceToNameConverter);
+        ClassChangeProcessor classChangeProcessor = new ClassChangeProcessor(previousCompilation);
         JarChangeProcessor jarChangeProcessor = new JarChangeProcessor(fileOperations, jarClasspathSnapshot, previousCompilation);
-        InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, jarChangeProcessor);
+        InputChangeAction action = new InputChangeAction(spec, javaChangeProcessor, classChangeProcessor, jarChangeProcessor);
 
         //go!
         inputs.outOfDate(action);
@@ -57,11 +58,13 @@ public class RecompilationSpecProvider {
     private static class InputChangeAction implements Action<InputFileDetails> {
         private final RecompilationSpec spec;
         private final JavaChangeProcessor javaChangeProcessor;
+        private final ClassChangeProcessor classChangeProcessor;
         private final JarChangeProcessor jarChangeProcessor;
 
-        public InputChangeAction(RecompilationSpec spec, JavaChangeProcessor javaChangeProcessor, JarChangeProcessor jarChangeProcessor) {
+        public InputChangeAction(RecompilationSpec spec, JavaChangeProcessor javaChangeProcessor, ClassChangeProcessor classChangeProcessor, JarChangeProcessor jarChangeProcessor) {
             this.spec = spec;
             this.javaChangeProcessor = javaChangeProcessor;
+            this.classChangeProcessor = classChangeProcessor;
             this.jarChangeProcessor = jarChangeProcessor;
         }
 
@@ -72,8 +75,9 @@ public class RecompilationSpecProvider {
             }
             if (hasExtension(input.getFile(), ".java")) {
                 javaChangeProcessor.processChange(input, spec);
-            }
-            if (hasExtension(input.getFile(), ".jar")) {
+            } else if (hasExtension(input.getFile(), ".class")) {
+                classChangeProcessor.processChange(input, spec);
+            } else if (hasExtension(input.getFile(), ".jar")) {
                 jarChangeProcessor.processChange(input, spec);
             }
         }

@@ -314,6 +314,28 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         outputs.recompiledClasses("B", "A")
     }
 
+    def "recompiles main classes from extra source changes"() {
+        buildFile << """
+sourceSets {
+    other { java { srcDir 'extra-java' } }
+    main { compileClasspath += sourceSets.other.output }
+}
+compileJava.dependsOn 'compileOtherJava'
+"""
+
+        java("class Main extends Other {}")
+        file("extra-java/Other.java") << "class Other {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("extra-java/Other.java").text = "class Other { String change; }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("Other", "Main")
+    }
+
     def "detects changes to source in extra source directories"() {
         buildFile << "sourceSets.main.java.srcDir 'extra-java'"
 
