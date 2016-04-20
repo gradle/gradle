@@ -16,17 +16,21 @@
 
 package org.gradle.configuration;
 
+import org.gradle.api.Action;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
+import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
@@ -34,9 +38,9 @@ import org.gradle.groovy.scripts.*;
 import org.gradle.groovy.scripts.internal.*;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -55,6 +59,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final DocumentationRegistry documentationRegistry;
     private final ModelRuleSourceDetector modelRuleSourceDetector;
+    private PluginRepositoryHandler pluginRepositoryHandler;
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
     private final PluginRequestsSerializer pluginRequestsSerializer = new PluginRequestsSerializer();
 
@@ -66,7 +71,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       FileLookup fileLookup,
                                       DirectoryFileTreeFactory directoryFileTreeFactory,
                                       DocumentationRegistry documentationRegistry,
-                                      ModelRuleSourceDetector modelRuleSourceDetector) {
+                                      ModelRuleSourceDetector modelRuleSourceDetector,
+                                      PluginRepositoryHandler pluginRepositoryHandler) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -76,6 +82,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.documentationRegistry = documentationRegistry;
         this.modelRuleSourceDetector = modelRuleSourceDetector;
+        this.pluginRepositoryHandler = pluginRepositoryHandler;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, boolean topLevelScript) {
@@ -116,6 +123,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(FileLookup.class, fileLookup);
             services.add(DirectoryFileTreeFactory.class, directoryFileTreeFactory);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
+
+            addPluginRepositories(target);
 
             final ScriptTarget scriptTarget = wrap(target);
 
@@ -160,6 +169,28 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             boolean hasImperativeStatements = runner.getData().getHasImperativeStatements();
             scriptTarget.addConfiguration(buildScriptRunner, !hasImperativeStatements);
+        }
+
+        /*
+         * While we don't have the pluginRepositories {} block, allow
+         * adding a plugin repository using a system property
+         */
+        private void addPluginRepositories(Object target) {
+            if (target instanceof  SettingsInternal && topLevelScript) {
+                SettingsInternal settings = (SettingsInternal) target;
+                final String customRepoUrl = System.getProperty("org.gradle.plugin.repoUrl");
+                if (customRepoUrl != null) {
+                    FileResolver fileResolver = fileLookup.getFileResolver(settings.getRootDir());
+                    final String normalizedUrl = fileResolver.resolveUri(customRepoUrl).toString();
+                    pluginRepositoryHandler.maven(new Action<MavenPluginRepository>() {
+                        @Override
+                        public void execute(MavenPluginRepository mavenPluginRepository) {
+                            mavenPluginRepository.setName("maven");
+                            mavenPluginRepository.setUrl(normalizedUrl);
+                        }
+                    });
+                }
+            }
         }
 
         private ScriptTarget wrap(Object target) {

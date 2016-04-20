@@ -39,6 +39,7 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
 import org.gradle.api.internal.project.*;
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
@@ -228,7 +229,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(FileLookup.class),
             get(DirectoryFileTreeFactory.class),
             get(DocumentationRegistry.class),
-            get(ModelRuleSourceDetector.class)
+            get(ModelRuleSourceDetector.class),
+            get(PluginRepositoryHandler.class)
         );
     }
 
