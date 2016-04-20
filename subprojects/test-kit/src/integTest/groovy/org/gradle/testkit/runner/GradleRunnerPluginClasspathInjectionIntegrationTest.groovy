@@ -106,7 +106,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
 
         then:
         // This is how the class not being visible will manifest
-        execFailure(result).assertHasCause("Could not find property 'org' on task ':echo1'.")
+        execFailure(result).assertHasCause("Could not get unknown property 'org' for task ':echo1'.")
     }
 
     def "injected classes are inherited by child projects of project that applies plugin"() {
@@ -141,7 +141,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
 
         then:
         // This is how the class not being visible will manifest
-        execFailure(result).assertHasCause("Could not find property 'org' on task ':echo1'.")
+        execFailure(result).assertHasCause("Could not get unknown property 'org' for task ':echo1'.")
     }
 
     def "injected classes are not visible to projects at run time that are not child projects of applying project"() {
