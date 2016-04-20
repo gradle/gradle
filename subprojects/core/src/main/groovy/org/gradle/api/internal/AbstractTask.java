@@ -476,7 +476,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");
         }
-        taskMutator.mutate("Task.leftShit(Closure)", new Runnable() {
+        taskMutator.mutate("Task.leftShift(Closure)", new Runnable() {
             public void run() {
                 actions.add(taskMutator.leftShift(convertClosureToAction(action)));
             }
