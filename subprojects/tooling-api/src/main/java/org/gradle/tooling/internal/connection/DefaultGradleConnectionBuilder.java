@@ -50,7 +50,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     private File daemonBaseDir;
 
     private boolean integrated;
-    private boolean embeddedCoordinator;
+    private boolean embedded;
     private Distribution coordinatorDistribution;
 
     public DefaultGradleConnectionBuilder(GradleConnectionFactory gradleConnectionFactory, DistributionFactory distributionFactory) {
@@ -83,14 +83,14 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
         DefaultCompositeConnectionParameters.Builder compositeConnectionParametersBuilder = DefaultCompositeConnectionParameters.builder();
         compositeConnectionParametersBuilder.setBuilds(participants);
         compositeConnectionParametersBuilder.setGradleUserHomeDir(gradleUserHomeDir);
-        compositeConnectionParametersBuilder.setEmbedded(embeddedCoordinator);
         compositeConnectionParametersBuilder.setDaemonMaxIdleTimeValue(daemonMaxIdleTimeValue);
         compositeConnectionParametersBuilder.setDaemonMaxIdleTimeUnits(daemonMaxIdleTimeUnits);
         compositeConnectionParametersBuilder.setDaemonBaseDir(daemonBaseDir);
-
-        DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
-
+        
         if (integrated) {
+            compositeConnectionParametersBuilder.setEmbedded(embedded);
+            DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
+
             DeprecationLogger.incubatingFeatureUsed("Integrated composite build", WARNING_MESSAGE);
             Distribution distribution = coordinatorDistribution;
             if (distribution == null) {
@@ -98,6 +98,8 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
             }
             return gradleConnectionFactory.create(distribution, connectionParameters, true);
         } else {
+            DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
+
             // The distribution is effectively ignored
             return gradleConnectionFactory.create(distributionFactory.getClasspathDistribution(), connectionParameters, false);
         }
@@ -130,7 +132,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
 
     @Override
     public GradleConnectionBuilderInternal embedded(boolean embedded) {
-        this.embeddedCoordinator = embedded;
+        this.embedded = embedded;
         return this;
     }
 
