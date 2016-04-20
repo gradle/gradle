@@ -344,7 +344,7 @@ model {
 
         then:
         failure.assertHasCause "Exception thrown while executing model rule: NativeComponentModelPlugin.Rules#configureGeneratedSourceSets"
-        failure.assertHasCause "Could not find property 'sourceDir' on task ':generateSources'."
+        failure.assertHasCause "Could not get unknown property 'sourceDir' for task ':generateSources'."
     }
 
     def "can explicitly configure source and header directories from generator task"() {
