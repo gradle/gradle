@@ -15,6 +15,9 @@
  */
 package org.gradle.api.publication.maven.internal.pom;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Exclusion;
 import org.gradle.api.GradleException;
@@ -37,30 +40,31 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
 
     public List<Dependency> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations) {
         Map<ModuleDependency, Set<Configuration>> dependencyToConfigurations = createDependencyToConfigurationsMap(configurations);
-        Map<ModuleDependency, String> dependenciesMap = createDependencyToScopeMap(conf2ScopeMappingContainer, dependencyToConfigurations);
-        List<Dependency> mavenDependencies = new ArrayList<Dependency>();
+        Map<ModuleDependency, Conf2ScopeMapping> dependenciesMap = createDependencyToScopeMap(conf2ScopeMappingContainer, dependencyToConfigurations);
+        Map<Dependency, Integer> dependenciesWithPriorities = new LinkedHashMap<Dependency, Integer>();
         for (ModuleDependency dependency : dependenciesMap.keySet()) {
-            String scope = dependenciesMap.get(dependency);
+            Conf2ScopeMapping conf2ScopeMapping = dependenciesMap.get(dependency);
+            String scope = conf2ScopeMapping.getScope();
+            Integer priority = conf2ScopeMapping.getPriority() == null ? 0 : conf2ScopeMapping.getPriority();
             Set<Configuration> dependencyConfigurations = dependencyToConfigurations.get(dependency);
             if (dependency.getArtifacts().size() == 0) {
-                addFromDependencyDescriptor(mavenDependencies, dependency, scope, dependencyConfigurations);
+                addFromDependencyDescriptor(dependenciesWithPriorities, dependency, scope, priority, dependencyConfigurations);
             } else {
-                addFromArtifactDescriptor(mavenDependencies, dependency, scope, dependencyConfigurations);
+                addFromArtifactDescriptor(dependenciesWithPriorities, dependency, scope, priority, dependencyConfigurations);
             }
         }
-        return mavenDependencies;
+        return new ArrayList<Dependency>(dependenciesWithPriorities.keySet());
     }
 
-    private Map<ModuleDependency, String> createDependencyToScopeMap(Conf2ScopeMappingContainer conf2ScopeMappingContainer,
-                                                                     Map<ModuleDependency, Set<Configuration>> dependencyToConfigurations) {
-        Map<ModuleDependency, String> dependencyToScope = new HashMap<ModuleDependency, String>();
+    private Map<ModuleDependency, Conf2ScopeMapping> createDependencyToScopeMap(Conf2ScopeMappingContainer conf2ScopeMappingContainer,
+                                                                                Map<ModuleDependency, Set<Configuration>> dependencyToConfigurations) {
+        Map<ModuleDependency, Conf2ScopeMapping> dependencyToScope = new LinkedHashMap<ModuleDependency, Conf2ScopeMapping>();
         for (ModuleDependency dependency : dependencyToConfigurations.keySet()) {
             Conf2ScopeMapping conf2ScopeDependencyMapping = conf2ScopeMappingContainer.getMapping(dependencyToConfigurations.get(dependency));
             if (!useScope(conf2ScopeMappingContainer, conf2ScopeDependencyMapping)) {
                 continue;
             }
-            dependencyToScope.put(findDependency(dependency, conf2ScopeDependencyMapping.getConfiguration()),
-                conf2ScopeDependencyMapping.getScope());
+            dependencyToScope.put(findDependency(dependency, conf2ScopeDependencyMapping.getConfiguration()), conf2ScopeDependencyMapping);
         }
         return dependencyToScope;
     }
@@ -91,29 +95,23 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
         return dependencySetMap;
     }
 
-    private void addFromArtifactDescriptor(List<Dependency> mavenDependencies, ModuleDependency dependency, String scope,
+    private void addFromArtifactDescriptor(Map<Dependency, Integer> dependenciesPriorityMap,
+                                           ModuleDependency dependency, String scope, Integer priority,
                                            Set<Configuration> configurations) {
         for (DependencyArtifact artifact : dependency.getArtifacts()) {
-            mavenDependencies.addAll(createMavenDependenciesFromArtifactDescriptor(dependency, artifact, scope, configurations));
+            addMavenDependencies(dependenciesPriorityMap, dependency, artifact.getName(), artifact.getType(), scope, artifact.getClassifier(), priority, configurations);
         }
     }
 
-    private void addFromDependencyDescriptor(List<Dependency> mavenDependencies, ModuleDependency dependency, String scope,
+    private void addFromDependencyDescriptor(Map<Dependency, Integer> dependenciesPriorityMap,
+                                             ModuleDependency dependency, String scope, Integer priority,
                                              Set<Configuration> configurations) {
-        mavenDependencies.addAll(createMavenDependenciesFromDependencyDescriptor(dependency, scope, configurations));
+        addMavenDependencies(dependenciesPriorityMap, dependency, dependency.getName(), null, scope, null, priority, configurations);
     }
 
-    private List<Dependency> createMavenDependenciesFromArtifactDescriptor(ModuleDependency dependency, DependencyArtifact artifact, String scope,
-                                                                           Set<Configuration> configurations) {
-        return createMavenDependencies(dependency, artifact.getName(), artifact.getType(), scope, artifact.getClassifier(), configurations);
-    }
-
-    private List<Dependency> createMavenDependenciesFromDependencyDescriptor(ModuleDependency dependency, String scope, Set<Configuration> configurations) {
-        return createMavenDependencies(dependency, dependency.getName(), null, scope, null, configurations);
-    }
-
-    private List<Dependency> createMavenDependencies(ModuleDependency dependency, String name, String type, String scope, String classifier,
-                                                     Set<Configuration> configurations) {
+    private void addMavenDependencies(Map<Dependency, Integer> dependenciesWithPriorities,
+                                      ModuleDependency dependency, String name, String type, String scope, String classifier, Integer priority,
+                                      Set<Configuration> configurations) {
         List<Dependency> mavenDependencies = new ArrayList<Dependency>();
 
         if (dependency instanceof ProjectDependency) {
@@ -142,9 +140,32 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
             mavenDependency.setType(type);
             mavenDependency.setScope(scope);
             mavenDependency.setExclusions(getExclusions(dependency, configurations));
+            // Deduplicate based on mapped configuration/scope priority
+            Optional<Dependency> duplicateDependency = findEqualIgnoreScopeVersionAndExclusions(dependenciesWithPriorities.keySet(), mavenDependency);
+            if (!duplicateDependency.isPresent()) {
+                // Add if absent
+                dependenciesWithPriorities.put(mavenDependency, priority);
+            } else if (priority > dependenciesWithPriorities.get(duplicateDependency.get())) {
+                // Replace if higher priority
+                dependenciesWithPriorities.remove(duplicateDependency.get());
+                dependenciesWithPriorities.put(mavenDependency, priority);
+            }
         }
+    }
 
-        return mavenDependencies;
+    private Optional<Dependency> findEqualIgnoreScopeVersionAndExclusions(Collection<Dependency> dependencies, Dependency candidate) {
+        // Ignore scope on purpose
+        // Ignore version because Maven don't support dependencies with different versions, even on different scopes
+        // Ignore exclusions because we don't know how to choose/merge them
+        // Consequence is that we use the elected dependency version and exclusions when de-duplicating
+        // Use Maven Dependency "Management Key" as discriminator: groupId:artifactId:type:classifier
+        final String candidateManagementKey = candidate.getManagementKey();
+        return Iterables.tryFind(dependencies, new Predicate<Dependency>() {
+            @Override
+            public boolean apply(Dependency dependency) {
+                return dependency.getManagementKey().equals(candidateManagementKey);
+            }
+        });
     }
 
     private String mapToMavenSyntax(String version) {

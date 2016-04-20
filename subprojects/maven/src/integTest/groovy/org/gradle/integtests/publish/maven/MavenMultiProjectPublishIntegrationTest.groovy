@@ -314,7 +314,7 @@ project(":project2") {
     }
 
     @Issue("GRADLE-3030")
-    def "dependency on testRuntime, includes classifier on jar"() {
+    def "dependency on testRuntime, includes classifier on jar and de-duplicates dependencies"() {
         createBuildScripts("""
 project(":project1") {
     dependencies {
@@ -341,9 +341,7 @@ project(":project2") {
         then:
         def pom = mavenModule.parsedPom
         pom.scopes.compile.assertDependsOn("org.gradle.test:project2:1.9")
-        pom.scopes.test.assertDependsOn(
-            "org.gradle.test:project2:1.9",        // Because testRuntime extends from compile
-            "org.gradle.test:project2:1.9:tests")  // Because project2 declares it as a testRuntime artifact
+        pom.scopes.test.assertDependsOn("org.gradle.test:project2:1.9:tests")
     }
 
     @Issue("GRADLE-3030")
@@ -390,6 +388,83 @@ project(":project2") {
         pom.scopes.compile.assertDependsOn(
             "org.gradle.test:project2:1.9:baseConfig",
             "org.gradle.test:project2:1.9:extendedConfig")
+    }
+
+    def "dependencies are de-duplicated according to configuration/scope mapping priority"() {
+        given:
+        settingsFile << "include 'project3'"
+        createBuildScripts """
+            project(':project1') {
+                dependencies {
+                    runtime     'commons-collections:commons-collections:3.2.2'
+                    testRuntime 'commons-collections:commons-collections:3.2.2'
+                    compile     project(':project2')
+                    runtime     project(':project2')
+                    testCompile project(':project2')
+                    testRuntime project(':project2')
+                    testCompile project(':project3')
+                    testRuntime project(':project3')
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run ':project1:uploadArchives'
+
+        then:
+        def pom = mavenModule.parsedPom
+        pom.scopes.compile.assertDependsOn 'org.gradle.test:project2:1.9'
+        pom.scopes.runtime.assertDependsOn 'commons-collections:commons-collections:3.2.2'
+        pom.scopes.test.assertDependsOn 'org.gradle.test:project3:1.9'
+        pom.scopes.provided == null
+    }
+
+    def "de-duplicated dependencies uses exclusions from the elected dependency"() {
+        given:
+        createBuildScripts """
+            project(':project1') {
+                dependencies {
+                    compile('ch.qos.logback:logback-classic:1.1.7') {
+                        exclude group: 'org.slf4j', module: 'slf4j-api'
+                    }
+                    testCompile('ch.qos.logback:logback-classic:1.1.7') {
+                        exclude group: 'ch.qos.logback', module: 'logback-core'
+                    }
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run ':project1:uploadArchives'
+
+        then:
+        def pom = mavenModule.parsedPom
+        pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.7'
+        pom.scopes.test == null
+        def exclusion = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.7').exclusions[0];
+        exclusion.groupId == 'org.slf4j'
+        exclusion.artifactId == 'slf4j-api'
+    }
+
+    def "de-duplicated dependencies uses version from the elected dependency"() {
+        given:
+        createBuildScripts """
+            project(':project1') {
+                dependencies {
+                    compile     'ch.qos.logback:logback-classic:1.1.6'
+                    testCompile 'ch.qos.logback:logback-classic:1.1.7'
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run ':project1:uploadArchives'
+
+        then:
+        def pom = mavenModule.parsedPom
+        println mavenModule.pomFile.text
+        pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.6'
+        pom.scopes.test == null
     }
 
     private void createBuildScripts(String append = "") {
