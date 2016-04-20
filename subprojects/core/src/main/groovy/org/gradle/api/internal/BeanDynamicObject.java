@@ -218,7 +218,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                         throw e;
                     }
                 }
-                return;
+            } else if (bean instanceof GroovyObject && !(bean instanceof DynamicObjectAware)) {
+                try {
+                    result.result(((GroovyObject) bean).getProperty(name));
+                } catch (MissingPropertyException e) {
+                    if (!name.equals(e.getProperty())) {
+                        throw e;
+                    }
+                }
             }
         }
 

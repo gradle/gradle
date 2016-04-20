@@ -44,6 +44,17 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.getProperty("dyno") == "ok"
     }
 
+    def "can get property of closure"() {
+        def bean = new BeanWithDynamicProperties(prop: "value")
+        def cl = {}
+        cl.delegate = bean
+        def dynamicObject = new BeanDynamicObject(cl)
+
+        expect:
+        dynamicObject.getProperty("prop") == "value"
+        dynamicObject.getProperty("dyno") == "ok"
+    }
+
     def "fails when get value of unknown property of groovy object"() {
         def bean = new Bean(prop: "value")
         def dynamicObject = new BeanDynamicObject(bean)
@@ -70,16 +81,5 @@ class BeanDynamicObjectTest extends Specification {
 
     static class Bean {
         String prop
-    }
-}
-
-class BeanWithDynamicProperties {
-    String prop
-
-    Object propertyMissing(String name) {
-        if (name == "dyno") {
-            return "ok"
-        }
-        throw new MissingPropertyException(name, DynamicBean)
     }
 }
