@@ -136,7 +136,7 @@ model {
 
                 primitiveBoolean(nodeValue: 'false')
                 primitiveByte(nodeValue: '0')
-                primitiveChar(nodeValue: '\u0000' as char)
+                primitiveChar(nodeValue: '')
                 primitiveDouble(nodeValue: '0.0')
                 primitiveFloat(nodeValue: '0.0')
                 primitiveInt(nodeValue: '0')

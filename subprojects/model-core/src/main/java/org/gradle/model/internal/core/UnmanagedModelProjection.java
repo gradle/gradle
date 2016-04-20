@@ -53,7 +53,11 @@ public class UnmanagedModelProjection<M> extends TypeCompatibilityModelProjectio
         Object instance = this.asImmutable(ModelType.untyped(), modelNode, null).getInstance();
         if (instance == null) {
             if (isPrimitiveType(getType())) {
-                return Optional.of(String.valueOf(defaultValueOf(getType())));
+                if (getType().equals(ModelType.of(char.class))) {
+                    return Optional.of("");
+                } else {
+                    return Optional.of(String.valueOf(defaultValueOf(getType())));
+                }
             }
             if (isScalarType(getType())) {
                 return Optional.of("null");
