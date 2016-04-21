@@ -26,6 +26,8 @@ import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.hamcrest.Matchers.anyOf
+import static org.hamcrest.Matchers.containsString
 
 @InjectsPluginClasspath
 @InspectsBuildOutput
@@ -106,7 +108,10 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
 
         then:
         // This is how the class not being visible will manifest
-        execFailure(result).assertHasCause("Could not get unknown property 'org' for task ':echo1'.")
+        execFailure(result).assertThatCause(
+                anyOf(
+                        containsString("Could not get unknown property 'org' for task ':echo1'."),
+                        containsString("Could not find property 'org' on task ':echo1'.")))
     }
 
     def "injected classes are inherited by child projects of project that applies plugin"() {
@@ -141,7 +146,10 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
 
         then:
         // This is how the class not being visible will manifest
-        execFailure(result).assertHasCause("Could not get unknown property 'org' for task ':echo1'.")
+        execFailure(result).assertThatCause(
+                anyOf(
+                        containsString("Could not get unknown property 'org' for task ':echo1'."),
+                        containsString("Could not find property 'org' on task ':echo1'.")))
     }
 
     def "injected classes are not visible to projects at run time that are not child projects of applying project"() {
