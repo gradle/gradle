@@ -146,8 +146,10 @@
                     <xsl:attribute name="name">
                         <xsl:value-of select="$refId"/>
                     </xsl:attribute>
-                    <xsl:attribute name="class">section-anchor</xsl:attribute>
-                    <xsl:attribute name="href">#<xsl:value-of select="$refId"/></xsl:attribute>
+                    <xsl:if test="$node[local-name() = 'section']">
+                        <xsl:attribute name="class">section-anchor</xsl:attribute>
+                        <xsl:attribute name="href">#<xsl:value-of select="$refId"/></xsl:attribute>
+                    </xsl:if>
                 </a>
             </xsl:when>
         </xsl:choose>
