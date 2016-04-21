@@ -106,10 +106,11 @@ class ClasspathManifest extends DefaultTask {
 
     @TaskAction
     def generate() {
-        // We write this out ourself instead of using the properties class to avoid the
-        // annoying timestamp that insists on placing in there, that throws out incremental.
-        def content = getProperties().entrySet().collect { "$it.key=$it.value" }.sort().join("\n")
-        manifestFile.setText(content, "ISO-8859-1")
+        // Remove Properties timestamp for reproducible build
+        def sw = new StringWriter()
+        getProperties().store(sw, "")
+        def content = sw.toString().split(/\n/).findAll { !it.startsWith("#") }.join("\n")
+        manifestFile.setText(content, "utf-8")
     }
 }
 
