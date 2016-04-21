@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile.incremental;
 
-import com.google.common.io.Files;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarChangeProcessor;
@@ -25,9 +24,6 @@ import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
-import org.objectweb.asm.ClassReader;
-
-import java.io.IOException;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -80,12 +76,6 @@ public class RecompilationSpecProvider {
             if (hasExtension(input.getFile(), ".java")) {
                 javaChangeProcessor.processChange(input, spec);
             } else if (hasExtension(input.getFile(), ".class")) {
-                final ClassReader classReader;
-                try {
-                    classReader = new ClassReader(Files.toByteArray(input.getFile()));
-                } catch (IOException e) {
-                    throw new IllegalArgumentException(String.format("Unable to read class file: '%s'", input.getFile()));
-                }
                 classChangeProcessor.processChange(input, spec);
             } else if (hasExtension(input.getFile(), ".jar")) {
                 jarChangeProcessor.processChange(input, spec);
