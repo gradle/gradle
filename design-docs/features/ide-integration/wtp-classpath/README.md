@@ -46,8 +46,7 @@ The classpath attributes will not yet be populated.
 
 ####Test cases
 
-- requesting the classpath attributes on the current Gradle version returns an empty list
-- requesting the classpath attributes on any previous Gradle version throws an `UnsupportedMethodException`
+- requesting the classpath attributes on any Gradle version returns an empty list
 
 ###Story: Tooling API adds the deployed/non-deployed attributes
 
