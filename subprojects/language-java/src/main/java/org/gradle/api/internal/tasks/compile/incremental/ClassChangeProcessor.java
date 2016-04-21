@@ -32,7 +32,7 @@ public class ClassChangeProcessor {
         this.previousCompilation = previousCompilation;
     }
 
-    public void processChange(InputFileDetails input, RecompilationSpec spec) {
+    public void processChange(final InputFileDetails input, final RecompilationSpec spec) {
         final ClassReader classReader;
         try {
             classReader = new ClassReader(Files.toByteArray(input.getFile()));
@@ -44,8 +44,8 @@ public class ClassChangeProcessor {
         DependentsSet actualDependents = previousCompilation.getDependents(className);
         if (actualDependents.isDependencyToAll()) {
             spec.setFullRebuildCause(actualDependents.getDescription(), input.getFile());
-            return;
+        } else {
+            spec.getClassNames().addAll(actualDependents.getDependentClasses());
         }
-        spec.getClassNames().addAll(actualDependents.getDependentClasses());
     }
 }
