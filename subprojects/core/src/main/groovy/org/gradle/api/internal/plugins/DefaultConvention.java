@@ -23,6 +23,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.AbstractDynamicObject;
 import org.gradle.api.internal.BeanDynamicObject;
 import org.gradle.api.internal.DynamicObject;
+import org.gradle.api.internal.GetPropertyResult;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.reflect.Instantiator;
@@ -178,17 +179,19 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         }
 
         @Override
-        public Object getProperty(String name) throws MissingPropertyException {
-            if (extensionsStorage.hasExtension(name)) {
-                return extensionsStorage.getByName(name);
+        public void getProperty(String name, GetPropertyResult result) {
+            Object extension = extensionsStorage.findByName(name);
+            if (extension != null) {
+                result.result(extension);
+                return;
             }
             for (Object object : plugins.values()) {
-                DynamicObject dynamicObject = new BeanDynamicObject(object);
-                if (dynamicObject.hasProperty(name)) {
-                    return dynamicObject.getProperty(name);
+                DynamicObject dynamicObject = new BeanDynamicObject(object).withNotImplementsMissing();
+                dynamicObject.getProperty(name, result);
+                if (result.isFound()) {
+                    return;
                 }
             }
-            throw new MissingPropertyException(name, Convention.class);
         }
 
         public Object propertyMissing(String name) {

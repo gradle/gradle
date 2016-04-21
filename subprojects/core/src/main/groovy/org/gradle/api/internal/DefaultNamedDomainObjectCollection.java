@@ -16,7 +16,6 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
@@ -317,12 +316,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public T getProperty(String name) throws MissingPropertyException {
+        public void getProperty(String name, GetPropertyResult result) {
             T t = findByName(name);
-            if (t == null) {
-                return (T) super.getProperty(name);
+            if (t != null) {
+                result.result(t);
             }
-            return t;
         }
 
         @Override

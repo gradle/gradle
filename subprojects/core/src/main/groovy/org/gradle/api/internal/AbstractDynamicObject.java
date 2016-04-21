@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal;
 
-import groovy.lang.*;
+import groovy.lang.MissingPropertyException;
 
-import java.util.Map;
-import java.util.Collections;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * An empty {@link DynamicObject}.
@@ -34,14 +34,17 @@ public abstract class AbstractDynamicObject implements DynamicObject {
 
     @Override
     public void getProperty(String name, GetPropertyResult result) {
-        if (hasProperty(name)) {
-            result.result(getProperty(name));
-        }
+        // No such property
     }
 
     @Override
     public Object getProperty(String name) throws MissingPropertyException {
-        throw getMissingProperty(name);
+        GetPropertyResult result = new GetPropertyResult();
+        getProperty(name, result);
+        if (!result.isFound()) {
+            throw getMissingProperty(name);
+        }
+        return result.getValue();
     }
 
     @Override

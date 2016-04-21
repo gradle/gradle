@@ -16,15 +16,17 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import groovy.lang.MissingPropertyException;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.Namer;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
-import java.util.*;
+import java.util.Map;
 
 public abstract class AbstractPolymorphicDomainObjectContainer<T>
         extends AbstractNamedDomainObjectContainer<T> implements PolymorphicDomainObjectContainerInternal<T> {
@@ -106,12 +108,11 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         }
 
         @Override
-        public Object getProperty(String name) throws MissingPropertyException {
+        public void getProperty(String name, GetPropertyResult result) {
             Object object = findByName(name);
-            if (object == null) {
-                return super.getProperty(name);
+            if (object != null) {
+                result.result(object);
             }
-            return object;
         }
 
         @Override

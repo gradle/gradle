@@ -75,16 +75,6 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
-    public Object getProperty(String name) throws MissingPropertyException {
-        GetPropertyResult result = new GetPropertyResult();
-        getProperty(name, result);
-        if (!result.isFound()) {
-            throw getMissingProperty(name);
-        }
-        return result.getValue();
-    }
-
-    @Override
     public void getProperty(String name, GetPropertyResult result) {
         for (DynamicObject object : objects) {
             object.getProperty(name, result);
