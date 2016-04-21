@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.api.internal;
 
-class BeanWithDynamicProperties {
-    String prop
+public class SetPropertyResult {
+    private boolean found;
 
-    Object propertyMissing(String name) {
-        if (name == "dyno") {
-            return "ok"
-        }
-        throw new MissingPropertyException(name, DynamicBean)
+    /**
+     * Indicates that the property value has been set.
+     */
+    public void found() {
+        this.found = true;
     }
 
-    void propertyMissing(String name, Object value) {
-        if (name == "dyno") {
-            return
-        }
-        throw new MissingPropertyException(name, DynamicBean)
+    public boolean isFound() {
+        return found;
     }
 }

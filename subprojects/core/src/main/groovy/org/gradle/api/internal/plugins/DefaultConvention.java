@@ -17,13 +17,9 @@
 package org.gradle.api.internal.plugins;
 
 import groovy.lang.MissingMethodException;
-import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.AbstractDynamicObject;
-import org.gradle.api.internal.BeanDynamicObject;
-import org.gradle.api.internal.DynamicObject;
-import org.gradle.api.internal.GetPropertyResult;
+import org.gradle.api.internal.*;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.reflect.Instantiator;
@@ -199,16 +195,15 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         }
 
         @Override
-        public void setProperty(String name, Object value) {
+        public void setProperty(String name, Object value, SetPropertyResult result) {
             extensionsStorage.checkExtensionIsNotReassigned(name);
             for (Object object : plugins.values()) {
-                BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
-                if (dynamicObject.hasProperty(name)) {
-                    dynamicObject.setProperty(name, value);
+                BeanDynamicObject dynamicObject = new BeanDynamicObject(object).withNotImplementsMissing();
+                dynamicObject.setProperty(name, value, result);
+                if (result.isFound()) {
                     return;
                 }
             }
-            throw new MissingPropertyException(name, Convention.class);
         }
 
         public void propertyMissing(String name, Object value) {
@@ -231,11 +226,6 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
 
         @Override
         public boolean isMayImplementMissingMethods() {
-            return false;
-        }
-
-        @Override
-        public boolean isMayImplementMissingProperties() {
             return false;
         }
 

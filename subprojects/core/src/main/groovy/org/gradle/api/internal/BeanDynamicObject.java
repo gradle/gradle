@@ -112,11 +112,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
-    public boolean isMayImplementMissingProperties() {
-        return implementsMissing && includeProperties && delegate.isMayImplementMissingProperties();
-    }
-
-    @Override
     public boolean hasProperty(String name) {
         return delegate.hasProperty(name);
     }
@@ -127,8 +122,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
-    public void setProperty(final String name, Object value) throws MissingPropertyException {
-        delegate.setProperty(name, value);
+    public void setProperty(String name, Object value, SetPropertyResult result) {
+        delegate.setProperty(name, value, result);
     }
 
     @Override
@@ -258,15 +253,24 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         @Override
-        public void setProperty(final String name, Object value) throws MissingPropertyException {
+        public void setProperty(final String name, Object value, SetPropertyResult result) {
             if (!includeProperties) {
-                throw setMissingProperty(name);
+                return;
             }
 
             MetaClass metaClass = getMetaClass();
             MetaProperty property = metaClass.hasProperty(bean, name);
             if (property == null) {
-                getMetaClass().invokeMissingProperty(bean, name, value, false);
+                if (implementsMissing) {
+                    try {
+                        setOpaqueProperty(name, value, metaClass);
+                        result.found();
+                    } catch (MissingPropertyException e) {
+                        if (!name.equals(e.getProperty())) {
+                            throw e;
+                        }
+                    }
+                }
                 return;
             }
 
@@ -282,12 +286,17 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             try {
                 value = propertySetTransformer.transformValue(bean, property, value);
                 metaClass.setProperty(bean, name, value);
+                result.found();
             } catch (InvokerInvocationException e) {
                 if (e.getCause() instanceof RuntimeException) {
                     throw (RuntimeException) e.getCause();
                 }
                 throw e;
             }
+        }
+
+        protected void setOpaqueProperty(String name, Object value, MetaClass metaClass) {
+            metaClass.invokeMissingProperty(bean, name, value, false);
         }
 
         @Override
@@ -336,10 +345,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return true;
         }
 
-        @Override
-        public boolean isMayImplementMissingProperties() {
-            return true;
-        }
     }
 
     /*
@@ -354,7 +359,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         private final GroovyObject groovyObject = (GroovyObject) bean;
 
         @Override
-        public void setProperty(String name, Object value) throws MissingPropertyException {
+        protected void setOpaqueProperty(String name, Object value, MetaClass metaClass) {
             groovyObject.setProperty(name, value);
         }
 

@@ -44,7 +44,7 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.getProperty("dyno") == "ok"
     }
 
-    def "can get property of closure"() {
+    def "can get property of closure delegate via closure instance"() {
         def bean = new BeanWithDynamicProperties(prop: "value")
         def cl = {}
         cl.delegate = bean
@@ -92,6 +92,80 @@ class BeanDynamicObjectTest extends Specification {
         then:
         def e = thrown(MissingPropertyException)
         e.message == "Could not get unknown property 'dyno' for ${bean}."
+    }
+
+    def "can set value of property of groovy object"() {
+        def bean = new Bean()
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.setProperty("prop", "value")
+
+        then:
+        bean.prop == "value"
+    }
+
+    def "can set property of dynamic groovy object"() {
+        def bean = new BeanWithDynamicProperties(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.setProperty("dyno", "value")
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "can set property of closure delegate via closure instance"() {
+        def bean = new BeanWithDynamicProperties()
+        def cl = {}
+        cl.delegate = bean
+        def dynamicObject = new BeanDynamicObject(cl)
+
+        when:
+        dynamicObject.setProperty("prop", "value")
+
+        then:
+        bean.prop == "value"
+    }
+
+    def "fails when set value of unknown property of groovy object"() {
+        def bean = new Bean()
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.setProperty("unknown", "value")
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.message == "Could not set unknown property 'unknown' for ${bean}."
+    }
+
+    def "fails when set value of unknown property of dynamic groovy object"() {
+        def bean = new BeanWithDynamicProperties()
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.setProperty("unknown", 12)
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.message == "Could not set unknown property 'unknown' for ${bean}."
+    }
+
+    def "fails when set value of property of dynamic groovy object and no dynamic requested"() {
+        def bean = new BeanWithDynamicProperties(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean).withNotImplementsMissing()
+
+        expect:
+        dynamicObject.setProperty("prop", "value")
+
+        when:
+        dynamicObject.setProperty("dyno", "value")
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.message == "Could not set unknown property 'dyno' for ${bean}."
     }
 
     static class Bean {

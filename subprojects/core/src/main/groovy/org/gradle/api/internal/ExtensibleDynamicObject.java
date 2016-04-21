@@ -182,6 +182,11 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         }
 
         @Override
+        public void setProperty(String name, Object value, SetPropertyResult result) {
+            setProperty(name, value);
+        }
+
+        @Override
         public boolean hasProperty(String name) {
             return snapshotInheritable().hasProperty(name);
         }
@@ -215,12 +220,6 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         public boolean isMayImplementMissingMethods() {
             return snapshotInheritable().isMayImplementMissingMethods();
         }
-
-        @Override
-        public boolean isMayImplementMissingProperties() {
-            return snapshotInheritable().isMayImplementMissingProperties();
-        }
     }
-
 }
 

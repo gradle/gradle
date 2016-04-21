@@ -37,11 +37,24 @@ public interface DynamicObject {
 
     /**
      * Gets the value of the given property, attaching it to the given result using {@link GetPropertyResult#result(Object)}.
+     *
+     * <p>Use the {@link GetPropertyResult#isFound()} method to determine whether the property has been found or not.</p>
      */
     void getProperty(String name, GetPropertyResult result);
 
+    /**
+     * Don't use this method. Use the above overload instead.
+     */
     Object getProperty(String name) throws MissingPropertyException;
 
+    /**
+     * Sets the value of the given property. The implementation should call {@link SetPropertyResult#found()} when the property value has been set.
+     */
+    void setProperty(String name, Object value, SetPropertyResult result);
+
+    /**
+     * Don't use this method. Use the above overload instead.
+     */
     void setProperty(String name, Object value) throws MissingPropertyException;
 
     Map<String, ?> getProperties();
@@ -54,7 +67,4 @@ public interface DynamicObject {
      * Used to indicate that the dynamic object may still be able to invoke the method, regardless of {@link #hasMethod(String, Object...)}
      */
     boolean isMayImplementMissingMethods();
-
-    boolean isMayImplementMissingProperties();
-
 }

@@ -62,7 +62,7 @@ class CompositeDynamicObjectTest extends Specification {
         0 * _
     }
 
-    def "fails when property cannot be found"() {
+    def "get property fails when property cannot be found"() {
         def obj1 = Mock(DynamicObject)
         def obj2 = Mock(DynamicObject)
         def obj3 = Mock(DynamicObject)
@@ -76,4 +76,48 @@ class CompositeDynamicObjectTest extends Specification {
         e.message == "Could not get unknown property 'p' for <obj>."
     }
 
+    def "set property returns on first delegate that has the property"() {
+        def obj1 = Mock(DynamicObject)
+        def obj2 = Mock(DynamicObject)
+        def obj3 = Mock(DynamicObject)
+        obj.setObjects(obj1, obj2, obj3)
+
+        when:
+        obj.setProperty("p", "value")
+
+        then:
+        1 * obj1.setProperty("p", "value", _)
+        1 * obj2.setProperty("p", "value", _) >> { String name, def value, SetPropertyResult r -> r.found() }
+        0 * _
+    }
+
+    def "set property fails when property cannot be found"() {
+        def obj1 = Mock(DynamicObject)
+        def obj2 = Mock(DynamicObject)
+        def obj3 = Mock(DynamicObject)
+        obj.setObjects(obj1, obj2, obj3)
+
+        when:
+        obj.setProperty("p", "value")
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.message == "Could not set unknown property 'p' for <obj>."
+    }
+
+    def "presents closure as a method when property has closure as value"() {
+        def backing = Mock(DynamicObject)
+        def cl = Mock(Closure)
+        obj.setObjects(backing)
+
+        given:
+        backing.hasMethod(_, _) >> false
+        backing.getProperty("thing", _) >> { String name, GetPropertyResult result -> result.result(cl) }
+
+        when:
+        obj.invokeMethod("thing", [12] as Object[])
+
+        then:
+        1 * cl.call(12)
+    }
 }

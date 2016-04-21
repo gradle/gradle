@@ -48,8 +48,17 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     @Override
+    public void setProperty(String name, Object value, SetPropertyResult result) {
+        // No such property
+    }
+
+    @Override
     public void setProperty(String name, Object value) throws MissingPropertyException {
-        throw setMissingProperty(name);
+        SetPropertyResult result = new SetPropertyResult();
+        setProperty(name, value, result);
+        if (!result.isFound()) {
+            throw setMissingProperty(name);
+        }
     }
 
     protected MissingPropertyException getMissingProperty(String name) {
@@ -79,11 +88,6 @@ public abstract class AbstractDynamicObject implements DynamicObject {
 
     @Override
     public boolean isMayImplementMissingMethods() {
-        return false;
-    }
-
-    @Override
-    public boolean isMayImplementMissingProperties() {
         return false;
     }
 

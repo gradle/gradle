@@ -741,7 +741,8 @@ public class ExtensibleDynamicObjectTest {
 
     @Test
     public void canGetAndSetGroovyDynamicProperties() {
-        DynamicObject object = new BeanDynamicObject(new DynamicGroovyBean());
+        DynamicGroovyBean bean = new DynamicGroovyBean();
+        DynamicObject object = new BeanDynamicObject(bean);
         object.setProperty("foo", "bar");
         assertThat((String) object.getProperty("foo"), equalTo("bar"));
 
@@ -756,7 +757,7 @@ public class ExtensibleDynamicObjectTest {
             object.setProperty("additional", "foo");
             fail();
         } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("No such property: additional for class: org.gradle.api.internal.DynamicGroovyBean"));
+            assertThat(e.getMessage(), equalTo("Could not set unknown property 'additional' for " + bean + "."));
         }
     }
 

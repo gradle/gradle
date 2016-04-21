@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.plugins;
 
-import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.AbstractDynamicObject;
 import org.gradle.api.internal.GetPropertyResult;
+import org.gradle.api.internal.SetPropertyResult;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 
 import java.util.Map;
@@ -55,12 +55,11 @@ public class ExtraPropertiesDynamicObjectAdapter extends AbstractDynamicObject {
     }
 
     @Override
-    public void setProperty(String name, Object value) throws MissingPropertyException {
-        if (!hasProperty(name)) {
-            throw new MissingPropertyException(name, delegateType);
+    public void setProperty(String name, Object value, SetPropertyResult result) {
+        if (extension.has(name)) {
+            extension.set(name, value);
+            result.found();
         }
-
-        extension.set(name, value);
     }
 
     @Override
@@ -68,8 +67,4 @@ public class ExtraPropertiesDynamicObjectAdapter extends AbstractDynamicObject {
         return false;
     }
 
-    @Override
-    public boolean isMayImplementMissingProperties() {
-        return false;
-    }
 }
