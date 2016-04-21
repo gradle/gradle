@@ -569,6 +569,58 @@ assert 'overridden value' == global
         failure.assertHasCause("Could not find method unknown() for arguments [12, things] on root project 'test'.")
     }
 
+    def canApplyACategoryToDecoratedObject() {
+        buildFile << '''
+            class SomeCategory {
+                static String show(Project p, String val) {
+                    "project $val path '$p.path'"
+                }
+                static String show(Task t, String val) {
+                    "task $val path '$t.path'"
+                }
+            }
+
+            task t
+
+            use(SomeCategory) {
+                assert project.show("p1") == "project p1 path ':'"
+                assert show("p2") == "project p2 path ':'"
+                assert t.show("t1") == "task t1 path ':t'"
+                tasks.t {
+                    assert show("t2") == "task t2 path ':t'"
+                }
+            }
+        '''
+
+        expect:
+        succeeds()
+    }
+
+    def canAddMethodsAndPropertiesToMetaClassOfDecoratedObject() {
+        buildFile << '''
+            class SomeTask extends DefaultTask {
+            }
+            class SomeExtension {
+            }
+
+            SomeTask.metaClass.p1 = 12
+            SomeTask.metaClass.m1 = { -> "m1" }
+            SomeExtension.metaClass.p2 = 10
+            SomeExtension.metaClass.m2 = { String p -> p }
+
+            task t(type: SomeTask)
+            extensions.add("e", SomeExtension)
+
+            assert t.p1 == 12
+            assert t.m1() == "m1"
+            assert e.p2 == 10
+            assert e.m2("hi") == "hi"
+        '''
+
+        expect:
+        succeeds()
+    }
+
     @Issue("GRADLE-2163")
     def canDecorateBooleanPrimitiveProperties() {
 
@@ -721,6 +773,45 @@ assert 'overridden value' == global
 
             assert dynamic.methods.size() == 1
             assert dynamic.props.p1 == 6
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def dynamicPropertiesTakePrecedenceOverDecorations() {
+        buildFile << """
+            class DynamicTask extends DefaultTask {
+                def props = [:]
+
+                def propertyMissing(String name) {
+                    if (props.containsKey(name)) {
+                        return props[name]
+                    }
+                    throw new MissingPropertyException(name, DynamicTask)
+                }
+
+                def propertyMissing(String name, value) {
+                    props[name] = value
+                }
+            }
+
+            task t(type: DynamicTask)
+            t.ext.p1 = 1
+            assert t.p1 == 1
+            t.p1 = 12
+            assert t.p1 == 12
+
+            assert t.ext.p1 == 1
+            assert t.props.p1 == 12
+
+            t {
+                p1 = 4
+                p1 += 1
+            }
+
+            assert t.props.p1 == 5
+            assert t.ext.p1 == 1
         """
 
         expect:
