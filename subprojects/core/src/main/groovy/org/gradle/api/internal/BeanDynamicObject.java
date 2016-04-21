@@ -24,6 +24,7 @@ import org.gradle.api.internal.coerce.PropertySetTransformer;
 import org.gradle.api.internal.coerce.StringToEnumTransformer;
 import org.gradle.internal.UncheckedException;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -32,6 +33,7 @@ import java.util.*;
  */
 public class BeanDynamicObject extends AbstractDynamicObject {
     private static final Method META_PROP_METHOD;
+    private static final Field MISSING_PROPERTY_GET_METHOD;
     private final Object bean;
     private final boolean includeProperties;
     private final DynamicObject delegate;
@@ -45,7 +47,9 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         try {
             META_PROP_METHOD = MetaClassImpl.class.getDeclaredMethod("getMetaProperty", String.class, boolean.class);
             META_PROP_METHOD.setAccessible(true);
-        } catch (NoSuchMethodException e) {
+            MISSING_PROPERTY_GET_METHOD = MetaClassImpl.class.getDeclaredField("propertyMissingGet");
+            MISSING_PROPERTY_GET_METHOD.setAccessible(true);
+        } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
@@ -118,11 +122,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
-    public Object getProperty(String name) throws MissingPropertyException {
-        return delegate.getProperty(name);
-    }
-
-    @Override
     public void getProperty(String name, GetPropertyResult result) {
         delegate.getProperty(name, result);
     }
@@ -172,16 +171,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         @Override
-        public Object getProperty(String name) throws MissingPropertyException {
-            GetPropertyResult result = new GetPropertyResult();
-            getProperty(name, result);
-            if (!result.isFound()) {
-                throw getMissingProperty(name);
-            }
-            return result.getValue();
-        }
-
-        @Override
         public void getProperty(String name, GetPropertyResult result) {
             if (!includeProperties) {
                 return;
@@ -208,6 +197,10 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 return;
             }
 
+            if (!implementsMissing) {
+                return;
+            }
+
             // Fall back to propertyMissing, if available
             MetaMethod propertyMissing = findPropertyMissingMethod(metaClass);
             if (propertyMissing != null) {
@@ -231,6 +224,16 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
         @Nullable
         private MetaMethod findPropertyMissingMethod(MetaClass metaClass) {
+            if (metaClass instanceof MetaClassImpl) {
+                // Reach into meta class to avoid lookup
+                try {
+                    return (MetaMethod) MISSING_PROPERTY_GET_METHOD.get(metaClass);
+                } catch (IllegalAccessException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+
+            // Query the declared methods of the meta class
             for (MetaMethod method : metaClass.getMethods()) {
                 if (method.getName().equals("propertyMissing") && method.getParameterTypes().length == 1) {
                     return method;

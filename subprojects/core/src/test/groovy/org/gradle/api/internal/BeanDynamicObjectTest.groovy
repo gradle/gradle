@@ -79,6 +79,21 @@ class BeanDynamicObjectTest extends Specification {
         e.message == "Could not get unknown property 'unknown' for ${bean}."
     }
 
+    def "fails when get value of property of dynamic groovy object and no dynamic requested"() {
+        def bean = new BeanWithDynamicProperties(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean).withNotImplementsMissing()
+
+        expect:
+        dynamicObject.getProperty("prop") == "value"
+
+        when:
+        dynamicObject.getProperty("dyno")
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.message == "Could not get unknown property 'dyno' for ${bean}."
+    }
+
     static class Bean {
         String prop
     }
