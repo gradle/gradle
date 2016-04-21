@@ -48,12 +48,14 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
         publishTestPlugin()
     }
 
-    def useCustomRepository() {
-        args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir()}")
-    }
-
-    def useRelativeCustomRepository() {
-        args("-Dorg.gradle.plugin.repoUrl=${mavenRepo.getRootDir().getName()}")
+    def useCustomRepository(Object path) {
+        settingsFile << """
+          pluginRepositories {
+              maven {
+                  url file("$path")
+              }
+          }
+        """
     }
 
     def "can resolve plugin from absolute maven-repo"() {
@@ -64,11 +66,13 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
           }
         """
 
+        and:
+        useCustomRepository(mavenRepo.getRootDir())
+
         when:
-        useCustomRepository()
+        succeeds("pluginTask")
 
         then:
-        succeeds("pluginTask")
         output.contains("from plugin")
     }
 
@@ -80,11 +84,13 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
           }
         """
 
+        and:
+        useCustomRepository(mavenRepo.getRootDir().getName())
+
         when:
-        useRelativeCustomRepository()
+        succeeds("pluginTask")
 
         then:
-        succeeds("pluginTask")
         output.contains("from plugin")
     }
 
@@ -99,11 +105,13 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
           }
         """
 
+        and:
+        useCustomRepository(mavenRepo.getRootDir().getName())
+
         when:
-        useCustomRepository()
+        succeeds("pluginTask")
 
         then:
-        succeeds("pluginTask")
         output.contains("I'm here")
     }
 
@@ -131,7 +139,7 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
         """
 
         and:
-        useCustomRepository()
+        useCustomRepository(mavenRepo.getRootDir().getName())
 
         when:
         fails("pluginTask")
@@ -153,14 +161,16 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
               id "org.example.plugin" version "1.1"
           }
         """
+
+        and:
+        useCustomRepository(mavenRepo.getRootDir().getName())
+
+        and:
         settingsFile << """
           include 'subproject'
         """
 
-        when:
-        useRelativeCustomRepository()
-
-        then:
+        expect:
         succeeds("subproject:pluginTask")
     }
 
@@ -174,10 +184,10 @@ class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTes
             }
         """
 
-        when:
-        useCustomRepository()
+        and:
+        useCustomRepository(mavenRepo.getRootDir().getName())
 
-        then:
+        expect:
         succeeds("helloWorld")
     }
 }

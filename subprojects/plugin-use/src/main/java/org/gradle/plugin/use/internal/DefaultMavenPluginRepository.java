@@ -39,7 +39,7 @@ class DefaultMavenPluginRepository implements MavenPluginRepository, PluginRepos
     private PluginResolver resolver;
 
 
-    DefaultMavenPluginRepository(FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
+    public DefaultMavenPluginRepository(FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
         this.fileResolver = fileResolver;
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.versionSelectorScheme = versionSelectorScheme;
@@ -47,7 +47,7 @@ class DefaultMavenPluginRepository implements MavenPluginRepository, PluginRepos
 
     @Override
     public String getName() {
-        return name;
+        return name == null ? "maven": name;
     }
 
     @Override

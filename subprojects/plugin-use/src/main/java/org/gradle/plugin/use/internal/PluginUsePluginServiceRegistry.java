@@ -105,7 +105,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
                                                                      final DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator) {
 
             final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
-            return new DefaultPluginRepositoryHandler(fileResolver, dependencyResolutionServicesFactory, versionSelectorScheme, instantiator);
+            return instantiator.newInstance(DefaultPluginRepositoryHandler.class, fileResolver, dependencyResolutionServicesFactory, versionSelectorScheme, instantiator);
         }
 
         private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider) {

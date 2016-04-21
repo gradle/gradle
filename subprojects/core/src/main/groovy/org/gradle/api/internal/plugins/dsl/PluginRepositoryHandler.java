@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.plugins.dsl;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectList;
@@ -28,16 +27,6 @@ import org.gradle.api.internal.plugins.repositories.PluginRepository;
  */
 @Incubating
 public interface PluginRepositoryHandler extends NamedDomainObjectList<PluginRepository> {
-    /**
-     * Adds and configures a {@link MavenPluginRepository}.
-     * Newly created instance of {@code MavenPluginRepository} is passed as an argument to the
-     * closure.
-     *
-     * @param closure The closure to use to configure the repository.
-     * @return The added repository.
-     */
-    MavenPluginRepository maven(Closure closure);
-
     /**
      * Adds and configures a {@link MavenPluginRepository}.
      *

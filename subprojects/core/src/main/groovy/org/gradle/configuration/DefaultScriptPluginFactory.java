@@ -16,21 +16,18 @@
 
 package org.gradle.configuration;
 
-import org.gradle.api.Action;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileLookup;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
-import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
@@ -59,9 +56,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final DocumentationRegistry documentationRegistry;
     private final ModelRuleSourceDetector modelRuleSourceDetector;
-    private PluginRepositoryHandler pluginRepositoryHandler;
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
     private final PluginRequestsSerializer pluginRequestsSerializer = new PluginRequestsSerializer();
+    private final PluginRepositoryHandler pluginRepositoryHandler;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
@@ -123,33 +120,32 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(FileLookup.class, fileLookup);
             services.add(DirectoryFileTreeFactory.class, directoryFileTreeFactory);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
+            services.add(PluginRepositoryHandler.class, pluginRepositoryHandler);
 
-            addPluginRepositories(target);
-
-            final ScriptTarget scriptTarget = wrap(target);
+            final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(scriptSource);
 
-            // Pass 1, extract plugin requests and execute buildscript {}, ignoring (i.e. not even compiling) anything else
+            // Pass 1, extract plugin requests and plugin repositories and execute buildscript {}, ignoring (i.e. not even compiling) anything else
 
-            Class<? extends BasicScript> scriptType = scriptTarget.getScriptClass();
-            boolean supportsPluginsBlock = scriptTarget.getSupportsPluginsBlock();
-            String onPluginBlockError = supportsPluginsBlock ? null : "Only Project build scripts can contain plugins {} blocks";
-            String classpathClosureName = scriptTarget.getClasspathBlockName();
-            InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(classpathClosureName, onPluginBlockError, scriptSource, documentationRegistry);
+            Class<? extends BasicScript> scriptType = initialPassScriptTarget.getScriptClass();
+            InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(scriptSource, initialPassScriptTarget, documentationRegistry);
             SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
-            String id = INTERNER.intern("cp_" + scriptTarget.getId());
+            String id = INTERNER.intern("cp_" + initialPassScriptTarget.getId());
             CompileOperation<PluginRequests> initialOperation = new FactoryBackedCompileOperation<PluginRequests>(id, initialTransformer, initialPassStatementTransformer, pluginRequestsSerializer);
 
             ScriptRunner<? extends BasicScript, PluginRequests> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
             initialRunner.run(target, services);
 
             PluginRequests pluginRequests = initialRunner.getData();
-            PluginManagerInternal pluginManager = scriptTarget.getPluginManager();
+            PluginManagerInternal pluginManager = initialPassScriptTarget.getPluginManager();
             pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, pluginManager, targetScope);
 
-            // Pass 2, compile everything except buildscript {} and plugin requests, then run
-            BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(classpathClosureName, scriptSource);
+            // Pass 2, compile everything except buildscript {}, pluginRepositories{}, and plugin requests, then run
+            final ScriptTarget scriptTarget = secondPassTarget(target);
+            scriptType = scriptTarget.getScriptClass();
+
+            BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(scriptSource, scriptTarget);
             String operationId = scriptTarget.getId();
             CompileOperation<BuildScriptData> operation = new FactoryBackedCompileOperation<BuildScriptData>(operationId, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
 
@@ -171,45 +167,37 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             scriptTarget.addConfiguration(buildScriptRunner, !hasImperativeStatements);
         }
 
-        /*
-         * While we don't have the pluginRepositories {} block, allow
-         * adding a plugin repository using a system property
-         */
-        private void addPluginRepositories(Object target) {
-            if (target instanceof  SettingsInternal && topLevelScript) {
-                SettingsInternal settings = (SettingsInternal) target;
-                final String customRepoUrl = System.getProperty("org.gradle.plugin.repoUrl");
-                if (customRepoUrl != null) {
-                    FileResolver fileResolver = fileLookup.getFileResolver(settings.getRootDir());
-                    final String normalizedUrl = fileResolver.resolveUri(customRepoUrl).toString();
-                    pluginRepositoryHandler.maven(new Action<MavenPluginRepository>() {
-                        @Override
-                        public void execute(MavenPluginRepository mavenPluginRepository) {
-                            mavenPluginRepository.setName("maven");
-                            mavenPluginRepository.setUrl(normalizedUrl);
-                        }
-                    });
-                }
-            }
+        private ScriptTarget initialPassTarget(Object target) {
+            return wrap(target, true /* isInitialPass */);
         }
 
-        private ScriptTarget wrap(Object target) {
+        private ScriptTarget secondPassTarget(Object target) {
+            return wrap(target, false /* isInitialPass */);
+        }
+
+        private ScriptTarget wrap(Object target, boolean isInitialPass) {
             if (target instanceof ProjectInternal && topLevelScript) {
                 // Only use this for top level project scripts
                 return new ProjectScriptTarget((ProjectInternal) target);
             }
             if (target instanceof GradleInternal && topLevelScript) {
                 // Only use this for top level init scripts
-                return new InitScriptTarget((GradleInternal) target);
+                if (isInitialPass) {
+                    return new InitialPassInitScriptTarget((GradleInternal) target);
+                } else {
+                    return new InitScriptTarget((GradleInternal) target);
+                }
             }
             if (target instanceof SettingsInternal && topLevelScript) {
                 // Only use this for top level settings scripts
-                return new SettingScriptTarget((SettingsInternal) target);
+                if (isInitialPass) {
+                    return new InitialPassSettingScriptTarget((SettingsInternal) target);
+                } else {
+                    return new SettingScriptTarget((SettingsInternal) target);
+                }
             } else {
                 return new DefaultScriptTarget(target);
             }
         }
-
     }
-
 }

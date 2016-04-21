@@ -24,15 +24,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVer
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.plugin.use.internal.DefaultPluginRequest
 import org.gradle.plugin.use.internal.PluginRequest
-import org.gradle.util.SetSystemProperties
-import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.plugin.use.resolve.internal.CustomRepositoryPluginResolver.REPO_SYSTEM_PROPERTY
-
 class CustomRepositoryPluginResolverTest extends Specification {
-    @Rule SetSystemProperties sysProps =  new SetSystemProperties((REPO_SYSTEM_PROPERTY): "test")
-
     def versionSelectorScheme = new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme())
     def dependencyResolutionServices = Stub(DependencyResolutionServices) {
         getResolveRepositoryHandler() >> Stub(RepositoryHandler) {

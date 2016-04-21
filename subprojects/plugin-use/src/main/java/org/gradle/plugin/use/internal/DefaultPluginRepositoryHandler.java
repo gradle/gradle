@@ -16,10 +16,8 @@
 
 package org.gradle.plugin.use.internal;
 
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Namer;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -36,7 +34,7 @@ class DefaultPluginRepositoryHandler extends DefaultNamedDomainObjectList<Plugin
     private Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
     private VersionSelectorScheme versionSelectorScheme;
 
-    DefaultPluginRepositoryHandler(FileResolver fileResolver, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory, VersionSelectorScheme versionSelectorScheme, Instantiator instantiator) {
+    public DefaultPluginRepositoryHandler(FileResolver fileResolver, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory, VersionSelectorScheme versionSelectorScheme, Instantiator instantiator) {
         super(PluginRepository.class, instantiator, new RepositoryNamer());
         this.fileResolver = fileResolver;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
@@ -52,14 +50,10 @@ class DefaultPluginRepositoryHandler extends DefaultNamedDomainObjectList<Plugin
 
     @Override
     public MavenPluginRepository maven(Action<? super MavenPluginRepository> configurationAction) {
-        DefaultMavenPluginRepository mavenPluginRepository = new DefaultMavenPluginRepository(fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme);
+        DefaultMavenPluginRepository mavenPluginRepository = getInstantiator()
+            .newInstance(DefaultMavenPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme);
         configurationAction.execute(mavenPluginRepository);
         add(mavenPluginRepository);
         return mavenPluginRepository;
-    }
-
-    @Override
-    public MavenPluginRepository maven(Closure closure) {
-        return maven(new ClosureBackedAction<MavenPluginRepository>(closure));
     }
 }

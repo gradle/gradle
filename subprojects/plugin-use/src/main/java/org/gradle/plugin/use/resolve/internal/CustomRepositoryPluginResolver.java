@@ -29,8 +29,6 @@ import org.gradle.plugin.use.internal.PluginRequest;
 import java.net.URI;
 
 public class CustomRepositoryPluginResolver implements PluginResolver {
-    public static final String REPO_SYSTEM_PROPERTY = "org.gradle.plugin.repoUrl";
-
     private final DependencyResolutionServices resolution;
     private final VersionSelectorScheme versionSelectorScheme;
 
