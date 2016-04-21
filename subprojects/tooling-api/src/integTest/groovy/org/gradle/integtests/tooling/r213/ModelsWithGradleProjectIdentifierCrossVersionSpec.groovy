@@ -106,7 +106,7 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
         modelType << modelsHavingGradleProjectIdentifier
     }
 
-    @Ignore("Test fails sporadically") // TODO:DAZ Investigate and fix
+    @Ignore("Test fails sporadically")
     @TargetGradleVersion(">=2.13")
     def "ProjectConnection with custom action provides identified models for multi-project build"() {
         when:

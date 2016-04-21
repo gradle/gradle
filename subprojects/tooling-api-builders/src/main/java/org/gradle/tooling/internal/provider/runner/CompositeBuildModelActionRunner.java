@@ -23,8 +23,9 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuild
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeContextBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeScopeServices;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.initialization.*;
+import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.ReportedException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.*;
@@ -83,7 +84,6 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         BuildActionRunner runner = new SubscribableBuildActionRunner(new BuildModelsActionRunner());
         org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(sharedServices.get(GradleLauncherFactory.class), runner);
         // TODO Need to consider how to handle builds in parallel when sharing event consumers/output streams
-        DefaultBuildRequestContext requestContext = createRequestContext(buildRequestContext);
 
         final List<Object> results = Lists.newArrayList();
         for (GradleParticipantBuild participant : compositeParameters.getBuilds()) {
@@ -96,7 +96,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
 
             BuildModelAction participantAction = new BuildModelAction(startParameter, modelAction.getModelName(), false, modelAction.getClientSubscriptions());
             try {
-                Map<String, Object> result = Cast.uncheckedCast(buildActionExecuter.execute(participantAction, requestContext, actionParameters, buildScopedServices));
+                Map<String, Object> result = Cast.uncheckedCast(buildActionExecuter.execute(participantAction, buildRequestContext, actionParameters, buildScopedServices));
                 for (Map.Entry<String, Object> e : result.entrySet()) {
                     String projectPath = e.getKey();
                     Object modelValue = e.getValue();
@@ -129,10 +129,9 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         BuildActionRunner runner = new SubscribableBuildActionRunner(new BuildModelActionRunner());
         org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, runner);
         BuildModelAction participantAction = new BuildModelAction(startParameter, ModelIdentifier.NULL_MODEL, true, compositeAction.getClientSubscriptions());
-        DefaultBuildRequestContext requestContext = createRequestContext(buildRequestContext);
         ServiceRegistry buildScopedServices = new BuildSessionScopeServices(compositeServices, startParameter, ClassPath.EMPTY);
 
-        buildActionExecuter.execute(participantAction, requestContext, null, buildScopedServices);
+        buildActionExecuter.execute(participantAction, buildRequestContext, null, buildScopedServices);
     }
 
     private Exception unwrap(ReportedException e) {
@@ -169,21 +168,14 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         CompositeContextBuilder builder = new CompositeContextBuilder(propagateFailures);
         BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, builder);
-        DefaultBuildRequestContext requestContext = createRequestContext(buildRequestContext);
 
         for (GradleParticipantBuild participant : compositeParameters.getBuilds()) {
             StartParameter startParameter = modelAction.getStartParameter().newInstance();
             startParameter.setProjectDir(participant.getProjectDir());
 
             BuildModelAction configureAction = new BuildModelAction(startParameter, ModelIdentifier.NULL_MODEL, false, modelAction.getClientSubscriptions());
-            buildActionExecuter.execute(configureAction, requestContext, null, sharedServices);
+            buildActionExecuter.execute(configureAction, buildRequestContext, null, sharedServices);
         }
         return builder.build();
-    }
-
-    private DefaultBuildRequestContext createRequestContext(BuildRequestContext buildRequestContext) {
-        // TODO:DAZ Not sure that we can't just use the provided request context
-        BuildRequestMetaData metaData = new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), System.currentTimeMillis());
-        return new DefaultBuildRequestContext(metaData, buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer(), buildRequestContext.getOutputListener(), buildRequestContext.getErrorListener());
     }
 }
