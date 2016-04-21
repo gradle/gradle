@@ -50,7 +50,8 @@ class DefaultPluginRepositoryHandler extends DefaultNamedDomainObjectList<Plugin
         }
     }
 
-    public DefaultMavenPluginRepository maven(Action<? super MavenPluginRepository> configurationAction) {
+    @Override
+    public MavenPluginRepository maven(Action<? super MavenPluginRepository> configurationAction) {
         DefaultMavenPluginRepository mavenPluginRepository = new DefaultMavenPluginRepository(fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme);
         configurationAction.execute(mavenPluginRepository);
         add(mavenPluginRepository);
