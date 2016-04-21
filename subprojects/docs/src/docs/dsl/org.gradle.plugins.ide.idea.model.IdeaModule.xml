@@ -32,6 +32,11 @@
                 </td>
             </tr>
             <tr>
+                <td>generatedSourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td/>
+            </tr>
+            <tr>
                 <td>downloadSources</td>
                 <td><literal>true</literal></td>
                 <td/>
