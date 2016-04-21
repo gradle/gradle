@@ -53,7 +53,30 @@ class DefaultPluginRepositoryHandler extends DefaultNamedDomainObjectList<Plugin
         DefaultMavenPluginRepository mavenPluginRepository = getInstantiator()
             .newInstance(DefaultMavenPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme);
         configurationAction.execute(mavenPluginRepository);
+        uniquifyName(mavenPluginRepository);
         add(mavenPluginRepository);
         return mavenPluginRepository;
     }
+
+    private void uniquifyName(MavenPluginRepository mavenPluginRepository) {
+        String name = mavenPluginRepository.getName();
+        if (name == null) {
+            name = "maven";
+        }
+        name = uniquifyName(name);
+        mavenPluginRepository.setName(name);
+    }
+
+    private String uniquifyName(String proposedName) {
+        if (findByName(proposedName) == null) {
+            return proposedName;
+        }
+        for (int index = 2; true; index++) {
+            String candidate = String.format("%s%d", proposedName, index);
+            if (findByName(candidate) == null) {
+                return candidate;
+            }
+        }
+    }
+
 }

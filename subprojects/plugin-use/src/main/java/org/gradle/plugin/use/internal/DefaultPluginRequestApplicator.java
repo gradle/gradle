@@ -28,6 +28,9 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.*;
+import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
+import org.gradle.plugin.use.resolve.internal.BackedByArtifactRepository;
+import org.gradle.api.internal.plugins.repositories.PluginRepository;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
@@ -44,10 +47,12 @@ import static org.gradle.util.CollectionUtils.collect;
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginRegistry pluginRegistry;
     private final PluginResolverFactory pluginResolverFactory;
+    private PluginRepositoryHandler pluginRepositoryHandler;
 
-    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver) {
+    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryHandler pluginRepositoryHandler) {
         this.pluginRegistry = pluginRegistry;
         this.pluginResolverFactory = pluginResolver;
+        this.pluginRepositoryHandler = pluginRepositoryHandler;
     }
 
     public void applyPlugins(PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, ClassLoaderScope classLoaderScope) {
@@ -75,6 +80,12 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
         if (!results.isEmpty()) {
             final RepositoryHandler repositories = scriptHandler.getRepositories();
+            for (PluginRepository pluginRepository : pluginRepositoryHandler) {
+                if (pluginRepository instanceof BackedByArtifactRepository) {
+                    repositories.add(((BackedByArtifactRepository) pluginRepository).getArtifactRepository());
+                }
+            }
+
             final List<MavenArtifactRepository> mavenRepos = repositories.withType(MavenArtifactRepository.class);
             final Set<String> repoUrls = Sets.newLinkedHashSet();
 
@@ -84,8 +95,13 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                     public void run() {
                         result.found.execute(new PluginResolveContext() {
                             public void addLegacy(PluginId pluginId, final String m2RepoUrl, Object dependencyNotation) {
-                                legacyActualPluginIds.put(result, pluginId);
                                 repoUrls.add(m2RepoUrl);
+                                addLegacy(pluginId, dependencyNotation);
+                            }
+
+                            @Override
+                            public void addLegacy(PluginId pluginId, Object dependencyNotation) {
+                                legacyActualPluginIds.put(result, pluginId);
                                 scriptHandler.addScriptClassPathDependency(dependencyNotation);
                             }
 

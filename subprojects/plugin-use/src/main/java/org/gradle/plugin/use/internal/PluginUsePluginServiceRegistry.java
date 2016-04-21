@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.BasicDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
@@ -92,8 +93,8 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, pluginRepositoryHandler, injectedClasspathPluginResolver);
         }
 
-        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory) {
-            return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory);
+        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, PluginRepositoryHandler pluginRepositoryHandler) {
+            return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory, pluginRepositoryHandler);
         }
 
         InjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector, InjectedPluginClasspath injectedPluginClasspath) {

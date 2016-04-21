@@ -17,18 +17,20 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.plugin.use.resolve.internal.BackedByArtifactRepository;
 import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
-import org.gradle.plugin.use.resolve.internal.CustomRepositoryPluginResolver;
+import org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.net.URI;
 
 
-class DefaultMavenPluginRepository implements MavenPluginRepository, PluginRepositoryInternal {
+class DefaultMavenPluginRepository implements MavenPluginRepository, PluginRepositoryInternal, BackedByArtifactRepository {
 
     private final FileResolver fileResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
@@ -37,7 +39,7 @@ class DefaultMavenPluginRepository implements MavenPluginRepository, PluginRepos
     private String name;
     private Object url;
     private PluginResolver resolver;
-
+    private MavenArtifactRepository artifactRepository;
 
     public DefaultMavenPluginRepository(FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
         this.fileResolver = fileResolver;
@@ -47,7 +49,7 @@ class DefaultMavenPluginRepository implements MavenPluginRepository, PluginRepos
 
     @Override
     public String getName() {
-        return name == null ? "maven": name;
+        return name;
     }
 
     @Override
@@ -68,7 +70,7 @@ class DefaultMavenPluginRepository implements MavenPluginRepository, PluginRepos
     }
 
     private void checkMutable() {
-        if (resolver != null) {
+        if (artifactRepository != null) {
             throw new IllegalStateException("A plugin repository cannot be modified after it has been used to resolve plugins.");
         }
     }
@@ -76,15 +78,22 @@ class DefaultMavenPluginRepository implements MavenPluginRepository, PluginRepos
     @Override
     public PluginResolver asResolver() {
         if (resolver == null) {
-            dependencyResolutionServices.getResolveRepositoryHandler().maven(new Action<MavenArtifactRepository>() {
+            resolver = new ArtifactRepositoryPluginResolver(getArtifactRepository(), dependencyResolutionServices, versionSelectorScheme);
+        }
+        return resolver;
+    }
+
+    @Override
+    public ArtifactRepository getArtifactRepository() {
+        if (artifactRepository == null) {
+            artifactRepository = dependencyResolutionServices.getResolveRepositoryHandler().maven(new Action<MavenArtifactRepository>() {
                 @Override
                 public void execute(MavenArtifactRepository mavenArtifactRepository) {
                     mavenArtifactRepository.setName(name);
                     mavenArtifactRepository.setUrl(url);
                 }
             });
-            resolver = new CustomRepositoryPluginResolver(dependencyResolutionServices, versionSelectorScheme);
         }
-        return resolver;
+        return artifactRepository;
     }
 }

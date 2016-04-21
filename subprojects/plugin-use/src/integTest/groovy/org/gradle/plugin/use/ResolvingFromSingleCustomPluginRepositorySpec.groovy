@@ -23,7 +23,7 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @LeaksFileHandles
-class CustomRepositoryPluginResolverSpec extends AbstractDependencyResolutionTest {
+class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyResolutionTest {
 
     private publishTestPlugin() {
         def pluginBuilder = new PluginBuilder(testDirectory.file("plugin"))

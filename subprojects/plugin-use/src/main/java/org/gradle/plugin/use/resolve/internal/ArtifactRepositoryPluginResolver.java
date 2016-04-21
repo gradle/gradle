@@ -19,20 +19,21 @@ package org.gradle.plugin.use.resolve.internal;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
-import java.net.URI;
+public class ArtifactRepositoryPluginResolver implements PluginResolver {
 
-public class CustomRepositoryPluginResolver implements PluginResolver {
+    private ArtifactRepository repository;
     private final DependencyResolutionServices resolution;
     private final VersionSelectorScheme versionSelectorScheme;
 
-    public CustomRepositoryPluginResolver(DependencyResolutionServices resolution, VersionSelectorScheme versionSelectorScheme) {
+    public ArtifactRepositoryPluginResolver(ArtifactRepository repository, DependencyResolutionServices resolution, VersionSelectorScheme versionSelectorScheme) {
+        this.repository = repository;
         this.resolution = resolution;
         this.versionSelectorScheme = versionSelectorScheme;
     }
@@ -76,7 +77,7 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
             }
 
             public void execute(PluginResolveContext context) {
-                context.addLegacy(pluginRequest.getId(), getUrl().toString(), getMarkerCoordinates(pluginRequest));
+                context.addLegacy(pluginRequest.getId(), getMarkerCoordinates(pluginRequest));
             }
         });
     }
@@ -89,20 +90,7 @@ public class CustomRepositoryPluginResolver implements PluginResolver {
         return pluginRequest.getId() + ":" + pluginRequest.getId() + ":" + pluginRequest.getVersion();
     }
 
-    private URI getUrl() {
-        return getRepository().getUrl();
-    }
-
     private String getName() {
-        return getRepository().getName();
-    }
-
-    /*
-     * Right now we only support a single Maven repository.
-     * This will be changed soon, so that this class just takes
-     * an existing repository and does not need to inspect its URL or name.
-     */
-    private MavenArtifactRepository getRepository() {
-        return (MavenArtifactRepository) resolution.getResolveRepositoryHandler().get(0);
+        return repository.getName();
     }
 }
