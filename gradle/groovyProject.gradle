@@ -106,7 +106,11 @@ class ClasspathManifest extends DefaultTask {
 
     @TaskAction
     def generate() {
-        manifestFile.withOutputStream { properties.save(it, 'module definition') }
+        // Remove Properties timestamp for reproducible build
+        def sw = new StringWriter()
+        getProperties().store(sw, "")
+        def content = sw.toString().split(/\n/).findAll { !it.startsWith("#") }.join("\n")
+        manifestFile.setText(content, "utf-8")
     }
 }
 

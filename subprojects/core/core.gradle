@@ -92,12 +92,16 @@ class PluginsManifest extends DefaultTask {
     @Input
     Properties getPluginProperties() {
         def properties = new Properties()
-        properties.plugins = project.pluginProjects.collect { it.archivesBaseName }.join(',')
+        properties.plugins = project.pluginProjects.collect { it.archivesBaseName }.sort().join(',')
         return properties
     }
 
     @TaskAction
     def generate() {
-        propertiesFile.withOutputStream { pluginProperties.save(it, 'plugin definitions') }
+        // Remove Properties timestamp for reproducible build
+        def sw = new StringWriter()
+        pluginProperties.store(sw, "")
+        def content = sw.toString().split(/\n/).findAll { !it.startsWith("#") }.join("\n")
+        propertiesFile.setText(content, "utf-8")
     }
 }
