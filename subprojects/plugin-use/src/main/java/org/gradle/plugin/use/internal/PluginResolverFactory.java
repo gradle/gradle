@@ -18,8 +18,6 @@ package org.gradle.plugin.use.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
-import org.gradle.api.internal.plugins.repositories.PluginRepository;
 import org.gradle.internal.Factory;
 import org.gradle.plugin.use.resolve.internal.*;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
@@ -33,20 +31,20 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
     private final PluginRegistry pluginRegistry;
     private final DocumentationRegistry documentationRegistry;
     private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
-    private final PluginRepositoryHandler pluginRepositoryHandler;
+    private final CustomRepositoryPluginResolver customRepositoryPluginResolver;
     private final InjectedClasspathPluginResolver injectedClasspathPluginResolver;
 
     public PluginResolverFactory(
-        PluginRegistry pluginRegistry,
-        DocumentationRegistry documentationRegistry,
-        PluginResolutionServiceResolver pluginResolutionServiceResolver,
-        PluginRepositoryHandler pluginRepositoryHandler,
-        InjectedClasspathPluginResolver injectedClasspathPluginResolver
+            PluginRegistry pluginRegistry,
+            DocumentationRegistry documentationRegistry,
+            PluginResolutionServiceResolver pluginResolutionServiceResolver,
+            CustomRepositoryPluginResolver customRepositoryPluginResolver,
+            InjectedClasspathPluginResolver injectedClasspathPluginResolver
     ) {
         this.pluginRegistry = pluginRegistry;
         this.documentationRegistry = documentationRegistry;
         this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
-        this.pluginRepositoryHandler = pluginRepositoryHandler;
+        this.customRepositoryPluginResolver = customRepositoryPluginResolver;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
     }
 
@@ -66,7 +64,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
      *     <li>{@link NoopPluginResolver} - Only used in tests.</li>
      *     <li>{@link CorePluginResolver} - distributed with Gradle</li>
      *     <li>{@link InjectedClasspathPluginResolver} - from a TestKit test's ClassPath</li>
-     *     <li>{@link CustomRepositoryPluginResolver}s - from custom Maven/Ivy repositories</li>
+     *     <li>{@link CustomRepositoryPluginResolver} - from custom Maven/Ivy repositories</li>
      *     <li>{@link PluginResolutionServiceResolver} - from Gradle Plugin Portal</li>
      * </ol>
      * <p>
@@ -81,11 +79,7 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
             resolvers.add(injectedClasspathPluginResolver);
         }
 
-        for (PluginRepository pluginRepository : pluginRepositoryHandler) {
-            PluginResolver resolver = ((PluginRepositoryInternal) pluginRepository).asResolver();
-            resolvers.add(resolver);
-        }
-
+        resolvers.add(customRepositoryPluginResolver);
         resolvers.add(pluginResolutionServiceResolver);
     }
 }
