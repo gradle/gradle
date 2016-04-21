@@ -18,50 +18,13 @@ package org.gradle.tooling.internal.provider.runner;
 
 import com.beust.jcommander.internal.Maps;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.execution.ProjectConfigurer;
-import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.invocation.BuildController;
-import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
-import org.gradle.tooling.internal.provider.BuildModelAction;
-import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
-import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
-import org.gradle.tooling.provider.model.UnknownModelException;
+import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
 
 import java.util.Map;
 
-public class BuildModelsActionRunner implements BuildActionRunner {
-    @Override
-    public void run(BuildAction action, BuildController buildController) {
-        if (!(action instanceof BuildModelAction)) {
-            return;
-        }
-
-        BuildModelAction buildModelAction = (BuildModelAction) action;
-        GradleInternal gradle = buildController.getGradle();
-
-        buildController.configure();
-        // Currently need to force everything to be configured
-        gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
-        // TODO:DAZ Probably need to do this
-/*
-        for (Project project : gradle.getRootProject().getAllprojects()) {
-            ProjectInternal projectInternal = (ProjectInternal) project;
-            projectInternal.getTasks().discoverTasks();
-            projectInternal.bindAllModelRules();
-        }
-*/
-
-        String modelName = buildModelAction.getModelName();
-        ToolingModelBuilderRegistry builderRegistry = getToolingModelBuilderRegistry(gradle);
-        ToolingModelBuilder builder;
-        try {
-            builder = builderRegistry.getBuilder(modelName);
-        } catch (UnknownModelException e) {
-            throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
-        }
-
+public class BuildModelsActionRunner extends BuildModelActionRunner {
+    protected Object createModelResult(GradleInternal gradle, String modelName, ToolingModelBuilder builder) {
         Map<String, Object> models = Maps.newLinkedHashMap();
         if (builder instanceof ProjectToolingModelBuilder) {
             ((ProjectToolingModelBuilder) builder).addModels(modelName, gradle.getDefaultProject(), models);
@@ -69,10 +32,6 @@ public class BuildModelsActionRunner implements BuildActionRunner {
             Object result = builder.buildAll(modelName, gradle.getDefaultProject());
             models.put(gradle.getDefaultProject().getPath(), result);
         }
-        buildController.setResult(models);
-    }
-
-    private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {
-        return gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
+        return models;
     }
 }

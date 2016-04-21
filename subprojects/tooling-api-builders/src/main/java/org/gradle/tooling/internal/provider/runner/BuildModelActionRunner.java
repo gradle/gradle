@@ -64,6 +64,11 @@ public class BuildModelActionRunner implements BuildActionRunner {
             throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
         }
 
+        Object modelResult = createModelResult(gradle, modelName, builder);
+        buildController.setResult(modelResult);
+    }
+
+    protected Object createModelResult(GradleInternal gradle, String modelName, ToolingModelBuilder builder) {
         Object result;
         if (builder instanceof ProjectSensitiveToolingModelBuilder) {
             result = ((ProjectSensitiveToolingModelBuilder) builder).buildAll(modelName, gradle.getDefaultProject(), true);
@@ -72,8 +77,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
 
         PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
-        BuildActionResult buildActionResult = new BuildActionResult(payloadSerializer.serialize(result), null);
-        buildController.setResult(buildActionResult);
+        return new BuildActionResult(payloadSerializer.serialize(result), null);
     }
 
     private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {
