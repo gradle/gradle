@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r214
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.eclipse.EclipseExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 
@@ -26,12 +27,15 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
+        def mavenRepo = new MavenFileRepository(file("maven-repo"))
+        mavenRepo.module("org.example", "example-lib", "1.0").publish()
+
         settingsFile << "rootProject.name = 'root'; include 'sub'"
         buildFile << """allprojects { apply plugin: 'java' }
-repositories { jcenter() }
+repositories { maven { url '${mavenRepo.uri}' } }
 dependencies {
     compile project(':sub')
-    compile 'org.slf4j:slf4j-api:1.7.12'
+    compile 'org.example:example-lib:1.0'
 }"""
 
     }
