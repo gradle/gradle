@@ -43,12 +43,12 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.model.internal.inspect.ModelRuleExtractor
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.model.internal.registry.ModelRegistry
@@ -74,6 +74,7 @@ class ProjectScopeServicesTest extends Specification {
     ModelRuleSourceDetector modelRuleSourceDetector = Mock()
     def classLoaderScope = Mock(ClassLoaderScope)
     DependencyResolutionServices dependencyResolutionServices = Stub()
+    Factory<LoggingManagerInternal> loggingManagerInternalFactory = Mock()
 
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
@@ -97,7 +98,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(DirectoryFileTreeFactory) >> Stub(DirectoryFileTreeFactory)
         parent.get(ModelRuleSourceDetector) >> modelRuleSourceDetector
         parent.get(ModelRuleExtractor) >> Stub(ModelRuleExtractor)
-        registry = new ProjectScopeServices(parent, project)
+        registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }
 
     def "creates a registry for a task"() {
@@ -113,7 +114,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.getAll(PluginServiceRegistry) >> [plugin1, plugin2]
 
         when:
-        new ProjectScopeServices(parent, project)
+        new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
 
         then:
         1 * plugin1.registerProjectServices(_)
@@ -136,7 +137,7 @@ class ProjectScopeServicesTest extends Specification {
         def testDslService = Stub(Runnable)
 
         when:
-        def registry = new ProjectScopeServices(parent, project)
+        def registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
         def service = registry.get(Runnable)
 
         then:
@@ -184,11 +185,8 @@ class ProjectScopeServicesTest extends Specification {
     }
 
     def "provides a LoggingManager"() {
-        Factory<LoggingManagerInternal> loggingManagerFactory = Mock()
         LoggingManager loggingManager = Mock(LoggingManagerInternal)
-
-        parent.getFactory(LoggingManagerInternal) >> loggingManagerFactory
-        1 * loggingManagerFactory.create() >> loggingManager
+        1 * loggingManagerInternalFactory.create() >> loggingManager
 
         expect:
         registry.get(LoggingManager).is loggingManager

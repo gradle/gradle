@@ -23,12 +23,13 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.concurrent.CompositeStoppable
+import org.gradle.internal.logging.LoggingManagerInternal
+import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.ProjectScopeServices
-import org.gradle.internal.logging.services.LoggingServiceRegistry
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.TestUtil
 
@@ -81,7 +82,7 @@ class ToolingApiDistributionResolver {
         StartParameter startParameter = new StartParameter()
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         BuildScopeServices topLevelRegistry = BuildScopeServices.singleSession(globalRegistry, startParameter)
-        ProjectScopeServices projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.createRootProject())
+        ProjectScopeServices projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.createRootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))
 
         stopLater.add(projectRegistry)
         stopLater.add(topLevelRegistry)

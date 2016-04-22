@@ -34,6 +34,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -115,10 +116,11 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
+        final Factory<LoggingManagerInternal> loggingManagerInternalFactory = getFactory(LoggingManagerInternal.class);
         return new ServiceRegistryFactory() {
             public ServiceRegistry createFor(Object domainObject) {
                 if (domainObject instanceof ProjectInternal) {
-                    ProjectScopeServices projectScopeServices = new ProjectScopeServices(services, (ProjectInternal) domainObject);
+                    ProjectScopeServices projectScopeServices = new ProjectScopeServices(services, (ProjectInternal) domainObject, loggingManagerInternalFactory);
                     registries.add(projectScopeServices);
                     return projectScopeServices;
                 }

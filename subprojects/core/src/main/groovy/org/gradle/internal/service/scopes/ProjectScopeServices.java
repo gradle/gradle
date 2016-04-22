@@ -69,10 +69,12 @@ import java.io.File;
  */
 public class ProjectScopeServices extends DefaultServiceRegistry {
     private final ProjectInternal project;
+    private final Factory<LoggingManagerInternal> loggingManagerInternalFactory;
 
-    public ProjectScopeServices(final ServiceRegistry parent, final ProjectInternal project) {
+    public ProjectScopeServices(final ServiceRegistry parent, final ProjectInternal project, Factory<LoggingManagerInternal> loggingManagerInternalFactory) {
         super(parent);
         this.project = project;
+        this.loggingManagerInternalFactory = loggingManagerInternalFactory;
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
                 registration.add(DomainObjectContext.class, project);
@@ -101,7 +103,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected LoggingManagerInternal createLoggingManager() {
-        return getFactory(LoggingManagerInternal.class).create();
+        return loggingManagerInternalFactory.create();
     }
 
     protected ProjectConfigurationActionContainer createProjectConfigurationActionContainer() {
