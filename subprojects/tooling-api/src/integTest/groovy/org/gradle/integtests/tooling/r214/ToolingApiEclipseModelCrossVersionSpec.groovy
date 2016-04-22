@@ -37,7 +37,7 @@ dependencies {
     }
 
     @TargetGradleVersion("<2.14")
-    def "older Gradle versions throw OperatioNotSupportedException when classpath attributes are accessed"() {
+    def "older Gradle versions throw UnsupportedOperationException when classpath attributes are accessed"() {
         setup:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
         Collection<EclipseExternalDependency> projectDependencies = rootProject.getProjectDependencies()
