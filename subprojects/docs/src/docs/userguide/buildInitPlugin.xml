@@ -115,9 +115,9 @@
                 The “<literal>pom</literal>” type can be used to convert an Apache Maven build to a Gradle build.
                 This works by converting the POM to one or more Gradle files.
                 It is only able to be used if there is a valid “<literal>pom.xml</literal>”
-                file in the directory that the
-                <literal>init</literal>
-                task is invoked in. This type will be automatically inferred if such a file exists.
+                file in the directory that the <literal>init</literal> task is invoked in or, if invoked via
+                the "<literal>-p</literal>" <link linkend="gradle_command_line">commandline option</link>, in the specified project directory.
+                This “<literal>pom</literal>” type will be automatically inferred if such a file exists.
             </para>
             <para>
                 The Maven conversion implementation was inspired by the
