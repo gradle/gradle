@@ -127,7 +127,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         if (conflictResolution instanceof StrictConflictResolution) {
             conflictResolver = new StrictConflictResolver();
         } else {
-            conflictResolver = new ProjectDependencyForcingResolver(new LatestModuleConflictResolver(versionComparator));
+            conflictResolver = new ProjectDependencyForcingResolver(resolutionStrategy.getCallingModule(), new LatestModuleConflictResolver(versionComparator));
         }
         conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
         return new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());

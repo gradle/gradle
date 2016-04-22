@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
+import org.gradle.api.artifacts.Module;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 
@@ -23,9 +25,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 class ProjectDependencyForcingResolver implements ModuleConflictResolver {
+    private Module callingModule;
     private final ModuleConflictResolver delegate;
 
-    public ProjectDependencyForcingResolver(ModuleConflictResolver delegate) {
+    public ProjectDependencyForcingResolver(Module callingModule, ModuleConflictResolver delegate) {
+        this.callingModule = callingModule;
         this.delegate = delegate;
     }
     @Override
@@ -36,6 +40,9 @@ class ProjectDependencyForcingResolver implements ModuleConflictResolver {
         for(T candidate: candidates) {
             ComponentResolveMetaData metaData = candidate.getMetaData();
             if (metaData!=null && metaData.getComponentId() instanceof ProjectComponentIdentifier) {
+                ModuleVersionIdentifier moduleId = metaData.getId();
+                if (callingModule!=null && (callingModule.getGroup().equals(moduleId.getGroup())
+                && callingModule.getName().equals(moduleId.getName()))) continue;
                 if (foundProjectCandidate==null) {
                     foundProjectCandidate = candidate;
                 } else {
