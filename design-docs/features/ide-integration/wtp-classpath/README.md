@@ -48,28 +48,6 @@ The classpath attributes will not yet be populated.
 
 - requesting the classpath attributes on any Gradle version returns an empty list
 
-###Story: Tooling API adds the deployed/non-deployed attributes
-
-####API
-
-No change
-
-####Implementation
-
-There is existing logic setting the deployed(`org.eclipse.jst.component.dependency`)
-and non-deployed(`org.eclipse.jst.component.nondependency`) attributes in the
-`EclipseWtpPlugin`. The logic is contained in a `classpath.file.whenMerged` hook.
-It should be extracted and reused in the `EclipseModelBuilder`.
-To make sure the `WtpComponent` is available, we will automatically apply the
-`EclipseWtpPlugin` in the `EclipseModelBuilder` when the `war` or `ear` plugins
-are applied.
-
-####Test cases
-
-- The `EclipseWtp*IntegrationTest` contain test logic for the deployed/non-deployed attribute.
-The tooling API should pass the same tests.
-- When neither the `war`, `ear`, nor the `eclipse-wtp` plugins are applied, no dependencies are marked with attributes
-
 ###Story: Buildship consumes classpath attributes
 
 ####API
@@ -106,6 +84,8 @@ Running all the test cases from the previous story again in Buildship
 might be overkill, since it is just a passive consumer of classpath attributes.
 The two simple test cases above should be enough to ensure Buildship is using
 the TAPI correctly.
+
+### Story: Tooling API adds the deployed/non-deployed attributes
 
 #### Motivation
 
@@ -150,7 +130,7 @@ All project dependencies are marked as 'org.eclipse.jst.component.nondependency'
 - all other external dependencies are marked with 'org.eclipse.jst.component.nondependency'
 - project dependencies are marked with 'org.eclipse.jst.component.nondependency'
 
-###Story: Back-port correct logic to Gradle Core (GRADLE-2123)
+### Story: Back-port correct logic to Gradle Core (GRADLE-2123)
 
 #### Motivation
 
