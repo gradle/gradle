@@ -15,9 +15,32 @@ interface Person {
     Address getAddress()
 }
 
+@Managed
+interface Programmer extends Person {
+    int getDesiredSalary()
+    void setDesiredSalary(int suggestedSalary)
+
+    int getActualSalary()
+    void setActualSalary(int actualSalary)
+}
+
+@Managed
+interface Cloud {
+    String getLooksLike()
+    void setLooksLike(String looksLike)
+}
+
+@Managed
+interface Cirrus extends Cloud {
+}
+
 class PersonRules extends RuleSource {
     @Model
     void people(ModelMap<Person> people) {
+    }
+
+    @Model
+    void sky(ModelSet<Cloud> sky) {
     }
 }
 
@@ -75,17 +98,26 @@ model {
 // START SNIPPET model-map-nested-configure-rule
 // START SNIPPET model-map-nested-create-rule
 // START SNIPPET model-map-all-rule
+// START SNIPPET model-set-create
 model {
+// END SNIPPET model-set-create
     people {
 // END SNIPPET model-map-nested-create-rule
 // END SNIPPET model-map-all-rule
         john {
             lastName = "Smith"
         }
+        michael {
+            actualSalary = 3
+        }
 // END SNIPPET model-map-nested-configure-rule
 // START SNIPPET model-map-nested-create-rule
         john(Person) {
             firstName = "John"
+        }
+        michael(Programmer) {
+            firstName = "Michael"
+            desiredSalary = Long.MAX_VALUE
         }
 // END SNIPPET model-map-nested-create-rule
 // START SNIPPET model-map-all-rule
@@ -97,6 +129,16 @@ model {
             firstName = "Barry"
             lastName = "Barry"
         }
+    }
+// START SNIPPET model-set-create
+    sky(ModelSet<Cloud>) {
+        create(Cloud) {
+            looksLike = "A Fish"
+        }
+        create(Cirrus) {
+            looksLike = "Cotton Candy"
+        }
+// END SNIPPET model-set-create
     }
     tasks {
         listPeople(Task) {
@@ -110,8 +152,10 @@ model {
 // START SNIPPET model-map-nested-create-rule
 // START SNIPPET model-map-nested-configure-rule
 // START SNIPPET model-map-all-rule
+// START SNIPPET model-set-create
     }
 }
 // END SNIPPET model-map-nested-configure-rule
 // END SNIPPET model-map-nested-create-rule
 // END SNIPPET model-map-all-rule
+// END SNIPPET model-set-create

@@ -71,17 +71,22 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     }
 
     @Override
-    public void create(final Action<? super T> action) {
+    public void create(Action<? super T> action) {
+        create(getElementTypeClass(), action);
+    }
+
+    @Override
+    public <S extends T> void create(Class<S> type, final Action<? super T> action) {
         state.assertCanMutate();
 
-        String name = String.valueOf(modelNode.getLinkCount(ModelNodes.withType(elementType)));
+        String name = String.valueOf(modelNode.getLinkCount(ModelNodes.withType(type)));
         ModelPath childPath = modelNode.getPath().child(name);
         final ModelRuleDescriptor descriptor = this.descriptor.append("create()");
 
-        NodeInitializer nodeInitializer = creatorStrategy.initializer(elementType, Specs.<ModelType<?>>satisfyAll());
+        NodeInitializer nodeInitializer = creatorStrategy.initializer(ModelType.of(type), Specs.<ModelType<?>>satisfyAll());
         ModelRegistration registration = ModelRegistrations.of(childPath, nodeInitializer)
             .descriptor(descriptor)
-            .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(childPath, elementType), descriptor, action))
+            .action(ModelActionRole.Initialize, NoInputsModelAction.of(ModelReference.of(childPath, type), descriptor, action))
             .build();
 
         modelNode.addLink(registration);
@@ -165,9 +170,39 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
         throw new UnsupportedOperationException();
     }
 
-    // TODO - mix this in using decoration. Also validate closure parameter types, if declared
+    // TODO - mix this in using decoration.
     public void create(Closure<?> closure) {
-        create(ClosureBackedAction.of(closure));
+        create(getElementTypeClass(), closure);
+    }
+
+    public void create(Class<? extends T> type, Closure<?> closure) {
+        if (hasNoParameters(closure)) {
+            create(ClosureBackedAction.of(closure));
+        } else if (hasOneParameter(closure)) {
+            validateClosureParameter(type, closure);
+            create(type, ClosureBackedAction.of(closure));
+        } else {
+            throw new TooManyClosureParametersException(type);
+        }
+    }
+
+    private boolean hasNoParameters(Closure<?> closure) {
+        return closure.getParameterTypes().length == 0;
+    }
+
+    private boolean hasOneParameter(Closure<?> closure) {
+        return closure.getParameterTypes().length == 1;
+    }
+
+    private void validateClosureParameter(Class<? extends T> type, Closure<?> closure) {
+        if (!Object.class.equals(closure.getParameterTypes()[0]) && !type.equals(closure.getParameterTypes()[0])) {
+            throw new InvalidModelSetClosureParameterException(type, closure);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Class<? extends T> getElementTypeClass() {
+        return (Class<? extends T>) elementType.getRawClass();
     }
 
     public void afterEach(Closure<?> closure) {
