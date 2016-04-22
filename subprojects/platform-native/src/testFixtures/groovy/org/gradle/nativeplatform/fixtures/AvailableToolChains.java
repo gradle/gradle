@@ -36,7 +36,7 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioInstall;
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualStudioLocator;
 import org.gradle.nativeplatform.toolchain.plugins.ClangCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.GccCompilerPlugin;
-import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppPlugin;
+import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppCompilerPlugin;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
@@ -464,7 +464,7 @@ public class AvailableToolChains {
 
         @Override
         public String getPluginClass() {
-            return MicrosoftVisualCppPlugin.class.getSimpleName();
+            return MicrosoftVisualCppCompilerPlugin.class.getSimpleName();
         }
 
         public boolean isVisualCpp() {

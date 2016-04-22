@@ -20,7 +20,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.nativeplatform.toolchain.plugins.ClangCompilerPlugin;
 import org.gradle.nativeplatform.toolchain.plugins.GccCompilerPlugin;
-import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppPlugin;
+import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppCompilerPlugin;
 
 /**
  * Registers the standard tool chains.
@@ -28,7 +28,7 @@ import org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppPlugin;
 public class StandardToolChainsPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        project.getPluginManager().apply(MicrosoftVisualCppPlugin.class);
+        project.getPluginManager().apply(MicrosoftVisualCppCompilerPlugin.class);
         project.getPluginManager().apply(GccCompilerPlugin.class);
         project.getPluginManager().apply(ClangCompilerPlugin.class);
     }

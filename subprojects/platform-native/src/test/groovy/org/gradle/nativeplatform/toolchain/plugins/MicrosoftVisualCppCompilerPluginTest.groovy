@@ -23,13 +23,13 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCppToolChain
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 
-class MicrosoftVisualCppPluginTest extends NativeToolChainPluginTest {
+class MicrosoftVisualCppCompilerPluginTest extends NativeToolChainPluginTest {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     @Override
     Class<? extends Plugin> getPluginClass() {
-        MicrosoftVisualCppPlugin
+        MicrosoftVisualCppCompilerPlugin
     }
 
     @Override
@@ -44,7 +44,7 @@ class MicrosoftVisualCppPluginTest extends NativeToolChainPluginTest {
 
     def "can apply plugin by id"() {
         given:
-        project.apply plugin: 'visualcpp-compiler'
+        project.apply plugin: 'microsoft-visual-cpp-compiler'
 
         expect:
         project.plugins.hasPlugin(pluginClass)

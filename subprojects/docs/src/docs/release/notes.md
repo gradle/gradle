@@ -24,22 +24,6 @@ See the “[Filtering files](userguide/working_with_files.html#sec:filtering_fil
 
 This was contributed by [Jean-Baptiste Nizet](https://github.com/jnizet).
 
-### Apply gradle core plugins by id
-
-Some gradle core plugins can now be applied by id:
-
-    plugins {
-        id 'standard-toolchains' // StandardToolChainsPlugin
-        id 'gcc-compiler' // GccCompilerPlugin
-        id 'component-base' // ComponentBasePlugin
-        id 'component-model-base' // ComponentModelBasePlugin
-        id 'reporting-base' // ReportingBasePlugin
-        id 'clang-compiler' // ClangCompilerPlugin
-        id 'native-component-model' // NativeComponentModelPlugin
-        id 'lifecycle-base' // LifecycleBasePlugin
-        id 'visualcpp-compiler' // MicrosoftVisualCppPlugin
-    }
-
 ### Generated POM files now include classifiers and all artifacts for project dependencies
 
 When publishing from a multi-project build to a Maven repository using the `maven` plugin, Gradle needs to map project dependencies to `<dependency>` declarations in the generated POM file. Previously, Gradle was ignoring the classifier attribute on any project artifacts, and would simply create a single `<dependency>` entry in the POM for any project dependency. This meant that the published POM for a project didn't contain the necessary dependencies to allow that project to be properly resolved from a Maven repository.
