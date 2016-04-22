@@ -67,7 +67,7 @@
 
     </section>
 
-    <section>
+    <section id="sec:wrapper_generation">
         <title>Adding the Wrapper to a project</title>
         <para>
             The Wrapper is something you <emphasis>should</emphasis> check into version control. By distributing the Wrapper with your project,
