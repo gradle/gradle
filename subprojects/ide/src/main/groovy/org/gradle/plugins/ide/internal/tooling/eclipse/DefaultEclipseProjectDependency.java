@@ -17,26 +17,26 @@ package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 
-public class DefaultEclipseProjectDependency implements Serializable {
+public class DefaultEclipseProjectDependency extends DefaultEclipseDependency implements Serializable {
     private final String path;
     private final File targetProjectDirectory;
 
-    private final boolean exported;
     private final DefaultEclipseProject target;
 
     public DefaultEclipseProjectDependency(String path, DefaultEclipseProject target, boolean exported) {
+        super(exported, new ArrayList<DefaultClasspathAttribute>());
         this.target = target;
         this.path = path;
         this.targetProjectDirectory = target.getProjectDirectory();
-        this.exported = exported;
     }
 
     public DefaultEclipseProjectDependency(String path, File targetProjectDirectory, boolean exported) {
+        super(exported, new ArrayList<DefaultClasspathAttribute>());
         this.target = null;
         this.path = path;
         this.targetProjectDirectory = targetProjectDirectory;
-        this.exported = exported;
     }
 
     public DefaultEclipseProject getTargetProject() {
@@ -49,10 +49,6 @@ public class DefaultEclipseProjectDependency implements Serializable {
 
     public String getPath() {
         return path;
-    }
-
-    public boolean isExported() {
-        return exported;
     }
 
     @Override

@@ -115,6 +115,14 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
         this.classpath = classpath;
     }
 
+    public List<DefaultEclipseExternalDependency> getExternalDependencies() {
+        return classpath;
+    }
+
+    public void setExternalDependencies(List<DefaultEclipseExternalDependency> externalDependencies) {
+        this.classpath = classpath;
+    }
+
     public Iterable<? extends DefaultEclipseTask> getTasks() {
         return tasks;
     }
