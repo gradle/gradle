@@ -26,6 +26,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshot
 import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter
+import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectScript
 import org.gradle.groovy.scripts.*
@@ -63,9 +64,10 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def directoryFileTreeFactory = Mock(DirectoryFileTreeFactory)
     def documentationRegistry = Mock(DocumentationRegistry)
     def classPathSnapshotter = Mock(ClassPathSnapshotter)
+    def pluginRepositoryHandler = Mock(PluginRepositoryHandler)
 
     def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
-        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector())
+        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), pluginRepositoryHandler)
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)
