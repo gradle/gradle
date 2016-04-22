@@ -4,21 +4,24 @@ if (buildTypes.promotionBuild.active) {
 
 ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
 ext.finalRelease = project.hasProperty("finalRelease")
+boolean timestampedVersion
 if (project.hasProperty("timestampedVersion")) {
     def value = project.property("timestampedVersion")
-    ext.timestampedVersion = value != "false"
+    timestampedVersion = value != "false"
 } else {
-    ext.timestampedVersion = gradle.startParameter.taskNames.contains("install") || gradle.startParameter.taskNames.contains("installAll")
+    timestampedVersion = gradle.startParameter.taskNames.contains("install") || gradle.startParameter.taskNames.contains("installAll")
 }
 if (rcNumber != null && finalRelease) {
     throw new InvalidUserDataException("Cannot set rcNumber and finalRelease at the same time")
 }
-ext.snapshotBuild = rcNumber == null && !finalRelease && !timestampedVersion;
+
 
 if (incomingDistributionsBuildReceipt) {
     ext.versionBase = incomingDistributionsBuildReceipt.versionBase
     ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
+    ext.snapshotBuild = false
 } else {
+    ext.snapshotBuild = rcNumber == null && !finalRelease && !timestampedVersion;
     ext.versionBase = rootProject.file("version.txt").text.trim()
 
     if (snapshotBuild) {
