@@ -324,6 +324,9 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return true;
         }
 
+
+
+
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
             for (DefaultModuleResolutionFilter excludeSpec : excludeSpecs) {
                 if (!excludeSpec.acceptArtifact(module, artifact)) {
@@ -354,26 +357,27 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                 return this;
             }
 
-            List<DefaultModuleResolutionFilter> merged = new ArrayList<DefaultModuleResolutionFilter>();
-
-            boolean allExcludes = true;
-            for (DefaultModuleResolutionFilter thisSpec : excludeSpecs) {
-                if (thisSpec instanceof ExcludeRuleSpec) {
-                    continue;
+            // Can only merge exact match rules, so don't try if this or the other spec contains any other type of rule
+            for (DefaultModuleResolutionFilter excludeSpec : excludeSpecs) {
+                if (excludeSpec instanceof ExcludeRuleSpec) {
+                    return super.doUnion(other);
                 }
-
-                for (DefaultModuleResolutionFilter otherSpec : excludeRuleBackedSpec.excludeSpecs) {
-                    if (!(otherSpec instanceof ExcludeRuleSpec)) {
-                        // The intersection of two specs with include rules is the union of the exclude rules.
-                        // This makes sense only because the only codepath that results in this type of rule results from an intersection.
-                        allExcludes = false;
-                        intersect(thisSpec, otherSpec, merged);
-                    }
+            }
+            for (DefaultModuleResolutionFilter excludeSpec : excludeRuleBackedSpec.excludeSpecs) {
+                if (excludeSpec instanceof ExcludeRuleSpec) {
+                    return super.doUnion(other);
                 }
             }
 
+            // Calculate the intersection of the rules
+            List<DefaultModuleResolutionFilter> merged = new ArrayList<DefaultModuleResolutionFilter>();
+            for (DefaultModuleResolutionFilter thisSpec : excludeSpecs) {
+                for (DefaultModuleResolutionFilter otherSpec : excludeRuleBackedSpec.excludeSpecs) {
+                    intersect(thisSpec, otherSpec, merged);
+                }
+            }
             if (merged.isEmpty()) {
-                return allExcludes ? null : ALL_SPEC;
+                return ALL_SPEC;
             }
             return new ExcludeRuleBackedSpec(merged);
         }
@@ -402,34 +406,9 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                 if (moduleSpec1.moduleId.equals(moduleSpec2.moduleId)) {
                     merged.add(moduleSpec1);
                 }
-            } else if (spec1 instanceof UnionSpec || spec2 instanceof UnionSpec) {
-                // Deduplicate; expanding the unions can introduce duplicate elements.
-                Set<DefaultModuleResolutionFilter> canonical = new LinkedHashSet<DefaultModuleResolutionFilter>(merged);
-
-                // Recurse into the union(s).
-                if (spec1 instanceof UnionSpec) {
-                    canonical.addAll(flattenUnion((UnionSpec) spec1));
-                }
-
-                if (spec2 instanceof UnionSpec) {
-                    canonical.addAll(flattenUnion((UnionSpec) spec2));
-                }
-
-                merged = new ArrayList<DefaultModuleResolutionFilter>(canonical);
             } else {
                 throw new UnsupportedOperationException(String.format("Cannot calculate intersection of exclude rules: %s, %s", spec1, spec2));
             }
-        }
-
-        private Collection<DefaultModuleResolutionFilter> flattenUnion(UnionSpec spec) {
-            Set<DefaultModuleResolutionFilter> merged = new LinkedHashSet<DefaultModuleResolutionFilter>();
-            for (DefaultModuleResolutionFilter unionElement : spec.getSpecs()) {
-                DefaultModuleResolutionFilter flattenedUnion = doUnion(unionElement);
-                if (flattenedUnion != null) {
-                    merged.add(flattenedUnion);
-                }
-            }
-            return merged;
         }
 
         private void intersect(GroupNameExcludeSpec spec1, DefaultModuleResolutionFilter spec2, List<DefaultModuleResolutionFilter> merged) {
