@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.ivy
 
+import groovy.transform.NotYetImplemented
 import org.gradle.test.fixtures.ivy.IvyModule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -313,6 +314,34 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         'partial match'    | [[artifact: 'other'], [artifact: 'd'], [artifact: 'more']]    | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar', 'f-1.0.jar']
         'duplicated match' | [[artifact: 'f'], [artifact: 'some'], [artifact: 'f']]        | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
     }
+
+    @NotYetImplemented
+    @Issue("GRADLE-3275")
+    def "can merge excludes with default and non-default ivy pattern matchers"() {
+        given:
+        ivyRepo.module('a').publish()
+        def moduleB = ivyRepo.module('b').dependsOn('a')
+        addExcludeRuleToModule(moduleB, [org: 'exact-match', matcher: 'exact'])
+        moduleB.publish()
+
+        def moduleC = ivyRepo.module('c').dependsOn('a').dependsOn('b')
+        addExcludeRuleToModule(moduleC, [org: 'regexp-match', matcher: 'regexp'])
+        moduleC.publish()
+
+        buildFile << """
+configurations.compile.exclude(module: 'module-exclude')
+
+dependencies {
+    compile 'org.gradle.test:a:1.0'
+    compile 'org.gradle.test:b:1.0'
+    compile 'org.gradle.test:c:1.0'
+}
+"""
+
+        expect:
+        succeeds "dependencies"
+    }
+
 
     private void addExcludeRuleToModule(IvyModule module, Map<String, String> excludeAttributes) {
         module.withXml {
