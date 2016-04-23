@@ -54,7 +54,7 @@ public interface ModuleResolutionFilter {
     ModuleResolutionFilter union(ModuleResolutionFilter other);
 
     /**
-     * Returns a filter that accepts the union of those module versions and artifacts that are accepted by this filter and the other.
+     * Returns a filter that accepts the intersection of those module versions and artifacts that are accepted by this filter and the other.
      * The intersection accepts if both of the inputs filters accept.
      */
     ModuleResolutionFilter intersect(ModuleResolutionFilter other);

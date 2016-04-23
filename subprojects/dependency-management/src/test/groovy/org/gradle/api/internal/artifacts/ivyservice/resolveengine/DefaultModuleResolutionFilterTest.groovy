@@ -474,7 +474,7 @@ class DefaultModuleResolutionFilterTest extends Specification {
         union instanceof DefaultModuleResolutionFilter.UnionSpec
         union.specs.size() == 2
         union.specs.any {
-            it instanceof DefaultModuleResolutionFilter.ExcludeRuleBackedSpec && it.excludeSpecs == spec.excludeSpecs
+            it instanceof DefaultModuleResolutionFilter.MultipleExcludeRulesSpec && it.excludeSpecs == spec.excludeSpecs
         }
         union.specs.contains(spec3)
     }
@@ -499,10 +499,10 @@ class DefaultModuleResolutionFilterTest extends Specification {
         def specs = []
         union.unpackUnion(specs)
         specs == [spec2, spec3];
-        
+
         // Verify test is exercising the function it's supposed to.
-        excludeBacked1 instanceof DefaultModuleResolutionFilter.ExcludeRuleBackedSpec
-        excludeBacked2 instanceof DefaultModuleResolutionFilter.ExcludeRuleBackedSpec
+        excludeBacked1 instanceof DefaultModuleResolutionFilter.MultipleExcludeRulesSpec
+        excludeBacked2 instanceof DefaultModuleResolutionFilter.MultipleExcludeRulesSpec
 
         union instanceof DefaultModuleResolutionFilter.UnionSpec
         finalUnion instanceof DefaultModuleResolutionFilter.UnionSpec

@@ -56,7 +56,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         if (excludeRules.length == 0) {
             return ALL_SPEC;
         }
-        return new ExcludeRuleBackedSpec(Arrays.asList(excludeRules));
+        return new MultipleExcludeRulesSpec(Arrays.asList(excludeRules));
     }
 
     /**
@@ -66,7 +66,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         if (excludeRules.isEmpty()) {
             return ALL_SPEC;
         }
-        return new ExcludeRuleBackedSpec(excludeRules);
+        return new MultipleExcludeRulesSpec(excludeRules);
     }
 
     private static boolean isWildcard(String attribute) {
@@ -89,8 +89,9 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         for (int i = 0; i < specs.size();) {
             DefaultModuleResolutionFilter spec = specs.get(i);
             DefaultModuleResolutionFilter merged = null;
+            // See if we can merge any of the following specs into one
             for (int j = i + 1; j < specs.size(); j++) {
-                merged = spec.doUnion(specs.get(j));
+                merged = spec.maybeMergeIntoUnion(specs.get(j));
                 if (merged != null) {
                     specs.remove(j);
                     break;
@@ -108,6 +109,9 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         return new UnionSpec(specs);
     }
 
+    /**
+     * Possibly unpack a composite spec into it's constituent parts, if those parts are applied as a union.
+     */
     protected void unpackUnion(Collection<DefaultModuleResolutionFilter> specs) {
         specs.add(this);
     }
@@ -115,7 +119,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
     /**
      * Returns the union of this filter and the given filter. Returns null if not recognized.
      */
-    protected DefaultModuleResolutionFilter doUnion(DefaultModuleResolutionFilter other) {
+    protected DefaultModuleResolutionFilter maybeMergeIntoUnion(DefaultModuleResolutionFilter other) {
         return null;
     }
 
@@ -167,9 +171,12 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         unpackIntersection(specs);
         ((DefaultModuleResolutionFilter) other).unpackIntersection(specs);
 
-        return new ExcludeRuleBackedSpec(specs);
+        return new MultipleExcludeRulesSpec(specs);
     }
 
+    /**
+     * Possibly unpack a composite spec into it's constituent parts, if those parts are applied as an intersection.
+     */
     protected void unpackIntersection(Collection<DefaultModuleResolutionFilter> specs) {
         specs.add(this);
     }
@@ -258,12 +265,16 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         }
     }
 
-    private static class ExcludeRuleBackedSpec extends CompositeSpec {
+    /**
+     * A spec that selects only those artifacts and modules that satisfy _all_ of the supplied exclude rules.
+     */
+    private static class MultipleExcludeRulesSpec extends CompositeSpec {
         private final Set<DefaultModuleResolutionFilter> excludeSpecs = new HashSet<DefaultModuleResolutionFilter>();
 
-        private ExcludeRuleBackedSpec(Iterable<ExcludeRule> excludeRules) {
+        private MultipleExcludeRulesSpec(Iterable<ExcludeRule> excludeRules) {
             for (ExcludeRule rule : excludeRules) {
 
+                // For custom ivy pattern matchers, don't inspect the rule any more deeply: this prevents us from doing smart merging later
                 if (!(rule.getMatcher() instanceof ExactPatternMatcher)) {
                     excludeSpecs.add(new IvyPatternMatcherExcludeRuleSpec(rule));
                     continue;
@@ -275,6 +286,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                 boolean anyModule = isWildcard(moduleId.getName());
                 boolean anyArtifact = isWildcard(artifactId.getName()) && isWildcard(artifactId.getType()) && isWildcard(artifactId.getExt());
 
+                // Build a strongly typed (mergeable) exclude spec for each supplied rule
                 if (anyArtifact) {
                     if (!anyOrganisation && !anyModule) {
                         excludeSpecs.add(new ModuleIdExcludeSpec(moduleId.getOrganisation(), moduleId.getName()));
@@ -291,18 +303,13 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             }
         }
 
-        public ExcludeRuleBackedSpec(Collection<DefaultModuleResolutionFilter> specs) {
+        public MultipleExcludeRulesSpec(Collection<DefaultModuleResolutionFilter> specs) {
             this.excludeSpecs.addAll(specs);
         }
 
         @Override
         Collection<DefaultModuleResolutionFilter> getSpecs() {
             return excludeSpecs;
-        }
-
-        @Override
-        protected void unpackIntersection(Collection<DefaultModuleResolutionFilter> specs) {
-            specs.addAll(excludeSpecs);
         }
 
         @Override
@@ -324,9 +331,6 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return true;
         }
 
-
-
-
         public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
             for (DefaultModuleResolutionFilter excludeSpec : excludeSpecs) {
                 if (!excludeSpec.acceptArtifact(module, artifact)) {
@@ -346,61 +350,85 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return true;
         }
 
+        /**
+         * Can unpack into constituents when creating a larger intersection (since elements are applied as an intersection).
+         */
         @Override
-        protected DefaultModuleResolutionFilter doUnion(DefaultModuleResolutionFilter other) {
-            if (!(other instanceof ExcludeRuleBackedSpec)) {
-                return super.doUnion(other);
+        protected void unpackIntersection(Collection<DefaultModuleResolutionFilter> specs) {
+            specs.addAll(excludeSpecs);
+        }
+
+        /**
+         * Construct a filter that will accept any module/artifact that is accepted by this _or_ the other filter.
+         * Returns null when this union cannot be computed.
+         */
+        @Override
+        protected DefaultModuleResolutionFilter maybeMergeIntoUnion(DefaultModuleResolutionFilter other) {
+            if (!(other instanceof MultipleExcludeRulesSpec)) {
+                return null;
             }
 
-            ExcludeRuleBackedSpec excludeRuleBackedSpec = (ExcludeRuleBackedSpec) other;
-            if (excludeSpecs.equals(excludeRuleBackedSpec.excludeSpecs)) {
+            MultipleExcludeRulesSpec multipleExcludeRulesSpec = (MultipleExcludeRulesSpec) other;
+            if (excludeSpecs.equals(multipleExcludeRulesSpec.excludeSpecs)) {
                 return this;
             }
 
             // Can only merge exact match rules, so don't try if this or the other spec contains any other type of rule
             for (DefaultModuleResolutionFilter excludeSpec : excludeSpecs) {
                 if (excludeSpec instanceof IvyPatternMatcherExcludeRuleSpec) {
-                    return super.doUnion(other);
+                    return null;
                 }
             }
-            for (DefaultModuleResolutionFilter excludeSpec : excludeRuleBackedSpec.excludeSpecs) {
+            for (DefaultModuleResolutionFilter excludeSpec : multipleExcludeRulesSpec.excludeSpecs) {
                 if (excludeSpec instanceof IvyPatternMatcherExcludeRuleSpec) {
-                    return super.doUnion(other);
+                    return null;
                 }
             }
 
-            // Calculate the intersection of the rules
+            // Merge the exclude rules from both specs into a single union spec.
             List<DefaultModuleResolutionFilter> merged = new ArrayList<DefaultModuleResolutionFilter>();
             for (DefaultModuleResolutionFilter thisSpec : excludeSpecs) {
-                for (DefaultModuleResolutionFilter otherSpec : excludeRuleBackedSpec.excludeSpecs) {
-                    intersect(thisSpec, otherSpec, merged);
+                for (DefaultModuleResolutionFilter otherSpec : multipleExcludeRulesSpec.excludeSpecs) {
+                    mergeExcludeRules(thisSpec, otherSpec, merged);
                 }
             }
             if (merged.isEmpty()) {
                 return ALL_SPEC;
             }
-            return new ExcludeRuleBackedSpec(merged);
+            return new MultipleExcludeRulesSpec(merged);
         }
 
-        // Add filters to the list that will accept modules that are accepted by either of the candidate filters.
-        private void intersect(DefaultModuleResolutionFilter spec1, DefaultModuleResolutionFilter spec2, List<DefaultModuleResolutionFilter> merged) {
+        // Add exclusions to the list that will exclude modules/artifacts that are excluded by both of the candidate rules.
+        private void mergeExcludeRules(DefaultModuleResolutionFilter spec1, DefaultModuleResolutionFilter spec2, List<DefaultModuleResolutionFilter> merged) {
             if (spec1 instanceof ExcludeAllModulesSpec) {
+                // spec1 excludes everything: only accept if spec2 accepts
                 merged.add(spec2);
             } else if (spec2 instanceof ExcludeAllModulesSpec) {
+                // spec2 excludes everything: only accept if spec1 accepts
                 merged.add(spec1);
             } else if (spec1 instanceof ArtifactExcludeSpec) {
+                // Excludes _no_ modules, may exclude some artifacts.
+                // This isn't right: We are losing the artifacts excluded by spec2
+                // (2 artifact excludes should cancel out unless equal)
                 merged.add(spec1);
             } else if (spec2 instanceof ArtifactExcludeSpec) {
+                // Excludes _no_ modules, may exclude some artifacts.
+                // This isn't right: We are losing the artifacts excluded by spec2
                 merged.add(spec2);
             } else if (spec1 instanceof GroupNameExcludeSpec) {
-                intersect((GroupNameExcludeSpec) spec1, spec2, merged);
+                // Merge into a single exclusion for Group + Module
+                mergeExcludeRules((GroupNameExcludeSpec) spec1, spec2, merged);
             } else if (spec2 instanceof GroupNameExcludeSpec) {
-                intersect((GroupNameExcludeSpec) spec2, spec1, merged);
+                // Merge into a single exclusion for Group + Module
+                mergeExcludeRules((GroupNameExcludeSpec) spec2, spec1, merged);
             } else if (spec1 instanceof ModuleNameExcludeSpec) {
-                intersect((ModuleNameExcludeSpec) spec1, spec2, merged);
+                // Merge into a single exclusion for Group + Module
+                mergeExcludeRules((ModuleNameExcludeSpec) spec1, spec2, merged);
             } else if (spec2 instanceof ModuleNameExcludeSpec) {
-                intersect((ModuleNameExcludeSpec) spec2, spec1, merged);
+                // Merge into a single exclusion for Group + Module
+                mergeExcludeRules((ModuleNameExcludeSpec) spec2, spec1, merged);
             } else if ((spec1 instanceof ModuleIdExcludeSpec) && (spec2 instanceof ModuleIdExcludeSpec)) {
+                // Excludes nothing if the excluded module ids don't match: in that case this rule contributes nothing to the union
                 ModuleIdExcludeSpec moduleSpec1 = (ModuleIdExcludeSpec) spec1;
                 ModuleIdExcludeSpec moduleSpec2 = (ModuleIdExcludeSpec) spec2;
                 if (moduleSpec1.moduleId.equals(moduleSpec2.moduleId)) {
@@ -411,7 +439,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             }
         }
 
-        private void intersect(GroupNameExcludeSpec spec1, DefaultModuleResolutionFilter spec2, List<DefaultModuleResolutionFilter> merged) {
+        private void mergeExcludeRules(GroupNameExcludeSpec spec1, DefaultModuleResolutionFilter spec2, List<DefaultModuleResolutionFilter> merged) {
             if (spec2 instanceof GroupNameExcludeSpec) {
                 // Intersection of 2 group excludes does nothing unless excluded groups match
                 GroupNameExcludeSpec groupNameExcludeSpec = (GroupNameExcludeSpec) spec2;
@@ -433,7 +461,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
              }
         }
 
-        private void intersect(ModuleNameExcludeSpec spec1, DefaultModuleResolutionFilter spec2, List<DefaultModuleResolutionFilter> merged) {
+        private void mergeExcludeRules(ModuleNameExcludeSpec spec1, DefaultModuleResolutionFilter spec2, List<DefaultModuleResolutionFilter> merged) {
             if (spec2 instanceof ModuleNameExcludeSpec) {
                 // Intersection of 2 module name excludes does nothing unless excluded module names match
                 ModuleNameExcludeSpec moduleNameExcludeSpec = (ModuleNameExcludeSpec) spec2;
@@ -452,6 +480,9 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         }
     }
 
+    /**
+     * A spec that selects those artifacts and modules that satisfy _any_ of the supplied exclude rules.
+     */
     private static class UnionSpec extends CompositeSpec {
         private final List<DefaultModuleResolutionFilter> specs;
 
@@ -464,6 +495,9 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             return specs;
         }
 
+        /**
+         * Can unpack into constituents when creating a larger union.
+         */
         @Override
         protected void unpackUnion(Collection<DefaultModuleResolutionFilter> specs) {
             specs.addAll(this.specs);
