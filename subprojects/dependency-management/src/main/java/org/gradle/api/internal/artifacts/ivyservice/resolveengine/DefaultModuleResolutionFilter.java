@@ -298,7 +298,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                         excludeSpecs.add(new ExcludeAllModulesSpec());
                     }
                 } else {
-                    excludeSpecs.add(new ArtifactExcludeSpec(rule));
+                    excludeSpecs.add(new ArtifactExcludeSpec(artifactId));
                 }
             }
         }
@@ -816,12 +816,10 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
     private static class ArtifactExcludeSpec extends DefaultModuleResolutionFilter {
         private final ModuleIdentifier moduleId;
         private final IvyArtifactName ivyArtifactName;
-        private final PatternMatcher matcher;
 
-        private ArtifactExcludeSpec(ExcludeRule rule) {
-            this.moduleId = DefaultModuleIdentifier.newId(rule.getId().getModuleId().getOrganisation(), rule.getId().getModuleId().getName());
-            this.ivyArtifactName = new DefaultIvyArtifactName(rule.getId().getName(), rule.getId().getType(), rule.getId().getExt());
-            this.matcher = rule.getMatcher();
+        private ArtifactExcludeSpec(ArtifactId artifactId) {
+            this.moduleId = DefaultModuleIdentifier.newId(artifactId.getModuleId().getOrganisation(), artifactId.getModuleId().getName());
+            this.ivyArtifactName = new DefaultIvyArtifactName(artifactId.getName(), artifactId.getType(), artifactId.getExt());
         }
 
         @Override
@@ -873,7 +871,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
         }
 
         private boolean matches(String expression, String input) {
-            return matcher.getMatcher(expression).matches(input);
+            return isWildcard(expression) || expression.equals(input);
         }
     }
 }
