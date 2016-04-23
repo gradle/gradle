@@ -43,7 +43,7 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         extension = project.extensions.create("codenarc", CodeNarcExtension, project)
         extension.with {
             toolVersion = DEFAULT_CODENARC_VERSION
-            config = project.resources.text.fromFile(project.rootProject.file("config/codenarc/codenarc.xml"))
+            config = this.project.resources.text.fromFile(this.project.rootProject.file("config/codenarc/codenarc.xml"))
             maxPriority1Violations = 0
             maxPriority2Violations = 0
             maxPriority3Violations = 0
@@ -60,19 +60,19 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         }
         task.conventionMapping.with {
             codenarcClasspath = { codenarcConfiguration }
-            config = { extension.config }
-            maxPriority1Violations = { extension.maxPriority1Violations }
-            maxPriority2Violations = { extension.maxPriority2Violations }
-            maxPriority3Violations = { extension.maxPriority3Violations }
-            ignoreFailures = { extension.ignoreFailures }
+            config = { this.extension.config }
+            maxPriority1Violations = { this.extension.maxPriority1Violations }
+            maxPriority2Violations = { this.extension.maxPriority2Violations }
+            maxPriority3Violations = { this.extension.maxPriority3Violations }
+            ignoreFailures = { this.extension.ignoreFailures }
         }
 
         task.reports.all { report ->
             report.conventionMapping.with {
-                enabled = { report.name == extension.reportFormat }
+                enabled = { report.name == this.extension.reportFormat }
                 destination = {
                     def fileSuffix = report.name == 'text' ? 'txt' : report.name
-                    new File(extension.reportsDir, "$baseName.$fileSuffix")
+                    new File(this.extension.reportsDir, "$baseName.$fileSuffix")
                 }
             }
         }
