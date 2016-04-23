@@ -17,6 +17,7 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
@@ -48,11 +49,11 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         publishTestPlugin()
     }
 
-    def useCustomRepository(Object path) {
+    def useCustomRepository(String path) {
         settingsFile << """
           pluginRepositories {
               maven {
-                  url file("$path")
+                  url file("${TextUtil.normaliseFileSeparators(path)}")
               }
           }
         """
@@ -67,7 +68,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useCustomRepository(mavenRepo.getRootDir())
+        useCustomRepository(mavenRepo.getRootDir().absolutePath)
 
         when:
         succeeds("pluginTask")
