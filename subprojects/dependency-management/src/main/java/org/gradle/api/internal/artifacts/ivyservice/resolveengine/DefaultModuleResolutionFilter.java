@@ -375,12 +375,12 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
 
             // Can only merge exact match rules, so don't try if this or the other spec contains any other type of rule
             for (DefaultModuleResolutionFilter excludeSpec : excludeSpecs) {
-                if (excludeSpec instanceof IvyPatternMatcherExcludeRuleSpec) {
+                if (!canMerge(excludeSpec)) {
                     return null;
                 }
             }
             for (DefaultModuleResolutionFilter excludeSpec : multipleExcludeRulesSpec.excludeSpecs) {
-                if (excludeSpec instanceof IvyPatternMatcherExcludeRuleSpec) {
+                if (!canMerge(excludeSpec)) {
                     return null;
                 }
             }
@@ -396,6 +396,14 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
                 return ALL_SPEC;
             }
             return new MultipleExcludeRulesSpec(merged);
+        }
+
+        private boolean canMerge(DefaultModuleResolutionFilter excludeSpec) {
+            return excludeSpec instanceof ExcludeAllModulesSpec
+                || excludeSpec instanceof ArtifactExcludeSpec
+                || excludeSpec instanceof GroupNameExcludeSpec
+                || excludeSpec instanceof ModuleNameExcludeSpec
+                || excludeSpec instanceof ModuleIdExcludeSpec;
         }
 
         // Add exclusions to the list that will exclude modules/artifacts that are excluded by both of the candidate rules.

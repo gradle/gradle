@@ -16,11 +16,9 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import groovy.transform.NotYetImplemented
 import org.gradle.test.fixtures.ivy.IvyModule
 import spock.lang.Issue
 import spock.lang.Unroll
-
 /**
  * Demonstrates the use of Ivy module excludes.
  *
@@ -315,7 +313,6 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         'duplicated match' | [[artifact: 'f'], [artifact: 'some'], [artifact: 'f']]        | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
     }
 
-    @NotYetImplemented
     @Issue("GRADLE-3275")
     def "can merge excludes with default and non-default ivy pattern matchers"() {
         given:
