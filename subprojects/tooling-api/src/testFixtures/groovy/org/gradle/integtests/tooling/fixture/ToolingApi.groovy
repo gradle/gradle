@@ -216,12 +216,14 @@ class ToolingApi implements TestRule {
             builder.integratedComposite(integrated)
             builder.useInstallation(dist.gradleHomeDir.absoluteFile)
 
+/*
             if (builder.class.getMethod("embedded", Boolean.TYPE) != null) {
                 builder.embedded(embedded)
                 if (useClasspathImplementation) {
                     builder.useClasspathDistribution()
                 }
             }
+*/
         }
         builder
     }
