@@ -3,31 +3,17 @@
 // 2. It requires some adjustments in eclipse to work properly - see below
 //
 // Things required for this hack to work:
-//  1. Eclipse must be a recent one and needs the Groovyclipse feature. Take it from here, for example http://dist.springsource.org/snapshot/GRECLIPSE/e4.4/
+//  1. Eclipse must be 4.5 or above and needs the Groovyclipse feature. Use this update site, for example http://dist.springsource.org/snapshot/GRECLIPSE/e4.5/
 //  2. 2GB of memory is required (Add or alter -Xmx2g to eclipse.ini)
-//  3. The complete gradle project from github must be cloned (i.e. https://github.com/gradle/gradle)
-//  5. Run ./gradlew build on that folder
-//  6. Run ./gradlew eclipse on that folder
-//  7. Configure a JRE in Eclipse which is at least 1.7. Set the JRE name property of that JRE to 'JavaSE-1.5'
-//  8. In Window->Preferences->Groovy->Compiler, check 'Enable Script folder support' and Add '**/*.gradle'
-//  9. Import the gradle project into the Eclipse workspace, choose 'search for nested projects', take ALL projects
-// 10. Wait 5 minutes for Eclipse to calm down
-// 11. Accept that some things just don't seem to work in Eclipse, especially some of the groovy files
-
-import org.gradle.util.GUtil
+//  3. Run ./gradlew eclipse on that folder
+//  4. Configure a JRE in Eclipse which is at least 1.7. Set the JRE name property of that JRE to 'JavaSE-1.5'
+//  5. In Window->Preferences->Groovy->Compiler, check 'Enable Script folder support' and Add '**/*.gradle'
+//  6. Import the gradle project into the Eclipse workspace, choose 'search for nested projects', take ALL projects
+//  7. Accept that some things just don't seem to work in Eclipse, especially some of the groovy files
 
 def subprojectsPath = new File(projectDir,'/subprojects').absolutePath
 
 apply plugin: 'eclipse'
-
-eclipse.project.file.withXml {
-	def prj = it.asNode()
-
-	// remove all natures and buildspec from the root project - otherwise the groovy files will be compiled twice in Eclipse
-	prj.remove prj.natures
-	prj.remove prj.buildSpec
-
-}
 
 subprojects { subProject ->
 	subProject.apply plugin: 'eclipse'
@@ -40,33 +26,10 @@ subprojects { subProject ->
 					classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
 					//Workaround for some projects referring to themselves as dependent projects
 					classpath.entries.removeAll { it.path.contains("$project.name") && it.kind=='src' }
+					// some refrences point to the build folder of other projects - remove them
 					classpath.entries.removeAll { it.path.contains("$project.name/build") && it.kind=='lib' }
-				}
-				file.withXml {
-					// postprocessing the xml, because I don't know how to change the sourcepath on the classpathEntry domain object
-					Set allEntries = new HashSet();
-					def cp = it.asNode()
-					cp.classpathentry.each { cpe ->
-						if(cpe.@kind == 'lib' ) {
-							def originalPath = cpe.@path
-							if(originalPath.startsWith(subprojectsPath)){
-								String newpath = originalPath.substring(subprojectsPath.length())
-								int secondSlashIndex = newpath.indexOf('/', 1)
-								if(secondSlashIndex>-1) {
-									newpath = newpath.substring(0, secondSlashIndex)
-								}
-								cpe.@path = '/' + GUtil.toLowerCamelCase(newpath)
-								cpe.@kind = 'src'
-							}
-						}
-						if(cpe.@kind == 'src' && cpe.@path.startsWith("/$project.name")) {
-							// remove reference to own project
-							cp.remove cpe
-						} else if(!allEntries.add(cpe.@kind + ':' + cpe.@path)){
-							// remove duplicate entry
-							cp.remove cpe
-						}
-					}
+					// some refrences point to other projects as libraries - remove them
+					classpath.entries.removeAll { it.path.startsWith(subprojectsPath) && it.kind == 'lib' }
 				}
 			}
 			jdt {
