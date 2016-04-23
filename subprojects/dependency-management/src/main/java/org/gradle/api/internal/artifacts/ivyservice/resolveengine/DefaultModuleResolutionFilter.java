@@ -265,7 +265,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             for (ExcludeRule rule : excludeRules) {
 
                 if (!(rule.getMatcher() instanceof ExactPatternMatcher)) {
-                    excludeSpecs.add(new ExcludeRuleSpec(rule));
+                    excludeSpecs.add(new IvyPatternMatcherExcludeRuleSpec(rule));
                     continue;
                 }
 
@@ -359,12 +359,12 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
 
             // Can only merge exact match rules, so don't try if this or the other spec contains any other type of rule
             for (DefaultModuleResolutionFilter excludeSpec : excludeSpecs) {
-                if (excludeSpec instanceof ExcludeRuleSpec) {
+                if (excludeSpec instanceof IvyPatternMatcherExcludeRuleSpec) {
                     return super.doUnion(other);
                 }
             }
             for (DefaultModuleResolutionFilter excludeSpec : excludeRuleBackedSpec.excludeSpecs) {
-                if (excludeSpec instanceof ExcludeRuleSpec) {
+                if (excludeSpec instanceof IvyPatternMatcherExcludeRuleSpec) {
                     return super.doUnion(other);
                 }
             }
@@ -703,13 +703,13 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
     /**
      * A ModuleResolutionFilter that accepts any module/artifact that doesn't match the exclude rule.
      */
-    private static class ExcludeRuleSpec extends DefaultModuleResolutionFilter {
+    private static class IvyPatternMatcherExcludeRuleSpec extends DefaultModuleResolutionFilter {
         private final ModuleIdentifier moduleId;
         private final IvyArtifactName ivyArtifactName;
         private final PatternMatcher matcher;
         private final boolean isArtifactExclude;
 
-        private ExcludeRuleSpec(ExcludeRule rule) {
+        private IvyPatternMatcherExcludeRuleSpec(ExcludeRule rule) {
             this.moduleId = DefaultModuleIdentifier.newId(rule.getId().getModuleId().getOrganisation(), rule.getId().getModuleId().getName());
             this.ivyArtifactName = new DefaultIvyArtifactName(rule.getId().getName(), rule.getId().getType(), rule.getId().getExt());
             this.matcher = rule.getMatcher();
@@ -729,7 +729,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
             if (o == null || o.getClass() != getClass()) {
                 return false;
             }
-            ExcludeRuleSpec other = (ExcludeRuleSpec) o;
+            IvyPatternMatcherExcludeRuleSpec other = (IvyPatternMatcherExcludeRuleSpec) o;
             return doAcceptsSameModulesAs(other);
         }
 
@@ -740,7 +740,7 @@ public abstract class DefaultModuleResolutionFilter implements ModuleResolutionF
 
         @Override
         protected boolean doAcceptsSameModulesAs(DefaultModuleResolutionFilter other) {
-            ExcludeRuleSpec otherSpec = (ExcludeRuleSpec) other;
+            IvyPatternMatcherExcludeRuleSpec otherSpec = (IvyPatternMatcherExcludeRuleSpec) other;
             return moduleId.equals(otherSpec.moduleId)
                     && ivyArtifactName.equals(otherSpec.ivyArtifactName)
                     && matcher.getName().equals(otherSpec.matcher.getName());
