@@ -15,6 +15,8 @@
  */
 package org.gradle.api.dsl
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -459,7 +461,7 @@ assert 'overridden value' == global
         expect:
         fails()
         failure.assertHasLineNumber(3)
-        failure.assertHasCause("Could not get unknown property 'p1' for root project 'test'.")
+        failure.assertHasCause("Could not get unknown property 'p1' for root project 'test' of type ${Project.name}.")
     }
 
     def failsWhenSettingUnknownPropertyOnProject() {
@@ -472,7 +474,7 @@ assert 'overridden value' == global
         expect:
         fails()
         failure.assertHasLineNumber(4)
-        failure.assertHasCause("Could not set unknown property 'p1' for root project 'test'.")
+        failure.assertHasCause("Could not set unknown property 'p1' for root project 'test' of type ${Project.name}.")
     }
 
     def failsWhenInvokingUnknownMethodOnProject() {
@@ -496,7 +498,7 @@ assert 'overridden value' == global
         expect:
         fails()
         failure.assertHasLineNumber(4)
-        failure.assertHasCause("Could not get unknown property 'p1' for task ':p'.")
+        failure.assertHasCause("Could not get unknown property 'p1' for task ':p' of type ${DefaultTask.name}.")
     }
 
     def failsWhenGettingUnknownPropertyOnDecoratedObject() {
@@ -527,7 +529,7 @@ assert 'overridden value' == global
         expect:
         fails()
         failure.assertHasLineNumber(5)
-        failure.assertHasCause("Could not get unknown property 'p1' for task ':p'.")
+        failure.assertHasCause("Could not get unknown property 'p1' for task ':p' of type ${DefaultTask.name}.")
     }
 
     def failsWhenSettingUnknownPropertyOnTask() {
@@ -540,7 +542,7 @@ assert 'overridden value' == global
         expect:
         fails()
         failure.assertHasLineNumber(4)
-        failure.assertHasCause("Could not set unknown property 'p1' for task ':p'.")
+        failure.assertHasCause("Could not set unknown property 'p1' for task ':p' of type ${DefaultTask.name}.")
     }
 
     def failsWhenSettingUnknownPropertyOnDecoratedObject() {
@@ -571,7 +573,7 @@ assert 'overridden value' == global
         expect:
         fails()
         failure.assertHasLineNumber(5)
-        failure.assertHasCause("Could not set unknown property 'p1' for task ':p'.")
+        failure.assertHasCause("Could not set unknown property 'p1' for task ':p' of type ${DefaultTask.name}.")
     }
 
     def failsWhenInvokingUnknownMethodOnDecoratedObject() {
@@ -710,14 +712,14 @@ assert 'overridden value' == global
                 p1 = 1
                 fail()
             } catch (MissingPropertyException e) {
-                assert e.message == "Could not set unknown property 'p1' for root project 'test'."
+                assert e.message == "Could not set unknown property 'p1' for root project 'test' of type ${Project.name}."
             }
 
             try {
                 p1 += 1
                 fail()
             } catch (MissingPropertyException e) {
-                assert e.message == "Could not get unknown property 'p1' for root project 'test'."
+                assert e.message == "Could not get unknown property 'p1' for root project 'test' of type ${Project.name}."
             }
         """
 
