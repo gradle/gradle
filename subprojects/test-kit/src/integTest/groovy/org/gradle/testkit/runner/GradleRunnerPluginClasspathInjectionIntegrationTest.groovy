@@ -110,7 +110,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
         // This is how the class not being visible will manifest
         execFailure(result).assertThatCause(
                 anyOf(
-                        containsString("Could not get unknown property 'org' for task ':echo1'."),
+                        containsString("Could not get unknown property 'org' for task ':echo1' of type org.gradle.api.DefaultTask."),
                         containsString("Could not find property 'org' on task ':echo1'.")))
     }
 
@@ -148,7 +148,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
         // This is how the class not being visible will manifest
         execFailure(result).assertThatCause(
                 anyOf(
-                        containsString("Could not get unknown property 'org' for task ':echo1'."),
+                        containsString("Could not get unknown property 'org' for task ':echo1' of type org.gradle.api.DefaultTask."),
                         containsString("Could not find property 'org' on task ':echo1'.")))
     }
 
