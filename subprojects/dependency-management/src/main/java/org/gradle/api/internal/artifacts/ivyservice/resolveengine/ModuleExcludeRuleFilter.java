@@ -21,19 +21,18 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 /**
  * Manages sets of exclude rules, allowing union and intersection operations on the rules.
+ *
+ * <ul>
+ *     <li>When a module dependency has multiple exclusions, then the resulting exclusion is the _intersection_ of those exclusions (module is excluded if excluded by _any_).</li>
+ *     <li>When a module is depended on via a transitive path, then the resulting exclusion is the _intersection_ of the exclusions on each leg of the path (module is excluded if excluded by _any_).</li>
+ *     <li>When a module is depended on via multiple paths in the graph, then the resulting exclusion is the _union_ of the exclusions on each of those paths (module is excluded if excluded by _all_).</li>
+ * </ul>
  */
-public interface ModuleResolutionFilter {
+public interface ModuleExcludeRuleFilter {
     /**
      * Should this module be included in the resolution result?
      */
     boolean acceptModule(ModuleIdentifier module);
-
-    /**
-     * Determines if this filter accepts the same set of modules as the other.
-     *
-     * @return true if the filters accept the same set of modules. Returns false if they may not, or if it is unknown.
-     */
-    boolean acceptsSameModulesAs(ModuleResolutionFilter other);
 
     /**
      * Should this artifact be included in the resolution result?
@@ -48,14 +47,21 @@ public interface ModuleResolutionFilter {
     boolean acceptsAllArtifacts();
 
     /**
-     * Returns a filter that accepts the union of those module versions and artifacts that are accepted by this filter and the other.
-     * The union accepts if either of the inputs filters accepts.
+     * Determines if this filter accepts the same set of modules as the other.
+     *
+     * @return true if the filters accept the same set of modules. Returns false if they may not, or if it is unknown.
      */
-    ModuleResolutionFilter union(ModuleResolutionFilter other);
+    boolean excludesSameModulesAs(ModuleExcludeRuleFilter other);
+
+    /**
+     * Returns a filter that accepts the union of those module versions and artifacts that are accepted by this filter and the other.
+     * The union excludes only if _both_ of the input filters exclude.
+     */
+    ModuleExcludeRuleFilter union(ModuleExcludeRuleFilter other);
 
     /**
      * Returns a filter that accepts the intersection of those module versions and artifacts that are accepted by this filter and the other.
-     * The intersection accepts if both of the inputs filters accept.
+     * The intersection excludes if _either_ of the input filters exclude.
      */
-    ModuleResolutionFilter intersect(ModuleResolutionFilter other);
+    ModuleExcludeRuleFilter intersect(ModuleExcludeRuleFilter other);
 }

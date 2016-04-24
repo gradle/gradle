@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleResolutionFilter;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleExcludeRuleFilter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -37,13 +37,13 @@ import java.util.Set;
 public class DefaultArtifactSet implements ArtifactSet {
     private final ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleSource moduleSource;
-    private final ModuleResolutionFilter selector;
+    private final ModuleExcludeRuleFilter selector;
     private final ArtifactResolver artifactResolver;
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
     private final long id;
     private final Set<ComponentArtifactMetaData> artifacts;
 
-    public DefaultArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleResolutionFilter selector, Set<ComponentArtifactMetaData> artifacts,
+    public DefaultArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExcludeRuleFilter selector, Set<ComponentArtifactMetaData> artifacts,
                               ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id) {
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;
