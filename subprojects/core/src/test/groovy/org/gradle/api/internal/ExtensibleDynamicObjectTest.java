@@ -761,7 +761,7 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void canCallGroovyDynamicMethods() {
         DynamicGroovyBean bean = new DynamicGroovyBean();
-        DynamicObject object = new ExtensibleDynamicObject(bean);
+        DynamicObject object = new ExtensibleDynamicObject(bean, DynamicGroovyBean.class, ThreadGlobalInstantiator.getOrCreate());
         Integer doubled = (Integer) object.invokeMethod("bar", 1);
         assertThat(doubled, equalTo(2));
 
@@ -781,7 +781,7 @@ public class ExtensibleDynamicObjectTest {
         final ExtensibleDynamicObject extensibleDynamicObject;
 
         public Bean() {
-            extensibleDynamicObject = new ExtensibleDynamicObject(this, ThreadGlobalInstantiator.getOrCreate());
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, Bean.class, ThreadGlobalInstantiator.getOrCreate());
         }
 
         public DynamicObject getAsDynamicObject() {

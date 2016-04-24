@@ -23,6 +23,8 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,22 +46,6 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
     private DynamicObject beforeConvention;
     private DynamicObject afterConvention;
     private DynamicObject extraPropertiesDynamicObject;
-
-    /**
-     * This variant will internally create a convention that is not fully featured, so should be avoided.
-     *
-     * Use one of the other variants wherever possible.
-     *
-     * @param delegate The delegate
-     * @see org.gradle.api.internal.plugins.DefaultConvention#DefaultConvention()
-     */
-    public ExtensibleDynamicObject(Object delegate) {
-        this(delegate, createDynamicObject(delegate, null), new DefaultConvention());
-    }
-
-    public ExtensibleDynamicObject(Object delegate, Instantiator instantiator) {
-        this(delegate, createDynamicObject(delegate, null), new DefaultConvention(instantiator));
-    }
 
     public ExtensibleDynamicObject(Object delegate, Class<?> publicType, Instantiator instantiator) {
         this(delegate, createDynamicObject(delegate, publicType), new DefaultConvention(instantiator));
@@ -172,23 +158,25 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
     }
 
     private DynamicObject snapshotInheritable() {
-        AbstractDynamicObject emptyBean = new AbstractDynamicObject() {
+        final List<DynamicObject> delegates = new ArrayList<DynamicObject>(4);
+        if (parent != null) {
+            delegates.add(parent);
+        }
+        delegates.add(convention.getExtensionsAsDynamicObject());
+        delegates.add(extraPropertiesDynamicObject);
+        if (beforeConvention != null) {
+            delegates.add(beforeConvention);
+        }
+        return new CompositeDynamicObject() {
+            {
+                setObjects(delegates.toArray(new DynamicObject[0]));
+            }
+
             @Override
             protected String getDisplayName() {
                 return dynamicDelegate.getDisplayName();
             }
         };
-
-        ExtensibleDynamicObject extensibleDynamicObject = new ExtensibleDynamicObject(emptyBean);
-
-        extensibleDynamicObject.parent = parent;
-        extensibleDynamicObject.convention = convention;
-        extensibleDynamicObject.extraPropertiesDynamicObject = extraPropertiesDynamicObject;
-        if (beforeConvention != null) {
-            extensibleDynamicObject.beforeConvention = beforeConvention;
-        }
-        extensibleDynamicObject.updateDelegates();
-        return extensibleDynamicObject;
     }
 
     private class InheritedDynamicObject implements DynamicObject {
