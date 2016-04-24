@@ -22,8 +22,9 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.BuildException
+
 /**
- * Tests for dependency substitution within a composite build.
+ * Tests for resolving dependency graph with substitution within a composite build.
  * Note that this test should be migrated to use the command-line entry point for composite build, when this is developed.
  * This is distinct from the specific test coverage for Tooling API access to a composite build.
  */
@@ -189,7 +190,8 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
 
     def "substitutes external dependency with subproject dependency that has transitive dependencies"() {
         given:
-        mavenRepo.module("org.foo", "transitive", "1.0").publish()
+        def transitive1 = mavenRepo.module("org.test", "transitive1").publish()
+        mavenRepo.module("org.test", "transitive2").dependsOn(transitive1).publish()
         buildA.buildFile << """
             dependencies {
                 compile "org.test:buildB:1.0"
@@ -197,7 +199,7 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
 """
         buildB.buildFile << """
             dependencies {
-                it.'default' "org.foo:transitive:1.0"
+                compile "org.test:transitive2:1.0"
             }
 """
 
@@ -208,7 +210,38 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
         checkGraph {
             edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
                 compositeSubstitute()
-                module("org.foo:transitive:1.0")
+                module("org.test:transitive2:1.0") {
+                    module("org.test:transitive1:1.0")
+                }
+            }
+        }
+    }
+
+    def "honours excludes defined in substituted subproject dependency that has transitive dependencies"() {
+        given:
+        def transitive1 = mavenRepo.module("org.test", "transitive1").publish()
+        mavenRepo.module("org.test", "transitive2").dependsOn(transitive1).publish()
+        buildA.buildFile << """
+            dependencies {
+                compile("org.test:buildB:1.0")
+            }
+"""
+        buildB.buildFile << """
+            dependencies {
+                compile("org.test:transitive2:1.0")  {
+                    exclude module: 'transitive1'
+                }
+            }
+"""
+
+        when:
+        checkDependencies()
+
+        then:
+        checkGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+                module("org.test:transitive2:1.0")
             }
         }
     }

@@ -19,10 +19,17 @@ No changes to the public API should be required.
     - Project configuration has transitive project dependencies
         - Default configuration of secondary project
         - Non-default configuration of secondary project
+    - Project configuration has transitive external dependency that is replaced with project dependency
 - External dependency replaced with project dependency:
     - Dependency on non-default configuration
+    - Dependency with defined classifier
     - Dependency on specified artifact in configuration
     - Dependency has defined exclude rules
+
+- Ensure that dependency artifacts are only built once:
+    - A:: <- ('org:b1', 'org:b2') | B::b1 <- ('org:b2')
+    - A:: <- ('org:b1', 'org:b2') | B::b1 <- (B::b2)
+
 - Transitive external dependency replaced with project dependency:
     - Dependency from Maven module
         - Dependency has defined exclude rules
@@ -31,11 +38,6 @@ No changes to the public API should be required.
         - Dependency on non-default configuration
         - Dependency on specified artifact in configuration
         - Dependency has defined exclude rules
-
-- Ensure that dependency artifacts are only built once:
-    - A:: <- ('org:b1', 'org:c') | B::b1 <- ('org:c')
-    - A:: <- ('org:b1', 'org:b2') | B::b1 <- ('org:b2')
-    - A:: <- ('org:b1', 'org:b2') | B::b1 <- (B::b2)
 
 - Build failures
     - Graceful failure on dependency cycles
