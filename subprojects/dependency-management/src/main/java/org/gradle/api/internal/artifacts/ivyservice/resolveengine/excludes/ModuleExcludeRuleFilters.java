@@ -17,11 +17,18 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.apache.ivy.core.module.id.ArtifactId;
+import org.apache.ivy.core.module.id.ModuleId;
+import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
+import org.gradle.api.Transformer;
+import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.AbstractModuleExcludeRuleFilter.isWildcard;
 
 /**
  * Manages sets of exclude rules, allowing union and intersection operations on the rules.
@@ -51,7 +58,7 @@ public class ModuleExcludeRuleFilters {
         if (excludeRules.length == 0) {
             return EXCLUDE_NONE;
         }
-        return new MultipleExcludeRulesFilter(Arrays.asList(excludeRules));
+        return excludeAny(Arrays.asList(excludeRules));
     }
 
     /**
@@ -61,7 +68,40 @@ public class ModuleExcludeRuleFilters {
         if (excludeRules.isEmpty()) {
             return EXCLUDE_NONE;
         }
-        return new MultipleExcludeRulesFilter(excludeRules);
+        return new MultipleExcludeRulesFilter(CollectionUtils.collect(excludeRules, new Transformer<AbstractModuleExcludeRuleFilter, ExcludeRule>() {
+            @Override
+            public AbstractModuleExcludeRuleFilter transform(ExcludeRule excludeRule) {
+                return forIvyExcludeRule(excludeRule);
+            }
+        }));
+    }
+
+    private static AbstractModuleExcludeRuleFilter forIvyExcludeRule(ExcludeRule rule) {
+        // For custom ivy pattern matchers, don't inspect the rule any more deeply: this prevents us from doing smart merging later
+        if (!(rule.getMatcher() instanceof ExactPatternMatcher)) {
+            return new IvyPatternMatcherExcludeRuleSpec(rule);
+        }
+
+        ArtifactId artifactId = rule.getId();
+        ModuleId moduleId = artifactId.getModuleId();
+        boolean anyOrganisation = isWildcard(moduleId.getOrganisation());
+        boolean anyModule = isWildcard(moduleId.getName());
+        boolean anyArtifact = isWildcard(artifactId.getName()) && isWildcard(artifactId.getType()) && isWildcard(artifactId.getExt());
+
+        // Build a strongly typed (mergeable) exclude spec for each supplied rule
+        if (anyArtifact) {
+            if (!anyOrganisation && !anyModule) {
+                return new ModuleIdExcludeSpec(moduleId.getOrganisation(), moduleId.getName());
+            } else if (!anyModule) {
+                return new ModuleNameExcludeSpec(moduleId.getName());
+            } else if (!anyOrganisation) {
+                return new GroupNameExcludeSpec(moduleId.getOrganisation());
+            } else {
+                return new ExcludeAllModulesSpec();
+            }
+        } else {
+            return new ArtifactExcludeSpec(artifactId);
+        }
     }
 
     /**

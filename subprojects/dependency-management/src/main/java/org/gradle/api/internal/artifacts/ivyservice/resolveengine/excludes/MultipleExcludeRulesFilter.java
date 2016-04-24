@@ -16,10 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.apache.ivy.core.module.id.ArtifactId;
-import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -31,38 +27,6 @@ import java.util.*;
  */
 class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
     private final Set<AbstractModuleExcludeRuleFilter> excludeSpecs = new HashSet<AbstractModuleExcludeRuleFilter>();
-
-    public MultipleExcludeRulesFilter(Iterable<ExcludeRule> excludeRules) {
-        for (ExcludeRule rule : excludeRules) {
-
-            // For custom ivy pattern matchers, don't inspect the rule any more deeply: this prevents us from doing smart merging later
-            if (!(rule.getMatcher() instanceof ExactPatternMatcher)) {
-                excludeSpecs.add(new IvyPatternMatcherExcludeRuleSpec(rule));
-                continue;
-            }
-
-            ArtifactId artifactId = rule.getId();
-            ModuleId moduleId = artifactId.getModuleId();
-            boolean anyOrganisation = isWildcard(moduleId.getOrganisation());
-            boolean anyModule = isWildcard(moduleId.getName());
-            boolean anyArtifact = isWildcard(artifactId.getName()) && isWildcard(artifactId.getType()) && isWildcard(artifactId.getExt());
-
-            // Build a strongly typed (mergeable) exclude spec for each supplied rule
-            if (anyArtifact) {
-                if (!anyOrganisation && !anyModule) {
-                    excludeSpecs.add(new ModuleIdExcludeSpec(moduleId.getOrganisation(), moduleId.getName()));
-                } else if (!anyModule) {
-                    excludeSpecs.add(new ModuleNameExcludeSpec(moduleId.getName()));
-                } else if (!anyOrganisation) {
-                    excludeSpecs.add(new GroupNameExcludeSpec(moduleId.getOrganisation()));
-                } else {
-                    excludeSpecs.add(new ExcludeAllModulesSpec());
-                }
-            } else {
-                excludeSpecs.add(new ArtifactExcludeSpec(artifactId));
-            }
-        }
-    }
 
     public MultipleExcludeRulesFilter(Collection<AbstractModuleExcludeRuleFilter> specs) {
         this.excludeSpecs.addAll(specs);
