@@ -13,6 +13,9 @@ No longer support running Gradle, the wrapper or the Tooling api client on Java 
 
 - Update project target versions, remove customisations for IDEA project generation.
 - Remove Java 7 checks, eg from continuous build.
+- Remove `TestPrecondition.JDK6` and similar.
+- Remove deprecation warning disable from `GradleBuildComparison.createProjectConnection()`
+- Remove deprecation warning disable from `SamplesToolingApiIntegrationTest` and `SamplesCompositeBuildIntegrationTest`
 
 ### Test coverage
 
