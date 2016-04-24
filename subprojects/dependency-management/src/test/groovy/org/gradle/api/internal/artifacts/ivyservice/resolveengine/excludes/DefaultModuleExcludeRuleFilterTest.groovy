@@ -472,11 +472,11 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def union = union(union(spec, spec3), spec2)
 
         union instanceof UnionExcludeRuleFilter
-        union.specs.size() == 2
-        union.specs.any {
+        union.filters.size() == 2
+        union.filters.any {
             it instanceof MultipleExcludeRulesFilter && it.excludeSpecs == spec.excludeSpecs
         }
-        union.specs.contains(spec3)
+        union.filters.contains(spec3)
     }
 
     // Regression test for GRADLE-3275, also exercises GRADLE-3434
