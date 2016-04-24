@@ -20,6 +20,7 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.DefaultModuleExcludeRuleFilter
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
 import spock.lang.Unroll
