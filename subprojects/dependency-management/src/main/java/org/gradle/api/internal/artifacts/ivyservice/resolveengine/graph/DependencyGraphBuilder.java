@@ -27,9 +27,11 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.*;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.DefaultModuleExcludeRuleFilter;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyToConfigurationResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExcludeRuleFilter;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExcludeRuleFilters;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
@@ -270,7 +272,7 @@ public class DependencyGraphBuilder {
 
         public ModuleExcludeRuleFilter getSelector() {
             Set<String> hierarchy = from.metaData.getHierarchy();
-            ModuleExcludeRuleFilter selector = DefaultModuleExcludeRuleFilter.excludeAny(dependencyMetaData.getExcludeRules(hierarchy));
+            ModuleExcludeRuleFilter selector = ModuleExcludeRuleFilters.excludeAny(dependencyMetaData.getExcludeRules(hierarchy));
             return selector.intersect(resolutionFilter);
         }
 
@@ -752,7 +754,7 @@ public class DependencyGraphBuilder {
         private ModuleExcludeRuleFilter getModuleResolutionFilter(List<DependencyEdge> transitiveEdges) {
             ModuleExcludeRuleFilter resolutionFilter;
             if (transitiveEdges.isEmpty()) {
-                resolutionFilter = DefaultModuleExcludeRuleFilter.all();
+                resolutionFilter = ModuleExcludeRuleFilters.excludeNone();
             } else {
                 resolutionFilter = transitiveEdges.get(0).getSelector();
                 for (int i = 1; i < transitiveEdges.size(); i++) {
@@ -760,7 +762,7 @@ public class DependencyGraphBuilder {
                     resolutionFilter = resolutionFilter.union(dependencyEdge.getSelector());
                 }
             }
-            resolutionFilter = resolutionFilter.intersect(DefaultModuleExcludeRuleFilter.excludeAny(metaData.getExcludeRules()));
+            resolutionFilter = resolutionFilter.intersect(ModuleExcludeRuleFilters.excludeAny(metaData.getExcludeRules()));
             return resolutionFilter;
         }
 
