@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.test.fixtures.ivy.IvyModule
 import spock.lang.Issue
 import spock.lang.Unroll
+
 /**
  * Demonstrates the use of Ivy module excludes.
  *
@@ -137,10 +138,10 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
     def "module exclude for transitive dependency having multiple artifacts with #name"() {
         given:
         ivyRepo.module('d')
-                .artifact([:])
-                .artifact([type: 'sources', classifier: 'sources', ext: 'jar'])
-                .artifact([type: 'javadoc', classifier: 'javadoc', ext: 'jar'])
-                .publish()
+            .artifact([:])
+            .artifact([type: 'sources', classifier: 'sources', ext: 'jar'])
+            .artifact([type: 'javadoc', classifier: 'javadoc', ext: 'jar'])
+            .publish()
         ivyRepo.module('b').dependsOn('d').publish()
         ivyRepo.module('e').publish()
         ivyRepo.module('c').dependsOn('e').publish()
@@ -166,7 +167,7 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
     }
 
     /**
-     * Transitive module exclude for a module reachable via alternative path using a combination of exclude rules.
+     * When a module is depended on via multiple paths and excluded on one of those paths, it is not excluded.
      *
      * Dependency graph:
      * a -> b, c
@@ -174,7 +175,7 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
      * c -> d
      */
     @Unroll
-    def "module with #name is not excluded if reachable via alternate path"() {
+    def "when a module is depended on via multiple paths and excluded on only one of those paths, it is not excluded (#name)"() {
         given:
         ivyRepo.module('d').publish()
         IvyModule moduleB = ivyRepo.module('b').dependsOn('d')
@@ -200,7 +201,7 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
     }
 
     /**
-     * Transitive module exclude for module reachable by multiple paths for all paths by using a combination of exclude rules.
+     * When a module is depended on via multiple paths and excluded on all of those paths, it is excluded.
      *
      * Dependency graph:
      * a -> b, c
@@ -208,14 +209,16 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
      * c -> d
      */
     @Unroll
-    def "module reachable by multiple paths excluded for all paths with #name"() {
+    def "when a module is depended on via multiple paths and excluded on all of those paths, it is excluded (#name)"() {
         given:
         ivyRepo.module('d').publish()
-        ivyRepo.module('b').dependsOn('d').publish()
-        ivyRepo.module('c').dependsOn('d').publish()
-        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
-        addExcludeRuleToModule(moduleA, excludeAttributes)
-        moduleA.publish()
+        def moduleB = ivyRepo.module('b').dependsOn('d')
+        addExcludeRuleToModule(moduleB, excludeAttributes)
+        moduleB.publish()
+        def moduleC = ivyRepo.module('c').dependsOn('d')
+        addExcludeRuleToModule(moduleC, excludeAttributes)
+        moduleC.publish()
+        ivyRepo.module('a').dependsOn('b').dependsOn('c').publish()
 
         when:
         succeedsDependencyResolution()
@@ -227,14 +230,14 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         name                     | excludeAttributes   | resolvedJars
         'non-matching module'    | [module: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
         'non-matching artifact'  | [artifact: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'matching all modules'   | [module: '*']       | ['a-1.0.jar']
-        'matching all artifacts' | [artifact: '*']     | ['a-1.0.jar']
+        'matching all modules'   | [module: '*']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'matching all artifacts' | [artifact: '*']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
         'matching module'        | [module: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
         'matching artifact'      | [artifact: 'd']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
     }
 
     /**
-     * Transitive module exclude for module reachable by multiple paths for all paths intersection of exclude rules.
+     * When a module is depended on via multiple paths, it is excluded only if excluded on each of the paths.
      *
      * Dependency graph:
      * a -> b, c
@@ -242,20 +245,15 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
      * c -> d
      */
     @Unroll
-    def "module reachable by multiple paths excluded for all paths with intersection of #name"() {
+    def "when a module is depended on via multiple paths, it is excluded only if excluded on each of the paths (#name)"() {
         given:
         ivyRepo.module('d').publish()
         IvyModule moduleB = ivyRepo.module('b').dependsOn('d')
         IvyModule moduleC = ivyRepo.module('c').dependsOn('d')
         IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
 
-        excludeRulesPath1.each { excludeAttributes ->
-            addExcludeRuleToModule(moduleB, excludeAttributes)
-        }
-
-        excludeRulesPath2.each { excludeAttributes ->
-            addExcludeRuleToModule(moduleC, excludeAttributes)
-        }
+        addExcludeRuleToModule(moduleB, excludePath1)
+        addExcludeRuleToModule(moduleC, excludePath2)
 
         moduleB.publish()
         moduleC.publish()
@@ -268,35 +266,33 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         assertResolvedFiles(resolvedJars)
 
         where:
-        name                    | excludeRulesPath1                                                                  | excludeRulesPath2                         | resolvedJars
-        'non-matching module'   | [[org: 'org.company', module: 'd'], [org: 'org.gradle.test', module: 'e']]         | [[org: 'org.company', module: 'd']]       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'non-matching artifact' | [[org: 'org.company', artifact: 'd'], [org: 'org.gradle.test', artifact: 'e']]     | [[org: 'org.company', artifact: 'd']]     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'matching module'       | [[org: 'org.gradle.test', module: 'd'], [org: 'org.gradle.test', module: 'e']]     | [[org: 'org.gradle.test', module: 'd']]   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        'matching artifact'     | [[org: 'org.gradle.test', artifact: 'd'], [org: 'org.gradle.test', artifact: 'e']] | [[org: 'org.gradle.test', artifact: 'd']] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        name                          | excludePath1    | excludePath2             | resolvedJars
+        'non-matching group'          | [module: 'd']   | [org: 'org.other']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'non-matching module'         | [module: 'e']   | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'non-matching artifact'       | [artifact: 'e'] | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'matching group and module'   | [module: 'd']   | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'matching group and artifact' | [artifact: 'd'] | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
     }
 
     /**
-     * Module exclude of transitive dependency for union of multiple rules.
+     * When a module is depended on via a single chained path, it is excluded if excluded on any of the links in that path.
      *
      * Dependency graph:
-     * a -> b, c
-     * b -> d -> f
-     * c -> e
+     * a -> b -> c -> d
      */
     @Unroll
-    def "transitive module exclude for union of multiple rules with #name"() {
+    def "when a module is depended on via a single chained path, it is excluded if excluded on any of the links in that path (#name)"() {
         given:
-        ivyRepo.module('f').publish()
-        ivyRepo.module('d').dependsOn('f').publish()
-        ivyRepo.module('b').dependsOn('d').publish()
-        ivyRepo.module('e').publish()
-        ivyRepo.module('c').dependsOn('e').publish()
-        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+        ivyRepo.module('d').publish()
+        IvyModule moduleC = ivyRepo.module('c').dependsOn('d')
+        IvyModule moduleB = ivyRepo.module('b').dependsOn('c')
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b')
 
-        excludeRules.each { excludeAttributes ->
-            addExcludeRuleToModule(moduleA, excludeAttributes)
-        }
+        addExcludeRuleToModule(moduleB, excludePath1)
+        addExcludeRuleToModule(moduleC, excludePath2)
 
+        moduleB.publish()
+        moduleC.publish()
         moduleA.publish()
 
         when:
@@ -306,11 +302,11 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         assertResolvedFiles(resolvedJars)
 
         where:
-        name               | excludeRules                                                  | resolvedJars
-        'no match'         | [[artifact: 'other'], [artifact: 'some'], [artifact: 'more']] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar', 'f-1.0.jar']
-        'all matches'      | [[artifact: 'b'], [artifact: 'd'], [artifact: 'f']]           | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-        'partial match'    | [[artifact: 'other'], [artifact: 'd'], [artifact: 'more']]    | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar', 'f-1.0.jar']
-        'duplicated match' | [[artifact: 'f'], [artifact: 'some'], [artifact: 'f']]        | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
+        name                  | excludePath1    | excludePath2             | resolvedJars
+        'excluded by module'  | [module: 'd']   | [module: 'e']            | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'exclude by artifact' | [artifact: 'd'] | [artifact: 'e']          | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'excluded by group'   | [module: 'e']   | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'not excluded'        | [module: 'e']   | [org: 'org.other']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
     }
 
     @Issue("GRADLE-3275")
