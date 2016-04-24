@@ -18,8 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Manages sets of exclude rules, allowing union and intersection operations on the rules.
@@ -60,5 +62,65 @@ public class ModuleExcludeRuleFilters {
             return EXCLUDE_NONE;
         }
         return new MultipleExcludeRulesFilter(excludeRules);
+    }
+
+    /**
+     * Returns a filter that accepts the union of those module versions and artifacts that are accepted by this filter and the other.
+     * The union excludes only if _both_ of the input filters exclude.
+     */
+    public static ModuleExcludeRuleFilter union(ModuleExcludeRuleFilter one, ModuleExcludeRuleFilter two) {
+        if (one == two) {
+            return one;
+        }
+        if (one == EXCLUDE_NONE || two == EXCLUDE_NONE) {
+            return EXCLUDE_NONE;
+        }
+
+        List<AbstractModuleExcludeRuleFilter> specs = new ArrayList<AbstractModuleExcludeRuleFilter>();
+        ((AbstractModuleExcludeRuleFilter) one).unpackUnion(specs);
+        ((AbstractModuleExcludeRuleFilter) two).unpackUnion(specs);
+        for (int i = 0; i < specs.size();) {
+            AbstractModuleExcludeRuleFilter spec = specs.get(i);
+            AbstractModuleExcludeRuleFilter merged = null;
+            // See if we can merge any of the following specs into one
+            for (int j = i + 1; j < specs.size(); j++) {
+                merged = spec.maybeMergeIntoUnion(specs.get(j));
+                if (merged != null) {
+                    specs.remove(j);
+                    break;
+                }
+            }
+            if (merged != null) {
+                specs.set(i, merged);
+            } else {
+                i++;
+            }
+        }
+        if (specs.size() == 1) {
+            return specs.get(0);
+        }
+        return new UnionExcludeRuleFilter(specs);
+    }
+
+    /**
+     * Returns a filter that accepts the intersection of those module versions and artifacts that are accepted by this filter and the other.
+     * The intersection excludes if _either_ of the input filters exclude.
+     */
+    public static ModuleExcludeRuleFilter intersect(ModuleExcludeRuleFilter one, ModuleExcludeRuleFilter two) {
+        if (one == two) {
+            return one;
+        }
+        if (one == EXCLUDE_NONE) {
+            return two;
+        }
+        if (two == EXCLUDE_NONE) {
+            return one;
+        }
+
+        List<AbstractModuleExcludeRuleFilter> specs = new ArrayList<AbstractModuleExcludeRuleFilter>();
+        ((AbstractModuleExcludeRuleFilter) one).unpackIntersection(specs);
+        ((AbstractModuleExcludeRuleFilter) two).unpackIntersection(specs);
+
+        return new MultipleExcludeRulesFilter(specs);
     }
 }

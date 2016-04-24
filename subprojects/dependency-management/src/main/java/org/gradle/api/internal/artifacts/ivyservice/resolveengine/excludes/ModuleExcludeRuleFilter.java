@@ -52,16 +52,4 @@ public interface ModuleExcludeRuleFilter {
      * @return true if the filters accept the same set of modules. Returns false if they may not, or if it is unknown.
      */
     boolean excludesSameModulesAs(ModuleExcludeRuleFilter other);
-
-    /**
-     * Returns a filter that accepts the union of those module versions and artifacts that are accepted by this filter and the other.
-     * The union excludes only if _both_ of the input filters exclude.
-     */
-    ModuleExcludeRuleFilter union(ModuleExcludeRuleFilter other);
-
-    /**
-     * Returns a filter that accepts the intersection of those module versions and artifacts that are accepted by this filter and the other.
-     * The intersection excludes if _either_ of the input filters exclude.
-     */
-    ModuleExcludeRuleFilter intersect(ModuleExcludeRuleFilter other);
 }

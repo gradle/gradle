@@ -226,9 +226,9 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         !spec.excludesSameModulesAs(moduleRule)
         !moduleRule.excludesSameModulesAs(spec)
 
-        spec.excludesSameModulesAs(spec.union(otherRule))
-        spec.excludesSameModulesAs(spec.union(moduleRule))
-        spec.excludesSameModulesAs(spec.intersect(otherRule.union(sameRule)))
+        spec.excludesSameModulesAs(union(spec, otherRule))
+        spec.excludesSameModulesAs(union(spec, moduleRule))
+        spec.excludesSameModulesAs(intersect(spec, union(otherRule, sameRule)))
 
         where:
         rule << [excludeRule('*', '*', '*', 'jar', 'jar'),
@@ -325,8 +325,8 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec2 = ModuleExcludeRuleFilters.excludeAny()
 
         expect:
-        spec.union(spec2) == spec2
-        spec2.union(spec) == spec2
+        union(spec, spec2) == spec2
+        union(spec2, spec) == spec2
     }
 
     def "union of a spec with itself returns the original spec"() {
@@ -336,7 +336,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec = ModuleExcludeRuleFilters.excludeAny(rule1, rule2, rule3)
 
         expect:
-        spec.union(spec) == spec
+        union(spec, spec) == spec
     }
 
     def "union of two specs with the same exclude rule instances returns one of the original specs"() {
@@ -348,7 +348,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec2 = ModuleExcludeRuleFilters.excludeAny(rule2, rule3, rule1, rule4)
 
         expect:
-        spec.union(spec2) == spec
+        union(spec, spec2) == spec
     }
 
     def "union of two specs with exact matching exclude rules uses the intersection of the exclude rules"() {
@@ -359,7 +359,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec2 = ModuleExcludeRuleFilters.excludeAny(rule1, rule3)
 
         expect:
-        def union = spec.union(spec2)
+        def union = union(spec, spec2)
         union == ModuleExcludeRuleFilters.excludeAny(rule1)
     }
 
@@ -373,13 +373,13 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec = ModuleExcludeRuleFilters.excludeAny(rule1)
 
         expect:
-        def union = spec.union(ModuleExcludeRuleFilters.excludeAny(rule2, rule3, rule4))
-        union == ModuleExcludeRuleFilters.excludeAny(rule2, rule3)
+        def union1 = union(spec, ModuleExcludeRuleFilters.excludeAny(rule2, rule3, rule4))
+        union1 == ModuleExcludeRuleFilters.excludeAny(rule2, rule3)
 
-        def union2 = spec.union(ModuleExcludeRuleFilters.excludeAny(rule5))
+        def union2 = union(spec, ModuleExcludeRuleFilters.excludeAny(rule5))
         union2 == ModuleExcludeRuleFilters.excludeAny(excludeRule("org", "module3"))
 
-        def union3 = spec.union(ModuleExcludeRuleFilters.excludeAny(rule6, rule2))
+        def union3 = union(spec, ModuleExcludeRuleFilters.excludeAny(rule6, rule2))
         union3 == ModuleExcludeRuleFilters.excludeAny(rule2)
     }
 
@@ -393,13 +393,13 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec = ModuleExcludeRuleFilters.excludeAny(rule1)
 
         expect:
-        def union = spec.union(ModuleExcludeRuleFilters.excludeAny(rule2, rule3, rule4))
-        union == ModuleExcludeRuleFilters.excludeAny(rule2, rule4)
+        def union1 = union(spec, ModuleExcludeRuleFilters.excludeAny(rule2, rule3, rule4))
+        union1 == ModuleExcludeRuleFilters.excludeAny(rule2, rule4)
 
-        def union2 = spec.union(ModuleExcludeRuleFilters.excludeAny(rule5))
+        def union2 = union(spec, ModuleExcludeRuleFilters.excludeAny(rule5))
         union2 == ModuleExcludeRuleFilters.excludeAny(excludeRule("org", "module"))
 
-        def union3 = spec.union(ModuleExcludeRuleFilters.excludeAny(rule6))
+        def union3 = union(spec, ModuleExcludeRuleFilters.excludeAny(rule6))
         union3 == ModuleExcludeRuleFilters.excludeNone()
     }
 
@@ -410,7 +410,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec2 = ModuleExcludeRuleFilters.excludeAny(rule2)
 
         expect:
-        def union = spec.union(spec2)
+        def union = union(spec, spec2)
         union == ModuleExcludeRuleFilters.excludeNone()
     }
 
@@ -421,8 +421,8 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec2 = ModuleExcludeRuleFilters.excludeAny(rule2)
 
         expect:
-        spec1.union(spec2) == spec2
-        spec2.union(spec1) == spec2
+        union(spec1, spec2) == spec2
+        union(spec2, spec1) == spec2
     }
 
     def "union of module spec and artifact spec uses the artifact spec"() {
@@ -435,13 +435,13 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def artifactSpec2 = ModuleExcludeRuleFilters.excludeAny(artifactRule1, artifactRule2)
 
         expect:
-        def union = artifactSpec1.union(ModuleExcludeRuleFilters.excludeAny(rule1))
-        union == artifactSpec1
+        def union1 = union(artifactSpec1, ModuleExcludeRuleFilters.excludeAny(rule1))
+        union1 == artifactSpec1
 
-        def union2 = artifactSpec1.union(ModuleExcludeRuleFilters.excludeAny(rule1, rule2, rule3))
+        def union2 = union(artifactSpec1, ModuleExcludeRuleFilters.excludeAny(rule1, rule2, rule3))
         union2 == artifactSpec1
 
-        def union3 = artifactSpec2.union(ModuleExcludeRuleFilters.excludeAny(rule1, rule2, rule3))
+        def union3 = union(artifactSpec2, ModuleExcludeRuleFilters.excludeAny(rule1, rule2, rule3))
         union3 == artifactSpec2
     }
 
@@ -452,7 +452,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec2 = ModuleExcludeRuleFilters.excludeAny(rule2)
 
         expect:
-        def union = spec.union(spec2)
+        def union = union(spec, spec2)
         def specs = []
         union.unpackUnion(specs)
         specs.size() == 2
@@ -469,7 +469,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec3 = ModuleExcludeRuleFilters.excludeAny(rule3)
 
         expect:
-        def union = spec.union(spec3).union(spec2)
+        def union = union(union(spec, spec3), spec2)
 
         union instanceof UnionExcludeRuleFilter
         union.specs.size() == 2
@@ -488,23 +488,23 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec2 = ModuleExcludeRuleFilters.excludeAny(rule1, rule2)
         def spec3 = ModuleExcludeRuleFilters.excludeAny(rule3)
 
-        def excludeBacked1 = spec.intersect(spec2);         // module + module2
-        def union = spec2.union(spec3);                     // module, module2, module3
-        def excludeBacked2 = spec2.intersect(union);        // module, module2
-        def finalUnion = spec3.union(excludeBacked2);       // module
+        def excludeBacked1 = intersect(spec, spec2);         // module + module2
+        def union1 = union(spec2, spec3);                     // module, module2, module3
+        def excludeBacked2 = intersect(spec2, union1);        // module, module2
+        def finalUnion = union(spec3, excludeBacked2);       // module
 
         expect:
         // Sanity checks.
         excludeBacked1 == spec2
         def specs = []
-        union.unpackUnion(specs)
+        union1.unpackUnion(specs)
         specs == [spec2, spec3];
 
         // Verify test is exercising the function it's supposed to.
         excludeBacked1 instanceof MultipleExcludeRulesFilter
         excludeBacked2 instanceof MultipleExcludeRulesFilter
 
-        union instanceof UnionExcludeRuleFilter
+        union1 instanceof UnionExcludeRuleFilter
         finalUnion instanceof UnionExcludeRuleFilter
 
         spec2.acceptModule(moduleId("org", "module4"))
@@ -522,13 +522,13 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec2 = ModuleExcludeRuleFilters.excludeAny(rule1)
 
         expect:
-        def union = spec.union(spec2)
+        def union1 = union(spec, spec2)
 
         !spec.acceptModule(moduleId("org", "module"))
-        !union.acceptModule(moduleId("org", "module"))
+        !union1.acceptModule(moduleId("org", "module"))
 
         !spec.acceptModule(moduleId("org", "module2"))
-        union.acceptModule(moduleId("org", "module2"))
+        union1.acceptModule(moduleId("org", "module2"))
     }
 
     def "union accepts artifact that is accepted by any merged exclude rule"() {
@@ -539,14 +539,14 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec2 = ModuleExcludeRuleFilters.excludeAny(excludeB)
 
         when:
-        def union = spec.union(spec2)
+        def union1 = union(spec, spec2)
 
         then:
-        !union.acceptArtifact(moduleId, artifactName("a", "zip", "zip"))
-        union.acceptArtifact(moduleId, artifactName("b", "zip", "zip"))
-        union.acceptArtifact(moduleId, artifactName("c", "zip", "zip"))
+        !union1.acceptArtifact(moduleId, artifactName("a", "zip", "zip"))
+        union1.acceptArtifact(moduleId, artifactName("b", "zip", "zip"))
+        union1.acceptArtifact(moduleId, artifactName("c", "zip", "zip"))
 
-        !union.acceptsAllArtifacts()
+        !union1.acceptsAllArtifacts()
     }
 
     def "unions accepts same modules when original specs accept same modules"() {
@@ -558,11 +558,11 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec3 = ModuleExcludeRuleFilters.excludeAny(rule3)
 
         expect:
-        spec1.union(spec2).excludesSameModulesAs(spec2.union(spec1))
+        union(spec1, spec2).excludesSameModulesAs(union(spec2, spec1))
 
-        !spec1.union(spec2).excludesSameModulesAs(spec2)
-        !spec1.union(spec2).excludesSameModulesAs(spec1)
-        !spec1.union(spec2).excludesSameModulesAs(spec1.union(spec3))
+        !union(spec1, spec2).excludesSameModulesAs(spec2)
+        !union(spec1, spec2).excludesSameModulesAs(spec1)
+        !union(spec1, spec2).excludesSameModulesAs(union(spec1, spec3))
     }
 
     def "intersection with empty spec is original spec"() {
@@ -572,8 +572,8 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec2 = ModuleExcludeRuleFilters.excludeAny()
 
         expect:
-        spec.intersect(spec2) == spec
-        spec2.intersect(spec) == spec
+        intersect(spec, spec2) == spec
+        intersect(spec2, spec) == spec
     }
 
     def "intersection of a spec with itself returns the original spec"() {
@@ -583,7 +583,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec = ModuleExcludeRuleFilters.excludeAny(rule1, rule2, rule3)
 
         expect:
-        spec.intersect(spec) == spec
+        intersect(spec, spec) == spec
     }
 
     def "intersection does not accept module that is not accepted by any merged exclude rules"() {
@@ -593,17 +593,17 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec2 = ModuleExcludeRuleFilters.excludeAny(rule1)
 
         expect:
-        def intersect = spec.intersect(spec2)
+        def intersection = intersect(spec, spec2)
 
         !spec.acceptModule(moduleId("org", "module"))
-        !intersect.acceptModule(moduleId("org", "module"))
+        !intersection.acceptModule(moduleId("org", "module"))
 
         !spec.acceptModule(moduleId("org", "module2"))
-        !intersect.acceptModule(moduleId("org", "module2"))
+        !intersection.acceptModule(moduleId("org", "module2"))
 
         spec.acceptModule(moduleId("org", "module3"))
         spec2.acceptModule(moduleId("org", "module3"))
-        intersect.acceptModule(moduleId("org", "module3"))
+        intersection.acceptModule(moduleId("org", "module3"))
     }
 
     def "intersection accepts artifact that is accepted by every merged exclude rule"() {
@@ -614,13 +614,13 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec2 = ModuleExcludeRuleFilters.excludeAny(excludeA)
 
         expect:
-        def intersect = spec.intersect(spec2)
+        def intersection = intersect(spec, spec2)
 
-        !intersect.acceptArtifact(moduleId, artifactName("a", "zip", "zip"))
-        !intersect.acceptArtifact(moduleId, artifactName("b", "zip", "zip"))
-        intersect.acceptArtifact(moduleId, artifactName("c", "zip", "zip"))
+        !intersection.acceptArtifact(moduleId, artifactName("a", "zip", "zip"))
+        !intersection.acceptArtifact(moduleId, artifactName("b", "zip", "zip"))
+        intersection.acceptArtifact(moduleId, artifactName("c", "zip", "zip"))
 
-        !intersect.acceptsAllArtifacts()
+        !intersection.acceptsAllArtifacts()
     }
 
     def "intersection of two specs with exclude rules is the union of the exclude rules"() {
@@ -630,7 +630,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def spec2 = ModuleExcludeRuleFilters.excludeAny(rule1)
 
         expect:
-        def intersection = spec.intersect(spec2)
+        def intersection = intersect(spec, spec2)
         intersection == ModuleExcludeRuleFilters.excludeAny(rule1, rule2)
     }
 
@@ -638,17 +638,17 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         def rule1 = regexpExcludeRule("org", "module")
         def rule2 = regexpExcludeRule("org", "module2")
         def rule3 = regexpExcludeRule("org", "module3")
-        def spec1 = ModuleExcludeRuleFilters.excludeAny(rule1).union(ModuleExcludeRuleFilters.excludeAny(rule2))
-        def spec2 = ModuleExcludeRuleFilters.excludeAny(rule2).union(ModuleExcludeRuleFilters.excludeAny(rule1))
+        def spec1 = union(ModuleExcludeRuleFilters.excludeAny(rule1), ModuleExcludeRuleFilters.excludeAny(rule2))
+        def spec2 = union(ModuleExcludeRuleFilters.excludeAny(rule2), ModuleExcludeRuleFilters.excludeAny(rule1))
         def spec3 = ModuleExcludeRuleFilters.excludeAny(rule3)
         assert spec1.excludesSameModulesAs(spec2)
 
         expect:
-        spec1.intersect(spec2).excludesSameModulesAs(spec2.intersect(spec1))
+        intersect(spec1, spec2).excludesSameModulesAs(intersect(spec2, spec1))
 
-        !spec1.intersect(spec2).excludesSameModulesAs(spec1)
-        !spec1.intersect(spec2).excludesSameModulesAs(spec2)
-        !spec1.intersect(spec2).excludesSameModulesAs(spec1.intersect(spec3))
+        !intersect(spec1, spec2).excludesSameModulesAs(spec1)
+        !intersect(spec1, spec2).excludesSameModulesAs(spec2)
+        !intersect(spec1, spec2).excludesSameModulesAs(intersect(spec1, spec3))
     }
 
     def "does not accept artifact that matches specific exclude rule"() {
@@ -677,6 +677,14 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         spec.acceptArtifact(moduleId("well", "known"), artifactName("g", "jar", "jar"))
         spec.acceptArtifact(moduleId("well", "known"), artifactName("g", "jar", "zip"))
         spec.acceptArtifact(moduleId("other", "sample"), artifactName("regexp", "jar", "jar"))
+    }
+
+    static ModuleExcludeRuleFilter union(ModuleExcludeRuleFilter spec, ModuleExcludeRuleFilter otherRule) {
+        ModuleExcludeRuleFilters.union(spec, otherRule)
+    }
+
+    static ModuleExcludeRuleFilter intersect(ModuleExcludeRuleFilter spec, ModuleExcludeRuleFilter otherRule) {
+        ModuleExcludeRuleFilters.intersect(spec, otherRule)
     }
 
     static specForRule(def spec, ExcludeRule rule) {

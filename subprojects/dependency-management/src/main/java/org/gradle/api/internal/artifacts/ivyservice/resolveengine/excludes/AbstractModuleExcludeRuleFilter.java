@@ -15,51 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 abstract class AbstractModuleExcludeRuleFilter implements ModuleExcludeRuleFilter {
     private static final String WILDCARD = "*";
 
     protected static boolean isWildcard(String attribute) {
         return WILDCARD.equals(attribute);
-    }
-
-    public ModuleExcludeRuleFilter union(ModuleExcludeRuleFilter other) {
-        if (other == this) {
-            return this;
-        }
-        if (other == ModuleExcludeRuleFilters.EXCLUDE_NONE) {
-            return other;
-        }
-        if (this == ModuleExcludeRuleFilters.EXCLUDE_NONE) {
-            return this;
-        }
-        List<AbstractModuleExcludeRuleFilter> specs = new ArrayList<AbstractModuleExcludeRuleFilter>();
-        unpackUnion(specs);
-        ((AbstractModuleExcludeRuleFilter) other).unpackUnion(specs);
-        for (int i = 0; i < specs.size();) {
-            AbstractModuleExcludeRuleFilter spec = specs.get(i);
-            AbstractModuleExcludeRuleFilter merged = null;
-            // See if we can merge any of the following specs into one
-            for (int j = i + 1; j < specs.size(); j++) {
-                merged = spec.maybeMergeIntoUnion(specs.get(j));
-                if (merged != null) {
-                    specs.remove(j);
-                    break;
-                }
-            }
-            if (merged != null) {
-                specs.set(i, merged);
-            } else {
-                i++;
-            }
-        }
-        if (specs.size() == 1) {
-            return specs.get(0);
-        }
-        return new UnionExcludeRuleFilter(specs);
     }
 
     /**
@@ -104,27 +66,6 @@ abstract class AbstractModuleExcludeRuleFilter implements ModuleExcludeRuleFilte
 
     protected boolean acceptsAllModules() {
         return false;
-    }
-
-    /**
-     * Returns a spec that accepts the intersection of those module versions that are accepted by this spec and the given spec.
-     */
-    public ModuleExcludeRuleFilter intersect(ModuleExcludeRuleFilter other) {
-        if (other == this) {
-            return this;
-        }
-        if (other == ModuleExcludeRuleFilters.EXCLUDE_NONE) {
-            return this;
-        }
-        if (this == ModuleExcludeRuleFilters.EXCLUDE_NONE) {
-            return other;
-        }
-
-        List<AbstractModuleExcludeRuleFilter> specs = new ArrayList<AbstractModuleExcludeRuleFilter>();
-        unpackIntersection(specs);
-        ((AbstractModuleExcludeRuleFilter) other).unpackIntersection(specs);
-
-        return new MultipleExcludeRulesFilter(specs);
     }
 
     /**
