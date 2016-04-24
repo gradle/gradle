@@ -19,7 +19,6 @@ package org.gradle.integtests.resolve.ivy
 import org.gradle.test.fixtures.ivy.IvyModule
 import spock.lang.Issue
 import spock.lang.Unroll
-
 /**
  * Demonstrates the use of Ivy module excludes.
  *
@@ -243,11 +242,13 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
      * a -> b, c
      * b -> d
      * c -> d
+     * d -> e
      */
     @Unroll
     def "when a module is depended on via multiple paths, it is excluded only if excluded on each of the paths (#name)"() {
         given:
-        ivyRepo.module('d').publish()
+        ivyRepo.module('e').publish()
+        ivyRepo.module('d').dependsOn('e').publish()
         IvyModule moduleB = ivyRepo.module('b').dependsOn('d')
         IvyModule moduleC = ivyRepo.module('c').dependsOn('d')
         IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
@@ -266,12 +267,14 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         assertResolvedFiles(resolvedJars)
 
         where:
-        name                          | excludePath1    | excludePath2             | resolvedJars
-        'non-matching group'          | [module: 'd']   | [org: 'org.other']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'non-matching module'         | [module: 'e']   | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'non-matching artifact'       | [artifact: 'e'] | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'matching group and module'   | [module: 'd']   | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        'matching group and artifact' | [artifact: 'd'] | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        name                             | excludePath1    | excludePath2             | resolvedJars
+        'non-matching group'             | [module: 'e']   | [org: 'org.other']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
+        'non-matching module'            | [module: 'f']   | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
+        'non-matching artifact'          | [artifact: 'f'] | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
+        'intervening group and module'   | [module: 'd']   | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'intervening group and artifact' | [artifact: 'd'] | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
+        'leaf group and module'          | [module: 'e']   | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'leaf group and artifact'        | [artifact: 'e'] | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
     }
 
     /**
@@ -309,34 +312,46 @@ class IvyDescriptorModuleExcludeResolveIntegrationTest extends AbstractIvyDescri
         'not excluded'        | [module: 'e']   | [org: 'org.other']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
     }
 
+    /**
+     * Exclusions with non-default ivy pattern matchers are not able to be simply merged.
+     * This test checks that these can be combined successfully.
+     *
+     * Dependency graph:
+     * a -> b, c
+     * b -> d
+     * c -> d
+     * d -> e
+     */
     @Issue("GRADLE-3275")
     def "can merge excludes with default and non-default ivy pattern matchers"() {
         given:
-        ivyRepo.module('a').publish()
-        def moduleB = ivyRepo.module('b').dependsOn('a')
-        addExcludeRuleToModule(moduleB, [org: 'exact-match', matcher: 'exact'])
+        ivyRepo.module('e').publish()
+
+        IvyModule moduleD = ivyRepo.module('d').dependsOn('e')
+        IvyModule moduleB = ivyRepo.module('b').dependsOn('d')
+        IvyModule moduleC = ivyRepo.module('c').dependsOn('d')
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c').dependsOn('e')
+
+        addExcludeRuleToModule(moduleA, [org: 'could.be.anything.1'])
+        addExcludeRuleToModule(moduleD, [org: 'could.be.anything.4'])
+
+        // These 2 rules are combined in a union
+        addExcludeRuleToModule(moduleB, [module: 'e', matcher: 'regexp'])
+        addExcludeRuleToModule(moduleC, [org: 'org.gradle.test'])
+
         moduleB.publish()
-
-        def moduleC = ivyRepo.module('c').dependsOn('a').dependsOn('b')
-        addExcludeRuleToModule(moduleC, [org: 'regexp-match', matcher: 'regexp'])
         moduleC.publish()
-
-        buildFile << """
-configurations.compile.exclude(module: 'module-exclude')
-
-dependencies {
-    compile 'org.gradle.test:a:1.0'
-    compile 'org.gradle.test:b:1.0'
-    compile 'org.gradle.test:c:1.0'
-}
-"""
+        moduleA.publish()
+        moduleD.publish()
 
         expect:
-        succeeds "dependencies"
+        succeedsDependencyResolution()
     }
 
-
     private void addExcludeRuleToModule(IvyModule module, Map<String, String> excludeAttributes) {
+        if (!excludeAttributes.containsKey("matcher")) {
+            excludeAttributes.put("matcher", "exact")
+        }
         module.withXml {
             asNode().dependencies[0].appendNode(EXCLUDE_ATTRIBUTE, excludeAttributes)
         }

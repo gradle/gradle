@@ -21,12 +21,6 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 /**
  * Manages sets of exclude rules, allowing union and intersection operations on the rules.
- *
- * <ul>
- *     <li>When a module dependency has multiple exclusions, then the resulting exclusion is the _intersection_ of those exclusions (module is excluded if excluded by _any_).</li>
- *     <li>When a module is depended on via a transitive path, then the resulting exclusion is the _intersection_ of the exclusions on each leg of the path (module is excluded if excluded by _any_).</li>
- *     <li>When a module is depended on via multiple paths in the graph, then the resulting exclusion is the _union_ of the exclusions on each of those paths (module is excluded if excluded by _all_).</li>
- * </ul>
  */
 public interface ModuleExcludeRuleFilter {
     /**
