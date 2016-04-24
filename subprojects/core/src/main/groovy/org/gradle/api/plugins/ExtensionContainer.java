@@ -91,7 +91,7 @@ public interface ExtensionContainer {
      * Looks for the extension of the specified type and configures it with the supplied action.
      * @param type extension type
      * @param action the configure action
-     * @throws UnknownDomainObjectException if no exception is found.
+     * @throws UnknownDomainObjectException if no extension is found.
      */
     @Incubating
     <T> void configure(Class<T> type, Action<? super T> action);
