@@ -23,6 +23,7 @@ import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
 import org.gradle.api.internal.coerce.PropertySetTransformer;
 import org.gradle.api.internal.coerce.StringToEnumTransformer;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -38,6 +39,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     private final boolean includeProperties;
     private final DynamicObject delegate;
     private final boolean implementsMissing;
+    @Nullable
+    private final Class<?> publicType;
 
     // NOTE: If this guy starts caching internally, consider sharing an instance
     private final MethodArgumentsTransformer argsTransformer = StringToEnumTransformer.INSTANCE;
@@ -55,18 +58,19 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     public BeanDynamicObject(Object bean) {
-        this(bean, true);
+        this(bean, null, true, true);
     }
 
-    private BeanDynamicObject(Object bean, boolean includeProperties) {
-        this(bean, includeProperties, true);
+    public BeanDynamicObject(Object bean, @Nullable Class<?> publicType) {
+        this(bean, publicType, true, true);
     }
 
-    private BeanDynamicObject(Object bean, boolean includeProperties, boolean implementsMissing) {
+    private BeanDynamicObject(Object bean, @Nullable Class<?> publicType, boolean includeProperties, boolean implementsMissing) {
         if (bean == null) {
             throw new IllegalArgumentException("Value is null");
         }
         this.bean = bean;
+        this.publicType = publicType;
         this.includeProperties = includeProperties;
         this.implementsMissing = implementsMissing;
         this.delegate = determineDelegate(bean);
@@ -81,11 +85,11 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     public BeanDynamicObject withNoProperties() {
-        return new BeanDynamicObject(bean, false);
+        return new BeanDynamicObject(bean, publicType, false, implementsMissing);
     }
 
     public BeanDynamicObject withNotImplementsMissing() {
-        return new BeanDynamicObject(bean, includeProperties, false);
+        return new BeanDynamicObject(bean, publicType, includeProperties, false);
     }
 
     @Override
@@ -101,7 +105,12 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     @Nullable
     @Override
     protected Class<?> getPublicType() {
-        return bean.getClass();
+        return publicType != null ? publicType : bean.getClass();
+    }
+
+    @Override
+    protected boolean hasUsefulDisplayName() {
+        return !JavaReflectionUtil.hasDefaultToString(bean);
     }
 
     private MetaClass getMetaClass() {

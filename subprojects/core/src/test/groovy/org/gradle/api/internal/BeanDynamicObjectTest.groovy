@@ -64,7 +64,7 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
-        e.message == "Could not get unknown property 'unknown' for ${bean} of type ${Bean.name}."
+        e.message == "Could not get unknown property 'unknown' for object of type ${Bean.name}."
     }
 
     def "fails when get value of unknown property of dynamic groovy object"() {
@@ -76,7 +76,7 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
-        e.message == "Could not get unknown property 'unknown' for ${bean} of type ${BeanWithDynamicProperties.name}."
+        e.message == "Could not get unknown property 'unknown' for object of type ${BeanWithDynamicProperties.name}."
     }
 
     def "fails when get value of property of dynamic groovy object and no dynamic requested"() {
@@ -91,7 +91,24 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
-        e.message == "Could not get unknown property 'dyno' for ${bean} of type ${BeanWithDynamicProperties.name}."
+        e.message == "Could not get unknown property 'dyno' for object of type ${BeanWithDynamicProperties.name}."
+    }
+
+    def "includes toString() of bean in property get error message when has custom implementation"() {
+        def bean = new Bean() {
+            @Override
+            String toString() {
+                return "<bean>"
+            }
+        }
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.getProperty("unknown")
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.message == "Could not get unknown property 'unknown' for <bean> of type ${bean.getClass().name}."
     }
 
     def "can set value of property of groovy object"() {
@@ -138,7 +155,7 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
-        e.message == "Could not set unknown property 'unknown' for ${bean} of type ${Bean.name}."
+        e.message == "Could not set unknown property 'unknown' for object of type ${Bean.name}."
     }
 
     def "fails when set value of unknown property of dynamic groovy object"() {
@@ -150,7 +167,7 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
-        e.message == "Could not set unknown property 'unknown' for ${bean} of type ${BeanWithDynamicProperties.name}."
+        e.message == "Could not set unknown property 'unknown' for object of type ${BeanWithDynamicProperties.name}."
     }
 
     def "fails when set value of property of dynamic groovy object and no dynamic requested"() {
@@ -165,7 +182,24 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
-        e.message == "Could not set unknown property 'dyno' for ${bean} of type ${BeanWithDynamicProperties.name}."
+        e.message == "Could not set unknown property 'dyno' for object of type ${BeanWithDynamicProperties.name}."
+    }
+
+    def "includes toString() of bean in property set error message when has custom implementation"() {
+        def bean = new Bean() {
+            @Override
+            String toString() {
+                return "<bean>"
+            }
+        }
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.setProperty("unknown", "value")
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.message == "Could not set unknown property 'unknown' for ${bean} of type ${bean.getClass().name}."
     }
 
     static class Bean {

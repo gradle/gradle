@@ -43,6 +43,10 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         return null;
     }
 
+    protected boolean hasUsefulDisplayName() {
+        return true;
+    }
+
     @Override
     public Object getProperty(String name) throws MissingPropertyException {
         GetPropertyResult result = new GetPropertyResult();
@@ -69,10 +73,15 @@ public abstract class AbstractDynamicObject implements DynamicObject {
 
     protected MissingPropertyException getMissingProperty(String name) {
         Class<?> publicType = getPublicType();
-        if (publicType != null) {
+        boolean includeDisplayName = hasUsefulDisplayName();
+        if (publicType != null && includeDisplayName) {
             return new MissingPropertyException(String.format("Could not get unknown property '%s' for %s of type %s.", name,
                     getDisplayName(), publicType.getName()), name, publicType);
+        } else if (publicType != null) {
+            return new MissingPropertyException(String.format("Could not get unknown property '%s' for object of type %s.", name,
+                    publicType.getName()), name, publicType);
         } else {
+            // Use the display name anyway
             return new MissingPropertyException(String.format("Could not get unknown property '%s' for %s.", name,
                     getDisplayName()), name, null);
         }
@@ -80,10 +89,15 @@ public abstract class AbstractDynamicObject implements DynamicObject {
 
     protected MissingPropertyException setMissingProperty(String name) {
         Class<?> publicType = getPublicType();
-        if (publicType != null) {
+        boolean includeDisplayName = hasUsefulDisplayName();
+        if (publicType != null && includeDisplayName) {
             return new MissingPropertyException(String.format("Could not set unknown property '%s' for %s of type %s.", name,
                     getDisplayName(), publicType.getName()), name, publicType);
+        } else if (publicType != null) {
+            return new MissingPropertyException(String.format("Could not set unknown property '%s' for object of type %s.", name,
+                    publicType.getName()), name, publicType);
         } else {
+            // Use the display name anyway
             return new MissingPropertyException(String.format("Could not set unknown property '%s' for %s.", name,
                     getDisplayName()), name, null);
         }

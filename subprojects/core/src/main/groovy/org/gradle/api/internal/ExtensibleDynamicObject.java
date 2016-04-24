@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
 import org.gradle.api.plugins.Convention;
@@ -53,11 +54,15 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
      * @see org.gradle.api.internal.plugins.DefaultConvention#DefaultConvention()
      */
     public ExtensibleDynamicObject(Object delegate) {
-        this(delegate, createDynamicObject(delegate), new DefaultConvention());
+        this(delegate, createDynamicObject(delegate, null), new DefaultConvention());
     }
 
     public ExtensibleDynamicObject(Object delegate, Instantiator instantiator) {
-        this(delegate, createDynamicObject(delegate), new DefaultConvention(instantiator));
+        this(delegate, createDynamicObject(delegate, null), new DefaultConvention(instantiator));
+    }
+
+    public ExtensibleDynamicObject(Object delegate, Class<?> publicType, Instantiator instantiator) {
+        this(delegate, createDynamicObject(delegate, publicType), new DefaultConvention(instantiator));
     }
 
     public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, Instantiator instantiator) {
@@ -72,8 +77,8 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         updateDelegates();
     }
 
-    private static BeanDynamicObject createDynamicObject(Object delegate) {
-        return new BeanDynamicObject(delegate);
+    private static BeanDynamicObject createDynamicObject(Object delegate, Class<?> publicType) {
+        return new BeanDynamicObject(delegate, publicType);
     }
 
     private void updateDelegates() {
@@ -107,8 +112,20 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         setObjectsForUpdate(objects);
     }
 
+    @Override
     protected String getDisplayName() {
         return dynamicDelegate.getDisplayName();
+    }
+
+    @Nullable
+    @Override
+    protected Class<?> getPublicType() {
+        return dynamicDelegate.getPublicType();
+    }
+
+    @Override
+    protected boolean hasUsefulDisplayName() {
+        return dynamicDelegate.hasUsefulDisplayName();
     }
 
     public ExtraPropertiesExtension getDynamicProperties() {

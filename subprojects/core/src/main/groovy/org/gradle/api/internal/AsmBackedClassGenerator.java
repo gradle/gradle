@@ -911,24 +911,15 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     public static class MixInExtensibleDynamicObject extends ExtensibleDynamicObject {
-        private final Class<?> publicType;
-
         public MixInExtensibleDynamicObject(Object decoratedObject, Class<?> publicType, @Nullable DynamicObject selfProvidedDynamicObject) {
-            super(decoratedObject, wrap(decoratedObject, selfProvidedDynamicObject), ThreadGlobalInstantiator.getOrCreate());
-            this.publicType = publicType;
+            super(decoratedObject, wrap(decoratedObject, publicType, selfProvidedDynamicObject), ThreadGlobalInstantiator.getOrCreate());
         }
 
-        @Nullable
-        @Override
-        protected Class<?> getPublicType() {
-            return publicType;
-        }
-
-        private static AbstractDynamicObject wrap(Object delegateObject, DynamicObject dynamicObject) {
+        private static AbstractDynamicObject wrap(Object delegateObject, Class<?> publicType, DynamicObject dynamicObject) {
             if (dynamicObject != null) {
                 return (AbstractDynamicObject) dynamicObject;
             }
-            return new BeanDynamicObject(delegateObject);
+            return new BeanDynamicObject(delegateObject, publicType);
         }
     }
 
