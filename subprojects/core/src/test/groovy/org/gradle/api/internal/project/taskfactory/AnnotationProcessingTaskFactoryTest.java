@@ -84,7 +84,7 @@ public class AnnotationProcessingTaskFactoryTest {
     private <T extends Task> T expectTaskCreated(final Class<T> type, final Object... params) {
         DefaultProject project = TestUtil.createRootProject();
         final Class<? extends T> decorated = project.getServices().get(ClassGenerator.class).generate(type);
-        T task = AbstractTask.injectIntoNewInstance(project, "task", new Callable<T>() {
+        T task = AbstractTask.injectIntoNewInstance(project, "task", type, new Callable<T>() {
             public T call() throws Exception {
                 if (params.length > 0) {
                     return type.cast(decorated.getConstructors()[0].newInstance(params));

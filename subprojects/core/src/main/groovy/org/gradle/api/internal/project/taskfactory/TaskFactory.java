@@ -115,7 +115,7 @@ public class TaskFactory implements ITaskFactory {
             generatedType = generator.generate(type);
         }
 
-        return type.cast(AbstractTask.injectIntoNewInstance(project, name, new Callable<Task>() {
+        return type.cast(AbstractTask.injectIntoNewInstance(project, name, type, new Callable<Task>() {
             public Task call() throws Exception {
                 try {
                     return instantiator.newInstance(generatedType);

@@ -38,10 +38,11 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.internal.Factory;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
 
@@ -124,7 +125,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         finalizedBy = new DefaultTaskDependency(project.getTasks());
         shouldRunAfter = new DefaultTaskDependency(project.getTasks());
         services = project.getServiceRegistryFactory().createFor(this);
-        extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
+        extensibleDynamicObject = new ExtensibleDynamicObject(this, taskInfo.publicType, services.get(Instantiator.class));
         taskMutator = services.get(TaskMutator.class);
 
         observableActionList = new ObservableActionWrapperList(actions);
@@ -136,15 +137,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         toStringValue = "task '".concat(path).concat("'");
     }
 
-    public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Callable<T> factory) {
-        nextInstance.set(new TaskInfo(project, name));
+    public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Class<? extends Task> publicType, Callable<T> factory) {
+        nextInstance.set(new TaskInfo(project, name, publicType));
         try {
             try {
                 return factory.call();
-            } catch (RuntimeException e) {
-                throw e;
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         } finally {
             nextInstance.set(null);
@@ -524,11 +523,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private static class TaskInfo {
         private final ProjectInternal project;
+        private final Class<? extends Task> publicType;
         private final String name;
 
-        private TaskInfo(ProjectInternal project, String name) {
+        private TaskInfo(ProjectInternal project, String name, Class<? extends Task> publicType) {
             this.name = name;
             this.project = project;
+            this.publicType = publicType;
         }
     }
 
