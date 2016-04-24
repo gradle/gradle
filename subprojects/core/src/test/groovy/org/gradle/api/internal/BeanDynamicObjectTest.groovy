@@ -64,7 +64,7 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
-        e.message == "Could not get unknown property 'unknown' for ${bean}."
+        e.message == "Could not get unknown property 'unknown' for ${bean} of type ${Bean.name}."
     }
 
     def "fails when get value of unknown property of dynamic groovy object"() {
@@ -76,7 +76,7 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
-        e.message == "Could not get unknown property 'unknown' for ${bean}."
+        e.message == "Could not get unknown property 'unknown' for ${bean} of type ${BeanWithDynamicProperties.name}."
     }
 
     def "fails when get value of property of dynamic groovy object and no dynamic requested"() {
@@ -91,7 +91,7 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
-        e.message == "Could not get unknown property 'dyno' for ${bean}."
+        e.message == "Could not get unknown property 'dyno' for ${bean} of type ${BeanWithDynamicProperties.name}."
     }
 
     def "can set value of property of groovy object"() {
@@ -138,7 +138,7 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
-        e.message == "Could not set unknown property 'unknown' for ${bean}."
+        e.message == "Could not set unknown property 'unknown' for ${bean} of type ${Bean.name}."
     }
 
     def "fails when set value of unknown property of dynamic groovy object"() {
@@ -150,7 +150,7 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
-        e.message == "Could not set unknown property 'unknown' for ${bean}."
+        e.message == "Could not set unknown property 'unknown' for ${bean} of type ${BeanWithDynamicProperties.name}."
     }
 
     def "fails when set value of property of dynamic groovy object and no dynamic requested"() {
@@ -165,7 +165,7 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
-        e.message == "Could not set unknown property 'dyno' for ${bean}."
+        e.message == "Could not set unknown property 'dyno' for ${bean} of type ${BeanWithDynamicProperties.name}."
     }
 
     static class Bean {

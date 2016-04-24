@@ -486,7 +486,7 @@ assert 'overridden value' == global
         failure.assertHasCause("Could not find method unknown() for arguments [12, things] on root project 'test'.")
     }
 
-    def failsWhenGettingUnknownPropertyOnDecoratedObject() {
+    def failsWhenGettingUnknownPropertyOnTask() {
         buildFile << """
             task p
             assert !tasks.p.hasProperty("p1")
@@ -497,6 +497,22 @@ assert 'overridden value' == global
         fails()
         failure.assertHasLineNumber(4)
         failure.assertHasCause("Could not get unknown property 'p1' for task ':p'.")
+    }
+
+    def failsWhenGettingUnknownPropertyOnDecoratedObject() {
+        buildFile << """
+            class Thing {
+                String toString() { "<thing>" }
+            }
+            extensions.add('thing', Thing)
+            assert !thing.hasProperty("p1")
+            println thing.p1
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(7)
+        failure.assertHasCause("Could not get unknown property 'p1' for <thing> of type Thing.")
     }
 
     def failsWhenGettingUnknownPropertyOnDecoratedObjectThatIsSubjectOfConfigureClosure() {
@@ -514,7 +530,7 @@ assert 'overridden value' == global
         failure.assertHasCause("Could not get unknown property 'p1' for task ':p'.")
     }
 
-    def failsWhenSettingUnknownPropertyOnDecoratedObject() {
+    def failsWhenSettingUnknownPropertyOnTask() {
         buildFile << """
             task p
             assert !tasks.p.hasProperty("p1")
@@ -525,6 +541,22 @@ assert 'overridden value' == global
         fails()
         failure.assertHasLineNumber(4)
         failure.assertHasCause("Could not set unknown property 'p1' for task ':p'.")
+    }
+
+    def failsWhenSettingUnknownPropertyOnDecoratedObject() {
+        buildFile << """
+            class Thing {
+                String toString() { "<thing>" }
+            }
+            extensions.add('thing', Thing)
+            assert !thing.hasProperty("p1")
+            thing.p1 = 1
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(7)
+        failure.assertHasCause("Could not set unknown property 'p1' for <thing> of type Thing.")
     }
 
     def failsWhenSettingUnknownPropertyOnDecoratedObjectWhenSubjectOfConfigureClosure() {

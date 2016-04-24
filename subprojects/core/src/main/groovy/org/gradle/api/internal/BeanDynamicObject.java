@@ -98,6 +98,12 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         return bean.toString();
     }
 
+    @Nullable
+    @Override
+    protected Class<?> getPublicType() {
+        return bean.getClass();
+    }
+
     private MetaClass getMetaClass() {
         if (bean instanceof GroovyObject) {
             return ((GroovyObject) bean).getMetaClass();

@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.Nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +36,11 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     @Override
     public void getProperty(String name, GetPropertyResult result) {
         // No such property
+    }
+
+    @Nullable
+    protected Class<?> getPublicType() {
+        return null;
     }
 
     @Override
@@ -62,13 +68,25 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     protected MissingPropertyException getMissingProperty(String name) {
-        return new MissingPropertyException(String.format("Could not get unknown property '%s' for %s.", name,
-                getDisplayName()), name, null);
+        Class<?> publicType = getPublicType();
+        if (publicType != null) {
+            return new MissingPropertyException(String.format("Could not get unknown property '%s' for %s of type %s.", name,
+                    getDisplayName(), publicType.getName()), name, publicType);
+        } else {
+            return new MissingPropertyException(String.format("Could not get unknown property '%s' for %s.", name,
+                    getDisplayName()), name, null);
+        }
     }
 
     protected MissingPropertyException setMissingProperty(String name) {
-        return new MissingPropertyException(String.format("Could not set unknown property '%s' for %s.", name,
-                getDisplayName()), name, null);
+        Class<?> publicType = getPublicType();
+        if (publicType != null) {
+            return new MissingPropertyException(String.format("Could not set unknown property '%s' for %s of type %s.", name,
+                    getDisplayName(), publicType.getName()), name, publicType);
+        } else {
+            return new MissingPropertyException(String.format("Could not set unknown property '%s' for %s.", name,
+                    getDisplayName()), name, null);
+        }
     }
 
     @Override

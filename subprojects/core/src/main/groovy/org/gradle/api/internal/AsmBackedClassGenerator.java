@@ -17,6 +17,7 @@ package org.gradle.api.internal;
 
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.*;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
@@ -70,6 +71,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final Type conventionMappingType = Type.getType(ConventionMapping.class);
         private final Type groovyObjectType = Type.getType(GroovyObject.class);
         private final Type conventionType = Type.getType(Convention.class);
+        private final Type abstractDynamicObjectType = Type.getType(AbstractDynamicObject.class);
         private final Type extensibleDynamicObjectHelperType = Type.getType(MixInExtensibleDynamicObject.class);
         private final Type nonExtensibleDynamicObjectHelperType = Type.getType(BeanDynamicObject.class);
 
@@ -145,9 +147,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         public void mixInDynamicAware() throws Exception {
 
             // GENERATE private DynamicObject dynamicObjectHelper
-
-            Type extensibleObjectFieldType = extensible ? extensibleDynamicObjectHelperType : nonExtensibleDynamicObjectHelperType;
-            final String fieldSignature = extensibleObjectFieldType.getDescriptor();
+            final String fieldSignature = abstractDynamicObjectType.getDescriptor();
             visitor.visitField(Opcodes.ACC_PRIVATE, DYNAMIC_OBJECT_HELPER_FIELD, fieldSignature, null, null);
 
             // END
@@ -219,14 +219,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private void generateCreateDynamicObject(MethodVisitor visitor) {
             if (extensible) {
 
-                String helperTypeConstructorDesc = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class), dynamicObjectType);
+                String helperTypeConstructorDesc = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(Object.class), Type.getType(Class.class), dynamicObjectType);
 
-                // GENERATE new MixInExtensibleDynamicObject(this, super.getAsDynamicObject())
+                // GENERATE new MixInExtensibleDynamicObject(this, getClass().getSuperClass(), super.getAsDynamicObject())
 
                 visitor.visitTypeInsn(Opcodes.NEW, extensibleDynamicObjectHelperType.getInternalName());
                 visitor.visitInsn(Opcodes.DUP);
 
                 visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), "getClass", Type.getMethodDescriptor(Type.getType(Class.class)), false);
+                visitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getType(Class.class).getInternalName(), "getSuperclass", Type.getMethodDescriptor(Type.getType(Class.class)), false);
 
                 if (providesOwnDynamicObject) {
                     // GENERATE super.getAsDynamicObject()
@@ -908,9 +911,17 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     public static class MixInExtensibleDynamicObject extends ExtensibleDynamicObject {
+        private final Class<?> publicType;
 
-        public MixInExtensibleDynamicObject(Object delegateObject, DynamicObject dynamicObject) {
-            super(delegateObject, wrap(delegateObject, dynamicObject), ThreadGlobalInstantiator.getOrCreate());
+        public MixInExtensibleDynamicObject(Object decoratedObject, Class<?> publicType, @Nullable DynamicObject selfProvidedDynamicObject) {
+            super(decoratedObject, wrap(decoratedObject, selfProvidedDynamicObject), ThreadGlobalInstantiator.getOrCreate());
+            this.publicType = publicType;
+        }
+
+        @Nullable
+        @Override
+        protected Class<?> getPublicType() {
+            return publicType;
         }
 
         private static AbstractDynamicObject wrap(Object delegateObject, DynamicObject dynamicObject) {

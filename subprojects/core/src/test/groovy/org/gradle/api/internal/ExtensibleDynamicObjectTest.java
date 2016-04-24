@@ -750,14 +750,14 @@ public class ExtensibleDynamicObjectTest {
             object.getProperty("additional");
             fail();
         } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("Could not get unknown property 'additional' for " + object + "."));
+            assertThat(e.getMessage(), equalTo("Could not get unknown property 'additional' for " + object + " of type " + DynamicGroovyBean.class.getName() + "."));
         }
 
         try {
             object.setProperty("additional", "foo");
             fail();
         } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("Could not set unknown property 'additional' for " + bean + "."));
+            assertThat(e.getMessage(), equalTo("Could not set unknown property 'additional' for " + bean + " of type " + DynamicGroovyBean.class.getName() + "."));
         }
     }
 
