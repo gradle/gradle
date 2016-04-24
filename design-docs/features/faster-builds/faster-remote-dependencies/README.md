@@ -7,6 +7,7 @@ A set of candidates for making the resolution of remote dependencies faster, and
 - Parallel downloads and remote up-to-date checks.
 - Daemon performs preemptive remote up-to-date checks and downloads.
 - Make network access visible as progress logging events.
+- Improve performance of serializing resolution results to file system: 
 
 ## Profiling results
 
