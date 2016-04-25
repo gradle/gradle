@@ -3,4 +3,4 @@
  - [Dependencies report displays substituted dependencies](dependencies-report.md)
  - [IDE models include substituted dependencies](ide-models.md)
  - [Artifacts for substituted dependencies are constructed on demand](task-dependencies.md)
- - [Dependency substitution operates on external dependencies with non-default configuration]()
+ - [Automatically enable dependency substitution for homogeneous composites](enable-integrated-composite.md)
