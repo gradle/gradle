@@ -17,6 +17,8 @@
 package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
 import org.gradle.internal.nativeintegration.filesystem.Symlink;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,39 +26,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class Jdk7Symlink implements Symlink {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Jdk7Symlink.class);
 
     private final boolean symlinksSupported;
 
     public Jdk7Symlink() {
-        symlinksSupported = doesSystemSupportSymlinks();
+        this(doesSystemSupportSymlinks());
     }
 
-    private boolean doesSystemSupportSymlinks() {
-        Path sourceFile = null;
-        Path linkFile = null;
-        try {
-            sourceFile = Files.createTempFile("symlink", "test");
-            linkFile = Files.createTempFile("symlink", "test_link");
-
-            Files.delete(linkFile);
-            Files.createSymbolicLink(linkFile, sourceFile);
-            return true;
-        } catch (IOException e) {
-            return false;
-        } catch (UnsupportedOperationException e) {
-            return false;
-        } finally {
-            try {
-                if (sourceFile != null && sourceFile.toFile().exists()) {
-                    Files.delete(sourceFile);
-                }
-                if (linkFile != null && linkFile.toFile().exists()) {
-                    Files.delete(linkFile);
-                }
-            } catch (IOException e) {
-                // We don't really need to handle this.
-            }
-        }
+    protected Jdk7Symlink(boolean symlinksSupported) {
+        this.symlinksSupported = symlinksSupported;
     }
 
     @Override
@@ -73,5 +52,41 @@ public class Jdk7Symlink implements Symlink {
     @Override
     public boolean isSymlink(File suspect) {
         return Files.isSymbolicLink(suspect.toPath());
+    }
+
+    private static boolean doesSystemSupportSymlinks() {
+        Path sourceFile = null;
+        Path linkFile = null;
+        try {
+            sourceFile = Files.createTempFile("symlink", "test");
+            linkFile = Files.createTempFile("symlink", "test_link");
+
+            Files.delete(linkFile);
+            Files.createSymbolicLink(linkFile, sourceFile);
+            return true;
+        } catch (InternalError e) {
+            if (e.getMessage().contains("Should not get here")) {
+                // probably facing JDK-8046686
+                LOGGER.debug("Unable to create a symlink. Your system is hitting JDK bug id JDK-8046686. Symlink support disabled.", e);
+            } else {
+                LOGGER.debug("Unexpected internal error", e);
+            }
+            return false;
+        } catch (IOException e) {
+            return false;
+        } catch (UnsupportedOperationException e) {
+            return false;
+        } finally {
+            try {
+                if (sourceFile != null && sourceFile.toFile().exists()) {
+                    Files.delete(sourceFile);
+                }
+                if (linkFile != null && linkFile.toFile().exists()) {
+                    Files.delete(linkFile);
+                }
+            } catch (IOException e) {
+                // We don't really need to handle this.
+            }
+        }
     }
 }
