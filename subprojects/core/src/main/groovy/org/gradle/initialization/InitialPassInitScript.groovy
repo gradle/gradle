@@ -34,9 +34,6 @@ abstract class InitialPassInitScript extends InitScript {
     }
 
     public void pluginRepositories(Closure config) {
-        PluginRepositoryHandler globalHandler = getPluginRepositoryHandler();
-        Instantiator instantiator = __scriptServices.get(Instantiator.class);
-
         ConfigureUtil.configure(config, getPluginRepositoryHandler())
     }
 }
