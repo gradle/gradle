@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.composite
-
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
@@ -27,7 +26,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenModule
-
+import org.gradle.tooling.BuildException
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  * Note that this test should be migrated to use the command-line entry point for composite build, when this is developed.
@@ -270,6 +269,93 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
         result.executedTasks.containsAll([":buildB:b1:jar", ":buildB:b2:jar"])
         result.executedTasks.count {it == ":buildB:b2:jar"} == 1
+    }
+
+    @NotYetImplemented
+    def "reports failure to resolve artifacts with dependency cycle between substituted participants in a composite build"() {
+        given:
+        dependency "org.test:buildB:1.0"
+        buildB.buildFile << """
+            dependencies {
+                compile "org.test:${dependencyFromBuildB}:1.0"
+            }
+            project(":b1") {
+                dependencies {
+                    compile "org.test:buildB:1.0"
+                }
+            }
+"""
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+            dependencies {
+                compile "org.test:buildA:1.0"
+            }
+"""
+        }
+        builds << buildC
+
+        when:
+        resolveArtifacts()
+
+        then:
+        def t = thrown(BuildException)
+        assertFailure(t, "Cyclic dependency error")
+
+        where:
+        dependencyFromBuildB << [
+            "buildA", // buildA -> buildB -> buildA
+            "buildC", // buildA -> buildB -> buildC -> buildA
+            "b1",     // buildA -> buildB -> b1 -> buildB
+        ]
+    }
+
+    @NotYetImplemented
+    def "reports failure to build dependent artifact"() {
+        given:
+        dependency "org.test:buildB:1.0"
+
+        buildB.buildFile << """
+            jar.doLast {
+                throw new GradleException("jar task failed")
+            }
+"""
+        when:
+        resolveArtifacts()
+
+        then:
+        def t = thrown(BuildException)
+        assertFailure(t, "jar task failed")
+        assertFailure(t, "Execution failed for task ':buildB:jar'")
+    }
+
+    @NotYetImplemented
+    def "reports failure to build transitive dependent artifact"() {
+        given:
+        dependency "org.test:buildB:1.0"
+
+        buildB.buildFile << """
+            dependencies {
+                compile "org.test:buildC:1.0"
+            }
+"""
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+                jar.doLast {
+                    throw new GradleException("jar task failed")
+                }
+"""
+        }
+        builds << buildC
+
+        when:
+        resolveArtifacts()
+
+        then:
+        def t = thrown(BuildException)
+        assertFailure(t, "jar task failed")
+        assertFailure(t, "Execution failed for task ':buildC:jar'")
     }
 
     def dependency(String notation) {
