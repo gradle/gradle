@@ -286,10 +286,10 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
     @NotYetImplemented
     def "reports failure to resolve artifacts with dependency cycle between substituted participants in a composite build"() {
         given:
-        dependency "org.test:buildB:1.0"
+        dependency "org.test:${fromBuildA}:1.0"
         buildB.buildFile << """
             dependencies {
-                compile "org.test:${dependencyFromBuildB}:1.0"
+                compile "org.test:${fromBuildB}:1.0"
             }
             project(":b1") {
                 dependencies {
@@ -300,8 +300,9 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
 
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
+            apply plugin: 'java'
             dependencies {
-                compile "org.test:buildA:1.0"
+                compile "org.test:${fromBuildC}:1.0"
             }
 """
         }
@@ -315,11 +316,11 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         assertFailure(t, "Cyclic dependency error")
 
         where:
-        dependencyFromBuildB << [
-            "buildA", // buildA -> buildB -> buildA
-            "buildC", // buildA -> buildB -> buildC -> buildA
-            "b1",     // buildA -> buildB -> b1 -> buildB
-        ]
+        fromBuildA | fromBuildB | fromBuildC
+        "buildB"   | "buildA"   | "."
+        "buildB"   | "buildC"   | "buildA"
+        "buildB"   | "buildC"   | "buildB"
+        "buildB"   | "b1"       | "."       // b1 -> buildB
     }
 
     @NotYetImplemented
