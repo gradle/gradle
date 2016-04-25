@@ -16,9 +16,8 @@
 
 package org.gradle.plugin.use.internal;
 
+import com.google.common.collect.Iterators;
 import org.gradle.api.Action;
-import org.gradle.api.Namer;
-import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileResolver;
@@ -28,55 +27,65 @@ import org.gradle.api.internal.plugins.repositories.PluginRepository;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 
-class DefaultPluginRepositoryHandler extends DefaultNamedDomainObjectList<PluginRepository> implements PluginRepositoryHandler {
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
 
     private FileResolver fileResolver;
     private Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
     private VersionSelectorScheme versionSelectorScheme;
+    private Instantiator instantiator;
+    private Set<String> repoNames;
+    private List<PluginRepository> repositories;
 
     public DefaultPluginRepositoryHandler(FileResolver fileResolver, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory, VersionSelectorScheme versionSelectorScheme, Instantiator instantiator) {
-        super(PluginRepository.class, instantiator, new RepositoryNamer());
+        this.instantiator = instantiator;
         this.fileResolver = fileResolver;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
         this.versionSelectorScheme = versionSelectorScheme;
-    }
-
-    private static class RepositoryNamer implements Namer<PluginRepository> {
-        @Override
-        public String determineName(PluginRepository repository) {
-            return repository.getName();
-        }
+        this.repoNames = new HashSet<String>();
+        this.repositories = new ArrayList<PluginRepository>();
     }
 
     @Override
     public MavenPluginRepository maven(Action<? super MavenPluginRepository> configurationAction) {
-        DefaultMavenPluginRepository mavenPluginRepository = getInstantiator()
-            .newInstance(DefaultMavenPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme);
+        DefaultMavenPluginRepository mavenPluginRepository = instantiator.newInstance(
+            DefaultMavenPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme);
         configurationAction.execute(mavenPluginRepository);
-        uniquifyName(mavenPluginRepository);
         add(mavenPluginRepository);
         return mavenPluginRepository;
     }
 
-    private void uniquifyName(MavenPluginRepository mavenPluginRepository) {
-        String name = mavenPluginRepository.getName();
+    @Override
+    public Iterator<PluginRepository> iterator() {
+        return Iterators.unmodifiableIterator(repositories.iterator());
+    }
+
+    private void add(PluginRepository pluginRepository) {
+        uniquifyName(pluginRepository);
+        repositories.add(pluginRepository);
+    }
+
+    private void uniquifyName(PluginRepository pluginRepository) {
+        String name = pluginRepository.getName();
         if (name == null) {
             name = "maven";
         }
         name = uniquifyName(name);
-        mavenPluginRepository.setName(name);
+        pluginRepository.setName(name);
     }
 
     private String uniquifyName(String proposedName) {
-        if (findByName(proposedName) == null) {
-            return proposedName;
+        int attempt = 1;
+        while (repoNames.contains(proposedName)) {
+            attempt++;
+            proposedName = String.format("%s%d", proposedName, attempt);
         }
-        for (int index = 2; true; index++) {
-            String candidate = String.format("%s%d", proposedName, index);
-            if (findByName(candidate) == null) {
-                return candidate;
-            }
-        }
+        repoNames.add(proposedName);
+        return proposedName;
     }
-
 }
