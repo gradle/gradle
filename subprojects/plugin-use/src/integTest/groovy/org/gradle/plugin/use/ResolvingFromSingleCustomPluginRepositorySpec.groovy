@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TextUtil
 
 @LeaksFileHandles
 class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyResolutionTest {
@@ -49,11 +48,21 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         publishTestPlugin()
     }
 
-    def useCustomRepository(String path) {
+    def useAbsoluteCustomRepository() {
         settingsFile << """
           pluginRepositories {
               maven {
-                  url file("${TextUtil.normaliseFileSeparators(path)}")
+                  url "${mavenRepo.uri}"
+              }
+          }
+        """
+    }
+
+    def useRelativeCustomRepository() {
+        settingsFile << """
+          pluginRepositories {
+              maven {
+                  url file("${mavenRepo.rootDir.name}")
               }
           }
         """
@@ -68,7 +77,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useCustomRepository(mavenRepo.getRootDir().absolutePath)
+        useAbsoluteCustomRepository()
 
         when:
         succeeds("pluginTask")
@@ -86,7 +95,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useCustomRepository(mavenRepo.getRootDir().getName())
+        useRelativeCustomRepository()
 
         when:
         succeeds("pluginTask")
@@ -107,7 +116,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useCustomRepository(mavenRepo.getRootDir().getName())
+        useAbsoluteCustomRepository()
 
         when:
         succeeds("pluginTask")
@@ -140,7 +149,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useCustomRepository(mavenRepo.getRootDir().getName())
+        useAbsoluteCustomRepository()
 
         when:
         fails("pluginTask")
@@ -164,7 +173,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useCustomRepository(mavenRepo.getRootDir().getName())
+        useRelativeCustomRepository()
 
         and:
         settingsFile << """
@@ -186,7 +195,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useCustomRepository(mavenRepo.getRootDir().getName())
+        useAbsoluteCustomRepository()
 
         expect:
         succeeds("helloWorld")
