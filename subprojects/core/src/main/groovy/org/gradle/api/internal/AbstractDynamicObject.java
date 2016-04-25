@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal;
 
+import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Nullable;
 
@@ -128,28 +129,32 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         throw methodMissingException(name, arguments);
     }
 
-    protected groovy.lang.MissingMethodException methodMissingException(String name, Object... params) {
-        return new MissingMethodException(this, getDisplayName(), name, params);
+    protected MissingMethodException methodMissingException(String name, Object... params) {
+        Class<?> publicType = getPublicType();
+        boolean includeDisplayName = hasUsefulDisplayName();
+        final String message;
+        if (publicType != null && includeDisplayName) {
+            message = String.format("Could not find method %s() for arguments %s on %s of type %s.", name, Arrays.toString(params), getDisplayName(), publicType.getName());
+        } else if (publicType != null) {
+            message = String.format("Could not find method %s() for arguments %s on object of type %s.", name, Arrays.toString(params), publicType.getName());
+        } else {
+            // Include the display name anyway
+            message = String.format("Could not find method %s() for arguments %s on %s.", name, Arrays.toString(params), getDisplayName());
+        }
+        return new CustomMessageMissingMethodException(name, publicType, message, params);
+    }
+
+    private static class CustomMessageMissingMethodException extends MissingMethodException {
+        private final String message;
+
+        CustomMessageMissingMethodException(String name, Class<?> publicType, String message, Object... params) {
+            super(name, publicType, params);
+            this.message = message;
+        }
+
+        @Override
+        public String getMessage() {
+            return message;
+        }
     }
 }
-
-class MissingMethodException extends groovy.lang.MissingMethodException {
-    private final DynamicObject target;
-    private final String displayName;
-
-    public MissingMethodException(DynamicObject target, String displayName, String name, Object... arguments) {
-        super(name, null, arguments);
-        this.target = target;
-        this.displayName = displayName;
-    }
-
-    public DynamicObject getTarget() {
-        return target;
-    }
-
-    public String getMessage() {
-        return String.format("Could not find method %s() for arguments %s on %s.", getMethod(), Arrays.toString(
-                getArguments()), displayName);
-    }
-}
-

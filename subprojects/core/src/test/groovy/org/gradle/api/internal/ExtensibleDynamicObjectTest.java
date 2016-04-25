@@ -530,7 +530,7 @@ public class ExtensibleDynamicObjectTest {
             bean.getAsDynamicObject().invokeMethod("unknown", "a", 12);
             fail();
         } catch (MissingMethodException e) {
-            assertThat(e.getMessage(), equalTo("Could not find method unknown() for arguments [a, 12] on <bean>."));
+            assertThat(e.getMessage(), equalTo("Could not find method unknown() for arguments [a, 12] on <bean> of type " + Bean.class.getName() + "."));
         }
     }
 
@@ -769,7 +769,7 @@ public class ExtensibleDynamicObjectTest {
             object.invokeMethod("xxx", 1, 2, 3);
             fail();
         } catch (MissingMethodException e) {
-            assertThat(e.getMessage(), equalTo("Could not find method xxx() for arguments [1, 2, 3] on " + bean + "."));
+            assertThat(e.getMessage(), equalTo("Could not find method xxx() for arguments [1, 2, 3] on object of type " + DynamicGroovyBean.class.getName() + "."));
         }
     }
 

@@ -485,7 +485,7 @@ assert 'overridden value' == global
         expect:
         fails()
         failure.assertHasLineNumber(2)
-        failure.assertHasCause("Could not find method unknown() for arguments [12, things] on root project 'test'.")
+        failure.assertHasCause("Could not find method unknown() for arguments [12, things] on root project 'test' of type ${Project.name}.")
     }
 
     def failsWhenGettingUnknownPropertyOnTask() {
@@ -585,7 +585,7 @@ assert 'overridden value' == global
         expect:
         fails()
         failure.assertHasLineNumber(3)
-        failure.assertHasCause("Could not find method unknown() for arguments [12, things] on task ':p'.")
+        failure.assertHasCause("Could not find method unknown() for arguments [12, things] on task ':p' of type ${DefaultTask.name}.")
     }
 
     def failsWhenInvokingUnknownMethodOnDecoratedObjectWhenSubjectOfConfigureClosure() {
@@ -600,7 +600,7 @@ assert 'overridden value' == global
         fails()
         failure.assertHasLineNumber(4)
         // This error message has the wrong subject (the project - should be the task). Just documenting the behaviour.
-        failure.assertHasCause("Could not find method unknown() for arguments [12, things] on root project 'test'.")
+        failure.assertHasCause("Could not find method unknown() for arguments [12, things] on root project 'test' of type ${Project.name}.")
     }
 
     def canApplyACategoryToDecoratedObject() {
@@ -705,7 +705,7 @@ assert 'overridden value' == global
                 m1(1,2,3)
                 fail()
             } catch (MissingMethodException e) {
-                assert e.message == "Could not find method m1() for arguments [1, 2, 3] on root project 'test'."
+                assert e.message == "Could not find method m1() for arguments [1, 2, 3] on root project 'test' of type ${Project.name}."
             }
 
             try {

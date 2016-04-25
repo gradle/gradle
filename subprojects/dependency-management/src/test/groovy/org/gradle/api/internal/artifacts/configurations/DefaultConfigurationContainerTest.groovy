@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.DomainObjectContext
-import org.gradle.api.internal.MissingMethodException
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder

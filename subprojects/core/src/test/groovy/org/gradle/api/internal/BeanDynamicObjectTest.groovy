@@ -64,6 +64,8 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
+        e.property == "unknown"
+        e.type == Bean
         e.message == "Could not get unknown property 'unknown' for object of type ${Bean.name}."
     }
 
@@ -76,6 +78,8 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
+        e.property == "unknown"
+        e.type == BeanWithDynamicProperties
         e.message == "Could not get unknown property 'unknown' for object of type ${BeanWithDynamicProperties.name}."
     }
 
@@ -91,6 +95,8 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
+        e.property == "dyno"
+        e.type == BeanWithDynamicProperties
         e.message == "Could not get unknown property 'dyno' for object of type ${BeanWithDynamicProperties.name}."
     }
 
@@ -108,6 +114,8 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
+        e.property == "unknown"
+        e.type == bean.getClass()
         e.message == "Could not get unknown property 'unknown' for <bean> of type ${bean.getClass().name}."
     }
 
@@ -155,6 +163,8 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
+        e.property == "unknown"
+        e.type == Bean
         e.message == "Could not set unknown property 'unknown' for object of type ${Bean.name}."
     }
 
@@ -167,6 +177,8 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
+        e.property == "unknown"
+        e.type == BeanWithDynamicProperties
         e.message == "Could not set unknown property 'unknown' for object of type ${BeanWithDynamicProperties.name}."
     }
 
@@ -182,6 +194,8 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(MissingPropertyException)
+        e.property == "dyno"
+        e.type == BeanWithDynamicProperties
         e.message == "Could not set unknown property 'dyno' for object of type ${BeanWithDynamicProperties.name}."
     }
 
@@ -236,8 +250,10 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.invokeMethod("unknown", [12] as Object[])
 
         then:
-        def e = thrown(groovy.lang.MissingMethodException)
-        e.message == "Could not find method unknown() for arguments [12] on ${bean}."
+        def e = thrown(MissingMethodException)
+        e.method == "unknown"
+        e.type == Bean
+        e.message == "Could not find method unknown() for arguments [12] on object of type ${Bean.name}."
     }
 
     def "fails when invoke unknown method of dynamic groovy object"() {
@@ -248,8 +264,10 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.invokeMethod("unknown", [12] as Object[])
 
         then:
-        def e = thrown(groovy.lang.MissingMethodException)
-        e.message == "Could not find method unknown() for arguments [12] on ${bean}."
+        def e = thrown(MissingMethodException)
+        e.method == "unknown"
+        e.type == BeanWithDynamicProperties
+        e.message == "Could not find method unknown() for arguments [12] on object of type ${BeanWithDynamicProperties.name}."
     }
 
     def "fails when invoke method of dynamic groovy object and no dynamic requested"() {
@@ -263,8 +281,29 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.invokeMethod("dyno", [] as Object[])
 
         then:
-        def e = thrown(groovy.lang.MissingMethodException)
-        e.message == "Could not find method dyno() for arguments [] on ${bean}."
+        def e = thrown(MissingMethodException)
+        e.method == "dyno"
+        e.type == BeanWithDynamicProperties
+        e.message == "Could not find method dyno() for arguments [] on object of type ${BeanWithDynamicProperties.name}."
+    }
+
+    def "includes toString() of bean in missing method error message when has custom implementation"() {
+        def bean = new Bean() {
+            @Override
+            String toString() {
+                return "<bean>"
+            }
+        }
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.invokeMethod("unknown", [] as Object[])
+
+        then:
+        def e = thrown(MissingMethodException)
+        e.method == "unknown"
+        e.type == bean.getClass()
+        e.message == "Could not find method unknown() for arguments [] on <bean> of type ${bean.getClass().name}."
     }
 
     static class Bean {
