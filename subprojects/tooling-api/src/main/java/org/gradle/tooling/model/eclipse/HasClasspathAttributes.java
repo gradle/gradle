@@ -16,21 +16,22 @@
 package org.gradle.tooling.model.eclipse;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.Dependency;
 import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.UnsupportedMethodException;
 
 /**
- * Represents an Eclipse-specific dependency.
+ * An element that can have classpath attributes.
  *
  * @since 2.14
  */
 @Incubating
-public interface EclipseDependency extends Dependency {
+public interface HasClasspathAttributes {
 
     /**
-     * Returns the classpath attributes associated to this dependency.
+     * Returns the classpath attributes associated with this element.
      *
      * @return The classpath attributes.
+     * @throws UnsupportedMethodException For Gradle versions older than 2.14, where this method is not supported.
      */
-    DomainObjectSet<? extends ClasspathAttribute> getClasspathAttributes();
+    DomainObjectSet<? extends ClasspathAttribute> getClasspathAttributes() throws UnsupportedMethodException;
 }

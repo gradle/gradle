@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 
@@ -41,7 +42,7 @@ dependencies {
     }
 
     @TargetGradleVersion(">=1.0-milestone-8 <2.14")
-    def "older Gradle versions throw UnsupportedOperationException when classpath attributes are accessed"() {
+    def "older Gradle versions throw UnsupportedMethodException when classpath attributes are accessed"() {
         setup:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
         Collection<EclipseExternalDependency> projectDependencies = rootProject.getProjectDependencies()
@@ -51,13 +52,13 @@ dependencies {
         projectDependencies[0].getClasspathAttributes()
 
         then:
-        thrown UnsupportedOperationException
+        thrown UnsupportedMethodException
 
         when:
         externalDependencies[0].getClasspathAttributes()
 
         then:
-        thrown UnsupportedOperationException
+        thrown UnsupportedMethodException
     }
 
     @TargetGradleVersion(">=2.14")

@@ -24,6 +24,6 @@ import org.gradle.tooling.model.ExternalDependency;
  * @since 2.14
  */
 @Incubating
-public interface EclipseExternalDependency extends ExternalDependency, EclipseDependency {
+public interface EclipseExternalDependency extends ExternalDependency, HasClasspathAttributes {
 
 }
