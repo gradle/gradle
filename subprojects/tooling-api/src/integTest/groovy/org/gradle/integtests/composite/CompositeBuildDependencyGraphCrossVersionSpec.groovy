@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.composite
+
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -34,7 +35,7 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
     def buildA
     def buildB
     List builds
-    def mavenRepo
+    MavenFileRepository mavenRepo
     ResolveTestFixture resolve
 
     def setup() {
@@ -522,6 +523,42 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
         then:
         def t = thrown(BuildException)
         assertFailure(t, "Module version 'org.test:c1:1.0' is not unique in composite: can be provided by projects [buildC::c1, buildC::nested:c1].")
+    }
+
+    def "reports failure to resolve dependencies when transitive dependency substitution is ambiguous"() {
+        given:
+        def buildC = multiProjectBuild("buildC", ['b1']) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    version = '3.0'
+                }
+"""
+        }
+        builds << buildC
+
+        buildB.buildFile << """
+            dependencies {
+                compile ${dependencyNotation}
+            }
+"""
+
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:buildB:1.0"
+            }
+"""
+
+        when:
+        checkDependencies()
+
+        then:
+        def t = thrown(BuildException)
+        assertFailure(t, "Module version 'org.test:b1:2.0' is not unique in composite: can be provided by projects [buildB::b1, buildC::b1].")
+
+        where:
+        dependencyNotation << ["'org.test:b1:2.0'", "project(':b1')"]
+        // TODO:DAZ The `project(':b1')` dependency is not actually ambiguous in the composite, but we are first translating it to GAV which makes it so.
     }
 
     def "handles unused participant with no defined configurations"() {

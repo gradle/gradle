@@ -30,15 +30,6 @@ No changes to the public API should be required.
     - A:: <- ('org:b1', 'org:b2') | B::b1 <- ('org:b2')
     - A:: <- ('org:b1', 'org:b2') | B::b1 <- (B::b2)
 
-- Transitive external dependency replaced with project dependency:
-    - Dependency from Maven module
-        - Dependency has defined exclude rules
-        - Dependency on non-default scope
-    - Dependency from Ivy module
-        - Dependency on non-default configuration
-        - Dependency on specified artifact in configuration
-        - Dependency has defined exclude rules
-
 - Build failures
     - Graceful failure on dependency cycles
         - A:: <- ('org:b1') | B::b1 <- ('org:a')
