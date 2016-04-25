@@ -165,4 +165,4 @@ if [[ "\$(uname)" == "Darwin" ]] && [[ "\$HOME" == "\$PWD" ]]; then
   cd "\$(dirname "\$0")"
 fi
 
-exec "\$JAVACMD" `echo $JVM_OPTS` <% if ( appNameSystemProperty ) { %>"-D${appNameSystemProperty}=\$APP_BASE_NAME"<% } %> -classpath "\$CLASSPATH" ${mainClassName} "\$@"
+exec "\$JAVACMD" `echo \$JVM_OPTS` <% if ( appNameSystemProperty ) { %>"-D${appNameSystemProperty}=\$APP_BASE_NAME"<% } %> -classpath "\$CLASSPATH" ${mainClassName} "\$@"
