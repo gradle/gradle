@@ -170,7 +170,7 @@ public class CompositeContextBuilder implements BuildActionRunner {
                 Buildable publishArtifact = (Buildable) artifactMetaData;
                 Set<? extends Task> dependencies = publishArtifact.getBuildDependencies().getDependencies(null);
                 for (Task dependency : dependencies) {
-                    taskNames.add(dependency.getName());
+                    taskNames.add(dependency.getPath());
                 }
             }
         }
