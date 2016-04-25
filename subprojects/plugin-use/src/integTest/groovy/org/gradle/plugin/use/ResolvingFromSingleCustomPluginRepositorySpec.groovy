@@ -62,7 +62,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         settingsFile << """
           pluginRepositories {
               maven {
-                  url file("${mavenRepo.rootDir.name}")
+                  url "${mavenRepo.rootDir.name}"
               }
           }
         """

@@ -40,7 +40,16 @@ import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.plugin.use.repository.internal.DefaultPluginRepositoryHandler;
-import org.gradle.plugin.use.resolve.service.internal.*;
+import org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient;
+import org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient;
+import org.gradle.plugin.use.resolve.service.internal.InMemoryCachingPluginResolutionServiceClient;
+import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
+import org.gradle.plugin.use.resolve.service.internal.OfflinePluginResolutionServiceClient;
+import org.gradle.plugin.use.resolve.service.internal.PersistentCachingPluginResolutionServiceClient;
+import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceClient;
+import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
+
+import java.io.File;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -103,9 +112,10 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
         }
 
         DefaultPluginRepositoryHandler createPluginRepositoryHandler(VersionSelectorScheme versionSelectorScheme,
-                                                                     final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver,
+                                                                     final DependencyManagementServices dependencyManagementServices, final FileLookup fileLookup,
                                                                      final DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator) {
 
+            final FileResolver fileResolver = fileLookup.getFileResolver(new File(".").getAbsoluteFile());
             final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
             return instantiator.newInstance(DefaultPluginRepositoryHandler.class, fileResolver, dependencyResolutionServicesFactory, versionSelectorScheme, instantiator);
         }
