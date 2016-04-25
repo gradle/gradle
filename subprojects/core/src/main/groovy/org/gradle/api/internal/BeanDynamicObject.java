@@ -16,7 +16,6 @@
 package org.gradle.api.internal;
 
 import groovy.lang.*;
-import groovy.lang.MissingMethodException;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
@@ -37,7 +36,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     private static final Field MISSING_PROPERTY_GET_METHOD;
     private final Object bean;
     private final boolean includeProperties;
-    private final DynamicObject delegate;
+    private final MetaClassAdapter delegate;
     private final boolean implementsMissing;
     @Nullable
     private final Class<?> publicType;
@@ -76,7 +75,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         this.delegate = determineDelegate(bean);
     }
 
-    public DynamicObject determineDelegate(Object bean) {
+    public MetaClassAdapter determineDelegate(Object bean) {
         if (bean instanceof DynamicObject || bean instanceof DynamicObjectAware || !(bean instanceof GroovyObject)) {
             return new MetaClassAdapter();
         } else {
@@ -159,18 +158,15 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
     }
 
-    private class MetaClassAdapter extends AbstractDynamicObject {
-        @Override
+    private class MetaClassAdapter {
         protected String getDisplayName() {
             return BeanDynamicObject.this.getDisplayName();
         }
 
-        @Override
         public boolean hasProperty(String name) {
-            return includeProperties && getMetaClass().hasProperty(bean, name) != null;
+            return includeProperties && lookupProperty(getMetaClass(), name) != null;
         }
 
-        @Override
         public void getProperty(String name, GetPropertyResult result) {
             if (!includeProperties) {
                 return;
@@ -182,8 +178,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             MetaProperty property = lookupProperty(metaClass, name);
             if (property != null) {
                 if (property instanceof MetaBeanProperty && ((MetaBeanProperty) property).getGetter() == null) {
-                    throw new GroovyRuntimeException(String.format(
-                            "Cannot get the value of write-only property '%s' on %s.", name, getDisplayName()));
+                    throw getWriteOnlyProperty(name);
                 }
 
                 try {
@@ -257,46 +252,40 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return metaClass.getMetaProperty(name);
         }
 
-        @Override
         public void setProperty(final String name, Object value, SetPropertyResult result) {
             if (!includeProperties) {
                 return;
             }
 
             MetaClass metaClass = getMetaClass();
-            MetaProperty property = metaClass.hasProperty(bean, name);
-            if (property == null) {
-                if (implementsMissing) {
-                    try {
-                        setOpaqueProperty(name, value, metaClass);
-                        result.found();
-                    } catch (MissingPropertyException e) {
-                        if (!name.equals(e.getProperty())) {
-                            throw e;
-                        }
-                    }
+            MetaProperty property = lookupProperty(metaClass, name);
+            if (property != null) {
+                if (property instanceof MetaBeanProperty && ((MetaBeanProperty) property).getSetter() == null) {
+                    throw setReadOnlyProperty(name);
                 }
+                try {
+                    value = propertySetTransformer.transformValue(bean, property, value);
+                    metaClass.setProperty(bean, name, value);
+                    result.found();
+                    return;
+                } catch (InvokerInvocationException e) {
+                    if (e.getCause() instanceof RuntimeException) {
+                        throw (RuntimeException) e.getCause();
+                    }
+                    throw e;
+                }
+            }
+            if (!implementsMissing) {
                 return;
             }
 
-            if (property instanceof MetaBeanProperty && ((MetaBeanProperty) property).getSetter() == null) {
-                throw new ReadOnlyPropertyException(name, bean.getClass()) {
-                    @Override
-                    public String getMessage() {
-                        return String.format("Cannot set the value of read-only property '%s' on %s.", name,
-                                getDisplayName());
-                    }
-                };
-            }
             try {
-                value = propertySetTransformer.transformValue(bean, property, value);
-                metaClass.setProperty(bean, name, value);
+                setOpaqueProperty(name, value, metaClass);
                 result.found();
-            } catch (InvokerInvocationException e) {
-                if (e.getCause() instanceof RuntimeException) {
-                    throw (RuntimeException) e.getCause();
+            } catch (MissingPropertyException e) {
+                if (!name.equals(e.getProperty())) {
+                    throw e;
                 }
-                throw e;
             }
         }
 
@@ -304,7 +293,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             metaClass.invokeMissingProperty(bean, name, value, false);
         }
 
-        @Override
         public Map<String, ?> getProperties() {
             if (!includeProperties) {
                 return Collections.emptyMap();
@@ -328,14 +316,12 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             return properties;
         }
 
-        @Override
         public boolean hasMethod(final String name, final Object... arguments) {
-            return !getMetaClass().respondsTo(bean, name, arguments).isEmpty();
+            return lookupMethod(name, arguments) != null;
         }
 
-        @Override
         public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
-            MetaMethod metaMethod = getMetaClass().getMetaMethod(name, arguments);
+            MetaMethod metaMethod = lookupMethod(name, arguments);
             if (metaMethod != null) {
                 result.result(metaMethod.doMethodInvoke(bean, arguments));
                 return;
@@ -359,6 +345,10 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 }
                 // Ignore
             }
+        }
+
+        private MetaMethod lookupMethod(String name, Object[] arguments) {
+            return getMetaClass().getMetaMethod(name, arguments);
         }
 
         protected Object invokeOpaqueMethod(String name, Object[] arguments) {

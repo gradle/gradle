@@ -63,8 +63,8 @@ public class ExtensibleDynamicObjectTest {
         try {
             bean.setProperty("readOnlyProperty", "value");
             fail();
-        } catch (ReadOnlyPropertyException e) {
-            assertThat(e.getMessage(), equalTo("Cannot set the value of read-only property 'readOnlyProperty' on <bean>."));
+        } catch (GroovyRuntimeException e) {
+            assertThat(e.getMessage(), equalTo("Cannot set the value of read-only property 'readOnlyProperty' for <bean> of type " + Bean.class.getName() + "."));
         }
     }
 
@@ -83,7 +83,7 @@ public class ExtensibleDynamicObjectTest {
             bean.getProperty("writeOnlyProperty");
             fail();
         } catch (GroovyRuntimeException e) {
-            assertThat(e.getMessage(), equalTo("Cannot get the value of write-only property 'writeOnlyProperty' on <bean>."));
+            assertThat(e.getMessage(), equalTo("Cannot get the value of write-only property 'writeOnlyProperty' for <bean> of type " + Bean.class.getName() + "."));
         }
     }
 

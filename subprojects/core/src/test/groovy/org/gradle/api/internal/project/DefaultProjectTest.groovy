@@ -790,9 +790,14 @@ def scriptMethod(Closure closure) {
         assertEquals(expectedPoint, actualPoint)
     }
 
-    @Test(expected = ReadOnlyPropertyException)
+    @Test()
     void setName() {
-        project.name = "someNewName"
+        try {
+            project.name = "someNewName"
+            fail()
+        } catch (GroovyRuntimeException e) {
+            assertThat(e.message, equalTo("Cannot set the value of read-only property 'name' for root project 'root' of type ${Project.name}." as String))
+        }
     }
 
     @Test

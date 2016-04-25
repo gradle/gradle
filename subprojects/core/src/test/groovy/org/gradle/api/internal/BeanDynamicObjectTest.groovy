@@ -24,7 +24,17 @@ class BeanDynamicObjectTest extends Specification {
         def dynamicObject = new BeanDynamicObject(bean)
 
         expect:
+        dynamicObject.hasProperty("prop")
         dynamicObject.getProperty("prop") == "value"
+    }
+
+    def "can get value of read only property of groovy object"() {
+        def bean = new Bean(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.hasProperty("readOnly")
+        dynamicObject.getProperty("readOnly") == "read-only"
     }
 
     def "can get metaClass of groovy object"() {
@@ -32,6 +42,7 @@ class BeanDynamicObjectTest extends Specification {
         def dynamicObject = new BeanDynamicObject(bean)
 
         expect:
+        dynamicObject.hasProperty("metaClass")
         dynamicObject.getProperty("metaClass") == bean.metaClass
     }
 
@@ -42,6 +53,15 @@ class BeanDynamicObjectTest extends Specification {
         expect:
         dynamicObject.getProperty("prop") == "value"
         dynamicObject.getProperty("dyno") == "ok"
+    }
+
+    def "can only check for static properties of dynamic groovy object"() {
+        def bean = new BeanWithDynamicProperties(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.hasProperty("prop")
+        !dynamicObject.hasProperty("dyno")
     }
 
     def "can get property of closure delegate via closure instance"() {
@@ -81,6 +101,18 @@ class BeanDynamicObjectTest extends Specification {
         e.property == "unknown"
         e.type == BeanWithDynamicProperties
         e.message == "Could not get unknown property 'unknown' for object of type ${BeanWithDynamicProperties.name}."
+    }
+
+    def "fails when get value of write only property of groovy object"() {
+        def bean = new Bean(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.getProperty("writeOnly")
+
+        then:
+        def e = thrown(GroovyRuntimeException)
+        e.message == "Cannot get the value of write-only property 'writeOnly' for object of type ${Bean.name}."
     }
 
     def "fails when get value of property of dynamic groovy object and no dynamic requested"() {
@@ -130,6 +162,20 @@ class BeanDynamicObjectTest extends Specification {
         bean.prop == "value"
     }
 
+    def "can set value of write only property of groovy object"() {
+        def bean = new Bean()
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.hasProperty("writeOnly")
+
+        when:
+        dynamicObject.setProperty("writeOnly", "value")
+
+        then:
+        bean.prop == "value"
+    }
+
     def "can set property of dynamic groovy object"() {
         def bean = new BeanWithDynamicProperties(prop: "value")
         def dynamicObject = new BeanDynamicObject(bean)
@@ -166,6 +212,21 @@ class BeanDynamicObjectTest extends Specification {
         e.property == "unknown"
         e.type == Bean
         e.message == "Could not set unknown property 'unknown' for object of type ${Bean.name}."
+    }
+
+    def "fails when set value of read only property of groovy object"() {
+        def bean = new Bean()
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.hasProperty("readOnly")
+
+        when:
+        dynamicObject.setProperty("readOnly", "value")
+
+        then:
+        def e = thrown(GroovyRuntimeException)
+        e.message == "Cannot set the value of read-only property 'readOnly' for object of type ${Bean.name}."
     }
 
     def "fails when set value of unknown property of dynamic groovy object"() {
@@ -224,12 +285,31 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.invokeMethod("m", [12] as Object[]) == "[13]"
     }
 
+    def "can check for methods of groovy object"() {
+        def bean = new Bean()
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.hasMethod("m", [12] as Object[])
+        !dynamicObject.hasMethod("m", [] as Object[])
+        !dynamicObject.hasMethod("other", [12] as Object[])
+    }
+
     def "can invoke method of dynamic groovy object"() {
         def bean = new BeanWithDynamicProperties(prop: "value")
         def dynamicObject = new BeanDynamicObject(bean)
 
         expect:
         dynamicObject.invokeMethod("dyno", [12, "a"] as Object[]) == "[12, a]"
+    }
+
+    def "can check for static methods of dynamic groovy object"() {
+        def bean = new BeanWithDynamicProperties(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.hasMethod("thing", [12] as Object[])
+        !dynamicObject.hasMethod("dyno", [12, "a"] as Object[])
     }
 
     def "can invoke method of closure delegate via closure instance"() {
@@ -311,6 +391,14 @@ class BeanDynamicObjectTest extends Specification {
 
         String m(int l) {
             return "[${l+1}]"
+        }
+
+        String getReadOnly() {
+            return "read-only"
+        }
+
+        void setWriteOnly(String s) {
+            prop = s
         }
     }
 }
