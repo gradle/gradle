@@ -35,6 +35,11 @@ import org.gradle.model.internal.type.ModelType;
 import static org.gradle.model.internal.core.NodePredicate.allLinks;
 
 public class DefaultTaskContainerFactory implements Factory<TaskContainerInternal> {
+    private static final ModelType<DefaultTaskContainer> DEFAULT_TASK_CONTAINER_MODEL_TYPE = ModelType.of(DefaultTaskContainer.class);
+    private static final ModelType<TaskContainer> TASK_CONTAINER_MODEL_TYPE = ModelType.of(TaskContainer.class);
+    private static final ModelType<Task> TASK_MODEL_TYPE = ModelType.of(Task.class);
+    private static final ModelReference<Task> TASK_MODEL_REFERENCE = ModelReference.of(TASK_MODEL_TYPE);
+    public static final SimpleModelRuleDescriptor COPY_TO_TASK_CONTAINER_DESCRIPTOR = new SimpleModelRuleDescriptor("copyToTaskContainer");
     private final ModelRegistry modelRegistry;
     private final Instantiator instantiator;
     private final ITaskFactory taskFactory;
@@ -50,7 +55,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
     }
 
     public TaskContainerInternal create() {
-        ModelReference<DefaultTaskContainer> containerReference = ModelReference.of(TaskContainerInternal.MODEL_PATH, DefaultTaskContainer.class);
+        ModelReference<DefaultTaskContainer> containerReference = ModelReference.of(TaskContainerInternal.MODEL_PATH, DEFAULT_TASK_CONTAINER_MODEL_TYPE);
 
         ModelRegistrations.Builder registrationBuilder = BridgedCollections.registration(
             containerReference,
@@ -67,13 +72,13 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
 
         modelRegistry.register(
             registrationBuilder
-                .withProjection(ModelMapModelProjection.unmanaged(Task.class, ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(new Transformer<NamedEntityInstantiator<Task>, MutableModelNode>() {
+                .withProjection(ModelMapModelProjection.unmanaged(TASK_MODEL_TYPE, ChildNodeInitializerStrategyAccessors.of(NodeBackedModelMap.createUsingParentNode(new Transformer<NamedEntityInstantiator<Task>, MutableModelNode>() {
                     @Override
                     public NamedEntityInstantiator<Task> transform(MutableModelNode modelNode) {
-                        return modelNode.getPrivateData(ModelType.of(DefaultTaskContainer.class)).getEntityInstantiator();
+                        return modelNode.getPrivateData(DEFAULT_TASK_CONTAINER_MODEL_TYPE).getEntityInstantiator();
                     }
                 }))))
-                .withProjection(UnmanagedModelProjection.of(TaskContainer.class))
+                .withProjection(UnmanagedModelProjection.of(TASK_CONTAINER_MODEL_TYPE))
                 .build()
         );
 
@@ -83,7 +88,7 @@ public class DefaultTaskContainerFactory implements Factory<TaskContainerInterna
         MutableModelNode mutableModelNode = (MutableModelNode) modelNode;
 
         // Add tasks created through rules to the actual task container
-        mutableModelNode.applyTo(allLinks(), ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(ModelReference.of(Task.class), new SimpleModelRuleDescriptor("copyToTaskContainer"), new BiAction<MutableModelNode, Task>() {
+        mutableModelNode.applyTo(allLinks(), ModelActionRole.Initialize, DirectNodeNoInputsModelAction.of(TASK_MODEL_REFERENCE, COPY_TO_TASK_CONTAINER_DESCRIPTOR, new BiAction<MutableModelNode, Task>() {
             @Override
             public void execute(MutableModelNode modelNode, Task task) {
                 TaskContainerInternal taskContainer = modelNode.getParent().getPrivateData(TaskContainerInternal.MODEL_TYPE);

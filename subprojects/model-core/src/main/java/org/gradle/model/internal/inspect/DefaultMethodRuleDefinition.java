@@ -39,6 +39,15 @@ import static org.gradle.util.CollectionUtils.findFirst;
 
 @ThreadSafe
 public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinition<R, S> {
+    private static final String[] PARAMETER_DESC;
+
+    static {
+        PARAMETER_DESC = new String[255];
+        for (int i = 0; i < PARAMETER_DESC.length; i++) {
+            PARAMETER_DESC[i] = "parameter " + (i+1);
+        }
+    }
+
     private List<ModelReference<?>> references;
     private List<List<Annotation>> parameterAnnotations;
     private final WeaklyTypeReferencingMethod<T, R> method;
@@ -125,6 +134,6 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
         });
         ModelPath path = pathAnnotation == null ? null : ModelPath.path(pathAnnotation.value());
         ModelType<?> cast = method.getGenericParameterTypes().get(i);
-        return ModelReference.of(path, cast, String.format("parameter %s", i + 1));
+        return ModelReference.of(path, cast, PARAMETER_DESC[i]);
     }
 }

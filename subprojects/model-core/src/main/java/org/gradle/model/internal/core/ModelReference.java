@@ -38,8 +38,7 @@ import org.gradle.model.internal.type.ModelType;
  */
 @ThreadSafe
 public class ModelReference<T> {
-    private final static Interner<ModelReference<?>> INTERNER = Interners.newWeakInterner();
-
+    public static final ModelReference<Object> ANY = of(ModelType.untyped());
     @Nullable
     private final ModelPath path;
     private final ModelType<T> type;
@@ -60,11 +59,11 @@ public class ModelReference<T> {
     }
 
     public static ModelReference<Object> any() {
-        return of(ModelType.untyped());
+        return ANY;
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type, String description) {
-        return Cast.uncheckedCast(INTERNER.intern(new ModelReference<T>(path, type, null, null, description)));
+        return Cast.uncheckedCast(new ModelReference<T>(path, type, null, null, description));
     }
 
     public static <T> ModelReference<T> of(String path, ModelType<T> type, String description) {
@@ -72,11 +71,11 @@ public class ModelReference<T> {
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type) {
-        return Cast.uncheckedCast(INTERNER.intern(new ModelReference<T>(path, type, null, null, null)));
+        return Cast.uncheckedCast(new ModelReference<T>(path, type, null, null, null));
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type, ModelNode.State state) {
-        return Cast.uncheckedCast(INTERNER.intern(new ModelReference<T>(path, type, null, state, null)));
+        return Cast.uncheckedCast(new ModelReference<T>(path, type, null, state, null));
     }
 
     public static <T> ModelReference<T> of(ModelPath path, Class<T> type) {
@@ -151,18 +150,18 @@ public class ModelReference<T> {
         if (scope.equals(this.scope)) {
             return this;
         }
-        return Cast.uncheckedCast(INTERNER.intern(new ModelReference<T>(path, type, scope, state, description)));
+        return Cast.uncheckedCast(new ModelReference<T>(path, type, scope, state, description));
     }
 
     public ModelReference<T> withPath(ModelPath path) {
-        return Cast.uncheckedCast(INTERNER.intern(new ModelReference<T>(path, type, scope, state, description)));
+        return Cast.uncheckedCast(new ModelReference<T>(path, type, scope, state, description));
     }
 
     public ModelReference<T> atState(ModelNode.State state) {
         if (state.equals(this.state)) {
             return this;
         }
-        return Cast.uncheckedCast(INTERNER.intern(new ModelReference<T>(path, type, scope, state, description)));
+        return Cast.uncheckedCast(new ModelReference<T>(path, type, scope, state, description));
     }
 
     @Override

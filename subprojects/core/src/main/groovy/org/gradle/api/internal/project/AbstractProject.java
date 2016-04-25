@@ -70,6 +70,7 @@ import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -89,7 +90,12 @@ import static org.gradle.util.GUtil.isTrue;
 
 public abstract class AbstractProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
 
-    private static Logger buildLogger = Logging.getLogger(Project.class);
+    private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
+    private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
+    private static final ModelType<ProjectIdentifier> PROJECT_IDENTIFIER_MODEL_TYPE = ModelType.of(ProjectIdentifier.class);
+    private static final ModelType<ExtensionContainer> EXTENSION_CONTAINER_MODEL_TYPE = ModelType.of(ExtensionContainer.class);
+    private static final Logger BUILD_LOGGER = Logging.getLogger(Project.class);
+
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
     private ServiceRegistry services;
@@ -236,24 +242,24 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
-        registerServiceOn(modelRegistry, "serviceRegistry", ServiceRegistry.class, services, instanceDescriptorFor("serviceRegistry"));
+        registerServiceOn(modelRegistry, "serviceRegistry", SERVICE_REGISTRY_MODEL_TYPE, services, instanceDescriptorFor("serviceRegistry"));
         // TODO:LPTR This ignores changes to Project.buildDir after model node has been created
-        registerFactoryOn(modelRegistry, "buildDir", File.class, new Factory<File>() {
+        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, new Factory<File>() {
             @Override
             public File create() {
                 return getBuildDir();
             }
         });
-        registerInstanceOn(modelRegistry, "projectIdentifier", ProjectIdentifier.class, this);
-        registerInstanceOn(modelRegistry, "extensionContainer", ExtensionContainer.class, getExtensions());
+        registerInstanceOn(modelRegistry, "projectIdentifier", PROJECT_IDENTIFIER_MODEL_TYPE, this);
+        registerInstanceOn(modelRegistry, "extensionContainer", EXTENSION_CONTAINER_MODEL_TYPE, getExtensions());
         modelRegistry.getRoot().applyToSelf(BasicServicesRules.class);
     }
 
-    private <T> void registerInstanceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance) {
+    private <T> void registerInstanceOn(ModelRegistry modelRegistry, String path, ModelType<T> type, T instance) {
         registerFactoryOn(modelRegistry, path, type, Factories.constant(instance));
     }
 
-    private <T> void registerFactoryOn(ModelRegistry modelRegistry, String path, Class<T> type, Factory<T> factory) {
+    private <T> void registerFactoryOn(ModelRegistry modelRegistry, String path, ModelType<T> type, Factory<T> factory) {
         modelRegistry.register(ModelRegistrations
             .unmanagedInstance(ModelReference.of(path, type), factory)
             .descriptor(instanceDescriptorFor(path))
@@ -261,7 +267,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
             .build());
     }
 
-    private <T> void registerServiceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance, String descriptor) {
+    private <T> void registerServiceOn(ModelRegistry modelRegistry, String path, ModelType<T> type, T instance, String descriptor) {
         modelRegistry.register(ModelRegistrations.serviceInstance(ModelReference.of(path, type), instance)
             .descriptor(descriptor)
             .build()
@@ -753,7 +759,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public Logger getLogger() {
-        return buildLogger;
+        return BUILD_LOGGER;
     }
 
     public StandardOutputCapture getStandardOutputCapture() {

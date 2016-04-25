@@ -71,7 +71,7 @@ public class ClosureBackedRuleFactory {
                 List<ModelReference<?>> inputModelReferences = Lists.newArrayList();
 
                 for (InputReference inputReference : inputReferences) {
-                    String description = String.format("@ line %d", inputReference.getLineNumber());
+                    String description = "@ line " + inputReference.getLineNumber();
                     String path = inputReference.getPath();
                     if (!inputValues.containsKey(path)) {
                         inputValues.put(path, new PotentialInput(inputModelReferences.size()));

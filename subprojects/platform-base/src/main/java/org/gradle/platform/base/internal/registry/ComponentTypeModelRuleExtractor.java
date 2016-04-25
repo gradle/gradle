@@ -42,11 +42,13 @@ import static java.util.Collections.emptyList;
 
 public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentType> {
 
-    private final ModelType<ComponentSpec> componentSpecModelType = ModelType.of(ComponentSpec.class);
-    private final ModelType<LanguageSourceSet> languageSourceSetModelType = ModelType.of(LanguageSourceSet.class);
-    private final ModelType<BinarySpec> binarySpecModelType = ModelType.of(BinarySpec.class);
-    private final ModelType<SourceComponentSpec> sourceComponentSpecModelType = ModelType.of(SourceComponentSpec.class);
-    private final ModelType<VariantComponentSpec> variantComponentSpecModelType = ModelType.of(VariantComponentSpec.class);
+    public static final ModelType<ComponentSpecFactory> COMPONENT_SPEC_FACTORY_CLASS = ModelType.of(ComponentSpecFactory.class);
+    private static final ModelReference<ComponentSpecFactory> COMPONENT_SPEC_FACTORY_MODEL_REFERENCE = ModelReference.of(COMPONENT_SPEC_FACTORY_CLASS);
+    private static final ModelType<ComponentSpec> COMPONENT_SPEC_MODEL_TYPE = ModelType.of(ComponentSpec.class);
+    private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODEL_TYPE = ModelType.of(LanguageSourceSet.class);
+    private static final ModelType<BinarySpec> BINARY_SPEC_MODEL_TYPE = ModelType.of(BinarySpec.class);
+    private static final ModelType<SourceComponentSpec> SOURCE_COMPONENT_SPEC_MODEL_TYPE = ModelType.of(SourceComponentSpec.class);
+    private static final ModelType<VariantComponentSpec> VARIANT_COMPONENT_SPEC_MODEL_TYPE = ModelType.of(VariantComponentSpec.class);
 
     private static class ComponentTypeRegistrationInfo {
         private final String modelName;
@@ -65,7 +67,7 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
 
     public ComponentTypeModelRuleExtractor(ModelSchemaStore schemaStore) {
         this.schemaStore = schemaStore;
-        this.registryRef = ModelReference.of(ComponentSpecFactory.class);
+        this.registryRef = COMPONENT_SPEC_FACTORY_MODEL_REFERENCE;
     }
 
     @Nullable
@@ -100,7 +102,7 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
 
         ComponentTypeRegistrationInfo info = componentTypeRegistrationInfoFor(builtType);
         if (info == null) {
-            context.add(ruleDefinition, String.format("Type '%s' is not a subtype of '%s'.", builtType.toString(), componentSpecModelType.toString()));
+            context.add(ruleDefinition, String.format("Type '%s' is not a subtype of '%s'.", builtType.toString(), COMPONENT_SPEC_MODEL_TYPE.toString()));
             return null;
         }
 
@@ -108,17 +110,17 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
     }
 
     private ComponentTypeRegistrationInfo componentTypeRegistrationInfoFor(ModelType<?> builtType) {
-        if (languageSourceSetModelType.isAssignableFrom(builtType)) {
-            return new ComponentTypeRegistrationInfo("language", languageSourceSetModelType, LanguageBasePlugin.class);
+        if (LANGUAGE_SOURCE_SET_MODEL_TYPE.isAssignableFrom(builtType)) {
+            return new ComponentTypeRegistrationInfo("language", LANGUAGE_SOURCE_SET_MODEL_TYPE, LanguageBasePlugin.class);
         }
-        if (binarySpecModelType.isAssignableFrom(builtType)) {
-            return new ComponentTypeRegistrationInfo("binary", binarySpecModelType, BinaryBasePlugin.class);
+        if (BINARY_SPEC_MODEL_TYPE.isAssignableFrom(builtType)) {
+            return new ComponentTypeRegistrationInfo("binary", BINARY_SPEC_MODEL_TYPE, BinaryBasePlugin.class);
         }
-        if (componentSpecModelType.isAssignableFrom(builtType)) {
-            Class<?> requiredPlugin = sourceComponentSpecModelType.isAssignableFrom(builtType) || variantComponentSpecModelType.isAssignableFrom(builtType)
+        if (COMPONENT_SPEC_MODEL_TYPE.isAssignableFrom(builtType)) {
+            Class<?> requiredPlugin = SOURCE_COMPONENT_SPEC_MODEL_TYPE.isAssignableFrom(builtType) || VARIANT_COMPONENT_SPEC_MODEL_TYPE.isAssignableFrom(builtType)
                 ? ComponentModelBasePlugin.class
                 : ComponentBasePlugin.class;
-            return new ComponentTypeRegistrationInfo("component", componentSpecModelType, requiredPlugin);
+            return new ComponentTypeRegistrationInfo("component", COMPONENT_SPEC_MODEL_TYPE, requiredPlugin);
         }
         return null;
     }

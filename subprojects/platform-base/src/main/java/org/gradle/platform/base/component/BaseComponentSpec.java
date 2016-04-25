@@ -21,6 +21,7 @@ import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.ModelMaps;
 import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.GeneralComponentSpec;
 import org.gradle.platform.base.component.internal.DefaultComponentSpec;
@@ -31,22 +32,24 @@ import org.gradle.platform.base.component.internal.DefaultComponentSpec;
  */
 @Incubating
 public class BaseComponentSpec extends DefaultComponentSpec implements GeneralComponentSpec {
+    private static final ModelType<BinarySpec> BINARY_SPEC_MODEL_TYPE = ModelType.of(BinarySpec.class);
+    private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODEL_TYPE = ModelType.of(LanguageSourceSet.class);
     private final MutableModelNode binaries;
     private final MutableModelNode sources;
 
     public BaseComponentSpec() {
         MutableModelNode modelNode = getInfo().modelNode;
-        binaries = ModelMaps.addModelMapNode(modelNode, BinarySpec.class, "binaries");
-        sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
+        binaries = ModelMaps.addModelMapNode(modelNode, BINARY_SPEC_MODEL_TYPE, "binaries");
+        sources = ModelMaps.addModelMapNode(modelNode, LANGUAGE_SOURCE_SET_MODEL_TYPE, "sources");
     }
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
-        return ModelMaps.toView(sources, LanguageSourceSet.class);
+        return ModelMaps.toView(sources, LANGUAGE_SOURCE_SET_MODEL_TYPE);
     }
 
     @Override
     public ModelMap<BinarySpec> getBinaries() {
-        return ModelMaps.toView(binaries, BinarySpec.class);
+        return ModelMaps.toView(binaries, BINARY_SPEC_MODEL_TYPE);
     }
 }

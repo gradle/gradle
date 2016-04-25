@@ -48,6 +48,7 @@ import java.util.Set;
 @Incubating
 public class BaseBinarySpec extends AbstractBuildableComponentSpec implements BinarySpecInternal {
     private static final ModelType<BinaryTasksCollection> BINARY_TASKS_COLLECTION = ModelType.of(BinaryTasksCollection.class);
+    private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODELTYPE = ModelType.of(LanguageSourceSet.class);
 
     private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
     private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
@@ -84,7 +85,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         this.tasks = info.instantiator.newInstance(DefaultBinaryTasksCollection.class, this, info.taskFactory);
 
         MutableModelNode modelNode = info.modelNode;
-        sources = ModelMaps.addModelMapNode(modelNode, LanguageSourceSet.class, "sources");
+        sources = ModelMaps.addModelMapNode(modelNode, LANGUAGE_SOURCE_SET_MODELTYPE, "sources");
         ModelRegistration itemRegistration = ModelRegistrations.of(modelNode.getPath().child("tasks"))
             .action(ModelActionRole.Create, new Action<MutableModelNode>() {
                 @Override
@@ -167,7 +168,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
 
     @Override
     public ModelMap<LanguageSourceSet> getSources() {
-        return ModelMaps.toView(sources, LanguageSourceSet.class);
+        return ModelMaps.toView(sources, LANGUAGE_SOURCE_SET_MODELTYPE);
     }
 
     @Override
