@@ -50,10 +50,10 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
             return getProperties();
         }
 
-        try {
-            return get(name);
-        } catch (UnknownPropertyException e) {
-            throw new MissingPropertyException(e.getMessage(), name, null);
+        if (storage.containsKey(name)) {
+            return storage.get(name);
+        } else {
+            throw new MissingPropertyException(UnknownPropertyException.createMessage(name), name, null);
         }
     }
 
