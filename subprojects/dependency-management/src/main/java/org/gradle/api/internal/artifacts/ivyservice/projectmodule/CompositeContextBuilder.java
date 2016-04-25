@@ -90,14 +90,11 @@ public class CompositeContextBuilder implements BuildActionRunner {
 
         for (String configurationName : originalComponentMetadata.getConfigurationNames()) {
             LocalConfigurationMetaData originalConfiguration = originalComponentMetadata.getConfiguration(configurationName);
-            // TODO:DAZ Should really be doing this per-artifact, rather than having a single configuration dependency
             TaskDependency configurationTaskDependency = createTaskDependency(componentIdentifier.getProjectPath(), originalConfiguration);
             compositeComponentMetadata.addConfiguration(configurationName,
                 originalConfiguration.getDescription(), originalConfiguration.getExtendsFrom(), originalConfiguration.getHierarchy(),
                 originalConfiguration.isVisible(), originalConfiguration.isTransitive(), configurationTaskDependency);
 
-
-            // TODO:DAZ Probably shouldn't need to convert back into PublishArtifact.
             Set<ComponentArtifactMetaData> artifacts = originalConfiguration.getArtifacts();
             Set<PublishArtifact> detachedArtifacts = CollectionUtils.collect(artifacts, new Transformer<PublishArtifact, ComponentArtifactMetaData>() {
                 @Override
