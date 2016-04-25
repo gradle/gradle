@@ -61,7 +61,12 @@ class TestNGListenerAdapterFactory {
                 if (!realReturnType.equals(void.class) && realReturnType.isPrimitive()) {
                     boxedReturnType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(realReturnType);
                 }
-
+                if (method.getName().equals("equals") && args.length == 1){
+                    return proxyEquals(proxy, args[0]);
+                }
+                if (method.getName().equals("hashCode")){
+                    return proxyHashCode(proxy);
+                }
                 return invoke(listener.getClass(), listener, boxedReturnType, method, args);
             }
 
@@ -69,6 +74,29 @@ class TestNGListenerAdapterFactory {
                 T listenerCast = listenerType.cast(listener);
                 JavaMethod<T, R> javaMethod = JavaReflectionUtil.method(listenerType, returnType, method.getName(), method.getParameterTypes());
                 return javaMethod.invoke(listenerCast, args);
+            }
+
+            @Override
+            public boolean equals(Object obj1) {
+                return proxyEquals(this, obj1);
+            }
+
+            @Override
+            public int hashCode() {
+                return proxyHashCode(this);
+            }
+
+            protected Integer proxyHashCode(Object proxy) {
+                return new Integer(System.identityHashCode(proxy));
+            }
+
+            protected Boolean proxyEquals(Object proxy, Object other) {
+                if(other == null)
+                    return Boolean.FALSE;
+                String className1 = Proxy.getInvocationHandler(proxy).getClass().toString();
+                String className2 = Proxy.isProxyClass(other.getClass())?Proxy.getInvocationHandler(other).getClass().toString():other.getClass().toString();
+                return className1.equalsIgnoreCase(className2) ? Boolean.TRUE : Boolean.FALSE;
+
             }
         });
     }
