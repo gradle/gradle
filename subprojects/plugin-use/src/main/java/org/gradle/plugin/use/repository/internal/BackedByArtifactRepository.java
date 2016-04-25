@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.resolve.internal;
+package org.gradle.plugin.use.repository.internal;
 
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;

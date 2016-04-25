@@ -39,6 +39,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.plugin.use.repository.internal.DefaultPluginRepositoryHandler;
 import org.gradle.plugin.use.resolve.service.internal.*;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;

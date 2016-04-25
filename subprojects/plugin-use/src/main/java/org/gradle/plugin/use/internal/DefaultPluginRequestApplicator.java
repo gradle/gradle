@@ -29,7 +29,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.*;
 import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
-import org.gradle.plugin.use.resolve.internal.BackedByArtifactRepository;
+import org.gradle.plugin.use.repository.internal.BackedByArtifactRepository;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.UnknownPluginException;

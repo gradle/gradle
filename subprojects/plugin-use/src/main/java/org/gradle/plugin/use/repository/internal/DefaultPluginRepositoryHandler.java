@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
+package org.gradle.plugin.use.repository.internal;
 
 import com.google.common.collect.Iterators;
 import org.gradle.api.Action;
@@ -33,7 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
+public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
 
     private FileResolver fileResolver;
     private Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
