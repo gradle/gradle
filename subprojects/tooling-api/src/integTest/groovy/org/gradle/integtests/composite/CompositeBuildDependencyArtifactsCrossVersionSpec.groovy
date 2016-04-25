@@ -85,6 +85,18 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         result.executedTasks.contains ":buildB:jar"
     }
 
+    def "resolves configuration in subproject with single artifact"() {
+        given:
+        dependency 'org.test:b1:1.0'
+
+        when:
+        resolveArtifacts()
+
+        then:
+        assertResolved buildB.file('b1/build/libs/b1-1.0.jar')
+        result.executedTasks.contains ":buildB:b1:jar"
+    }
+
     def "resolves configuration with multiple artifacts"() {
         given:
         dependency 'org.test:buildB:1.0'
