@@ -27,11 +27,9 @@ import org.gradle.api.internal.plugins.repositories.PluginRepository;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
 
@@ -39,16 +37,14 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
     private Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
     private VersionSelectorScheme versionSelectorScheme;
     private Instantiator instantiator;
-    private Set<String> repoNames;
-    private List<PluginRepository> repositories;
+    private Map<String, PluginRepository> repositories;
 
     public DefaultPluginRepositoryHandler(FileResolver fileResolver, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory, VersionSelectorScheme versionSelectorScheme, Instantiator instantiator) {
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
         this.versionSelectorScheme = versionSelectorScheme;
-        this.repoNames = new HashSet<String>();
-        this.repositories = new ArrayList<PluginRepository>();
+        this.repositories = new LinkedHashMap<String, PluginRepository>();
     }
 
     @Override
@@ -62,12 +58,12 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
 
     @Override
     public Iterator<PluginRepository> iterator() {
-        return Iterators.unmodifiableIterator(repositories.iterator());
+        return Iterators.unmodifiableIterator(repositories.values().iterator());
     }
 
     private void add(PluginRepository pluginRepository) {
         uniquifyName(pluginRepository);
-        repositories.add(pluginRepository);
+        repositories.put(pluginRepository.getName(), pluginRepository);
     }
 
     private void uniquifyName(PluginRepository pluginRepository) {
@@ -81,11 +77,10 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
 
     private String uniquifyName(String proposedName) {
         int attempt = 1;
-        while (repoNames.contains(proposedName)) {
+        while (repositories.containsKey(proposedName)) {
             attempt++;
             proposedName = String.format("%s%d", proposedName, attempt);
         }
-        repoNames.add(proposedName);
         return proposedName;
     }
 }
