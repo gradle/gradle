@@ -18,7 +18,6 @@ package org.gradle.api.internal.plugins.dsl;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;
 
@@ -26,7 +25,7 @@ import org.gradle.api.internal.plugins.repositories.PluginRepository;
  * Handles the declaration of {@link PluginRepository}s
  */
 @Incubating
-public interface PluginRepositoryHandler extends NamedDomainObjectList<PluginRepository> {
+public interface PluginRepositoryHandler extends Iterable<PluginRepository> {
     /**
      * Adds and configures a {@link MavenPluginRepository}.
      *
