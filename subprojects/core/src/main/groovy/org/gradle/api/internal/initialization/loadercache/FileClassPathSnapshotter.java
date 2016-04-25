@@ -50,7 +50,7 @@ public class FileClassPathSnapshotter implements ClassPathSnapshotter {
 
         @Override
         public HashCode getStrongHash() {
-            return HashCode.fromInt(hashCode());
+            return HashCode.fromLong(hashCode());
         }
     }
 }
