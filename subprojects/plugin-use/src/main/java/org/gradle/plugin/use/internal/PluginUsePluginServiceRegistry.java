@@ -49,8 +49,6 @@ import org.gradle.plugin.use.resolve.service.internal.PersistentCachingPluginRes
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
-import java.io.File;
-
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
@@ -112,10 +110,9 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
         }
 
         DefaultPluginRepositoryHandler createPluginRepositoryHandler(VersionSelectorScheme versionSelectorScheme,
-                                                                     final DependencyManagementServices dependencyManagementServices, final FileLookup fileLookup,
+                                                                     final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver,
                                                                      final DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator) {
 
-            final FileResolver fileResolver = fileLookup.getFileResolver(new File(".").getAbsoluteFile());
             final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
             return instantiator.newInstance(DefaultPluginRepositoryHandler.class, fileResolver, dependencyResolutionServicesFactory, versionSelectorScheme, instantiator);
         }

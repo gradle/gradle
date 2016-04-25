@@ -17,6 +17,8 @@
 package org.gradle.initialization
 
 import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler
+import org.gradle.api.internal.plugins.repositories.ScriptScopedPluginRepositoryHandler
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -25,10 +27,16 @@ import org.gradle.util.ConfigureUtil
  */
 abstract class InitialPassInitScript extends InitScript {
     public PluginRepositoryHandler getPluginRepositoryHandler() {
-        return __scriptServices.get(PluginRepositoryHandler.class);
+        Instantiator instantiator = __scriptServices.get(Instantiator.class);
+        PluginRepositoryHandler pluginRepositoryHandler = __scriptServices.get(PluginRepositoryHandler.class);
+        return instantiator.newInstance(
+            ScriptScopedPluginRepositoryHandler.class, pluginRepositoryHandler, getFileResolver(), instantiator);
     }
 
     public void pluginRepositories(Closure config) {
+        PluginRepositoryHandler globalHandler = getPluginRepositoryHandler();
+        Instantiator instantiator = __scriptServices.get(Instantiator.class);
+
         ConfigureUtil.configure(config, getPluginRepositoryHandler())
     }
 }
