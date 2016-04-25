@@ -413,21 +413,27 @@ project(":project2") {
 
         then:
         def pom = mavenModule.parsedPom
+        pom.scopes.provided == null
         pom.scopes.compile.assertDependsOn 'org.gradle.test:project2:1.9'
         pom.scopes.runtime.assertDependsOn 'commons-collections:commons-collections:3.2.2'
         pom.scopes.test.assertDependsOn 'org.gradle.test:project3:1.9'
-        pom.scopes.provided == null
     }
 
-    def "de-duplicated dependencies uses exclusions from the elected dependency"() {
+    def "dependencies are de-duplicated using exclusions from the elected dependency"() {
         given:
         createBuildScripts """
             project(':project1') {
                 dependencies {
+                    compile(project(':project2')) {
+                        exclude group: 'org.slf4j', module: 'slf4j-api'
+                    }
                     compile('ch.qos.logback:logback-classic:1.1.7') {
                         exclude group: 'org.slf4j', module: 'slf4j-api'
                     }
-                    testCompile('ch.qos.logback:logback-classic:1.1.7') {
+                    testCompile(project(':project2')) {
+                        exclude group: 'ch.qos.logback', module: 'logback-core'
+                    }
+                    testRuntime('ch.qos.logback:logback-classic:1.1.7') {
                         exclude group: 'ch.qos.logback', module: 'logback-core'
                     }
                 }
@@ -439,20 +445,32 @@ project(":project2") {
 
         then:
         def pom = mavenModule.parsedPom
-        pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.7'
+        pom.scopes.provided == null
+        pom.scopes.compile.assertDependsOn 'org.gradle.test:project2:1.9', 'ch.qos.logback:logback-classic:1.1.7'
+        def projectDependencyExclusions = pom.scopes.compile.expectDependency('org.gradle.test:project2:1.9').exclusions;
+        projectDependencyExclusions.size() == 1
+        projectDependencyExclusions[0].groupId == 'org.slf4j'
+        projectDependencyExclusions[0].artifactId == 'slf4j-api'
+        def externalDependencyExclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.7').exclusions;
+        externalDependencyExclusions.size() == 1
+        externalDependencyExclusions[0].groupId == 'org.slf4j'
+        externalDependencyExclusions[0].artifactId == 'slf4j-api'
+        pom.scopes.runtime == null
         pom.scopes.test == null
-        def exclusion = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.7').exclusions[0];
-        exclusion.groupId == 'org.slf4j'
-        exclusion.artifactId == 'slf4j-api'
     }
 
-    def "de-duplicated dependencies uses version from the elected dependency"() {
+    def "dependencies are de-duplicated using the higher version on the higher scope"() {
         given:
         createBuildScripts """
             project(':project1') {
                 dependencies {
-                    compile     'ch.qos.logback:logback-classic:1.1.6'
-                    testCompile 'ch.qos.logback:logback-classic:1.1.7'
+                    compile('ch.qos.logback:logback-classic:1.1.5') {
+                        exclude group: 'org.slf4j', module: 'slf4j-api'
+                    }
+                    testCompile 'ch.qos.logback:logback-classic:1.1.6'
+                    testRuntime('ch.qos.logback:logback-classic:1.1.7') {
+                        exclude group: 'ch.qos.logback', module: 'logback-core'
+                    }
                 }
             }
         """.stripIndent()
@@ -462,8 +480,13 @@ project(":project2") {
 
         then:
         def pom = mavenModule.parsedPom
-        println mavenModule.pomFile.text
-        pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.6'
+        pom.scopes.provided == null
+        pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.7'
+        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.7').exclusions;
+        exclusions.size() == 1
+        exclusions[0].groupId == 'org.slf4j'
+        exclusions[0].artifactId == 'slf4j-api'
+        pom.scopes.runtime == null
         pom.scopes.test == null
     }
 

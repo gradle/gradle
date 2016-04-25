@@ -18,6 +18,8 @@ package org.gradle.api.publication.maven.internal.pom;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import org.apache.maven.artifact.versioning.ArtifactVersion;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Exclusion;
 import org.gradle.api.GradleException;
@@ -83,7 +85,7 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
     }
 
     private Map<ModuleDependency, Set<Configuration>> createDependencyToConfigurationsMap(Set<Configuration> configurations) {
-        Map<ModuleDependency, Set<Configuration>> dependencySetMap = new HashMap<ModuleDependency, Set<Configuration>>();
+        Map<ModuleDependency, Set<Configuration>> dependencySetMap = new LinkedHashMap<ModuleDependency, Set<Configuration>>();
         for (Configuration configuration : configurations) {
             for (ModuleDependency dependency : configuration.getDependencies().withType(ModuleDependency.class)) {
                 if (dependencySetMap.get(dependency) == null) {
@@ -140,24 +142,39 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
             mavenDependency.setType(type);
             mavenDependency.setScope(scope);
             mavenDependency.setExclusions(getExclusions(dependency, configurations));
-            // Deduplicate based on mapped configuration/scope priority
+            // Dependencies de-duplication
             Optional<Dependency> duplicateDependency = findEqualIgnoreScopeVersionAndExclusions(dependenciesWithPriorities.keySet(), mavenDependency);
             if (!duplicateDependency.isPresent()) {
                 // Add if absent
                 dependenciesWithPriorities.put(mavenDependency, priority);
-            } else if (priority > dependenciesWithPriorities.get(duplicateDependency.get())) {
-                // Replace if higher priority
-                dependenciesWithPriorities.remove(duplicateDependency.get());
-                dependenciesWithPriorities.put(mavenDependency, priority);
+            } else {
+                // Use highest version on highest scope, keep highest scope exclusions only
+                int duplicatePriority = dependenciesWithPriorities.get(duplicateDependency.get());
+                ArtifactVersion mavenVersion = new DefaultArtifactVersion(mavenDependency.getVersion());
+                ArtifactVersion duplicateVersion = new DefaultArtifactVersion(duplicateDependency.get().getVersion());
+                boolean higherPriority = priority > duplicatePriority;
+                boolean higherVersion = mavenVersion.compareTo(duplicateVersion) > 0;
+                if (higherPriority || higherVersion) {
+                    // Replace if higher priority or version with highest priority and version
+                    dependenciesWithPriorities.remove(duplicateDependency.get());
+                    if(!higherPriority) {
+                        // Lower or equal priority but higher version, keep higher scope and exclusions
+                        mavenDependency.setScope(duplicateDependency.get().getScope());
+                        mavenDependency.setExclusions(duplicateDependency.get().getExclusions());
+                    }
+                    int highestPriority = higherPriority ? priority : duplicatePriority;
+                    dependenciesWithPriorities.put(mavenDependency, highestPriority);
+                }
             }
         }
     }
 
     private Optional<Dependency> findEqualIgnoreScopeVersionAndExclusions(Collection<Dependency> dependencies, Dependency candidate) {
+        // For project dependencies de-duplication
         // Ignore scope on purpose
-        // Ignore version because Maven don't support dependencies with different versions, even on different scopes
+        // Ignore version because Maven doesn't support dependencies with different versions on different scopes
         // Ignore exclusions because we don't know how to choose/merge them
-        // Consequence is that we use the elected dependency version and exclusions when de-duplicating
+        // Consequence is that we use the highest version and the exclusions of highest priority dependency when de-duplicating
         // Use Maven Dependency "Management Key" as discriminator: groupId:artifactId:type:classifier
         final String candidateManagementKey = candidate.getManagementKey();
         return Iterables.tryFind(dependencies, new Predicate<Dependency>() {
