@@ -114,13 +114,18 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     @Override
-    public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
-        throw methodMissingException(name, arguments);
+    public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+        // No methods
     }
 
     @Override
-    public boolean isMayImplementMissingMethods() {
-        return false;
+    public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
+        InvokeMethodResult result = new InvokeMethodResult();
+        invokeMethod(name, result, arguments);
+        if (result.isFound()) {
+            return result.getResult();
+        }
+        throw methodMissingException(name, arguments);
     }
 
     protected groovy.lang.MissingMethodException methodMissingException(String name, Object... params) {

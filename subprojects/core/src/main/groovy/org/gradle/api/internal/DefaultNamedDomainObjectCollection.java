@@ -334,11 +334,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
+        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
             if (isConfigureMethod(name, arguments)) {
-                return ConfigureUtil.configure((Closure) arguments[0], getByName(name));
-            } else {
-                return super.invokeMethod(name, arguments);
+                result.result(ConfigureUtil.configure((Closure) arguments[0], getByName(name)));
             }
         }
 

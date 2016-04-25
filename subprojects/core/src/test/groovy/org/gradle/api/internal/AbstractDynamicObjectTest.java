@@ -66,5 +66,9 @@ public class AbstractDynamicObjectTest {
         } catch (MissingMethodException e) {
             assertThat(e.getMessage(), equalTo("Could not find method method() for arguments [b] on <display-name>."));
         }
+
+        InvokeMethodResult result = new InvokeMethodResult();
+        object.invokeMethod("method", result, "c");
+        assertFalse(result.isFound());
     }
 }

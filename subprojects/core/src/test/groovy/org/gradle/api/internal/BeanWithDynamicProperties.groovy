@@ -23,13 +23,24 @@ class BeanWithDynamicProperties {
         if (name == "dyno") {
             return "ok"
         }
-        throw new MissingPropertyException(name, DynamicBean)
+        throw new MissingPropertyException(name, BeanWithDynamicProperties)
     }
 
     void propertyMissing(String name, Object value) {
         if (name == "dyno") {
             return
         }
-        throw new MissingPropertyException(name, DynamicBean)
+        throw new MissingPropertyException(name, BeanWithDynamicProperties)
+    }
+
+    String thing(Number l) {
+        return l.toString()
+    }
+
+    Object methodMissing(String name, Object params) {
+        if (name == "dyno") {
+            return Arrays.toString((Object[]) params)
+        }
+        throw new groovy.lang.MissingMethodException(name, BeanWithDynamicProperties, (Object[]) params)
     }
 }

@@ -122,11 +122,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
-    public boolean isMayImplementMissingMethods() {
-        return implementsMissing && delegate.isMayImplementMissingMethods();
-    }
-
-    @Override
     public boolean hasProperty(String name) {
         return delegate.hasProperty(name);
     }
@@ -152,20 +147,15 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
-    public Object invokeMethod(String name, Object... arguments) throws MissingMethodException {
-        try {
-            return delegate.invokeMethod(name, arguments);
-        } catch (MissingMethodException e) {
-            if (e.isStatic() || !e.getMethod().equals(name) || !Arrays.equals(e.getArguments(), arguments)) {
-                throw e;
-            } else {
-                Object[] transformedArguments = argsTransformer.transform(bean, name, arguments);
-                if (transformedArguments != arguments) {
-                    return delegate.invokeMethod(name, transformedArguments);
-                } else {
-                    throw e;
-                }
-            }
+    public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+        delegate.invokeMethod(name, result, arguments);
+        if (result.isFound()) {
+            return;
+        }
+
+        Object[] transformedArguments = argsTransformer.transform(bean, name, arguments);
+        if (transformedArguments != arguments) {
+            delegate.invokeMethod(name, result, transformedArguments);
         }
     }
 
@@ -344,22 +334,36 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         @Override
-        public Object invokeMethod(final String name, final Object... arguments) throws MissingMethodException {
+        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+            MetaMethod metaMethod = getMetaClass().getMetaMethod(name, arguments);
+            if (metaMethod != null) {
+                result.result(metaMethod.doMethodInvoke(bean, arguments));
+                return;
+            }
+            if (!implementsMissing) {
+                return;
+            }
+
             try {
-                return getMetaClass().invokeMethod(bean, name, arguments);
-            } catch (InvokerInvocationException e) {
-                if (e.getCause() instanceof RuntimeException) {
-                    throw (RuntimeException) e.getCause();
+                try {
+                    result.result(invokeOpaqueMethod(name, arguments));
+                } catch (InvokerInvocationException e) {
+                    if (e.getCause() instanceof RuntimeException) {
+                        throw (RuntimeException) e.getCause();
+                    }
+                    throw e;
                 }
-                throw e;
+            } catch (MissingMethodException e) {
+                if (!e.getMethod().equals(name) || !Arrays.equals(e.getArguments(), arguments)) {
+                    throw e;
+                }
+                // Ignore
             }
         }
 
-        @Override
-        public boolean isMayImplementMissingMethods() {
-            return true;
+        protected Object invokeOpaqueMethod(String name, Object[] arguments) {
+            return getMetaClass().invokeMethod(bean, name, arguments);
         }
-
     }
 
     /*
@@ -379,15 +383,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         @Override
-        public Object invokeMethod(String name, Object... arguments) throws MissingMethodException {
-            try {
-                return groovyObject.invokeMethod(name, arguments);
-            } catch (InvokerInvocationException e) {
-                if (e.getCause() instanceof RuntimeException) {
-                    throw (RuntimeException) e.getCause();
-                }
-                throw e;
-            }
+        protected Object invokeOpaqueMethod(String name, Object[] arguments) {
+            return groovyObject.invokeMethod(name, arguments);
         }
     }
 }

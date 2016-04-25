@@ -31,7 +31,7 @@ public interface DynamicObject {
     /**
      * Returns true when this object is known to have the given property.
      *
-     * <p>Note that not every property is known. Some properties are require an attempt to get or set its value.</p>
+     * <p>Note that not every property is known. Some properties require an attempt to get or set their value before they are discovered.</p>
      */
     boolean hasProperty(String name);
 
@@ -43,28 +43,38 @@ public interface DynamicObject {
     void getProperty(String name, GetPropertyResult result);
 
     /**
-     * Don't use this method. Use the above overload instead.
+     * Don't use this method. Use the overload above instead.
      */
     Object getProperty(String name) throws MissingPropertyException;
 
     /**
      * Sets the value of the given property. The implementation should call {@link SetPropertyResult#found()} when the property value has been set.
+     *
+     * <p>Use the {@link SetPropertyResult#isFound()} method to determine whether the property has been found or not.</p>
      */
     void setProperty(String name, Object value, SetPropertyResult result);
 
     /**
-     * Don't use this method. Use the above overload instead.
+     * Don't use this method. Use the overload above instead.
      */
     void setProperty(String name, Object value) throws MissingPropertyException;
 
     Map<String, ?> getProperties();
 
+    /**
+     * Returns true when this object is known to have a method with the given name that accepts the given arguments.
+     *
+     * <p>Note that not every method is known. Some methods are require an attempt to get or set its value.</p>
+     */
     boolean hasMethod(String name, Object... arguments);
 
-    Object invokeMethod(String name, Object... arguments) throws MissingMethodException;
+    /**
+     * Invokes the method with the given name and arguments.
+     */
+    void invokeMethod(String name, InvokeMethodResult result, Object... arguments);
 
     /**
-     * Used to indicate that the dynamic object may still be able to invoke the method, regardless of {@link #hasMethod(String, Object...)}
+     * Don't use this method. Use the overload above instead.
      */
-    boolean isMayImplementMissingMethods();
+    Object invokeMethod(String name, Object... arguments) throws MissingMethodException;
 }

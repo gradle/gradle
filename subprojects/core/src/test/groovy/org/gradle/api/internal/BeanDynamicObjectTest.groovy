@@ -202,7 +202,76 @@ class BeanDynamicObjectTest extends Specification {
         e.message == "Could not set unknown property 'unknown' for ${bean} of type ${bean.getClass().name}."
     }
 
+    def "can invoke method of groovy object"() {
+        def bean = new Bean()
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.invokeMethod("m", [12] as Object[]) == "[13]"
+    }
+
+    def "can invoke method of dynamic groovy object"() {
+        def bean = new BeanWithDynamicProperties(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.invokeMethod("dyno", [12, "a"] as Object[]) == "[12, a]"
+    }
+
+    def "can invoke method of closure delegate via closure instance"() {
+        def bean = new BeanWithDynamicProperties()
+        def cl = {}
+        cl.delegate = bean
+        def dynamicObject = new BeanDynamicObject(cl)
+
+        expect:
+        dynamicObject.invokeMethod("dyno", [12, "a"] as Object[]) == "[12, a]"
+    }
+
+    def "fails when invoke unknown method of groovy object"() {
+        def bean = new Bean(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.invokeMethod("unknown", [12] as Object[])
+
+        then:
+        def e = thrown(groovy.lang.MissingMethodException)
+        e.message == "Could not find method unknown() for arguments [12] on ${bean}."
+    }
+
+    def "fails when invoke unknown method of dynamic groovy object"() {
+        def bean = new BeanWithDynamicProperties(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.invokeMethod("unknown", [12] as Object[])
+
+        then:
+        def e = thrown(groovy.lang.MissingMethodException)
+        e.message == "Could not find method unknown() for arguments [12] on ${bean}."
+    }
+
+    def "fails when invoke method of dynamic groovy object and no dynamic requested"() {
+        def bean = new BeanWithDynamicProperties(prop: "value")
+        def dynamicObject = new BeanDynamicObject(bean).withNotImplementsMissing()
+
+        expect:
+        dynamicObject.invokeMethod("thing", [12] as Object[]) == "12"
+
+        when:
+        dynamicObject.invokeMethod("dyno", [] as Object[])
+
+        then:
+        def e = thrown(groovy.lang.MissingMethodException)
+        e.message == "Could not find method dyno() for arguments [] on ${bean}."
+    }
+
     static class Bean {
         String prop
+
+        String m(int l) {
+            return "[${l+1}]"
+        }
     }
 }

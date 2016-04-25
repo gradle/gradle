@@ -105,13 +105,62 @@ class CompositeDynamicObjectTest extends Specification {
         e.message == "Could not set unknown property 'p' for <obj>."
     }
 
-    def "presents closure as a method when property has closure as value"() {
+    def "invokes method on first delegate that has method"() {
+        def obj1 = Mock(DynamicObject)
+        def obj2 = Mock(DynamicObject)
+        def obj3 = Mock(DynamicObject)
+        obj.setObjects(obj1, obj2, obj3)
+
+        when:
+        def result = obj.invokeMethod("m", ["value"] as Object[])
+
+        then:
+        result == "result"
+
+        and:
+        1 * obj1.invokeMethod("m", _, ["value"] as Object[])
+        1 * obj2.invokeMethod("m", _, ["value"] as Object[]) >> { String name, InvokeMethodResult r, def args -> r.result("result") }
+        0 * _
+    }
+
+    def "method may have null return value"() {
+        def obj1 = Mock(DynamicObject)
+        def obj2 = Mock(DynamicObject)
+        def obj3 = Mock(DynamicObject)
+        obj.setObjects(obj1, obj2, obj3)
+
+        when:
+        def result = obj.invokeMethod("m", ["value"] as Object[])
+
+        then:
+        result == null
+
+        and:
+        1 * obj1.invokeMethod("m", _, _)
+        1 * obj2.invokeMethod("m", _, _) >> { String name, InvokeMethodResult r, def args -> r.result(null) }
+        0 * _
+    }
+
+    def "invoke method fails when method cannot be found"() {
+        def obj1 = Mock(DynamicObject)
+        def obj2 = Mock(DynamicObject)
+        def obj3 = Mock(DynamicObject)
+        obj.setObjects(obj1, obj2, obj3)
+
+        when:
+        obj.invokeMethod("m", "value")
+
+        then:
+        def e = thrown(groovy.lang.MissingMethodException)
+        e.message.startsWith("No signature of method: org.gradle.api.internal.CompositeDynamicObjectTest.m() is applicable for argument types: (java.lang.String) values: [value]")
+    }
+
+    def "presents a method for property that has a closure as value"() {
         def backing = Mock(DynamicObject)
         def cl = Mock(Closure)
         obj.setObjects(backing)
 
         given:
-        backing.hasMethod(_, _) >> false
         backing.getProperty("thing", _) >> { String name, GetPropertyResult result -> result.result(cl) }
 
         when:

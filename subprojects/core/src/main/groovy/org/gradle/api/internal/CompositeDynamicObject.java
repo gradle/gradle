@@ -16,9 +16,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import groovy.lang.MissingMethodException;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,16 +39,6 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
 
     protected void setObjectsForUpdate(DynamicObject... objects) {
         this.updateObjects = objects;
-    }
-
-    @Override
-    public boolean isMayImplementMissingMethods() {
-        for (DynamicObject object : objects) {
-            if (object.isMayImplementMissingMethods()) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -105,36 +93,24 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
-    public Object invokeMethod(String name, Object... arguments) throws MissingMethodException {
+    public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
         for (DynamicObject object : objects) {
-            if (object.hasMethod(name, arguments)) {
-                return object.invokeMethod(name, arguments);
+            object.invokeMethod(name, result, arguments);
+            if (result.isFound()) {
+                return;
             }
         }
 
-        GetPropertyResult result = new GetPropertyResult();
-        getProperty(name, result);
-        if (result.isFound()) {
-            Object property = result.getValue();
+        GetPropertyResult propertyLookup = new GetPropertyResult();
+        getProperty(name, propertyLookup);
+        if (propertyLookup.isFound()) {
+            Object property = propertyLookup.getValue();
             if (property instanceof Closure) {
                 Closure closure = (Closure) property;
                 closure.setResolveStrategy(Closure.DELEGATE_FIRST);
-                return closure.call(arguments);
+                Object value = closure.call(arguments);
+                result.result(value);
             }
         }
-
-        for (DynamicObject object : objects) {
-            if (object.isMayImplementMissingMethods()) {
-                try {
-                    return object.invokeMethod(name, arguments);
-                } catch (MissingMethodException e) {
-                    if (e.isStatic() || !e.getMethod().equals(name) || !Arrays.equals(e.getArguments(), arguments)) {
-                        throw e;
-                    }
-                }
-            }
-        }
-
-        return super.invokeMethod(name, arguments);
     }
 }

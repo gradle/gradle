@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.plugins;
 
-import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.*;
@@ -211,22 +210,18 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         }
 
         @Override
-        public Object invokeMethod(String name, Object... args) {
+        public void invokeMethod(String name, InvokeMethodResult result, Object... args) {
             if (extensionsStorage.isConfigureExtensionMethod(name, args)) {
-                return extensionsStorage.configureExtension(name, args);
+                result.result(extensionsStorage.configureExtension(name, args));
+                return;
             }
             for (Object object : plugins.values()) {
-                BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
-                if (dynamicObject.hasMethod(name, args)) {
-                    return dynamicObject.invokeMethod(name, args);
+                BeanDynamicObject dynamicObject = new BeanDynamicObject(object).withNotImplementsMissing();
+                dynamicObject.invokeMethod(name, result, args);
+                if (result.isFound()) {
+                    return;
                 }
             }
-            throw new MissingMethodException(name, Convention.class, args);
-        }
-
-        @Override
-        public boolean isMayImplementMissingMethods() {
-            return false;
         }
 
         public Object methodMissing(String name, Object args) {

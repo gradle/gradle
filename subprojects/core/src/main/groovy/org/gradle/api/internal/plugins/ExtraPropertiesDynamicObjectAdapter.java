@@ -62,9 +62,4 @@ public class ExtraPropertiesDynamicObjectAdapter extends AbstractDynamicObject {
         }
     }
 
-    @Override
-    public boolean isMayImplementMissingMethods() {
-        return false;
-    }
-
 }

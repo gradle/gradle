@@ -217,14 +217,15 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         }
 
         @Override
+        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+            snapshotInheritable().invokeMethod(name, result, arguments);
+        }
+
+        @Override
         public Object invokeMethod(String name, Object... arguments) {
             return snapshotInheritable().invokeMethod(name, arguments);
         }
 
-        @Override
-        public boolean isMayImplementMissingMethods() {
-            return snapshotInheritable().isMayImplementMissingMethods();
-        }
     }
 }
 
