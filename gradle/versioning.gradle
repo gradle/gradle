@@ -19,12 +19,12 @@ if (rcNumber != null && finalRelease) {
 if (incomingDistributionsBuildReceipt) {
     ext.versionBase = incomingDistributionsBuildReceipt.versionBase
     ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
-    ext.snapshotBuild = false
+    ext.devBuild = false
 } else {
-    ext.snapshotBuild = rcNumber == null && !finalRelease && !timestampedVersion;
+    ext.devBuild = rcNumber == null && !finalRelease && !timestampedVersion;
     ext.versionBase = rootProject.file("version.txt").text.trim()
 
-    if (snapshotBuild) {
+    if (devBuild) {
         ext.buildTimestamp = "unknown";
     } else {
         def timestampFormat = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
@@ -70,4 +70,8 @@ if (finalRelease) {
 } else {
     isSnapshot = true
     version += "-snapshot-1"
+}
+
+if (buildTypes.promotionBuild.active) {
+    logger.lifecycle "Version: $version (version base: $versionBase, timestamp: $buildTimestamp, snapshot: $isSnapshot, dev build: $devBuild)"
 }

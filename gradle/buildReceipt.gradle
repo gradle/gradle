@@ -111,11 +111,11 @@ task createBuildReceipt(dependsOn: determineCommitId) {
     inputs.property "versionBase", { versionBase }
     inputs.property "isSnapshot", { isSnapshot }
     inputs.property "buildTimestamp", { buildTimestamp }
-    inputs.property "commitId", { snapshotBuild ? "HEAD" : determineCommitId.commitId }
+    inputs.property "commitId", { devBuild ? "HEAD" : determineCommitId.commitId }
     outputs.file receiptFile
     doLast {
         def data = [
-                commitId: snapshotBuild ? "HEAD" : determineCommitId.commitId,
+                commitId: devBuild ? "HEAD" : determineCommitId.commitId,
                 versionNumber: version,
                 versionBase: versionBase,
                 isSnapshot: isSnapshot,
