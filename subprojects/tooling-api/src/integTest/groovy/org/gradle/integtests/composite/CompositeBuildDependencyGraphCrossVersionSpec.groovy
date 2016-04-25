@@ -217,6 +217,34 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
         }
     }
 
+    def "substitutes external dependency with subproject dependency that has transitive project dependency"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:buildB:1.0"
+            }
+"""
+        buildB.buildFile << """
+            dependencies {
+                compile project(':b1')
+            }
+"""
+
+        when:
+        checkDependencies()
+
+        then:
+        checkGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+                // TODO:DAZ This isn't quite right: the original requested version was 'project :b1', not 'org.test:b1:2.0'
+                edge("org.test:b1:2.0", "project buildB::b1", "org.test:b1:2.0") {
+                    compositeSubstitute()
+                }
+            }
+        }
+    }
+
     def "honours excludes defined in substituted subproject dependency that has transitive dependencies"() {
         given:
         def transitive1 = mavenRepo.module("org.test", "transitive1").publish()

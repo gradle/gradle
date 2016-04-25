@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -152,7 +151,6 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildC.file('build/libs/buildC-1.0.jar')
     }
 
-    @NotYetImplemented
     def "resolves configuration with transitive project dependencies"() {
         given:
         dependency "org.test:buildB:1.0"

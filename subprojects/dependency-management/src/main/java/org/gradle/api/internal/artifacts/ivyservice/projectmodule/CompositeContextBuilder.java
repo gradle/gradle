@@ -21,7 +21,9 @@ import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.*;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -29,6 +31,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ReportedException;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.*;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
@@ -106,6 +109,11 @@ public class CompositeContextBuilder implements BuildActionRunner {
             compositeComponentMetadata.addArtifacts(configurationName, detachedArtifacts);
         }
         for (DependencyMetaData dependency : originalComponentMetadata.getDependencies()) {
+            // TODO:DAZ It doesn't seem right to be converting back to an external module selector here.
+            if (dependency.getSelector() instanceof ProjectComponentSelector) {
+                ModuleComponentSelector externalizedSelector = DefaultModuleComponentSelector.newSelector(dependency.getRequested());
+                dependency = dependency.withTarget(externalizedSelector);
+            }
             compositeComponentMetadata.addDependency(dependency);
         }
         for (ExcludeRule excludeRule : originalComponentMetadata.getExcludeRules()) {
