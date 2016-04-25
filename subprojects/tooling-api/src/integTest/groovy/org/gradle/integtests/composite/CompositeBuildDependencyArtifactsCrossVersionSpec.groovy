@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -249,6 +250,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         assertResolved buildB.file('build/libs/buildB-1.0-my.jar'), buildB.file('build/libs/another-1.0.jar')
     }
 
+    @NotYetImplemented
     def "does not attempt to build dependency artifacts more than once"() {
         given:
         dependency 'org.test:b1:1.0'
@@ -257,7 +259,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         buildB.buildFile << """
             project(':b1') {
                 dependencies {
-                    project(':b2')
+                    compile project(':b2')
                 }
             }
 """
@@ -265,13 +267,9 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         resolveArtifacts()
 
         then:
-        result.executedTasks.containsAll([":buildB:b1:jar", ":buildB:b2:jar"])
-        println stdOut.toString()
-        // TODO:DAZ Check that ':b2:jar' is only executed a single time.
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
-
-        where:
-        dependencyNotation << ["'org.test:b2:1.0", "project(':b2')"]
+        result.executedTasks.containsAll([":buildB:b1:jar", ":buildB:b2:jar"])
+        result.executedTasks.count {it == ":buildB:b2:jar"} == 1
     }
 
     def dependency(String notation) {
