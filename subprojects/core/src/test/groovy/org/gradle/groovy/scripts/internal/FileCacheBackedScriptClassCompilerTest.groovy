@@ -193,7 +193,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
     private static class MockClassLoader extends ClassLoader implements DefaultClassLoaderCache.HashedClassLoader {
         @Override
-        int getClassLoaderHash() {
+        long getClassLoaderHash() {
             9999
         }
     }

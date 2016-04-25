@@ -102,7 +102,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         return scriptCompilationHandler.loadFromDir(source, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
     }
 
-    private int getClassLoaderHash(ClassLoader cl) {
+    private long getClassLoaderHash(ClassLoader cl) {
         ClassloaderHasher hasher = new ClassloaderHasher(classLoaderRegistry);
         hasher.visit(cl);
         return hasher.hash;
@@ -111,13 +111,13 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private static class ClassloaderHasher extends ClassLoaderVisitor {
         private final ClassLoaderRegistry classLoaderRegistry;
 
-        private int hash;
+        private long hash;
 
         private ClassloaderHasher(ClassLoaderRegistry classLoaderRegistry) {
             this.classLoaderRegistry = classLoaderRegistry;
         }
 
-        private int hashFor(ClassLoader cl) {
+        private long hashFor(ClassLoader cl) {
             if (classLoaderRegistry.getRuntimeClassLoader() == cl) {
                 return 1;
             }

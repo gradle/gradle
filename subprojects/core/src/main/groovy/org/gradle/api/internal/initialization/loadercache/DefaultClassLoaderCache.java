@@ -75,7 +75,8 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         if (cachedLoader == null) {
             ClassLoader classLoader;
             CachedClassLoader parentCachedLoader = null;
-            final int hashCode = 31 * spec.classPathSnapshot.hashCode() + (spec.filterSpec != null ? spec.filterSpec.hashCode() : 0);
+            long snapshotHash = spec.classPathSnapshot.getStrongHash().asLong();
+            final long hashCode = 31 * snapshotHash + (spec.filterSpec != null ? spec.filterSpec.hashCode() : 0);
             if (spec.isFiltered()) {
                 parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
                 classLoader = new HashedFilteringClassLoader(parentCachedLoader, spec, hashCode);
@@ -97,7 +98,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     }
 
     public interface HashedClassLoader {
-        int getClassLoaderHash();
+        long getClassLoaderHash();
     }
 
     private static class ClassLoaderSpec {
@@ -138,29 +139,29 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     }
 
     private static class HashedFilteringClassLoader extends FilteringClassLoader implements HashedClassLoader {
-        private final int hashCode;
+        private final long hashCode;
 
-        public HashedFilteringClassLoader(CachedClassLoader parentCachedLoader, ClassLoaderSpec spec, int hashCode) {
+        public HashedFilteringClassLoader(CachedClassLoader parentCachedLoader, ClassLoaderSpec spec, long hashCode) {
             super(parentCachedLoader.classLoader, spec.filterSpec);
             this.hashCode = hashCode;
         }
 
         @Override
-        public int getClassLoaderHash() {
+        public long getClassLoaderHash() {
             return hashCode;
         }
     }
 
     private static class HashedMutableURLClassLoader extends MutableURLClassLoader implements HashedClassLoader {
-        private final int hashCode;
+        private final long hashCode;
 
-        public HashedMutableURLClassLoader(ClassLoaderSpec spec, ClassPath classPath, int hashCode) {
+        public HashedMutableURLClassLoader(ClassLoaderSpec spec, ClassPath classPath, long hashCode) {
             super(spec.parent, classPath);
             this.hashCode = hashCode;
         }
 
         @Override
-        public int getClassLoaderHash() {
+        public long getClassLoaderHash() {
             return hashCode;
         }
     }
