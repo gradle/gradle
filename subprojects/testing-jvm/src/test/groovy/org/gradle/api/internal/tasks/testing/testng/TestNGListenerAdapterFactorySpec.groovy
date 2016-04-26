@@ -30,6 +30,17 @@ class TestNGListenerAdapterFactorySpec extends Specification {
         factory.createAdapter(listener) instanceof IConfigurationListener2
     }
 
+    def "equals function works as expected"() {
+        when:
+        ITestListener listener1 = factory.createAdapter(listener);
+        ITestListener listener2 = factory.createAdapter(listener);
+
+        then:
+        listener1.equals(listener2)
+        !listener1.equals(listener)
+        !listener1.equals(null)
+    }
+
     /**
      * covered by {@link org.gradle.testing.testng.TestNGIntegrationTest}
      */
