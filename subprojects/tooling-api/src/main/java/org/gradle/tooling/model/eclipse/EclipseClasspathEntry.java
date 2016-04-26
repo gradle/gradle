@@ -25,7 +25,7 @@ import org.gradle.tooling.model.UnsupportedMethodException;
  * @since 2.14
  */
 @Incubating
-public interface HasClasspathAttributes {
+public interface EclipseClasspathEntry {
 
     /**
      * Returns the classpath attributes associated with this element.

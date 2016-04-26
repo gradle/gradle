@@ -23,7 +23,7 @@ import java.io.File;
 /**
  * Represents a dependency on another Eclipse project.
  */
-public interface EclipseProjectDependency extends ProjectDependency, HasClasspathAttributes {
+public interface EclipseProjectDependency extends ProjectDependency, EclipseClasspathEntry {
     /**
     * Returns the target of this dependency.
     *
