@@ -82,19 +82,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
 
         then:
         assertResolved buildB.file('build/libs/buildB-1.0.jar')
-        result.executedTasks.contains ":buildB:jar"
-    }
-
-    def "builds single artifact for substituted subproject dependency"() {
-        given:
-        dependency 'org.test:b1:1.0'
-
-        when:
-        resolveArtifacts()
-
-        then:
-        assertResolved buildB.file('b1/build/libs/b1-1.0.jar')
-        result.executedTasks.contains ":buildB:b1:jar"
+        executed ":buildB:jar"
     }
 
     def "builds multiple artifacts for substituted dependency"() {
@@ -116,8 +104,21 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         resolveArtifacts()
 
         then:
-        result.executedTasks.containsAll([":buildB:myJar", ":buildB:jar"])
+        executed ":buildB:myJar", ":buildB:jar"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar')
+    }
+
+    def "builds artifacts for dependencies on multiple subprojects in the same build"() {
+        given:
+        dependency 'org.test:b1:1.0'
+        dependency 'org.test:b2:1.0'
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executed ":buildB:b1:jar", ":buildB:b2:jar"
+        assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
 
     def "builds substituted dependency with transitive external dependencies"() {
@@ -135,7 +136,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         resolveArtifacts()
 
         then:
-        result.executedTasks.containsAll([":buildB:jar"])
+        executed ":buildB:jar"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), moduleC.artifactFile
     }
 
@@ -159,7 +160,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         resolveArtifacts()
 
         then:
-        result.executedTasks.containsAll([":buildB:jar", ":buildC:jar"])
+        executed ":buildC:jar", ":buildB:jar"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildC.file('build/libs/buildC-1.0.jar')
     }
 
@@ -190,8 +191,29 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         resolveArtifacts()
 
         then:
-        result.executedTasks.containsAll([":buildB:jar", ":buildB:b1:jar", ":buildB:b2:myJar"])
+        executed ":buildB:b1:jar", ":buildB:b2:myJar", ":buildB:jar"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0-my.jar')
+    }
+
+    def "builds substituted dependency with file dependency"() {
+        given:
+        dependency 'org.test:buildB:1.0'
+
+        buildB.buildFile << """
+            task myJar(type: Jar) {
+                classifier 'my'
+            }
+            dependencies {
+                compile files(myJar.archivePath) { builtBy 'myJar' }
+            }
+"""
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executed ":buildB:myJar", ":buildB:jar"
+        assertResolved buildB.file('build/libs/buildB-1.0.jar') // File dependencies are never part of the published metadata
     }
 
     def "builds substituted dependency with non-default configuration"() {
@@ -222,7 +244,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         resolveArtifacts()
 
         then:
-        result.executedTasks.contains ":buildB:myJar"
+        executed ":buildB:myJar"
         assertResolved buildB.file('build/libs/buildB-1.0-my.jar'), moduleC.artifactFile
     }
 
@@ -257,7 +279,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         resolveArtifacts()
 
         then:
-        result.executedTasks.contains ":buildB:myJar"
+        executed ":buildB:myJar"
         assertResolved buildB.file('build/libs/buildB-1.0-my.jar'), buildB.file('build/libs/another-1.0.jar')
     }
 
@@ -286,7 +308,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         resolveArtifacts()
 
         then:
-        result.executedTasks.containsAll([":buildB:jar", ":buildB:myJar"])
+        executed ":buildB:jar", ":buildB:myJar"
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar')
     }
 
@@ -308,7 +330,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
 
         then:
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
-        result.executedTasks.containsAll([":buildB:b1:jar", ":buildB:b2:jar"])
+        executed ":buildB:b1:jar", ":buildB:b2:jar"
         result.executedTasks.count {it == ":buildB:b2:jar"} == 1
     }
 
@@ -416,6 +438,20 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         buildA.file('libs').assertHasDescendants(names)
         files.each {
             buildA.file('libs/' + it.name).assertIsCopyOf(it)
+        }
+    }
+
+    private void executed(String... tasks) {
+        def executedTasks = result.executedTasks
+        def beforeTask
+        for (String task : tasks) {
+            assert executedTasks.contains(task)
+            if (beforeTask != null) {
+                assert executedTasks.indexOf(beforeTask) < executedTasks.indexOf(task) : "task ${beforeTask} must be executed before ${task}"
+            }
+            beforeTask = task
+            // TODO:DAZ Assert that tasks are executed only once
+//            assert executedTasks.findAll({ it == task }).size() == 1
         }
     }
 
