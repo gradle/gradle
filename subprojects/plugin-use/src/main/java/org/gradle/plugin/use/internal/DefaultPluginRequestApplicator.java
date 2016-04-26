@@ -17,6 +17,7 @@
 package org.gradle.plugin.use.internal;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -24,6 +25,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
@@ -79,12 +81,16 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         final Map<Result, PluginImplementation<?>> pluginImplsFromOtherLoaders = Maps.newLinkedHashMap();
 
         if (!results.isEmpty()) {
-            final RepositoryHandler repositories = scriptHandler.getRepositories();
+
+            List<ArtifactRepository> pluginArtifactRepositories = Lists.newArrayList();
             for (PluginRepository pluginRepository : pluginRepositoryHandler) {
                 if (pluginRepository instanceof BackedByArtifactRepository) {
-                    repositories.add(((BackedByArtifactRepository) pluginRepository).getArtifactRepository());
+                    pluginArtifactRepositories.add(((BackedByArtifactRepository) pluginRepository).getArtifactRepository());
                 }
             }
+
+            final RepositoryHandler repositories = scriptHandler.getRepositories();
+            repositories.addAll(0, pluginArtifactRepositories);
 
             final List<MavenArtifactRepository> mavenRepos = repositories.withType(MavenArtifactRepository.class);
             final Set<String> repoUrls = Sets.newLinkedHashSet();
