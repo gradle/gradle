@@ -16,21 +16,31 @@
 
 package org.gradle.internal.component.local.model;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.component.model.*;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.ModuleSource;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultLocalComponentMetaData implements LocalComponentMetaData, BuildableLocalComponentMetaData {
     private final Map<String, DefaultLocalConfigurationMetaData> allConfigurations = Maps.newHashMap();
-    private final Map<String, Iterable<? extends PublishArtifact>> allArtifacts = Maps.newHashMap();
+    private final Multimap<String, ComponentArtifactMetaData> allArtifacts = ArrayListMultimap.create();
     private final List<DependencyMetaData> allDependencies = Lists.newArrayList();
     private final List<ExcludeRule> allExcludeRules = Lists.newArrayList();
     private final ModuleVersionIdentifier id;
@@ -48,7 +58,10 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
     }
 
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
-        allArtifacts.put(configuration, artifacts);
+        for (PublishArtifact artifact : artifacts) {
+            ComponentArtifactMetaData artifactMetaData = new PublishArtifactLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), artifact);
+            allArtifacts.put(configuration, artifactMetaData);
+        }
     }
 
     public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies) {
@@ -225,7 +238,7 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
         }
 
         public Set<ComponentArtifactMetaData> getArtifacts() {
-            return DefaultLocalComponentMetaData.getArtifacts(componentIdentifier, getHierarchy(), allArtifacts);
+            return DefaultLocalComponentMetaData.getArtifacts(getHierarchy(), allArtifacts);
         }
 
         public ComponentArtifactMetaData artifact(IvyArtifactName ivyArtifactName) {
@@ -239,19 +252,10 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
         }
     }
 
-    static Set<ComponentArtifactMetaData> getArtifacts(ComponentIdentifier componentIdentifier, Set<String> configurationHierarchy, Map<String, Iterable<? extends PublishArtifact>> allArtifacts) {
-        Set<PublishArtifact> seen = Sets.newHashSet();
+    static Set<ComponentArtifactMetaData> getArtifacts(Set<String> configurationHierarchy, Multimap<String, ComponentArtifactMetaData> allArtifacts) {
         Set<ComponentArtifactMetaData> artifacts = Sets.newLinkedHashSet();
-
         for (String config : configurationHierarchy) {
-            Iterable<? extends PublishArtifact> publishArtifacts = allArtifacts.get(config);
-            if (publishArtifacts != null) {
-                for (PublishArtifact publishArtifact : publishArtifacts) {
-                    if (seen.add(publishArtifact)) {
-                        artifacts.add(new PublishArtifactLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), publishArtifact));
-                    }
-                }
-            }
+            artifacts.addAll(allArtifacts.get(config));
         }
         return artifacts;
     }
