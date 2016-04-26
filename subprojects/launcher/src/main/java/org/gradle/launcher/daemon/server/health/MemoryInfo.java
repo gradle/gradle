@@ -19,18 +19,18 @@ package org.gradle.launcher.daemon.server.health;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 
-class MemoryInfo {
+public class MemoryInfo {
 
     private final long totalMemory; //this does not change
 
-    MemoryInfo() {
+    public MemoryInfo() {
         totalMemory = Runtime.getRuntime().maxMemory();
     }
 
     /**
      * Approx. time spent in gc. See {@link GarbageCollectorMXBean}
      */
-    long getCollectionTime() {
+    public long getCollectionTime() {
         long garbageCollectionTime = 0;
         for (GarbageCollectorMXBean gc : ManagementFactory.getGarbageCollectorMXBeans()) {
             long time = gc.getCollectionTime();
@@ -45,7 +45,7 @@ class MemoryInfo {
      * Max memory that this process can commit in bytes.
      * Always returns the same value because maximum memory is determined at jvm start.
      */
-    long getMaxMemory() {
+    public long getMaxMemory() {
         return totalMemory;
     }
 
@@ -54,8 +54,26 @@ class MemoryInfo {
      * May return different value depending on how the heap has expanded.
      * The returned value is <= {@link #getMaxMemory()}
      */
-    long getCommittedMemory() {
+    public long getCommittedMemory() {
         //querying runtime for each invocation
         return Runtime.getRuntime().totalMemory();
+    }
+
+    /**
+    * Retrieves the total physical memory size on the system in bytes.
+    * This value is independent of {@link #getMaxMemory()}, which is the total memory available to the JVM.
+    */
+    public long getTotalPhysicalMemory() {
+        return ((com.sun.management.OperatingSystemMXBean)
+            ManagementFactory.getOperatingSystemMXBean()).getTotalPhysicalMemorySize();
+    }
+
+    /**
+     * Retrieves the free physical memory on the system in bytes.
+     * This value is independent of {@link #getCommittedMemory()}, which is the memory reserved by the JVM.
+     */
+    public long getFreePhysicalMemory() {
+        return ((com.sun.management.OperatingSystemMXBean)
+            ManagementFactory.getOperatingSystemMXBean()).getFreePhysicalMemorySize();
     }
 }
