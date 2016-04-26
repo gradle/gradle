@@ -85,7 +85,7 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
             } else if (scriptBlock.getName().equals(PLUGIN_REPOS)) {
                 String failureMessage = null;
                 if (!scriptTarget.getSupportsPluginRepositoriesBlock()) {
-                    failureMessage = "Only Settings and Init scripts can contain a pluginRepositories {} block.";
+                    failureMessage = "Only Settings scripts can contain a pluginRepositories {} block.";
                 } else if (seenClasspathBlock || seenNonClasspathStatement || seenPluginsBlock) {
                     failureMessage = String.format("The %s {} block must appear before any other statements in the script.", PLUGIN_REPOS);
                 } else if (seenPluginRepositoriesBlock) {

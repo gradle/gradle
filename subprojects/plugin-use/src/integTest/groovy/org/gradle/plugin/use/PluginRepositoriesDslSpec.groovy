@@ -71,7 +71,24 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasLineNumber(2)
-        failure.assertThatCause(containsString("Only Settings and Init scripts can contain a pluginRepositories {} block."))
+        failure.assertThatCause(containsString("Only Settings scripts can contain a pluginRepositories {} block."))
+        includesLinkToUserguide()
+    }
+
+    def "pluginRepositories block is not supported in InitScripts"() {
+        given:
+        def initScript = file "definePluginRepos.gradle"
+        initScript << """
+            pluginRepositories {}
+        """
+        args('-I', initScript.absolutePath)
+
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasLineNumber(2)
+        failure.assertThatCause(containsString("Only Settings scripts can contain a pluginRepositories {} block."))
         includesLinkToUserguide()
     }
 

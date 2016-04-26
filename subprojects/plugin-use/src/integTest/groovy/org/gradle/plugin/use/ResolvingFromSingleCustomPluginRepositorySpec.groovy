@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -208,6 +209,33 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
 
         expect:
         succeeds("subproject:pluginTask")
+    }
+
+    @NotYetImplemented
+    def "Can specify repo in init script."() {
+        given:
+        buildScript """
+           plugins {
+             id "org.example.plugin" version "1.1"
+           }
+        """
+
+        and:
+        def initScript = file('definePluginRepo.gradle')
+        initScript << """
+          pluginRepositories {
+            maven {
+              url "${mavenRepo.uri}"
+            }
+          }
+        """
+        args('-I', initScript.absolutePath)
+
+        when:
+        succeeds('pluginTask')
+
+        then:
+        output.contains('from plugin')
     }
 
     @Requires(TestPrecondition.ONLINE)
