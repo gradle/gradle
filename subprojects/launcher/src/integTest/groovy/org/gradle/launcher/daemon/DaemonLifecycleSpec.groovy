@@ -37,6 +37,7 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     int daemonIdleTimeout = 100
+    int periodicCheckInterval = 30
     //normally, state transition timeout must be lower than the daemon timeout
     //so that the daemon does not timeout in the middle of the state verification
     //effectively hiding some bugs or making tests fail
@@ -69,6 +70,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             executer.withTasks("watch")
             executer.withArguments(
                     "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}",
+                    "-Dorg.gradle.daemon.periodiccheckinterval=${periodicCheckInterval * 1000}",
                     "--info",
                     "-Dorg.gradle.jvmargs=-ea")
             if (javaHome) {
@@ -255,6 +257,23 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         when:
         stopDaemons()
+
+        then:
+        stopped()
+    }
+
+    def "daemon stops if registry is deleted"() {
+        when:
+        startBuild()
+
+        then:
+        busy()
+
+        when:
+        completeBuild()
+        daemonContext {
+            daemonRegistryDir.delete()
+        }
 
         then:
         stopped()

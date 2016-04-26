@@ -18,10 +18,10 @@ package org.gradle.launcher.daemon.server;
 import java.util.concurrent.TimeUnit;
 
 public class DaemonIdleTimeoutExpirationStrategy implements DaemonExpirationStrategy {
-    private long idleTimeout;
+    private int idleTimeout;
     private TimeUnit timeUnit;
 
-    public DaemonIdleTimeoutExpirationStrategy(long idleTimeout, TimeUnit timeUnit) {
+    public DaemonIdleTimeoutExpirationStrategy(int idleTimeout, TimeUnit timeUnit) {
         this.idleTimeout = idleTimeout;
         this.timeUnit = timeUnit;
     }

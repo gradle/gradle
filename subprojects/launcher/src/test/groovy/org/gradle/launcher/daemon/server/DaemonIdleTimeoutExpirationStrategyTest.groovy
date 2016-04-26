@@ -1,3 +1,18 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gradle.launcher.daemon.server
 
 import spock.lang.Specification
@@ -10,7 +25,7 @@ class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
 
     def "daemon should expire when it's idle time exceeds idleTimeout"() {
         given:
-        DaemonIdleTimeoutExpirationStrategy expirationStrategy = new DaemonIdleTimeoutExpirationStrategy(100L, TimeUnit.MILLISECONDS)
+        DaemonIdleTimeoutExpirationStrategy expirationStrategy = new DaemonIdleTimeoutExpirationStrategy(100, TimeUnit.MILLISECONDS)
 
         when:
         1 * daemon.getStateCoordinator() >> { daemonStateCoordinator }
@@ -21,31 +36,6 @@ class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
     }
 
     // TODO(ew): reimplement as integration test
-//    def "await idle timeout does nothing when already stopped"() {
-//        given:
-//        coordinator.stop()
-//
-//        when:
-//        coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
-//
-//        then:
-//        coordinator.stopped
-//    }
-//
-//    def "await idle timeout waits for specified time and then stops"() {
-//        when:
-//        operation.waitForIdle {
-//            coordinator.stopOnIdleTimeout(100, TimeUnit.MILLISECONDS)
-//        }
-//
-//        then:
-//        coordinator.stopped
-//        operation.waitForIdle.duration in approx(100)
-//
-//        and:
-//        0 * _._
-//    }
-
 //    def "await idle time returns after command has finished and stop requested"() {
 //        def command = Mock(Runnable)
 //
@@ -73,8 +63,6 @@ class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
 //        }
 //        0 * _._
 //    }
-
-    // TODO(ew): def "all daemons stop when their registry is deleted"() {}
 
     // TODO(ew): def "starting new build recreates registry"() {}
 }

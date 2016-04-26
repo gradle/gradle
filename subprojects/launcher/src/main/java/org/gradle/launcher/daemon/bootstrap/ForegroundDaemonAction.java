@@ -45,17 +45,16 @@ public class ForegroundDaemonAction implements Runnable {
         loggingManager.start();
 
         DaemonServices daemonServices = new DaemonServices(configuration, loggingRegistry, loggingManager, new DefaultClassPath());
-        // TODO(ew): rename vars
-        DaemonIdleTimeoutExpirationStrategy e1 = new DaemonIdleTimeoutExpirationStrategy((long) configuration.getIdleTimeout(), TimeUnit.MILLISECONDS);
-        DaemonRegistryUnavailableExpirationStrategy e2 = new DaemonRegistryUnavailableExpirationStrategy();
-        DaemonExpirationStrategy expirationStrategy = new CompositeDaemonExpirationStrategy(ImmutableList.of(e1, e2));
+        DaemonIdleTimeoutExpirationStrategy timeoutStrategy = new DaemonIdleTimeoutExpirationStrategy(configuration.getIdleTimeout(), TimeUnit.MILLISECONDS);
+        DaemonRegistryUnavailableExpirationStrategy registryUnavailableStrategy = new DaemonRegistryUnavailableExpirationStrategy();
+        DaemonExpirationStrategy expirationStrategy = new CompositeDaemonExpirationStrategy(ImmutableList.of(timeoutStrategy, registryUnavailableStrategy));
 
         Daemon daemon = daemonServices.get(Daemon.class);
         daemon.start();
 
         try {
             daemonServices.get(DaemonRegistry.class).markIdle(daemon.getAddress());
-            daemon.stopOnExpiration(expirationStrategy);
+            daemon.stopOnExpiration(expirationStrategy, configuration.getPeriodicCheckIntervalMs());
         } finally {
             daemon.stop();
         }

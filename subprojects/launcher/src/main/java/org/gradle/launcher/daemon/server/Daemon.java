@@ -195,10 +195,10 @@ public class Daemon implements Stoppable {
     /**
      * Given a DaemonExpirationStrategy, request stop of daemon if it should expire.
      */
-    public void stopOnExpiration(DaemonExpirationStrategy expirationStrategy) {
+    public void stopOnExpiration(DaemonExpirationStrategy expirationStrategy, int checkIntervalMills) {
         LOGGER.debug("stopOnExpiration() called on daemon");
         DaemonExpirationPeriodicCheck periodicCheck = new DaemonExpirationPeriodicCheck(this, expirationStrategy);
-        scheduledExecutorService.scheduleAtFixedRate(periodicCheck, PERIODIC_CHECK_INTERVAL_MILLIS, PERIODIC_CHECK_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
+        scheduledExecutorService.scheduleAtFixedRate(periodicCheck, checkIntervalMills, checkIntervalMills, TimeUnit.MILLISECONDS);
     }
 
     DaemonStateCoordinator getStateCoordinator() {
