@@ -73,7 +73,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         builds = [buildA, buildB]
     }
 
-    def "resolves configuration with single artifact"() {
+    def "builds single artifact for substituted dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
 
@@ -85,7 +85,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         result.executedTasks.contains ":buildB:jar"
     }
 
-    def "resolves configuration in subproject with single artifact"() {
+    def "builds single artifact for substituted subproject dependency"() {
         given:
         dependency 'org.test:b1:1.0'
 
@@ -97,7 +97,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         result.executedTasks.contains ":buildB:b1:jar"
     }
 
-    def "resolves configuration with multiple artifacts"() {
+    def "builds multiple artifacts for substituted dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
 
@@ -120,7 +120,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar')
     }
 
-    def "resolves configuration with transitive external dependencies"() {
+    def "builds substituted dependency with transitive external dependencies"() {
         given:
         dependency 'org.test:buildB:1.0'
 
@@ -139,7 +139,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), moduleC.artifactFile
     }
 
-    def "resolves configuration with transitive external dependency that is substituted"() {
+    def "builds substituted dependency with transitive external dependency that is substituted"() {
         given:
         dependency 'org.test:buildB:1.0'
 
@@ -163,7 +163,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildC.file('build/libs/buildC-1.0.jar')
     }
 
-    def "resolves configuration with transitive project dependencies"() {
+    def "builds substituted dependency with transitive project dependencies"() {
         given:
         dependency "org.test:buildB:1.0"
 
@@ -194,7 +194,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0-my.jar')
     }
 
-    def "resolves substituted dependency with non-default configuration"() {
+    def "builds substituted dependency with non-default configuration"() {
         given:
         buildA.buildFile << """
             dependencies {
@@ -226,7 +226,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         assertResolved buildB.file('build/libs/buildB-1.0-my.jar'), moduleC.artifactFile
     }
 
-    def "resolves substituted dependency with defined artifacts"() {
+    def "builds substituted dependency with defined artifacts"() {
         given:
         buildA.buildFile << """
             dependencies {
@@ -261,7 +261,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         assertResolved buildB.file('build/libs/buildB-1.0-my.jar'), buildB.file('build/libs/another-1.0.jar')
     }
 
-    def "resolves multiple configurations for the same substituted dependency"() {
+    def "builds multiple configurations for the same substituted dependency"() {
         given:
         buildA.buildFile << """
             dependencies {
@@ -313,7 +313,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
     }
 
     @NotYetImplemented
-    def "reports failure to resolve artifacts with dependency cycle between substituted participants in a composite build"() {
+    def "reports failure to build artifacts with dependency cycle between substituted participants in a composite build"() {
         given:
         dependency "org.test:${fromBuildA}:1.0"
         buildB.buildFile << """
