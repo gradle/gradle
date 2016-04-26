@@ -19,7 +19,6 @@ package org.gradle.plugin.use.resolve.internal;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.plugin.internal.PluginId;
@@ -28,12 +27,12 @@ import org.gradle.plugin.use.internal.PluginRequest;
 
 public class ArtifactRepositoryPluginResolver implements PluginResolver {
 
-    private ArtifactRepository repository;
+    private String name;
     private final DependencyResolutionServices resolution;
     private final VersionSelectorScheme versionSelectorScheme;
 
-    public ArtifactRepositoryPluginResolver(ArtifactRepository repository, DependencyResolutionServices resolution, VersionSelectorScheme versionSelectorScheme) {
-        this.repository = repository;
+    public ArtifactRepositoryPluginResolver(String name, DependencyResolutionServices resolution, VersionSelectorScheme versionSelectorScheme) {
+        this.name = name;
         this.resolution = resolution;
         this.versionSelectorScheme = versionSelectorScheme;
     }
@@ -41,15 +40,15 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
     @Override
     public void resolve(final PluginRequest pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
         if (pluginRequest.getVersion() == null) {
-            result.notFound(getName(), "plugin dependency must include a version number for this source");
+            result.notFound(name, "plugin dependency must include a version number for this source");
             return;
         }
         if (pluginRequest.getVersion().endsWith("-SNAPSHOT")) {
-            result.notFound(getName(), "snapshot plugin versions are not supported");
+            result.notFound(name, "snapshot plugin versions are not supported");
             return;
         }
         if (versionSelectorScheme.parseSelector(pluginRequest.getVersion()).isDynamic()) {
-            result.notFound(getName(), "dynamic plugin versions are not supported");
+            result.notFound(name, "dynamic plugin versions are not supported");
             return;
         }
         if (exists(pluginRequest)) {
@@ -70,7 +69,7 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
     }
 
     private void handleFound(final PluginRequest pluginRequest, PluginResolutionResult result) {
-        result.found(getName(), new PluginResolution() {
+        result.found(name, new PluginResolution() {
             @Override
             public PluginId getPluginId() {
                 return pluginRequest.getId();
@@ -83,14 +82,11 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
     }
 
     private void handleNotFound(PluginRequest pluginRequest, PluginResolutionResult result) {
-        result.notFound(getName(), String.format("Could not resolve plugin artifact '%s'", getMarkerCoordinates(pluginRequest)));
+        result.notFound(name, String.format("Could not resolve plugin artifact '%s'", getMarkerCoordinates(pluginRequest)));
     }
 
     private String getMarkerCoordinates(PluginRequest pluginRequest) {
         return pluginRequest.getId() + ":" + pluginRequest.getId() + ":" + pluginRequest.getVersion();
     }
 
-    private String getName() {
-        return repository.getName();
-    }
 }

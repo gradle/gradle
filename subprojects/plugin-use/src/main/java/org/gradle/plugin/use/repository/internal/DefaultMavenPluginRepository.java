@@ -77,22 +77,27 @@ class DefaultMavenPluginRepository implements MavenPluginRepository, PluginRepos
     @Override
     public PluginResolver asResolver() {
         if (resolver == null) {
-            resolver = new ArtifactRepositoryPluginResolver(getArtifactRepository(), dependencyResolutionServices, versionSelectorScheme);
+            prepareArtifactRepository();
+            resolver = new ArtifactRepositoryPluginResolver(name, dependencyResolutionServices, versionSelectorScheme);
         }
         return resolver;
     }
 
     @Override
     public ArtifactRepository getArtifactRepository() {
+        prepareArtifactRepository();
+        return artifactRepository;
+    }
+
+    private void prepareArtifactRepository() {
         if (artifactRepository == null) {
             artifactRepository = dependencyResolutionServices.getResolveRepositoryHandler().maven(new Action<MavenArtifactRepository>() {
                 @Override
                 public void execute(MavenArtifactRepository mavenArtifactRepository) {
-                    mavenArtifactRepository.setName(name);
+                    mavenArtifactRepository.setName("__plugins__" + name);
                     mavenArtifactRepository.setUrl(url);
                 }
             });
         }
-        return artifactRepository;
     }
 }

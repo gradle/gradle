@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use.resolve.internal
 
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme
 import org.gradle.groovy.scripts.StringScriptSource
@@ -26,12 +25,9 @@ import spock.lang.Specification
 
 class ArtifactRepositoryPluginResolverTest extends Specification {
     def versionSelectorScheme = new MavenVersionSelectorScheme(new DefaultVersionSelectorScheme())
-    def artifactRepository = Stub(MavenArtifactRepository) {
-        getName() >> "maven"
-    }
     def result = Mock(PluginResolutionResult)
 
-    def resolver = new ArtifactRepositoryPluginResolver(artifactRepository, null, versionSelectorScheme);
+    def resolver = new ArtifactRepositoryPluginResolver("maven", null, versionSelectorScheme);
 
     PluginRequest request(String id, String version = null) {
         new DefaultPluginRequest(id, version, 1, new StringScriptSource("test", "test"))
