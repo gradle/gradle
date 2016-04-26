@@ -100,24 +100,22 @@ public abstract class AbstractFileResolver implements FileResolver {
                 // on Windows, File.getCanonicalFile() doesn't resolve symlinks
                 return file.getCanonicalFile();
             }
-            String[] segments = FILE_SEPARATOR_PATTERN.split(file.getPath());
-            List<String> path = new ArrayList<String>(segments.length);
-            for (String segment : segments) {
-                if (segment.equals("..")) {
-                    if (!path.isEmpty()) {
-                        path.remove(path.size() - 1);
-                    }
-                } else if (!segment.equals(".") && segment.length() > 0) {
-                    path.add(segment);
+
+            File candidate;
+            String filePath = file.getPath();
+            List<String> path = null;
+            if (filePath.indexOf('.') > -1) {
+                path = splitAndNormalisePath(filePath);
+                String resolvedPath = CollectionUtils.join(File.separator, path);
+                boolean needLeadingSeparator = File.listRoots()[0].getPath().startsWith(File.separator);
+                if (needLeadingSeparator) {
+                    resolvedPath = File.separator + resolvedPath;
                 }
+                candidate = new File(resolvedPath);
+            } else {
+                candidate = file;
             }
 
-            String resolvedPath = CollectionUtils.join(File.separator, path);
-            boolean needLeadingSeparator = File.listRoots()[0].getPath().startsWith(File.separator);
-            if (needLeadingSeparator) {
-                resolvedPath = File.separator + resolvedPath;
-            }
-            File candidate = new File(resolvedPath);
             if (fileSystem.isCaseSensitive()) {
                 return candidate;
             }
@@ -130,6 +128,9 @@ public abstract class AbstractFileResolver implements FileResolver {
 
             // Canonical path is different to what we expected (eg there is a link somewhere in there). Normalise a segment at a time
             // TODO - start resolving only from where the expected and canonical paths are different
+            if (path == null) {
+                path = splitAndNormalisePath(filePath);
+            }
             File current = File.listRoots()[0];
             for (int pos = 0; pos < path.size(); pos++) {
                 File child = findChild(current, path.get(pos));
@@ -143,6 +144,21 @@ public abstract class AbstractFileResolver implements FileResolver {
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not normalize path for file '%s'.", file), e);
         }
+    }
+
+    private List<String> splitAndNormalisePath(String filePath) {
+        String[] segments = FILE_SEPARATOR_PATTERN.split(filePath);
+        List<String> path = new ArrayList<String>(segments.length);
+        for (String segment : segments) {
+            if (segment.equals("..")) {
+                if (!path.isEmpty()) {
+                    path.remove(path.size() - 1);
+                }
+            } else if (!segment.equals(".") && segment.length() > 0) {
+                path.add(segment);
+            }
+        }
+        return path;
     }
 
     private File findChild(File current, String segment) throws IOException {
