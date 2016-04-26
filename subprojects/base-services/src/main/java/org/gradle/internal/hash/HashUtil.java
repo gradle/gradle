@@ -15,12 +15,18 @@
  */
 package org.gradle.internal.hash;
 
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HashUtil {
     public static HashValue createHash(String scriptText, String algorithm) {
@@ -96,5 +102,18 @@ public class HashUtil {
 
     public static HashValue sha256(File file) {
         return createHash(file, "SHA-256");
+    }
+
+    public static HashCode combine(HashCode... hashCodes) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("md5");
+            for (HashCode hashCode : hashCodes) {
+                digest.update(hashCode.asBytes());
+            }
+            return HashCode.fromBytes(digest.digest());
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

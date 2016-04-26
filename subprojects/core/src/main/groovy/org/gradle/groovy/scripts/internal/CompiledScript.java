@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import com.google.common.hash.HashCode;
 import groovy.lang.Script;
 
 public interface CompiledScript<T extends Script, D> {
@@ -32,4 +33,6 @@ public interface CompiledScript<T extends Script, D> {
     Class<? extends T> loadClass();
 
     D getData();
+
+    HashCode getClassPathHash();
 }

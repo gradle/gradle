@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.scripts;
 
+import com.google.common.hash.HashCode;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.logging.StandardOutputCapture;
 
@@ -25,6 +26,7 @@ import org.gradle.internal.logging.StandardOutputCapture;
 public abstract class Script extends groovy.lang.Script {
     private ScriptSource source;
     private ClassLoader contextClassloader;
+    private HashCode classpathHash;
 
     public ScriptSource getScriptSource() {
         return source;
@@ -55,5 +57,13 @@ public abstract class Script extends groovy.lang.Script {
         } else {
             return getMetaClass().getProperty(this, property);
         }
+    }
+
+    public HashCode getClassPathHash() {
+        return classpathHash;
+    }
+
+    public void setClassPathHash(HashCode classpathHash) {
+        this.classpathHash = classpathHash;
     }
 }

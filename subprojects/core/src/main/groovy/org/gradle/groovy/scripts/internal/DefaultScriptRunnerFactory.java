@@ -55,6 +55,7 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
                 script = instantiator.newInstance(scriptClass);
                 script.setScriptSource(source);
                 script.setContextClassloader(contextClassLoader);
+                script.setClassPathHash(compiledScript.getClassPathHash());
                 listener.scriptClassLoaded(source, scriptClass);
             }
             return script;

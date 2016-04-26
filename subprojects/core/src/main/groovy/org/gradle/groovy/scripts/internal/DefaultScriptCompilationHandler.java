@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import com.google.common.hash.HashCode;
 import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.GroovyResourceLoader;
@@ -184,7 +185,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
     public <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
                                                                   File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass,
-                                                                  ClassLoaderId classLoaderId) {
+                                                                  ClassLoaderId classLoaderId, HashCode classPathHash) {
         File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
         try {
             KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile));
@@ -201,7 +202,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 } else {
                     data = null;
                 }
-                return new ClassesDirCompiledScript<T, M>(isEmpty, hasMethods, classLoaderId, scriptBaseClass, scriptCacheDir, classLoader, source, data);
+                return new ClassesDirCompiledScript<T, M>(isEmpty, hasMethods, classLoaderId, scriptBaseClass, scriptCacheDir, classLoader, source, classPathHash, data);
             } finally {
                 decoder.close();
             }
@@ -282,10 +283,20 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         private final File scriptCacheDir;
         private final ClassLoader classLoader;
         private final ScriptSource source;
+        private final HashCode classPathHash;
         private final M metadata;
         private Class<? extends T> scriptClass;
 
-        public ClassesDirCompiledScript(boolean isEmpty, boolean hasMethods, ClassLoaderId classLoaderId, Class<T> scriptBaseClass, File scriptCacheDir, ClassLoader classLoader, ScriptSource source, M metadata) {
+        public ClassesDirCompiledScript(
+            boolean isEmpty,
+            boolean hasMethods,
+            ClassLoaderId classLoaderId,
+            Class<T> scriptBaseClass,
+            File scriptCacheDir,
+            ClassLoader classLoader,
+            ScriptSource source,
+            HashCode classPathHash,
+            M metadata) {
             this.isEmpty = isEmpty;
             this.hasMethods = hasMethods;
             this.classLoaderId = classLoaderId;
@@ -293,6 +304,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             this.scriptCacheDir = scriptCacheDir;
             this.classLoader = classLoader;
             this.source = source;
+            this.classPathHash = classPathHash;
             this.metadata = metadata;
         }
 
@@ -309,6 +321,11 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         @Override
         public M getData() {
             return metadata;
+        }
+
+        @Override
+        public HashCode getClassPathHash() {
+            return classPathHash;
         }
 
         @Override
