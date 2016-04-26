@@ -51,22 +51,18 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         return null;
     }
 
+    @Override
     public Object invokeMethod(String name, Object paramsObj) {
         Object[] params = (Object[])paramsObj;
 
         boolean isAlreadyConfiguring = _configuring.get();
         _configuring.set(true);
         try {
-            MissingMethodException failure;
-            try {
-                return _delegate.invokeMethod(name, params);
-            } catch (groovy.lang.MissingMethodException e) {
-                // TODO - should check the type as well, and below too, however we have no idea what the final type is going to be.
-                // Rework the DynamicObject contract to allow us to know if the method was found or not
-                if (!name.equals(e.getMethod())) {
-                    throw e;
-                }
-                failure = e;
+            InvokeMethodResult result = new InvokeMethodResult();
+
+            _delegate.invokeMethod(name, result, params);
+            if (result.isFound()) {
+                return result.getResult();
             }
 
             if (!isAlreadyConfiguring && _isConfigureMethod(name, params)) {
@@ -74,17 +70,12 @@ public class ConfigureDelegate extends GroovyObjectSupport {
             }
 
             // try the owner
-            try {
-                return _owner.invokeMethod(name, params);
-            } catch (groovy.lang.MissingMethodException e) {
-                if (!name.equals(e.getMethod())) {
-                    throw e;
-                }
-                // ignore
+            _owner.invokeMethod(name, result, params);
+            if (result.isFound()) {
+                return result.getResult();
             }
 
-            throw failure;
-
+            throw new MissingMethodException(name, _delegate.getClass(), params);
         } finally {
             _configuring.set(isAlreadyConfiguring);
         }
@@ -94,30 +85,20 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         boolean isAlreadyConfiguring = _configuring.get();
         _configuring.set(true);
         try {
-            MissingPropertyException failure;
-            try {
-                return _delegate.getProperty(name);
-            } catch (MissingPropertyException e) {
-                if (!name.equals(e.getProperty())) {
-                    throw e;
-                }
-                failure = e;
+            GetPropertyResult result = new GetPropertyResult();
+            _delegate.getProperty(name, result);
+            if (result.isFound()) {
+                return result.getValue();
             }
 
-            // try the owner
-            try {
-                return _owner.getProperty(name);
-            } catch (MissingPropertyException e) {
-                if (!name.equals(e.getProperty())) {
-                    throw e;
-                }
-                // Ignore
+            _owner.getProperty(name, result);
+            if (result.isFound()) {
+                return result.getValue();
             }
 
             if (isAlreadyConfiguring) {
-                throw failure;
+                throw new MissingPropertyException(name, _delegate.getClass());
             }
-
             return _configure(name, EMPTY_PARAMS);
         } finally {
             _configuring.set(isAlreadyConfiguring);
