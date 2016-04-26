@@ -27,7 +27,7 @@ import org.gradle.util.SingleMessageLogger;
 public class ScalaCompileOptions extends BaseScalaCompileOptions {
     private static final String USE_ANT_MSG = "The Ant-Based Scala compiler is deprecated, please see "
         + "https://docs.gradle.org/current/userguide/scala_plugin.html";
-    private static final String FORK_MSG = "The fork option for the scala compiler is deprecated, please see "
+    private static final String FORK_MSG = "The fork option for the Scala compiler is deprecated, please see "
         + "https://docs.gradle.org/current/userguide/scala_plugin.html";
     private static final String USE_COMPILE_DAEMON_MSG = "The Ant-Based Scala compiler and it's support for a compile "
         + "daemon is deprecated, please see https://docs.gradle.org/current/userguide/scala_plugin.html";
