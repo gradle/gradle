@@ -44,6 +44,8 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 
 import java.io.File;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Wires together the embedded daemon client.
@@ -61,9 +63,14 @@ public class EmbeddedDaemonClientServices extends DaemonClientServicesSupport {
                 get(DaemonContext.class),
                 "password",
                 get(DaemonCommandExecuter.class),
-                get(ExecutorFactory.class)
+                get(ExecutorFactory.class),
+                get(ScheduledExecutorService.class)
             );
         }
+    }
+
+    protected ScheduledExecutorService createScheduledExecutorService() {
+        return Executors.newScheduledThreadPool(1);
     }
 
     protected DaemonCommandExecuter createDaemonCommandExecuter() {

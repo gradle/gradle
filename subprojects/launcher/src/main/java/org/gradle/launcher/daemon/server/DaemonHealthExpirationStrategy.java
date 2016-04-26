@@ -16,24 +16,21 @@
 
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.api.Nullable;
+import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 
-public class DaemonExpirationResult {
-    public static final DaemonExpirationResult DO_NOT_EXPIRE = new DaemonExpirationResult(false, null);
+public class DaemonHealthExpirationStrategy implements DaemonExpirationStrategy {
+    final DaemonHealthServices healthServices;
 
-    private final boolean expired;
-    private final String reason;
-
-    public DaemonExpirationResult(boolean expired, @Nullable String reason) {
-        this.expired = expired;
-        this.reason = reason;
+    public DaemonHealthExpirationStrategy(DaemonHealthServices healthServices) {
+        this.healthServices = healthServices;
     }
 
-    public boolean isExpired() {
-        return expired;
-    }
-
-    public String getReason() {
-        return reason;
+    @Override
+    public DaemonExpirationResult checkExpiration(Daemon daemon) {
+        if (healthServices.getDaemonStatus().isTenuredSpaceExhausted()) {
+            return new DaemonExpirationResult(true, "JVM tenured space is exhausted");
+        } else {
+            return DaemonExpirationResult.DO_NOT_EXPIRE;
+        }
     }
 }

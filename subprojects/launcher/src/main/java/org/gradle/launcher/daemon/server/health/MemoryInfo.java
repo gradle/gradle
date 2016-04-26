@@ -23,7 +23,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class MemoryInfo {
-
     private final long totalMemory; //this does not change
 
     public MemoryInfo() {

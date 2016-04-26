@@ -14,26 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server;
+package org.gradle.launcher.daemon.server.health.gc;
 
-import org.gradle.api.Nullable;
+import java.lang.management.MemoryUsage;
 
-public class DaemonExpirationResult {
-    public static final DaemonExpirationResult DO_NOT_EXPIRE = new DaemonExpirationResult(false, null);
+public class GarbageCollectionEvent {
+    final long timestamp;
+    final MemoryUsage usage;
+    final long count;
 
-    private final boolean expired;
-    private final String reason;
-
-    public DaemonExpirationResult(boolean expired, @Nullable String reason) {
-        this.expired = expired;
-        this.reason = reason;
+    public GarbageCollectionEvent(long timestamp, MemoryUsage usage, long count) {
+        this.timestamp = timestamp;
+        this.usage = usage;
+        this.count = count;
     }
 
-    public boolean isExpired() {
-        return expired;
+    public long getTimestamp() {
+        return timestamp;
     }
 
-    public String getReason() {
-        return reason;
+    public MemoryUsage getUsage() {
+        return usage;
+    }
+
+    public long getCount() {
+        return count;
     }
 }

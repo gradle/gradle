@@ -14,26 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server;
+package org.gradle.launcher.daemon.server.health.gc;
 
-import org.gradle.api.Nullable;
+import java.util.Set;
 
-public class DaemonExpirationResult {
-    public static final DaemonExpirationResult DO_NOT_EXPIRE = new DaemonExpirationResult(false, null);
+public interface SlidingWindow<T> {
+    /**
+     * Maintains a fixed size window of elements by sliding the window one element and inserting a new element at the end.
+     *
+     * @param element The element to add
+     */
+    public void slideAndInsert(T element);
 
-    private final boolean expired;
-    private final String reason;
-
-    public DaemonExpirationResult(boolean expired, @Nullable String reason) {
-        this.expired = expired;
-        this.reason = reason;
-    }
-
-    public boolean isExpired() {
-        return expired;
-    }
-
-    public String getReason() {
-        return reason;
-    }
+    /**
+     * Returns a snapshot of the elements in the window as a Set view.
+     *
+     * @return Set view of the elements
+     */
+    public Set<T> snapshot();
 }
