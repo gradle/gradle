@@ -312,7 +312,6 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         result.executedTasks.count {it == ":buildB:b2:jar"} == 1
     }
 
-    @NotYetImplemented
     def "reports failure to build artifacts with dependency cycle between substituted participants in a composite build"() {
         given:
         dependency "org.test:${fromBuildA}:1.0"
@@ -342,7 +341,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
 
         then:
         def t = thrown(BuildException)
-        assertFailure(t, "Cyclic dependency error")
+        assertFailure(t, "Dependency cycle on buildB::")
 
         where:
         fromBuildA | fromBuildB | fromBuildC
@@ -368,7 +367,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         then:
         def t = thrown(BuildException)
         assertFailure(t, "jar task failed")
-        assertFailure(t, "Execution failed for task ':buildB:jar'")
+        assertFailure(t, "Execution failed for task ':buildB:jar'")  // TODO:DAZ Currently reports ':jar'
     }
 
     @NotYetImplemented
@@ -397,7 +396,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         then:
         def t = thrown(BuildException)
         assertFailure(t, "jar task failed")
-        assertFailure(t, "Execution failed for task ':buildC:jar'")
+        assertFailure(t, "Execution failed for task ':buildC:jar'")  // TODO:DAZ Currently reports ':jar'
     }
 
     def dependency(String notation) {

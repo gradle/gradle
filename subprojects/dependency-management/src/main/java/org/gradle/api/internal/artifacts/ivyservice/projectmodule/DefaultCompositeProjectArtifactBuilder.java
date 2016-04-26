@@ -16,20 +16,28 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import com.google.common.collect.*;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultCompositeProjectArtifactBuilder implements CompositeProjectArtifactBuilder {
     private final CompositeProjectComponentRegistry registry;
     private final GradleLauncherFactory gradleLauncherFactory;
     private final StartParameter requestedStartParameter;
     private final ServiceRegistry serviceRegistry;
+    private final Set<String> executingProjects = Sets.newHashSet();
     private final Multimap<String, String> executedTasks = LinkedHashMultimap.create();
 
     public DefaultCompositeProjectArtifactBuilder(CompositeProjectComponentRegistry registry,
@@ -42,8 +50,28 @@ public class DefaultCompositeProjectArtifactBuilder implements CompositeProjectA
         this.serviceRegistry = serviceRegistry;
     }
 
+    private synchronized void buildStarted(String projectPath) {
+        if (!executingProjects.add(projectPath)) {
+            ProjectComponentSelector selector = new DefaultProjectComponentSelector(projectPath);
+            throw new ModuleVersionResolveException(selector, "Dependency cycle on " + projectPath);
+        }
+    }
+
+    private synchronized void buildCompleted(String projectPath) {
+        executingProjects.remove(projectPath);
+    }
+
     @Override
     public boolean build(String projectPath, Iterable<String> taskNames) {
+        buildStarted(projectPath);
+        try {
+            return doBuild(projectPath, taskNames);
+        } finally {
+            buildCompleted(projectPath);
+        }
+    }
+
+    public boolean doBuild(String projectPath, Iterable<String> taskNames) {
         List<String> tasksToExecute = Lists.newArrayList();
         for (String taskName : taskNames) {
             if (executedTasks.put(projectPath, taskName)) {
