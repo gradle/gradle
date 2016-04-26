@@ -116,6 +116,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             encoder.writeString(daemonParameters.getGradleUserHomeDir().getAbsolutePath());
             encoder.writeString(daemonDir.getBaseDir().getAbsolutePath());
             encoder.writeSmallInt(daemonParameters.getIdleTimeout());
+            encoder.writeSmallInt(daemonParameters.getPeriodicCheckInterval());
             encoder.writeString(daemonUid);
             encoder.writeSmallInt(daemonOpts.size());
             for (String daemonOpt : daemonOpts) {

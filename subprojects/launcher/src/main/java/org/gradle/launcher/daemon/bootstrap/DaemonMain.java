@@ -15,25 +15,30 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.launcher.bootstrap.EntryPoint;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.server.CompositeDaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.DaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.DaemonIdleTimeoutExpirationStrategy;
+import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.services.LoggingServiceRegistry;
-import org.gradle.internal.remote.Address;
 import org.gradle.process.internal.streams.EncodedStream;
 
 import java.io.*;
@@ -68,6 +73,7 @@ public class DaemonMain extends EntryPoint {
         File gradleHomeDir;
         File daemonBaseDir;
         int idleTimeoutMs;
+        int periodicCheckIntervalMs;
         String daemonUid;
         List<File> additionalClassPath;
 
@@ -76,6 +82,7 @@ public class DaemonMain extends EntryPoint {
             gradleHomeDir = new File(decoder.readString());
             daemonBaseDir = new File(decoder.readString());
             idleTimeoutMs = decoder.readSmallInt();
+            periodicCheckIntervalMs = decoder.readSmallInt();
             daemonUid = decoder.readString();
             int argCount = decoder.readSmallInt();
             startupOpts = new ArrayList<String>(argCount);
@@ -94,11 +101,14 @@ public class DaemonMain extends EntryPoint {
         LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
 
         NativeServices.initialize(gradleHomeDir);
-        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, startupOpts);
+        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, startupOpts);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
         DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager, new DefaultClassPath(additionalClassPath));
         File daemonLog = daemonServices.getDaemonLogFile();
+        DaemonIdleTimeoutExpirationStrategy timeoutStrategy = new DaemonIdleTimeoutExpirationStrategy(parameters.getIdleTimeout(), TimeUnit.MILLISECONDS);
+        DaemonRegistryUnavailableExpirationStrategy registryUnavailableStrategy = new DaemonRegistryUnavailableExpirationStrategy();
+        DaemonExpirationStrategy expirationStrategy = new CompositeDaemonExpirationStrategy(ImmutableList.of(timeoutStrategy, registryUnavailableStrategy));
 
         initialiseLogging(loggingManager, daemonLog);
 
@@ -110,8 +120,7 @@ public class DaemonMain extends EntryPoint {
             Long pid = daemonContext.getPid();
             daemonStarted(pid, daemon.getUid(), daemon.getAddress(), daemonLog);
 
-            // Block until idle
-            daemon.requestStopOnIdleTimeout(parameters.getIdleTimeout(), TimeUnit.MILLISECONDS);
+            daemon.stopOnExpiration(expirationStrategy, parameters.getPeriodicCheckIntervalMs());
         } finally {
             daemon.stop();
         }
