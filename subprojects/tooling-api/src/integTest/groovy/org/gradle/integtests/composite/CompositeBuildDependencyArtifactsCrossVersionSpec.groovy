@@ -18,7 +18,6 @@ package org.gradle.integtests.composite
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.RequiresIntegratedComposite
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -474,11 +473,5 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
 
     private ExecutionResult getResult() {
         return new OutputScrapingExecutionResult(stdOut.toString(), stdErr.toString())
-    }
-
-    void checkGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
-        resolve.expectGraph {
-            root(":", "org.test:buildA:1.0", closure)
-        }
     }
 }

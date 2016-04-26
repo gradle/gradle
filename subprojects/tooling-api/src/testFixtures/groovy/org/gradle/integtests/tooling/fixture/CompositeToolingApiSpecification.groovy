@@ -125,6 +125,7 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
                 group = 'org.test'
                 version = '1.0'
             """
+            file('src/main/java/Dummy.java') << "public class Dummy {}"
         }
         project.with(cl)
         return project
@@ -146,8 +147,9 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
             """
         }
         rootMulti.with(cl)
+        rootMulti.file('src/main/java/Dummy.java') << "public class Dummy {}"
         subprojects.each {
-            rootMulti.file(it, 'dummy.txt') << "temp"
+            rootMulti.file(it, 'src/main/java/Dummy.java') << "public class Dummy {}"
         }
         return rootMulti
     }

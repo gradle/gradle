@@ -56,13 +56,16 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
 """
         }
         resolve = new ResolveTestFixture(buildA.buildFile)
-        resolve.prepare()
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
                     apply plugin: 'java'
                     version "2.0"
+
+                    repositories {
+                        maven { url "${mavenRepo.uri}" }
+                    }
                 }
 """
         }
@@ -352,6 +355,7 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
 """
 
         when:
+        resolve.withoutBuildingArtifacts()
         checkDependencies()
 
         then:
@@ -380,6 +384,7 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
 """
 
         when:
+        resolve.withoutBuildingArtifacts()
         checkDependencies()
 
         then:
@@ -603,6 +608,7 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
     }
 
     private void checkDependencies() {
+        resolve.prepare()
         execute(buildA, ":checkDeps")
     }
 

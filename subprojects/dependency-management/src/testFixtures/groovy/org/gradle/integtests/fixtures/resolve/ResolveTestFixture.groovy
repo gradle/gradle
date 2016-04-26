@@ -15,7 +15,6 @@
  */
 
 package org.gradle.integtests.fixtures.resolve
-
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.result.ComponentSelectionReason
@@ -23,7 +22,6 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
-
 /**
  * A test fixture that injects a task into a build that resolves a dependency configuration and does some validation of the resulting graph, to
  * ensure that the old and new dependency graphs plus the artifacts and files are as expected and well-formed.
@@ -31,10 +29,16 @@ import org.gradle.test.fixtures.file.TestFile
 class ResolveTestFixture {
     private final TestFile buildFile
     private final String config
+    private boolean buildArtifacts = true
 
     ResolveTestFixture(TestFile buildFile, String config = "compile") {
         this.config = config
         this.buildFile = buildFile
+    }
+
+    ResolveTestFixture withoutBuildingArtifacts() {
+        buildArtifacts = false;
+        return this;
     }
 
     /**
@@ -50,6 +54,7 @@ allprojects {
     tasks.addPlaceholderAction("checkDeps", ${GenerateGraphTask.name}) {
         it.outputFile = rootProject.file("\${rootProject.buildDir}/${config}.txt")
         it.configuration = configurations.$config
+        it.buildArtifacts = ${buildArtifacts}
     }
 }
 """
@@ -91,9 +96,11 @@ allprojects {
         def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.module}.jar]" }
         assert actualArtifacts as Set == expectedArtifacts as Set
 
-        def actualFiles = configDetails.findAll { it.startsWith('file:') }.collect { it.substring(5) }
-        def expectedFiles = graph.artifactNodes.collect { it.fileName }
-        assert actualFiles as Set == expectedFiles as Set
+        if (buildArtifacts) {
+            def actualFiles = configDetails.findAll { it.startsWith('file:') }.collect { it.substring(5) }
+            def expectedFiles = graph.artifactNodes.collect { it.fileName }
+            assert actualFiles as Set == expectedFiles as Set
+        }
     }
 
     public static class GraphBuilder {
@@ -354,6 +361,7 @@ allprojects {
 public class GenerateGraphTask extends DefaultTask {
     File outputFile
     Configuration configuration
+    boolean buildArtifacts
 
     @TaskAction
     def generateOutput() {
@@ -374,8 +382,10 @@ public class GenerateGraphTask extends DefaultTask {
             configuration.incoming.resolutionResult.allDependencies.each {
                 writer.println("dependency:[from:${it.from.id}][${it.requested}->${it.selected.id}]")
             }
-            configuration.files.each {
-                writer.println("file:${it.name}")
+            if (buildArtifacts) {
+                configuration.files.each {
+                    writer.println("file:${it.name}")
+                }
             }
         }
     }
