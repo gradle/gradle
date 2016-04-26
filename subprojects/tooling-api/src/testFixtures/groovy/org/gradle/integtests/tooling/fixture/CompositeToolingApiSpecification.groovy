@@ -23,7 +23,6 @@ import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.connection.ModelResult
 import org.gradle.util.GradleVersion
-import org.junit.Assume
 import org.junit.runner.RunWith
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
@@ -32,15 +31,6 @@ import org.junit.runner.RunWith
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 
     private static final ThreadLocal<Boolean> INTEGRATED_COMPOSITE = new ThreadLocal<Boolean>()
-
-    // TODO:DAZ Integrate the next 2 into the test runner with an annotation
-    void skipIntegratedComposite() {
-        Assume.assumeFalse(isIntegratedComposite())
-    }
-
-    void onlyIntegratedComposite() {
-        Assume.assumeTrue(isIntegratedComposite())
-    }
 
     static void setIntegratedComposite(boolean enable) {
         INTEGRATED_COMPOSITE.set(enable)

@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.IgnoreIntegratedComposite
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.test.fixtures.file.TestFile
@@ -33,6 +34,7 @@ import org.gradle.util.CollectionUtils
  * Tests composites with a different Gradle versions.
  * This test creates a composite combining a project for a fixed Gradle version (2.8) with the target gradle version for the test.
  */
+@IgnoreIntegratedComposite
 class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
 
     private final static GradleDistribution GRADLE_2_8 = new ReleasedVersionDistributions().getDistribution("2.8")
@@ -41,8 +43,6 @@ class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpe
     TestFile fixedBuildRoot
 
     def setup() {
-        skipIntegratedComposite()
-
         varyingBuildRoot = singleProjectBuild("project")
         fixedBuildRoot = singleProjectBuild("project_fixed")
    }

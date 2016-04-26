@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.fixture
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
+import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 
 class CompositeToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
@@ -77,6 +78,32 @@ class CompositeToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityT
             super.before()
             def testClazz = testClassLoader.loadClass(CompositeToolingApiSpecification.name)
             testClazz.setIntegratedComposite(integrated)
+        }
+
+        @Override
+        protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
+            if (super.isTestEnabled(testDetails)) {
+                RequiresIntegratedComposite requires =
+                    testDetails.getAnnotation(RequiresIntegratedComposite)
+                IgnoreIntegratedComposite ignores =
+                    testDetails.getAnnotation(IgnoreIntegratedComposite)
+                if (requires && ignores) {
+                    throw new IllegalStateException("Cannot both require and ignore integrated composite")
+                }
+
+                if (requires) {
+                    // test is enabled if we're required to use an integrated composite and the test is for an integrated composite
+                    return integrated
+                }
+
+                if (ignores) {
+                    // test is enabled if we should not use an integrated composite and the test is _not_ for an integrated composite
+                    return !integrated
+                }
+
+                return true
+            }
+            return false
         }
     }
 }

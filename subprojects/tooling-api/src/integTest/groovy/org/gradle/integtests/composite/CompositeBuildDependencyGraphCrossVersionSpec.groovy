@@ -18,6 +18,7 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.RequiresIntegratedComposite
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
@@ -31,6 +32,7 @@ import org.gradle.tooling.BuildException
  */
 @TargetGradleVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
+@RequiresIntegratedComposite
 class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiSpecification {
     def buildA
     def buildB
@@ -39,8 +41,6 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
     ResolveTestFixture resolve
 
     def setup() {
-        onlyIntegratedComposite()
-
         mavenRepo = new MavenFileRepository(file("maven-repo"))
         mavenRepo.module("org.test", "buildB", "1.0").publish()
 

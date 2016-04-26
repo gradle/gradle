@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.RequiresIntegratedComposite
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
@@ -74,9 +75,8 @@ compile
 """
     }
 
+    @RequiresIntegratedComposite
     def "dependencies report displays failure for dependency that cannot be resolved in composite"() {
-        onlyIntegratedComposite()
-
         given:
         // Add a project that makes 'buildB' ambiguous in the composite
         def buildC = multiProjectBuild('buildC', ['buildB'])
@@ -92,9 +92,8 @@ compile
 """
     }
 
+    @RequiresIntegratedComposite
     def "builds artifacts for substituted dependencies"() {
-        onlyIntegratedComposite()
-
         given:
         buildA.buildFile << """
             task printConfiguration(dependsOn: configurations.compile) << {

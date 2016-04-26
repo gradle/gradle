@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.IgnoreIntegratedComposite
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnectionException
@@ -128,11 +129,9 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
     }
 
     @TargetGradleVersion(">=2.10")
+    @IgnoreIntegratedComposite
     def "can set javahome for model requests"() {
         given:
-        skipIntegratedComposite()
-
-        and:
         File javaHome = new File("not/javahome")
         javaHome.mkdirs()
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
@@ -155,11 +154,9 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends CompositeToolingApiS
         2                    | [3, 0]
     }
 
+    @IgnoreIntegratedComposite
     def "can set javahome for build launcher"() {
         given:
-        skipIntegratedComposite()
-
-        and:
         File javaHome = new File("not/javahome")
         javaHome.mkdirs()
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
