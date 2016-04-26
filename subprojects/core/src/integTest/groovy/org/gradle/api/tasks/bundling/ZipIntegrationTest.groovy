@@ -161,7 +161,8 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         theZip.hasDescendants("${garbledFileName}1.txt", "${garbledFileName}2.txt", "${garbledFileName}3.txt")
     }
 
-    def "reports error for unsupported metadata charset"() {
+    @Unroll
+    def "reports error for #metadataCharset metadata charset"() {
         given:
         createTestFiles()
         settingsFile << "rootProject.name = 'root'"
@@ -170,7 +171,7 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1'
                 destinationDir = buildDir
                 archiveName = 'test.zip'
-                metadataCharset = 'UNSUPPORTED'
+                metadataCharset = $metadataCharset
             }
             """
 
@@ -179,7 +180,12 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
-        failure.assertHasCause("Charset for metadataCharset 'UNSUPPORTED' is not supported by your JVM")
+        failure.assertHasCause(cause)
+
+        where:
+        metadataCharset | cause
+        "'UNSUPPORTED'" | "Charset for metadataCharset 'UNSUPPORTED' is not supported by your JVM"
+        null            | "metadataCharset must not be null"
     }
 
     private def createTestFiles() {
