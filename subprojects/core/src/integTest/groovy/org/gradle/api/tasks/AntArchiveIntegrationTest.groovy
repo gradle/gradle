@@ -19,7 +19,6 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Clock
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
@@ -73,21 +72,24 @@ task gradleTask(type: Tar) {
 }
 
 def testTasks = tasks.matching { it.name.endsWith("Task") }
-configure(testTasks) {
-    dependsOn copySrc
-    ext.clock = new ${Clock.canonicalName}()
-    ext.elapsed = 0
-    doFirst {
-        clock.reset()
-    }
-    doLast {
-        elapsed = clock.timeInMs
+
+afterEvaluate {
+    configure(testTasks) {
+        dependsOn copySrc
+        ext.clock = new ${Clock.canonicalName}()
+        ext.elapsed = 0
+        doFirst {
+            clock.reset()
+        }
+        doLast {
+            elapsed = clock.timeInMs
+        }
     }
 }
 
 boolean closeEnough(gradleTime, antTime) {
     def delta = gradleTime - antTime
-    logger.info("Gradle {}, Ant {}, delta {}", gradleTime, antTime, delta)
+    logger.warn("Gradle {}, Ant {}, delta {}", gradleTime, antTime, delta)
     delta < 5000
 }
 
@@ -101,7 +103,6 @@ task assertGradleNotSlowerThanAnt() {
 """
     }
 
-    @Ignore("too flaky on CI")
     @Unroll
     def "gradle is not slower than ant for #compression"() {
         given:
@@ -119,8 +120,8 @@ antTask {
         succeeds("assertGradleNotSlowerThanAnt")
         where:
         compression      | gradle                            | ant
-        "No compression" | "// no compression"               | "// no extra work"
         "BZIP2"          | "compression = Compression.BZIP2" | "ant.bzip2(src: tarFile, destfile: new File(buildDir, 'distributions/ant.tar.bz2'))"
+        "No compression" | "// no compression"               | "// no extra work"
         "GZIP"           | "compression = Compression.GZIP"  | "ant.gzip(src: tarFile, destfile: new File(buildDir, 'distributions/ant.tar.gz'))"
     }
 
