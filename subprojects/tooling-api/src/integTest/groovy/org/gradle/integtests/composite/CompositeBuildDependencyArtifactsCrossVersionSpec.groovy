@@ -194,7 +194,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0-my.jar')
     }
 
-    def "resolves substituted dependency non-default configuration"() {
+    def "resolves substituted dependency with non-default configuration"() {
         given:
         buildA.buildFile << """
             dependencies {
@@ -259,6 +259,35 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         then:
         result.executedTasks.contains ":buildB:myJar"
         assertResolved buildB.file('build/libs/buildB-1.0-my.jar'), buildB.file('build/libs/another-1.0.jar')
+    }
+
+    def "resolves multiple configurations for the same substituted dependency"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile group: 'org.test', name: 'buildB', version: '1.0'
+                compile group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
+            }
+"""
+
+        buildB.buildFile << """
+            configurations {
+                other
+            }
+            task myJar(type: Jar) {
+                classifier 'my'
+            }
+            artifacts {
+                other myJar
+            }
+"""
+
+        when:
+        resolveArtifacts()
+
+        then:
+        result.executedTasks.containsAll([":buildB:jar", ":buildB:myJar"])
+        assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar')
     }
 
     @NotYetImplemented
