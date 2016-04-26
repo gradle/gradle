@@ -18,6 +18,7 @@ package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -71,6 +72,31 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     def "can resolve plugin from absolute maven-repo"() {
         given:
         buildScript """
+          plugins {
+              id "org.example.plugin" version "1.1"
+          }
+        """
+
+        and:
+        useAbsoluteCustomRepository()
+
+        when:
+        succeeds("pluginTask")
+
+        then:
+        output.contains("from plugin")
+    }
+
+    def "can resolve plugins even if buildscript block contains wrong repo with same name"() {
+        given:
+        buildScript """
+          buildscript {
+            repositories {
+                maven {
+                    url '${new MavenFileRepository(file("other-repo")).uri}'
+                }
+            }
+          }
           plugins {
               id "org.example.plugin" version "1.1"
           }
