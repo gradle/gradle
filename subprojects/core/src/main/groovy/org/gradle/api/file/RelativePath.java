@@ -33,6 +33,7 @@ import java.util.ListIterator;
  */
 public class RelativePath implements Serializable, Comparable<RelativePath> {
     private static final StringInterner PATH_SEGMENT_STRING_INTERNER = new StringInterner();
+    private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
     private final boolean endsWithFile;
     private final String[] segments;
 
@@ -163,7 +164,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
     }
 
     public static RelativePath parse(boolean isFile, RelativePath parent, String path) {
-        String[] names = StringUtils.split(path, "/" + File.separator);
+        String[] names = StringUtils.split(path, FILE_PATH_SEPARATORS);
         return new RelativePath(isFile, parent, names);
     }
 
