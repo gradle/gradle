@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal
 
+import org.codehaus.groovy.reflection.CachedClass
+import org.gradle.api.internal.coerce.MethodArgumentsTransformer
+import org.gradle.api.internal.coerce.PropertySetTransformer
 import spock.lang.Specification
 
 class BeanDynamicObjectTest extends Specification {
@@ -200,6 +203,57 @@ class BeanDynamicObjectTest extends Specification {
         bean.prop == "value"
     }
 
+    def "can set value of property of groovy object when getter has different type to setter"() {
+        def bean = new Bean()
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.setProperty("count", "abc")
+
+        then:
+        bean.count == 3
+    }
+
+    def "applies default groovy type conversions when setting property"() {
+        def bean = new Bean()
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        when:
+        dynamicObject.setProperty("prop", "${"a".toUpperCase()}")
+
+        then:
+        bean.prop == "A"
+    }
+
+    def "coerces provided value when setting property"() {
+        def bean = new EnumBean()
+        def dynamicObject = new BeanDynamicObject(bean, EnumBean, true, false, new SomeEnumConverter(), new SomeEnumConverter())
+
+        when:
+        dynamicObject.setProperty("prop", "A")
+
+        then:
+        bean.prop == SomeEnum.A
+
+        when:
+        dynamicObject.setProperty("other", "A")
+
+        then:
+        bean.prop == SomeEnum.A
+
+        when:
+        dynamicObject.setProperty("other", 1)
+
+        then:
+        bean.prop == SomeEnum.B
+
+        when:
+        dynamicObject.setProperty("other", SomeEnum.C)
+
+        then:
+        bean.prop == SomeEnum.C
+    }
+
     def "fails when set value of unknown property of groovy object"() {
         def bean = new Bean()
         def dynamicObject = new BeanDynamicObject(bean)
@@ -295,6 +349,20 @@ class BeanDynamicObjectTest extends Specification {
         !dynamicObject.hasMethod("other", [12] as Object[])
     }
 
+    def "coerces parameters of method of groovy object"() {
+        def bean = new EnumBean()
+        def dynamicObject = new BeanDynamicObject(bean, EnumBean, true, false, new SomeEnumConverter(), new SomeEnumConverter())
+
+        expect:
+        dynamicObject.invokeMethod("doThing", ["A"] as Object[]) == SomeEnum.A
+        dynamicObject.invokeMethod("doOtherThing", ["A"] as Object[]) == SomeEnum.A
+        dynamicObject.invokeMethod("doOtherThing", [SomeEnum.B] as Object[]) == SomeEnum.B
+        dynamicObject.invokeMethod("doOtherThing", [2] as Object[]) == SomeEnum.C
+        dynamicObject.invokeMethod("doOtherThing", ["ignore", "A"] as Object[]) == SomeEnum.A
+        dynamicObject.invokeMethod("doOtherThing", ["ignore", SomeEnum.B] as Object[]) == SomeEnum.B
+        dynamicObject.invokeMethod("doOtherThing", ["ignore", 2] as Object[]) == SomeEnum.C
+    }
+
     def "can invoke method of dynamic groovy object"() {
         def bean = new BeanWithDynamicProperties(prop: "value")
         def dynamicObject = new BeanDynamicObject(bean)
@@ -386,6 +454,35 @@ class BeanDynamicObjectTest extends Specification {
         e.message == "Could not find method unknown() for arguments [] on <bean> of type ${bean.getClass().name}."
     }
 
+    enum SomeEnum {
+        A, B, C
+    }
+
+    class SomeEnumConverter implements PropertySetTransformer, MethodArgumentsTransformer {
+        @Override
+        Object transformValue(Class<?> type, Object value) {
+            if (type == SomeEnum && value instanceof String) {
+                return SomeEnum.valueOf(value as String)
+            }
+            if (type == SomeEnum && value instanceof Number) {
+                return SomeEnum.values()[value as int]
+            }
+            return value
+        }
+
+        @Override
+        Object[] transform(CachedClass[] types, Object[] args) {
+            def result = new Object[args.length]
+            for (int i = 0; i < types.length; i++) {
+                result[i] = transformValue(types[i].theClass, args[i])
+                if (!types[i].theClass.isInstance(result[i])) {
+                    return args
+                }
+            }
+            return result
+        }
+    }
+
     static class Bean {
         String prop
 
@@ -399,6 +496,44 @@ class BeanDynamicObjectTest extends Specification {
 
         void setWriteOnly(String s) {
             prop = s
+        }
+
+        Number count
+
+        Number getCount() {
+            return count
+        }
+
+        void setCount(Object str) {
+            count = str.toString().length()
+        }
+    }
+
+    static class EnumBean {
+        SomeEnum prop
+
+        void setOther(String s) {
+            prop = SomeEnum.valueOf(s)
+        }
+
+        void setOther(SomeEnum e) {
+            prop = e
+        }
+
+        SomeEnum doThing(SomeEnum e) {
+            e
+        }
+
+        SomeEnum doOtherThing(String s) {
+            SomeEnum.valueOf(s)
+        }
+
+        SomeEnum doOtherThing(SomeEnum e) {
+            e
+        }
+
+        SomeEnum doOtherThing(String s, SomeEnum e) {
+            e
         }
     }
 }

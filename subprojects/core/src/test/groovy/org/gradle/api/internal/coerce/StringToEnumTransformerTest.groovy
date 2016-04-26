@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.coerce
 
+import org.codehaus.groovy.reflection.CachedClass
 import org.gradle.internal.typeconversion.TypeConversionException
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -29,36 +30,53 @@ class StringToEnumTransformerTest extends Specification {
         ABC, DEF
     }
 
-    static class EnumTester {
-        TestEnum enumProperty
+    @Unroll
+    def "can transform enums correctly - #desc"() {
+        def typesArray = types.collect { new CachedClass(it, null) } as CachedClass[]
+        def argsArray = args as Object[]
 
-        void oneArgEnumMethod(TestEnum testEnum) {}
+        expect:
+        transformer.transform(typesArray, argsArray).toList() == transformed
 
-        void twoArgEnumMethod(TestEnum testEnum, String other) {}
-
-        void oneArgNonEnumMethod(String other) {}
+        where:
+        types              | args           | transformed           | desc
+        [TestEnum]         | ["abc"]        | [TestEnum.ABC]        | "one arg"
+        [TestEnum, String] | ["abc", "abc"] | [TestEnum.ABC, "abc"] | "two args"
     }
 
     @Unroll
-    def "can enum transform correctly - #desc"() {
-        def i = new EnumTester()
+    def "returns original args when no transformation is required - #desc"() {
+        def typesArray = types.collect { new CachedClass(it, null) } as CachedClass[]
+        def argsArray = args as Object[]
 
         expect:
-        transformer.transform(i, name, args.toArray()).toList() == transformed
+        transformer.transform(typesArray, argsArray).is(argsArray)
 
         where:
-        name                  | args    | transformed    | desc
-        "setEnumProperty"     | ["abc"] | [TestEnum.ABC] | "for property"
-        "oneArgEnumMethod"    | ["dEf"] | [TestEnum.DEF] | "one arg method"
-        "twoArgEnumMethod"    | ["abc"] | ["abc"]        | "two arg method"
-        "oneArgNonEnumMethod" | ["abc"] | ["abc"]        | "one arg method non enum method"
+        types              | args                  | desc
+        []                 | []                    | "zero args"
+        [TestEnum]         | [TestEnum.ABC]        | "one arg"
+        [TestEnum, String] | [TestEnum.ABC, "abc"] | "two args"
+        [String]           | ["abc"]               | "non enum args"
+    }
+
+    @Unroll
+    def "returns original args when no transformation is available for all args - #desc"() {
+        def typesArray = types.collect { new CachedClass(it, null) } as CachedClass[]
+        def argsArray = args as Object[]
+
+        expect:
+        transformer.transform(typesArray, argsArray).is(argsArray)
+
+        where:
+        types            | args                  | desc
+        [String]         | [TestEnum.ABC]        | "one arg"
+        [Long, TestEnum] | [TestEnum.ABC, "abc"] | "two args"
     }
 
     def "exception thrown when coercing invalid string to enum"() {
-        def i = new EnumTester()
-
         when:
-        transformer.transform(i, "oneArgEnumMethod", "invalid")
+        transformer.transformValue(TestEnum, "invalid")
 
         then:
         def e = thrown TypeConversionException

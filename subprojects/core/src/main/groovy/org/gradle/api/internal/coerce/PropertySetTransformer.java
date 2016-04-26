@@ -16,10 +16,6 @@
 
 package org.gradle.api.internal.coerce;
 
-import groovy.lang.MetaProperty;
-
 public interface PropertySetTransformer {
-
-    Object transformValue(Object target, MetaProperty property, Object value);
-
+    Object transformValue(Class<?> type, Object value);
 }

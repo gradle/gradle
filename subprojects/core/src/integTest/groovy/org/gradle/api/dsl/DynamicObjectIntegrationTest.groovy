@@ -367,6 +367,42 @@ assert 'overridden value' == global
         succeeds("test")
     }
 
+    def mixesConversionMethodsIntoDecoratedObjects() {
+        file('build.gradle') << '''
+            enum Letter { A, B, C }
+            class SomeThing {
+                Letter letter
+                def withLetter(Letter l) {
+                    letter = l
+                }
+                def other(String s) {
+                    letter = Letter.valueOf(s.substring(0, 1))
+                }
+                def other(Letter l) {
+                    letter = l
+                }
+                def other(Letter l, String s) {
+                    letter = l
+                }
+            }
+            extensions.add('things', SomeThing)
+            things {
+                letter = 'a'
+                withLetter('b')
+            }
+            assert things.letter == Letter.B
+            things.other('ABC')
+            assert things.letter == Letter.A
+            things.other(Letter.C)
+            assert things.letter == Letter.C
+            things.other('A', 'ignore')
+            assert things.letter == Letter.A
+'''
+
+        expect:
+        succeeds()
+    }
+
     def canAddExtensionsToDynamicExtensions() {
 
         file('build.gradle') << '''
@@ -701,6 +737,7 @@ assert 'overridden value' == global
 
             props
 
+            convention.plugins.test.m1(1,2,3)
             try {
                 m1(1,2,3)
                 fail()
@@ -708,13 +745,15 @@ assert 'overridden value' == global
                 assert e.message == "Could not find method m1() for arguments [1, 2, 3] on root project 'test' of type ${Project.name}."
             }
 
+            convention.plugins.test.p1 = 1
             try {
-                p1 = 1
+                p1 = 2
                 fail()
             } catch (MissingPropertyException e) {
                 assert e.message == "Could not set unknown property 'p1' for root project 'test' of type ${Project.name}."
             }
 
+            convention.plugins.test.p1 += 1
             try {
                 p1 += 1
                 fail()
