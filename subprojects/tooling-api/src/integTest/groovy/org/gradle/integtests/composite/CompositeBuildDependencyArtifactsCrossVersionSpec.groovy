@@ -456,6 +456,8 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
     }
 
     private void execute(File build, String... tasks) {
+        stdOut.reset()
+        stdErr.reset()
         withCompositeConnection(builds) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(stdOut)
@@ -463,6 +465,8 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
             buildLauncher.forTasks(build, tasks)
             buildLauncher.run()
         }
+        println stdOut
+        println stdErr
     }
 
     private ExecutionResult getResult() {

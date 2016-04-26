@@ -18,28 +18,32 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.Buildable;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.local.model.*;
+import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.component.local.model.LocalComponentArtifactIdentifier;
+import org.gradle.internal.component.local.model.LocalComponentMetaData;
+import org.gradle.internal.component.local.model.LocalConfigurationMetaData;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
-import org.gradle.util.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -64,7 +68,7 @@ public class CompositeContextBuilder implements BuildActionRunner {
             for (Project project : rootProject.getAllprojects()) {
                 registerProject(participantName, (ProjectInternal) project);
             }
-        } catch(ReportedException e) {
+        } catch (ReportedException e) {
             // Ignore exceptions creating composite context
             // TODO:DAZ Handle this better. Test coverage.
             if (propagateFailures) {
@@ -95,16 +99,16 @@ public class CompositeContextBuilder implements BuildActionRunner {
                 originalConfiguration.getDescription(), originalConfiguration.getExtendsFrom(), originalConfiguration.getHierarchy(),
                 originalConfiguration.isVisible(), originalConfiguration.isTransitive(), configurationTaskDependency);
 
-            Set<ComponentArtifactMetaData> artifacts = originalConfiguration.getArtifacts();
-            Set<PublishArtifact> detachedArtifacts = CollectionUtils.collect(artifacts, new Transformer<PublishArtifact, ComponentArtifactMetaData>() {
-                @Override
-                public PublishArtifact transform(ComponentArtifactMetaData componentArtifactMetaData) {
-                    return new DetachedPublishArtifact(componentArtifactMetaData.getName(), ((LocalComponentArtifactIdentifier) componentArtifactMetaData).getFile());
-                }
-            });
+            final Set<String> targetTaskNames = determineTargetTaskNames(originalConfiguration);
 
-            compositeComponentMetadata.addArtifacts(configurationName, detachedArtifacts);
+            Set<ComponentArtifactMetaData> artifacts = originalConfiguration.getArtifacts();
+            for (ComponentArtifactMetaData originalArtifact : artifacts) {
+                File artifactFile = ((LocalComponentArtifactIdentifier) originalArtifact).getFile();
+                CompositeProjectComponentArtifactMetaData artifact = new CompositeProjectComponentArtifactMetaData(componentIdentifier, originalArtifact.getName(), artifactFile, targetTaskNames);
+                compositeComponentMetadata.addArtifact(configurationName, artifact);
+            }
         }
+
         for (DependencyMetaData dependency : originalComponentMetadata.getDependencies()) {
             // TODO:DAZ It doesn't seem right to be converting back to an external module selector here.
             if (dependency.getSelector() instanceof ProjectComponentSelector) {
@@ -190,31 +194,4 @@ public class CompositeContextBuilder implements BuildActionRunner {
             setDidWork(didBuild);
         }
     }
-
-
-    private static class DetachedPublishArtifact extends DefaultPublishArtifact {
-        public DetachedPublishArtifact(IvyArtifactName ivyArtifactName, File artifactFile) {
-            super(ivyArtifactName.getName(), ivyArtifactName.getExtension(), ivyArtifactName.getType(), ivyArtifactName.getClassifier(), null, artifactFile);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (!(o instanceof DetachedPublishArtifact)) {
-                return false;
-            }
-
-            DetachedPublishArtifact that = (DetachedPublishArtifact) o;
-            return getFile().equals(that.getFile());
-
-        }
-
-        @Override
-        public int hashCode() {
-            return getFile().hashCode();
-        }
-    }
-
 }

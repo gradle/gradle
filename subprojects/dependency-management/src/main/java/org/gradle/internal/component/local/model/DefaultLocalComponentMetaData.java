@@ -60,8 +60,12 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {
             ComponentArtifactMetaData artifactMetaData = new PublishArtifactLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), artifact);
-            allArtifacts.put(configuration, artifactMetaData);
+            addArtifact(configuration, artifactMetaData);
         }
+    }
+
+    public void addArtifact(String configuration, ComponentArtifactMetaData artifactMetaData) {
+        allArtifacts.put(configuration, artifactMetaData);
     }
 
     public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies) {
