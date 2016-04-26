@@ -36,9 +36,9 @@ public interface ManifestMergeSpec {
 
     /**
      * The character set used to decode the merged manifest content.
-     * Defaults to the platform's default character set.
      *
      * @param contentCharset the character set used to decode the merged manifest content
+     * @see #getContentCharset()
      * @since 2.14
      */
     @Incubating

@@ -72,7 +72,7 @@ public interface Manifest {
     /**
      * The character set used to encode this manifest content.
      * Defaults to UTF-8.
-     * You can change this property but it is not recommended as JVMs expect manifests content to be encoded using UTF-8
+     * You can change this property but it is not recommended as JVMs expect manifests content to be encoded using UTF-8.
      *
      * @return the character set used to encode this manifest content
      * @since 2.14
@@ -82,11 +82,10 @@ public interface Manifest {
 
     /**
      * The character set used to encode this manifest content.
-     * Defaults to UTF-8.
-     * You can change this property but it is not recommended as JVMs expect manifests content to be encoded using UTF-8
      *
      * @param contentCharset the character set used to encode this manifest content
      * @since 2.14
+     * @see #getContentCharset()
      */
     @Incubating
     void setContentCharset(String contentCharset);
@@ -95,10 +94,10 @@ public interface Manifest {
      * Writes the manifest into a writer.
      *
      * If writing to bytes, prefer using the UTF-8 character set for encoding.
-     * See {@link #getContentCharset()}.
      *
      * @param writer The writer to write the manifest to
      * @return this
+     * @see #getContentCharset()
      */
     Manifest writeTo(Writer writer);
 

@@ -43,7 +43,7 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
 
     private PathToFileResolver fileResolver;
 
-    private String contentCharset = Manifest.JAR_ENCODING;
+    private String contentCharset;
 
     public DefaultManifest(PathToFileResolver fileResolver) {
         this(fileResolver, Manifest.JAR_ENCODING);

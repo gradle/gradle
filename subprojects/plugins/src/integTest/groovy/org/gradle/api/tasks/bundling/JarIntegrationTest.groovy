@@ -531,7 +531,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue('GRADLE-3374')
     @Unroll
-    def "reports error for unsupported manifest content charsets"() {
+    def "reports error for unsupported manifest content charsets, write #writeCharset, read #readCharset"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildScript """
@@ -540,9 +540,9 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 destinationDir = file('dest')
                 archiveName = 'test.jar'
                 manifest {
-                    contentCharset = '$writeCharset'
+                    contentCharset = $writeCharset
                     from('manifest-to-merge.txt') {
-                        contentCharset = '$readCharset'
+                        contentCharset = $readCharset
                     }
                 }
             }
@@ -554,11 +554,13 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
-        failure.assertHasCause("Charset for contentCharset 'UNSUPPORTED' is not supported by your JVM")
+        failure.assertHasCause(cause)
 
         where:
-        writeCharset  | readCharset
-        'UNSUPPORTED' | 'UTF-8'
-        'UTF-8'       | 'UNSUPPORTED'
+        writeCharset    | readCharset     | cause
+        "'UNSUPPORTED'" | "'UTF-8'"       | "Charset for contentCharset 'UNSUPPORTED' is not supported by your JVM"
+        "'UTF-8'"       | "'UNSUPPORTED'" | "Charset for contentCharset 'UNSUPPORTED' is not supported by your JVM"
+        null            | "'UTF-8'"       | "contentCharset must not be null"
+        "'UTF-8'"       | null            | "contentCharset must not be null"
     }
 }
