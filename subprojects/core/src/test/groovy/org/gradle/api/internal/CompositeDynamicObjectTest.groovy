@@ -119,7 +119,26 @@ class CompositeDynamicObjectTest extends Specification {
 
         and:
         1 * obj1.invokeMethod("m", _, ["value"] as Object[])
+        1 * obj1.getProperty("m", _)
         1 * obj2.invokeMethod("m", _, ["value"] as Object[]) >> { String name, InvokeMethodResult r, def args -> r.result("result") }
+        0 * _
+    }
+
+    def "invokes method on first delegate that has a closure"() {
+        def obj1 = Mock(DynamicObject)
+        def obj2 = Mock(DynamicObject)
+        def obj3 = Mock(DynamicObject)
+        obj.setObjects(obj1, obj2, obj3)
+
+        when:
+        def result = obj.invokeMethod("m", ["value"] as Object[])
+
+        then:
+        result == "result"
+
+        and:
+        1 * obj1.invokeMethod("m", _, ["value"] as Object[])
+        1 * obj1.getProperty("m", _) >> { String name, GetPropertyResult r -> r.result({ it -> "result" }) }
         0 * _
     }
 
@@ -137,6 +156,7 @@ class CompositeDynamicObjectTest extends Specification {
 
         and:
         1 * obj1.invokeMethod("m", _, _)
+        1 * obj1.getProperty("m", _)
         1 * obj2.invokeMethod("m", _, _) >> { String name, InvokeMethodResult r, def args -> r.result(null) }
         0 * _
     }
