@@ -129,7 +129,8 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         } else {
             testNg.setTestClasses(testClasses.toArray(new Class[0]));
         }
-        testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator, timeProvider)));
+        if (options.getTestReportEnabled())
+            testNg.addListener((Object) adaptListener(new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator, timeProvider)));
         testNg.run();
     }
 
