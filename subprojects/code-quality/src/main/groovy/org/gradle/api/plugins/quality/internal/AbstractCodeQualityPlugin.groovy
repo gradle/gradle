@@ -67,7 +67,7 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
         project.configurations.create(configurationName).with {
             visible = false
             transitive = true
-            description = "The ${this.toolName} libraries to be used for this project."
+            description = "The ${toolName} libraries to be used for this project."
             // Don't need these things, they're provided by the runtime
             exclude group: 'ant', module: 'ant'
             exclude group: 'org.apache.ant', module: 'ant'
@@ -85,19 +85,19 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
     private void configureExtensionRule() {
         extension.conventionMapping.with {
             sourceSets = { [] }
-            reportsDir = { this.project.extensions.getByType(ReportingExtension).file(this.reportName) }
+            reportsDir = { project.extensions.getByType(ReportingExtension).file(reportName) }
         }
 
         project.plugins.withType(basePlugin) {
-            this.extension.conventionMapping.sourceSets = {  this.project.sourceSets }
+            extension.conventionMapping.sourceSets = { project.sourceSets }
         }
     }
 
     private void configureTaskRule() {
         project.tasks.withType(taskType) { T task ->
-            def prunedName = (task.name - this.taskBaseName ?: task.name)
+            def prunedName = (task.name - taskBaseName ?: task.name)
             prunedName = prunedName[0].toLowerCase() + prunedName.substring(1)
-            this.configureTaskDefaults(task, prunedName)
+            configureTaskDefaults(task, prunedName)
         }
     }
 
@@ -106,9 +106,9 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
 
     private void configureSourceSetRule() {
         project.plugins.withType(basePlugin) {
-            this.project.sourceSets.all { SourceSet sourceSet ->
-                T task = this.project.tasks.create(sourceSet.getTaskName(this.taskBaseName, null), this.taskType)
-                this.configureForSourceSet(sourceSet, task)
+            project.sourceSets.all { SourceSet sourceSet ->
+                T task = project.tasks.create(sourceSet.getTaskName(taskBaseName, null), taskType)
+                configureForSourceSet(sourceSet, task)
             }
         }
     }
@@ -118,7 +118,7 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
 
     private void configureCheckTask() {
         project.plugins.withType(basePlugin) {
-            this.project.tasks['check'].dependsOn { this.extension.sourceSets.collect { it.getTaskName(this.taskBaseName, null) } }
+            project.tasks['check'].dependsOn { extension.sourceSets.collect { it.getTaskName(taskBaseName, null) } }
         }
     }
 }
