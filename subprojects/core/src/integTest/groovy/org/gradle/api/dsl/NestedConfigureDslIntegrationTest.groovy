@@ -35,6 +35,44 @@ assert tasks.help.description == "this is task help"
         succeeds()
     }
 
+    def "reports read unknown property from configure closure"() {
+        buildFile << """
+tasks.help {
+    println unknown
+}
+"""
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not get unknown property 'unknown' for task ':help' of type org.gradle.configuration.Help.")
+    }
+
+    def "reports set unknown property from configure closure"() {
+        buildFile << """
+tasks.help {
+    unknown = 12
+}
+"""
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not set unknown property 'unknown' for task ':help' of type org.gradle.configuration.Help.")
+    }
+
+    def "reports invoke unknown method from configure closure"() {
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+tasks.help {
+    unknown(12)
+}
+"""
+
+        expect:
+        fails()
+        // This is incorrect - just documenting the current behaviour so that it can be fixed
+        failure.assertHasCause("Could not find method unknown() for arguments [12] on root project 'test' of type org.gradle.api.Project.")
+    }
+
     def "can read property from configure closure outer scope"() {
         buildFile << """
 ext.prop = "value"
@@ -98,6 +136,32 @@ assert tasks.help.description == "some help"
 
         expect:
         succeeds()
+    }
+
+    def "reports set unknown property from polymorphic container configure closure"() {
+        buildFile << """
+tasks.configure {
+    unknown = 12
+}
+"""
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not set unknown property 'unknown' for task set.")
+    }
+
+    def "reports invoke unknown method from polymorphic container configure closure"() {
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+tasks.configure {
+    unknown (12)
+}
+"""
+
+        expect:
+        fails()
+        // This is incorrect - just documenting the current behaviour so that it can be fixed
+        failure.assertHasCause("Could not find method unknown() for arguments [12] on root project 'test' of type org.gradle.api.Project.")
     }
 
     def "can read property from polymorphic container configure closure outer scope"() {
@@ -175,6 +239,44 @@ assert repositories.size() == 1
 
         expect:
         succeeds()
+    }
+
+    def "reports read unknown property from container configure closure"() {
+        buildFile << """
+repositories {
+    println unknown
+}
+"""
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not get unknown property 'unknown' for repository container.")
+    }
+
+    def "reports set unknown property from container configure closure"() {
+        buildFile << """
+repositories {
+    unknown = 12
+}
+"""
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not set unknown property 'unknown' for repository container.")
+    }
+
+    def "reports invoke unknown method from container configure closure"() {
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+repositories {
+    unknown(12)
+}
+"""
+
+        expect:
+        fails()
+        // This is incorrect - just documenting the current behaviour so that it can be fixed
+        failure.assertHasCause("Could not find method unknown() for arguments [12] on root project 'test' of type org.gradle.api.Project.")
     }
 
     def "can read property from container configure closure outer scope"() {
