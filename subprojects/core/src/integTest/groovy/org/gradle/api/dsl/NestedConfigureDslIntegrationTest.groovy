@@ -16,9 +16,25 @@
 
 package org.gradle.api.dsl
 
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.configuration.Help
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class NestedConfigureDslIntegrationTest extends AbstractIntegrationSpec {
+    def "can configure object using configure closure"() {
+        buildFile << """
+tasks.help { t ->
+    assert t instanceof $Help.name
+    description = "this is task \$name"
+}
+assert tasks.help.description == "this is task help"
+"""
+
+        expect:
+        succeeds()
+    }
+
     def "can read property from configure closure outer scope"() {
         buildFile << """
 ext.prop = "value"
@@ -71,6 +87,19 @@ tasks.help {
         outputContains("2: [2]")
     }
 
+    def "can configure polymorphic container using configure closure"() {
+        buildFile << """
+tasks.configure { t ->
+//    assert t instanceof ${TaskContainer.name}
+    help.description = "some help"
+}
+assert tasks.help.description == "some help"
+"""
+
+        expect:
+        succeeds()
+    }
+
     def "can read property from polymorphic container configure closure outer scope"() {
         buildFile << """
 ext.prop = "value"
@@ -114,7 +143,7 @@ assert prop == "value 4"
         succeeds()
     }
 
-    def "can invoke methhod from polymorphic container configure closure outer scope"() {
+    def "can invoke method from polymorphic container configure closure outer scope"() {
         buildFile << """
 ext.m = { p -> "[\$p]" }
 tasks.configure {
@@ -133,6 +162,19 @@ tasks.configure {
         outputContains("1: [1]")
         outputContains("2: [2]")
         outputContains("3: [3]")
+    }
+
+    def "can configure container in configure closure"() {
+        buildFile << """
+repositories { r ->
+    assert r instanceof ${RepositoryHandler.name}
+    mavenCentral()
+}
+assert repositories.size() == 1
+"""
+
+        expect:
+        succeeds()
     }
 
     def "can read property from container configure closure outer scope"() {
