@@ -17,12 +17,8 @@
 package org.gradle.api.internal;
 
 import groovy.lang.GroovyObjectSupport;
-import groovy.lang.MissingMethodException;
-import groovy.lang.MissingPropertyException;
 
 public class ConfigureDelegate extends GroovyObjectSupport {
-    private static final Object[] EMPTY_PARAMS = new Object[0];
-
     protected final DynamicObject _owner;
     protected final DynamicObject _delegate;
     private final ThreadLocal<Boolean> _configuring = new ThreadLocal<Boolean>() {
@@ -42,13 +38,10 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         return _delegate.toString();
     }
 
-    protected boolean _isConfigureMethod(String name, Object[] params) {
-        return false;
+    protected void _configure(String name, Object[] params, InvokeMethodResult result) {
     }
 
-    protected Object _configure(String name, Object[] params) {
-        // do nothing
-        return null;
+    protected void _configure(String name, GetPropertyResult result) {
     }
 
     @Override
@@ -65,8 +58,12 @@ public class ConfigureDelegate extends GroovyObjectSupport {
                 return result.getResult();
             }
 
-            if (!isAlreadyConfiguring && _isConfigureMethod(name, params)) {
-                return _configure(name, params);
+            if (!isAlreadyConfiguring) {
+                // Try to configure element
+                _configure(name, params, result);
+                if (result.isFound()) {
+                    return result.getResult();
+                }
             }
 
             // try the owner
@@ -75,13 +72,29 @@ public class ConfigureDelegate extends GroovyObjectSupport {
                 return result.getResult();
             }
 
-            throw new MissingMethodException(name, _delegate.getClass(), params);
+            throw _delegate.methodMissingException(name, params);
         } finally {
             _configuring.set(isAlreadyConfiguring);
         }
     }
 
-    public Object get(String name) {
+    @Override
+    public void setProperty(String property, Object newValue) {
+        SetPropertyResult result = new SetPropertyResult();
+        _delegate.setProperty(property, newValue, result);
+        if (result.isFound()) {
+            return;
+        }
+
+        _owner.setProperty(property, newValue, result);
+        if (result.isFound()) {
+            return;
+        }
+
+        throw _delegate.setMissingProperty(property);
+    }
+
+    public Object getProperty(String name) {
         boolean isAlreadyConfiguring = _configuring.get();
         _configuring.set(true);
         try {
@@ -96,10 +109,15 @@ public class ConfigureDelegate extends GroovyObjectSupport {
                 return result.getValue();
             }
 
-            if (isAlreadyConfiguring) {
-                throw new MissingPropertyException(name, _delegate.getClass());
+            if (!isAlreadyConfiguring) {
+                // Try to configure an element
+                _configure(name, result);
+                if (result.isFound()) {
+                    return result.getValue();
+                }
             }
-            return _configure(name, EMPTY_PARAMS);
+
+            throw _delegate.getMissingProperty(name);
         } finally {
             _configuring.set(isAlreadyConfiguring);
         }

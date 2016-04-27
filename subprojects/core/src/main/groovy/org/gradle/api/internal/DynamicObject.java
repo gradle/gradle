@@ -29,6 +29,21 @@ import java.util.Map;
  */
 public interface DynamicObject {
     /**
+     * Creates a {@link MissingPropertyException} for getting an unknown property of this object.
+     */
+    MissingPropertyException getMissingProperty(String name);
+
+    /**
+     * Creates a {@link MissingPropertyException} for setting an unknown property of this object.
+     */
+    MissingPropertyException setMissingProperty(String name);
+
+    /**
+     * Creates a {@link MissingMethodException} for invoking an unknown method on this object.
+     */
+    MissingMethodException methodMissingException(String name, Object... params);
+
+    /**
      * Returns true when this object is known to have the given property.
      *
      * <p>Note that not every property is known. Some properties require an attempt to get or set their value before they are discovered.</p>

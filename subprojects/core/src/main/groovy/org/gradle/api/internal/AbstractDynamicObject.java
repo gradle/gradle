@@ -32,7 +32,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
 
     @Override
     public String toString() {
-        return getDisplayName();
+        return "DynamicObject for " + getDisplayName();
     }
 
     @Override
@@ -78,7 +78,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         }
     }
 
-    protected MissingPropertyException getMissingProperty(String name) {
+    public MissingPropertyException getMissingProperty(String name) {
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
@@ -110,7 +110,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         }
     }
 
-    protected MissingPropertyException setMissingProperty(String name) {
+    public MissingPropertyException setMissingProperty(String name) {
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
         if (publicType != null && includeDisplayName) {
@@ -167,7 +167,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
         throw methodMissingException(name, arguments);
     }
 
-    protected MissingMethodException methodMissingException(String name, Object... params) {
+    public MissingMethodException methodMissingException(String name, Object... params) {
         Class<?> publicType = getPublicType();
         boolean includeDisplayName = hasUsefulDisplayName();
         final String message;

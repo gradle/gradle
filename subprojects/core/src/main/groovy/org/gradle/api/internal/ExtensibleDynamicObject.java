@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal;
 
+import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.plugins.DefaultConvention;
@@ -184,6 +185,21 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         public void setProperty(String name, Object value) {
             throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
                     dynamicDelegate.getDisplayName()));
+        }
+
+        @Override
+        public MissingPropertyException getMissingProperty(String name) {
+            return dynamicDelegate.getMissingProperty(name);
+        }
+
+        @Override
+        public MissingPropertyException setMissingProperty(String name) {
+            return dynamicDelegate.setMissingProperty(name);
+        }
+
+        @Override
+        public MissingMethodException methodMissingException(String name, Object... params) {
+            return dynamicDelegate.methodMissingException(name, params);
         }
 
         @Override
