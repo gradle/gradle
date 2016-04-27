@@ -154,24 +154,29 @@ be syntactic sugar for `clear` followed by `addAll`.
     - Same for `ModelMap<ModelSet<T>>`
 - `ModelMap<T>` does not allow T = `ModelMap<?>`
 
-### Support for polymorphic managed sets
+### Support polymorphic creation of ModelSet<T> elements
 
-```
-interface ModelSet<T> implements Set<T> {
-  void create(Class<? extends T> type, Action<? super T> initializer);
-  <O> Set<O> ofType(Class<O> type);
-}
-```
+On par with `ModelMap`, add the following method:
 
-- `<T>` does not need to be managed type (but can be)
+    interface ModelSet<T> extends Set<T> {
+        <S extends T> void create(Class<S> type, Action<? super T> action);
+    }
+
 - `type` given to `create()` must be a valid managed type
-- All mutative methods of `Set` throw UnsupportedOperationException (like `ModelSet`).
 - `create` throws exception when set has been realised (i.e. using as an input)
-- “read” methods (including `ofType`) throws exception when called on mutable instance
-- No constraints on `O` type parameter given to `ofType` method
-- set returned by `ofType` is immutable (exception thrown by mutative methods should include information about the model element of which it was derived)
 
 The initial target for this functionality will be to replace the `PlatformContainer` model element, but more functionality will be needed before this is possible.
+
+
+### Support polymorphic views of and actions on ModelSets
+
+On par with `ModelMap`, add the following methods:
+
+    interface ModelSet<T> extends Set<T> {
+        <S> ModelSet<S> withType(Class<S> type);
+        <S> void withType(Class<S> type, Action<? super S> configAction);
+        <S> void withType(Class<S> type, Class<? extends RuleSource> rules);
+    }
 
 ## Feature: Tasks defined using `CollectionBuilder` are not eagerly created and configured
 
