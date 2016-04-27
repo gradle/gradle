@@ -37,8 +37,9 @@ abstract class ModelNodeInternal implements MutableModelNode {
     protected final ModelRegistryInternal modelRegistry;
     private final ModelPath path;
     private final ModelRuleDescriptor descriptor;
-    private final Set<ModelNodeInternal> dependencies = Sets.newHashSet();
-    private final Set<ModelNodeInternal> dependents = Sets.newHashSet();
+
+    private Set<ModelNodeInternal> dependencies;
+    private Set<ModelNodeInternal> dependents;
     private ModelNode.State state = ModelNode.State.Registered;
     private boolean hidden;
     private List<ModelRuleDescriptor> executedRules;
@@ -81,7 +82,13 @@ abstract class ModelNodeInternal implements MutableModelNode {
         assert binder.isBound() : "RuleBinder must be in a bound state";
         for (ModelBinding inputBinding : binder.getInputBindings()) {
             ModelNodeInternal node = inputBinding.getNode();
+            if (dependencies == null) {
+                dependencies = Sets.newHashSet();
+            }
             dependencies.add(node);
+            if (node.dependents == null) {
+                node.dependents = Sets.newHashSet();
+            }
             node.dependents.add(this);
         }
         if (executedRules == null) {
@@ -91,11 +98,11 @@ abstract class ModelNodeInternal implements MutableModelNode {
     }
 
     public Iterable<? extends ModelNode> getDependencies() {
-        return dependencies;
+        return dependencies == null ? Collections.<ModelNode>emptyList() : dependencies;
     }
 
     public Iterable<? extends ModelNode> getDependents() {
-        return dependents;
+        return dependents == null ? Collections.<ModelNode>emptyList() : dependents;
     }
 
     @Override
