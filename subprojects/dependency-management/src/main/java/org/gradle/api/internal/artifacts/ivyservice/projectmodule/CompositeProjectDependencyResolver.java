@@ -17,10 +17,16 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
-import org.gradle.internal.component.model.*;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentUsage;
+import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -30,11 +36,15 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
+import java.io.File;
+
 public class CompositeProjectDependencyResolver implements DependencyToComponentIdResolver, ArtifactResolver, ComponentMetaDataResolver {
     private final CompositeProjectComponentRegistry projectComponentRegistry;
+    private final CompositeProjectArtifactBuilder artifactBuilder;
 
-    public CompositeProjectDependencyResolver(CompositeProjectComponentRegistry projectComponentRegistry) {
+    public CompositeProjectDependencyResolver(CompositeProjectComponentRegistry projectComponentRegistry, CompositeProjectArtifactBuilder artifactBuilder) {
         this.projectComponentRegistry = projectComponentRegistry;
+        this.artifactBuilder = artifactBuilder;
     }
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
@@ -65,17 +75,28 @@ public class CompositeProjectDependencyResolver implements DependencyToComponent
     }
 
     @Override
-    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-
+    public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
     }
 
     @Override
     public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
-
     }
 
     @Override
-    public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        if (artifact instanceof CompositeProjectComponentArtifactMetaData) {
+            CompositeProjectComponentArtifactMetaData artifactMetaData = (CompositeProjectComponentArtifactMetaData) artifact;
+            String projectPath = ((ProjectComponentIdentifier) artifact.getComponentId()).getProjectPath();
 
+            // Run the tasks to build this artifact in the composite participant
+            artifactBuilder.build(projectPath, artifactMetaData.getTaskNames());
+
+            File localArtifactFile = artifactMetaData.getFile();
+            if (localArtifactFile != null) {
+                result.resolved(localArtifactFile);
+            } else {
+                result.notFound(artifact.getId());
+            }
+        }
     }
 }

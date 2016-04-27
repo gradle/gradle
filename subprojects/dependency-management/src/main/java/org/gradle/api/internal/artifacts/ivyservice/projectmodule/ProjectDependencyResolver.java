@@ -81,14 +81,15 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
         }
     }
 
-    public void resolveArtifact(ComponentArtifactMetaData component, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        if (isProjectModule(component.getComponentId())) {
-            LocalComponentArtifactIdentifier id = (LocalComponentArtifactIdentifier) component.getId();
+    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        if (isProjectModule(artifact.getComponentId())
+            && !(artifact instanceof CompositeProjectComponentArtifactMetaData)) {
+            LocalComponentArtifactIdentifier id = (LocalComponentArtifactIdentifier) artifact.getId();
             File localArtifactFile = id.getFile();
             if (localArtifactFile != null) {
                 result.resolved(localArtifactFile);
             } else {
-                result.notFound(component.getId());
+                result.notFound(artifact.getId());
             }
         }
     }

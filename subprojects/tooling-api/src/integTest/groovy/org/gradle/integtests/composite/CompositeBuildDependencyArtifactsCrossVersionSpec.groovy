@@ -127,6 +127,9 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
 
         def moduleC = mavenRepo.module("org.test", "buildC", "1.0").publish()
         buildB.buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
             dependencies {
                 compile 'org.test:buildC:1.0'
             }
