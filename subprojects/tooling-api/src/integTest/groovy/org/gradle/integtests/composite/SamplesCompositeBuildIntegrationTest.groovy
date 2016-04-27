@@ -92,23 +92,19 @@ compile - Dependencies for source set 'main'.
 
         then:
         result.assertOutputContains("""
-:compositeBuild-projectB-b1
+:compileJava
 :projectB:b1:compileJava
 :projectB:b1:processResources UP-TO-DATE
 :projectB:b1:classes
 :projectB:b1:jar
-:compositeBuild-projectB-b2
-:projectB:compositeBuild-projectC
+:projectB:b2:compileJava
 :projectC:compileJava
 :projectC:processResources UP-TO-DATE
 :projectC:classes
 :projectC:jar
-:projectB:b2:compileJava
 :projectB:b2:processResources UP-TO-DATE
 :projectB:b2:classes
 :projectB:b2:jar
-:compositeBuild-projectC UP-TO-DATE
-:compileJava
 :processResources UP-TO-DATE
 :classes
 :jar
