@@ -24,6 +24,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.service.ServiceRegistry;
@@ -82,7 +83,7 @@ public class DefaultCompositeProjectArtifactBuilder implements CompositeProjectA
             return false;
         }
 
-        File projectDirectory = registry.getProjectDirectory(projectPath);
+        File projectDirectory = registry.getProjectDirectory(DefaultProjectComponentIdentifier.newId(projectPath));
         StartParameter param = requestedStartParameter.newBuild();
         param.setProjectDir(projectDirectory);
         param.setTaskNames(tasksToExecute);

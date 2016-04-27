@@ -23,5 +23,5 @@ import java.io.File;
 
 public interface CompositeProjectComponentRegistry extends ProjectComponentRegistry {
     ProjectComponentIdentifier getReplacementProject(ModuleComponentSelector selector);
-    File getProjectDirectory(String projectPath);
+    File getProjectDirectory(ProjectComponentIdentifier project);
 }

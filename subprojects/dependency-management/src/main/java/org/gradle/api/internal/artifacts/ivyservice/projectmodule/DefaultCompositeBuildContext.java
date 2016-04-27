@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.initialization.ReportedException;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
@@ -63,18 +62,18 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
 
     @Override
     public LocalComponentMetaData getProject(ProjectComponentIdentifier project) {
-        return getRegisteredProject(project.getProjectPath()).metaData;
+        return getRegisteredProject(project).metaData;
     }
 
     @Override
-    public File getProjectDirectory(String projectPath) {
-        return getRegisteredProject(projectPath).projectDirectory;
+    public File getProjectDirectory(ProjectComponentIdentifier project) {
+        return getRegisteredProject(project).projectDirectory;
     }
 
-    private RegisteredProject getRegisteredProject(String projectPath) {
-        RegisteredProject registeredProject = projectMetadata.get(DefaultProjectComponentIdentifier.newId(projectPath));
+    private RegisteredProject getRegisteredProject(ProjectComponentIdentifier project) {
+        RegisteredProject registeredProject = projectMetadata.get(project);
         if (registeredProject == null) {
-            throw new IllegalStateException(String.format("Requested project path %s which was never registered", projectPath));
+            throw new IllegalStateException(String.format("Requested %s which was never registered", project));
         }
         return registeredProject;
     }

@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
@@ -39,6 +41,7 @@ public class CompositeProjectDirectoryMapper implements Transformer<File, String
         if (discovered == null) {
             throw new IllegalStateException("Not a composite");
         }
-        return discovered.getProjectDirectory(projectPath);
+        ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newId(projectPath);
+        return discovered.getProjectDirectory(projectComponentIdentifier);
     }
 }
