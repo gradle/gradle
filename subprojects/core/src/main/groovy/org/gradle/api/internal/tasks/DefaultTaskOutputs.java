@@ -36,7 +36,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     public DefaultTaskOutputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
         this.taskMutator = taskMutator;
-        outputFiles = new DefaultConfigurableFileCollection(String.format("%s output files", task), resolver, null);
+        outputFiles = new DefaultConfigurableFileCollection(task + " output files", resolver, null);
         outputFiles.builtBy(task);
     }
 
