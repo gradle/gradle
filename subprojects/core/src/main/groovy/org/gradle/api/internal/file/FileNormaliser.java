@@ -43,9 +43,15 @@ class FileNormaliser {
         + ")");
 
     private final FileSystem fileSystem;
+    private final boolean isWindowsOs;
 
     FileNormaliser(FileSystem fileSystem) {
+        this(fileSystem, OperatingSystem.current());
+    }
+
+    FileNormaliser(FileSystem fileSystem, OperatingSystem operatingSystem) {
         this.fileSystem = fileSystem;
+        this.isWindowsOs = operatingSystem.isWindows();
     }
 
     // normalizes a path in similar ways as File.getCanonicalFile(), except that it
@@ -54,7 +60,7 @@ class FileNormaliser {
         try {
             assert file.isAbsolute() : String.format("Cannot normalize a relative file: '%s'", file);
 
-            if (OperatingSystem.current().isWindows()) {
+            if (isWindowsOs) {
                 // on Windows, File.getCanonicalFile() doesn't resolve symlinks
                 return file.getCanonicalFile();
             }
