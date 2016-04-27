@@ -19,22 +19,43 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
-import org.gradle.api.internal.artifacts.ivyservice.*;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingArtifactDependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleVersionsCache;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingComponentResolvers;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.*;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectComponentRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
-import org.gradle.api.internal.artifacts.mvnsettings.*;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
+import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -50,6 +71,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryCachedArtifactIndex;
@@ -58,7 +80,6 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.UniquePathKeyFileStore;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.GradleVersion;
 
@@ -240,8 +261,8 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectComponentRegistry(projectRegistry, metaDataBuilder);
     }
 
-    ProjectDependencyResolver createProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry) {
-        return new ProjectDependencyResolver(projectComponentRegistry);
+    ProjectDependencyResolver createProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry, ServiceRegistry serviceRegistry) {
+        return new ProjectDependencyResolver(projectComponentRegistry, serviceRegistry.getAll(ProjectArtifactBuilder.class));
     }
 
     ResolverProviderFactory createProjectResolverProviderFactory(final ProjectDependencyResolver resolver) {

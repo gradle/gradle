@@ -36,15 +36,11 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
-import java.io.File;
-
 public class CompositeProjectDependencyResolver implements DependencyToComponentIdResolver, ArtifactResolver, ComponentMetaDataResolver {
     private final CompositeProjectComponentRegistry projectComponentRegistry;
-    private final ProjectArtifactBuilder artifactBuilder;
 
-    public CompositeProjectDependencyResolver(CompositeProjectComponentRegistry projectComponentRegistry, ProjectArtifactBuilder artifactBuilder) {
+    public CompositeProjectDependencyResolver(CompositeProjectComponentRegistry projectComponentRegistry) {
         this.projectComponentRegistry = projectComponentRegistry;
-        this.artifactBuilder = artifactBuilder;
     }
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
@@ -84,18 +80,5 @@ public class CompositeProjectDependencyResolver implements DependencyToComponent
 
     @Override
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        if (artifact instanceof CompositeProjectComponentArtifactMetaData) {
-            CompositeProjectComponentArtifactMetaData artifactMetaData = (CompositeProjectComponentArtifactMetaData) artifact;
-
-            // Run the tasks to build this artifact in the composite participant
-            artifactBuilder.build(artifactMetaData);
-
-            File localArtifactFile = artifactMetaData.getFile();
-            if (localArtifactFile != null) {
-                result.resolved(localArtifactFile);
-            } else {
-                result.notFound(artifact.getId());
-            }
-        }
     }
 }

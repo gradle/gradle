@@ -19,5 +19,5 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 
 public interface ProjectArtifactBuilder {
-    boolean build(ComponentArtifactMetaData artifact);
+    void build(ComponentArtifactMetaData artifact);
 }

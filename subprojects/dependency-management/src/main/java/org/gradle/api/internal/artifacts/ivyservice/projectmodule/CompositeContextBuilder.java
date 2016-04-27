@@ -76,12 +76,12 @@ public class CompositeContextBuilder implements BuildActionRunner {
         DefaultLocalComponentMetaData originalComponent = (DefaultLocalComponentMetaData) projectComponentRegistry.getProject(originalIdentifier);
 
         ProjectComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(buildName + ":" + project.getPath());
-        LocalComponentMetaData compositeComponent = createCompositeCopy(componentIdentifier, originalComponent);
+        LocalComponentMetaData compositeComponent = createCompositeCopy(componentIdentifier, originalComponent, project.getProjectDir());
 
         context.register(compositeComponent.getId().getModule(), componentIdentifier, compositeComponent, project.getProjectDir());
     }
 
-    private LocalComponentMetaData createCompositeCopy(ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetaData originalComponentMetadata) {
+    private LocalComponentMetaData createCompositeCopy(ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetaData originalComponentMetadata, File projectDir) {
         DefaultLocalComponentMetaData compositeComponentMetadata = new DefaultLocalComponentMetaData(originalComponentMetadata.getId(), componentIdentifier, originalComponentMetadata.getStatus());
 
         for (String configurationName : originalComponentMetadata.getConfigurationNames()) {
@@ -95,7 +95,7 @@ public class CompositeContextBuilder implements BuildActionRunner {
             Set<ComponentArtifactMetaData> artifacts = originalConfiguration.getArtifacts();
             for (ComponentArtifactMetaData originalArtifact : artifacts) {
                 File artifactFile = ((LocalComponentArtifactIdentifier) originalArtifact).getFile();
-                CompositeProjectComponentArtifactMetaData artifact = new CompositeProjectComponentArtifactMetaData(componentIdentifier, originalArtifact.getName(), artifactFile, targetTaskNames);
+                CompositeProjectComponentArtifactMetaData artifact = new CompositeProjectComponentArtifactMetaData(componentIdentifier, originalArtifact.getName(), artifactFile, projectDir, targetTaskNames);
                 compositeComponentMetadata.addArtifact(configurationName, artifact);
             }
         }

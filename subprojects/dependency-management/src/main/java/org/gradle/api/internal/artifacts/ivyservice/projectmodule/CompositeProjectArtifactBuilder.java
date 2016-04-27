@@ -34,19 +34,16 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultProjectArtifactBuilder implements ProjectArtifactBuilder {
-    private final CompositeProjectComponentRegistry registry;
+public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     private final GradleLauncherFactory gradleLauncherFactory;
     private final StartParameter requestedStartParameter;
     private final ServiceRegistry serviceRegistry;
     private final Set<ProjectComponentIdentifier> executingProjects = Sets.newHashSet();
     private final Multimap<ProjectComponentIdentifier, String> executedTasks = LinkedHashMultimap.create();
 
-    public DefaultProjectArtifactBuilder(CompositeProjectComponentRegistry registry,
-                                         GradleLauncherFactory gradleLauncherFactory,
-                                         StartParameter requestedStartParameter,
-                                         ServiceRegistry serviceRegistry) {
-        this.registry = registry;
+    public CompositeProjectArtifactBuilder(GradleLauncherFactory gradleLauncherFactory,
+                                           StartParameter requestedStartParameter,
+                                           ServiceRegistry serviceRegistry) {
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.requestedStartParameter = requestedStartParameter;
         this.serviceRegistry = serviceRegistry;
@@ -64,25 +61,23 @@ public class DefaultProjectArtifactBuilder implements ProjectArtifactBuilder {
     }
 
     @Override
-    public boolean build(ComponentArtifactMetaData artifact) {
+    public void build(ComponentArtifactMetaData artifact) {
         if (artifact instanceof CompositeProjectComponentArtifactMetaData) {
             CompositeProjectComponentArtifactMetaData artifactMetaData = (CompositeProjectComponentArtifactMetaData) artifact;
-            return build(artifactMetaData.getComponentId(), artifactMetaData.getTaskNames());
+            build(artifactMetaData.getComponentId(), artifactMetaData.getProjectDirectory(), artifactMetaData.getTaskNames());
         }
-
-        return false;
     }
 
-    private boolean build(ProjectComponentIdentifier project, Iterable<String> taskNames) {
+    private void build(ProjectComponentIdentifier project, File projectDirectory, Iterable<String> taskNames) {
         buildStarted(project);
         try {
-            return doBuild(project, taskNames);
+            doBuild(project, projectDirectory, taskNames);
         } finally {
             buildCompleted(project);
         }
     }
 
-    public boolean doBuild(ProjectComponentIdentifier project, Iterable<String> taskNames) {
+    private void doBuild(ProjectComponentIdentifier project, File projectDirectory, Iterable<String> taskNames) {
         List<String> tasksToExecute = Lists.newArrayList();
         for (String taskName : taskNames) {
             if (executedTasks.put(project, taskName)) {
@@ -90,10 +85,9 @@ public class DefaultProjectArtifactBuilder implements ProjectArtifactBuilder {
             }
         }
         if (tasksToExecute.isEmpty()) {
-            return false;
+            return;
         }
 
-        File projectDirectory = registry.getProjectDirectory(project);
         StartParameter param = requestedStartParameter.newBuild();
         param.setProjectDir(projectDirectory);
         param.setTaskNames(tasksToExecute);
@@ -104,6 +98,5 @@ public class DefaultProjectArtifactBuilder implements ProjectArtifactBuilder {
         } finally {
             launcher.stop();
         }
-        return true;
     }
 }
