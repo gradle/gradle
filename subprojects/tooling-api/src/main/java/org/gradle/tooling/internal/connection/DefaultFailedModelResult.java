@@ -41,7 +41,7 @@ public class DefaultFailedModelResult<T> implements FailedModelResult<T> {
 
     @Override
     public T getModel() {
-        throw failure;
+        throw new GradleConnectionException(failure.getMessage(), failure);
     }
 
     @Override
