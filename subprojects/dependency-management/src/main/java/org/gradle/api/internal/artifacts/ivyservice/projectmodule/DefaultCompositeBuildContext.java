@@ -62,8 +62,8 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
     }
 
     @Override
-    public LocalComponentMetaData getProject(String projectPath) {
-        return getRegisteredProject(projectPath).metaData;
+    public LocalComponentMetaData getProject(ProjectComponentIdentifier project) {
+        return getRegisteredProject(project.getProjectPath()).metaData;
     }
 
     @Override

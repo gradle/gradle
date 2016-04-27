@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
@@ -35,8 +36,8 @@ public class DefaultProjectComponentRegistry implements ProjectComponentRegistry
         this.metaDataBuilder = metaDataBuilder;
     }
 
-    public LocalComponentMetaData getProject(String projectPath) {
-        ProjectInternal project = projectRegistry.getProject(projectPath);
+    public LocalComponentMetaData getProject(ProjectComponentIdentifier projectIdentifier) {
+        ProjectInternal project = projectRegistry.getProject(projectIdentifier.getProjectPath());
         if (project == null) {
             return null;
         }
