@@ -26,6 +26,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -40,17 +41,15 @@ abstract class ModelNodeInternal implements MutableModelNode {
     private final Set<ModelNodeInternal> dependents = Sets.newHashSet();
     private ModelNode.State state = ModelNode.State.Registered;
     private boolean hidden;
-    private final List<ModelRuleDescriptor> executedRules = Lists.newArrayList();
-    private final List<RuleBinder> registrationActionBinders = Lists.newArrayList();
-    private final List<ModelProjection> projections = Lists.newArrayList();
-    private final ModelProjection projection;
+    private List<ModelRuleDescriptor> executedRules;
+    private List<RuleBinder> registrationActionBinders;
+    private List<ModelProjection> projections;
 
     public ModelNodeInternal(ModelRegistryInternal modelRegistry, ModelRegistration registration) {
         this.modelRegistry = modelRegistry;
         this.path = registration.getPath();
         this.descriptor = registration.getDescriptor();
         this.hidden = registration.isHidden();
-        this.projection = new ChainingModelProjection(projections);
     }
 
     /**
@@ -58,10 +57,13 @@ abstract class ModelNodeInternal implements MutableModelNode {
      * unbound in case the node is removed.
      */
     public List<RuleBinder> getRegistrationActionBinders() {
-        return registrationActionBinders;
+        return registrationActionBinders == null ? Collections.<RuleBinder>emptyList() : registrationActionBinders;
     }
 
     public void addRegistrationActionBinder(RuleBinder binder) {
+        if (registrationActionBinders == null) {
+            registrationActionBinders = Lists.newArrayList();
+        }
         registrationActionBinders.add(binder);
     }
 
@@ -81,6 +83,9 @@ abstract class ModelNodeInternal implements MutableModelNode {
             ModelNodeInternal node = inputBinding.getNode();
             dependencies.add(node);
             node.dependents.add(this);
+        }
+        if (executedRules == null) {
+            executedRules = Lists.newArrayList();
         }
         executedRules.add(binder.getDescriptor());
     }
@@ -131,28 +136,38 @@ abstract class ModelNodeInternal implements MutableModelNode {
         return getPromise().getTypeDescriptions(this);
     }
 
+    private ModelProjection toProjection() {
+        if (projections == null) {
+            return EmptyModelProjection.INSTANCE;
+        }
+        return new ChainingModelProjection(projections);
+    }
+
     public ModelPromise getPromise() {
         if (!state.isAtLeast(State.Discovered)) {
             throw new IllegalStateException(String.format("Cannot get promise for '%s' in state %s.", getPath(), state));
         }
-        return projection;
+        return toProjection();
     }
 
     public ModelAdapter getAdapter() {
         if (!state.isAtLeast(State.Created)) {
             throw new IllegalStateException(String.format("Cannot get adapter for '%s' in state %s.", getPath(), state));
         }
-        return projection;
+        return toProjection();
     }
 
     public ModelProjection getProjection() {
-        return projection;
+        return toProjection();
     }
 
     @Override
     public void addProjection(ModelProjection projection) {
         if (isAtLeast(Discovered)) {
             throw new IllegalStateException(String.format("Cannot add projections to '%s' as it is already in state %s.", getPath(), state));
+        }
+        if (projections == null) {
+            projections = Lists.newArrayList();
         }
         projections.add(projection);
     }
@@ -194,7 +209,7 @@ abstract class ModelNodeInternal implements MutableModelNode {
 
     @Override
     public List<ModelRuleDescriptor> getExecutedRules() {
-        return this.executedRules;
+        return this.executedRules == null ? Collections.<ModelRuleDescriptor>emptyList() : this.executedRules;
     }
 
     @Override
