@@ -303,4 +303,10 @@ public class GlobalScopeServices {
     protected CrossBuildInMemoryCachingScriptClassCache createCachingScriptCompiler(CachingFileSnapshotter snapshotter) {
         return new CrossBuildInMemoryCachingScriptClassCache(snapshotter);
     }
+
+
+    DependencyInjectingInstantiator.ConstructorCache createConstructorCache() {
+        return new DependencyInjectingInstantiator.ConstructorCache();
+    }
+
 }

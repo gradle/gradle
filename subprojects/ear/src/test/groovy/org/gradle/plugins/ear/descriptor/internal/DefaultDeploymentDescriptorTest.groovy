@@ -33,7 +33,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 class DefaultDeploymentDescriptorTest extends Specification {
 
     private DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry();
-    private Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry);
+    private Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry, new DependencyInjectingInstantiator.ConstructorCache());
 
 
     def descriptor = new DefaultDeploymentDescriptor({ it } as FileResolver, instantiator)

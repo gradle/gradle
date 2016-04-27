@@ -45,9 +45,9 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         return parentRegistry.createChild(settings.getClassLoaderScope());
     }
 
-    protected PluginManagerInternal createPluginManager(Instantiator instantiator, PluginRegistry pluginRegistry) {
+    protected PluginManagerInternal createPluginManager(Instantiator instantiator, PluginRegistry pluginRegistry, DependencyInjectingInstantiator.ConstructorCache cachedConstructors) {
         PluginApplicator applicator = new ImperativeOnlyPluginApplicator<SettingsInternal>(settings);
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, new DependencyInjectingInstantiator(this), applicator);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, new DependencyInjectingInstantiator(this, cachedConstructors), applicator);
     }
 
     protected ProjectDescriptorRegistry createProjectDescriptorRegistry() {

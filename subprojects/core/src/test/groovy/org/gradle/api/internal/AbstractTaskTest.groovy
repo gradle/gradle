@@ -33,7 +33,7 @@ import static org.junit.Assert.assertTrue
 class AbstractTaskTest extends Specification {
 
     private DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry()
-    private Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry)
+    private Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry, new DependencyInjectingInstantiator.ConstructorCache())
     private final AnnotationProcessingTaskFactory rootFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()))
 
     public static class TestTask extends AbstractTask {

@@ -22,12 +22,19 @@ import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
+import org.gradle.api.internal.DependencyInjectingInstantiator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
-import org.gradle.api.internal.file.*
+import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.file.DefaultFileOperations
+import org.gradle.api.internal.file.DefaultTemporaryFileProvider
+import org.gradle.api.internal.file.FileLookup
+import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.DefaultScriptHandler
@@ -98,6 +105,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(DirectoryFileTreeFactory) >> Stub(DirectoryFileTreeFactory)
         parent.get(ModelRuleSourceDetector) >> modelRuleSourceDetector
         parent.get(ModelRuleExtractor) >> Stub(ModelRuleExtractor)
+        parent.get(DependencyInjectingInstantiator.ConstructorCache) >> Stub(DependencyInjectingInstantiator.ConstructorCache)
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }
 

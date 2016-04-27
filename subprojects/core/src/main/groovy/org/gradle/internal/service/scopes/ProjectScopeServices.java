@@ -134,13 +134,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultToolingModelBuilderRegistry();
     }
 
-    protected PluginManagerInternal createPluginManager(Instantiator instantiator) {
+    protected PluginManagerInternal createPluginManager(Instantiator instantiator, DependencyInjectingInstantiator.ConstructorCache cachedConstructors) {
         PluginApplicator applicator = new RuleBasedPluginApplicator<ProjectInternal>(project, get(ModelRuleExtractor.class), get(ModelRuleSourceDetector.class));
-        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
+        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), new DependencyInjectingInstantiator(this, cachedConstructors), applicator);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
-        return parentFactory.createChild(project, new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DependencyInjectingInstantiator(this)));
+        return parentFactory.createChild(project, new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DependencyInjectingInstantiator(this, get(DependencyInjectingInstantiator.ConstructorCache.class))));
     }
 
     protected Factory<TaskContainerInternal> createTaskContainerInternal() {

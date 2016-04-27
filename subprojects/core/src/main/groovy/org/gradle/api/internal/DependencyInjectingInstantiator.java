@@ -35,31 +35,18 @@ import java.util.List;
  * An {@link Instantiator} that applies JSR-330 style dependency injection.
  */
 public class DependencyInjectingInstantiator implements Instantiator {
-    private final LoadingCache<Class<?>, CachedConstructor> cachedConstructors = CacheBuilder.newBuilder()
-        .weakKeys()
-        .build(new CacheLoader<Class<?>, CachedConstructor>() {
-            @Override
-            public CachedConstructor load(final Class<?> type) throws Exception {
-                try {
-                    validateType(type);
-                    Constructor<?> constructor = selectConstructor(type);
-                    constructor.setAccessible(true);
-                    return CachedConstructor.of(constructor);
-                } catch (Throwable e) {
-                    return CachedConstructor.of(e);
-                }
-            }
-        });
 
     private final ServiceRegistry services;
+    private final DependencyInjectingInstantiator.ConstructorCache cachedConstructors;
 
-    public DependencyInjectingInstantiator(ServiceRegistry services) {
+    public DependencyInjectingInstantiator(ServiceRegistry services, ConstructorCache cachedConstructors) {
         this.services = services;
+        this.cachedConstructors = cachedConstructors;
     }
 
     public <T> T newInstance(Class<? extends T> type, Object... parameters) {
         try {
-            CachedConstructor cached = cachedConstructors.getUnchecked(type);
+            CachedConstructor cached = cachedConstructors.get(type);
             if (cached.error != null) {
                 throw cached.error;
             }
@@ -100,54 +87,78 @@ public class DependencyInjectingInstantiator implements Instantiator {
         return resolvedParameters;
     }
 
-    private <T> Constructor<?> selectConstructor(Class<T> type) {
-        Constructor<?>[] constructors = type.getDeclaredConstructors();
 
-        if (constructors.length == 1) {
-            Constructor<?> constructor = constructors[0];
-            if (constructor.getParameterTypes().length == 0 && isPublicOrPackageScoped(type, constructor)) {
-                return constructor;
+    public static class ConstructorCache {
+        private final LoadingCache<Class<?>, CachedConstructor> cachedConstructors = CacheBuilder.newBuilder()
+            .weakKeys()
+            .build(new CacheLoader<Class<?>, CachedConstructor>() {
+                @Override
+                public CachedConstructor load(final Class<?> type) throws Exception {
+                    try {
+                        validateType(type);
+                        Constructor<?> constructor = selectConstructor(type);
+                        constructor.setAccessible(true);
+                        return CachedConstructor.of(constructor);
+                    } catch (Throwable e) {
+                        return CachedConstructor.of(e);
+                    }
+                }
+            });
+
+        private static boolean isPublicOrPackageScoped(Class<?> type, Constructor<?> constructor) {
+            if (isPackagePrivate(type.getModifiers())) {
+                return !Modifier.isPrivate(constructor.getModifiers()) && !Modifier.isProtected(constructor.getModifiers());
+            } else {
+                return Modifier.isPublic(constructor.getModifiers());
             }
         }
 
-        List<Constructor<?>> injectConstructors = new ArrayList<Constructor<?>>();
-        for (Constructor<?> constructor : constructors) {
-            if (constructor.getAnnotation(Inject.class) != null) {
-                injectConstructors.add(constructor);
+        private static boolean isPackagePrivate(int modifiers) {
+            return !Modifier.isPrivate(modifiers) && !Modifier.isProtected(modifiers) && !Modifier.isPublic(modifiers);
+        }
+
+        private static <T> void validateType(Class<T> type) {
+            if (type.isInterface() || type.isAnnotation() || type.isEnum()) {
+                throw new IllegalArgumentException(String.format("Type %s is not a class.", type.getName()));
+            }
+            if (type.getEnclosingClass() != null && !Modifier.isStatic(type.getModifiers())) {
+                throw new IllegalArgumentException(String.format("Class %s is a non-static inner class.", type.getName()));
+            }
+            if (Modifier.isAbstract(type.getModifiers())) {
+                throw new IllegalArgumentException(String.format("Class %s is an abstract class.", type.getName()));
             }
         }
 
-        if (injectConstructors.isEmpty()) {
-            throw new IllegalArgumentException(String.format("Class %s has no constructor that is annotated with @Inject.", type.getName()));
-        }
-        if (injectConstructors.size() > 1) {
-            throw new IllegalArgumentException(String.format("Class %s has multiple constructors that are annotated with @Inject.", type.getName()));
-        }
-        return injectConstructors.get(0);
-    }
+        private static <T> Constructor<?> selectConstructor(Class<T> type) {
+            Constructor<?>[] constructors = type.getDeclaredConstructors();
 
-    private static boolean isPublicOrPackageScoped(Class<?> type, Constructor<?> constructor) {
-        if (isPackagePrivate(type.getModifiers())) {
-            return !Modifier.isPrivate(constructor.getModifiers()) && !Modifier.isProtected(constructor.getModifiers());
-        } else {
-            return Modifier.isPublic(constructor.getModifiers());
-        }
-    }
+            if (constructors.length == 1) {
+                Constructor<?> constructor = constructors[0];
+                if (constructor.getParameterTypes().length == 0 && isPublicOrPackageScoped(type, constructor)) {
+                    return constructor;
+                }
+            }
 
-    private static boolean isPackagePrivate(int modifiers) {
-        return !Modifier.isPrivate(modifiers) && !Modifier.isProtected(modifiers) && !Modifier.isPublic(modifiers);
-    }
+            List<Constructor<?>> injectConstructors = new ArrayList<Constructor<?>>();
+            for (Constructor<?> constructor : constructors) {
+                if (constructor.getAnnotation(Inject.class) != null) {
+                    injectConstructors.add(constructor);
+                }
+            }
 
-    private <T> void validateType(Class<T> type) {
-        if (type.isInterface() || type.isAnnotation() || type.isEnum()) {
-            throw new IllegalArgumentException(String.format("Type %s is not a class.", type.getName()));
+            if (injectConstructors.isEmpty()) {
+                throw new IllegalArgumentException(String.format("Class %s has no constructor that is annotated with @Inject.", type.getName()));
+            }
+            if (injectConstructors.size() > 1) {
+                throw new IllegalArgumentException(String.format("Class %s has multiple constructors that are annotated with @Inject.", type.getName()));
+            }
+            return injectConstructors.get(0);
         }
-        if (type.getEnclosingClass() != null && !Modifier.isStatic(type.getModifiers())) {
-            throw new IllegalArgumentException(String.format("Class %s is a non-static inner class.", type.getName()));
+
+        public CachedConstructor get(Class<?> clazz) {
+            return cachedConstructors.getUnchecked(clazz);
         }
-        if (Modifier.isAbstract(type.getModifiers())) {
-            throw new IllegalArgumentException(String.format("Class %s is an abstract class.", type.getName()));
-        }
+
     }
 
     private static class CachedConstructor {
