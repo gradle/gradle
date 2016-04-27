@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.service;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
@@ -453,9 +455,12 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private class OwnServices implements Provider {
-        private final List<Provider> providers = new ArrayList<Provider>();
+        private List<Provider> providers;
 
         public ServiceProvider getFactory(LookupContext context, Class<?> type) {
+            if (providers == null) {
+                return null;
+            }
             List<ServiceProvider> candidates = new ArrayList<ServiceProvider>();
             for (Provider provider : providers) {
                 ServiceProvider factory = provider.getFactory(context, type);
@@ -485,6 +490,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         public ServiceProvider getService(LookupContext context, TypeSpec serviceType) {
+            if (providers == null) {
+                return null;
+            }
             List<ServiceProvider> candidates = new ArrayList<ServiceProvider>();
             for (Provider provider : providers) {
                 ServiceProvider service = provider.getService(context, serviceType);
@@ -514,23 +522,32 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         public <T> void getAll(LookupContext context, Class<T> serviceType, List<T> result) {
+            if (providers == null) {
+                return;
+            }
             for (Provider provider : providers) {
                 provider.getAll(context, serviceType, result);
             }
         }
 
         public void stop() {
+            if (providers == null) {
+                return;
+            }
             CompositeStoppable.stoppable(providers).stop();
         }
 
         public void add(Provider provider) {
+            if (providers == null) {
+                providers = Lists.newArrayList();
+            }
             this.providers.add(provider);
         }
     }
 
     private static abstract class ManagedObjectProvider<T> implements Provider {
         private T instance;
-        private final Set<Provider> dependents = new HashSet<Provider>();
+        private Set<Provider> dependents;
 
         protected void setInstance(T instance) {
             this.instance = instance;
@@ -547,16 +564,21 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         protected abstract T create();
 
         public void requiredBy(Provider provider) {
+            if (dependents == null) {
+                dependents = Sets.newHashSet();
+            }
             dependents.add(provider);
         }
 
         public void stop() {
             try {
                 if (instance != null) {
-                    CompositeStoppable.stoppable(dependents).add(instance).stop();
+                    CompositeStoppable.stoppable(dependents == null ? Collections.emptyList() : dependents).add(instance).stop();
                 }
             } finally {
-                dependents.clear();
+                if (dependents != null) {
+                    dependents.clear();
+                }
                 instance = null;
             }
         }
