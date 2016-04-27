@@ -214,7 +214,8 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         resolveArtifacts()
 
         then:
-        executed ":buildB:myJar", ":buildB:jar"
+        executed ":buildB:myJar"
+        executed ":buildB:jar"
         assertResolved buildB.file('build/libs/buildB-1.0.jar') // File dependencies are never part of the published metadata
     }
 
