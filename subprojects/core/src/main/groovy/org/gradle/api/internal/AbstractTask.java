@@ -59,25 +59,25 @@ import java.util.concurrent.Callable;
 public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static Logger buildLogger = Logging.getLogger(Task.class);
     private static ThreadLocal<TaskInfo> nextInstance = new ThreadLocal<TaskInfo>();
-    private ProjectInternal project;
+    private final ProjectInternal project;
 
-    private String name;
+    private final String name;
 
-    private List<ContextAwareTaskAction> actions = new ArrayList<ContextAwareTaskAction>();
+    private final List<ContextAwareTaskAction> actions = new ArrayList<ContextAwareTaskAction>();
 
-    private String path;
+    private final String path;
 
     private boolean enabled = true;
 
-    private DefaultTaskDependency dependencies;
+    private final DefaultTaskDependency dependencies;
 
-    private DefaultTaskDependency mustRunAfter;
+    private final DefaultTaskDependency mustRunAfter;
 
-    private DefaultTaskDependency finalizedBy;
+    private final DefaultTaskDependency finalizedBy;
 
-    private DefaultTaskDependency shouldRunAfter;
+    private final DefaultTaskDependency shouldRunAfter;
 
-    private ExtensibleDynamicObject extensibleDynamicObject;
+    private final ExtensibleDynamicObject extensibleDynamicObject;
 
     private String description;
 
@@ -91,10 +91,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final TaskStateInternal state;
 
-    private List<TaskValidator> validators = new ArrayList<TaskValidator>();
+    private final List<TaskValidator> validators = new ArrayList<TaskValidator>();
 
     private final TaskMutator taskMutator;
-    private ObservableList observableActionList;
+    private final ObservableList observableActionList;
     private boolean impliesSubProjects;
     private boolean hasCustomActions;
 
@@ -162,16 +162,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return project;
     }
 
-    public void setProject(Project project) {
-        this.project = (ProjectInternal) project;
-    }
-
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public List<Action<? super Task>> getActions() {
