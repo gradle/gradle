@@ -26,22 +26,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 class FileNormaliser {
     private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
-    private static final String PATH_SEPARATOR_PATTERN = "[" + Pattern.quote(FILE_PATH_SEPARATORS) + "]";
-    private static final String DOTS_SEGMENT_PATTERN = "(?:^|" + PATH_SEPARATOR_PATTERN + ")\\.\\.?(?:$|" + PATH_SEPARATOR_PATTERN + ")";
-    private static final String EMPTY_SEGMENT_PATTERN = PATH_SEPARATOR_PATTERN + PATH_SEPARATOR_PATTERN;
-    private static final String ENDS_WITH_PATH_SEPARATOR_PATTERN = PATH_SEPARATOR_PATTERN + "$";
-    private static final Pattern NORMALISING_REQUIRED_PATTERN_DOTS_OR_EMPTY_SEGMENT = Pattern.compile("(?:"
-        + DOTS_SEGMENT_PATTERN
-        + "|"
-        + EMPTY_SEGMENT_PATTERN
-        + "|"
-        + ENDS_WITH_PATH_SEPARATOR_PATTERN
-        + ")");
-
     private final FileSystem fileSystem;
     private final boolean isWindowsOs;
 
@@ -58,7 +45,9 @@ class FileNormaliser {
     // does NOT resolve symlinks (by design)
     public File normalise(File file) {
         try {
-            assert file.isAbsolute() : String.format("Cannot normalize a relative file: '%s'", file);
+            if (!file.isAbsolute()) {
+                throw new IllegalArgumentException(String.format("Cannot normalize a relative file: '%s'", file));
+            }
 
             if (isWindowsOs) {
                 // on Windows, File.getCanonicalFile() doesn't resolve symlinks
@@ -68,7 +57,7 @@ class FileNormaliser {
             File candidate;
             String filePath = file.getPath();
             List<String> path = null;
-            if (isNormalisingRequired(filePath)) {
+            if (isNormalisingRequiredForAbsolutePath(filePath)) {
                 path = splitAndNormalisePath(filePath);
                 String resolvedPath = CollectionUtils.join(File.separator, path);
                 boolean needLeadingSeparator = File.listRoots()[0].getPath().startsWith(File.separator);
@@ -102,8 +91,20 @@ class FileNormaliser {
         }
     }
 
-    boolean isNormalisingRequired(String filePath) {
-        return NORMALISING_REQUIRED_PATTERN_DOTS_OR_EMPTY_SEGMENT.matcher(filePath).find();
+    boolean isNormalisingRequiredForAbsolutePath(String filePath) {
+        if (File.pathSeparatorChar != '/') {
+            filePath = filePath.replace(File.pathSeparatorChar, '/');
+        }
+        if (filePath.charAt(0) != '/') {
+            throw new IllegalArgumentException("Only absolute unix paths are currently handled. filePath=" + filePath);
+        }
+        if (filePath.contains("/../") || filePath.contains("/./") || filePath.contains("//")) {
+            return true;
+        }
+        if (filePath.endsWith("/") || filePath.endsWith("/.") || filePath.endsWith("/..")) {
+            return true;
+        }
+        return false;
     }
 
     private List<String> splitAndNormalisePath(String filePath) {

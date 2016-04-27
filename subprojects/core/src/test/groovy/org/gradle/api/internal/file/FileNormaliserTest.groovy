@@ -26,22 +26,22 @@ class FileNormaliserTest extends Specification {
 
     def "normalising is required for paths with . or .."() {
         expect:
-        fileNormaliser.isNormalisingRequired(path)
+        fileNormaliser.isNormalisingRequiredForAbsolutePath(path)
         where:
-        path << ["/a/b/..", "/a/b/.", "./a/b", "../a/b", "/a/../b", "/a/./b", ".", "..", "/.", "/..", "./", "../"]
+        path << ["/a/b/..", "/a/b/.", "/a/../b", "/a/./b", "/.", "/.."]
 
     }
 
     def "normalising is required for paths with empty segment"() {
         expect:
-        fileNormaliser.isNormalisingRequired(path)
+        fileNormaliser.isNormalisingRequiredForAbsolutePath(path)
         where:
         path << ["/a/b//", "/a//b", "//a/b", "/a/"]
     }
 
     def "normalising isn't required for other cases"() {
         expect:
-        !fileNormaliser.isNormalisingRequired(path)
+        !fileNormaliser.isNormalisingRequiredForAbsolutePath(path)
         where:
         path << ["/a/b", "/a/b/c.txt", "/a", "/a.txt", "/.profile", "/some/.../dotty/directory"]
     }
