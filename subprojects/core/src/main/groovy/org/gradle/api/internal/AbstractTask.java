@@ -119,6 +119,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         assert project != null;
         assert name != null;
         path = project.absoluteProjectPath(name);
+        toStringValue = "task '".concat(path).concat("'");
         state = new TaskStateInternal(toString());
         dependencies = new DefaultTaskDependency(project.getTasks());
         mustRunAfter = new DefaultTaskDependency(project.getTasks());
@@ -134,7 +135,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 taskMutator.assertMutable("Task.getActions()", evt);
             }
         });
-        toStringValue = "task '".concat(path).concat("'");
     }
 
     public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Class<? extends Task> publicType, Callable<T> factory) {
