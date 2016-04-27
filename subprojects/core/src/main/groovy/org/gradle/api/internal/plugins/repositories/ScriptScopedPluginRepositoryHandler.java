@@ -52,6 +52,19 @@ public class ScriptScopedPluginRepositoryHandler implements PluginRepositoryHand
     }
 
     @Override
+    public IvyPluginRepository ivy(Action<? super IvyPluginRepository> action) {
+        final Action<? super IvyPluginRepository> localAction = action;
+        return delegate.ivy(new Action<IvyPluginRepository>() {
+            @Override
+            public void execute(IvyPluginRepository ivyPluginRepository) {
+                IvyPluginRepositoryWrapper wrapper = instantiator.newInstance(
+                    IvyPluginRepositoryWrapper.class, ivyPluginRepository, fileResolver);
+                localAction.execute(wrapper);
+            }
+        });
+    }
+
+    @Override
     public Iterator<PluginRepository> iterator() {
         return delegate.iterator();
     }
@@ -61,6 +74,36 @@ public class ScriptScopedPluginRepositoryHandler implements PluginRepositoryHand
         private final FileResolver fileResolver;
 
         public MavenPluginRepositoryWrapper(MavenPluginRepository delegate, FileResolver fileResolver) {
+            this.delegate = delegate;
+            this.fileResolver = fileResolver;
+        }
+
+        @Override
+        public URI getUrl() {
+            return delegate.getUrl();
+        }
+
+        @Override
+        public void setUrl(Object url) {
+            delegate.setUrl(fileResolver.resolveUri(url));
+        }
+
+        @Override
+        public String getName() {
+            return delegate.getName();
+        }
+
+        @Override
+        public void setName(String name) {
+            delegate.setName(name);
+        }
+    }
+
+    public static class IvyPluginRepositoryWrapper implements IvyPluginRepository {
+        private final IvyPluginRepository delegate;
+        private final FileResolver fileResolver;
+
+        public IvyPluginRepositoryWrapper(IvyPluginRepository delegate, FileResolver fileResolver) {
             this.delegate = delegate;
             this.fileResolver = fileResolver;
         }

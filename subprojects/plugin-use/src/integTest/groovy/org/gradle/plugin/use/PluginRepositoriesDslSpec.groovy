@@ -48,6 +48,21 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
+    def "pluginRepositories block supports defining a ivy plugin repository"() {
+        given:
+        settingsFile << """
+            pluginRepositories {
+                ivy {
+                    name "ourIvyRepo"
+                    url "http://repo.internal.net/ivy"
+                }
+            }
+        """
+
+        expect:
+        succeeds 'help'
+    }
+
     def "other blocks can follow the pluginRepositories block"() {
         given:
         settingsFile << """

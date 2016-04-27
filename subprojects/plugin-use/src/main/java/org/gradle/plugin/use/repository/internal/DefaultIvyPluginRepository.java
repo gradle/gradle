@@ -18,43 +18,30 @@ package org.gradle.plugin.use.repository.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
+import org.gradle.api.internal.plugins.repositories.IvyPluginRepository;
 import org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.net.URI;
 
-
-class DefaultMavenPluginRepository implements MavenPluginRepository, PluginRepositoryInternal, BackedByArtifactRepository {
-
+public class DefaultIvyPluginRepository implements IvyPluginRepository, PluginRepositoryInternal, BackedByArtifactRepository {
     private final FileResolver fileResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
     private final VersionSelectorScheme versionSelectorScheme;
 
-    private String name = "maven";
+    private String name = "ivy";
     private Object url;
     private PluginResolver resolver;
-    private MavenArtifactRepository artifactRepository;
+    private IvyArtifactRepository artifactRepository;
 
-    public DefaultMavenPluginRepository(FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
+    public DefaultIvyPluginRepository(FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
         this.fileResolver = fileResolver;
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.versionSelectorScheme = versionSelectorScheme;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public void setName(String name) {
-        checkMutable();
-        this.name = name;
     }
 
     @Override
@@ -68,10 +55,10 @@ class DefaultMavenPluginRepository implements MavenPluginRepository, PluginRepos
         this.url = url;
     }
 
-    private void checkMutable() {
-        if (artifactRepository != null) {
-            throw new IllegalStateException("A plugin repository cannot be modified after it has been used to resolve plugins.");
-        }
+    @Override
+    public ArtifactRepository getArtifactRepository() {
+        prepareArtifactRepository();
+        return artifactRepository;
     }
 
     @Override
@@ -84,18 +71,29 @@ class DefaultMavenPluginRepository implements MavenPluginRepository, PluginRepos
     }
 
     @Override
-    public ArtifactRepository getArtifactRepository() {
-        prepareArtifactRepository();
-        return artifactRepository;
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public void setName(String name) {
+        checkMutable();
+        this.name = name;
+    }
+
+    private void checkMutable() {
+        if (artifactRepository != null) {
+            throw new IllegalStateException("A plugin repository cannot be modified after it has been used to resolve plugins.");
+        }
     }
 
     private void prepareArtifactRepository() {
         if (artifactRepository == null) {
-            artifactRepository = dependencyResolutionServices.getResolveRepositoryHandler().maven(new Action<MavenArtifactRepository>() {
+            artifactRepository = dependencyResolutionServices.getResolveRepositoryHandler().ivy(new Action<IvyArtifactRepository>() {
                 @Override
-                public void execute(MavenArtifactRepository mavenArtifactRepository) {
-                    mavenArtifactRepository.setName("__plugins__" + name);
-                    mavenArtifactRepository.setUrl(url);
+                public void execute(IvyArtifactRepository ivyArtifactRepository) {
+                    ivyArtifactRepository.setName("__plugins__" + name);
+                    ivyArtifactRepository.setUrl(url);
                 }
             });
         }

@@ -23,119 +23,80 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Unroll
 
 @LeaksFileHandles
 class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyResolutionTest {
+    private static final String MAVEN = 'maven'
+    private static final String IVY = 'ivy'
 
-    private publishTestPlugin() {
+    private enum PathType { ABSOLUTE, RELATIVE }
+
+    private publishTestPlugin(String repoType) {
         def pluginBuilder = new PluginBuilder(testDirectory.file("plugin"))
-
-        // The module which holds the plugin implementation.
-        def module = mavenRepo.module("org.example.plugin", "plugin", "1.0")
-        def artifactFile = module.artifact([:]).artifactFile
-        module.publish()
-
-        // The marker module which depends on the plugin implementation module.
-        def marker = mavenRepo.module("org.example.plugin", "org.example.plugin", "1.1")
-        marker.dependsOn(module)
-        marker.publish()
 
         def message = "from plugin"
         def taskName = "pluginTask"
+
         pluginBuilder.addPluginWithPrintlnTask(taskName, message, "org.example.plugin")
-        pluginBuilder.publishTo(executer, artifactFile)
+
+        if (repoType == IVY) {
+            pluginBuilder.publishAs("org.example.plugin:plugin:1.0", ivyRepo, executer)
+        } else if (repoType == MAVEN) {
+            pluginBuilder.publishAs("org.example.plugin:plugin:1.0", mavenRepo, executer)
+        }
     }
 
-    def setup() {
-        publishTestPlugin()
-    }
-
-    def useAbsoluteCustomRepository() {
+    def useCustomRepository(String repoType, PathType pathType) {
+        def repoUrl = 'Nothing'
+        if (repoType == MAVEN) {
+            repoUrl = PathType.ABSOLUTE.equals(pathType) ? mavenRepo.uri : mavenRepo.getRootDir().name
+        } else if (repoType == IVY) {
+            repoUrl = PathType.ABSOLUTE.equals(pathType) ? ivyRepo.uri : ivyRepo.getRootDir().name
+        }
         settingsFile << """
           pluginRepositories {
-              maven {
-                  url "${mavenRepo.uri}"
+              ${repoType} {
+                  url "${repoUrl}"
               }
           }
         """
     }
 
-    def useRelativeCustomRepository() {
-        settingsFile << """
-          pluginRepositories {
-              maven {
-                  url "${mavenRepo.rootDir.name}"
-              }
-          }
-        """
-    }
-
-    def "can resolve plugin from absolute maven-repo"() {
+    @Unroll
+    def "can resolve plugin from #pathType #repoType repo"() {
         given:
+        publishTestPlugin(repoType)
         buildScript """
           plugins {
-              id "org.example.plugin" version "1.1"
+              id "org.example.plugin" version "1.0"
           }
         """
 
         and:
-        useAbsoluteCustomRepository()
+        useCustomRepository(repoType, pathType)
 
         when:
         succeeds("pluginTask")
 
         then:
         output.contains("from plugin")
+
+        where:
+        repoType | pathType
+        IVY      | PathType.ABSOLUTE
+        IVY      | PathType.RELATIVE
+        MAVEN    | PathType.ABSOLUTE
+        MAVEN    | PathType.RELATIVE
     }
 
-    def "can resolve plugins even if buildscript block contains wrong repo with same name"() {
+    @Unroll
+    def "can access classes from plugin from #repoType repo"() {
         given:
-        buildScript """
-          buildscript {
-            repositories {
-                maven {
-                    url '${new MavenFileRepository(file("other-repo")).uri}'
-                }
-            }
-          }
-          plugins {
-              id "org.example.plugin" version "1.1"
-          }
-        """
-
-        and:
-        useAbsoluteCustomRepository()
-
-        when:
-        succeeds("pluginTask")
-
-        then:
-        output.contains("from plugin")
-    }
-
-    def "can resolve plugin from relative maven-repo"() {
-        given:
+        publishTestPlugin(repoType)
         buildScript """
           plugins {
-              id "org.example.plugin" version "1.1"
-          }
-        """
-
-        and:
-        useRelativeCustomRepository()
-
-        when:
-        succeeds("pluginTask")
-
-        then:
-        output.contains("from plugin")
-    }
-
-    def "can access classes from plugin from maven-repo"() {
-        given:
-        buildScript """
-          plugins {
-              id "org.example.plugin" version "1.1"
+              id "org.example.plugin" version "1.0"
           }
           plugins.withType(org.gradle.test.TestPlugin) {
             println "I'm here"
@@ -143,17 +104,22 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useAbsoluteCustomRepository()
+        useCustomRepository(repoType, PathType.ABSOLUTE)
 
         when:
         succeeds("pluginTask")
 
         then:
         output.contains("I'm here")
+
+        where:
+        repoType << [IVY, MAVEN]
     }
 
-    def "custom repository is not mentioned in plugin resolution errors if none is defined"() {
+    @Unroll
+    def "custom #repoType repo is not mentioned in plugin resolution errors if none is defined"() {
         given:
+        publishTestPlugin(repoType)
         buildScript """
           plugins {
               id "org.example.plugin"
@@ -164,11 +130,17 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         fails("pluginTask")
 
         then:
-        !failure.output.contains("maven")
+        !failure.output.contains(repoType)
+
+        where:
+        repoType << [IVY, MAVEN]
     }
 
-    def "Fails gracefully if a plugin is not found"() {
+    @Unroll
+    @Requires(TestPrecondition.ONLINE)
+    def "Fails gracefully if a plugin is not found in #repoType repo"() {
         given:
+        publishTestPlugin(repoType)
         buildScript """
           plugins {
               id "org.example.foo" version "1.1"
@@ -176,7 +148,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useAbsoluteCustomRepository()
+        useCustomRepository(repoType, PathType.ABSOLUTE)
 
         when:
         fails("pluginTask")
@@ -185,22 +157,27 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         failure.assertHasDescription("""Plugin [id: 'org.example.foo', version: '1.1'] was not found in any of the following sources:
 
 - Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-- maven (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
+- ${repoType} (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
 - Gradle Central Plugin Repository (no 'org.example.foo' plugin available - see https://plugins.gradle.org for available plugins)"""
         )
+
+        where:
+        repoType << [IVY, MAVEN]
     }
 
-    def "Works with subprojects and relative repo specification."() {
+    @Unroll
+    def "Works with subprojects and relative #repoType repo specification."() {
         given:
+        publishTestPlugin(repoType)
         def subprojectScript = file("subproject/build.gradle")
         subprojectScript << """
           plugins {
-              id "org.example.plugin" version "1.1"
+              id "org.example.plugin" version "1.0"
           }
         """
 
         and:
-        useRelativeCustomRepository()
+        useCustomRepository(repoType, PathType.RELATIVE)
 
         and:
         settingsFile << """
@@ -209,14 +186,18 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
 
         expect:
         succeeds("subproject:pluginTask")
+
+        where:
+        repoType << [IVY, MAVEN]
     }
 
     @NotYetImplemented
     def "Can specify repo in init script."() {
         given:
+        publishTestPlugin(MAVEN)
         buildScript """
            plugins {
-             id "org.example.plugin" version "1.1"
+             id "org.example.plugin" version "1.0"
            }
         """
 
@@ -238,9 +219,36 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         output.contains('from plugin')
     }
 
+    def "can resolve plugins even if buildscript block contains wrong repo with same name"() {
+        given:
+        publishTestPlugin(MAVEN)
+        buildScript """
+          buildscript {
+            repositories {
+                maven {
+                    url '${new MavenFileRepository(file("other-repo")).uri}'
+                }
+            }
+          }
+          plugins {
+              id "org.example.plugin" version "1.0"
+          }
+        """
+
+        and:
+        useCustomRepository(MAVEN, PathType.ABSOLUTE)
+
+        when:
+        succeeds("pluginTask")
+
+        then:
+        output.contains("from plugin")
+    }
+
     @Requires(TestPrecondition.ONLINE)
     def "Falls through to Plugin Portal if not found in custom repository"() {
         given:
+        publishTestPlugin(MAVEN)
         requireOwnGradleUserHomeDir()
         buildScript """
             plugins {
@@ -249,7 +257,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useAbsoluteCustomRepository()
+        useCustomRepository(MAVEN, PathType.ABSOLUTE)
 
         expect:
         succeeds("helloWorld")

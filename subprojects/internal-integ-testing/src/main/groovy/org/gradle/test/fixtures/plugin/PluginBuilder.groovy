@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.plugin
 
+import com.google.common.base.Splitter
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -76,10 +77,10 @@ class PluginBuilder {
     }
 
     void publishAs(String coordinates, MavenFileRepository mavenRepo, GradleExecuter executer) {
-        String[] gav = coordinates.split(":")
+        List<String> gav = Splitter.on(":").splitToList(coordinates)
 
         // The implementation jar module.
-        def module = mavenRepo.module(gav[0], gav[1], gav[2])
+        def module = mavenRepo.module(gav.get(0), gav.get(1), gav.get(2))
         def artifactFile = module.getArtifactFile([:])
         module.publish()
 
@@ -94,10 +95,10 @@ class PluginBuilder {
     }
 
     void publishAs(String coordinates, IvyFileRepository ivyRepo, GradleExecuter executer) {
-        String[] omr = coordinates.split(":")
+        List<String> omr = Splitter.on(":").splitToList(coordinates)
 
         // The implementation jar module.
-        def module = ivyRepo.module(omr[0], omr[1], omr[2])
+        def module = ivyRepo.module(omr.get(0), omr.get(1), omr.get(2))
         def artifactFile = module.artifact([:]).getJarFile()
         module.publish()
 

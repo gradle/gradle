@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
+import org.gradle.api.internal.plugins.repositories.IvyPluginRepository;
 import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;
 import org.gradle.internal.Factory;
@@ -57,6 +58,15 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
     }
 
     @Override
+    public IvyPluginRepository ivy(Action<? super IvyPluginRepository> configurationAction) {
+        DefaultIvyPluginRepository ivyPluginRepository = instantiator.newInstance(
+            DefaultIvyPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme);
+        configurationAction.execute(ivyPluginRepository);
+        add(ivyPluginRepository);
+        return ivyPluginRepository;
+    }
+
+    @Override
     public Iterator<PluginRepository> iterator() {
         return Iterators.unmodifiableIterator(repositories.values().iterator());
     }
@@ -68,9 +78,6 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
 
     private void uniquifyName(PluginRepository pluginRepository) {
         String name = pluginRepository.getName();
-        if (name == null) {
-            name = "maven";
-        }
         name = uniquifyName(name);
         pluginRepository.setName(name);
     }

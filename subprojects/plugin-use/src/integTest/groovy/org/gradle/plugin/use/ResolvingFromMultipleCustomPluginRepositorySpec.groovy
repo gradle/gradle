@@ -18,67 +18,90 @@ package org.gradle.plugin.use
 
 import com.google.common.base.Splitter
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Shared
+import spock.lang.Unroll
 
 @LeaksFileHandles
 class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependencyResolutionTest {
+    public static final String MAVEN = 'maven'
+    public static final String IVY = 'ivy'
 
     @Shared
     String pluginA = "org.example.pluginA"
     @Shared
     String pluginAB = "org.example.pluginAB"
 
-    MavenFileRepository repoA
-    MavenFileRepository repoB
+    Repository repoA
+    Repository repoB
 
+    private def publishPlugins(String repoType) {
+        if (repoType == IVY) {
+            repoA = ivyRepo("ivyA")
+            repoB = ivyRepo("ivyB")
 
-    def setup() {
-        repoA = mavenRepo("repoA")
-        repoB = mavenRepo("repoB")
+            publishPlugin(pluginA, repoA)
+            publishPlugin(pluginAB, repoA)
+            publishPlugin(pluginAB, repoB)
+        } else if (repoType == MAVEN) {
+            repoA = mavenRepo("repoA")
+            repoB = mavenRepo("repoB")
 
-        publishPlugin(pluginA, repoA)
-        publishPlugin(pluginAB, repoA)
-        publishPlugin(pluginAB, repoB)
+            publishPlugin(pluginA, repoA)
+            publishPlugin(pluginAB, repoA)
+            publishPlugin(pluginAB, repoB)
+        }
     }
 
     private def publishPlugin(String pluginId, MavenFileRepository mavenRepository) {
         def pluginBuilder = new PluginBuilder(testDirectory.file(pluginId + mavenRepository.hashCode()))
         def idSegments = Splitter.on('.').split(pluginId);
+        def coordinates = [idSegments.dropRight(1).join('.'), idSegments.last(), "1.0"].join(':')
 
-        // The module which holds the plugin implementation.
-        def module = mavenRepository.module(idSegments.dropRight(1).join('.'), idSegments.last(), "1.0")
-        def artifactFile = module.artifact([:]).artifactFile
-        module.publish()
-
-        // The marker module which depends on the plugin implementation module.
-        def marker = mavenRepository.module(pluginId, pluginId, "1.1")
-        marker.dependsOn(module)
-        marker.publish()
-
-        def message = "from ${idSegments.last()} fetched from ${mavenRepository.uri}"
+        def message = "from ${idSegments.last()} fetched from ${mavenRepository.uri}/"
         def taskName = idSegments.last()
         pluginBuilder.addPluginWithPrintlnTask(taskName, message, pluginId, idSegments.last().capitalize())
-        pluginBuilder.publishTo(executer, artifactFile)
+        pluginBuilder.publishAs(coordinates, mavenRepository, executer)
     }
 
-    private def use(MavenFileRepository... repositories) {
+    private def publishPlugin(String pluginId, IvyFileRepository ivyRepository) {
+        def pluginBuilder = new PluginBuilder(testDirectory.file(pluginId + ivyRepository.hashCode()))
+        def idSegments = Splitter.on('.').split(pluginId);
+        def coordinates = [idSegments.dropRight(1).join('.'), idSegments.last(), "1.0"].join(':')
+
+        def message = "from ${idSegments.last()} fetched from ${ivyRepository.uri}/"
+        def taskName = idSegments.last()
+        pluginBuilder.addPluginWithPrintlnTask(taskName, message, pluginId, idSegments.last().capitalize())
+        pluginBuilder.publishAs(coordinates, ivyRepository, executer)
+    }
+
+    private def use(Repository... repositories) {
         settingsFile << """
             pluginRepositories {
-                ${repositories.collect { "maven {url '${it.uri}' }" }.join('\n')}
+                ${repositories.collect {
+                    if (it instanceof MavenFileRepository) {
+                        "maven {url '${it.uri}' }"
+                    } else {
+                        "ivy {url '${it.uri}' }"
+                    }
+                  }.join('\n')}
             }
         """
     }
 
-    def "Repositories are queried in declaration order"() {
+    @Unroll
+    def "#repoType repositories are queried in declaration order"() {
         given:
+        publishPlugins(repoType)
         buildScript """
           plugins {
-              id "$pluginAB" version "1.1"
+              id "$pluginAB" version "1.0"
           }
         """
 
@@ -88,13 +111,18 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         then:
         succeeds("pluginAB")
         output.contains("fetched from $repoA.uri")
+
+        where:
+        repoType << [IVY, MAVEN]
     }
 
-    def "Tries next repository if first didn't match"() {
+    @Unroll
+    def "Tries next #repoType repository if first didn't match"() {
         given:
+        publishPlugins(repoType)
         buildScript """
           plugins {
-              id "$pluginA" version "1.1"
+              id "$pluginA" version "1.0"
           }
         """
 
@@ -104,14 +132,19 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         then:
         succeeds("pluginA")
         output.contains("fetched from $repoA.uri")
+
+        where:
+        repoType << [IVY, MAVEN]
     }
 
-    def "Order of plugin requests does not affect order of artifact repositories queried"() {
+    @Unroll
+    def "Order of plugin requests does not affect order of #repoType repositories queried"() {
         given:
+        publishPlugins(repoType)
         buildScript """
           plugins {
-              id "$pluginA" version "1.1"
-              id "$pluginAB" version "1.1"
+              id "$pluginA" version "1.0"
+              id "$pluginAB" version "1.0"
           }
         """
 
@@ -121,10 +154,15 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         then:
         succeeds("pluginAB")
         output.contains("fetched from $repoB.uri")
+
+        where:
+        repoType << [IVY, MAVEN]
     }
 
-    def "Resolution failures are reported in declaration order"() {
+    @Unroll
+    def "Resolution failures for #repoType are reported in declaration order"() {
         given:
+        publishPlugins(repoType)
         buildScript """
           plugins {
               id "org.example.foo" version "1.1"
@@ -141,15 +179,19 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         failure.assertHasDescription("""Plugin [id: 'org.example.foo', version: '1.1'] was not found in any of the following sources:
 
 - Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-- maven (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
-- maven2 (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
+- ${repoType} (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
+- ${repoType}2 (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
 - Gradle Central Plugin Repository (no 'org.example.foo' plugin available - see https://plugins.gradle.org for available plugins)"""
         )
+
+        where:
+        repoType << [IVY, MAVEN]
     }
 
     @Requires(TestPrecondition.ONLINE)
     def "Falls through to Plugin Portal if not found in any custom repository"() {
         given:
+        publishPlugins(MAVEN)
         requireOwnGradleUserHomeDir()
         buildScript """
             plugins {
