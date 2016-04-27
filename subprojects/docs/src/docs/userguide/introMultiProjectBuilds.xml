@@ -54,6 +54,14 @@
             For example, you can find <emphasis>webservice</emphasis> in
             <filename>&lt;root&gt;/services/webservice</filename>.</para>
 
+        <para>
+            By default, Gradle uses the name of the directory it finds the <filename>settings.gradle</filename> as the name of the root project.
+            This usually doesn't cause problems since all developers check out the same directory name when working on a project.
+            On Continuous Integration servers, like Jenkins, the directory name may be auto-generated and not match the name in your VCS.
+            For that reason, it's recommended that you always set the root project name to something predictable, even in single project builds.
+            You can configure the root project name by setting <literal>rootProject.name</literal>.
+        </para>
+
         <para>Each project will usually have its own build file, but that's not necessarily the case. In the above
             example, the <emphasis>services</emphasis> project is just a container or grouping of other subprojects.
             There is no build file in the corresponding directory. However, <emphasis>multiproject</emphasis> does
