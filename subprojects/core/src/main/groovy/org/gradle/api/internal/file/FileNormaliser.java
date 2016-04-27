@@ -74,6 +74,7 @@ class FileNormaliser {
                 candidate = file;
             }
 
+            // If the file system is case sensitive, we don't have to normalise it further
             if (fileSystem.isCaseSensitive()) {
                 return candidate;
             }
@@ -89,16 +90,7 @@ class FileNormaliser {
             if (path == null) {
                 path = splitAndNormalisePath(filePath);
             }
-            File current = File.listRoots()[0];
-            for (int pos = 0; pos < path.size(); pos++) {
-                File child = findChild(current, path.get(pos));
-                if (child == null) {
-                    current = new File(current, CollectionUtils.join(File.separator, path.subList(pos, path.size())));
-                    break;
-                }
-                current = child;
-            }
-            return current;
+            return normaliseUnixPathIgnoringCase(path);
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not normalize path for file '%s'.", file), e);
         }
@@ -127,7 +119,20 @@ class FileNormaliser {
         return StringUtils.split(filePath, FILE_PATH_SEPARATORS);
     }
 
-    private File findChild(File current, String segment) throws IOException {
+    private File normaliseUnixPathIgnoringCase(List<String> path) throws IOException {
+        File current = File.listRoots()[0];
+        for (int pos = 0; pos < path.size(); pos++) {
+            File child = findChildIgnoringCase(current, path.get(pos));
+            if (child == null) {
+                current = new File(current, CollectionUtils.join(File.separator, path.subList(pos, path.size())));
+                break;
+            }
+            current = child;
+        }
+        return current;
+    }
+
+    private File findChildIgnoringCase(File current, String segment) throws IOException {
         String[] children = current.list();
         if (children == null) {
             return null;
