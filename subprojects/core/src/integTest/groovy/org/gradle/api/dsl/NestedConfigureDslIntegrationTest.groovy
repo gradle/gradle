@@ -19,13 +19,67 @@ package org.gradle.api.dsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class NestedConfigureDslIntegrationTest extends AbstractIntegrationSpec {
+    def "can read property from configure closure outer scope"() {
+        buildFile << """
+ext.prop = "value"
+tasks.help {
+    println "1: " + prop
+    1.times {
+        println "2: " + prop
+    }
+}
+"""
+
+        expect:
+        succeeds()
+        outputContains("1: value")
+        outputContains("2: value")
+    }
+
+    def "can set property in configure closure outer scope"() {
+        buildFile << """
+ext.prop = "value 1"
+tasks.help {
+    assert prop == "value 1"
+    prop = "value 2"
+    1.times {
+        assert prop == "value 2"
+        prop = "value 3"
+    }
+}
+assert prop == "value 3"
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "can invoke method from configure closure outer scope"() {
+        buildFile << """
+ext.m = { p -> "[\$p]" }
+tasks.help {
+    println "1: " + m(1)
+    1.times {
+        println "2: " + m(2)
+    }
+}
+"""
+
+        expect:
+        succeeds()
+        outputContains("1: [1]")
+        outputContains("2: [2]")
+    }
+
     def "can read property from polymorphic container configure closure outer scope"() {
         buildFile << """
-description = "the project"
-repositories {
-    maven {
-        authentication {
-            println "description: " + description
+ext.prop = "value"
+tasks.configure {
+    println "1: " + prop
+    help {
+        println "2: " + prop
+        1.times {
+            println "3: " + prop
         }
     }
 }
@@ -33,19 +87,128 @@ repositories {
 
         expect:
         succeeds()
-        outputContains("description: the project")
+        outputContains("1: value")
+        outputContains("2: value")
+        outputContains("3: value")
     }
 
-    def "can read property from container configure closure outer scope"() {
+    def "can set property in polymorphic container configure closure outer scope"() {
         buildFile << """
-description = "the project"
-repositories {
-    println "description: " + description
+ext.prop = "value 1"
+tasks.configure {
+    assert prop == "value 1"
+    prop = "value 2"
+    help {
+        assert prop == "value 2"
+        prop = "value 3"
+        1.times {
+            assert prop == "value 3"
+            prop = "value 4"
+        }
+    }
+}
+assert prop == "value 4"
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "can invoke methhod from polymorphic container configure closure outer scope"() {
+        buildFile << """
+ext.m = { p -> "[\$p]" }
+tasks.configure {
+    println "1: " + m(1)
+    help {
+        println "2: " + m(2)
+        1.times {
+            println "3: " + m(3)
+        }
+    }
 }
 """
 
         expect:
         succeeds()
-        outputContains("description: the project")
+        outputContains("1: [1]")
+        outputContains("2: [2]")
+        outputContains("3: [3]")
     }
+
+    def "can read property from container configure closure outer scope"() {
+        buildFile << """
+ext.prop = "value"
+repositories {
+    println "1: " + prop
+    maven {
+        println "2: " + prop
+        1.times {
+            println "3: " + prop
+            authentication {
+                println "4: " + prop
+            }
+        }
+    }
+}
+"""
+
+        expect:
+        succeeds()
+        outputContains("1: value")
+        outputContains("2: value")
+        outputContains("3: value")
+        outputContains("4: value")
+    }
+
+    def "can set property in container configure closure outer scope"() {
+        buildFile << """
+ext.prop = "value 1"
+repositories {
+    assert prop == "value 1"
+    prop = "value 2"
+    maven {
+        assert prop == "value 2"
+        prop = "value 3"
+        1.times {
+            assert prop == "value 3"
+            prop = "value 4"
+            authentication {
+                assert prop == "value 4"
+                prop = "value 5"
+            }
+        }
+    }
+}
+assert prop == "value 5"
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "can invoke method from container configure closure outer scope"() {
+        buildFile << """
+ext.m = { p -> "[\$p]" }
+repositories {
+    println "1: " + m(1)
+    maven {
+        println "2: " + m(2)
+        1.times {
+            println "3: " + m(3)
+            authentication {
+                println "4: " + m(4)
+            }
+        }
+    }
+}
+"""
+
+        expect:
+        succeeds()
+        outputContains("1: [1]")
+        outputContains("2: [2]")
+        outputContains("3: [3]")
+        outputContains("4: [4]")
+    }
+
 }
