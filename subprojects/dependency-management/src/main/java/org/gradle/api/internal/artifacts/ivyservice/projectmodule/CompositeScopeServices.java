@@ -33,18 +33,18 @@ public class CompositeScopeServices {
         this.compositeServices = compositeServices;
     }
 
-    CompositeProjectArtifactBuilder createCompositeProjectArtifactBuilder(CompositeProjectComponentRegistry projectComponentRegistry, GradleLauncherFactory  gradleLauncherFactory) {
-        return new DefaultCompositeProjectArtifactBuilder(projectComponentRegistry, gradleLauncherFactory, startParameter, compositeServices);
+    ProjectArtifactBuilder createCompositeProjectArtifactBuilder(CompositeProjectComponentRegistry projectComponentRegistry, GradleLauncherFactory  gradleLauncherFactory) {
+        return new DefaultProjectArtifactBuilder(projectComponentRegistry, gradleLauncherFactory, startParameter, compositeServices);
     }
 
-    ResolverProviderFactory createCompositeResolverProviderFactory(CompositeProjectComponentRegistry projectComponentRegistry, CompositeProjectArtifactBuilder artifactBuilder) {
+    ResolverProviderFactory createCompositeResolverProviderFactory(CompositeProjectComponentRegistry projectComponentRegistry, ProjectArtifactBuilder artifactBuilder) {
         return new CompositeProjectResolverProviderFactory(projectComponentRegistry, artifactBuilder);
     }
 
     private static class CompositeProjectResolverProviderFactory implements ResolverProviderFactory {
         private final CompositeProjectDependencyResolver resolver;
 
-        public CompositeProjectResolverProviderFactory(CompositeProjectComponentRegistry projectComponentRegistry, CompositeProjectArtifactBuilder artifactBuilder) {
+        public CompositeProjectResolverProviderFactory(CompositeProjectComponentRegistry projectComponentRegistry, ProjectArtifactBuilder artifactBuilder) {
             resolver = new CompositeProjectDependencyResolver(projectComponentRegistry, artifactBuilder);
         }
 

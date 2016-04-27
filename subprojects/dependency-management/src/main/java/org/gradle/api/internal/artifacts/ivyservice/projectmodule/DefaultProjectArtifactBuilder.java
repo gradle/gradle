@@ -21,11 +21,12 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -33,49 +34,58 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultCompositeProjectArtifactBuilder implements CompositeProjectArtifactBuilder {
+public class DefaultProjectArtifactBuilder implements ProjectArtifactBuilder {
     private final CompositeProjectComponentRegistry registry;
     private final GradleLauncherFactory gradleLauncherFactory;
     private final StartParameter requestedStartParameter;
     private final ServiceRegistry serviceRegistry;
-    private final Set<String> executingProjects = Sets.newHashSet();
-    private final Multimap<String, String> executedTasks = LinkedHashMultimap.create();
+    private final Set<ProjectComponentIdentifier> executingProjects = Sets.newHashSet();
+    private final Multimap<ProjectComponentIdentifier, String> executedTasks = LinkedHashMultimap.create();
 
-    public DefaultCompositeProjectArtifactBuilder(CompositeProjectComponentRegistry registry,
-                                                  GradleLauncherFactory gradleLauncherFactory,
-                                                  StartParameter requestedStartParameter,
-                                                  ServiceRegistry serviceRegistry) {
+    public DefaultProjectArtifactBuilder(CompositeProjectComponentRegistry registry,
+                                         GradleLauncherFactory gradleLauncherFactory,
+                                         StartParameter requestedStartParameter,
+                                         ServiceRegistry serviceRegistry) {
         this.registry = registry;
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.requestedStartParameter = requestedStartParameter;
         this.serviceRegistry = serviceRegistry;
     }
 
-    private synchronized void buildStarted(String projectPath) {
-        if (!executingProjects.add(projectPath)) {
-            ProjectComponentSelector selector = new DefaultProjectComponentSelector(projectPath);
-            throw new ModuleVersionResolveException(selector, "Dependency cycle on " + projectPath);
+    private synchronized void buildStarted(ProjectComponentIdentifier project) {
+        if (!executingProjects.add(project)) {
+            ProjectComponentSelector selector = new DefaultProjectComponentSelector(project.getProjectPath());
+            throw new ModuleVersionResolveException(selector, "Dependency cycle including " + project);
         }
     }
 
-    private synchronized void buildCompleted(String projectPath) {
-        executingProjects.remove(projectPath);
+    private synchronized void buildCompleted(ProjectComponentIdentifier project) {
+        executingProjects.remove(project);
     }
 
     @Override
-    public boolean build(String projectPath, Iterable<String> taskNames) {
-        buildStarted(projectPath);
+    public boolean build(ComponentArtifactMetaData artifact) {
+        if (artifact instanceof CompositeProjectComponentArtifactMetaData) {
+            CompositeProjectComponentArtifactMetaData artifactMetaData = (CompositeProjectComponentArtifactMetaData) artifact;
+            return build(artifactMetaData.getComponentId(), artifactMetaData.getTaskNames());
+        }
+
+        return false;
+    }
+
+    private boolean build(ProjectComponentIdentifier project, Iterable<String> taskNames) {
+        buildStarted(project);
         try {
-            return doBuild(projectPath, taskNames);
+            return doBuild(project, taskNames);
         } finally {
-            buildCompleted(projectPath);
+            buildCompleted(project);
         }
     }
 
-    public boolean doBuild(String projectPath, Iterable<String> taskNames) {
+    public boolean doBuild(ProjectComponentIdentifier project, Iterable<String> taskNames) {
         List<String> tasksToExecute = Lists.newArrayList();
         for (String taskName : taskNames) {
-            if (executedTasks.put(projectPath, taskName)) {
+            if (executedTasks.put(project, taskName)) {
                 tasksToExecute.add(taskName);
             }
         }
@@ -83,7 +93,7 @@ public class DefaultCompositeProjectArtifactBuilder implements CompositeProjectA
             return false;
         }
 
-        File projectDirectory = registry.getProjectDirectory(DefaultProjectComponentIdentifier.newId(projectPath));
+        File projectDirectory = registry.getProjectDirectory(project);
         StartParameter param = requestedStartParameter.newBuild();
         param.setProjectDir(projectDirectory);
         param.setTaskNames(tasksToExecute);

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-public interface CompositeProjectArtifactBuilder {
-    boolean build(String projectPath, Iterable<String> taskNames);
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
+
+public interface ProjectArtifactBuilder {
+    boolean build(ComponentArtifactMetaData artifact);
 }

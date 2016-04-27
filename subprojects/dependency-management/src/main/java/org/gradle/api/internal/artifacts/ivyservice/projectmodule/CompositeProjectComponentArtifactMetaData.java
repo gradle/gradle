@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentArtifactIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -26,12 +26,12 @@ import java.io.File;
 import java.util.Set;
 
 public class CompositeProjectComponentArtifactMetaData implements ComponentArtifactMetaData, LocalComponentArtifactIdentifier {
-    private final ComponentIdentifier componentIdentifier;
+    private final ProjectComponentIdentifier componentIdentifier;
     private final IvyArtifactName ivyArtifactName;
     private final File artifactFile;
     private final Set<String> taskNames;
 
-    public CompositeProjectComponentArtifactMetaData(ComponentIdentifier componentIdentifier, IvyArtifactName ivyArtifactName, File artifactFile, Set<String> taskNames) {
+    public CompositeProjectComponentArtifactMetaData(ProjectComponentIdentifier componentIdentifier, IvyArtifactName ivyArtifactName, File artifactFile, Set<String> taskNames) {
         this.componentIdentifier = componentIdentifier;
         this.ivyArtifactName = ivyArtifactName;
         this.artifactFile = artifactFile;
@@ -39,7 +39,7 @@ public class CompositeProjectComponentArtifactMetaData implements ComponentArtif
     }
 
     @Override
-    public ComponentIdentifier getComponentId() {
+    public ProjectComponentIdentifier getComponentId() {
         return componentIdentifier;
     }
 
@@ -54,7 +54,7 @@ public class CompositeProjectComponentArtifactMetaData implements ComponentArtif
     }
 
     @Override
-    public ComponentIdentifier getComponentIdentifier() {
+    public ProjectComponentIdentifier getComponentIdentifier() {
         return componentIdentifier;
     }
 

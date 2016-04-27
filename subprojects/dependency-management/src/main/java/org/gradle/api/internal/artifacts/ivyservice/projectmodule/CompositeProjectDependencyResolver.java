@@ -40,9 +40,9 @@ import java.io.File;
 
 public class CompositeProjectDependencyResolver implements DependencyToComponentIdResolver, ArtifactResolver, ComponentMetaDataResolver {
     private final CompositeProjectComponentRegistry projectComponentRegistry;
-    private final CompositeProjectArtifactBuilder artifactBuilder;
+    private final ProjectArtifactBuilder artifactBuilder;
 
-    public CompositeProjectDependencyResolver(CompositeProjectComponentRegistry projectComponentRegistry, CompositeProjectArtifactBuilder artifactBuilder) {
+    public CompositeProjectDependencyResolver(CompositeProjectComponentRegistry projectComponentRegistry, ProjectArtifactBuilder artifactBuilder) {
         this.projectComponentRegistry = projectComponentRegistry;
         this.artifactBuilder = artifactBuilder;
     }
@@ -86,10 +86,9 @@ public class CompositeProjectDependencyResolver implements DependencyToComponent
     public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         if (artifact instanceof CompositeProjectComponentArtifactMetaData) {
             CompositeProjectComponentArtifactMetaData artifactMetaData = (CompositeProjectComponentArtifactMetaData) artifact;
-            String projectPath = ((ProjectComponentIdentifier) artifact.getComponentId()).getProjectPath();
 
             // Run the tasks to build this artifact in the composite participant
-            artifactBuilder.build(projectPath, artifactMetaData.getTaskNames());
+            artifactBuilder.build(artifactMetaData);
 
             File localArtifactFile = artifactMetaData.getFile();
             if (localArtifactFile != null) {

@@ -366,7 +366,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
 
         then:
         def t = thrown(BuildException)
-        assertFailure(t, "Dependency cycle on buildB::")
+        assertFailure(t, "Dependency cycle including project buildB::")
 
         where:
         fromBuildA | fromBuildB | fromBuildC
