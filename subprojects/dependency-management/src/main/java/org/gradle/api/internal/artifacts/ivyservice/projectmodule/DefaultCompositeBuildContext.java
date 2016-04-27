@@ -62,20 +62,17 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
 
     @Override
     public LocalComponentMetaData getProject(ProjectComponentIdentifier project) {
-        return getRegisteredProject(project).metaData;
+        RegisteredProject registeredProject = projectMetadata.get(project);
+        return registeredProject == null ? null : registeredProject.metaData;
     }
 
     @Override
     public File getProjectDirectory(ProjectComponentIdentifier project) {
-        return getRegisteredProject(project).projectDirectory;
-    }
-
-    private RegisteredProject getRegisteredProject(ProjectComponentIdentifier project) {
         RegisteredProject registeredProject = projectMetadata.get(project);
         if (registeredProject == null) {
             throw new IllegalStateException(String.format("Requested %s which was never registered", project));
         }
-        return registeredProject;
+        return registeredProject.projectDirectory;
     }
 
     @Override

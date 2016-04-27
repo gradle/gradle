@@ -67,7 +67,6 @@ public class CompositeProjectDependencyResolver implements DependencyToComponent
 
     @Override
     public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
-
     }
 
     @Override

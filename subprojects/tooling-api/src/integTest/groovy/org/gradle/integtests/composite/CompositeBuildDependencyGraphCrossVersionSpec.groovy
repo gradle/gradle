@@ -241,10 +241,7 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
         checkGraph {
             edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
                 compositeSubstitute()
-                // TODO:DAZ This isn't quite right: the original requested version was 'project :b1', not 'org.test:b1:2.0'
-                edge("org.test:b1:2.0", "project buildB::b1", "org.test:b1:2.0") {
-                    compositeSubstitute()
-                }
+                project("buildB::b1", "org.test:b1:2.0") {}
             }
         }
     }
@@ -532,6 +529,33 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
 
     def "reports failure to resolve dependencies when transitive dependency substitution is ambiguous"() {
         given:
+        transitiveDependencyIsAmbiguous("'org.test:b1:2.0'")
+
+        when:
+        checkDependencies()
+
+        then:
+        def t = thrown(BuildException)
+        assertFailure(t, "Module version 'org.test:b1:2.0' is not unique in composite: can be provided by projects [buildB::b1, buildC::b1].")
+    }
+
+    def "resolve transitive project dependency that is ambiguous in the composite"() {
+        given:
+        transitiveDependencyIsAmbiguous("project(':b1')")
+
+        when:
+        checkDependencies()
+
+        then:
+        checkGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+                project("buildB::b1", "org.test:b1:2.0") {}
+            }
+        }
+    }
+
+    def transitiveDependencyIsAmbiguous(String dependencyNotation) {
         def buildC = multiProjectBuild("buildC", ['b1']) {
             buildFile << """
                 allprojects {
@@ -553,17 +577,6 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
                 compile "org.test:buildB:1.0"
             }
 """
-
-        when:
-        checkDependencies()
-
-        then:
-        def t = thrown(BuildException)
-        assertFailure(t, "Module version 'org.test:b1:2.0' is not unique in composite: can be provided by projects [buildB::b1, buildC::b1].")
-
-        where:
-        dependencyNotation << ["'org.test:b1:2.0'", "project(':b1')"]
-        // TODO:DAZ The `project(':b1')` dependency is not actually ambiguous in the composite, but we are first translating it to GAV which makes it so.
     }
 
     def "handles unused participant with no defined configurations"() {

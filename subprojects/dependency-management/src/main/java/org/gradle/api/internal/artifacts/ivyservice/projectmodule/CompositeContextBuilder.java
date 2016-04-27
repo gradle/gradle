@@ -21,16 +21,15 @@ import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.Buildable;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.initialization.ReportedException;
-import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentArtifactIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.component.local.model.LocalConfigurationMetaData;
@@ -75,13 +74,13 @@ public class CompositeContextBuilder implements BuildActionRunner {
         ProjectComponentIdentifier originalIdentifier = DefaultProjectComponentIdentifier.newId(project.getPath());
         DefaultLocalComponentMetaData originalComponent = (DefaultLocalComponentMetaData) projectComponentRegistry.getProject(originalIdentifier);
 
-        ProjectComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(buildName + ":" + project.getPath());
-        LocalComponentMetaData compositeComponent = createCompositeCopy(componentIdentifier, originalComponent, project.getProjectDir());
+        ProjectComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(createExternalProjectPath(buildName, project.getPath()));
+        LocalComponentMetaData compositeComponent = createCompositeCopy(buildName, componentIdentifier, originalComponent, project.getProjectDir());
 
         context.register(compositeComponent.getId().getModule(), componentIdentifier, compositeComponent, project.getProjectDir());
     }
 
-    private LocalComponentMetaData createCompositeCopy(ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetaData originalComponentMetadata, File projectDir) {
+    private LocalComponentMetaData createCompositeCopy(String buildName, ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetaData originalComponentMetadata, File projectDir) {
         DefaultLocalComponentMetaData compositeComponentMetadata = new DefaultLocalComponentMetaData(originalComponentMetadata.getId(), componentIdentifier, originalComponentMetadata.getStatus());
 
         for (String configurationName : originalComponentMetadata.getConfigurationNames()) {
@@ -101,9 +100,10 @@ public class CompositeContextBuilder implements BuildActionRunner {
         }
 
         for (DependencyMetaData dependency : originalComponentMetadata.getDependencies()) {
-            // TODO:DAZ It doesn't seem right to be converting back to an external module selector here.
             if (dependency.getSelector() instanceof ProjectComponentSelector) {
-                ModuleComponentSelector externalizedSelector = DefaultModuleComponentSelector.newSelector(dependency.getRequested());
+                ProjectComponentSelector requested = (ProjectComponentSelector) dependency.getSelector();
+                String externalPath = createExternalProjectPath(buildName, requested.getProjectPath());
+                ProjectComponentSelector externalizedSelector = DefaultProjectComponentSelector.newSelector(externalPath);
                 dependency = dependency.withTarget(externalizedSelector);
             }
             compositeComponentMetadata.addDependency(dependency);
@@ -113,6 +113,10 @@ public class CompositeContextBuilder implements BuildActionRunner {
         }
 
         return compositeComponentMetadata;
+    }
+
+    private String createExternalProjectPath(String buildName, String projectPath) {
+        return buildName + ":" +  projectPath;
     }
 
     public CompositeBuildContext build() {

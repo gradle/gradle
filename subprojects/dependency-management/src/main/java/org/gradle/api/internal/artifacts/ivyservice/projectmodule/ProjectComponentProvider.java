@@ -13,29 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 
-import java.util.List;
-
-public class DefaultProjectComponentRegistry implements ProjectComponentRegistry {
-    private final List<ProjectComponentProvider> providers;
-
-    public DefaultProjectComponentRegistry(List<ProjectComponentProvider> providers) {
-        this.providers = providers;
-    }
-
-    @Override
-    public LocalComponentMetaData getProject(ProjectComponentIdentifier projectIdentifier) {
-        for (ProjectComponentProvider provider : providers) {
-            LocalComponentMetaData componentMetaData = provider.getProject(projectIdentifier);
-            if (componentMetaData != null) {
-                return componentMetaData;
-            }
-        }
-        return null;
-    }
+public interface ProjectComponentProvider {
+    LocalComponentMetaData getProject(ProjectComponentIdentifier projectIdentifier);
 }

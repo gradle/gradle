@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -45,7 +46,9 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.Configuratio
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalProjectComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
@@ -82,6 +85,8 @@ import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFact
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.GradleVersion;
+
+import java.util.List;
 
 /**
  * The set of dependency management services that are created per build.
@@ -257,8 +262,10 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectPublicationRegistry();
     }
 
-    ProjectComponentRegistry createProjectComponentRegistry(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
-        return new DefaultProjectComponentRegistry(projectRegistry, metaDataBuilder);
+    ProjectComponentRegistry createProjectComponentRegistry(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder, ServiceRegistry serviceRegistry) {
+        List<ProjectComponentProvider> providers = Lists.newArrayList(serviceRegistry.getAll(ProjectComponentProvider.class));
+        providers.add(new LocalProjectComponentProvider(projectRegistry, metaDataBuilder));
+        return new DefaultProjectComponentRegistry(providers);
     }
 
     ProjectDependencyResolver createProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry, ServiceRegistry serviceRegistry) {

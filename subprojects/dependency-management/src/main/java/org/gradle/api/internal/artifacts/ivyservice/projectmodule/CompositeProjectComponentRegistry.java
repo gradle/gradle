@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
 import java.io.File;
 
-public interface CompositeProjectComponentRegistry extends ProjectComponentRegistry {
+public interface CompositeProjectComponentRegistry extends ProjectComponentProvider {
     ProjectComponentIdentifier getReplacementProject(ModuleComponentSelector selector);
     File getProjectDirectory(ProjectComponentIdentifier project);
 }
