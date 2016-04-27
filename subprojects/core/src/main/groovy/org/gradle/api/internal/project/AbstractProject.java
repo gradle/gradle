@@ -134,6 +134,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     private Object buildDir = Project.DEFAULT_BUILD_DIR_NAME;
 
+    private File buildDirCached;
+
     private final int depth;
 
     private TaskContainerInternal taskContainer;
@@ -574,11 +576,15 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public File getBuildDir() {
-        return file(buildDir);
+        if (buildDirCached == null) {
+            buildDirCached = file(buildDir);
+        }
+        return buildDirCached;
     }
 
     public void setBuildDir(Object path) {
         buildDir = path;
+        buildDirCached = null;
     }
 
     public void evaluationDependsOnChildren() {
