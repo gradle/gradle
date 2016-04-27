@@ -30,6 +30,18 @@ import java.util.regex.Pattern;
 
 class FileNormaliser {
     private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
+    private static final String PATH_SEPARATOR_PATTERN = "[" + Pattern.quote(FILE_PATH_SEPARATORS) + "]";
+    private static final String DOTS_SEGMENT_PATTERN = "(?:^|" + PATH_SEPARATOR_PATTERN + ")\\.\\.?(?:$|" + PATH_SEPARATOR_PATTERN + ")";
+    private static final String EMPTY_SEGMENT_PATTERN = PATH_SEPARATOR_PATTERN + PATH_SEPARATOR_PATTERN;
+    private static final String ENDS_WITH_PATH_SEPARATOR_PATTERN = PATH_SEPARATOR_PATTERN + "$";
+    private static final Pattern NORMALISING_REQUIRED_PATTERN_DOTS_OR_EMPTY_SEGMENT = Pattern.compile("(?:"
+        + DOTS_SEGMENT_PATTERN
+        + "|"
+        + EMPTY_SEGMENT_PATTERN
+        + "|"
+        + ENDS_WITH_PATH_SEPARATOR_PATTERN
+        + ")");
+
     private final FileSystem fileSystem;
 
     FileNormaliser(FileSystem fileSystem) {
@@ -50,7 +62,7 @@ class FileNormaliser {
             File candidate;
             String filePath = file.getPath();
             List<String> path = null;
-            if (filePath.indexOf('.') > -1) {
+            if (isNormalisingRequired(filePath)) {
                 path = splitAndNormalisePath(filePath);
                 String resolvedPath = CollectionUtils.join(File.separator, path);
                 boolean needLeadingSeparator = File.listRoots()[0].getPath().startsWith(File.separator);
@@ -90,6 +102,10 @@ class FileNormaliser {
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not normalize path for file '%s'.", file), e);
         }
+    }
+
+    boolean isNormalisingRequired(String filePath) {
+        return NORMALISING_REQUIRED_PATTERN_DOTS_OR_EMPTY_SEGMENT.matcher(filePath).find();
     }
 
     private List<String> splitAndNormalisePath(String filePath) {
