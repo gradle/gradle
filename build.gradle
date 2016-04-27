@@ -11,6 +11,7 @@ buildscript {
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.1.1'
     }
 }
 
@@ -19,6 +20,7 @@ wrapper.gradleVersion = '2.13'
 apply plugin: 'kotlin'
 
 apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.artifactory'
 
 group = 'org.gradle'
 version = '1.0.0-SNAPSHOT'
@@ -28,5 +30,23 @@ publishing {
         mavenJava(MavenPublication) {
             from components.java
         }
+    }
+}
+
+artifactory {
+    contextUrl = "https://repo.gradle.org/gradle"
+    publish {
+        repository {
+            repoKey = 'fram-local'
+            username = artifactory_user
+            password = artifactory_password
+            maven = true
+        }
+        defaults {
+            publications('mavenJava')
+        }
+    }
+    resolve {
+        repoKey = 'repo'
     }
 }
