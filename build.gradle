@@ -1,1 +1,19 @@
+buildscript {
+    ext.kotlinVersion = '1.0.3-dev-409'
+    repositories {
+        maven {
+            url 'https://repo.gradle.org/gradle/fram'
+            credentials {
+                username = artifactory_user
+                password = artifactory_password
+            }
+        }
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    }
+}
+
 wrapper.gradleVersion = '2.13'
+
+apply plugin: 'kotlin'
