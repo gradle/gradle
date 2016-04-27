@@ -17,3 +17,16 @@ buildscript {
 wrapper.gradleVersion = '2.13'
 
 apply plugin: 'kotlin'
+
+apply plugin: 'maven-publish'
+
+group = 'org.gradle'
+version = '1.0.0-SNAPSHOT'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
