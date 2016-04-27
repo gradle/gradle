@@ -98,6 +98,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
+    IvyModule dependsOn(IvyModule ivyModule) {
+        return dependsOn(ivyModule.getOrganisation(), ivyModule.getModule(), ivyModule.getRevision())
+    }
+
     IvyFileModule dependsOn(String... modules) {
         modules.each { dependsOn(organisation, it, revision) }
         return this

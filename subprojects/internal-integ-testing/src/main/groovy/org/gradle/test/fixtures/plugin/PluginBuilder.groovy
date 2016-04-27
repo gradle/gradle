@@ -24,6 +24,8 @@ import org.gradle.model.ModelMap
 import org.gradle.model.Mutate
 import org.gradle.model.RuleSource
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.ivy.IvyFileRepository
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.TextUtil
 
 class PluginBuilder {
@@ -71,6 +73,42 @@ class PluginBuilder {
 
         writePluginDescriptors(pluginIds)
         executer.inDirectory(projectDir).withTasks("jar").run()
+    }
+
+    void publishAs(String coordinates, MavenFileRepository mavenRepo, GradleExecuter executer) {
+        String[] gav = coordinates.split(":")
+
+        // The implementation jar module.
+        def module = mavenRepo.module(gav[0], gav[1], gav[2])
+        def artifactFile = module.getArtifactFile([:])
+        module.publish()
+
+        pluginIds.keySet().each {id ->
+            // The marker files for each plugin.
+            def marker = mavenRepo.module(id, id, gav[2])
+            marker.dependsOn(module)
+            marker.publish()
+        }
+
+        publishTo(executer, artifactFile)
+    }
+
+    void publishAs(String coordinates, IvyFileRepository ivyRepo, GradleExecuter executer) {
+        String[] omr = coordinates.split(":")
+
+        // The implementation jar module.
+        def module = ivyRepo.module(omr[0], omr[1], omr[2])
+        def artifactFile = module.artifact([:]).getJarFile()
+        module.publish()
+
+        pluginIds.keySet().each {id ->
+            // The marker files for each plugin.
+            def marker = ivyRepo.module(id, id, omr[2])
+            marker.dependsOn(module)
+            marker.publish()
+        }
+
+        publishTo(executer, artifactFile);
     }
 
     void generateForBuildSrc() {
