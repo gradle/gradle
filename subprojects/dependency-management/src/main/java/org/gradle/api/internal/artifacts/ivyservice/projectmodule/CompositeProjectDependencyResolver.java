@@ -59,12 +59,12 @@ public class CompositeProjectDependencyResolver implements DependencyToComponent
 
     public void maybeResolveInComposite(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
         ModuleComponentSelector selector = (ModuleComponentSelector) dependency.getSelector();
-        String projectPath = projectComponentRegistry.getReplacementProject(selector);
-        if (projectPath == null) {
+        ProjectComponentIdentifier replacement = projectComponentRegistry.getReplacementProject(selector);
+        if (replacement == null) {
             return;
         }
 
-        LocalComponentMetaData metaData = projectComponentRegistry.getProject(projectPath);
+        LocalComponentMetaData metaData = projectComponentRegistry.getProject(replacement.getProjectPath());
         result.resolved(metaData);
         result.setSelectionReason(VersionSelectionReasons.COMPOSITE_BUILD);
     }

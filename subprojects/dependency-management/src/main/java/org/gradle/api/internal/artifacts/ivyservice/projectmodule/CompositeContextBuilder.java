@@ -71,15 +71,13 @@ public class CompositeContextBuilder implements BuildActionRunner {
     }
 
     private void registerProject(String buildName, ProjectInternal project) {
-        String projectPath = buildName + ":" + project.getPath();
-        ProjectComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(projectPath);
-
         ProjectComponentRegistry projectComponentRegistry = project.getServices().get(ProjectComponentRegistry.class);
+        DefaultLocalComponentMetaData originalComponent = (DefaultLocalComponentMetaData) projectComponentRegistry.getProject(project.getPath());
 
-        DefaultLocalComponentMetaData projectComponentMetadata = (DefaultLocalComponentMetaData) projectComponentRegistry.getProject(project.getPath());
-        LocalComponentMetaData localComponentMetaData = createCompositeCopy(componentIdentifier, projectComponentMetadata);
+        ProjectComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(buildName + ":" + project.getPath());
+        LocalComponentMetaData compositeComponent = createCompositeCopy(componentIdentifier, originalComponent);
 
-        context.register(localComponentMetaData.getId().getModule(), projectPath, localComponentMetaData, project.getProjectDir());
+        context.register(compositeComponent.getId().getModule(), componentIdentifier, compositeComponent, project.getProjectDir());
     }
 
     private LocalComponentMetaData createCompositeCopy(ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetaData originalComponentMetadata) {
