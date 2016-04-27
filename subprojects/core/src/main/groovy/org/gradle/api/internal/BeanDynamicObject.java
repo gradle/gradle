@@ -99,11 +99,6 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
-    public String toString() {
-        return getDisplayName();
-    }
-
-    @Override
     protected String getDisplayName() {
         return bean.toString();
     }

@@ -31,6 +31,11 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     protected abstract String getDisplayName();
 
     @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
+    @Override
     public boolean hasProperty(String name) {
         return false;
     }
