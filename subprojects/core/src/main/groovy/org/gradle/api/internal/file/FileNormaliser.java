@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
@@ -28,7 +29,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 class FileNormaliser {
-    private static final Pattern FILE_SEPARATOR_PATTERN = Pattern.compile("[/" + Pattern.quote(File.separator) + "]");
+    private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
     private final FileSystem fileSystem;
 
     FileNormaliser(FileSystem fileSystem) {
@@ -92,7 +93,7 @@ class FileNormaliser {
     }
 
     private List<String> splitAndNormalisePath(String filePath) {
-        String[] segments = FILE_SEPARATOR_PATTERN.split(filePath);
+        String[] segments = splitPath(filePath);
         List<String> path = new ArrayList<String>(segments.length);
         for (String segment : segments) {
             if (segment.equals("..")) {
@@ -104,6 +105,10 @@ class FileNormaliser {
             }
         }
         return path;
+    }
+
+    private String[] splitPath(String filePath) {
+        return StringUtils.split(filePath, FILE_PATH_SEPARATORS);
     }
 
     private File findChild(File current, String segment) throws IOException {
