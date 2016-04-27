@@ -138,7 +138,6 @@ class ConfigureUtilTest extends Specification {
             this
         }
     }
-    
 
     def testConfigurableAware() {
         given:
@@ -156,7 +155,7 @@ class ConfigureUtilTest extends Specification {
         Bean bean = ThreadGlobalInstantiator.getOrCreate().newInstance(Bean)
 
         when:
-        ConfigureUtil.configureByMap(bean, method:  "foo")
+        ConfigureUtil.configureByMap(bean, method: "foo")
 
         then:
         bean.prop == "foo"

@@ -17,10 +17,8 @@
 package org.gradle.util;
 
 import groovy.lang.Closure;
-import groovy.lang.MissingMethodException;
-import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.api.internal.DynamicObject;
-import org.gradle.api.internal.DynamicObjectUtil;
+import groovy.lang.MissingPropertyException;
+import org.gradle.api.internal.*;
 
 import java.util.Collection;
 import java.util.Map;
@@ -36,14 +34,16 @@ public class ConfigureUtil {
             String name = entry.getKey().toString();
             Object value = entry.getValue();
 
-            if (dynamicObject.hasProperty(name)) {
-                dynamicObject.setProperty(name, value);
-            } else {
-                try {
-                    dynamicObject.invokeMethod(name, value);
-                } catch (MissingMethodException e) {
-                    dynamicObject.setProperty(name, value);
-                }
+            SetPropertyResult setterResult = new SetPropertyResult();
+            dynamicObject.setProperty(name, value, setterResult);
+            if (setterResult.isFound()) {
+                continue;
+            }
+
+            InvokeMethodResult invokeResult = new InvokeMethodResult();
+            dynamicObject.invokeMethod(name, invokeResult, value);
+            if (!invokeResult.isFound()) {
+                throw new MissingPropertyException(name, delegate.getClass());
             }
         }
 
