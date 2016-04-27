@@ -42,6 +42,9 @@ class ModelSetModelProjectionTest extends ProjectRegistrySpec {
         void setValue(String value)
     }
 
+    @Managed
+    interface NamedSubThing extends NamedThing { }
+
     def collectionPath = ModelPath.path("collection")
     def collectionType = new ModelType<ModelSet<NamedThing>>() {}
     private ModelReference<ModelSet<NamedThing>> reference = ModelReference.of(collectionPath, new ModelType<ModelSet<NamedThing>>() {})
@@ -71,6 +74,20 @@ class ModelSetModelProjectionTest extends ProjectRegistrySpec {
         set*.name == ['1', '2']
         set.toArray().collect { it.name } == ['1', '2']
         set.toArray(new NamedThing[2]).collect { it.name } == ['1', '2']
+    }
+
+    def "can define and query subclass elements"() {
+        when:
+        mutate {
+            create(NamedSubThing) { name = '1' }
+            create(NamedSubThing) { name = '2' }
+        }
+
+        then:
+        def set = registry.realize(collectionPath, collectionType)
+        set*.name == ['1', '2']
+        set.toArray().collect { it.name } == ['1', '2']
+        set.toArray(new NamedSubThing[2]).collect { it.name } == ['1', '2']
     }
 
     def "reuses element views"() {
