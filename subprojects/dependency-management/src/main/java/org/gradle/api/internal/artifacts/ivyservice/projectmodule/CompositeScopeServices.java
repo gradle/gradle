@@ -17,10 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingComponentResolvers;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRuleProvider;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -37,26 +34,8 @@ public class CompositeScopeServices {
         return new CompositeProjectArtifactBuilder(gradleLauncherFactory, startParameter, compositeServices);
     }
 
-    ResolverProviderFactory createCompositeResolverProviderFactory(CompositeProjectComponentRegistry projectComponentRegistry) {
-        return new CompositeProjectResolverProviderFactory(projectComponentRegistry);
-    }
-
-    private static class CompositeProjectResolverProviderFactory implements ResolverProviderFactory {
-        private final CompositeProjectDependencyResolver resolver;
-
-        public CompositeProjectResolverProviderFactory(CompositeProjectComponentRegistry projectComponentRegistry) {
-            resolver = new CompositeProjectDependencyResolver(projectComponentRegistry);
-        }
-
-        @Override
-        public boolean canCreate(ResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public ComponentResolvers create(ResolveContext context) {
-            return DelegatingComponentResolvers.of(resolver);
-        }
+    DependencySubstitutionRuleProvider createCompositeBuildDependencySubstitutions(CompositeProjectComponentRegistry projectComponentRegistry) {
+        return new CompositeBuildDependencySubstitutions(projectComponentRegistry);
     }
 
 }

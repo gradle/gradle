@@ -475,21 +475,7 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
             dependencies {
                 compile "org.test:b1:1.0"
             }
-
-            task checkFailure << {
-                def deps = configurations.compile.incoming.resolutionResult.allDependencies as List
-                assert deps.size() == 1
-                assert deps[0].attempted.group == 'org.test'
-                assert deps[0].attempted.module == 'b1'
-                assert deps[0].attempted.version == '1.0'
-                assert deps[0].attemptedReason.description == 'requested'
-                assert deps[0].failure.message.contains("Module version 'org.test:b1:1.0' is not unique in composite")
-                assert deps[0].requested.version == '1.0'
-            }
 """
-
-        expect:
-        execute(buildA, ":checkFailure")
 
         when:
         checkDependencies()
