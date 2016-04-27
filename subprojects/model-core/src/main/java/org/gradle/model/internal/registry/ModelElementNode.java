@@ -23,10 +23,22 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.model.RuleSource;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.DuplicateModelException;
+import org.gradle.model.internal.core.EmptyReferenceProjection;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelNode;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelProjection;
+import org.gradle.model.internal.core.ModelRegistration;
+import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NodePredicate;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,7 +46,7 @@ import static org.gradle.model.internal.core.ModelNode.State.Created;
 import static org.gradle.model.internal.core.ModelNode.State.Initialized;
 
 class ModelElementNode extends ModelNodeInternal {
-    private final Map<String, ModelNodeInternal> links = Maps.newTreeMap();
+    private Map<String, ModelNodeInternal> links;
     private final MutableModelNode parent;
     private Object privateData;
     private ModelType<?> privateDataType;
@@ -105,27 +117,30 @@ class ModelElementNode extends ModelNodeInternal {
 
     @Override
     public boolean hasLink(String name) {
-        return links.containsKey(name);
+        return links != null && links.containsKey(name);
     }
 
     @Override
     @Nullable
     public ModelNodeInternal getLink(String name) {
-        return links.get(name);
+        return links == null ? null : links.get(name);
     }
 
     @Override
     public Iterable<? extends ModelNodeInternal> getLinks() {
-        return links.values();
+        return links == null ? Collections.<ModelNodeInternal>emptyList() : links.values();
     }
 
     @Override
     public int getLinkCount(Predicate<? super MutableModelNode> predicate) {
-        return Iterables.size(Iterables.filter(links.values(), predicate));
+        return links == null ? 0 : Iterables.size(Iterables.filter(links.values(), predicate));
     }
 
     @Override
     public Set<String> getLinkNames(Predicate<? super MutableModelNode> predicate) {
+        if (links == null) {
+            return Collections.emptySet();
+        }
         Set<String> names = Sets.newLinkedHashSet();
         for (Map.Entry<String, ModelNodeInternal> entry : links.entrySet()) {
             ModelNodeInternal link = entry.getValue();
@@ -138,12 +153,12 @@ class ModelElementNode extends ModelNodeInternal {
 
     @Override
     public Iterable<? extends MutableModelNode> getLinks(Predicate<? super MutableModelNode> predicate) {
-        return Iterables.filter(links.values(), predicate);
+        return links == null ? Collections.<MutableModelNode>emptyList() : Iterables.filter(links.values(), predicate);
     }
 
     @Override
     public int getLinkCount() {
-        return links.size();
+        return links == null ? 0 : links.size();
     }
 
     @Override
@@ -198,7 +213,7 @@ class ModelElementNode extends ModelNodeInternal {
             throw new IllegalArgumentException(String.format("Element registration has a path (%s) which is not a child of this node (%s).", childPath, getPath()));
         }
 
-        ModelNodeInternal currentChild = links.get(childPath.getName());
+        ModelNodeInternal currentChild = links == null ? null : links.get(childPath.getName());
         if (currentChild != null) {
             if (!currentChild.isAtLeast(Created)) {
                 throw new DuplicateModelException(
@@ -229,13 +244,16 @@ class ModelElementNode extends ModelNodeInternal {
                 )
             );
         }
+        if (links == null) {
+            links = Maps.newTreeMap();
+        }
         links.put(child.getPath().getName(), child);
         modelRegistry.registerNode(child, registration.getActions());
     }
 
     @Override
     public void removeLink(String name) {
-        if (links.remove(name) != null) {
+        if (links!=null && links.remove(name) != null) {
             modelRegistry.remove(getPath().child(name));
         }
     }
