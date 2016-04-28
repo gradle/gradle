@@ -210,10 +210,29 @@ class DefaultModuleRegistryTest extends Specification {
         module.allRequiredModules as List == [module, registry.getModule("gradle-module-2"), registry.getModule("gradle-module-3")]
     }
 
+    def "supports cycles between modules"() {
+        given:
+        def module1Dir = tmpDir.createDir("module-1/build/resources/main")
+        save(
+            properties(projects: 'gradle-module-2'),
+            module1Dir.file("gradle-module-1-classpath.properties"))
+
+        def module2Dir = tmpDir.createDir("module-2/build/resources/main")
+        save(
+            properties(projects: 'gradle-module-1'),
+            module2Dir.file("gradle-module-2-classpath.properties"))
+
+        def cl = classLoaderFor([module1Dir, module2Dir])
+        def registry = new DefaultModuleRegistry(cl, ClassPath.EMPTY, null)
+
+        expect:
+        def module = registry.getModule("gradle-module-1")
+        module.allRequiredModules as List == [module, registry.getModule("gradle-module-2")]
+    }
+
     def "fails when classpath does not contain manifest resource"() {
         given:
-        def cl = new URLClassLoader([] as URL[])
-        def registry = new DefaultModuleRegistry(cl, ClassPath.EMPTY, null)
+        def registry = new DefaultModuleRegistry(classLoaderFor([]), ClassPath.EMPTY, null)
 
         when:
         registry.getModule("gradle-some-module")
