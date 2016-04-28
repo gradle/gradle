@@ -29,7 +29,7 @@ import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {
     final ProjectComponentRegistry registry = Mock()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry)
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, [])
 
     def "resolves project dependency"() {
         setup:
@@ -38,12 +38,13 @@ class ProjectDependencyResolverTest extends Specification {
         def dependencyMetaData = Stub(DependencyMetaData) {
             getSelector() >> DefaultProjectComponentSelector.newSelector(":project")
         }
+        def id = DefaultProjectComponentIdentifier.newId(":project")
 
         when:
         resolver.resolve(dependencyMetaData, result)
 
         then:
-        1 * registry.getProject(":project") >> componentMetaData
+        1 * registry.getProject(id) >> componentMetaData
         1 * result.resolved(componentMetaData)
         0 * result._
     }
@@ -58,7 +59,7 @@ class ProjectDependencyResolverTest extends Specification {
         resolver.resolve(projectComponentId, new DefaultComponentOverrideMetadata(), result)
 
         then:
-        1 * registry.getProject(":projectPath") >> componentMetaData
+        1 * registry.getProject(projectComponentId) >> componentMetaData
         1 * result.resolved(componentMetaData)
         0 * result._
     }

@@ -43,6 +43,7 @@ class DefaultDependencyManagementServicesTest extends Specification {
         _ * parent.get(Instantiator) >> instantiator
         _ * parent.get({it instanceof Class}) >> { Class t -> Stub(t) }
         _ * parent.get({it instanceof ParameterizedType}) >> { ParameterizedType t -> Stub(t.rawType) }
+        _ * parent.getAll({it instanceof Class}) >> { Class t -> [Stub(t)]}
     }
 
     def "can create dependency resolution DSL services"() {
