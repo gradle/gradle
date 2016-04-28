@@ -136,6 +136,10 @@ It will continue to be possible to build JVM based projects for Java 6, by runni
 
 The `StartParameter.colorOutput` property has been deprecated and will be removed in Gradle 3.0. You should use the `consoleOutput` property instead.
 
+### Tooling API model properties
+
+- `EclipseProjectDependency.targetProject` has been deprecated, use `EclipseProjectDependency.target` instead.
+
 ## Potential breaking changes
 
 ### Gradle implementation dependencies are not visible to plugins at development time

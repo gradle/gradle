@@ -27,6 +27,7 @@ public interface EclipseProjectDependency extends ProjectDependency, EclipseClas
     *
     * @return The target project, or null for a dependency on a different build within a composite.
     */
+    @Deprecated
     HierarchicalEclipseProject getTargetProject();
 
     /**
