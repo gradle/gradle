@@ -22,11 +22,9 @@ import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
 
-import org.slf4j.LoggerFactory
-
 object KotlinScriptPluginFactory : ScriptPluginFactory {
 
-    private val logger = LoggerFactory.getLogger(KotlinScriptPluginFactory::class.java)
+    private val logger = loggerFor<KotlinScriptPluginFactory>()
 
     override fun create(scriptSource: ScriptSource, scriptHandler: ScriptHandler, targetScope: ClassLoaderScope,
                         baseScope: ClassLoaderScope, topLevelScript: Boolean): ScriptPlugin =

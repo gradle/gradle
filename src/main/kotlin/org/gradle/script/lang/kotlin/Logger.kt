@@ -16,21 +16,8 @@
 
 package org.gradle.script.lang.kotlin
 
-import org.gradle.api.Project
-import org.gradle.configuration.ScriptPlugin
-
-import org.gradle.groovy.scripts.ScriptSource
-
 import org.slf4j.LoggerFactory
 
-class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<*>) : ScriptPlugin {
+inline fun <reified T : Any> loggerFor() =
+    LoggerFactory.getLogger(T::class.java)
 
-    private val logger = loggerFor<KotlinScriptPlugin>()
-
-    override fun getSource() = scriptSource
-
-    override fun apply(target: Any) {
-        logger.info("Applying Kotlin script to {}", target)
-        scriptClass.getConstructor(Project::class.java).newInstance(target)
-    }
-}
