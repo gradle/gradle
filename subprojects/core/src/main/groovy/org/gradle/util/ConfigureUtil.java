@@ -17,7 +17,6 @@
 package org.gradle.util;
 
 import groovy.lang.Closure;
-import groovy.lang.MissingPropertyException;
 import org.gradle.api.internal.*;
 
 import java.util.Collection;
@@ -43,7 +42,7 @@ public class ConfigureUtil {
             InvokeMethodResult invokeResult = new InvokeMethodResult();
             dynamicObject.invokeMethod(name, invokeResult, value);
             if (!invokeResult.isFound()) {
-                throw new MissingPropertyException(name, delegate.getClass());
+                throw dynamicObject.setMissingProperty(name);
             }
         }
 
