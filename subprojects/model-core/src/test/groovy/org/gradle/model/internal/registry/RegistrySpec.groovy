@@ -104,6 +104,11 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
+        Set<String> getLinkNames() {
+            []
+        }
+
+        @Override
         int getLinkCount() {
             return 0
         }

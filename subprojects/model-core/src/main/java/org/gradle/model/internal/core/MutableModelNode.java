@@ -121,6 +121,8 @@ public interface MutableModelNode extends ModelNode {
 
     Set<String> getLinkNames(Predicate<? super MutableModelNode> predicate);
 
+    Set<String> getLinkNames();
+
     @Override
     Iterable<? extends MutableModelNode> getLinks(ModelType<?> type);
 

@@ -144,6 +144,11 @@ public class ModelReferenceNode extends ModelNodeInternal {
         return target == null ? Collections.<String>emptySet() : target.getLinkNames(predicate);
     }
 
+    @Override
+    public Set<String> getLinkNames() {
+        return target == null ? Collections.<String>emptySet() : target.getLinkNames();
+    }
+
     @Nullable
     @Override
     public ModelNodeInternal getLink(String name) {

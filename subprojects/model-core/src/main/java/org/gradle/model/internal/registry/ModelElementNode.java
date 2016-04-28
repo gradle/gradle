@@ -151,6 +151,10 @@ class ModelElementNode extends ModelNodeInternal {
         return names;
     }
 
+    public Set<String> getLinkNames() {
+        return links == null ? Collections.<String>emptySet() : links.keySet();
+    }
+
     @Override
     public Iterable<? extends MutableModelNode> getLinks(Predicate<? super MutableModelNode> predicate) {
         return links == null ? Collections.<MutableModelNode>emptyList() : Iterables.filter(links.values(), predicate);
