@@ -16,6 +16,7 @@
 
 package org.gradle.configuration;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -37,6 +38,7 @@ import java.util.ServiceLoader;
  * @see ScriptPluginFactoryProvider
  * @since 2.14
  */
+@Incubating
 public class ScriptPluginFactorySelector implements ScriptPluginFactory {
 
     private final ScriptPluginFactory defaultScriptPluginFactory;

@@ -16,6 +16,7 @@
 
 package org.gradle.configuration;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -25,6 +26,7 @@ import org.gradle.internal.service.ServiceRegistry;
  * @see ScriptPluginFactorySelector
  * @since 2.14
  */
+@Incubating
 public interface ScriptPluginFactoryProvider {
 
     /**
