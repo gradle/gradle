@@ -97,7 +97,7 @@ public class ConfigureUtil {
      * Called from an object's {@link Configuable#configure} method.
      */
     public static <T> T configureSelf(Closure configureClosure, T target) {
-        return configureSelf(configureClosure, target, new ConfigureDelegate(configureClosure, target));
+        return configureSelf(configureClosure, target, new ConfigureDelegate(configureClosure.getOwner(), target));
     }
 
     /**
