@@ -28,6 +28,7 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -79,7 +80,7 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     public <S extends T> void create(Class<S> type, final Action<? super T> action) {
         state.assertCanMutate();
 
-        String name = String.valueOf(modelNode.getLinkCount(ModelNodes.withType(type)));
+        String name = String.valueOf(modelNode.getLinkCount(ModelNodes.withType(elementType)));
         ModelPath childPath = modelNode.getPath().child(name);
         final ModelRuleDescriptor descriptor = this.descriptor.append("create()");
 
@@ -182,7 +183,7 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
             validateClosureParameter(type, closure);
             create(type, ClosureBackedAction.of(closure));
         } else {
-            throw new TooManyClosureParametersException(type);
+            throw new IllegalArgumentException("Closure has too many arguments.");
         }
     }
 
@@ -195,8 +196,9 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     }
 
     private void validateClosureParameter(Class<? extends T> type, Closure<?> closure) {
-        if (!Object.class.equals(closure.getParameterTypes()[0]) && !type.equals(closure.getParameterTypes()[0])) {
-            throw new InvalidModelSetClosureParameterException(type, closure);
+        Class<?> closureArgumentType = closure.getParameterTypes()[0];
+        if (!Object.class.equals(closureArgumentType) && !type.equals(closureArgumentType)) {
+            throw new IllegalArgumentException(String.format("Closure argument type '%s' is not a subtype of '%s'.", closureArgumentType, elementType));
         }
     }
 
