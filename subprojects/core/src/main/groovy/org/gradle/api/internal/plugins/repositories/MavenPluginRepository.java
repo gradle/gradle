@@ -37,7 +37,8 @@ public interface MavenPluginRepository extends PluginRepository {
      *
      * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This
      * means, for example, you can pass in a {@code File} object, or a relative path to be
-     * evaluated relative to the project directory.
+     * evaluated relative to the directory of the {@code settings.gradle} file in which this
+     * repository is declared.
      *
      * @param url The base URL.
      */
