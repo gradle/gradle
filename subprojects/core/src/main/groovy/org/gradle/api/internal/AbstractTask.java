@@ -61,7 +61,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
 
-import javax.inject.Inject;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -120,6 +119,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskInputs taskInputs;
     private final TaskOutputsInternal taskOutputs;
     private final Class<? extends Task> publicType;
+    private LoggingManagerInternal loggingManager;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -388,10 +388,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return BUILD_LOGGER;
     }
 
-    @Inject
     public LoggingManagerInternal getLogging() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
+        if (loggingManager == null) {
+            loggingManager = services.getFactory(LoggingManagerInternal.class).create();
+        }
+        return loggingManager;
     }
 
     public StandardOutputCapture getStandardOutputCapture() {
