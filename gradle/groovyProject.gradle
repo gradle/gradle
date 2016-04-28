@@ -100,7 +100,9 @@ class ClasspathManifest extends DefaultTask {
         properties.runtime = input.fileCollection {
             (it instanceof ExternalDependency) || (it instanceof FileCollectionDependency)
         }.collect { it.name }.join(',')
-        properties.projects = input.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.archivesBaseName }.join(',')
+        properties.projects = input.allDependencies.withType(ProjectDependency).collect {
+            it.dependencyProject.archivesBaseName
+        }.join(',')
         return properties
     }
 
