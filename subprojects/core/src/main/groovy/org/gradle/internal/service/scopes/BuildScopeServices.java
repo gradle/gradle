@@ -220,6 +220,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ScriptPluginFactory createScriptPluginFactory() {
+        return new ScriptPluginFactorySelector(defaultScriptPluginFactory(), this);
+    }
+
+    private DefaultScriptPluginFactory defaultScriptPluginFactory() {
         return new DefaultScriptPluginFactory(
             get(ScriptCompilerFactory.class),
             getFactory(LoggingManagerInternal.class),

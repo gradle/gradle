@@ -205,7 +205,7 @@ public class BuildScopeServicesTest extends Specification {
         expectParentServiceLocated(CacheRepository)
 
         expect:
-        assertThat(registry.get(ScriptPluginFactory), instanceOf(DefaultScriptPluginFactory))
+        assertThat(registry.get(ScriptPluginFactory), instanceOf(ScriptPluginFactorySelector))
         assertThat(registry.get(ScriptPluginFactory), sameInstance(registry.get(ScriptPluginFactory)))
     }
 
