@@ -151,6 +151,7 @@ ext {
         project(it)
     }
     publishedProjects = [
+        project(':logging'),
         project(':core'),
         project(':toolingApi'),
         project(':wrapper'),
