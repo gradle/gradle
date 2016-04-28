@@ -394,7 +394,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void markReferencedProjectConfigurationsObserved(final InternalState requestedState) {
-        // TODO:DAZ See if we can use the ProjectComponentRegistry here.
         for (ResolvedProjectConfiguration projectResult : cachedResolverResults.getResolvedLocalComponents().getResolvedProjectConfigurations()) {
             ProjectInternal project = projectFinder.findProject(projectResult.getId().getProjectPath());
             if (project != null) {

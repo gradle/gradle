@@ -61,8 +61,8 @@ public class CompositeContextBuilder implements BuildActionRunner {
                 registerProject(participantName, (ProjectInternal) project);
             }
         } catch (ReportedException e) {
-            // Ignore exceptions creating composite context
-            // TODO:DAZ Handle this better. Test coverage.
+            // Ignore exceptions creating composite context for a model request
+            // TODO:DAZ Retain this configuration failure for subsequent model requests for this build
             if (propagateFailures) {
                 throw e;
             }

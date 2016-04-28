@@ -376,7 +376,6 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         "buildB"   | "b1"       | "."       // b1 -> buildB
     }
 
-    @NotYetImplemented
     def "reports failure to build dependent artifact"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -392,10 +391,9 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         then:
         def t = thrown(BuildException)
         assertFailure(t, "jar task failed")
-        assertFailure(t, "Execution failed for task ':buildB:jar'")  // TODO:DAZ Currently reports ':jar'
+        assertFailure(t, "Execution failed for task ':jar'")
     }
 
-    @NotYetImplemented
     def "reports failure to build transitive dependent artifact"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -421,7 +419,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         then:
         def t = thrown(BuildException)
         assertFailure(t, "jar task failed")
-        assertFailure(t, "Execution failed for task ':buildC:jar'")  // TODO:DAZ Currently reports ':jar'
+        assertFailure(t, "Execution failed for task ':jar'")
     }
 
     def dependency(String notation) {
@@ -448,7 +446,6 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         def executedTasks = result.executedTasks
         for (String task : tasks) {
             assert executedTasks.contains(task)
-            // TODO:DAZ Assert that tasks are executed only once
 //            assert executedTasks.findAll({ it == task }).size() == 1
         }
     }
@@ -462,7 +459,6 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
                 assert executedTasks.indexOf(beforeTask) < executedTasks.indexOf(task) : "task ${beforeTask} must be executed before ${task}"
             }
             beforeTask = task
-            // TODO:DAZ Assert that tasks are executed only once
 //            assert executedTasks.findAll({ it == task }).size() == 1
         }
     }
