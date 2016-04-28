@@ -44,6 +44,7 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -410,6 +411,39 @@ class Outer {
     static class Inner { }
 }
 Outer.Inner entry = null
+"""
+        ]
+    }
+
+    @Issue('GRADLE-3423')
+    @Ignore
+    def testCompileWithInnerInnerClassReference() {
+        ScriptSource source = new StringScriptSource("script.gradle", innerClass)
+
+        when:
+        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        innerClass << [
+            // fails
+            "import javax.swing.text.html.HTMLDocument.HTMLReader.SpecialAction",
+            // OK
+            """
+import javax.swing.text.html.HTMLDocument.HTMLReader
+HTMLReader.SpecialAction action = null
+""",
+            "javax.swing.text.html.HTMLDocument.HTMLReader.SpecialAction action = null",
+            """
+class Outer {
+    class Inner {
+         class Deeper {
+         }
+    }
+}
+Outer.Inner.Deeper weMustGoDeeper = null
 """
         ]
     }
