@@ -65,7 +65,9 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     }
 
     public AbstractNamedDomainObjectContainer<T> configure(Closure configureClosure) {
-        return ConfigureUtil.configureSelf(configureClosure, this, createConfigureDelegate(configureClosure));
+        ConfigureDelegate delegate = createConfigureDelegate(configureClosure);
+        ConfigureUtil.configureSelf(configureClosure, delegate, delegate);
+        return this;
     }
 
     public String getDisplayName() {

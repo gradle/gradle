@@ -68,6 +68,10 @@ Building against Java 5 requires that the compiler daemon and test execution inf
 - Cached artefact reuse for versions older than 2.0.
 - Execution of task classes compiled against Gradle versions older than 2.0.
 
+## Fix the delegate and parameter for named container configuration closure 
+
+Currently, a `ConfigureDelegate` instances is made visible to the closure as its parameter (eg `it`) and its delegate. This is not the case for other configuration closures.
+
 ## Test output directories
 
 The current defaults for the outputs of tasks of type `Test` conflict with each other:

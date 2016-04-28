@@ -16,6 +16,7 @@
 
 package org.gradle.api.dsl
 
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.configuration.Help
@@ -123,6 +124,20 @@ tasks.help {
         succeeds()
         outputContains("1: [1]")
         outputContains("2: [2]")
+    }
+
+    def "can configure named container using configure closure"() {
+        buildFile << """
+configurations { c ->
+//    assert c instanceof ${ConfigurationContainer.name}
+//    assert delegate instanceof ${ConfigurationContainer.name}
+    compile.description = "some things"
+}
+assert configurations.compile.description == "some things"
+"""
+
+        expect:
+        succeeds()
     }
 
     def "can configure polymorphic container using configure closure"() {
