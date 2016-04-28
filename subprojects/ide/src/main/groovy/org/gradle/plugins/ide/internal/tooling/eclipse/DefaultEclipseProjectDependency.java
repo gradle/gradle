@@ -15,36 +15,38 @@
  */
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
+import org.gradle.tooling.internal.protocol.eclipse.DefaultEclipseProjectIdentifier;
+
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 
 public class DefaultEclipseProjectDependency extends DefaultEclipseDependency implements Serializable {
+    private final DefaultEclipseProjectIdentifier targetIdentifier;
     private final String path;
-    private final File targetProjectDirectory;
 
-    private final DefaultEclipseProject target;
+    private final DefaultEclipseProject targetProject;
 
-    public DefaultEclipseProjectDependency(String path, DefaultEclipseProject target, boolean exported) {
+    public DefaultEclipseProjectDependency(String path, DefaultEclipseProject targetProject, boolean exported) {
         super(exported, new ArrayList<DefaultClasspathAttribute>());
-        this.target = target;
+        this.targetProject = targetProject;
         this.path = path;
-        this.targetProjectDirectory = target.getProjectDirectory();
+        this.targetIdentifier = new DefaultEclipseProjectIdentifier(targetProject.getProjectDirectory());
     }
 
     public DefaultEclipseProjectDependency(String path, File targetProjectDirectory, boolean exported) {
         super(exported, new ArrayList<DefaultClasspathAttribute>());
-        this.target = null;
+        this.targetProject = null;
         this.path = path;
-        this.targetProjectDirectory = targetProjectDirectory;
+        this.targetIdentifier = new DefaultEclipseProjectIdentifier(targetProjectDirectory);
     }
 
     public DefaultEclipseProject getTargetProject() {
-        return target;
+        return targetProject;
     }
 
-    public File getTargetProjectDirectory() {
-        return targetProjectDirectory;
+    public DefaultEclipseProjectIdentifier getTarget() {
+        return targetIdentifier;
     }
 
     public String getPath() {
@@ -53,6 +55,6 @@ public class DefaultEclipseProjectDependency extends DefaultEclipseDependency im
 
     @Override
     public String toString() {
-        return String.format("project dependency %s (%s)", path, target);
+        return String.format("project dependency %s (%s)", path, targetProject);
     }
 }

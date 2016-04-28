@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.consumer.converters;
 import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.EclipseProjectDependency;
 import org.gradle.util.GradleVersion;
 
@@ -35,12 +36,16 @@ public class EclipseProjectDependencyCompatibilityMapper implements Action<Sourc
     @Override
     public void execute(SourceObjectMapping mapping) {
         Class<?> targetType = mapping.getTargetType();
-        if (EclipseProjectDependency.class.isAssignableFrom(targetType) && !versionSupportsTargetProjectDirectory()) {
-            mapping.mixIn(CompatibilityEclipseProjectDependencyMapping.class);
+        if (!versionSupportsEclipseProjectIdentifier()) {
+            if (EclipseProjectDependency.class.isAssignableFrom(targetType)) {
+                mapping.mixIn(CompatibilityEclipseProjectDependencyMapping.class);
+            } else if (EclipseProject.class.isAssignableFrom(targetType)) {
+                mapping.mixIn(CompatibilityEclipseProjectMapping.class);
+            }
         }
     }
 
-    private boolean versionSupportsTargetProjectDirectory() {
+    private boolean versionSupportsEclipseProjectIdentifier() {
         GradleVersion targetGradleVersion = GradleVersion.version(version);
         return targetGradleVersion.getBaseVersion().compareTo(GradleVersion.version("2.14")) >= 0;
     }

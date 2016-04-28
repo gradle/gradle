@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -28,7 +27,6 @@ import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 /**
  * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
  */
-@TargetGradleVersion(">=2.12")
 class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
     def buildA
@@ -68,14 +66,16 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeTooling
         then:
         eclipseProjects.size() == 2
         def eclipseProjectA = eclipseProjects.find { it.projectDirectory.absoluteFile == buildA.absoluteFile }
+        def eclipseProjectB = eclipseProjects.find { it.projectDirectory.absoluteFile == buildB.absoluteFile }
         eclipseProjectA != null
+        eclipseProjectB != null
         if (isIntegratedComposite()) {
             assert eclipseProjectA.classpath.empty
             assert eclipseProjectA.projectDependencies.size() == 1
             with(eclipseProjectA.projectDependencies.first()) {
                 assert path == 'buildB'
                 assert targetProject == null
-                assert targetProjectDirectory == buildB.absoluteFile
+                assert target == eclipseProjectB.identifier
             }
         } else {
             assert eclipseProjectA.projectDependencies.empty
