@@ -43,7 +43,7 @@ class JavaGradlePluginPluginTestKitSetupTest extends Specification {
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         SourceSet pluginSourceSet = javaConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         SourceSet testSourceSet = javaConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
-        GradlePluginDevelopmentExtension extension = new GradlePluginDevelopmentExtension(pluginSourceSet, testSourceSet)
+        GradlePluginDevelopmentExtension extension = new GradlePluginDevelopmentExtension(project, pluginSourceSet, testSourceSet)
         PluginUnderTestMetadata pluginUnderTestMetadata = project.tasks.create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata)
         Action<Project> action = new TestKitAndPluginClasspathDependenciesAction(extension, pluginUnderTestMetadata)
 
@@ -83,7 +83,7 @@ class JavaGradlePluginPluginTestKitSetupTest extends Specification {
             classpath = project.sourceSets.functionalTest.runtimeClasspath
         }
 
-        GradlePluginDevelopmentExtension extension = new GradlePluginDevelopmentExtension(project.sourceSets.customMain, project.sourceSets.functionalTest)
+        GradlePluginDevelopmentExtension extension = new GradlePluginDevelopmentExtension(project, project.sourceSets.customMain, project.sourceSets.functionalTest)
         PluginUnderTestMetadata pluginUnderTestMetadata = project.tasks.create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata)
         Action<Project> action = new TestKitAndPluginClasspathDependenciesAction(extension, pluginUnderTestMetadata)
 
@@ -128,7 +128,7 @@ class JavaGradlePluginPluginTestKitSetupTest extends Specification {
             classpath = project.sourceSets.functionalTest2.runtimeClasspath
         }
 
-        GradlePluginDevelopmentExtension extension = new GradlePluginDevelopmentExtension(project.sourceSets.main, project.sourceSets.functionalTest1, project.sourceSets.functionalTest2)
+        GradlePluginDevelopmentExtension extension = new GradlePluginDevelopmentExtension(project, project.sourceSets.main, project.sourceSets.functionalTest1, project.sourceSets.functionalTest2)
         PluginUnderTestMetadata pluginUnderTestMetadata = project.tasks.create(PLUGIN_UNDER_TEST_METADATA_TASK_NAME, PluginUnderTestMetadata)
         Action<Project> action = new TestKitAndPluginClasspathDependenciesAction(extension, pluginUnderTestMetadata)
 

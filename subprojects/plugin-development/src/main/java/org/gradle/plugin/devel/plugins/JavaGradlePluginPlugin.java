@@ -16,7 +16,12 @@
 
 package org.gradle.plugin.devel.plugins;
 
-import org.gradle.api.*;
+import com.beust.jcommander.internal.Sets;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.FileCollection;
@@ -26,18 +31,27 @@ import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.plugins.AppliedPlugin;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.model.Model;
+import org.gradle.model.RuleSource;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
+import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
@@ -46,6 +60,9 @@ import java.util.concurrent.Callable;
  * Provides a direct integration with TestKit by declaring the {@code gradleTestKit()} dependency for the test
  * compile configuration and a dependency on the plugin classpath manifest generation task for the test runtime
  * configuration. Default conventions can be customized with the help of {@link GradlePluginDevelopmentExtension}.
+ *
+ * Integrates with the 'maven-publish' and 'ivy-publish' plugins to automatically publish the plugins so they can be
+ * resolved using the `pluginRepositories` and `plugins` DSL.
  */
 @Incubating
 public class JavaGradlePluginPlugin implements Plugin<Project> {
@@ -58,15 +75,17 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String BAD_IMPL_CLASS_WARNING_MESSAGE = "A valid plugin descriptor was found for %s but the implementation class %s was not found in the jar.";
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "A plugin descriptor was found for %s but it was invalid.";
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
+    static final String DECLARED_PLUGIN_MISSING_MESSAGE = "Could not find plugin descriptor of %s at META-INF/" + GRADLE_PLUGINS + "/%s.properties";
     static final String EXTENSION_NAME = "gradlePlugin";
     static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
 
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
         applyDependencies(project);
-        configureJarTask(project);
         GradlePluginDevelopmentExtension extension = createExtension(project);
+        configureJarTask(project, extension);
         configureTestKit(project, extension);
+        configurePublishing(project);
     }
 
     private void applyDependencies(Project project) {
@@ -74,13 +93,13 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         dependencies.add(COMPILE_CONFIGURATION, dependencies.gradleApi());
     }
 
-    private void configureJarTask(Project project) {
+    private void configureJarTask(Project project, GradlePluginDevelopmentExtension extension) {
         Jar jarTask = (Jar) project.getTasks().findByName(JAR_TASK);
         List<PluginDescriptor> descriptors = new ArrayList<PluginDescriptor>();
         Set<String> classList = new HashSet<String>();
         PluginDescriptorCollectorAction pluginDescriptorCollector = new PluginDescriptorCollectorAction(descriptors);
         ClassManifestCollectorAction classManifestCollector = new ClassManifestCollectorAction(classList);
-        PluginValidationAction pluginValidationAction = new PluginValidationAction(descriptors, classList);
+        PluginValidationAction pluginValidationAction = new PluginValidationAction(extension.getPlugins(), descriptors, classList);
 
         jarTask.filesMatching(PLUGIN_DESCRIPTOR_PATTERN, pluginDescriptorCollector);
         jarTask.filesMatching(CLASSES_PATTERN, classManifestCollector);
@@ -91,7 +110,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         SourceSet defaultPluginSourceSet = javaConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         SourceSet defaultTestSourceSet = javaConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME);
-        return project.getExtensions().create(EXTENSION_NAME, GradlePluginDevelopmentExtension.class, defaultPluginSourceSet, defaultTestSourceSet);
+        return project.getExtensions().create(EXTENSION_NAME, GradlePluginDevelopmentExtension.class, project, defaultPluginSourceSet, defaultTestSourceSet);
     }
 
     private void configureTestKit(Project project, GradlePluginDevelopmentExtension extension) {
@@ -123,14 +142,31 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         project.afterEvaluate(new TestKitAndPluginClasspathDependenciesAction(extension, pluginClasspathTask));
     }
 
+    private void configurePublishing(final Project project) {
+        project.getPluginManager().withPlugin("maven-publish", new Action<AppliedPlugin>() {
+            @Override
+            public void execute(AppliedPlugin appliedPlugin) {
+                project.getPluginManager().apply(MavenPluginPublishingRules.class);
+            }
+        });
+        project.getPluginManager().withPlugin("ivy-publish", new Action<AppliedPlugin>() {
+            @Override
+            public void execute(AppliedPlugin appliedPlugin) {
+                project.getPluginManager().apply(IvyPluginPublishingRules.class);
+            }
+        });
+    }
+
     /**
      * Implements plugin validation tasks to validate that a proper plugin jar is produced.
      */
     static class PluginValidationAction implements Action<Task> {
-        Collection<PluginDescriptor> descriptors;
-        Set<String> classes;
+        private Collection<PluginDeclaration> plugins;
+        private Collection<PluginDescriptor> descriptors;
+        private Set<String> classes;
 
-        PluginValidationAction(Collection<PluginDescriptor> descriptors, Set<String> classes) {
+        PluginValidationAction(Collection<PluginDeclaration> plugins, Collection<PluginDescriptor> descriptors, Set<String> classes) {
+            this.plugins = plugins;
             this.descriptors = descriptors;
             this.classes = classes;
         }
@@ -139,6 +175,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             if (descriptors == null || descriptors.isEmpty()) {
                 LOGGER.warn(NO_DESCRIPTOR_WARNING_MESSAGE);
             } else {
+                Set<String> pluginFileNames = Sets.newHashSet();
                 for (PluginDescriptor descriptor : descriptors) {
                     URI descriptorURI = null;
                     try {
@@ -150,11 +187,17 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                         // descriptors should be generated from real files.
                     }
                     String pluginFileName = descriptorURI != null ? new File(descriptorURI).getName() : "UNKNOWN";
+                    pluginFileNames.add(pluginFileName);
                     String pluginImplementation = descriptor.getImplementationClassName();
                     if (pluginImplementation.length() == 0) {
                         LOGGER.warn(String.format(INVALID_DESCRIPTOR_WARNING_MESSAGE, pluginFileName));
                     } else if (!hasFullyQualifiedClass(pluginImplementation)) {
                         LOGGER.warn(String.format(BAD_IMPL_CLASS_WARNING_MESSAGE, pluginFileName, pluginImplementation));
+                    }
+                }
+                for (PluginDeclaration declaration : plugins) {
+                    if (!pluginFileNames.contains(declaration.getId() + ".properties")) {
+                        LOGGER.warn(String.format(DECLARED_PLUGIN_MISSING_MESSAGE, declaration.getName(), declaration.getId()));
                     }
                 }
             }
@@ -231,4 +274,12 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             }
         }
     }
+
+    static class Rules extends RuleSource {
+        @Model
+        public GradlePluginDevelopmentExtension gradlePluginDevelopmentExtension(ExtensionContainer extensionContainer) {
+            return extensionContainer.getByType(GradlePluginDevelopmentExtension.class);
+        }
+    }
+
 }

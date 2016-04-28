@@ -21,6 +21,7 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 
 class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
     final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE
+    final static String DECLARED_PLUGIN_MISSING_MESSAGE = JavaGradlePluginPlugin.DECLARED_PLUGIN_MISSING_MESSAGE
     final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.split('%')[0]
     final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.split('%')[0]
 
@@ -64,6 +65,25 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         output.contains(NO_DESCRIPTOR_WARNING)
     }
 
+    def "jar issues warning if built jar does not contain declared plugin" () {
+        given:
+        buildFile()
+        goodPlugin()
+        goodPluginDescriptor()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    helloPlugin {
+                        id = 'org.example.hello'
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds "jar"
+        output.contains(String.format(DECLARED_PLUGIN_MISSING_MESSAGE, "helloPlugin", "org.example.hello"))
+    }
 
     def "jar issues warning if built jar contains bad descriptor" (String descriptorContents, String warningMessage) {
         given:
