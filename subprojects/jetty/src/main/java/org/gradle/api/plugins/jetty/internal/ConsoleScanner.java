@@ -19,14 +19,14 @@
  */
 package org.gradle.api.plugins.jetty.internal;
 
-import java.io.IOException;
-
 import org.gradle.api.plugins.jetty.AbstractJettyRunTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+
 public class ConsoleScanner extends Thread {
-    private static Logger logger = LoggerFactory.getLogger(ConsoleScanner.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleScanner.class);
 
     private final AbstractJettyRunTask task;
 
@@ -43,7 +43,7 @@ public class ConsoleScanner extends Thread {
                 getSomeSleep();
             }
         } catch (IOException e) {
-            logger.warn("Error when checking console input.", e);
+            LOGGER.warn("Error when checking console input.", e);
         }
     }
 
@@ -51,7 +51,7 @@ public class ConsoleScanner extends Thread {
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
-            logger.debug("Error while sleeping.", e);
+            LOGGER.debug("Error while sleeping.", e);
         }
     }
 
@@ -82,7 +82,7 @@ public class ConsoleScanner extends Thread {
                 }
             }
         } catch (IOException e) {
-            logger.warn("Error discarding console input buffer", e);
+            LOGGER.warn("Error discarding console input buffer", e);
         }
     }
 
@@ -93,7 +93,7 @@ public class ConsoleScanner extends Thread {
             // while the application was being restarted.
             clearInputBuffer();
         } catch (Exception e) {
-            logger.error("Error reconfiguring/restarting webapp after a new line on the console", e);
+            LOGGER.error("Error reconfiguring/restarting webapp after a new line on the console", e);
         }
     }
 }

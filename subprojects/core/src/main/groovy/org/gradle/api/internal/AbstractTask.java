@@ -58,8 +58,8 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
-    private static Logger buildLogger = Logging.getLogger(Task.class);
-    private static ThreadLocal<TaskInfo> nextInstance = new ThreadLocal<TaskInfo>();
+    private final static Logger BUILD_LOGGER = Logging.getLogger(Task.class);
+    private final static ThreadLocal<TaskInfo> NEXT_INSTANCE = new ThreadLocal<TaskInfo>();
     private final ProjectInternal project;
 
     private final String name;
@@ -107,7 +107,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private static TaskInfo taskInfo() {
-        return nextInstance.get();
+        return NEXT_INSTANCE.get();
     }
 
     private AbstractTask(TaskInfo taskInfo) {
@@ -139,7 +139,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Class<? extends Task> publicType, Callable<T> factory) {
-        nextInstance.set(new TaskInfo(project, name, publicType));
+        NEXT_INSTANCE.set(new TaskInfo(project, name, publicType));
         try {
             try {
                 return factory.call();
@@ -147,7 +147,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         } finally {
-            nextInstance.set(null);
+            NEXT_INSTANCE.set(null);
         }
     }
 
@@ -358,7 +358,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Logger getLogger() {
-        return buildLogger;
+        return BUILD_LOGGER;
     }
 
     @Inject

@@ -50,7 +50,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
     private static final ModelType<BinaryTasksCollection> BINARY_TASKS_COLLECTION = ModelType.of(BinaryTasksCollection.class);
     private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODELTYPE = ModelType.of(LanguageSourceSet.class);
 
-    private static ThreadLocal<BinaryInfo> nextBinaryInfo = new ThreadLocal<BinaryInfo>();
+    private static final ThreadLocal<BinaryInfo> NEXT_BINARY_INFO = new ThreadLocal<BinaryInfo>();
     private final DomainObjectSet<LanguageSourceSet> inputSourceSets = new DefaultDomainObjectSet<LanguageSourceSet>(LanguageSourceSet.class);
     private final BinaryTasksCollection tasks;
     private final MutableModelNode componentNode;
@@ -62,7 +62,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
     public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
                                                       ComponentSpecIdentifier componentId, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
                                                       Instantiator instantiator, ITaskFactory taskFactory) {
-        nextBinaryInfo.set(new BinaryInfo(componentId, publicType, modelNode, componentNode, taskFactory, instantiator));
+        NEXT_BINARY_INFO.set(new BinaryInfo(componentId, publicType, modelNode, componentNode, taskFactory, instantiator));
         try {
             try {
                 return DirectInstantiator.INSTANCE.newInstance(implementationType);
@@ -70,12 +70,12 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
                 throw new ModelInstantiationException(String.format("Could not create binary of type %s", publicType.getSimpleName()), e.getCause());
             }
         } finally {
-            nextBinaryInfo.set(null);
+            NEXT_BINARY_INFO.set(null);
         }
     }
 
     public BaseBinarySpec() {
-        this(nextBinaryInfo.get());
+        this(NEXT_BINARY_INFO.get());
     }
 
     private BaseBinarySpec(BinaryInfo info) {

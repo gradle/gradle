@@ -17,13 +17,13 @@
 package org.gradle.api.internal.changedetection.state;
 
 class DirSnapshot implements IncrementalFileSnapshot {
-    private static DirSnapshot instance = new DirSnapshot();
+    private static final DirSnapshot INSTANCE = new DirSnapshot();
 
     private DirSnapshot() {
     }
 
     static DirSnapshot getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     @Override

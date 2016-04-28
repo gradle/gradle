@@ -48,18 +48,18 @@ import static org.apache.maven.wagon.events.TransferEvent.*;
  */
 public class RepositoryTransportDeployWagon implements Wagon {
 
-    private static ThreadLocal<RepositoryTransportWagonAdapter> currentDelegate = new InheritableThreadLocal<RepositoryTransportWagonAdapter>();
+    private static final ThreadLocal<RepositoryTransportWagonAdapter> CURRENT_DELEGATE = new InheritableThreadLocal<RepositoryTransportWagonAdapter>();
 
     private SessionEventSupport sessionEventSupport = new SessionEventSupport();
     private TransferEventSupport transferEventSupport = new TransferEventSupport();
     private Repository mutatingRepository;
 
     public static void contextualize(RepositoryTransportWagonAdapter adapter) {
-        currentDelegate.set(adapter);
+        CURRENT_DELEGATE.set(adapter);
     }
 
     public static void decontextualize() {
-        currentDelegate.remove();
+        CURRENT_DELEGATE.remove();
     }
 
     @Override
@@ -100,7 +100,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
     }
 
     private RepositoryTransportWagonAdapter getDelegate() {
-        return currentDelegate.get();
+        return CURRENT_DELEGATE.get();
     }
 
     @Override

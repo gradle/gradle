@@ -42,7 +42,7 @@ import java.util.Set;
  */
 @Incubating
 public class PlayRun extends ConventionTask {
-    private static Logger logger = LoggerFactory.getLogger(PlayRun.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PlayRun.class);
 
     private int httpPort;
 
@@ -104,7 +104,7 @@ public class PlayRun extends ConventionTask {
                 progressLogger.completed();
             }
         } else {
-            logger.warn(String.format("Running Play App (%s) at http://localhost:%d/", getPath(), httpPort));
+            LOGGER.warn(String.format("Running Play App (%s) at http://localhost:%d/", getPath(), httpPort));
         }
     }
 
@@ -114,7 +114,7 @@ public class PlayRun extends ConventionTask {
                 int c = System.in.read();
                 if (c == -1 || c == 4) {
                     // STOP on Ctrl-D or EOF.
-                    logger.info("received end of stream (ctrl+d)");
+                    LOGGER.info("received end of stream (ctrl+d)");
                     return;
                 }
             } catch (IOException e) {

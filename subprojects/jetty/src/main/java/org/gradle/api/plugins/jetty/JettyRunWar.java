@@ -33,7 +33,7 @@ import java.util.List;
  * <p> Once started, the web container can be configured to run continuously, scanning for changes to the war file and automatically performing a hot redeploy when necessary. </p>
  */
 public class JettyRunWar extends AbstractJettyRunTask {
-    private static Logger logger = LoggerFactory.getLogger(JettyRunWar.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JettyRunWar.class);
 
     /**
      * The location of the war file.
@@ -66,7 +66,7 @@ public class JettyRunWar extends AbstractJettyRunTask {
                     boolean reconfigure = changes.contains(getProject().getBuildFile().getCanonicalPath());
                     restartWebApp(reconfigure);
                 } catch (Exception e) {
-                    logger.error("Error reconfiguring/restarting webapp after change in watched files", e);
+                    LOGGER.error("Error reconfiguring/restarting webapp after change in watched files", e);
                 }
             }
         });
@@ -74,25 +74,25 @@ public class JettyRunWar extends AbstractJettyRunTask {
     }
 
     public void restartWebApp(boolean reconfigureScanner) throws Exception {
-        logger.info("Restarting webapp ...");
-        logger.debug("Stopping webapp ...");
+        LOGGER.info("Restarting webapp ...");
+        LOGGER.debug("Stopping webapp ...");
         getWebAppConfig().stop();
-        logger.debug("Reconfiguring webapp ...");
+        LOGGER.debug("Reconfiguring webapp ...");
 
         validateConfiguration();
 
         // check if we need to reconfigure the scanner
         if (reconfigureScanner) {
-            logger.info("Reconfiguring scanner ...");
+            LOGGER.info("Reconfiguring scanner ...");
             List<File> scanList = new ArrayList<File>();
             scanList.add(getProject().getBuildFile());
             scanList.add(getWebApp());
             getScanner().setScanDirs(scanList);
         }
 
-        logger.debug("Restarting webapp ...");
+        LOGGER.debug("Restarting webapp ...");
         getWebAppConfig().start();
-        logger.info("Restart completed.");
+        LOGGER.info("Restart completed.");
     }
 
     public void finishConfigurationBeforeStart() {
@@ -116,7 +116,7 @@ public class JettyRunWar extends AbstractJettyRunTask {
             return;
         }
 
-        logger.info("Configuring Jetty from xml configuration file = {}", getJettyConfig());
+        LOGGER.info("Configuring Jetty from xml configuration file = {}", getJettyConfig());
         XmlConfiguration xmlConfiguration = new XmlConfiguration(getJettyConfig().toURI().toURL());
         xmlConfiguration.configure(getServer().getProxiedObject());
     }

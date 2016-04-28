@@ -34,10 +34,10 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
     // This is here as a convenience for subclasses to create additional SourceDirectorySets
     protected final SourceDirectorySetFactory sourceDirectorySetFactory;
 
-    private static ThreadLocal<SourceSetInfo> nextSourceSetInfo = new ThreadLocal<SourceSetInfo>();
+    private static final ThreadLocal<SourceSetInfo> NEXT_SOURCE_SET_INFO = new ThreadLocal<SourceSetInfo>();
 
     public static <T extends LanguageSourceSet> T create(Class<? extends LanguageSourceSet> publicType, Class<T> implementationType, ComponentSpecIdentifier componentId, SourceDirectorySetFactory sourceDirectorySetFactory) {
-        nextSourceSetInfo.set(new SourceSetInfo(componentId, publicType, sourceDirectorySetFactory));
+        NEXT_SOURCE_SET_INFO.set(new SourceSetInfo(componentId, publicType, sourceDirectorySetFactory));
         try {
             try {
                 return DirectInstantiator.INSTANCE.newInstance(implementationType);
@@ -45,12 +45,12 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
                 throw new ModelInstantiationException(String.format("Could not create LanguageSourceSet of type %s", publicType.getSimpleName()), e.getCause());
             }
         } finally {
-            nextSourceSetInfo.set(null);
+            NEXT_SOURCE_SET_INFO.set(null);
         }
     }
 
     public BaseLanguageSourceSet() {
-        this(nextSourceSetInfo.get());
+        this(NEXT_SOURCE_SET_INFO.get());
     }
 
     private BaseLanguageSourceSet(SourceSetInfo info) {

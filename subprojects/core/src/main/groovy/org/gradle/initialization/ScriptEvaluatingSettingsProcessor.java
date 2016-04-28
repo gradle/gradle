@@ -34,7 +34,7 @@ import java.util.Map;
 
 
 public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
-    private static Logger logger = LoggerFactory.getLogger(ScriptEvaluatingSettingsProcessor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ScriptEvaluatingSettingsProcessor.class);
 
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final SettingsFactory settingsFactory;
@@ -60,7 +60,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(),
                 settingsLocation.getSettingsScriptSource(), properties, startParameter, baseClassLoaderScope);
         applySettingsScript(settingsLocation, settings);
-        logger.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());
+        LOGGER.debug("Timing: Processing settings took: {}", settingsProcessingClock.getTime());
         return settings;
     }
 

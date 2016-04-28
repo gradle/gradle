@@ -17,13 +17,13 @@
 package org.gradle.api.internal.changedetection.state;
 
 class MissingFileSnapshot implements IncrementalFileSnapshot {
-    private static MissingFileSnapshot instance = new MissingFileSnapshot();
+    private static final MissingFileSnapshot INSTANCE = new MissingFileSnapshot();
 
     private MissingFileSnapshot() {
     }
 
     static MissingFileSnapshot getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     @Override

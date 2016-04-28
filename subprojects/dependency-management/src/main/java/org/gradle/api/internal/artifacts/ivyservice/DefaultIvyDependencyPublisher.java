@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
-    private static Logger logger = LoggerFactory.getLogger(DefaultIvyDependencyPublisher.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIvyDependencyPublisher.class);
 
     public void publish(List<ModuleVersionPublisher> publishResolvers,
                         IvyModulePublishMetaData publishMetaData) {
@@ -41,7 +41,7 @@ public class DefaultIvyDependencyPublisher implements IvyDependencyPublisher {
                 addPublishedArtifact(artifact, publication);
             }
             for (ModuleVersionPublisher publisher : publishResolvers) {
-                logger.info("Publishing to {}", publisher);
+                LOGGER.info("Publishing to {}", publisher);
                 publisher.publish(publication);
             }
         } catch (IOException e) {

@@ -47,10 +47,10 @@ import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
-    protected static Set<String> propagatedSystemProperties = Sets.newHashSet();
+    protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = Sets.newHashSet();
 
     public static void propagateSystemProperty(String name) {
-        propagatedSystemProperties.add(name);
+        PROPAGATED_SYSTEM_PROPERTIES.add(name);
     }
 
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";

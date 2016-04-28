@@ -32,7 +32,7 @@ import java.io.File;
 public abstract class AbstractMavenPublisher implements MavenPublisher {
     private final Factory<LoggingManagerInternal> loggingManagerFactory;
 
-    private static Logger logger = LoggerFactory.getLogger(AbstractMavenPublisher.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(AbstractMavenPublisher.class);
     private final LocalMavenRepositoryLocator mavenRepositoryLocator;
 
     public AbstractMavenPublisher(Factory<LoggingManagerInternal> loggingManagerFactory, LocalMavenRepositoryLocator mavenRepositoryLocator) {
@@ -41,7 +41,7 @@ public abstract class AbstractMavenPublisher implements MavenPublisher {
     }
 
     public void publish(MavenNormalizedPublication publication, MavenArtifactRepository artifactRepository) {
-        logger.info("Publishing to repository {}", artifactRepository);
+        LOGGER.info("Publishing to repository {}", artifactRepository);
         MavenPublishAction deployTask = createDeployTask(publication.getPomFile(), mavenRepositoryLocator, artifactRepository);
         addPomAndArtifacts(deployTask, publication);
         execute(deployTask);

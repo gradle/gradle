@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 
 public class Deleter {
-    private static Logger logger = LoggerFactory.getLogger(Deleter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Deleter.class);
 
     private FileResolver fileResolver;
     private FileSystem fileSystem;
@@ -61,7 +61,7 @@ public class Deleter {
             if (!file.exists()) {
                 continue;
             }
-            logger.debug("Deleting {}", file);
+            LOGGER.debug("Deleting {}", file);
             didWork = true;
             doDeleteInternal(file, deleteSpec);
         }

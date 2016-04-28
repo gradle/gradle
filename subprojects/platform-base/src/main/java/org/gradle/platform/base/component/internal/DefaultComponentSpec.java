@@ -24,10 +24,10 @@ import org.gradle.platform.base.ModelInstantiationException;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 public class DefaultComponentSpec extends AbstractComponentSpec {
-    private static ThreadLocal<ComponentInfo> nextComponentInfo = new ThreadLocal<ComponentInfo>();
+    private static final ThreadLocal<ComponentInfo> NEXT_COMPONENT_INFO = new ThreadLocal<ComponentInfo>();
 
     public static <T extends DefaultComponentSpec> T create(Class<? extends ComponentSpec> publicType, Class<T> implementationType, ComponentSpecIdentifier identifier, MutableModelNode modelNode) {
-        nextComponentInfo.set(new ComponentInfo(identifier, modelNode, publicType));
+        NEXT_COMPONENT_INFO.set(new ComponentInfo(identifier, modelNode, publicType));
         try {
             try {
                 return DirectInstantiator.INSTANCE.newInstance(implementationType);
@@ -35,12 +35,12 @@ public class DefaultComponentSpec extends AbstractComponentSpec {
                 throw new ModelInstantiationException(String.format("Could not create component of type %s", publicType.getSimpleName()), e.getCause());
             }
         } finally {
-            nextComponentInfo.set(null);
+            NEXT_COMPONENT_INFO.set(null);
         }
     }
 
     protected static ComponentInfo getInfo() {
-        return nextComponentInfo.get();
+        return NEXT_COMPONENT_INFO.get();
     }
 
     public DefaultComponentSpec() {

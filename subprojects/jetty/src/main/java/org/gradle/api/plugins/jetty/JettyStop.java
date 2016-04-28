@@ -33,7 +33,7 @@ import java.net.Socket;
  * Stops the embedded Jetty web container, if it is running.
  */
 public class JettyStop extends ConventionTask {
-    private static Logger logger = LoggerFactory.getLogger(JettyStop.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JettyStop.class);
 
     private Integer stopPort;
 
@@ -59,9 +59,9 @@ public class JettyStop extends ConventionTask {
             out.flush();
             s.close();
         } catch (ConnectException e) {
-            logger.info("Jetty not running!");
+            LOGGER.info("Jetty not running!");
         } catch (Exception e) {
-            logger.error("Exception during stopping", e);
+            LOGGER.error("Exception during stopping", e);
         } finally {
             progressLogger.completed();
         }
