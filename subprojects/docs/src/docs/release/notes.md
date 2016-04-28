@@ -100,6 +100,14 @@ This causes any Ant messages logged at the specified priority to be logged at th
 higher priority will also be logged at lifecycle level (or above if it is already mapped to a higher logging level).  Messages logged
 at a lower priority than the specified priority will be logged at the "info" logging level or below.
 
+### Dependency substitution in composite build defined via `GradleConnection`
+
+- Placeholder
+
+### Identifier properties for IDE Tooling API models
+
+- Placeholder
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
