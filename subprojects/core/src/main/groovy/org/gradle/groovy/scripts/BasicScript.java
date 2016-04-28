@@ -17,7 +17,7 @@
 package org.gradle.groovy.scripts;
 
 import groovy.lang.MetaClass;
-import org.gradle.api.internal.DynamicObject;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.api.internal.DynamicObjectUtil;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.FileOperations;

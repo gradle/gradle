@@ -17,6 +17,9 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.internal.metaobject.ConfigureDelegate;
+import org.gradle.internal.metaobject.GetPropertyResult;
+import org.gradle.internal.metaobject.InvokeMethodResult;
 
 public class NamedDomainObjectContainerConfigureDelegate extends ConfigureDelegate {
     private final NamedDomainObjectContainer _container;

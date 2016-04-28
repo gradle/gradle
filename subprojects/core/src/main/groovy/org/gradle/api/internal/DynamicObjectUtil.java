@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicObject;
+
 public abstract class DynamicObjectUtil {
 
     public static DynamicObject asDynamicObject(Object object) {

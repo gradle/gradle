@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.internal.metaobject;
 
 import groovy.lang.*;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.codehaus.groovy.runtime.metaclass.MultipleSetterProperty;
 import org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation;
 import org.gradle.api.Nullable;
+import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
 import org.gradle.api.internal.coerce.PropertySetTransformer;
 import org.gradle.api.internal.coerce.StringToEnumTransformer;
@@ -99,18 +100,18 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     @Override
-    protected String getDisplayName() {
+    public String getDisplayName() {
         return bean.toString();
     }
 
     @Nullable
     @Override
-    protected Class<?> getPublicType() {
+    public Class<?> getPublicType() {
         return publicType != null ? publicType : bean.getClass();
     }
 
     @Override
-    protected boolean hasUsefulDisplayName() {
+    public boolean hasUsefulDisplayName() {
         return !JavaReflectionUtil.hasDefaultToString(bean);
     }
 

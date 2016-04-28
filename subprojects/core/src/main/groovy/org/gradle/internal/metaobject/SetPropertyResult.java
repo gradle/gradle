@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal.metaobject;
 
-public class GetPropertyResult {
-    private Object value;
+public class SetPropertyResult {
     private boolean found;
 
     /**
-     * Indicates that the property has been found with the given value.
+     * Indicates that the property value has been set.
      */
-    public void result(Object value) {
-        this.value = value;
+    public void found() {
         this.found = true;
     }
 
     public boolean isFound() {
         return found;
-    }
-
-    public Object getValue() {
-        return value;
     }
 }

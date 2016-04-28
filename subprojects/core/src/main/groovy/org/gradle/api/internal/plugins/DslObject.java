@@ -20,6 +20,7 @@ import org.gradle.api.internal.*;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.internal.metaobject.DynamicObject;
 
 /**
  * Provides a unified, typed, interface to an enhanced DSL object.

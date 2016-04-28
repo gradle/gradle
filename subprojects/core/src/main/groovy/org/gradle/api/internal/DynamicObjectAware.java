@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.internal.metaobject.DynamicObject;
+
 /**
  * An object that can present a dynamic view of itself.
  *

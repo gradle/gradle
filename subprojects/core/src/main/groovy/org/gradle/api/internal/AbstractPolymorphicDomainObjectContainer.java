@@ -23,6 +23,7 @@ import org.gradle.api.Namer;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.metaobject.*;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -91,14 +92,14 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         }
 
         @Override
-        protected String getDisplayName() {
+        public String getDisplayName() {
             return AbstractPolymorphicDomainObjectContainer.this.getDisplayName();
         }
     }
 
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {
         @Override
-        protected String getDisplayName() {
+        public String getDisplayName() {
             return AbstractPolymorphicDomainObjectContainer.this.getDisplayName();
         }
 

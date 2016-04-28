@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.internal.DynamicObject;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.api.internal.PolymorphicDomainObjectContainerInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskContainer;

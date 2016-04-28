@@ -22,7 +22,7 @@ import org.gradle.internal.reflect.Instantiator;
 import java.util.Stack;
 
 /**
- * @see org.gradle.api.internal.AsmBackedClassGenerator.MixInExtensibleDynamicObject#MixInExtensibleDynamicObject(Object, DynamicObject)
+ * @see org.gradle.api.internal.AsmBackedClassGenerator.MixInExtensibleDynamicObject#MixInExtensibleDynamicObject(Object, Class, org.gradle.internal.metaobject.DynamicObject)
  * @see ClassGeneratorBackedInstantiator#newInstance(Class, Object...)
  */
 public abstract class ThreadGlobalInstantiator {

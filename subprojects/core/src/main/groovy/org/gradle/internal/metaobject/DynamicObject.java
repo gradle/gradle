@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.internal.metaobject;
 
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
@@ -25,7 +25,7 @@ import java.util.Map;
  *
  * The semantics of each method is completely up to the implementation. For example, {@link BeanDynamicObject}
  * provides a dynamic view of the functionality of an object and does not provide any decoration or extra functionality.
- * The {@link ExtensibleDynamicObject} implementation on the other hand does provide extra functionality.
+ * The {@link org.gradle.api.internal.ExtensibleDynamicObject} implementation on the other hand does provide extra functionality.
  */
 public interface DynamicObject {
     /**

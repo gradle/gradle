@@ -24,6 +24,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.metaobject.*;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -299,14 +300,14 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        protected String getDisplayName() {
+        public String getDisplayName() {
             return DefaultNamedDomainObjectCollection.this.getDisplayName();
         }
     }
 
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {
         @Override
-        protected String getDisplayName() {
+        public String getDisplayName() {
             return DefaultNamedDomainObjectCollection.this.getDisplayName();
         }
 

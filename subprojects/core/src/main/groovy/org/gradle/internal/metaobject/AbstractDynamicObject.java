@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.internal.metaobject;
 
 import groovy.lang.GroovyRuntimeException;
 import groovy.lang.MissingMethodException;
@@ -28,7 +28,7 @@ import java.util.Map;
  * An empty {@link DynamicObject}.
  */
 public abstract class AbstractDynamicObject implements DynamicObject {
-    protected abstract String getDisplayName();
+    public abstract String getDisplayName();
 
     @Override
     public String toString() {
@@ -46,11 +46,11 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     }
 
     @Nullable
-    protected Class<?> getPublicType() {
+    public Class<?> getPublicType() {
         return null;
     }
 
-    protected boolean hasUsefulDisplayName() {
+    public boolean hasUsefulDisplayName() {
         return true;
     }
 

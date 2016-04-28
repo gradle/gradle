@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.internal.metaobject;
 
-public class InvokeMethodResult {
-    private Object result;
+public class GetPropertyResult {
+    private Object value;
     private boolean found;
 
-    public void result(Object result) {
-        found = true;
-        this.result = result;
+    /**
+     * Indicates that the property has been found with the given value.
+     */
+    public void result(Object value) {
+        this.value = value;
+        this.found = true;
     }
 
     public boolean isFound() {
         return found;
     }
 
-    public Object getResult() {
-        return result;
+    public Object getValue() {
+        return value;
     }
 }

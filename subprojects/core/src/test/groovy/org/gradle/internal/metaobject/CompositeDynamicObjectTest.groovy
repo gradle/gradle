@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.internal.metaobject
 
 import spock.lang.Specification
 
 class CompositeDynamicObjectTest extends Specification {
     def obj = new CompositeDynamicObject() {
         @Override
-        protected String getDisplayName() {
+        String getDisplayName() {
             return "<obj>"
         }
     }
@@ -172,7 +172,7 @@ class CompositeDynamicObjectTest extends Specification {
 
         then:
         def e = thrown(groovy.lang.MissingMethodException)
-        e.message.startsWith("No signature of method: org.gradle.api.internal.CompositeDynamicObjectTest.m() is applicable for argument types: (java.lang.String) values: [value]")
+        e.message.startsWith("No signature of method: ${CompositeDynamicObjectTest.name}.m() is applicable for argument types: (java.lang.String) values: [value]")
     }
 
     def "presents a method for property that has a closure as value"() {

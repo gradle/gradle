@@ -18,9 +18,9 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.*;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.metaobject.*;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.*;
@@ -144,7 +144,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     
     private class ExtensionsDynamicObject extends AbstractDynamicObject {
         @Override
-        protected String getDisplayName() {
+        public String getDisplayName() {
             return "extensions";
         }
 

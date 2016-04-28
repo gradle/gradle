@@ -18,6 +18,10 @@ package org.gradle.util;
 
 import groovy.lang.Closure;
 import org.gradle.api.internal.*;
+import org.gradle.internal.metaobject.ConfigureDelegate;
+import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.InvokeMethodResult;
+import org.gradle.internal.metaobject.SetPropertyResult;
 
 import java.util.Collection;
 import java.util.Map;

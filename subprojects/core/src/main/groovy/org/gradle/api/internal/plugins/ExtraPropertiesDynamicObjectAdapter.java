@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.internal.AbstractDynamicObject;
-import org.gradle.api.internal.GetPropertyResult;
-import org.gradle.api.internal.SetPropertyResult;
+import org.gradle.internal.metaobject.AbstractDynamicObject;
+import org.gradle.internal.metaobject.GetPropertyResult;
+import org.gradle.internal.metaobject.SetPropertyResult;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 
 import java.util.Map;
@@ -33,7 +33,7 @@ public class ExtraPropertiesDynamicObjectAdapter extends AbstractDynamicObject {
     }
 
     @Override
-    protected String getDisplayName() {
+    public String getDisplayName() {
         return delegateType.getName();
     }
 

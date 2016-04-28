@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal
+package org.gradle.internal.metaobject
 
 import org.codehaus.groovy.reflection.CachedClass
+import org.gradle.api.internal.BeanWithDynamicProperties
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer
 import org.gradle.api.internal.coerce.PropertySetTransformer
 import spock.lang.Specification

@@ -22,6 +22,7 @@ import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.metaobject.*;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.ArrayList;
@@ -100,18 +101,18 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
     }
 
     @Override
-    protected String getDisplayName() {
+    public String getDisplayName() {
         return dynamicDelegate.getDisplayName();
     }
 
     @Nullable
     @Override
-    protected Class<?> getPublicType() {
+    public Class<?> getPublicType() {
         return dynamicDelegate.getPublicType();
     }
 
     @Override
-    protected boolean hasUsefulDisplayName() {
+    public boolean hasUsefulDisplayName() {
         return dynamicDelegate.hasUsefulDisplayName();
     }
 
@@ -174,7 +175,7 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
             }
 
             @Override
-            protected String getDisplayName() {
+            public String getDisplayName() {
                 return dynamicDelegate.getDisplayName();
             }
         };

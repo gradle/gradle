@@ -18,6 +18,8 @@ package org.gradle.api.internal;
 import groovy.lang.*;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.plugins.Convention;
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 
