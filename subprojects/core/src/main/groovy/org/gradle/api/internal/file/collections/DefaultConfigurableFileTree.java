@@ -55,8 +55,8 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
         this.fileCopier = fileCopier;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         patternSet = resolver.getPatternSetFactory().create();
-        ConfigureUtil.configureByMap(args, this);
         buildDependency = new DefaultTaskDependency(taskResolver);
+        ConfigureUtil.configureByMap(args, this);
     }
 
     public PatternSet getPatterns() {

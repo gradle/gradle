@@ -71,9 +71,10 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     }
 
     @Test public void testFileSetConstructionFromMap() {
-        fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: testDir, includes: ['include'], fileCopier, directoryFileTreeFactory())
+        fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: testDir, includes: ['include'], builtBy: ['a'], fileCopier, directoryFileTreeFactory())
         assertEquals(testDir, fileSet.dir)
         assertEquals(['include'] as Set, fileSet.includes)
+        assertEquals(['a'] as Set, fileSet.builtBy)
     }
 
     @Test(expected = InvalidUserDataException) public void testFileSetConstructionWithNoBaseDirSpecified() {
