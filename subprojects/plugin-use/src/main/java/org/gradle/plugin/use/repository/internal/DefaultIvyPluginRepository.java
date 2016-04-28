@@ -17,85 +17,47 @@
 package org.gradle.plugin.use.repository.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.repositories.IvyPluginRepository;
-import org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver;
-import org.gradle.plugin.use.resolve.internal.PluginResolver;
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 
-import java.net.URI;
+class DefaultIvyPluginRepository extends AbstractPluginRepository implements IvyPluginRepository {
+    private static final String IVY = "ivy";
 
-public class DefaultIvyPluginRepository implements IvyPluginRepository, PluginRepositoryInternal, BackedByArtifactRepository {
-    private final FileResolver fileResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
-    private final VersionSelectorScheme versionSelectorScheme;
 
-    private String name = "ivy";
-    private Object url;
-    private PluginResolver resolver;
-    private IvyArtifactRepository artifactRepository;
-
-    public DefaultIvyPluginRepository(FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
-        this.fileResolver = fileResolver;
+    public DefaultIvyPluginRepository(
+        FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices,
+        VersionSelectorScheme versionSelectorScheme, AuthenticationSupportedInternal delegate) {
+        super(IVY, fileResolver, dependencyResolutionServices, versionSelectorScheme, delegate);
         this.dependencyResolutionServices = dependencyResolutionServices;
-        this.versionSelectorScheme = versionSelectorScheme;
     }
 
     @Override
-    public URI getUrl() {
-        return fileResolver.resolveUri(url);
-    }
-
-    @Override
-    public void setUrl(Object url) {
-        checkMutable();
-        this.url = url;
-    }
-
-    @Override
-    public ArtifactRepository getArtifactRepository() {
-        prepareArtifactRepository();
-        return artifactRepository;
-    }
-
-    @Override
-    public PluginResolver asResolver() {
-        if (resolver == null) {
-            prepareArtifactRepository();
-            resolver = new ArtifactRepositoryPluginResolver(name, dependencyResolutionServices, versionSelectorScheme);
-        }
-        return resolver;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public void setName(String name) {
-        checkMutable();
-        this.name = name;
-    }
-
-    private void checkMutable() {
-        if (artifactRepository != null) {
-            throw new IllegalStateException("A plugin repository cannot be modified after it has been used to resolve plugins.");
-        }
-    }
-
-    private void prepareArtifactRepository() {
-        if (artifactRepository == null) {
-            artifactRepository = dependencyResolutionServices.getResolveRepositoryHandler().ivy(new Action<IvyArtifactRepository>() {
-                @Override
-                public void execute(IvyArtifactRepository ivyArtifactRepository) {
-                    ivyArtifactRepository.setName("__plugins__" + name);
-                    ivyArtifactRepository.setUrl(url);
+    protected ArtifactRepository createArtifactRepository(RepositoryHandler repositoryHandler) {
+        return dependencyResolutionServices.getResolveRepositoryHandler().ivy(new Action<IvyArtifactRepository>() {
+            @Override
+            public void execute(IvyArtifactRepository ivyArtifactRepository) {
+                ivyArtifactRepository.setName(getArtifactRepositoryName());
+                ivyArtifactRepository.setUrl(getUrl());
+                Credentials credentials = authenticationSupport().getConfiguredCredentials();
+                if (credentials != null) {
+                    ((AuthenticationSupportedInternal)ivyArtifactRepository).setConfiguredCredentials(credentials);
+                    ivyArtifactRepository.authentication(new Action<AuthenticationContainer>() {
+                        @Override
+                        public void execute(AuthenticationContainer authenticationContainer) {
+                            authenticationContainer.addAll(authenticationSupport().getConfiguredAuthentication());
+                        }
+                    });
                 }
-            });
-        }
+            }
+        });
     }
 }

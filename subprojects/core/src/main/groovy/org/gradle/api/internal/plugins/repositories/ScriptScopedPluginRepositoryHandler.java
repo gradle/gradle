@@ -17,6 +17,9 @@
 package org.gradle.api.internal.plugins.repositories;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.repositories.AuthenticationContainer;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
 import org.gradle.internal.reflect.Instantiator;
@@ -102,6 +105,36 @@ public class ScriptScopedPluginRepositoryHandler implements PluginRepositoryHand
         public void setName(String name) {
             delegate.setName(name);
         }
+
+        @Override
+        public PasswordCredentials getCredentials() {
+            return delegate.getCredentials();
+        }
+
+        @Override
+        public <T extends Credentials> T getCredentials(Class<T> credentialsType) {
+            return delegate.getCredentials(credentialsType);
+        }
+
+        @Override
+        public void credentials(Action<? super PasswordCredentials> action) {
+            delegate.credentials(action);
+        }
+
+        @Override
+        public <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action) {
+            delegate.credentials(credentialsType, action);
+        }
+
+        @Override
+        public void authentication(Action<? super AuthenticationContainer> action) {
+            delegate.authentication(action);
+        }
+
+        @Override
+        public AuthenticationContainer getAuthentication() {
+            return delegate.getAuthentication();
+        }
     }
 
     public static class IvyPluginRepositoryWrapper implements IvyPluginRepository {
@@ -131,6 +164,36 @@ public class ScriptScopedPluginRepositoryHandler implements PluginRepositoryHand
         @Override
         public void setName(String name) {
             delegate.setName(name);
+        }
+
+        @Override
+        public PasswordCredentials getCredentials() {
+            return delegate.getCredentials();
+        }
+
+        @Override
+        public <T extends Credentials> T getCredentials(Class<T> credentialsType) {
+            return delegate.getCredentials(credentialsType);
+        }
+
+        @Override
+        public void credentials(Action<? super PasswordCredentials> action) {
+            delegate.credentials(action);
+        }
+
+        @Override
+        public <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action) {
+            delegate.credentials(credentialsType, action);
+        }
+
+        @Override
+        public void authentication(Action<? super AuthenticationContainer> action) {
+            delegate.authentication(action);
+        }
+
+        @Override
+        public AuthenticationContainer getAuthentication() {
+            return delegate.getAuthentication();
         }
     }
 }

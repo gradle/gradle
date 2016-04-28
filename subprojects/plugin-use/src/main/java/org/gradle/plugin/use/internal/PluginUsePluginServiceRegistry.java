@@ -35,6 +35,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
+import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
@@ -111,10 +112,15 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
 
         DefaultPluginRepositoryHandler createPluginRepositoryHandler(PluginResolutionServiceResolver pluginResolutionServiceResolver, VersionSelectorScheme versionSelectorScheme,
                                                                      final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver,
-                                                                     final DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator) {
+                                                                     final DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator,
+                                                                     final AuthenticationSchemeRegistry authenticationSchemeRegistry) {
 
-            final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
-            return instantiator.newInstance(DefaultPluginRepositoryHandler.class, pluginResolutionServiceResolver, fileResolver, dependencyResolutionServicesFactory, versionSelectorScheme, instantiator);
+            final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(
+                dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
+            return instantiator.newInstance(
+                DefaultPluginRepositoryHandler.class, pluginResolutionServiceResolver, fileResolver,
+                dependencyResolutionServicesFactory, versionSelectorScheme, instantiator,
+                authenticationSchemeRegistry);
         }
 
         private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider) {

@@ -136,8 +136,8 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
     def "credentials(Class, Action) creates credentials on demand if required"() {
         Instantiator instantiator = Mock()
         AuthenticationContainer authenticationContainer = Stub()
-        Action action = Mock()
 
+        Action action = Mock()
         AuthSupportedRepository repo = new AuthSupportedRepository(instantiator, authenticationContainer)
 
         when:
@@ -158,6 +158,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
         given:
         Instantiator instantiator = Mock()
         AuthenticationContainer authenticationContainer = Stub()
+
         Action action = Mock()
         def credentials = Mock(AwsCredentials)
         1 * instantiator.newInstance(_) >> credentials

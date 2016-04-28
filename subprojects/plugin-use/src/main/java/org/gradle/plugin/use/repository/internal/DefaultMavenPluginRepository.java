@@ -17,87 +17,45 @@
 package org.gradle.plugin.use.repository.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
-import org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver;
-import org.gradle.plugin.use.resolve.internal.PluginResolver;
-
-import java.net.URI;
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 
 
-class DefaultMavenPluginRepository implements MavenPluginRepository, PluginRepositoryInternal, BackedByArtifactRepository {
+class DefaultMavenPluginRepository extends AbstractPluginRepository implements MavenPluginRepository {
+    private static final String MAVEN = "maven";
 
-    private final FileResolver fileResolver;
-    private final DependencyResolutionServices dependencyResolutionServices;
-    private final VersionSelectorScheme versionSelectorScheme;
-
-    private String name = "maven";
-    private Object url;
-    private PluginResolver resolver;
-    private MavenArtifactRepository artifactRepository;
-
-    public DefaultMavenPluginRepository(FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices, VersionSelectorScheme versionSelectorScheme) {
-        this.fileResolver = fileResolver;
-        this.dependencyResolutionServices = dependencyResolutionServices;
-        this.versionSelectorScheme = versionSelectorScheme;
+    public DefaultMavenPluginRepository(
+        FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices,
+        VersionSelectorScheme versionSelectorScheme, AuthenticationSupportedInternal delegate) {
+        super(MAVEN, fileResolver, dependencyResolutionServices, versionSelectorScheme, delegate);
     }
 
     @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public void setName(String name) {
-        checkMutable();
-        this.name = name;
-    }
-
-    @Override
-    public URI getUrl() {
-        return fileResolver.resolveUri(url);
-    }
-
-    @Override
-    public void setUrl(Object url) {
-        checkMutable();
-        this.url = url;
-    }
-
-    private void checkMutable() {
-        if (artifactRepository != null) {
-            throw new IllegalStateException("A plugin repository cannot be modified after it has been used to resolve plugins.");
-        }
-    }
-
-    @Override
-    public PluginResolver asResolver() {
-        if (resolver == null) {
-            prepareArtifactRepository();
-            resolver = new ArtifactRepositoryPluginResolver(name, dependencyResolutionServices, versionSelectorScheme);
-        }
-        return resolver;
-    }
-
-    @Override
-    public ArtifactRepository getArtifactRepository() {
-        prepareArtifactRepository();
-        return artifactRepository;
-    }
-
-    private void prepareArtifactRepository() {
-        if (artifactRepository == null) {
-            artifactRepository = dependencyResolutionServices.getResolveRepositoryHandler().maven(new Action<MavenArtifactRepository>() {
-                @Override
-                public void execute(MavenArtifactRepository mavenArtifactRepository) {
-                    mavenArtifactRepository.setName("__plugins__" + name);
-                    mavenArtifactRepository.setUrl(url);
+    protected ArtifactRepository createArtifactRepository(RepositoryHandler repositoryHandler) {
+        return repositoryHandler.maven(new Action<MavenArtifactRepository>() {
+            @Override
+            public void execute(MavenArtifactRepository mavenArtifactRepository) {
+                mavenArtifactRepository.setName(getArtifactRepositoryName());
+                mavenArtifactRepository.setUrl(getUrl());
+                Credentials credentials = authenticationSupport().getConfiguredCredentials();
+                if (credentials != null) {
+                    ((AuthenticationSupportedInternal)mavenArtifactRepository).setConfiguredCredentials(credentials);
+                    mavenArtifactRepository.authentication(new Action<AuthenticationContainer>() {
+                        @Override
+                        public void execute(AuthenticationContainer authenticationContainer) {
+                            authenticationContainer.addAll(authenticationSupport().getConfiguredAuthentication());
+                        }
+                    });
                 }
-            });
-        }
+            }
+        });
     }
 }

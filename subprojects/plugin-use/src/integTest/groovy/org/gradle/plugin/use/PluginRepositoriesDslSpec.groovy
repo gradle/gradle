@@ -40,6 +40,13 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
                 maven {
                     name "ourMavenRepo"
                     url "http://repo.internal.net/m2"
+                    authentication {
+                        basic(BasicAuthentication)
+                    }
+                    credentials {
+                        username = "noob"
+                        password = "hunter2"
+                    }
                 }
             }
         """
@@ -55,6 +62,13 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
                 ivy {
                     name "ourIvyRepo"
                     url "http://repo.internal.net/ivy"
+                    authentication {
+                        basic(BasicAuthentication)
+                    }
+                    credentials {
+                        username = "noob"
+                        password = "hunter2"
+                    }
                 }
             }
         """

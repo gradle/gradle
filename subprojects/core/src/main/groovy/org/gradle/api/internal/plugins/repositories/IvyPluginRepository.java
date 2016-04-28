@@ -17,6 +17,7 @@
 package org.gradle.api.internal.plugins.repositories;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 
 import java.net.URI;
 
@@ -24,7 +25,7 @@ import java.net.URI;
  * Represents an Ivy repository which contains Gradle plugins.
  */
 @Incubating
-public interface IvyPluginRepository extends PluginRepository {
+public interface IvyPluginRepository extends PluginRepository, AuthenticationSupported {
     /**
      * The base URL of this repository. This URL is used to find artifact files.
      *

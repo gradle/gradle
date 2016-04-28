@@ -24,9 +24,10 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.model.ModelMap
 import org.gradle.model.Mutate
 import org.gradle.model.RuleSource
+import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.ivy.IvyFileRepository
-import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.ivy.IvyRepository
+import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.util.TextUtil
 
 class PluginBuilder {
@@ -76,25 +77,29 @@ class PluginBuilder {
         executer.inDirectory(projectDir).withTasks("jar").run()
     }
 
-    void publishAs(String coordinates, MavenFileRepository mavenRepo, GradleExecuter executer) {
+    PluginPublicationResults publishAs(String coordinates, MavenRepository mavenRepo, GradleExecuter executer) {
         List<String> gav = Splitter.on(":").splitToList(coordinates)
 
         // The implementation jar module.
         def module = mavenRepo.module(gav.get(0), gav.get(1), gav.get(2))
-        def artifactFile = module.getArtifactFile([:])
-        module.publish()
+        def artifactFile = module.getArtifactFile()
+        def pluginModule = module.publish()
+
+        def markerModules = new ArrayList<Module>()
 
         pluginIds.keySet().each {id ->
             // The marker files for each plugin.
             def marker = mavenRepo.module(id, id, gav[2])
             marker.dependsOn(module)
-            marker.publish()
+            markerModules.add(marker.publish())
         }
 
         publishTo(executer, artifactFile)
+
+        return new PluginPublicationResults(pluginModule, markerModules)
     }
 
-    void publishAs(String coordinates, IvyFileRepository ivyRepo, GradleExecuter executer) {
+    PluginPublicationResults publishAs(String coordinates, IvyRepository ivyRepo, GradleExecuter executer) {
         List<String> omr = Splitter.on(":").splitToList(coordinates)
 
         // The implementation jar module.
@@ -102,14 +107,19 @@ class PluginBuilder {
         def artifactFile = module.artifact([:]).getJarFile()
         module.publish()
 
+        def markerModules = new ArrayList<Module>()
+
         pluginIds.keySet().each {id ->
             // The marker files for each plugin.
             def marker = ivyRepo.module(id, id, omr[2])
             marker.dependsOn(module)
             marker.publish()
+            markerModules.add(marker)
         }
 
         publishTo(executer, artifactFile);
+
+        return new PluginPublicationResults(module, markerModules)
     }
 
     void generateForBuildSrc() {
@@ -182,5 +192,15 @@ class PluginBuilder {
             }
         """)
         this
+    }
+
+    public class PluginPublicationResults {
+        final Module pluginModule
+        final List<Module> markerModules
+
+        PluginPublicationResults(pluginModule, markerModules) {
+            this.pluginModule = pluginModule
+            this.markerModules = markerModules
+        }
     }
 }

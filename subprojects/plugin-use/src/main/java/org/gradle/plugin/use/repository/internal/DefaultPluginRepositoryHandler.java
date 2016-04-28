@@ -18,15 +18,21 @@ package org.gradle.plugin.use.repository.internal;
 
 import com.google.common.collect.Iterators;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.repositories.AuthenticationSupporter;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
 import org.gradle.api.internal.plugins.repositories.GradlePluginPortal;
 import org.gradle.api.internal.plugins.repositories.IvyPluginRepository;
 import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;
+import org.gradle.authentication.Authentication;
 import org.gradle.internal.Factory;
+import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
+import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
+import org.gradle.internal.authentication.DefaultAuthenticationContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
@@ -35,27 +41,34 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
+    private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
+    private final FileResolver fileResolver;
+    private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
+    private final VersionSelectorScheme versionSelectorScheme;
+    private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
+    private final Instantiator instantiator;
+    private final Map<String, PluginRepository> repositories;
 
-    private FileResolver fileResolver;
-    private Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
-    private VersionSelectorScheme versionSelectorScheme;
-    private PluginResolutionServiceResolver pluginResolutionServiceResolver;
-    private Instantiator instantiator;
-    private Map<String, PluginRepository> repositories;
-
-    public DefaultPluginRepositoryHandler(PluginResolutionServiceResolver pluginResolutionServiceResolver, FileResolver fileResolver, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory, VersionSelectorScheme versionSelectorScheme, Instantiator instantiator) {
+    public DefaultPluginRepositoryHandler(
+        PluginResolutionServiceResolver pluginResolutionServiceResolver, FileResolver fileResolver,
+        Factory<DependencyResolutionServices> dependencyResolutionServicesFactory,
+        VersionSelectorScheme versionSelectorScheme, Instantiator instantiator,
+        AuthenticationSchemeRegistry authenticationSchemeRegistry) {
         this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
         this.versionSelectorScheme = versionSelectorScheme;
         this.repositories = new LinkedHashMap<String, PluginRepository>();
+        this.authenticationSchemeRegistry = authenticationSchemeRegistry;
     }
 
     @Override
     public MavenPluginRepository maven(Action<? super MavenPluginRepository> configurationAction) {
+        AuthenticationContainer authenticationContainer = makeAuthenticationContainer(instantiator, authenticationSchemeRegistry);
+        AuthenticationSupportedInternal delegate = new AuthenticationSupporter(instantiator, authenticationContainer);
         DefaultMavenPluginRepository mavenPluginRepository = instantiator.newInstance(
-            DefaultMavenPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme);
+            DefaultMavenPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme, delegate);
         configurationAction.execute(mavenPluginRepository);
         add(mavenPluginRepository);
         return mavenPluginRepository;
@@ -63,8 +76,10 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
 
     @Override
     public IvyPluginRepository ivy(Action<? super IvyPluginRepository> configurationAction) {
+        AuthenticationContainer authenticationContainer = makeAuthenticationContainer(instantiator, authenticationSchemeRegistry);
+        AuthenticationSupportedInternal delegate = new AuthenticationSupporter(instantiator, authenticationContainer);
         DefaultIvyPluginRepository ivyPluginRepository = instantiator.newInstance(
-            DefaultIvyPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme);
+            DefaultIvyPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme, delegate);
         configurationAction.execute(ivyPluginRepository);
         add(ivyPluginRepository);
         return ivyPluginRepository;
@@ -103,5 +118,15 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
             proposedName = String.format("%s%d", proposedName, attempt);
         }
         return proposedName;
+    }
+
+    private AuthenticationContainer makeAuthenticationContainer(Instantiator instantiator, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
+        DefaultAuthenticationContainer container = instantiator.newInstance(DefaultAuthenticationContainer.class, instantiator);
+
+        for (Map.Entry<Class<Authentication>, Class<? extends Authentication>> e : authenticationSchemeRegistry.getRegisteredSchemes().entrySet()) {
+            container.registerBinding(e.getKey(), e.getValue());
+        }
+
+        return container;
     }
 }
