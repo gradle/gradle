@@ -46,6 +46,8 @@ import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFacto
 import org.gradle.api.internal.project.taskfactory.DependencyAutoWireTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.configuration.*;
@@ -71,6 +73,8 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -81,10 +85,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.profile.ProfileEventAdapter;
@@ -219,7 +219,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             registry);
     }
 
-    protected ScriptPluginFactory createScriptObjectConfigurerFactory() {
+    protected ScriptPluginFactory createScriptPluginFactory() {
         return new DefaultScriptPluginFactory(
             get(ScriptCompilerFactory.class),
             getFactory(LoggingManagerInternal.class),
@@ -230,8 +230,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(DirectoryFileTreeFactory.class),
             get(DocumentationRegistry.class),
             get(ModelRuleSourceDetector.class),
-            get(PluginRepositoryHandler.class)
-        );
+            get(PluginRepositoryHandler.class));
     }
 
     protected SettingsLoader createSettingsLoader(SettingsProcessor settingsProcessor, GradleLauncherFactory gradleLauncherFactory,
@@ -246,8 +245,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                     gradleLauncherFactory,
                     classLoaderScopeRegistry.getCoreAndPluginsScope(),
                     cacheRepository,
-                    buildOperationExecutor)
-            ),
+                    buildOperationExecutor)),
             buildLoader);
     }
 

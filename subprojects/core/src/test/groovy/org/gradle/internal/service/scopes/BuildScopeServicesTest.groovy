@@ -31,6 +31,7 @@ import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter
 import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler
 import org.gradle.api.internal.project.*
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder
+import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.configuration.*
@@ -44,12 +45,11 @@ import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.installation.GradleInstallation
+import org.gradle.internal.logging.LoggingManagerInternal
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.api.logging.configuration.LoggingConfiguration
-import org.gradle.internal.logging.LoggingManagerInternal
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.use.internal.InjectedPluginClasspath
 import org.gradle.plugin.use.internal.PluginRequestApplicator
