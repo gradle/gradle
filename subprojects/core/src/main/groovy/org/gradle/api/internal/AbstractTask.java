@@ -34,6 +34,7 @@ import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -55,6 +56,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
@@ -70,8 +72,9 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
-    private final static Logger BUILD_LOGGER = Logging.getLogger(Task.class);
-    private final static ThreadLocal<TaskInfo> NEXT_INSTANCE = new ThreadLocal<TaskInfo>();
+    private static final Logger BUILD_LOGGER = Logging.getLogger(Task.class);
+    private static final ThreadLocal<TaskInfo> NEXT_INSTANCE = new ThreadLocal<TaskInfo>();
+
     private final ProjectInternal project;
 
     private final String name;
@@ -116,6 +119,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final TaskInputs taskInputs;
     private final TaskOutputsInternal taskOutputs;
+    private final Class<? extends Task> publicType;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -132,18 +136,19 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         this.project = taskInfo.project;
         this.name = taskInfo.name;
+        this.publicType = taskInfo.publicType;
         assert project != null;
         assert name != null;
         path = project.absoluteProjectPath(name);
-        toStringValue = "task '".concat(path).concat("'");
+        toStringValue = "task '" + path + "'";
         state = new TaskStateInternal(toString());
-        dependencies = new DefaultTaskDependency(project.getTasks());
-        mustRunAfter = new DefaultTaskDependency(project.getTasks());
-        finalizedBy = new DefaultTaskDependency(project.getTasks());
-        shouldRunAfter = new DefaultTaskDependency(project.getTasks());
+        TaskContainerInternal tasks = project.getTasks();
+        dependencies = new DefaultTaskDependency(tasks);
+        mustRunAfter = new DefaultTaskDependency(tasks);
+        finalizedBy = new DefaultTaskDependency(tasks);
+        shouldRunAfter = new DefaultTaskDependency(tasks);
         services = project.getServices();
         taskMutator = new TaskMutator(this);
-
         observableActionList = new ObservableActionWrapperList(actions);
         observableActionList.addPropertyChangeListener(new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent evt) {
@@ -152,6 +157,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         });
         taskInputs = new DefaultTaskInputs(project.getFileResolver(), this, taskMutator);
         taskOutputs = new DefaultTaskOutputs(project.getFileResolver(), this, taskMutator);
+    }
+
+    private void assertDynamicObject() {
+        if (extensibleDynamicObject == null) {
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, publicType, services.get(Instantiator.class));
+        }
     }
 
     public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Class<? extends Task> publicType, Callable<T> factory) {
@@ -388,18 +399,22 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Object property(String propertyName) throws MissingPropertyException {
+        assertDynamicObject();
         return extensibleDynamicObject.getProperty(propertyName);
     }
 
     public boolean hasProperty(String propertyName) {
+        assertDynamicObject();
         return extensibleDynamicObject.hasProperty(propertyName);
     }
 
     public void setProperty(String name, Object value) {
+        assertDynamicObject();
         extensibleDynamicObject.setProperty(name, value);
     }
 
     public Convention getConvention() {
+        assertDynamicObject();
         return extensibleDynamicObject.getConvention();
     }
 
@@ -408,6 +423,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public DynamicObject getAsDynamicObject() {
+        assertDynamicObject();
         return extensibleDynamicObject;
     }
 
