@@ -76,7 +76,11 @@ public class DeprecatedFeatureUsage {
     }
 
     private int skipSystemStackElements(StackTraceElement[] stackTrace, int caller) {
-        while (caller < stackTrace.length && stackTrace[caller].getClassName().startsWith("org.codehaus.groovy.") || stackTrace[caller].getClassName().startsWith("groovy.") || stackTrace[caller].getClassName().startsWith("java.") || stackTrace[caller].getClassName().startsWith("sun.")) {
+        while (caller < stackTrace.length && stackTrace[caller].getClassName().startsWith("org.codehaus.groovy.")
+                || stackTrace[caller].getClassName().startsWith("org.gradle.internal.metaobject.")
+                || stackTrace[caller].getClassName().startsWith("groovy.")
+                || stackTrace[caller].getClassName().startsWith("java.")
+                || stackTrace[caller].getClassName().startsWith("sun.")) {
             caller++;
         }
         return caller;
