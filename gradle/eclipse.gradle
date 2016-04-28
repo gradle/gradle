@@ -1,24 +1,9 @@
-// This is sort of a hack
-// 1. It will make most of gradle compile in eclipse
-// 2. It requires some adjustments in eclipse to work properly - see below
-//
-// Things required for this hack to work:
-//  1. Eclipse must be 4.5 or above and needs the Groovyclipse feature. Use this update site, for example http://dist.springsource.org/snapshot/GRECLIPSE/e4.5/
-//  2. 2GB of memory is required (Add or alter -Xmx2g to eclipse.ini)
-//  3. Run ./gradlew eclipse on that folder
-//  4. Configure a JRE in Eclipse which is at least 1.7. Set the JRE name property of that JRE to 'JavaSE-1.5'
-//  5. In Window->Preferences->Groovy->Compiler, check 'Enable Script folder support' and Add '**/*.gradle'
-//  6. Import the gradle project into the Eclipse workspace, choose 'search for nested projects', take ALL projects
-//  7. Accept that some things just don't seem to work in Eclipse, especially some of the groovy files
-
 def subprojectsPath = new File(projectDir,'/subprojects').absolutePath
 
-apply plugin: 'eclipse'
+allprojects { 
+	apply plugin: 'eclipse'
 
-subprojects { subProject ->
-	subProject.apply plugin: 'eclipse'
-
-	subProject.plugins.withType(JavaPlugin) {
+	plugins.withType(JavaPlugin) {
 		eclipse {
 			classpath {
 				file.whenMerged { classpath ->
@@ -35,6 +20,7 @@ subprojects { subProject ->
 			jdt {
 				sourceCompatibility = 1.6
 				targetCompatibility = 1.6
+				javaRuntimeName = 'JavaSE-1.7' // compile against a JDK 7 rt.jar
 				file.withProperties { properties ->
 					// Eclipse's view of projects treat circular dependencies as errors by default
 					properties["org.eclipse.jdt.core.circularClasspath"] = "warning"

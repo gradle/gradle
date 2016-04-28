@@ -86,9 +86,17 @@ Note that due to an IDEA glitch, the first build of Gradle from IDEA will fail. 
 
 #### Gradle Integration for Eclipse (by Pivotal)
 
-The Gradle project is currently not completely buildable in Eclipse. 
+Building the Gradle project with Eclipse is currently limited due to Eclipse's lacking Groovy support. 
+We recommend using IntelliJ IDEA. 
 This is something that will be rectified in the future.
-See further comments and instructions in [gradle/eclipse.gradle](gradle/eclipse.gradle).
+
+1. Eclipse must be 4.5 or above and needs the Groovyclipse feature. 
+   Use this update site, for example http://dist.springsource.org/snapshot/GRECLIPSE/e4.5/
+2. 2GB of memory is required (Add or alter -Xmx2g to eclipse.ini)
+3. Run ./gradlew eclipse
+4. In Eclipse at Window->Preferences->Java->Installed JREs, configure a JRE which is at least 1.7 and set the name property to 'JavaSE-1.7'
+5. In Window->Preferences->Groovy->Compiler, check 'Enable Script folder support' and add '**/*.gradle'
+6. Import the gradle project into the Eclipse workspace, choose 'search for nested projects', take ALL projects
 
 #### Gradle for Eclipse (by Nodeclipse/Enide)
 
