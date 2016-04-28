@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -33,7 +34,6 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -138,11 +138,11 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
                     try {
                         configureAntBuilder(antBuilder, antLogger);
 
-                        // Ideally, we'd delegate directly to the AntBuilder, but it's Closure class is different to our caller's
+                        // Ideally, we'd delegate directly to the AntBuilder, but its Closure class is different to our caller's
                         // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
-                        // because they are not an instanceof it's Closure class.
+                        // because they are not an instanceof its Closure class.
                         Object delegate = new AntBuilderDelegate(antBuilder, classLoader);
-                        ConfigureUtil.configure(antClosure, delegate);
+                        new ClosureBackedAction<Object>(antClosure).execute(delegate);
 
                     } finally {
                         Thread.currentThread().setContextClassLoader(originalLoader);

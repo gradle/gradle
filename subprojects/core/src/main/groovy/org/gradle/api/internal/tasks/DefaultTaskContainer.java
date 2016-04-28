@@ -167,8 +167,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public TaskContainerInternal configure(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, new NamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this));
-        return this;
+        return ConfigureUtil.configureSelf(configureClosure, this, new NamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this));
     }
 
     @Override

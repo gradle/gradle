@@ -26,6 +26,7 @@ class NestedConfigureDslIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
 tasks.help { t ->
     assert t instanceof $Help.name
+    assert delegate instanceof $Help.name
     description = "this is task \$name"
 }
 assert tasks.help.description == "this is task help"
@@ -69,8 +70,7 @@ tasks.help {
 
         expect:
         fails()
-        // This is incorrect - just documenting the current behaviour so that it can be fixed
-        failure.assertHasCause("Could not find method unknown() for arguments [12] on root project 'test' of type org.gradle.api.Project.")
+        failure.assertHasCause("Could not find method unknown() for arguments [12] on task ':help' of type org.gradle.configuration.Help.")
     }
 
     def "can read property from configure closure outer scope"() {
@@ -128,7 +128,8 @@ tasks.help {
     def "can configure polymorphic container using configure closure"() {
         buildFile << """
 tasks.configure { t ->
-//    assert t instanceof ${TaskContainer.name}
+    assert t instanceof ${TaskContainer.name}
+    assert delegate instanceof ${TaskContainer.name}
     help.description = "some help"
 }
 assert tasks.help.description == "some help"
@@ -160,8 +161,7 @@ tasks.configure {
 
         expect:
         fails()
-        // This is incorrect - just documenting the current behaviour so that it can be fixed
-        failure.assertHasCause("Could not find method unknown() for arguments [12] on root project 'test' of type org.gradle.api.Project.")
+        failure.assertHasCause("Could not find method unknown() for arguments [12] on task set.")
     }
 
     def "can read property from polymorphic container configure closure outer scope"() {
@@ -232,6 +232,7 @@ tasks.configure {
         buildFile << """
 repositories { r ->
     assert r instanceof ${RepositoryHandler.name}
+    assert delegate instanceof ${RepositoryHandler.name}
     mavenCentral()
 }
 assert repositories.size() == 1
@@ -275,8 +276,7 @@ repositories {
 
         expect:
         fails()
-        // This is incorrect - just documenting the current behaviour so that it can be fixed
-        failure.assertHasCause("Could not find method unknown() for arguments [12] on root project 'test' of type org.gradle.api.Project.")
+        failure.assertHasCause("Could not find method unknown() for arguments [12] on repository container.")
     }
 
     def "can read property from container configure closure outer scope"() {

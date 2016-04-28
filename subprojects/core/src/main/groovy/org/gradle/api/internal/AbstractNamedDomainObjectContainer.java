@@ -60,13 +60,12 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
         return object;
     }
 
-    protected Object createConfigureDelegate(Closure configureClosure) {
+    protected ConfigureDelegate createConfigureDelegate(Closure configureClosure) {
         return new NamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this);
     }
 
     public AbstractNamedDomainObjectContainer<T> configure(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, createConfigureDelegate(configureClosure));
-        return this;
+        return ConfigureUtil.configureSelf(configureClosure, this, createConfigureDelegate(configureClosure));
     }
 
     public String getDisplayName() {

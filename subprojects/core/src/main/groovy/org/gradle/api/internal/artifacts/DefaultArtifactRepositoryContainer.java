@@ -63,7 +63,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
     }
 
     public DefaultArtifactRepositoryContainer configure(Closure closure) {
-        return ConfigureUtil.configure(closure, this, false);
+        return ConfigureUtil.configureSelf(closure, this);
     }
 
     public void addFirst(ArtifactRepository repository) {

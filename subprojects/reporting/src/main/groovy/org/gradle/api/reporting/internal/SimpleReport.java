@@ -69,7 +69,7 @@ public class SimpleReport implements Report {
     }
     
     public Report configure(Closure configure) {
-        return ConfigureUtil.configure(configure, this, false);
+        return ConfigureUtil.configureSelf(configure, this);
     }
 
     public boolean isEnabled() {

@@ -635,8 +635,7 @@ assert 'overridden value' == global
         expect:
         fails()
         failure.assertHasLineNumber(4)
-        // This error message has the wrong subject (the project - should be the task). Just documenting the behaviour.
-        failure.assertHasCause("Could not find method unknown() for arguments [12, things] on root project 'test' of type ${Project.name}.")
+        failure.assertHasCause("Could not find method unknown() for arguments [12, things] on task ':p' of type ${DefaultTask.name}.")
     }
 
     def canApplyACategoryToDecoratedObject() {

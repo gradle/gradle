@@ -100,7 +100,7 @@ class DefaultScriptHandlerTest extends Specification {
 
         then:
         1 * depMgmtServices.resolveRepositoryHandler >> repositoryHandler
-        1 * repositoryHandler.configure(configure) >> { ConfigureUtil.configure(configure, repositoryHandler, false) }
+        1 * repositoryHandler.configure(configure) >> { ConfigureUtil.configureSelf(configure, repositoryHandler) }
         1 * repositoryHandler.mavenCentral()
     }
 

@@ -81,7 +81,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
     }
 
     @Override
-    protected Object createConfigureDelegate(Closure configureClosure) {
+    protected ConfigureDelegate createConfigureDelegate(Closure configureClosure) {
         return new PolymorphicDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this);
     }
 

@@ -53,7 +53,7 @@ public class DefaultReportContainer<T extends Report> extends DefaultNamedDomain
     }
 
     public ReportContainer<T> configure(Closure cl) {
-        ConfigureUtil.configure(cl, this, false);
+        ConfigureUtil.configureSelf(cl, this);
         return this;
     }
     
