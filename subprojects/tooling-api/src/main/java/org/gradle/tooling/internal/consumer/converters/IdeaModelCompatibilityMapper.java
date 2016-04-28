@@ -19,16 +19,18 @@ package org.gradle.tooling.internal.consumer.converters;
 import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+import org.gradle.tooling.model.idea.IdeaModule;
+import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.util.GradleVersion;
 
 import java.io.Serializable;
 
-public class IdeaProjectCompatibilityMapper implements Action<SourceObjectMapping>, Serializable {
+public class IdeaModelCompatibilityMapper implements Action<SourceObjectMapping>, Serializable {
 
     private final String version;
 
-    public IdeaProjectCompatibilityMapper(VersionDetails versionDetails) {
+    public IdeaModelCompatibilityMapper(VersionDetails versionDetails) {
         version = versionDetails.getVersion();
     }
 
@@ -38,11 +40,23 @@ public class IdeaProjectCompatibilityMapper implements Action<SourceObjectMappin
         if (IdeaProject.class.isAssignableFrom(targetType) && !versionSupportsIdeaJavaSourceSettings()) {
             mapping.mixIn(CompatibilityIdeaProjectMapping.class);
         }
+        if (!versionSupportsIdeaModuleIdentifier()) {
+            if (IdeaModuleDependency.class.isAssignableFrom(targetType)) {
+                mapping.mixIn(CompatibilityIdeaModuleDependencyMapping.class);
+            } else if (IdeaModule.class.isAssignableFrom(targetType)) {
+                mapping.mixIn(CompatibilityIdeaModuleMapping.class);
+            }
+        }
     }
 
     private boolean versionSupportsIdeaJavaSourceSettings() {
         GradleVersion targetGradleVersion = GradleVersion.version(version);
         // return 'true' for 2.11 snapshots too
         return targetGradleVersion.getBaseVersion().compareTo(GradleVersion.version("2.11")) >= 0;
+    }
+
+    private boolean versionSupportsIdeaModuleIdentifier() {
+        GradleVersion targetGradleVersion = GradleVersion.version(version);
+        return targetGradleVersion.getBaseVersion().compareTo(GradleVersion.version("2.14")) >= 0;
     }
 }

@@ -29,6 +29,8 @@ class ModuleDependency implements Dependency {
      */
     String scope
 
+    String gradlePath
+
     boolean exported
 
     def ModuleDependency(name, scope) {

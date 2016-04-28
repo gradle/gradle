@@ -22,6 +22,7 @@ import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
 import org.gradle.plugins.ide.internal.tooling.IdeaModelBuilder
@@ -62,7 +63,7 @@ class IdeaModelBuilderTest extends Specification {
         ideaProject.javaLanguageSettings.languageLevel == defaultIdeaPluginLanguageLevelForJavaProjects
         ideaProject.javaLanguageSettings.languageLevel == toJavaVersion(ideaProject.languageLevel)
 
-        where:
+        where:  
         pluginType << [JavaPlugin, GroovyPlugin, ScalaPlugin]
     }
 
@@ -292,7 +293,7 @@ class IdeaModelBuilderTest extends Specification {
     private IdeaModelBuilder createIdeaModelBuilder() {
         def gradleProjectBuilder = Mock(GradleProjectBuilder)
         gradleProjectBuilder.buildAll(_) >> Mock(DefaultGradleProject)
-        new IdeaModelBuilder(gradleProjectBuilder)
+        new IdeaModelBuilder(gradleProjectBuilder, new DefaultServiceRegistry())
     }
 
     private DefaultIdeaProject buildIdeaProject(modelBuilder, project) {

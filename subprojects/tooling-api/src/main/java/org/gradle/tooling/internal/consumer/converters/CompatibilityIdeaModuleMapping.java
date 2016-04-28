@@ -13,15 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.model.idea;
 
-import org.gradle.api.Incubating;
+package org.gradle.tooling.internal.consumer.converters;
 
-/**
- * Identifies an Idea module.
- *
- * @since 2.14
- */
-@Incubating
-public interface IdeaModuleIdentifier {
+import org.gradle.tooling.internal.protocol.DefaultIdeaModuleIdentifier;
+import org.gradle.tooling.model.idea.IdeaModule;
+
+public class CompatibilityIdeaModuleMapping {
+    private final IdeaModule ideaModule;
+
+    public CompatibilityIdeaModuleMapping(IdeaModule ideaModule) {
+        this.ideaModule = ideaModule;
+    }
+
+    public DefaultIdeaModuleIdentifier getTarget() {
+        return new DefaultIdeaModuleIdentifier(ideaModule.getGradleProject().getPath());
+    }
 }

@@ -24,7 +24,9 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 
 class ModuleDependencyBuilder {
     public ModuleDependency create(IdeProjectDependency dependency, String scope) {
-        return new ModuleDependency(determineProjectName(dependency), scope);
+        ModuleDependency moduleDependency = new ModuleDependency(determineProjectName(dependency), scope);
+        moduleDependency.setGradlePath(dependency.getProjectPath());
+        return moduleDependency;
     }
 
     private String determineProjectName(IdeProjectDependency dependency) {

@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.internal.tooling.idea;
 
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.GradleProjectIdentity;
+import org.gradle.tooling.internal.protocol.DefaultIdeaModuleIdentifier;
 import org.gradle.tooling.model.idea.IdeaCompilerOutput;
 
 import java.io.Serializable;
@@ -37,6 +38,10 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
     private IdeaCompilerOutput compilerOutput;
 
     private DefaultIdeaJavaLanguageSettings javaLanguageSettings;
+
+    public DefaultIdeaModuleIdentifier getIdentifier() {
+        return new DefaultIdeaModuleIdentifier(gradleProject.getProjectDirectory());
+    }
 
     public String getName() {
         return name;

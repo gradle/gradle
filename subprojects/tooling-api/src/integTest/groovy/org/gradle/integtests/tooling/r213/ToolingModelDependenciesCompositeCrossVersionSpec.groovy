@@ -98,15 +98,25 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeTooling
         then:
         ideaModules.size() == 2
         def ideaModuleA = ideaModules.find { it.gradleProject.projectIdentifier.buildIdentifier == new DefaultBuildIdentifier(buildA) }
+        def ideaModuleB = ideaModules.find { it.gradleProject.projectIdentifier.buildIdentifier == new DefaultBuildIdentifier(buildB) }
         ideaModuleA != null
+        ideaModuleB != null
         if (isIntegratedComposite()) {
+            assert ideaModuleB.identifier != null
             assert ideaModuleA.dependencies.size() == 1
-            assert ideaModuleA.dependencies.first() instanceof IdeaModuleDependency
-            // TODO:DAZ We'll need to provide a way to correlate to a 'foreign' IdeaModule in a composite
-            assert ideaModuleA.dependencies.first().dependencyModule == null
+            with(ideaModuleA.dependencies.first()) {
+                assert it instanceof IdeaModuleDependency
+                assert dependencyModule == null
+                assert target == ideaModuleB.identifier
+            }
         } else {
             assert ideaModuleA.dependencies.size() == 1
-            assert ideaModuleA.dependencies.first() instanceof IdeaSingleEntryLibraryDependency
+            with(ideaModuleA.dependencies.first()) {
+                assert it instanceof IdeaSingleEntryLibraryDependency
+                assert it.gradleModuleVersion.group == 'org.test'
+                assert it.gradleModuleVersion.name == 'buildB'
+                assert it.gradleModuleVersion.version == '1.0'
+            }
         }
     }
 }

@@ -25,11 +25,11 @@ import org.gradle.util.GradleVersion;
 
 import java.io.Serializable;
 
-public class EclipseProjectDependencyCompatibilityMapper implements Action<SourceObjectMapping>, Serializable {
+public class EclipseModelCompatibilityMapper implements Action<SourceObjectMapping>, Serializable {
 
     private final String version;
 
-    public EclipseProjectDependencyCompatibilityMapper(VersionDetails versionDetails) {
+    public EclipseModelCompatibilityMapper(VersionDetails versionDetails) {
         version = versionDetails.getVersion();
     }
 

@@ -33,8 +33,8 @@ public class HasCompatibilityMapperAction {
 
     public HasCompatibilityMapperAction(VersionDetails versionDetails) {
         taskPropertyHandlerMapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
-        ideaProjectCompatibilityMapper = new IdeaProjectCompatibilityMapper(versionDetails);
-        eclipseProjectDependencyCompatibilityMapper = new EclipseProjectDependencyCompatibilityMapper(versionDetails);
+        ideaProjectCompatibilityMapper = new IdeaModelCompatibilityMapper(versionDetails);
+        eclipseProjectDependencyCompatibilityMapper = new EclipseModelCompatibilityMapper(versionDetails);
         gradleProjectIdentifierMapper = new GradleProjectIdentifierMapping();
     }
 

@@ -16,11 +16,15 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
+import org.gradle.tooling.internal.protocol.DefaultIdeaModuleIdentifier;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
+
+import java.io.File;
 
 public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
     private IdeaDependencyScope scope;
     private DefaultIdeaModule dependencyModule;
+    private File projectDirectory;
     private boolean exported;
 
     public IdeaDependencyScope getScope() {
@@ -36,8 +40,17 @@ public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
         return dependencyModule;
     }
 
+    public DefaultIdeaModuleIdentifier getTarget() {
+        return new DefaultIdeaModuleIdentifier(projectDirectory);
+    }
+
     public DefaultIdeaModuleDependency setDependencyModule(DefaultIdeaModule dependencyModule) {
         this.dependencyModule = dependencyModule;
+        return this;
+    }
+
+    public DefaultIdeaModuleDependency setProjectDirectory(File projectDirectory) {
+        this.projectDirectory = projectDirectory;
         return this;
     }
 
