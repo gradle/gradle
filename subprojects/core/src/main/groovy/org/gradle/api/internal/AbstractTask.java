@@ -22,10 +22,23 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.AntBuilder;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Nullable;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.*;
+import org.gradle.api.internal.tasks.ContextAwareTaskAction;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.DefaultTaskInputs;
+import org.gradle.api.internal.tasks.DefaultTaskOutputs;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.TaskExecuter;
+import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.TaskMutator;
+import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.logging.Logger;
@@ -42,7 +55,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
@@ -78,7 +90,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final DefaultTaskDependency shouldRunAfter;
 
-    private final ExtensibleDynamicObject extensibleDynamicObject;
+    private ExtensibleDynamicObject extensibleDynamicObject;
 
     private String description;
 
@@ -101,6 +113,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     // toString() of AbstractTask is called a lot, so precompute.
     private final String toStringValue;
+
+    private final TaskInputs taskInputs;
+    private final TaskOutputsInternal taskOutputs;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -126,9 +141,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         mustRunAfter = new DefaultTaskDependency(project.getTasks());
         finalizedBy = new DefaultTaskDependency(project.getTasks());
         shouldRunAfter = new DefaultTaskDependency(project.getTasks());
-        services = project.getServiceRegistryFactory().createFor(this);
-        extensibleDynamicObject = new ExtensibleDynamicObject(this, taskInfo.publicType, services.get(Instantiator.class));
-        taskMutator = services.get(TaskMutator.class);
+        services = project.getServices();
+        taskMutator = new TaskMutator(this);
 
         observableActionList = new ObservableActionWrapperList(actions);
         observableActionList.addPropertyChangeListener(new PropertyChangeListener() {
@@ -136,6 +150,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 taskMutator.assertMutable("Task.getActions()", evt);
             }
         });
+        taskInputs = new DefaultTaskInputs(project.getFileResolver(), this, taskMutator);
+        taskOutputs = new DefaultTaskOutputs(project.getFileResolver(), this, taskMutator);
     }
 
     public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Class<? extends Task> publicType, Callable<T> factory) {
@@ -411,16 +427,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.group = group;
     }
 
-    @Inject
     public TaskInputs getInputs() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
+        return taskInputs;
     }
 
-    @Inject
     public TaskOutputsInternal getOutputs() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
+        return taskOutputs;
     }
 
     protected ServiceRegistry getServices() {

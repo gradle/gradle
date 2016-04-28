@@ -24,7 +24,6 @@ import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.DependencyInjectingInstantiator
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.artifacts.DependencyManagementServices
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
@@ -107,11 +106,6 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(ModelRuleExtractor) >> Stub(ModelRuleExtractor)
         parent.get(DependencyInjectingInstantiator.ConstructorCache) >> Stub(DependencyInjectingInstantiator.ConstructorCache)
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
-    }
-
-    def "creates a registry for a task"() {
-        expect:
-        registry.get(ServiceRegistryFactory).createFor(Stub(TaskInternal)) instanceof TaskScopeServices
     }
 
     def "adds all project scoped plugin services"() {

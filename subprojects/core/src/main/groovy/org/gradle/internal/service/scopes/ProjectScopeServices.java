@@ -184,9 +184,6 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
         return new ServiceRegistryFactory() {
             public ServiceRegistry createFor(Object domainObject) {
-                if (domainObject instanceof TaskInternal) {
-                    return new TaskScopeServices(services, project, (TaskInternal) domainObject);
-                }
                 throw new UnsupportedOperationException();
             }
         };
