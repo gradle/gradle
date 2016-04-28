@@ -18,4 +18,7 @@ package org.gradle.script.lang.kotlin
 
 import org.gradle.api.Project
 
-class KotlinBuildScript(val gradleProject: Project) : Project by gradleProject
+/**
+ * Base class for Kotlin build scripts.
+ */
+abstract class KotlinBuildScript(project: Project) : Project by project

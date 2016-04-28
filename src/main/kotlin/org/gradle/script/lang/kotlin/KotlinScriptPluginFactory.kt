@@ -37,6 +37,6 @@ object KotlinScriptPluginFactory : ScriptPluginFactory {
 
         val scriptDef = KotlinBuildScriptDefinitionProvider.standardBuildScriptDefinition
         logger.info("Kotlin classpath: {}", scriptDef.getScriptDependenciesClasspath())
-        return compileKotlinScript(scriptFile, scriptDef, logger)
+        return compileKotlinScript(scriptFile, scriptDef, javaClass.classLoader, logger)
     }
 }

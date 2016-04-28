@@ -16,11 +16,17 @@
 
 package org.gradle.script.lang.kotlin
 
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer.newDisposable
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
-import org.jetbrains.kotlin.cli.common.messages.*
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.common.messages.MessageUtil
+import org.jetbrains.kotlin.cli.common.messages.OutputMessageUtil
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileScript
 import org.jetbrains.kotlin.cli.jvm.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 import org.jetbrains.kotlin.codegen.CompilationException
@@ -30,25 +36,17 @@ import org.jetbrains.kotlin.config.addKotlinSourceRoots
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
 import org.jetbrains.kotlin.utils.PathUtil
 
-import com.intellij.openapi.util.Disposer
-
 import org.slf4j.Logger
 
 import java.io.File
 
-fun compileKotlinScript(scriptFile: File, scriptDef: KotlinScriptDefinition, log: Logger): Class<*> {
+fun compileKotlinScript(scriptFile: File, scriptDef: KotlinScriptDefinition, classLoader: ClassLoader, log: Logger): Class<*> {
     val messageCollector = messageCollectorFor(log)
-    val rootDisposable = Disposer.newDisposable()
+    val rootDisposable = newDisposable()
     try {
-        val configuration = compilerConfigFor(listOf(scriptFile), messageCollector)
-        configuration.add(CommonConfigurationKeys.SCRIPT_DEFINITIONS_KEY, scriptDef)
-        val paths = PathUtil.getKotlinPathsForCompiler()
-        val environment = KotlinCoreEnvironment.createForProduction(
-            rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
-
-        val scriptClass: Class<*>? = KotlinToJVMBytecodeCompiler.compileScript(configuration, paths, environment)
-
-        return scriptClass
+        val configuration = compilerConfigFor(listOf(scriptFile), scriptDef, messageCollector)
+        val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable)
+        return compileScript(classLoader, environment)
             ?: throw IllegalStateException("Internal error: unable to compile script, see log for details")
     } catch (ex: CompilationException) {
         messageCollector.report(
@@ -62,20 +60,18 @@ fun compileKotlinScript(scriptFile: File, scriptDef: KotlinScriptDefinition, log
     }
 }
 
-private fun compilerConfigFor(sourceFiles: List<File>, messageCollector: MessageCollector) =
+private fun compilerConfigFor(sourceFiles: List<File>, scriptDef: KotlinScriptDefinition, messageCollector: MessageCollector) =
     CompilerConfiguration().apply {
-        addJvmClasspathRoots(PathUtil.getJdkClassesRoots())
-        addJvmClasspathRoots(currentClassPath())
         addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
+        addJvmClasspathRoots(PathUtil.getJdkClassesRoots())
+        addJvmClasspathRoots(scriptDef.getScriptDependenciesClasspath().map(::File)) // TODO: remove after next Kotlin drop
+        add(CommonConfigurationKeys.SCRIPT_DEFINITIONS_KEY, scriptDef)
         put(JVMConfigurationKeys.MODULE_NAME, "buildscript")
         put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
     }
 
-private fun currentClassPath(): List<File> =
-    System.getProperty("java.class.path")
-        .split(File.pathSeparator)
-        .map { File(it) }
-        .filter { it.exists() }
+private fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposable: Disposable) =
+    KotlinCoreEnvironment.createForProduction(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
 
 private fun messageCollectorFor(log: Logger): MessageCollector =
     MessageCollector { severity, message, location ->

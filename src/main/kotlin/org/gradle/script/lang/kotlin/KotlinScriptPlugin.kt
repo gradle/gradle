@@ -16,6 +16,7 @@
 
 package org.gradle.script.lang.kotlin
 
+import org.gradle.api.Project
 import org.gradle.configuration.ScriptPlugin
 
 import org.gradle.groovy.scripts.ScriptSource
@@ -30,6 +31,6 @@ class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<
 
     override fun apply(target: Any) {
         logger.info("Applying Kotlin script to {}", target)
-        scriptClass.getConstructor(target.javaClass).newInstance(target)
+        scriptClass.getConstructor(Project::class.java).newInstance(target)
     }
 }
