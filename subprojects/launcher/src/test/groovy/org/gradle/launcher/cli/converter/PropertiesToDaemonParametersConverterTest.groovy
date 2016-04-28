@@ -67,12 +67,13 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     def "configures from gradle properties"() {
         when:
         converter.convert([
-                (JVM_ARGS_PROPERTY)       : '-Xmx256m',
-                (JAVA_HOME_PROPERTY)      : Jvm.current().javaHome.absolutePath,
-                (DAEMON_ENABLED_PROPERTY) : "true",
-                (DAEMON_BASE_DIR_PROPERTY): new File("baseDir").absolutePath,
-                (IDLE_TIMEOUT_PROPERTY)   : "115",
-                (DEBUG_MODE_PROPERTY)     : "true",
+                (JVM_ARGS_PROPERTY)                 : '-Xmx256m',
+                (JAVA_HOME_PROPERTY)                : Jvm.current().javaHome.absolutePath,
+                (DAEMON_ENABLED_PROPERTY)           : "true",
+                (DAEMON_BASE_DIR_PROPERTY)          : new File("baseDir").absolutePath,
+                (IDLE_TIMEOUT_PROPERTY)             : "115",
+                (PERIODIC_CHECK_INTERVAL_PROPERTY)  : "42",
+                (DEBUG_MODE_PROPERTY)               : "true",
         ], params)
 
         then:
@@ -82,6 +83,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         params.daemonUsage == EXPLICITLY_ENABLED
         params.baseDir == new File("baseDir").absoluteFile
         params.idleTimeout == 115
+        params.periodicCheckInterval == 42
     }
 
     def "shows nice message for dummy java home"() {
@@ -113,6 +115,16 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         def ex = thrown(GradleException)
         ex.message.contains 'org.gradle.daemon.idletimeout'
         ex.message.contains 'asdf'
+    }
+
+    def "shows nice message for invalid periodic check interval"() {
+        when:
+        converter.convert((GradleProperties.PERIODIC_CHECK_INTERVAL_PROPERTY): 'bogus', params)
+
+        then:
+        def ex = thrown(GradleException)
+        ex.message.contains 'org.gradle.daemon.periodiccheckinterval'
+        ex.message.contains 'bogus'
     }
 
     def "does not explicitly set daemon usage if daemon system property is not specified"() {

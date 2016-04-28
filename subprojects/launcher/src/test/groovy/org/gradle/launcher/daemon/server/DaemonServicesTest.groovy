@@ -31,7 +31,7 @@ import static java.util.Arrays.asList
 @UsesNativeServices
 class DaemonServicesTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
-    final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, asList()),
+    final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, 50, asList()),
             LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath))
 
     def "makes a DaemonDir available"() {

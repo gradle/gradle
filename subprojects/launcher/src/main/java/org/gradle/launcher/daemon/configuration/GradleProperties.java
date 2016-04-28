@@ -23,6 +23,7 @@ import static com.google.common.collect.Sets.newHashSet;
 public class GradleProperties {
 
     public static final String IDLE_TIMEOUT_PROPERTY = "org.gradle.daemon.idletimeout";
+    public static final String PERIODIC_CHECK_INTERVAL_PROPERTY = "org.gradle.daemon.periodiccheckinterval";
     public static final String DAEMON_BASE_DIR_PROPERTY = "org.gradle.daemon.registry.base";
     public static final String JVM_ARGS_PROPERTY = "org.gradle.jvmargs";
     public static final String JAVA_HOME_PROPERTY = "org.gradle.java.home";
@@ -32,7 +33,7 @@ public class GradleProperties {
     public static final String PARALLEL_PROPERTY = "org.gradle.parallel";
     public static final String WORKERS_PROPERTY = "org.gradle.workers.max";
 
-    public static final Set<String> ALL = newHashSet(IDLE_TIMEOUT_PROPERTY, DAEMON_BASE_DIR_PROPERTY, JVM_ARGS_PROPERTY,
+    public static final Set<String> ALL = newHashSet(IDLE_TIMEOUT_PROPERTY, PERIODIC_CHECK_INTERVAL_PROPERTY, DAEMON_BASE_DIR_PROPERTY, JVM_ARGS_PROPERTY,
             JAVA_HOME_PROPERTY, DAEMON_ENABLED_PROPERTY, DEBUG_MODE_PROPERTY, CONFIGURE_ON_DEMAND_PROPERTY, PARALLEL_PROPERTY, WORKERS_PROPERTY);
 
     public static boolean isTrue(Object propertyValue) {

@@ -15,9 +15,14 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
+import org.gradle.launcher.daemon.server.CompositeDaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.DaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.DaemonIdleTimeoutExpirationStrategy;
+import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonServices;
@@ -40,15 +45,21 @@ public class ForegroundDaemonAction implements Runnable {
         loggingManager.start();
 
         DaemonServices daemonServices = new DaemonServices(configuration, loggingRegistry, loggingManager, new DefaultClassPath());
-
         Daemon daemon = daemonServices.get(Daemon.class);
+
         daemon.start();
 
         try {
             daemonServices.get(DaemonRegistry.class).markIdle(daemon.getAddress());
-            daemon.requestStopOnIdleTimeout(configuration.getIdleTimeout(), TimeUnit.MILLISECONDS);
+            daemon.stopOnExpiration(initializeExpirationStrategy(configuration), configuration.getPeriodicCheckIntervalMs());
         } finally {
             daemon.stop();
         }
+    }
+
+    private DaemonExpirationStrategy initializeExpirationStrategy(final DaemonServerConfiguration config) {
+        DaemonIdleTimeoutExpirationStrategy timeoutStrategy = new DaemonIdleTimeoutExpirationStrategy(config.getIdleTimeout(), TimeUnit.MILLISECONDS);
+        DaemonRegistryUnavailableExpirationStrategy registryUnavailableStrategy = new DaemonRegistryUnavailableExpirationStrategy();
+        return new CompositeDaemonExpirationStrategy(ImmutableList.of(timeoutStrategy, registryUnavailableStrategy));
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.configuration;
+package org.gradle.launcher.daemon.server;
 
-import java.io.File;
-import java.util.List;
+public class DaemonExpirationResult {
+    private final boolean expired;
+    private final String reason;
 
-public interface DaemonServerConfiguration {
+    DaemonExpirationResult(boolean expired, String reason) {
+        this.expired = expired;
+        this.reason = reason;
+    }
 
-    File getBaseDir();
+    public boolean isExpired() {
+        return expired;
+    }
 
-    int getIdleTimeout();
-
-    int getPeriodicCheckIntervalMs();
-
-    String getUid();
-
-    List<String> getJvmOptions();
+    public String getReason() {
+        return reason;
+    }
 }

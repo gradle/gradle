@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
 import org.gradle.integtests.fixtures.daemon.DaemonContextParser
+import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import spock.lang.IgnoreIf
@@ -37,6 +38,7 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     int daemonIdleTimeout = 100
+    int periodicCheckInterval = 5
     //normally, state transition timeout must be lower than the daemon timeout
     //so that the daemon does not timeout in the middle of the state verification
     //effectively hiding some bugs or making tests fail
@@ -69,6 +71,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             executer.withTasks("watch")
             executer.withArguments(
                     "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}",
+                    "-Dorg.gradle.daemon.periodiccheckinterval=${periodicCheckInterval * 1000}",
                     "--info",
                     "-Dorg.gradle.jvmargs=-ea")
             if (javaHome) {
@@ -146,7 +149,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         if (javaHome) {
             executer.withJavaHome(javaHome)
         }
-        executer.withArguments("--foreground", "--info", "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}")
+        executer.withArguments("--foreground", "--info", "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}", "-Dorg.gradle.daemon.periodiccheckinterval=${periodicCheckInterval * 1000}",)
         foregroundDaemons << executer.start()
     }
 
@@ -258,6 +261,53 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         stopped()
+    }
+
+    def "daemon stops after current build if registry is deleted"() {
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+        daemonContext {
+            new DaemonDir(executer.daemonBaseDir).registry.delete()
+        }
+
+        then:
+        completeBuild()
+
+        and:
+        stopped()
+    }
+
+    def "starting new build recreates registry and succeeds"() {
+        def registry
+
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+        daemonContext {
+            registry = new DaemonDir(executer.daemonBaseDir).registry
+            registry.delete()
+            assert(!registry.exists())
+        }
+
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+        daemonContext {
+            assert(registry.exists())
+        }
+
+        and:
+        completeBuild()
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null})
