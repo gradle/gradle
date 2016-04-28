@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="9c38e7b5-d1b5-46d1-945f-3cd03c7a41f6" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/9.0/project-config.xsd">
+  <name>Master</name>
+  <description />
+  <settings>
+    <parameters>
+      <param name="gradle.artifactory.password" value="zxx7e91f2355c1754a88adbce8adee33876beffb906dbbffb5ab6b54f406f225869" spec="password display='hidden'" />
+      <param name="gradle.artifactory.user" value="fram" />
+      <param name="webhook.body"><![CDATA[{
+"text":" ${buildResult} - *${projectName} :: ${buildName}* <${buildStatusUrl}|#${buildNumber}> (triggered by ${triggeredBy})"
+}]]></param>
+    </parameters>
+    <build-runners>
+      <runner id="RUNNER_552" name="Build" type="gradle-runner">
+        <parameters>
+          <param name="teamcity.coverage.emma.include.source" value="true" />
+          <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
+          <param name="teamcity.coverage.idea.includePatterns" value="*" />
+          <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="--refresh-dependencies" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="clean build" />
+          <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_553" name="Publish" type="gradle-runner">
+        <parameters>
+          <param name="teamcity.coverage.emma.include.source" value="true" />
+          <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
+          <param name="teamcity.coverage.idea.includePatterns" value="*" />
+          <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="--refresh-dependencies" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="artifactoryPublish" />
+          <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings>
+      <vcs-entry-ref root-id="GradleScriptKotlin_Master" />
+    </vcs-settings>
+    <requirements>
+      <equals name="teamcity.agent.jvm.os.name" value="Linux" />
+    </requirements>
+    <build-triggers>
+      <build-trigger id="vcsTrigger" type="vcsTrigger">
+        <parameters>
+          <param name="quietPeriodMode" value="DO_NOT_USE" />
+        </parameters>
+      </build-trigger>
+    </build-triggers>
+    <cleanup />
+  </settings>
+</build-type>
+
