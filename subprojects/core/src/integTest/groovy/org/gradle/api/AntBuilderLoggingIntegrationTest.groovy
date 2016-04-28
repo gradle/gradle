@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
+            ant.saveStreams = false
             task antTest {
                 doLast {
                     ant.echo(message: "VERBOSE message", level: "verbose")
