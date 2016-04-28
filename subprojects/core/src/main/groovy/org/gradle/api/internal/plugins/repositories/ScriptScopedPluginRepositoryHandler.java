@@ -65,6 +65,11 @@ public class ScriptScopedPluginRepositoryHandler implements PluginRepositoryHand
     }
 
     @Override
+    public GradlePluginPortal gradlePluginPortal() {
+        return delegate.gradlePluginPortal();
+    }
+
+    @Override
     public Iterator<PluginRepository> iterator() {
         return delegate.iterator();
     }

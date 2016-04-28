@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins.dsl;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.plugins.repositories.GradlePluginPortal;
 import org.gradle.api.internal.plugins.repositories.IvyPluginRepository;
 import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;
@@ -42,4 +43,11 @@ public interface PluginRepositoryHandler extends Iterable<PluginRepository> {
      * @return the added repository.
      */
     IvyPluginRepository ivy(Action<? super IvyPluginRepository> action);
+
+    /**
+     * Adds the Gradle Plugin Portal (plugins.gradle.org) as a plugin repository.
+     * @return The added repository.
+     * @throws IllegalArgumentException if called more than once.
+     */
+    GradlePluginPortal gradlePluginPortal();
 }

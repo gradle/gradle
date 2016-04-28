@@ -22,11 +22,13 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
+import org.gradle.api.internal.plugins.repositories.GradlePluginPortal;
 import org.gradle.api.internal.plugins.repositories.IvyPluginRepository;
 import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -37,10 +39,12 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
     private FileResolver fileResolver;
     private Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
     private VersionSelectorScheme versionSelectorScheme;
+    private PluginResolutionServiceResolver pluginResolutionServiceResolver;
     private Instantiator instantiator;
     private Map<String, PluginRepository> repositories;
 
-    public DefaultPluginRepositoryHandler(FileResolver fileResolver, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory, VersionSelectorScheme versionSelectorScheme, Instantiator instantiator) {
+    public DefaultPluginRepositoryHandler(PluginResolutionServiceResolver pluginResolutionServiceResolver, FileResolver fileResolver, Factory<DependencyResolutionServices> dependencyResolutionServicesFactory, VersionSelectorScheme versionSelectorScheme, Instantiator instantiator) {
+        this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
         this.instantiator = instantiator;
         this.fileResolver = fileResolver;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
@@ -64,6 +68,16 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
         configurationAction.execute(ivyPluginRepository);
         add(ivyPluginRepository);
         return ivyPluginRepository;
+    }
+
+    @Override
+    public GradlePluginPortal gradlePluginPortal() {
+        DefaultGradlePluginPortal gradlePluginPortal = new DefaultGradlePluginPortal(pluginResolutionServiceResolver);
+        if (repositories.containsKey(gradlePluginPortal.getName())) {
+            throw new IllegalArgumentException("Cannot add Gradle Plugin Portal more than once");
+        }
+        repositories.put(gradlePluginPortal.getName(), gradlePluginPortal);
+        return gradlePluginPortal;
     }
 
     @Override

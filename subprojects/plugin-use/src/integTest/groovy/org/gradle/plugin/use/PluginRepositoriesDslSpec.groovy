@@ -63,6 +63,32 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
+    def "pluginRepositories block supports adding Gradle Plugin Portal"() {
+        given:
+        settingsFile << """
+            pluginRepositories {
+                gradlePluginPortal()
+            }
+        """
+
+        expect:
+        succeeds 'help'
+    }
+
+    def "Cannot specify Gradle Plugin Portal twice"() {
+        given:
+        settingsFile << """
+            pluginRepositories {
+                gradlePluginPortal()
+                gradlePluginPortal()
+            }
+        """
+
+        expect:
+        fails 'help'
+        failure.assertThatCause(containsString("Cannot add Gradle Plugin Portal more than once"))
+    }
+
     def "other blocks can follow the pluginRepositories block"() {
         given:
         settingsFile << """

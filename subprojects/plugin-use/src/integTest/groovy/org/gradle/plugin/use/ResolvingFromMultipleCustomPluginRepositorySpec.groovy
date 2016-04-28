@@ -20,7 +20,6 @@ import com.google.common.base.Splitter
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
@@ -59,26 +58,15 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         }
     }
 
-    private def publishPlugin(String pluginId, MavenFileRepository mavenRepository) {
-        def pluginBuilder = new PluginBuilder(testDirectory.file(pluginId + mavenRepository.hashCode()))
+    private def publishPlugin(String pluginId, Repository repository) {
+        def pluginBuilder = new PluginBuilder(testDirectory.file(pluginId + repository.hashCode()))
         def idSegments = Splitter.on('.').split(pluginId);
         def coordinates = [idSegments.dropRight(1).join('.'), idSegments.last(), "1.0"].join(':')
 
-        def message = "from ${idSegments.last()} fetched from ${mavenRepository.uri}/"
+        def message = "from ${idSegments.last()} fetched from ${repository.uri}/"
         def taskName = idSegments.last()
         pluginBuilder.addPluginWithPrintlnTask(taskName, message, pluginId, idSegments.last().capitalize())
-        pluginBuilder.publishAs(coordinates, mavenRepository, executer)
-    }
-
-    private def publishPlugin(String pluginId, IvyFileRepository ivyRepository) {
-        def pluginBuilder = new PluginBuilder(testDirectory.file(pluginId + ivyRepository.hashCode()))
-        def idSegments = Splitter.on('.').split(pluginId);
-        def coordinates = [idSegments.dropRight(1).join('.'), idSegments.last(), "1.0"].join(':')
-
-        def message = "from ${idSegments.last()} fetched from ${ivyRepository.uri}/"
-        def taskName = idSegments.last()
-        pluginBuilder.addPluginWithPrintlnTask(taskName, message, pluginId, idSegments.last().capitalize())
-        pluginBuilder.publishAs(coordinates, ivyRepository, executer)
+        pluginBuilder.publishAs(coordinates, repository, executer)
     }
 
     private def use(Repository... repositories) {
@@ -180,27 +168,54 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
 
 - Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
 - ${repoType} (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
-- ${repoType}2 (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
-- Gradle Central Plugin Repository (no 'org.example.foo' plugin available - see https://plugins.gradle.org for available plugins)"""
+- ${repoType}2 (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')"""
         )
 
         where:
         repoType << [IVY, MAVEN]
     }
 
+    def "Does not fall through to plugin portal if custom #repoType repos are defined"(String repoType) {
+        given:
+        publishPlugins(repoType)
+        buildScript """
+            plugins {
+                id "org.gradle.hello-world" version "0.2" //exits in the plugin portal
+            }
+        """
+        use(repoA, repoB)
+
+        when:
+        fails("helloWorld")
+
+        then:
+        failure.assertThatDescription(containsNormalizedString("""
+- ${repoType} (Could not resolve plugin artifact 'org.gradle.hello-world:org.gradle.hello-world:0.2')
+- ${repoType}2 (Could not resolve plugin artifact 'org.gradle.hello-world:org.gradle.hello-world:0.2')"""
+        ))
+
+        where:
+        repoType << [IVY, MAVEN]
+    }
+
     @Requires(TestPrecondition.ONLINE)
-    def "Falls through to Plugin Portal if not found in any custom repository"() {
+    def "Can opt-in to plugin portal"() {
         given:
         publishPlugins(MAVEN)
         requireOwnGradleUserHomeDir()
         buildScript """
             plugins {
-                id "org.gradle.hello-world" version "0.2"
+                id "org.gradle.hello-world" version "0.2" //exists in the plugin portal
             }
         """
 
         when:
-        use(repoA, repoB)
+        settingsFile << """
+            pluginRepositories {
+                maven {url '${repoA.uri}' }
+                gradlePluginPortal()
+            }
+        """
 
         then:
         succeeds("helloWorld")

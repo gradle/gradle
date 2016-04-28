@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use.internal;
 
+import com.google.common.collect.Iterables;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
@@ -67,8 +68,8 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
      *     <li>{@link NoopPluginResolver} - Only used in tests.</li>
      *     <li>{@link CorePluginResolver} - distributed with Gradle</li>
      *     <li>{@link InjectedClasspathPluginResolver} - from a TestKit test's ClassPath</li>
-     *     <li>{@link ArtifactRepositoryPluginResolver}s - from custom Maven/Ivy repositories</li>
-     *     <li>{@link PluginResolutionServiceResolver} - from Gradle Plugin Portal</li>
+     *     <li>Resolvers based on the entries of the `pluginRepositories` block</li>
+     *     <li>{@link PluginResolutionServiceResolver} - from Gradle Plugin Portal if no `pluginRepositories` were defined</li>
      * </ol>
      * <p>
      * This order is optimized for both performance and to allow resolvers earlier in the order
@@ -87,6 +88,9 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
             resolvers.add(resolver);
         }
 
-        resolvers.add(pluginResolutionServiceResolver);
+        if (Iterables.isEmpty(pluginRepositoryHandler)) {
+            resolvers.add(pluginResolutionServiceResolver);
+        }
+
     }
 }

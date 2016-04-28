@@ -157,8 +157,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         failure.assertHasDescription("""Plugin [id: 'org.example.foo', version: '1.1'] was not found in any of the following sources:
 
 - Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-- ${repoType} (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
-- Gradle Central Plugin Repository (no 'org.example.foo' plugin available - see https://plugins.gradle.org for available plugins)"""
+- ${repoType} (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')"""
         )
 
         where:
@@ -245,14 +244,12 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         output.contains("from plugin")
     }
 
-    @Requires(TestPrecondition.ONLINE)
-    def "Falls through to Plugin Portal if not found in custom repository"() {
+    def "Does not fall through to Plugin Portal if custom repo is defined"() {
         given:
         publishTestPlugin(MAVEN)
-        requireOwnGradleUserHomeDir()
         buildScript """
             plugins {
-                id "org.gradle.hello-world" version "0.2"
+                id "org.gradle.hello-world" version "0.2" //this exists in the plugin portal
             }
         """
 
@@ -260,6 +257,6 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         useCustomRepository(MAVEN, PathType.ABSOLUTE)
 
         expect:
-        succeeds("helloWorld")
+        fails("helloWorld")
     }
 }
