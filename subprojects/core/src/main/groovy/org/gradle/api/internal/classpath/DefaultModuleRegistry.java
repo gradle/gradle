@@ -68,7 +68,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
         if (externalJar == null) {
             throw new UnknownModuleException(String.format("Cannot locate JAR for module '%s' in distribution directory '%s'.", name, gradleInstallation.getGradleHome()));
         }
-        return new DefaultModule(name, Collections.singleton(externalJar), Collections.<File>emptySet(), Collections.<Module>emptySet());
+        return new DefaultModule(name, Collections.singleton(externalJar), Collections.<File>emptySet());
     }
 
     public Module getModule(String name) {
@@ -109,19 +109,28 @@ public class DefaultModuleRegistry implements ModuleRegistry {
     }
 
     private Module module(String moduleName, Properties properties, Set<File> implementationClasspath) {
+        String[] runtimeJarNames = split(properties.getProperty("runtime"));
+        Set<File> runtimeClasspath = findDependencyJars(moduleName, runtimeJarNames);
+
+        String[] projects = split(properties.getProperty("projects"));
+        String[] optionalProjects = split(properties.getProperty("optional"));
+        return new DefaultModule(moduleName, implementationClasspath, runtimeClasspath, projects, optionalProjects);
+    }
+
+    private Set<File> findDependencyJars(String moduleName, String[] jarNames) {
         Set<File> runtimeClasspath = new LinkedHashSet<File>();
-        String runtime = properties.getProperty("runtime");
-        for (String jarName : split(runtime)) {
+        for (String jarName : jarNames) {
             runtimeClasspath.add(findDependencyJar(moduleName, jarName));
         }
+        return runtimeClasspath;
+    }
 
+    private Set<Module> getModules(String[] projectNames) {
         Set<Module> modules = new LinkedHashSet<Module>();
-        String projects = properties.getProperty("projects");
-        for (String project : split(projects)) {
+        for (String project : projectNames) {
             modules.add(getModule(project));
         }
-
-        return new DefaultModule(moduleName, implementationClasspath, runtimeClasspath, modules);
+        return modules;
     }
 
     private String[] split(String value) {
@@ -223,22 +232,29 @@ public class DefaultModuleRegistry implements ModuleRegistry {
         throw new IllegalArgumentException(String.format("Cannot find JAR '%s' required by module '%s' using classpath or distribution directory '%s'", name, module, gradleInstallation.getGradleHome()));
     }
 
-    private static class DefaultModule implements Module {
+    private class DefaultModule implements Module {
+
         private final String name;
+        private final String[] projects;
+        private final String[] optionalProjects;
         private final ClassPath implementationClasspath;
         private final ClassPath runtimeClasspath;
-        private final Set<Module> modules;
         private final ClassPath classpath;
 
-        public DefaultModule(String name, Set<File> implementationClasspath, Set<File> runtimeClasspath, Set<Module> modules) {
+        public DefaultModule(String name, Set<File> implementationClasspath, Set<File> runtimeClasspath, String[] projects, String[] optionalProjects) {
             this.name = name;
+            this.projects = projects;
+            this.optionalProjects = optionalProjects;
             this.implementationClasspath = new DefaultClassPath(implementationClasspath);
             this.runtimeClasspath = new DefaultClassPath(runtimeClasspath);
-            this.modules = modules;
             Set<File> classpath = new LinkedHashSet<File>();
             classpath.addAll(implementationClasspath);
             classpath.addAll(runtimeClasspath);
             this.classpath = new DefaultClassPath(classpath);
+        }
+
+        public DefaultModule(String name, Set<File> singleton, Set<File> files) {
+            this(name, singleton, files, NO_PROJECTS, NO_PROJECTS);
         }
 
         @Override
@@ -247,7 +263,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
         }
 
         public Set<Module> getRequiredModules() {
-            return modules;
+            return getModules(projects);
         }
 
         public ClassPath getImplementationClasspath() {
@@ -264,11 +280,37 @@ public class DefaultModuleRegistry implements ModuleRegistry {
 
         public Set<Module> getAllRequiredModules() {
             Set<Module> modules = new LinkedHashSet<Module>();
-            modules.add(this);
-            for (Module module : this.modules) {
-                modules.addAll(module.getAllRequiredModules());
-            }
+            collectRequiredModules(modules);
             return modules;
         }
+
+        private void collectRequiredModules(Set<Module> modules) {
+            if (!modules.add(this)) {
+                return;
+            }
+            for (Module module : getRequiredModules()) {
+                collectDependenciesOf(module, modules);
+            }
+            for (String optionalProject : optionalProjects) {
+                Module module = findModule(optionalProject);
+                if (module != null) {
+                    collectDependenciesOf(module, modules);
+                }
+            }
+        }
+
+        private void collectDependenciesOf(Module module, Set<Module> modules) {
+            ((DefaultModule) module).collectRequiredModules(modules);
+        }
+
+        private Module findModule(String optionalProject) {
+            try {
+                return getModule(optionalProject);
+            } catch (UnknownModuleException ex) {
+                return null;
+            }
+        }
     }
+
+    private static final String[] NO_PROJECTS = new String[0];
 }

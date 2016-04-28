@@ -89,6 +89,8 @@ class ClasspathManifest extends DefaultTask {
 
     FileCollection input = project.configurations.runtime
 
+    List<String> optionalProjects = []
+
     @OutputFile
     File getManifestFile() {
         return new File(project.generatedResourcesDir, "${project.archivesBaseName}-classpath.properties")
@@ -103,6 +105,9 @@ class ClasspathManifest extends DefaultTask {
         properties.projects = input.allDependencies.withType(ProjectDependency).collect {
             it.dependencyProject.archivesBaseName
         }.join(',')
+        if (!optionalProjects.empty) {
+            properties.optional = optionalProjects.join(',')
+        }
         return properties
     }
 
