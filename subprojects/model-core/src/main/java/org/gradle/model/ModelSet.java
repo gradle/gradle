@@ -18,7 +18,6 @@ package org.gradle.model;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.model.internal.type.ModelType;
 
 import java.util.Set;
 
