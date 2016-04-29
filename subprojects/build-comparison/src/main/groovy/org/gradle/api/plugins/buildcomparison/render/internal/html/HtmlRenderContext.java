@@ -20,7 +20,7 @@ import groovy.lang.Closure;
 import groovy.xml.MarkupBuilder;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Transformer;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.api.internal.ClosureBackedAction;
 
 import java.io.File;
 
@@ -35,7 +35,7 @@ public class HtmlRenderContext {
     }
 
     public void render(Closure<?> renderAction) {
-        ConfigureUtil.configure(renderAction, markupBuilder);
+        new ClosureBackedAction<Object>(renderAction).execute(markupBuilder);
     }
 
     public String relativePath(File file) {
