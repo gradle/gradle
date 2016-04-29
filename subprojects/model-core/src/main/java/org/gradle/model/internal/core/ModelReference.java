@@ -48,7 +48,7 @@ public class ModelReference<T> {
 
     private int hashCode;
 
-    private ModelReference(@Nullable ModelPath path, ModelType<T> type, @Nullable ModelPath scope, @Nullable ModelNode.State state, @Nullable String description) {
+    private ModelReference(ModelType<T> type, @Nullable ModelPath path, @Nullable ModelPath scope, @Nullable ModelNode.State state, @Nullable String description) {
         this.path = path;
         this.type = Preconditions.checkNotNull(type, "type");
         this.scope = scope;
@@ -61,7 +61,7 @@ public class ModelReference<T> {
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type, String description) {
-        return Cast.uncheckedCast(new ModelReference<T>(path, type, null, null, description));
+        return Cast.uncheckedCast(new ModelReference<T>(type, path, null, null, description));
     }
 
     public static <T> ModelReference<T> of(String path, ModelType<T> type, String description) {
@@ -69,11 +69,11 @@ public class ModelReference<T> {
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type) {
-        return Cast.uncheckedCast(new ModelReference<T>(path, type, null, null, null));
+        return Cast.uncheckedCast(new ModelReference<T>(type, path, null, null, null));
     }
 
     public static <T> ModelReference<T> of(ModelPath path, ModelType<T> type, ModelNode.State state) {
-        return Cast.uncheckedCast(new ModelReference<T>(path, type, null, state, null));
+        return Cast.uncheckedCast(new ModelReference<T>(type, path, null, state, null));
     }
 
     public static <T> ModelReference<T> of(ModelPath path, Class<T> type) {
@@ -148,18 +148,18 @@ public class ModelReference<T> {
         if (scope.equals(this.scope)) {
             return this;
         }
-        return Cast.uncheckedCast(new ModelReference<T>(path, type, scope, state, description));
+        return Cast.uncheckedCast(new ModelReference<T>(type, path, scope, state, description));
     }
 
     public ModelReference<T> withPath(ModelPath path) {
-        return Cast.uncheckedCast(new ModelReference<T>(path, type, scope, state, description));
+        return Cast.uncheckedCast(new ModelReference<T>(type, path, scope, state, description));
     }
 
     public ModelReference<T> atState(ModelNode.State state) {
         if (state.equals(this.state)) {
             return this;
         }
-        return Cast.uncheckedCast(new ModelReference<T>(path, type, scope, state, description));
+        return Cast.uncheckedCast(new ModelReference<T>(type, path, scope, state, description));
     }
 
     @Override
