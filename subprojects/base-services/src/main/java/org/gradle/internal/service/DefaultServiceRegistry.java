@@ -485,7 +485,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private class OwnServices implements Provider {
-        private ConcurrentMap<Class<?>, Optional<ServiceProvider>> seen;
+        private ConcurrentMap<Object, Optional<ServiceProvider>> seen;
         private List<Provider> providers;
 
         public ServiceProvider getFactory(LookupContext context, Class<?> type) {
@@ -537,6 +537,16 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             if (providers == null) {
                 return null;
             }
+            Optional<ServiceProvider> cached = seen.get(serviceType);
+            if (cached != null) {
+                if (cached.isPresent()) {
+                    // This cache allows to significantly reduce the number of lookups that are done in providers. The idea
+                    // is that we need to go through all of them only a single time, to gather possible cycles (handled
+                    // by lookup context) and duplicates (handled below). Both of them only need to be done once for all.
+                    return cached.get();
+                }
+                return null;
+            }
             List<ServiceProvider> candidates = new ArrayList<ServiceProvider>();
             for (Provider provider : providers) {
                 ServiceProvider service = provider.getService(context, serviceType);
@@ -546,10 +556,13 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             }
 
             if (candidates.size() == 0) {
+                seen.putIfAbsent(serviceType, Optional.<ServiceProvider>absent());
                 return null;
             }
             if (candidates.size() == 1) {
-                return candidates.get(0);
+                ServiceProvider serviceProvider = candidates.get(0);
+                seen.putIfAbsent(serviceType, Optional.of(serviceProvider));
+                return serviceProvider;
             }
 
             Set<String> descriptions = new TreeSet<String>();
@@ -959,7 +972,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
     private static class CompositeProvider implements Provider {
         private final Collection<Provider> providers;
-        private final ConcurrentMap<TypeSpec, Optional<ServiceProvider>> seen = Maps.newConcurrentMap();
+        private final ConcurrentMap<Object, Optional<ServiceProvider>> seen = Maps.newConcurrentMap();
 
         private CompositeProvider(Collection<Provider> providers) {
             this.providers = providers;
@@ -982,12 +995,18 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         public ServiceProvider getFactory(LookupContext context, Class<?> type) {
+            Optional<ServiceProvider> cached = seen.get(type);
+            if (cached != null) {
+                return cached.orNull();
+            }
             for (Provider provider : providers) {
                 ServiceProvider factory = provider.getFactory(context, type);
                 if (factory != null) {
+                    seen.putIfAbsent(type, Optional.of(factory));
                     return factory;
                 }
             }
+            seen.putIfAbsent(type, Optional.<ServiceProvider>absent());
             return null;
         }
 
