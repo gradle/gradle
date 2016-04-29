@@ -63,7 +63,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
 
     public ModelPath(String path) {
         this.path = path;
-        this.components = PATH_SPLITTER.splitToList(path);
+        this.components = new ArrayList<String>(PATH_SPLITTER.splitToList(path));
         this.parent = doGetParent();
     }
 
