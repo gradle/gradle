@@ -13,30 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.quality.internal.findbugs
 
-import groovy.transform.CompileStatic
-import org.gradle.api.file.FileCollection
-import org.gradle.process.internal.JavaExecHandleBuilder
-import org.gradle.process.internal.worker.SingleRequestWorkerProcessBuilder
-import org.gradle.process.internal.worker.WorkerProcessFactory
+package org.gradle.api.plugins.quality.internal.findbugs;
 
-@CompileStatic
-class FindBugsWorkerManager {
-    public FindBugsResult runWorker(File workingDir, WorkerProcessFactory workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) {
+import org.gradle.api.file.FileCollection;
+import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.process.internal.worker.SingleRequestWorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+
+public class FindBugsWorkerManager {
+    public FindBugsResult runWorker(File workingDir, WorkerProcessFactory workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) throws IOException, InterruptedException {
         FindBugsWorker worker = createWorkerProcess(workingDir, workerFactory, findBugsClasspath, spec);
-        return worker.runFindbugs(spec)
+        return worker.runFindbugs(spec);
     }
 
     private FindBugsWorker createWorkerProcess(File workingDir, WorkerProcessFactory workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) {
         SingleRequestWorkerProcessBuilder<FindBugsWorker> builder = workerFactory.singleRequestWorker(FindBugsWorker.class, FindBugsExecuter.class);
-        builder.setBaseName("Gradle FindBugs Worker")
+        builder.setBaseName("Gradle FindBugs Worker");
         builder.applicationClasspath(findBugsClasspath);
         builder.sharedPackages(Arrays.asList("edu.umd.cs.findbugs"));
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         javaCommand.setWorkingDir(workingDir);
         javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
-
-        return builder.build()
+        return builder.build();
     }
 }

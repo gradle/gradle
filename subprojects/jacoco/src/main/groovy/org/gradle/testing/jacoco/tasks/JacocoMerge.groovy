@@ -15,8 +15,11 @@
  */
 package org.gradle.testing.jacoco.tasks
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.Incubating
 import org.gradle.api.Task
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.tasks.InputFiles
@@ -31,6 +34,7 @@ import javax.inject.Inject
  * Task to merge multiple execution data files into one.
  */
 @Incubating
+@CompileStatic
 class JacocoMerge extends JacocoBase {
     /**
      * Collection of execution data files to merge.
@@ -50,6 +54,7 @@ class JacocoMerge extends JacocoBase {
     }
 
     @TaskAction
+    @CompileStatic(TypeCheckingMode.SKIP)
     void merge() {
         antBuilder.withClasspath(getJacocoClasspath()).execute {
             ant.taskdef(name: 'jacocoMerge', classname: 'org.jacoco.ant.MergeTask')
@@ -79,11 +84,11 @@ class JacocoMerge extends JacocoBase {
      * @param tasks one or more tasks to merge
      */
     void executionData(Task... tasks) {
-        tasks.each { task ->
+        tasks.each { Task task ->
             JacocoTaskExtension extension = task.extensions.findByType(JacocoTaskExtension)
             if (extension != null) {
-                executionData(project.files(extension.destinationFile) {
-                    builtBy task
+                executionData(project.files(extension.destinationFile) { ConfigurableFileCollection files ->
+                    files.builtBy task
                 })
             }
         }

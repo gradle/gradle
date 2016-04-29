@@ -15,6 +15,7 @@
  */
 package org.gradle.testing.jacoco.plugins
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Incubating
 import org.gradle.internal.jacoco.JacocoAgentJar
 import org.gradle.process.JavaForkOptions
@@ -25,6 +26,7 @@ import org.gradle.util.GFileUtils
  * to generate coverage execution data.
  */
 @Incubating
+@CompileStatic
 class JacocoTaskExtension {
     JacocoAgentJar agent
 

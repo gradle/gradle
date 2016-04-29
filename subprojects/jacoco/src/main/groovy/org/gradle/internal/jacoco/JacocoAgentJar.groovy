@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.jacoco
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.util.VersionNumber
@@ -23,6 +24,7 @@ import org.gradle.util.VersionNumber
  * Helper to resolve the {@code jacocoagent.jar} from inside
  * of the {@code org.jacoco.agent.jar}.
  */
+@CompileStatic
 class JacocoAgentJar {
     private final Project project
     private File agentJar
@@ -44,7 +46,7 @@ class JacocoAgentJar {
      */
     File getJar() {
         if (!agentJar) {
-            agentJar = project.zipTree(getAgentConf().singleFile).filter { it.name == 'jacocoagent.jar' }.singleFile
+            agentJar = project.zipTree(getAgentConf().singleFile).filter { File file -> file.name == 'jacocoagent.jar' }.singleFile
         }
         return agentJar
     }
