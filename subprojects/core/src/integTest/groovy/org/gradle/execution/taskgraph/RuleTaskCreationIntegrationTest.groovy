@@ -18,6 +18,7 @@ package org.gradle.execution.taskgraph
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 class RuleTaskCreationIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
     def setup() {
@@ -566,6 +567,7 @@ foo configured
         failure.assertHasLineNumber(41)
     }
 
+    @Ignore
     def "can create task with invalid model space name"() {
         when:
         buildFile << """
