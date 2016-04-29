@@ -127,7 +127,10 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                 }
                 this.parentServices = new CompositeProvider(providers);
             }
-            allServices = new CompositeProvider(Arrays.asList(ownServices, parentServices));
+            List<Provider> allProviders = new ArrayList<Provider>(2);
+            allProviders.add(ownServices);
+            allProviders.add(parentServices);
+            allServices = new CompositeProvider(allProviders);
         }
 
         findProviderMethods(this);
