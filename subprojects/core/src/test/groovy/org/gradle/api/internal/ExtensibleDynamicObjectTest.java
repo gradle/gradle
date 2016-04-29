@@ -777,7 +777,7 @@ public class ExtensibleDynamicObjectTest {
 
     public static class Bean extends GroovyObjectSupport implements DynamicObjectAware {
         private String readWriteProperty;
-        private String readOnlyProperty;
+        private String _readOnlyProperty;
         private String writeOnlyProperty;
         private Integer differentTypesProperty;
         final ExtensibleDynamicObject extensibleDynamicObject;
@@ -800,11 +800,11 @@ public class ExtensibleDynamicObjectTest {
         }
 
         public String getReadOnlyProperty() {
-            return readOnlyProperty;
+            return _readOnlyProperty;
         }
 
         public void doSetReadOnlyProperty(String readOnlyProperty) {
-            this.readOnlyProperty = readOnlyProperty;
+            this._readOnlyProperty = readOnlyProperty;
         }
 
         public String doGetWriteOnlyProperty() {

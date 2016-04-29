@@ -226,6 +226,20 @@ class BeanDynamicObjectTest extends Specification {
         bean.prop == "A"
     }
 
+    def "can set value of property with getter and field"() {
+        def bean = new Bean()
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.hasProperty("fieldProp")
+
+        when:
+        dynamicObject.setProperty("fieldProp", "value")
+
+        then:
+        bean.fieldProp == "value"
+    }
+
     def "coerces provided value when setting property"() {
         def bean = new EnumBean()
         def dynamicObject = new BeanDynamicObject(bean, EnumBean, true, false, new SomeEnumConverter(), new SomeEnumConverter())
@@ -253,6 +267,12 @@ class BeanDynamicObjectTest extends Specification {
 
         then:
         bean.prop == SomeEnum.C
+
+        when:
+        dynamicObject.setProperty("someField", 2)
+
+        then:
+        bean.someField == SomeEnum.C
     }
 
     def "fails when set value of unknown property of groovy object"() {
@@ -508,6 +528,12 @@ class BeanDynamicObjectTest extends Specification {
         void setCount(Object str) {
             count = str.toString().length()
         }
+
+        private String fieldProp
+
+        String getFieldProp() {
+            return fieldProp
+        }
     }
 
     static class EnumBean {
@@ -535,6 +561,12 @@ class BeanDynamicObjectTest extends Specification {
 
         SomeEnum doOtherThing(String s, SomeEnum e) {
             e
+        }
+
+        private SomeEnum someField
+
+        SomeEnum getSomeField() {
+            return someField
         }
     }
 }

@@ -268,13 +268,18 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                     if (property instanceof MetaBeanProperty) {
                         MetaBeanProperty metaBeanProperty = (MetaBeanProperty) property;
                         if (metaBeanProperty.getSetter() == null) {
-                            throw setReadOnlyProperty(name);
+                            if (metaBeanProperty.getField() == null) {
+                                throw setReadOnlyProperty(name);
+                            }
+                            value = propertySetTransformer.transformValue(metaBeanProperty.getField().getType(), value);
+                            metaBeanProperty.getField().setProperty(bean, value);
+                        } else {
+                            // Coerce the value to the type accepted by the property setter and invoke the setter directly
+                            Class setterType = metaBeanProperty.getSetter().getParameterTypes()[0].getTheClass();
+                            value = propertySetTransformer.transformValue(setterType, value);
+                            value = DefaultTypeTransformation.castToType(value, setterType);
+                            metaBeanProperty.getSetter().invoke(bean, new Object[]{value});
                         }
-                        // Coerce the value to the type accepted by the property setter and invoke the setter directly
-                        Class setterType = metaBeanProperty.getSetter().getParameterTypes()[0].getTheClass();
-                        value = propertySetTransformer.transformValue(setterType, value);
-                        value = DefaultTypeTransformation.castToType(value, setterType);
-                        metaBeanProperty.getSetter().invoke(bean, new Object[]{value});
                     } else {
                         // Coerce the value to the property type, if known
                         value = propertySetTransformer.transformValue(property.getType(), value);
