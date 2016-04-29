@@ -78,15 +78,7 @@ public class AntLoggingAdapter implements BuildLogger {
         final String messageText = event.getMessage();
         message.append(messageText);
 
-        LogLevel level = Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(event.getPriority());
-
-        if (lifecycleLogLevel != null) {
-            if (shouldLogAtLifecycle(level, event.getPriority())) {
-                level = LogLevel.LIFECYCLE;
-            } else if (shouldLogBelowLifecycle(level, event.getPriority())) {
-                level = LogLevel.INFO;
-            }
-        }
+        LogLevel level = getLogLevelForMessagePriority(event.getPriority());
 
         if (event.getException() != null) {
             logger.log(level, message.toString(), event.getException());
@@ -103,21 +95,24 @@ public class AntLoggingAdapter implements BuildLogger {
         return lifecycleLogLevel;
     }
 
-    /**
-     * Returns true if we would normally log at a lower level than lifecycle, but the Ant message priority is actually higher
-     * than (or equal to) the set lifecycle log level
-     */
-    private boolean shouldLogAtLifecycle(LogLevel level, int messagePriority) {
-        return level.ordinal() < LogLevel.LIFECYCLE.ordinal()
-            && AntMessagePriority.from(messagePriority).ordinal() >= lifecycleLogLevel.ordinal();
-    }
+    private LogLevel getLogLevelForMessagePriority(int messagePriority) {
+        LogLevel defaultLevel = Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(messagePriority);
 
-    /**
-     * Returns true if we would normally log at a level higher than (or equal to) lifecycle, but the Ant message priority is
-     * actually lower than the set lifecycle log level
-     */
-    private boolean shouldLogBelowLifecycle(LogLevel level, int messagePriority) {
-        return level.ordinal() >= LogLevel.LIFECYCLE.ordinal()
-            && AntMessagePriority.from(messagePriority).ordinal() < lifecycleLogLevel.ordinal();
+        // Check to see if we should adjust the level based on a set lifecycle log level
+        if (lifecycleLogLevel != null) {
+            if (defaultLevel.ordinal() < LogLevel.LIFECYCLE.ordinal()
+                && AntMessagePriority.from(messagePriority).ordinal() >= lifecycleLogLevel.ordinal()) {
+                // we would normally log at a lower level than lifecycle, but the Ant message priority is actually higher
+                // than (or equal to) the set lifecycle log level
+                return LogLevel.LIFECYCLE;
+            } else if (defaultLevel.ordinal() >= LogLevel.LIFECYCLE.ordinal()
+                && AntMessagePriority.from(messagePriority).ordinal() < lifecycleLogLevel.ordinal()) {
+                // would normally log at a level higher than (or equal to) lifecycle, but the Ant message priority is
+                // actually lower than the set lifecycle log level
+                return LogLevel.INFO;
+            }
+        }
+
+        return defaultLevel;
     }
 }
