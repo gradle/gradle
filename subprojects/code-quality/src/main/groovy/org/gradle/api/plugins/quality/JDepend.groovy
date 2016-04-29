@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
@@ -29,6 +31,7 @@ import javax.inject.Inject
 /**
  * Analyzes code with <a href="http://clarkware.com/software/JDepend.html">JDepend</a>.
  */
+@CompileStatic
 class JDepend extends DefaultTask implements Reporting<JDependReports> {
     /**
      * The class path containing the JDepend library to be used.
@@ -95,13 +98,15 @@ class JDepend extends DefaultTask implements Reporting<JDependReports> {
      * @param closure The configuration
      * @return The reports container
      */
+    @CompileStatic(TypeCheckingMode.SKIP)
     JDependReports reports(Closure closure) {
         reports.configure(closure)
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     @TaskAction
     void run() {
-        Map<String, ?> reportArguments = [:]
+        Map<String, Object> reportArguments = [:]
         if (reports.enabled.empty) {
             throw new InvalidUserDataException("JDepend tasks must have one report enabled, however neither the xml or text report are enabled for task '$path'. You need to enable one of them")
         } else if (reports.enabled.size() == 1) {

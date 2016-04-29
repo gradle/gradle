@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.JavaVersion
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
@@ -33,6 +35,7 @@ import org.gradle.util.VersionNumber
  * @see PmdExtension
  * @see Pmd
  */
+@CompileStatic
 class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     public static final String DEFAULT_PMD_VERSION = "5.2.3"
     private PmdExtension extension
@@ -47,6 +50,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         return Pmd
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected CodeQualityExtension createExtension() {
         extension = project.extensions.create("pmd", PmdExtension, project)
@@ -71,6 +75,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         }
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureTaskDefaults(Pmd task, String baseName) {
         def config = project.configurations['pmd']
@@ -106,6 +111,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         return "net.sourceforge.pmd:pmd-java:$extension.toolVersion"
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureForSourceSet(SourceSet sourceSet, Pmd task) {
         task.with {

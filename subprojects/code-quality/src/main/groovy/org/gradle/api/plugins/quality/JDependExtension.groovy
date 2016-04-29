@@ -15,10 +15,13 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.CompileStatic
+
 /**
  * Configuration options for the JDepend plugin.
  * 
  * @see JDependPlugin
  */
+@CompileStatic
 class JDependExtension extends CodeQualityExtension {
 }

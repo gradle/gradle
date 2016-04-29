@@ -15,11 +15,13 @@
  */
 package org.gradle.api.plugins.quality.internal.findbugs
 
+import groovy.transform.CompileStatic
 import org.gradle.api.file.FileCollection
 import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.process.internal.worker.SingleRequestWorkerProcessBuilder
 import org.gradle.process.internal.worker.WorkerProcessFactory
 
+@CompileStatic
 class FindBugsWorkerManager {
     public FindBugsResult runWorker(File workingDir, WorkerProcessFactory workerFactory, FileCollection findBugsClasspath, FindBugsSpec spec) {
         FindBugsWorker worker = createWorkerProcess(workingDir, workerFactory, findBugsClasspath, spec);

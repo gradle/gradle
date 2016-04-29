@@ -15,8 +15,10 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.CompileStatic
 import org.gradle.api.tasks.SourceSet
 
+@CompileStatic
 abstract class CodeQualityExtension {
     /**
      * The version of the code quality tool to be used.

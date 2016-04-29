@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.api.plugins.quality
+
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
 
+@CompileStatic
 class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     public static final String DEFAULT_CHECKSTYLE_VERSION = "5.9"
     private CheckstyleExtension extension
@@ -43,6 +47,7 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         return extension
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureTaskDefaults(Checkstyle task, String baseName) {
         def conf = project.configurations['checkstyle']

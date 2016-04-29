@@ -15,7 +15,9 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.JavaVersion
@@ -37,6 +39,7 @@ import javax.inject.Inject
  * <a href="http://findbugs.sourceforge.net/manual/">FindBugs Manual</a> for additional information
  * on configuration options.
  */
+@CompileStatic
 class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBugsReports> {
     /**
      * The classes to be analyzed.
@@ -197,6 +200,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
      * @param closure The configuration
      * @return The reports container
      */
+    @CompileStatic(TypeCheckingMode.SKIP)
     FindBugsReports reports(Closure closure) {
         reports.configure(closure)
     }

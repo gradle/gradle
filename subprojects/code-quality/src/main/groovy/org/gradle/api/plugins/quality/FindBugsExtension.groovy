@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Incubating
 import org.gradle.api.Project
 import org.gradle.api.resources.TextResource
@@ -48,6 +49,7 @@ import org.gradle.api.resources.TextResource
  *
  * @see FindBugsPlugin
  */
+@CompileStatic
 class FindBugsExtension extends CodeQualityExtension {
     private final Project prj
 

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.file.FileCollection
@@ -31,6 +33,7 @@ import javax.inject.Inject
 /**
  * Runs Checkstyle against some source files.
  */
+@CompileStatic
 class Checkstyle extends SourceTask implements VerificationTask, Reporting<CheckstyleReports> {
     /**
      * The class path containing the Checkstyle library to be used.
@@ -119,6 +122,7 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
      * @param closure The configuration
      * @return The reports container
      */
+    @CompileStatic(TypeCheckingMode.SKIP)
     CheckstyleReports reports(Closure closure) {
         reports.configure(closure)
     }
@@ -133,6 +137,7 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
      */
     boolean showViolations = true
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     @TaskAction
     public void run() {
         def propertyName = "org.gradle.checkstyle.violations"
