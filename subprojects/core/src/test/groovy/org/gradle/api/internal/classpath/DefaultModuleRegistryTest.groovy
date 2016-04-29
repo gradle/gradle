@@ -145,8 +145,7 @@ class DefaultModuleRegistryTest extends Specification {
         def classesDir = tmpDir.createDir("out/production/someModule")
         def staticResourcesDir = tmpDir.createDir("some-module/src/main/resources")
         def ignoredDir = tmpDir.createDir("ignore-me-out/production/someModule")
-        def cl = classLoaderFor([ignoredDir, classesDir, resourcesDir, staticResourcesDir, runtimeDep])
-        def registry = new DefaultModuleRegistry(cl, ClassPath.EMPTY, null)
+        def registry = defaultModuleRegistryFor([ignoredDir, classesDir, resourcesDir, staticResourcesDir, runtimeDep])
 
         expect:
         registry.additionalClassPath.asFiles.containsAll([classesDir, staticResourcesDir, resourcesDir])
@@ -158,8 +157,7 @@ class DefaultModuleRegistryTest extends Specification {
             properties(runtime: '', projects: ''),
             resourcesDir.file("gradle-some-module-classpath.properties"))
 
-        def cl = classLoaderFor([resourcesDir, runtimeDep])
-        def registry = new DefaultModuleRegistry(cl, ClassPath.EMPTY, null)
+        def registry = defaultModuleRegistryFor([resourcesDir, runtimeDep])
 
         expect:
         def module = registry.getModule("gradle-some-module")
@@ -169,16 +167,9 @@ class DefaultModuleRegistryTest extends Specification {
 
     def "extracts required modules from manifest"() {
         given:
-        def module1Dir = tmpDir.createDir("some-module/build/resources/main")
-        save(
-            properties(projects: 'gradle-module-2'),
-            module1Dir.file("gradle-some-module-classpath.properties"))
-
-        def module2Dir = tmpDir.createDir("module-2/build/resources/main")
-        save(properties(), module2Dir.file("gradle-module-2-classpath.properties"))
-
-        def cl = classLoaderFor([module1Dir, module2Dir])
-        def registry = new DefaultModuleRegistry(cl, ClassPath.EMPTY, null)
+        def module1Dir = createModule("some-module", properties(projects: 'gradle-module-2'))
+        def module2Dir = createModule("module-2", properties())
+        def registry = defaultModuleRegistryFor([module1Dir, module2Dir])
 
         expect:
         def module = registry.getModule("gradle-some-module")
@@ -187,23 +178,10 @@ class DefaultModuleRegistryTest extends Specification {
 
     def "builds transitive closure of required modules"() {
         given:
-        def module1Dir = tmpDir.createDir("some-module/build/resources/main")
-        save(
-            properties(projects: 'gradle-module-2'),
-            module1Dir.file("gradle-some-module-classpath.properties"))
-
-        def module2Dir = tmpDir.createDir("module-2/build/resources/main")
-        save(
-            properties(projects: 'gradle-module-3'),
-            module2Dir.file("gradle-module-2-classpath.properties"))
-
-        def module3Dir = tmpDir.createDir("module-3/build/resources/main")
-        save(
-            properties(projects: ''),
-            module3Dir.file("gradle-module-3-classpath.properties"))
-
-        def cl = classLoaderFor([module1Dir, module2Dir, module3Dir])
-        def registry = new DefaultModuleRegistry(cl, ClassPath.EMPTY, null)
+        def module1Dir = createModule("some-module", properties(projects: 'gradle-module-2'))
+        def module2Dir = createModule("module-2", properties(projects: 'gradle-module-3'))
+        def module3Dir = createModule("module-3", properties(projects: ''))
+        def registry = defaultModuleRegistryFor([module1Dir, module2Dir, module3Dir])
 
         expect:
         def module = registry.getModule("gradle-some-module")
@@ -212,22 +190,28 @@ class DefaultModuleRegistryTest extends Specification {
 
     def "supports cycles between modules"() {
         given:
-        def module1Dir = tmpDir.createDir("module-1/build/resources/main")
-        save(
-            properties(projects: 'gradle-module-2'),
-            module1Dir.file("gradle-module-1-classpath.properties"))
-
-        def module2Dir = tmpDir.createDir("module-2/build/resources/main")
-        save(
-            properties(projects: 'gradle-module-1'),
-            module2Dir.file("gradle-module-2-classpath.properties"))
-
-        def cl = classLoaderFor([module1Dir, module2Dir])
-        def registry = new DefaultModuleRegistry(cl, ClassPath.EMPTY, null)
+        def module1Dir = createModule("module-1", properties(projects: 'gradle-module-2'))
+        def module2Dir = createModule("module-2", properties(projects: 'gradle-module-1'))
+        DefaultModuleRegistry registry = defaultModuleRegistryFor([module1Dir, module2Dir])
 
         expect:
-        def module = registry.getModule("gradle-module-1")
-        module.allRequiredModules as List == [module, registry.getModule("gradle-module-2")]
+        def module1 = registry.getModule("gradle-module-1")
+        def module2 = registry.getModule("gradle-module-2")
+        module1.allRequiredModules as List == [module1, module2]
+        module2.allRequiredModules as List == [module2, module1]
+    }
+
+    def "supports cycles between optional modules"() {
+        given:
+        def module1Dir = createModule("module-1", properties(optional: 'gradle-optional-module,gradle-module-2'))
+        def module2Dir = createModule("module-2", properties(optional: 'gradle-module-1'))
+        DefaultModuleRegistry registry = defaultModuleRegistryFor([module1Dir, module2Dir])
+
+        expect:
+        def module1 = registry.getModule("gradle-module-1")
+        def module2 = registry.getModule("gradle-module-2")
+        module1.allRequiredModules as List == [module1, module2]
+        module2.allRequiredModules as List == [module2, module1]
     }
 
     def "fails when classpath does not contain manifest resource"() {
@@ -310,6 +294,16 @@ class DefaultModuleRegistryTest extends Specification {
         def module = registry.getExternalModule("sonar-dependency")
         module.implementationClasspath.asFiles == [sonarDependency]
         module.runtimeClasspath.empty
+    }
+
+    private DefaultModuleRegistry defaultModuleRegistryFor(Iterable<TestFile> modules) {
+        new DefaultModuleRegistry(classLoaderFor(modules), ClassPath.EMPTY, null)
+    }
+
+    File createModule(String simpleName, Properties properties) {
+        def moduleDir = tmpDir.createDir("$simpleName/build/resources/main")
+        save(properties, moduleDir.file("gradle-$simpleName-classpath.properties"))
+        moduleDir
     }
 
     private Properties properties(Map kvs = [:]) {
