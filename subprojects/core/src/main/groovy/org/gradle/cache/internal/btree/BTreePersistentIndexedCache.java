@@ -80,7 +80,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         try {
             doOpen();
         } catch (CorruptedCacheException e) {
-            rebuild();
+            rebuild(e);
         }
     }
 
@@ -121,7 +121,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
                 }
                 return null;
             } catch (CorruptedCacheException e) {
-                rebuild();
+                rebuild(e);
                 return null;
             }
         } catch (Exception e) {
@@ -201,8 +201,8 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         return store.isOpen();
     }
 
-    private void rebuild() throws Exception {
-        LOGGER.warn(String.format("%s is corrupt. Discarding.", this));
+    private void rebuild(CorruptedCacheException exception) throws Exception {
+        LOGGER.warn("{} is corrupt. Discarding due to exception: {}", this, exception);
         store.clear();
         close();
         doOpen();
