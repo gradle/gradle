@@ -136,7 +136,7 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
     def "creates IvyArtifact for ArchivePublishArtifact"() {
         when:
         def rootProject = TestUtil.createRootProject()
-        def archive = rootProject.task(type: Jar, {})
+        def archive = rootProject.task('foo', type: Jar, {})
         archive.setBaseName("base-name")
         archive.setExtension('extension')
 
