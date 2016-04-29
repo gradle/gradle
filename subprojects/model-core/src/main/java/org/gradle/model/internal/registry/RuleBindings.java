@@ -253,7 +253,7 @@ class RuleBindings {
         private Map<String, List<RuleBinder>> getByState(ModelNode.State state) {
             Map<String, List<RuleBinder>> map = boundAtState.get(state);
             if (map == null) {
-                map = new HashMap<String, List<RuleBinder>>();
+                map = new HashMap<String, List<RuleBinder>>(64);
                 boundAtState.put(state, map);
             }
             return map;
