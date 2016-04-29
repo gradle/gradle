@@ -24,8 +24,8 @@ import org.gradle.internal.metaobject.InvokeMethodResult;
 public class PolymorphicDomainObjectContainerConfigureDelegate extends ConfigureDelegate {
     private final PolymorphicDomainObjectContainer _container;
 
-    public PolymorphicDomainObjectContainerConfigureDelegate(Object owner, PolymorphicDomainObjectContainer container) {
-        super(owner, container);
+    public PolymorphicDomainObjectContainerConfigureDelegate(Closure configureClosure, PolymorphicDomainObjectContainer container) {
+        super(configureClosure, container);
         this._container = container;
     }
 

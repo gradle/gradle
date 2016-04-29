@@ -62,7 +62,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     }
 
     protected ConfigureDelegate createConfigureDelegate(Closure configureClosure) {
-        return new NamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this);
+        return new NamedDomainObjectContainerConfigureDelegate(configureClosure, this);
     }
 
     public AbstractNamedDomainObjectContainer<T> configure(Closure configureClosure) {

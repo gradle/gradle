@@ -24,8 +24,8 @@ import org.gradle.internal.metaobject.InvokeMethodResult;
 public class NamedDomainObjectContainerConfigureDelegate extends ConfigureDelegate {
     private final NamedDomainObjectContainer _container;
 
-    public NamedDomainObjectContainerConfigureDelegate(Object owner, NamedDomainObjectContainer container) {
-        super(owner, container);
+    public NamedDomainObjectContainerConfigureDelegate(Closure configureClosure, NamedDomainObjectContainer container) {
+        super(configureClosure, container);
         _container = container;
     }
 

@@ -24,6 +24,20 @@ import static org.junit.Assert.assertThat
 
 class ConfigureUtilTest extends Specification {
     
+    def doesNothingWhenNullClosureIsProvided() {
+        given:
+        def obj = []
+
+        when:
+        ConfigureUtil.configure(null, obj)
+        def action = ConfigureUtil.configureUsing(null)
+        action.execute(obj)
+        ConfigureUtil.configureSelf(null, obj)
+        
+        then:
+        obj.empty
+    }
+
     def canConfigureObjectUsingClosure() {
         given:
         List obj = []
@@ -32,10 +46,10 @@ class ConfigureUtilTest extends Specification {
             assertThat(size(), equalTo(1));
             assertThat(obj, equalTo(['a']))
         }
-        
+
         when:
         ConfigureUtil.configure(cl, obj)
-        
+
         then:
         obj == ['a']
     }
@@ -148,6 +162,21 @@ class ConfigureUtilTest extends Specification {
 
         then:
         c.props.a == 1
+    }
+
+    def createsActionThatCanConfigureObjects() {
+        given:
+        def c = new TestConfigurable()
+        def b = new Bean()
+
+        when:
+        def action = ConfigureUtil.configureUsing { prop = "p" }
+        action.execute(c)
+        action.execute(b)
+
+        then:
+        c.props.prop == "p"
+        b.prop == "p"
     }
 
     void configureByMapTriesMethodForExtensibleObjects() {

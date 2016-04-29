@@ -84,7 +84,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
 
     @Override
     protected ConfigureDelegate createConfigureDelegate(Closure configureClosure) {
-        return new PolymorphicDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this);
+        return new PolymorphicDomainObjectContainerConfigureDelegate(configureClosure, this);
     }
 
     private class ContainerDynamicObject extends CompositeDynamicObject {

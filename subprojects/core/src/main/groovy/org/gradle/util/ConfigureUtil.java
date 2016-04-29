@@ -17,7 +17,11 @@
 package org.gradle.util;
 
 import groovy.lang.Closure;
-import org.gradle.api.internal.*;
+import org.gradle.api.Action;
+import org.gradle.api.Nullable;
+import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.internal.DynamicObjectUtil;
+import org.gradle.internal.Actions;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.InvokeMethodResult;
@@ -78,39 +82,76 @@ public class ConfigureUtil {
     }
 
     /**
-     * <p>Configures {@code delegate} with {@code configureClosure}, via the {@link Configurable} interface if necessary.</p>
+     * <p>Configures {@code target} with {@code configureClosure}, via the {@link Configurable} interface if necessary.</p>
      * 
-     * <p>If {@code delegate} does not implement {@link Configurable} interface, it is set as the delegate of a clone of 
+     * <p>If {@code target} does not implement {@link Configurable} interface, it is set as the delegate of a clone of
      * {@code configureClosure} with a resolve strategy of {@code DELEGATE_FIRST}.</p>
      * 
-     * <p>If {@code delegate} does implement the {@link Configurable} interface, the {@code configureClosure} will be passed to
+     * <p>If {@code target} does implement the {@link Configurable} interface, the {@code configureClosure} will be passed to
      * {@code delegate}'s {@link Configurable#configure(Closure)} method.</p>
      * 
      * @param configureClosure The configuration closure
      * @param target The object to be configured
      * @return The delegate param
      */
-    public static <T> T configure(Closure configureClosure, T target) {
-        ClosureBackedAction<T> action = new ClosureBackedAction<T>(configureClosure, Closure.DELEGATE_FIRST, true);
-        action.execute(target);
+    public static <T> T configure(@Nullable Closure configureClosure, T target) {
+        if (configureClosure == null) {
+            return target;
+        }
+
+        if (target instanceof Configurable) {
+            ((Configurable) target).configure(configureClosure);
+        } else {
+            Action<T> action = configureActionFor(configureClosure, target, new ConfigureDelegate(configureClosure, target));
+            action.execute(target);
+        }
+
+        return target;
+    }
+
+    /**
+     * Creates an action that uses the given closure to configure objects of type T.
+     */
+    public static <T> Action<T> configureUsing(@Nullable final Closure configureClosure) {
+        if (configureClosure == null) {
+            return Actions.doNothing();
+        }
+
+        return new Action<T>() {
+            @Override
+            public void execute(T t) {
+                configure(configureClosure, t);
+            }
+        };
+    }
+
+    /**
+     * Called from an object's {@link Configuable#configure} method.
+     */
+    public static <T> T configureSelf(@Nullable Closure configureClosure, T target) {
+        if (configureClosure == null) {
+            return target;
+        }
+
+        configureActionFor(configureClosure, target, new ConfigureDelegate(configureClosure, target)).execute(target);
         return target;
     }
 
     /**
      * Called from an object's {@link Configuable#configure} method.
      */
-    public static <T> T configureSelf(Closure configureClosure, T target) {
-        return configureSelf(configureClosure, target, new ConfigureDelegate(configureClosure.getOwner(), target));
+    public static <T> T configureSelf(@Nullable Closure configureClosure, T target, ConfigureDelegate closureDelegate) {
+        if (configureClosure == null) {
+            return target;
+        }
+
+        configureActionFor(configureClosure, target, closureDelegate).execute(target);
+        return target;
     }
 
-    /**
-     * Called from an object's {@link Configuable#configure} method.
-     */
-    public static <T> T configureSelf(Closure configureClosure, T target, ConfigureDelegate closureDelegate) {
+    private static <T> Action<T> configureActionFor(Closure configureClosure, T target, ConfigureDelegate closureDelegate) {
         // Hackery to make closure execution faster, by short-circuiting the expensive property and method lookup on Closure
         Closure withNewOwner = configureClosure.rehydrate(target, closureDelegate, configureClosure.getThisObject());
-        ClosureBackedAction<T> action = new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false);
-        action.execute(target);
-        return target;
+        return new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false);
     }
 }

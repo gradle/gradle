@@ -16,6 +16,7 @@
 
 package org.gradle.internal.metaobject;
 
+import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.internal.DynamicObjectUtil;
 
@@ -29,8 +30,8 @@ public class ConfigureDelegate extends GroovyObjectSupport {
         }
     };
 
-    public ConfigureDelegate(Object owner, Object delegate) {
-        _owner = DynamicObjectUtil.asDynamicObject(owner);
+    public ConfigureDelegate(Closure configureClosure, Object delegate) {
+        _owner = DynamicObjectUtil.asDynamicObject(configureClosure.getOwner());
         _delegate = DynamicObjectUtil.asDynamicObject(delegate);
     }
 

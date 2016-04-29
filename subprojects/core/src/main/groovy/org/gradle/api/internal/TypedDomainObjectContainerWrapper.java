@@ -65,7 +65,7 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     public NamedDomainObjectContainer<U> configure(Closure configureClosure) {
-        NamedDomainObjectContainerConfigureDelegate delegate = new NamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this);
+        NamedDomainObjectContainerConfigureDelegate delegate = new NamedDomainObjectContainerConfigureDelegate(configureClosure, this);
         return ConfigureUtil.configureSelf(configureClosure, this, delegate);
     }
 
