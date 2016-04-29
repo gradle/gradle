@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.initialization;
 
-package org.gradle.initialization
-
-import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler
-import org.gradle.api.internal.plugins.repositories.ScriptScopedPluginRepositoryHandler
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.util.ConfigureUtil
+import groovy.lang.Closure;
+import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
+import org.gradle.api.internal.plugins.repositories.ScriptScopedPluginRepositoryHandler;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.ConfigureUtil;
 
 /**
  * Endows a {@link SettingsScript} with methods which can only be used when
  * processing top-level blocks on the initial pass through a script.
  */
-abstract class InitialPassSettingsScript extends SettingsScript {
-
+public abstract class InitialPassSettingsScript extends SettingsScript {
     public PluginRepositoryHandler getPluginRepositoryHandler() {
         Instantiator instantiator = __scriptServices.get(Instantiator.class);
         PluginRepositoryHandler pluginRepositoryHandler = __scriptServices.get(PluginRepositoryHandler.class);
@@ -35,6 +34,6 @@ abstract class InitialPassSettingsScript extends SettingsScript {
     }
 
     public void pluginRepositories(Closure config) {
-        ConfigureUtil.configure(config, getPluginRepositoryHandler())
+        ConfigureUtil.configure(config, getPluginRepositoryHandler());
     }
 }
