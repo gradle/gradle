@@ -112,6 +112,11 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         }
 
         @Override
+        public String toString() {
+            return repositoryId + "," + componentId;
+        }
+
+        @Override
         public boolean equals(Object o) {
             if (o == null || !(o instanceof RevisionKey)) {
                 return false;
