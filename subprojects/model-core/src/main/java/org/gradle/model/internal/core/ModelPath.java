@@ -20,6 +20,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
@@ -67,6 +68,15 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         this.parent = doGetParent();
     }
 
+    private ModelPath(String path, Iterable<String> components) {
+        // one should really avoid using this constructor as it is totally inefficient
+        // and reserved to spurious cases when the components have dots in names
+        // (and this can happen if a task name contains dots)
+        this.path = path;
+        this.components = Lists.newArrayList(components);
+        this.parent = doGetParent();
+    }
+
     @Override
     public int compareTo(ModelPath other) {
         if (this == other) {
@@ -107,6 +117,10 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         return components.iterator();
     }
 
+    public String getPath() {
+        return path;
+    }
+
     @Override
     public String toString() {
         return path;
@@ -117,7 +131,13 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
     }
 
     public static ModelPath path(Iterable<String> names) {
-        return BY_PATH.get(pathString(names));
+        String path = pathString(names);
+        for (String name : names) {
+            if (name.indexOf('.') >= 0) {
+                return new ModelPath(path, names);
+            }
+        }
+        return BY_PATH.get(path);
     }
 
     public static String pathString(Iterable<String> names) {

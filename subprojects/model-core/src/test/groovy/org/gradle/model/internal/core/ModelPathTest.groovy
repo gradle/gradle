@@ -71,6 +71,57 @@ class ModelPathTest extends Specification {
         p1 != p1.child("b")
     }
 
+    def "can create path with separator in one component"() {
+        def parent = ModelPath.path([name])
+        def path = ModelPath.path([name, name])
+        def child = ModelPath.path([name, name, name])
+
+        expect:
+        parent.components == [name]
+        parent.name == name
+        parent.toString() == name
+        parent.depth == 1
+        parent.parent == ModelPath.ROOT
+        parent.rootParent == null
+
+        path.components == [name, name]
+        path.name == name
+        path.toString() == "${name}.${name}"
+        path.parent == parent
+        path.rootParent == parent
+        path.name == name
+        path.depth == 2
+
+        child.components == [name, name, name]
+        child.name == name
+        child.parent == path
+        child.rootParent == parent
+        child.depth == 3
+
+        where:
+        name       | _
+        "."        | _
+        "..."      | _
+        "file.txt" | _
+    }
+
+    def "can create child with separator in name"() {
+        def path = ModelPath.path("parent")
+        def child = path.child(name)
+
+        expect:
+        child.parent == path
+        child.name == name
+        child.depth == 2
+        child.toString() == "parent.${name}"
+
+        where:
+        name       | _
+        "."        | _
+        "..."      | _
+        "file.txt" | _
+    }
+
     def "is direct child"() {
         expect:
         ModelPath.ROOT.isDirectChild(ModelPath.path("p"))

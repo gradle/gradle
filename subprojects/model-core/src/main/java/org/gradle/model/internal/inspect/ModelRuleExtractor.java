@@ -244,9 +244,9 @@ public class ModelRuleExtractor {
             }
             if (reference.getPath() != null) {
                 try {
-                    ModelPath.validatePath(reference.getPath().toString());
+                    ModelPath.validatePath(reference.getPath().getPath());
                 } catch (Exception e) {
-                    problems.add(ruleDefinition, "The declared model element path '" + reference.getPath() + "' used for parameter " + (i + 1) + " is not a valid path", e);
+                    problems.add(ruleDefinition, "The declared model element path '" + reference.getPath().getPath() + "' used for parameter " + (i + 1) + " is not a valid path", e);
                 }
             }
         }
