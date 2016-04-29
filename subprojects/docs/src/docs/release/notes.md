@@ -216,6 +216,7 @@ We would like to thank the following community members for making contributions 
 - [Simon Herter](https://github.com/sherter) - add thrown exception to Javadocs for `ExtensionContainer`
 - [Raymond Navarette](https://github.com/rnavarette) - add classifiers for project dependencies in generated POM files ([GRADLE-3030](https://issues.gradle.org/browse/GRADLE-3030))
 - [Armin Groll](https://github.com/arming9) - Make Gradle source code compile inside Eclipse
+- [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - fix NPE when configuring FileTree's builtBy by map ([GRADLE-3444](https://issues.gradle.org/browse/GRADLE-3444))
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
