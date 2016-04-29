@@ -1,23 +1,31 @@
-allprojects { project->
-	apply plugin: "eclipse"
-    plugins.withType(JavaPlugin) {
-        eclipse {
-            classpath {
-                file.whenMerged { classpath ->
-                    //There are classes in here not designed to be compiled, but just used in our testing
-                    classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
-                    //Workaround for some projects referring to themselves as dependent projects
-                    classpath.entries.removeAll { it.path.contains("$project.name") && it.kind=='src' }
-                    classpath.entries.removeAll { it.path.contains("$project.name/build") && it.kind=='lib' }
-                }
-            }
-            jdt {
-                file.withProperties { properties ->
-                    //Eclipse's view of projects treat circular dependencies as errors by default
-                    //Treat these as warnings for now
-                    properties["org.eclipse.jdt.core.circularClasspath"] = "warning"
-                }
-            }
-        }
-    }
+def subprojectsPath = new File(projectDir,'/subprojects').absolutePath
+
+allprojects { 
+	apply plugin: 'eclipse'
+
+	plugins.withType(JavaPlugin) {
+		eclipse {
+			classpath {
+				file.whenMerged { classpath ->
+					//There are classes in here not designed to be compiled, but just used in our testing
+					classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
+					//Workaround for some projects referring to themselves as dependent projects
+					classpath.entries.removeAll { it.path.contains("$project.name") && it.kind=='src' }
+					// some refrences point to the build folder of other projects - remove them
+					classpath.entries.removeAll { it.path.contains("$project.name/build") && it.kind=='lib' }
+					// some refrences point to other projects as libraries - remove them
+					classpath.entries.removeAll { it.path.startsWith(subprojectsPath) && it.kind == 'lib' }
+				}
+			}
+			jdt {
+				sourceCompatibility = 1.6
+				targetCompatibility = 1.6
+				javaRuntimeName = 'JavaSE-1.7' // compile against a JDK 7 rt.jar
+				file.withProperties { properties ->
+					// Eclipse's view of projects treat circular dependencies as errors by default
+					properties["org.eclipse.jdt.core.circularClasspath"] = "warning"
+				}
+			}
+		}
+	}
 }
