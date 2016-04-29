@@ -27,8 +27,27 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.util.BiFunction;
 
 import java.io.Closeable;
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Member;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -68,9 +87,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     private final Map<Type, ServiceProvider> providerCache = new HashMap<Type, ServiceProvider>();
 
     private final Object lock = new Object();
-    private final CompositeProvider allServices = new CompositeProvider();
     private final OwnServices ownServices;
-    private final CompositeProvider parentServices;
+    private final Provider allServices;
+    private final Provider parentServices;
     private final String displayName;
     private boolean closed;
     private boolean mutable = true; // access under lock
@@ -93,14 +112,24 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
 
     public DefaultServiceRegistry(String displayName, Collection<? extends ServiceRegistry> parents) {
         this.displayName = displayName;
-        this.parentServices = parents.isEmpty() ? null : new CompositeProvider();
         this.ownServices = new OwnServices();
-        allServices.providers.add(ownServices);
-        if (parentServices != null) {
-            allServices.providers.add(parentServices);
-            for (ServiceRegistry parent : parents) {
-                parentServices.providers.add(new ParentServices(parent));
+        if (parents.isEmpty()) {
+            this.parentServices = null;
+            this.allServices = ownServices;
+        } else {
+            if (parents.size()==1) {
+                this.parentServices = new ParentServices(parents.iterator().next());
+            } else {
+                List<Provider> providers = new ArrayList<Provider>(parents.size());
+                for (ServiceRegistry parent : parents) {
+                    providers.add(new ParentServices(parent));
+                }
+                this.parentServices = new CompositeProvider(providers);
             }
+            List<Provider> allProviders = new ArrayList<Provider>(2);
+            allProviders.add(ownServices);
+            allProviders.add(parentServices);
+            allServices = new CompositeProvider(allProviders);
         }
 
         findProviderMethods(this);
@@ -695,10 +724,10 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                         ServiceProvider paramProvider = context.find(paramType, allServices);
                         if (paramProvider == null) {
                             throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as required service of type %s is not available.",
-                                    format(serviceType),
-                                    getFactory().getDeclaringClass().getSimpleName(),
-                                    getFactory().getName(),
-                                    format(paramType)));
+                                format(serviceType),
+                                getFactory().getDeclaringClass().getSimpleName(),
+                                getFactory().getName(),
+                                format(paramType)));
 
                         }
                         paramProviders[i] = paramProvider;
@@ -706,11 +735,11 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                     }
                 } catch (ServiceValidationException e) {
                     throw new ServiceCreationException(String.format("Cannot create service of type %s using %s.%s() as there is a problem with parameter #%s of type %s.",
-                            format(serviceType),
-                            getFactory().getDeclaringClass().getSimpleName(),
-                            getFactory().getName(),
-                            i + 1,
-                            format(paramType)), e);
+                        format(serviceType),
+                        getFactory().getDeclaringClass().getSimpleName(),
+                        getFactory().getName(),
+                        i + 1,
+                        format(paramType)), e);
                 }
             }
         }
@@ -765,17 +794,17 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                 result = invoke(method, target, params);
             } catch (Exception e) {
                 throw new ServiceCreationException(String.format("Could not create service of type %s using %s.%s().",
-                        format(serviceType),
-                        method.getDeclaringClass().getSimpleName(),
-                        method.getName()),
-                        e);
+                    format(serviceType),
+                    method.getDeclaringClass().getSimpleName(),
+                    method.getName()),
+                    e);
             }
             try {
                 if (result == null) {
                     throw new ServiceCreationException(String.format("Could not create service of type %s using %s.%s() as this method returned null.",
-                            format(serviceType),
-                            method.getDeclaringClass().getSimpleName(),
-                            method.getName()));
+                        format(serviceType),
+                        method.getDeclaringClass().getSimpleName(),
+                        method.getName()));
                 }
                 return result;
             } finally {
@@ -912,8 +941,12 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
     }
 
-    private class CompositeProvider implements Provider {
-        private final List<Provider> providers = new LinkedList<Provider>();
+    private static class CompositeProvider implements Provider {
+        private final Collection<Provider> providers;
+
+        private CompositeProvider(Collection<Provider> providers) {
+            this.providers = providers;
+        }
 
         public ServiceProvider getService(LookupContext context, TypeSpec serviceType) {
             for (Provider provider : providers) {
