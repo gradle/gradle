@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Charsets;
 import com.google.common.hash.Hasher;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
@@ -219,7 +220,7 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
 
             SortedMap<String, Boolean> sortedRoots = new TreeMap<String, Boolean>(roots);
             for (Map.Entry<String, Boolean> entry : sortedRoots.entrySet()) {
-                hasher.putUnencodedChars(entry.getKey());
+                hasher.putString(entry.getKey(), Charsets.UTF_8);
                 hasher.putBoolean(entry.getValue());
             }
 
