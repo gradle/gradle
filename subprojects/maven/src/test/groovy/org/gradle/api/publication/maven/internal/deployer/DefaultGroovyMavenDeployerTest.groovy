@@ -43,15 +43,14 @@ class DefaultGroovyMavenDeployerTest {
 
     @Test
     void repositoryBuilder() {
-        checkRepositoryBuilder(DefaultGroovyMavenDeployer.REPOSITORY_BUILDER)
+        checkRepositoryBuilder("repository")
     }
 
     @Test
     void snapshotRepositoryBuilder() {
-        checkRepositoryBuilder(DefaultGroovyMavenDeployer.SNAPSHOT_REPOSITORY_BUILDER)
+        checkRepositoryBuilder("snapshotRepository")
     }
-
-
+    
     void checkRepositoryBuilder(String repositoryName) {
         String testUrl = 'testUrl'
         String testProxyHost = 'hans'
