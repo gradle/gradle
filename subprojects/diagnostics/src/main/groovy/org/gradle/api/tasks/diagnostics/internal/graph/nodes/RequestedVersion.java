@@ -51,7 +51,7 @@ public class RequestedVersion extends AbstractRenderableDependencyResult {
     }
 
     @Override
-    protected ComponentSelector getRequested() {
+    public ComponentSelector getRequested() {
         return requested;
     }
 
