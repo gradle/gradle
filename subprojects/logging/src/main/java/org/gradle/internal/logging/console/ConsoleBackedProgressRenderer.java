@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ConsoleBackedProgressRenderer implements OutputEventListener {
@@ -41,7 +42,7 @@ public class ConsoleBackedProgressRenderer implements OutputEventListener {
     private Label statusBar;
 
     public ConsoleBackedProgressRenderer(OutputEventListener listener, Console console, DefaultStatusBarFormatter statusBarFormatter, TimeProvider timeProvider) {
-        this(listener, console, statusBarFormatter, Integer.getInteger("org.gradle.console.throttle", 85), Executors.newSingleThreadScheduledExecutor(), timeProvider);
+        this(listener, console, statusBarFormatter, Integer.getInteger("org.gradle.console.throttle", 85), createDefaultExecutor(), timeProvider);
     }
 
     ConsoleBackedProgressRenderer(OutputEventListener listener, Console console, DefaultStatusBarFormatter statusBarFormatter, int throttleMs, ScheduledExecutorService executor, TimeProvider timeProvider) {
@@ -127,5 +128,19 @@ public class ConsoleBackedProgressRenderer implements OutputEventListener {
             statusBar = console.getStatusBar();
         }
         return statusBar;
+    }
+
+    /**
+     * Creates a single thread executor like {@code Executors.newSingleThreadScheduledExecutor()},
+     * though its core worker thread is destroyed after one second inactivity. This prevents
+     * worker thread leaking when colored output is enabled through the tooling API.
+     *
+     * @return a new SingleThreasScheduledExecutor
+     */
+    private static ScheduledExecutorService createDefaultExecutor() {
+        ScheduledThreadPoolExecutor exec = new ScheduledThreadPoolExecutor(1);
+        exec.setKeepAliveTime(1, TimeUnit.SECONDS);
+        exec.allowCoreThreadTimeOut(true);
+        return Executors.unconfigurableScheduledExecutorService(exec);
     }
 }
