@@ -170,7 +170,7 @@ public class InstallExecutable extends DefaultTask {
               "\n@echo off"
             + "\nSETLOCAL"
             + "\n" + toolChainPath
-            + "\nCALL \" %~dp0lib\\" + executable.getName() + "\" %*"
+            + "\nCALL \"%~dp0lib\\" + executable.getName() + "\" %*"
             + "\nEXIT /B %ERRORLEVEL%"
             + "\nENDLOCAL"
             + "\n";
