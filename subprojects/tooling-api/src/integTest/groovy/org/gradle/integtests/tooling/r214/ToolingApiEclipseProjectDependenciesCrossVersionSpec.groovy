@@ -17,6 +17,7 @@ package org.gradle.integtests.tooling.r214
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.internal.protocol.eclipse.DefaultEclipseProjectIdentifier
 import org.gradle.tooling.model.eclipse.EclipseProjectDependency
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
@@ -52,11 +53,11 @@ project(':a') {
         EclipseProjectDependency rootDependency = minimalProject.projectDependencies.find { it.path == 'root' }
         rootDependency != null
         rootDependency.targetProject == minimalModel
-        rootDependency.targetProjectDirectory == projectDir
+        rootDependency.target == new DefaultEclipseProjectIdentifier(projectDir)
 
         EclipseProjectDependency otherDependency = minimalProject.projectDependencies.find { it.path == 'b' }
         otherDependency != null
         otherDependency.targetProject == minimalProject.children[0]
-        otherDependency.targetProjectDirectory == projectDir.file("a", "b")
+        otherDependency.target == new DefaultEclipseProjectIdentifier(projectDir.file("a", "b"))
     }
 }
