@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -30,6 +30,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
+
 import java.io.File;
 
 /**
@@ -68,7 +69,7 @@ public class JavaPluginConvention {
      * <p>The given closure is executed to configure the {@link SourceSetContainer}. The {@link SourceSetContainer}
      * is passed to the closure as its delegate.
      * <p>
-     * See the example below how {@link SourceSet} 'main' is accessed and how the {@link SourceDirectorySet} 'java'
+     * See the example below how {@link SourceSet} 'main' is accessed and how the {@link org.gradle.api.file.SourceDirectorySet} 'java'
      * is configured to exclude some package from compilation.
      *
      * <pre autoTested=''>
