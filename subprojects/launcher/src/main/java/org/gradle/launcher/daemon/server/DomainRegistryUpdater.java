@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
+import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.internal.remote.Address;
 
@@ -61,7 +62,7 @@ class DomainRegistryUpdater implements Stoppable {
         LOGGER.info("{}{}", DaemonMessages.ADVERTISING_DAEMON, connectorAddress);
         LOGGER.debug("Advertised daemon context: {}", daemonContext);
         this.connectorAddress = connectorAddress;
-        daemonRegistry.store(connectorAddress, daemonContext, password, false);
+        daemonRegistry.store(new DaemonInfo(connectorAddress, daemonContext, password, false));
     }
 
     public void stop() {

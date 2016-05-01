@@ -16,11 +16,13 @@
 
 package org.gradle.launcher.daemon.server;
 
+import org.gradle.api.Nullable;
+
 public class DaemonExpirationResult {
     private final boolean expired;
     private final String reason;
 
-    DaemonExpirationResult(boolean expired, String reason) {
+    DaemonExpirationResult(boolean expired, @Nullable String reason) {
         this.expired = expired;
         this.reason = reason;
     }

@@ -17,21 +17,25 @@ package org.gradle.launcher.daemon.server;
 
 import java.util.List;
 
-public class CompositeDaemonExpirationStrategy implements DaemonExpirationStrategy {
+/**
+ * Expires the daemon only if all children would expire the daemon.
+ */
+public class AllDaemonExpirationStrategy implements DaemonExpirationStrategy {
     private Iterable<DaemonExpirationStrategy> expirationStrategies;
 
-    public CompositeDaemonExpirationStrategy(List<DaemonExpirationStrategy> expirationStrategies) {
+    public AllDaemonExpirationStrategy(List<DaemonExpirationStrategy> expirationStrategies) {
         this.expirationStrategies = expirationStrategies;
     }
 
     @Override
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
+        DaemonExpirationResult expirationResult = new DaemonExpirationResult(false, null);
         for (DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
-            DaemonExpirationResult expirationResult = expirationStrategy.checkExpiration(daemon);
-            if (expirationResult.isExpired()) {
-                return expirationResult;
+            expirationResult = expirationStrategy.checkExpiration(daemon);
+            if (!expirationResult.isExpired()) {
+                return new DaemonExpirationResult(false, null);
             }
         }
-        return new DaemonExpirationResult(false, null);
+        return expirationResult;
     }
 }
