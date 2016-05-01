@@ -108,6 +108,7 @@ public class BuildSourceBuilder {
         startParameterArg.setProjectProperties(startParameter.getProjectProperties());
         startParameterArg.setSearchUpwards(false);
         startParameterArg.setProfile(startParameter.isProfile());
+        startParameterArg.setProfileAsJson(startParameter.isProfileAsJson());
         return gradleLauncherFactory.newInstance(startParameterArg);
     }
 }

@@ -37,6 +37,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String RERUN_TASKS = "rerun-tasks";
     private static final String EXCLUDE_TASK = "x";
     private static final String PROFILE = "profile";
+    private static final String PROFILE_AS_JSON = "profile-as-json";
     private static final String CONTINUE = "continue";
     private static final String OFFLINE = "offline";
     private static final String REFRESH_DEPENDENCIES = "refresh-dependencies";
@@ -79,6 +80,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(RECOMPILE_SCRIPTS).hasDescription("Force build script recompiling.");
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
         parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
+        parser.option(PROFILE_AS_JSON).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory as json data.");
         parser.option(CONTINUE).hasDescription("Continues task execution after a task failure.");
         parser.option(OFFLINE).hasDescription("The build should operate without accessing network resources.");
         parser.option(REFRESH_DEPENDENCIES).hasDescription("Refresh the state of dependencies.");
@@ -153,6 +155,10 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
 
         if (options.hasOption(PROFILE)) {
             startParameter.setProfile(true);
+        }
+
+        if (options.hasOption(PROFILE_AS_JSON)) {
+            startParameter.setProfileAsJson(true);
         }
 
         if (options.hasOption(CONTINUE)) {

@@ -48,6 +48,7 @@ public class CommandLineConverterTestSupport {
     protected ConsoleOutput expectedConsoleOutput = ConsoleOutput.Auto;
     protected StartParameter actualStartParameter;
     protected boolean expectedProfile;
+    protected boolean expectedProfileAsJson;
     protected File expectedProjectCacheDir;
     protected boolean expectedRefreshDependencies;
     protected boolean expectedRerunTasks;
@@ -89,6 +90,7 @@ public class CommandLineConverterTestSupport {
         assertEquals(expectedExcludedTasks, startParameter.getExcludedTaskNames());
         assertEquals(expectedInitScripts, startParameter.getInitScripts());
         assertEquals(expectedProfile, startParameter.isProfile());
+        assertEquals(expectedProfileAsJson, startParameter.isProfileAsJson());
         assertEquals(expectedContinue, startParameter.isContinueOnFailure());
         assertEquals(expectedOffline, startParameter.isOffline());
         assertEquals(expectedRecompileScripts, startParameter.isRecompileScripts());
