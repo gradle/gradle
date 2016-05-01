@@ -1,11 +1,24 @@
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.gradle.api.plugins;
 
-import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.distribution.internal.DefaultDistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
@@ -25,11 +38,28 @@ public class JavaLibraryDistributionPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(DistributionPlugin.class);
 
         DefaultDistributionContainer defaultDistributionContainer =
-            project.getConvention().getPlugin(DefaultDistributionContainer.class);
+            (DefaultDistributionContainer) project.getExtensions().findByName("distributions");
         CopySpec contentSpec = defaultDistributionContainer.getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME).getContents();
         Jar jar = (Jar) project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME);
-        contentSpec.from(jar);
-        contentSpec.from(project.file("src/dist"));
-        contentSpec.into("lib").from(project.getConfigurations().getByName("runtime"));
+
+//        contents.with {
+//            from(jar)
+//            from(project.file("src/dist"))
+//            into("lib") {
+//                from(project.configurations.runtime)
+//            }
+//        }
+
+        CopySpec childSpec = project.copySpec();
+        childSpec.from(jar);
+        childSpec.from(project.file("src/dist"));
+
+        CopySpec libSpec = project.copySpec();
+        libSpec.into("lib");
+        libSpec.from(project.getConfigurations().getByName("runtime"));
+
+        childSpec.with(libSpec);
+
+        contentSpec.with(childSpec);
     }
 }
