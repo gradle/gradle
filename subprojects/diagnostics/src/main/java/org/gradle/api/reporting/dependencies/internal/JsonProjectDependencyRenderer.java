@@ -17,6 +17,7 @@
 package org.gradle.api.reporting.dependencies.internal;
 
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import groovy.json.JsonBuilder;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -141,8 +142,8 @@ public class JsonProjectDependencyRenderer {
         json.call(overall);
     }
 
-    private Collection<Map> createConfigurations(Project project) {
-        Set<Configuration> configurations = project.getConfigurations();
+    private List<Map> createConfigurations(Project project) {
+        Iterable<Configuration> configurations = project.getConfigurations();
         return CollectionUtils.collect(configurations, new Transformer<Map, Configuration>() {
             @Override
             public Map transform(Configuration configuration) {
@@ -157,7 +158,7 @@ public class JsonProjectDependencyRenderer {
         });
     }
 
-    private Collection createDependencies(Configuration configuration) {
+    private List createDependencies(Configuration configuration) {
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
         RenderableDependency root = new RenderableModuleResult(result.getRoot());
         return createDependencyChildren(root, new HashSet<Object>());
@@ -196,8 +197,8 @@ public class JsonProjectDependencyRenderer {
         return null;
     }
 
-    private Collection createModuleInsights(final Configuration configuration) {
-        Set<ModuleIdentifier> modules = collectModules(configuration);
+    private List createModuleInsights(final Configuration configuration) {
+        Iterable<ModuleIdentifier> modules = collectModules(configuration);
         return CollectionUtils.collect(modules, new Transformer<Object, ModuleIdentifier>() {
             @Override
             public Object transform(ModuleIdentifier moduleIdentifier) {
@@ -209,8 +210,8 @@ public class JsonProjectDependencyRenderer {
     private Set<ModuleIdentifier> collectModules(Configuration configuration) {
         ResolutionResult result = configuration.getIncoming().getResolutionResult();
         RenderableDependency root = new RenderableModuleResult(result.getRoot());
-        Set<ModuleIdentifier> modules = new HashSet<ModuleIdentifier>();
-        Set<ComponentIdentifier> visited = new HashSet<ComponentIdentifier>();
+        Set<ModuleIdentifier> modules = Sets.newHashSet();
+        Set<ComponentIdentifier> visited = Sets.newHashSet();
         populateModulesWithChildDependencies(root, visited, modules);
         return modules;
     }
