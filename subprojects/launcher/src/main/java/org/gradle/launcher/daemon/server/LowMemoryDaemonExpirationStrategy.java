@@ -1,5 +1,3 @@
-package org.gradle.launcher.daemon.server;
-
 /*
  * Copyright 2016 the original author or authors.
  *
@@ -16,6 +14,9 @@ package org.gradle.launcher.daemon.server;
  * limitations under the License.
  */
 
+package org.gradle.launcher.daemon.server;
+
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.gradle.launcher.daemon.server.health.MemoryInfo;
 
@@ -45,17 +46,26 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
      * @param minFreeMemoryPercentage when free memory drops below this percentage between 0 and 1, the daemon will expire.
      */
     public static LowMemoryDaemonExpirationStrategy belowFreePercentage(double minFreeMemoryPercentage) {
+        return belowFreePercentage(minFreeMemoryPercentage, new MemoryInfo());
+    }
+
+    @VisibleForTesting
+    static LowMemoryDaemonExpirationStrategy belowFreePercentage(double minFreeMemoryPercentage, MemoryInfo memInfo) {
         Preconditions.checkArgument(minFreeMemoryPercentage >= 0, "Free memory percentage must be >= 0");
         Preconditions.checkArgument(minFreeMemoryPercentage <= 1, "Free memory percentage must be <= 1");
 
-        MemoryInfo memInfo = new MemoryInfo();
         return new LowMemoryDaemonExpirationStrategy(
             memInfo,
             (long) (memInfo.getTotalPhysicalMemory() * minFreeMemoryPercentage)
         );
     }
 
-    public boolean shouldExpire(Daemon daemon) {
-        return memoryInfo.getFreePhysicalMemory() < minFreeMemoryBytes;
+    public DaemonExpirationResult checkExpiration(Daemon daemon) {
+        long freeMem = memoryInfo.getFreePhysicalMemory();
+        if (freeMem < minFreeMemoryBytes) {
+            return new DaemonExpirationResult(true, String.format("Free system memory (%d bytes) is below threshold of %d bytes", freeMem, minFreeMemoryBytes));
+        } else {
+            return new DaemonExpirationResult(false, null);
+        }
     }
 }
