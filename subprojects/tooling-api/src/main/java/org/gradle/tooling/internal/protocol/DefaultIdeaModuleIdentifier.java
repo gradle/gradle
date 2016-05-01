@@ -49,4 +49,9 @@ public class DefaultIdeaModuleIdentifier implements IdeaModuleIdentifier, Serial
     public int hashCode() {
         return Objects.hashCode(identifier);
     }
+
+    @Override
+    public String toString() {
+        return identifier;
+    }
 }

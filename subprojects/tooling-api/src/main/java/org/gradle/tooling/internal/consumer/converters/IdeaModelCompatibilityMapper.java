@@ -19,8 +19,8 @@ package org.gradle.tooling.internal.consumer.converters;
 import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
-import org.gradle.tooling.model.idea.IdeaModuleDependency;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.util.GradleVersion;
 
@@ -41,7 +41,7 @@ public class IdeaModelCompatibilityMapper implements Action<SourceObjectMapping>
             mapping.mixIn(CompatibilityIdeaProjectMapping.class);
         }
         if (!versionSupportsIdeaModuleIdentifier()) {
-            if (IdeaModuleDependency.class.isAssignableFrom(targetType)) {
+            if (IdeaDependency.class.isAssignableFrom(targetType)) {
                 mapping.mixIn(CompatibilityIdeaModuleDependencyMapping.class);
             } else if (IdeaModule.class.isAssignableFrom(targetType)) {
                 mapping.mixIn(CompatibilityIdeaModuleMapping.class);

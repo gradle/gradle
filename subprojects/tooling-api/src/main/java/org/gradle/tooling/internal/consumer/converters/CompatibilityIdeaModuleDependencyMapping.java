@@ -17,16 +17,21 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.tooling.internal.protocol.DefaultIdeaModuleIdentifier;
+import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 
 public class CompatibilityIdeaModuleDependencyMapping {
-    private final IdeaModuleDependency ideaModuleDependency;
+    private final IdeaDependency ideaModuleDependency;
 
-    public CompatibilityIdeaModuleDependencyMapping(IdeaModuleDependency ideaModuleDependency) {
+    public CompatibilityIdeaModuleDependencyMapping(IdeaDependency ideaModuleDependency) {
         this.ideaModuleDependency = ideaModuleDependency;
     }
 
     public DefaultIdeaModuleIdentifier getTarget() {
-        return new DefaultIdeaModuleIdentifier(ideaModuleDependency.getDependencyModule().getGradleProject().getPath());
+        if (ideaModuleDependency instanceof IdeaModuleDependency) {
+            IdeaModuleDependency dependency = (IdeaModuleDependency) ideaModuleDependency;
+            return new DefaultIdeaModuleIdentifier(dependency.getDependencyModule().getGradleProject().getPath());
+        }
+        return null;
     }
 }
