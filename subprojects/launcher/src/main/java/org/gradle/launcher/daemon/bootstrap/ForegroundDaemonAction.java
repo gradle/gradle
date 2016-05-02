@@ -21,7 +21,12 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.server.*;
+import org.gradle.launcher.daemon.server.AnyDaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.Daemon;
+import org.gradle.launcher.daemon.server.DaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.DaemonIdleTimeoutExpirationStrategy;
+import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy;
+import org.gradle.launcher.daemon.server.DaemonServices;
 
 import java.util.concurrent.TimeUnit;
 
