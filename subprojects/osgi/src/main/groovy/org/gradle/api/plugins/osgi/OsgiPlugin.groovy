@@ -15,28 +15,33 @@
  */
 package org.gradle.api.plugins.osgi
 
-
+import groovy.transform.CompileStatic
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.bundling.Jar
 
 /**
  * A {@link Plugin} which extends the {@link JavaPlugin} to add OSGi meta-information to the project Jars.
  */
+@CompileStatic
 public class OsgiPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.pluginManager.apply(JavaBasePlugin)
 
-        def osgiConvention = new OsgiPluginConvention(project)
+        def osgiConvention = new OsgiPluginConvention((ProjectInternal) project)
         project.convention.plugins.osgi = osgiConvention
 
         project.plugins.withType(JavaPlugin) {
-            def osgiManifest = osgiConvention.osgiManifest {
-                classesDir = project.sourceSets.main.output.classesDir
-                classpath = project.configurations.runtime
+            def osgiManifest = osgiConvention.osgiManifest { OsgiManifest manifest ->
+                manifest.classesDir = project.getConvention().getPlugin(JavaPluginConvention).sourceSets.getByName("main").output.classesDir
+                manifest.classpath = project.configurations.getByName("runtime")
             }
-            project.jar.manifest = osgiManifest
+            def jarTask = (Jar) project.getTasks().getByName("jar")
+            jarTask.manifest = osgiManifest
         }
     }
 }
