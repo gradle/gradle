@@ -331,6 +331,88 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
         }
     }
 
+    def "substitutes forced direct dependency"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile("org.test:buildB:1.0") { force = true }
+            }
+"""
+
+        when:
+        checkDependencies()
+
+        then:
+        checkGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+            }
+        }
+    }
+
+    def "substitutes transitive dependency with forced version"() {
+        given:
+        mavenRepo.module("org.external", "external-dep", '1.0').dependsOn("org.test", "buildB", "1.0").publish()
+
+        buildA.buildFile << """
+            dependencies {
+                compile "org.external:external-dep:1.0"
+            }
+            configurations.compile.resolutionStrategy.force("org.test:buildB:5.0")
+"""
+
+        when:
+        checkDependencies()
+
+        then:
+        checkGraph {
+            module("org.external:external-dep:1.0") {
+                edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                    compositeSubstitute()
+                }
+            }
+        }
+    }
+
+    def "substitutes transitive dependency based on result of resolution rules"() {
+        given:
+        mavenRepo.module("org.external", "external-dep", '1.0')
+            .dependsOn("org.test", "something", "1.0")
+            .dependsOn("org.other", "something-else", "1.0")
+            .publish()
+
+        buildA.buildFile << """
+            dependencies {
+                compile "org.external:external-dep:1.0"
+            }
+            configurations.compile.resolutionStrategy {
+                eachDependency { DependencyResolveDetails details ->
+                    if (details.requested.name == 'something') {
+                        details.useTarget "org.test:buildB:1.0"
+                    }
+                }
+                dependencySubstitution {
+                    substitute module("org.other:something-else:1.0") with module("org.test:b1:1.0")
+                }
+            }
+"""
+
+        when:
+        checkDependencies()
+
+        then:
+        checkGraph {
+            module("org.external:external-dep:1.0") {
+                edge("org.test:something:1.0", "project buildB::", "org.test:buildB:2.0") {
+                    compositeSubstitute()
+                }
+                edge("org.other:something-else:1.0", "project buildB::b1", "org.test:b1:2.0") {
+                    compositeSubstitute()
+                }
+            }
+        }
+    }
+
     def "can resolve with dependency cycle between substituted projects in a multiproject build"() {
         given:
         buildA.buildFile << """

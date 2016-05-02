@@ -36,13 +36,15 @@ public class CompositeBuildDependencySubstitutions implements DependencySubstitu
     public Action<DependencySubstitution> getDependencySubstitutionRule() {
         return new Action<DependencySubstitution>() {
             @Override
-            public void execute(DependencySubstitution dependencySubstitution) {
-                ComponentSelector requested = dependencySubstitution.getRequested();
+            public void execute(DependencySubstitution sub) {
+                DependencySubstitutionInternal dependencySubstitution = (DependencySubstitutionInternal) sub;
+                // Use the result of previous rules as the input for dependency substitution
+                ComponentSelector requested = dependencySubstitution.getTarget();
                 if (requested instanceof ModuleComponentSelector) {
                     ModuleComponentSelector selector = (ModuleComponentSelector) requested;
                     ProjectComponentIdentifier replacement = projectComponentRegistry.getReplacementProject(selector);
                     if (replacement != null) {
-                        ((DependencySubstitutionInternal) dependencySubstitution).useTarget(
+                        dependencySubstitution.useTarget(
                             DefaultProjectComponentSelector.newSelector(replacement.getProjectPath()),
                             VersionSelectionReasons.COMPOSITE_BUILD);
                     }
