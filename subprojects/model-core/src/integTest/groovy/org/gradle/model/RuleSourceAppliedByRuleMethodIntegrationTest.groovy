@@ -364,14 +364,14 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
                 abstract void setThing(Thing t)
 
                 @Mutate
-                void name(Thing subject) {
+                void thing(Thing subject) {
                     assert subject == thing
                     subject.name = 'thing a from rule'
                     subject.address.name = 'address a from rule'
                 }
 
                 @Mutate
-                void name(Address address) {
+                void address(Address address) {
                     assert address == thing.address
                     assert address.name == 'address a from rule'
                     address.name = 'modified address'
