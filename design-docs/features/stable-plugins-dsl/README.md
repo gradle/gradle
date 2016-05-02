@@ -21,7 +21,7 @@ pieces come together to accomplish the objective.
 
 * **M1** Resolve plugins from a maven/ivy repository based on the plugin id and version
 
-    * **[M1.1](https://docs.google.com/document/d/1oHHfbTP9xPcExZJqpkff_KgghNYHFPf3haZrN1DR_qE/edit#)**
+    * **[M1.1](M1.1.md)**
     [Approved] Be able to map from plugin id and version to a maven/ivy artifact
 
     * **[M1.2](https://docs.google.com/document/d/139-eP7JhUvuVKfHUEk4fNFR_vzOGKsB4WYYrHLPe_6s)**
