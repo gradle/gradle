@@ -20,7 +20,6 @@ import org.gradle.api.internal.specs.ExplainingSpecs
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo
-import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import org.gradle.internal.remote.Address
 import org.gradle.internal.remote.internal.ConnectCompletion
@@ -66,7 +65,7 @@ class DefaultDaemonConnectorTest extends Specification {
         def daemonNum = daemonCounter++
         DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [])
         def address = createAddress(daemonNum)
-        registry.store(new DaemonInfo(address, context, "password", false))
+        registry.store(address, context, "password", false)
         registry.markBusy(address)
         return new DaemonStartupInfo(daemonNum.toString(), null, null);
     }
@@ -75,7 +74,7 @@ class DefaultDaemonConnectorTest extends Specification {
         def daemonNum = daemonCounter++
         DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [])
         def address = createAddress(daemonNum)
-        registry.store(new DaemonInfo(address, context, "password", true))
+        registry.store(address, context, "password", true)
     }
 
     def theConnector

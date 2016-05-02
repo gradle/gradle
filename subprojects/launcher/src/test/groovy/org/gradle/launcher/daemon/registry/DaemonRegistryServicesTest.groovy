@@ -52,8 +52,7 @@ class DaemonRegistryServicesTest extends Specification {
         5.times { idx ->
             concurrent.start {
                 def context = new DefaultDaemonContext("$idx", new File("$idx"), new File("$idx"), idx, 5000, [])
-                registry.store(new DaemonInfo(
-                    new SocketInetAddress(new Inet6Address(), 8888 + idx), context, "foo-$idx", true))
+                registry.store(new SocketInetAddress(new Inet6Address(), 8888 + idx), context, "foo-$idx", true)
             }
         }
         concurrent.finished()

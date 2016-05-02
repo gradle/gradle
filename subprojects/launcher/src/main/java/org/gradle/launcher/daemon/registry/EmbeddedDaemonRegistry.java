@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.registry;
 
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.internal.remote.Address;
 
 import java.util.ArrayList;
@@ -68,8 +69,8 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
         return daemonInfosOfEntriesMatching(busySpec);
     }
 
-    public void store(DaemonInfo info) {
-        daemonInfos.put(info.getAddress(), info);
+    public void store(Address address, DaemonContext daemonContext, String password, boolean idle) {
+        daemonInfos.put(address, new DaemonInfo(address, daemonContext, password, idle));
     }
 
     public void remove(Address address) {

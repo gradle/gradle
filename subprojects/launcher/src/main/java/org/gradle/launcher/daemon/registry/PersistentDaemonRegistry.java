@@ -157,12 +157,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         }
     }
 
-    public void store(final DaemonInfo info) {
-        final Address address = info.getAddress();
-        final DaemonContext daemonContext = info.getContext();
-        final String password = info.getPassword();
-        final boolean idle = info.isIdle();
-
+    public void store(final Address address, final DaemonContext daemonContext, final String password, final boolean idle) {
         lock.lock();
         LOGGER.debug("Storing daemon address: {}, context: {}", address, daemonContext);
         try {

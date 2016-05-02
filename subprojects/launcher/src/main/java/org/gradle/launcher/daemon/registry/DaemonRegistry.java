@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.registry;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.remote.Address;
+import org.gradle.launcher.daemon.context.DaemonContext;
 
 import java.util.List;
 
@@ -33,7 +34,7 @@ public interface DaemonRegistry {
     List<DaemonInfo> getIdle();
     List<DaemonInfo> getBusy();
 
-    void store(DaemonInfo info);
+    void store(Address address, DaemonContext daemonContext, String password, boolean idle);
     void remove(Address address);
     void markBusy(Address address);
     void markIdle(Address address);
