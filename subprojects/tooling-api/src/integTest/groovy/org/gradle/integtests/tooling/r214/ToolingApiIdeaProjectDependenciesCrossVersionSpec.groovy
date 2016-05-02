@@ -51,8 +51,7 @@ project(':a') {
         IdeaProject ideaProject = loadToolingModel(IdeaProject)
 
         then:
-        IdeaModule ideaModule = ideaProject.children[0]
-
+        IdeaModule ideaModule = ideaProject.modules.find { it.gradleProject.path == ":a" }
         ideaModule.dependencies.size() == 2
 
         IdeaModuleDependency rootDependency = ideaModule.dependencies.find { it.dependencyModule.name == 'root' }
