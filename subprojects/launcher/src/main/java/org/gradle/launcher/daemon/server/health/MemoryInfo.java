@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.server.health;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class MemoryInfo {
@@ -69,12 +70,18 @@ public class MemoryInfo {
      */
     public long getTotalPhysicalMemory() {
         OperatingSystemMXBean bean = ManagementFactory.getOperatingSystemMXBean();
+        Throwable rootCause = null;
         try {
             Method getTotalPhysicalMemorySize = bean.getClass().getMethod("getTotalPhysicalMemorySize");
             return (Long) getTotalPhysicalMemorySize.invoke(bean);
-        } catch (ReflectiveOperationException e) {
-            throw new UnsupportedOperationException("getTotalPhysicalMemory is unsupported on this JVM.", e);
+        } catch (NoSuchMethodException e) {
+            rootCause = e;
+        } catch (IllegalAccessException e) {
+            rootCause = e;
+        } catch (InvocationTargetException e) {
+            rootCause = e;
         }
+        throw new UnsupportedOperationException("getTotalPhysicalMemory is unsupported on this JVM.", rootCause);
     }
 
     /**
@@ -85,11 +92,17 @@ public class MemoryInfo {
      */
     public long getFreePhysicalMemory() {
         OperatingSystemMXBean bean = ManagementFactory.getOperatingSystemMXBean();
+        Throwable rootCause = null;
         try {
             Method getFreePhysicalMemorySize = bean.getClass().getMethod("getFreePhysicalMemorySize");
             return (Long) getFreePhysicalMemorySize.invoke(bean);
-        } catch (ReflectiveOperationException e) {
-            throw new UnsupportedOperationException("getFreePhysicalMemory is unsupported on this JVM.", e);
+        } catch (NoSuchMethodException e) {
+            rootCause = e;
+        } catch (IllegalAccessException e) {
+            rootCause = e;
+        } catch (InvocationTargetException e) {
+            rootCause = e;
         }
+        throw new UnsupportedOperationException("getFreePhysicalMemory is unsupported on this JVM.", rootCause);
     }
 }

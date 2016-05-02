@@ -28,7 +28,6 @@ import java.util.Date;
  *
  */
 public class LruDaemonExpirationStrategy implements DaemonExpirationStrategy {
-    @Override
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
         DaemonRegistry registry = daemon.getDaemonRegistry();
         return registry.getAll().size() > 1 && isOldest(daemon.getDaemonContext(), registry)

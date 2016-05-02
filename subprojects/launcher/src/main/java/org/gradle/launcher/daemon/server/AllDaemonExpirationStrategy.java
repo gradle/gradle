@@ -30,7 +30,6 @@ public class AllDaemonExpirationStrategy implements DaemonExpirationStrategy {
         this.expirationStrategies = expirationStrategies;
     }
 
-    @Override
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
         // If no expiration strategies exist, the daemon will not expire.
         DaemonExpirationResult expirationResult = new DaemonExpirationResult(false, null);
