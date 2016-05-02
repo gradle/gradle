@@ -25,6 +25,6 @@ class AutoTestedSamplesCoreIntegrationTest extends AbstractAutoTestedSamplesTest
     void runSamples() {
         //Uncomment below to run test only for single class (much faster)
 //        includeOnly '**/Copy.java'
-        runSamplesFrom("subprojects/core/src/main/groovy/org/gradle/api")
+        runSamplesFrom("subprojects/core/src/main/java/org/gradle/api")
     }
 }
