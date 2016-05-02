@@ -30,6 +30,8 @@ import org.gradle.initialization.ReportedException;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
@@ -37,6 +39,9 @@ import java.util.Map;
 import java.util.SortedSet;
 
 public class DefaultCompositeBuildContext implements CompositeBuildContext {
+    // TODO:DAZ Reduce the verbosity of composite build
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCompositeBuildContext.class);
+
     private final Multimap<ModuleIdentifier, ProjectComponentIdentifier> replacementProjects = ArrayListMultimap.create();
     private final Map<ProjectComponentIdentifier, RegisteredProject> projectMetadata = Maps.newHashMap();
 
@@ -45,10 +50,13 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
         ModuleIdentifier candidateId = DefaultModuleIdentifier.newId(selector.getGroup(), selector.getModule());
         Collection<ProjectComponentIdentifier> providingProjects = replacementProjects.get(candidateId);
         if (providingProjects.isEmpty()) {
+            LOGGER.info("Found no composite build substitute for module '" + candidateId + "'.");
             return null;
         }
         if (providingProjects.size() == 1) {
-            return providingProjects.iterator().next();
+            ProjectComponentIdentifier match = providingProjects.iterator().next();
+            LOGGER.info("Found project '" + match + "' as substitute for module '" + candidateId + "'.");
+            return match;
         }
         SortedSet<String> sortedProjects = Sets.newTreeSet(CollectionUtils.collect(providingProjects, new Transformer<String, ProjectComponentIdentifier>() {
             @Override
@@ -77,6 +85,7 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
 
     @Override
     public void register(ModuleIdentifier moduleId, ProjectComponentIdentifier project, LocalComponentMetaData localComponentMetaData, File projectDirectory) {
+        LOGGER.info("Registering project '" + project + "' in composite build. Will substitute for module '" + moduleId + "'.");
         replacementProjects.put(moduleId, project);
         if (projectMetadata.containsKey(project)) {
             String failureMessage = String.format("Project path '%s' is not unique in composite.", project.getProjectPath());
