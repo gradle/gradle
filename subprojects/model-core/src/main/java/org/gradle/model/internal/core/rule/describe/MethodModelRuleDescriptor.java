@@ -17,25 +17,22 @@
 package org.gradle.model.internal.core.rule.describe;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.specs.Spec;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.util.CollectionUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 // TODO some kind of context of why the method was attached (e.g. which plugin declared the rule)
 // TODO some kind of instance state for the method (might be the same as context above)
 @ThreadSafe
 public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
-
-    private final static Interner<MethodModelRuleDescriptor> INTERNER = Interners.newWeakInterner();
+    private final static Cache DESCRIPTOR_CACHE = new Cache();
 
     private final WeaklyTypeReferencingMethod<?, ?> method;
     private String description;
@@ -94,29 +91,57 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
     }
 
     public static ModelRuleDescriptor of(Class<?> clazz, final String methodName) {
-        List<Method> methodsOfName = CollectionUtils.filter(clazz.getDeclaredMethods(), new Spec<Method>() {
-            public boolean isSatisfiedBy(Method element) {
-                return element.getName().equals(methodName);
-            }
-        });
-
-        if (methodsOfName.isEmpty()) {
-            throw new IllegalStateException("Class " + clazz.getName() + " has no method named '" + methodName + "'");
-        }
-
-        if (methodsOfName.size() > 1) {
-            throw new IllegalStateException("Class " + clazz.getName() + " has more than one method named '" + methodName + "'");
-        }
-
-        Method method = methodsOfName.get(0);
-        return of(clazz, method);
-    }
-
-    public static ModelRuleDescriptor of(Class<?> clazz, Method method) {
-        return INTERNER.intern(new MethodModelRuleDescriptor(ModelType.of(clazz), ModelType.returnType(method), method));
+        return DESCRIPTOR_CACHE.get(clazz, methodName);
     }
 
     public static <T, R> ModelRuleDescriptor of(WeaklyTypeReferencingMethod<T, R> method) {
-        return INTERNER.intern(new MethodModelRuleDescriptor(method));
+        return DESCRIPTOR_CACHE.get(method.getDeclaringType().getConcreteClass(), method.getName());
+    }
+
+    private static class Cache {
+        private final WeakHashMap<Class<?>, CacheEntry> cached = new WeakHashMap<Class<?>, CacheEntry>();
+
+        public synchronized ModelRuleDescriptor get(Class<?> clazz, String method) {
+            CacheEntry cacheEntry = cached.get(clazz);
+            if (cacheEntry == null) {
+                cacheEntry = new CacheEntry(clazz);
+                cached.put(clazz, cacheEntry);
+            }
+            return cacheEntry.get(method);
+        }
+
+        private static class CacheEntry {
+            private final ModelType<?> clazzType;
+            private final Map<String, MethodModelRuleDescriptor> descriptors;
+
+            public CacheEntry(Class<?> clazz) {
+                this.clazzType = ModelType.of(clazz);
+                this.descriptors = new HashMap<String, MethodModelRuleDescriptor>(clazz.getDeclaredMethods().length);
+            }
+
+            public MethodModelRuleDescriptor get(String methodName) {
+                MethodModelRuleDescriptor desc = descriptors.get(methodName);
+                if (desc != null) {
+                    return desc;
+                }
+                Class<?> clazz = clazzType.getConcreteClass();
+                Method[] declaredMethods = clazz.getDeclaredMethods();
+                Method method = null;
+                for (Method declaredMethod : declaredMethods) {
+                    if (declaredMethod.getName().equals(methodName)) {
+                        if (method != null) {
+                            throw new IllegalStateException("Class " + clazz.getName() + " has more than one method named '" + methodName + "'");
+                        }
+                        method = declaredMethod;
+                    }
+                }
+                if (method == null) {
+                    throw new IllegalStateException("Class " + clazz.getName() + " has no method named '" + methodName + "'");
+                }
+                desc = new MethodModelRuleDescriptor(ModelType.of(clazz), ModelType.returnType(method), method);
+                descriptors.put(methodName, desc);
+                return desc;
+            }
+        }
     }
 }
