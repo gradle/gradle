@@ -24,39 +24,39 @@ import org.gradle.api.Project
 import org.gradle.plugins.signing.SigningExtension
 
 class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
-    
+
     private final factory = new PgpSignatoryFactory()
     private final Map<String, PgpSignatory> signatories = [:]
-    
+
     void configure(SigningExtension settings, Closure closure) {
         ConfigureUtil.configure(closure, new Dsl(settings.project, signatories, factory))
     }
-    
+
     PgpSignatory getDefaultSignatory(Project project) {
         factory.createSignatory(project)
     }
-    
+
     PgpSignatory getSignatory(String name) {
         signatories[name]
     }
-    
+
     PgpSignatory propertyMissing(String signatoryName) {
         getSignatory(signatoryName)
     }
 }
 
 class Dsl {
-    
+
     private final project
     private final signatories
     private final factory
-    
+
     Dsl(Project project, Map<String, PgpSignatory> signatories, PgpSignatoryFactory factory) {
         this.project = project
         this.signatories = signatories
         this.factory = factory
     }
-    
+
     def methodMissing(String name, args) {
         def signatory
         if (args.size() == 3) {
@@ -70,7 +70,7 @@ class Dsl {
         } else {
             throw new Exception("Invalid args ($name: $args)")
         }
-        
+
         signatories[signatory.name] = signatory
     }
 }
