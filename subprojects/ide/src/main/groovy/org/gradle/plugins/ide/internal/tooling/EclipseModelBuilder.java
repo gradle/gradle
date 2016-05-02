@@ -21,9 +21,14 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeProjectDirectoryMapper;
+import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.plugins.WarPlugin;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
+import org.gradle.plugins.ide.eclipse.EclipseWtpPlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
+import org.gradle.plugins.ide.internal.tooling.eclipse.EclipseWtpClasspathAttributeSupport;
 import org.gradle.plugins.ide.internal.tooling.eclipse.*;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
@@ -76,6 +81,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         rootGradleProject = gradleProjectBuilder.buildAll(project);
         tasksFactory.collectTasks(root);
         applyEclipsePlugin(root);
+        applyEclipseWtpPluginOnWebProjects(root);
         buildHierarchy(root);
         populate(root);
         return result;
@@ -87,6 +93,22 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
             p.getPluginManager().apply(EclipsePlugin.class);
         }
         root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
+    }
+
+    private void applyEclipseWtpPluginOnWebProjects(Project root) {
+        Set<Project> allProjects = root.getAllprojects();
+        for (Project p : allProjects) {
+            if (isWebProject(p)) {
+                p.getPluginManager().apply(EclipseWtpPlugin.class);
+            }
+        }
+    }
+
+    private boolean isWebProject(Project project) {
+        PluginContainer container = project.getPlugins();
+        return container.hasPlugin(WarPlugin.class)
+            || container.hasPlugin(EarPlugin.class)
+            || container.hasPlugin(EclipseWtpPlugin.class);
     }
 
     private DefaultEclipseProject buildHierarchy(Project project) {
@@ -128,6 +150,9 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         final List<DefaultEclipseProjectDependency> projectDependencies = new LinkedList<DefaultEclipseProjectDependency>();
         final List<DefaultEclipseSourceDirectory> sourceDirectories = new LinkedList<DefaultEclipseSourceDirectory>();
 
+        Map<AbstractLibrary, DefaultEclipseExternalDependency> entryToExternalDependency = new HashMap<AbstractLibrary, DefaultEclipseExternalDependency>();
+        Map<ProjectDependency, DefaultEclipseProjectDependency> entryToProjectDependency = new HashMap<ProjectDependency, DefaultEclipseProjectDependency>();
+
         for (ClasspathEntry entry : entries) {
             //we don't handle Variables at the moment because users didn't request it yet
             //and it would probably push us to add support in the tooling api to retrieve the variable mappings.
@@ -136,17 +161,22 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
                 final File file = library.getLibrary().getFile();
                 final File source = library.getSourcePath() == null ? null : library.getSourcePath().getFile();
                 final File javadoc = library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
-                externalDependencies.add(new DefaultEclipseExternalDependency(file, javadoc, source, library.getModuleVersion(), library.isExported()));
+                DefaultEclipseExternalDependency dependency = new DefaultEclipseExternalDependency(file, javadoc, source, library.getModuleVersion(), library.isExported());
+                externalDependencies.add(dependency);
+                entryToExternalDependency.put(library, dependency);
             } else if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
                 DefaultEclipseProject targetProject = projectMapping.get(projectDependency.getGradlePath());
+                DefaultEclipseProjectDependency dependency;
                 if (targetProject == null) {
                     File projectDirectory = compositeProjectMapper.transform(projectDependency.getGradlePath());
-                    projectDependencies.add(new DefaultEclipseProjectDependency(path, projectDirectory, projectDependency.isExported()));
+                    dependency = new DefaultEclipseProjectDependency(path, projectDirectory, projectDependency.isExported());
                 } else {
-                    projectDependencies.add(new DefaultEclipseProjectDependency(path, targetProject, projectDependency.isExported()));
+                    dependency = new DefaultEclipseProjectDependency(path, targetProject, projectDependency.isExported());
                 }
+                projectDependencies.add(dependency);
+                entryToProjectDependency.put(projectDependency, dependency);
             } else if (entry instanceof SourceFolder) {
                 final SourceFolder sourceFolder = (SourceFolder) entry;
                 String path = sourceFolder.getPath();
@@ -189,6 +219,13 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
                 .setTargetBytecodeVersion(jdt.getTargetCompatibility())
                 .setJdk(DefaultInstalledJdk.current())
             );
+        }
+
+        if (isWebProject(project)) {
+            EclipseWtp wtp = project.getExtensions().findByType(EclipseModel.class).getWtp();
+            EclipseWtpClasspathAttributeSupport wtpSupport = new EclipseWtpClasspathAttributeSupport(project, wtp);
+            wtpSupport.defineAttributesForExternalDependencies(entryToExternalDependency);
+            wtpSupport.defineAttributesForProjectDependencies(entryToProjectDependency);
         }
 
         for (Project childProject : project.getChildProjects().values()) {
