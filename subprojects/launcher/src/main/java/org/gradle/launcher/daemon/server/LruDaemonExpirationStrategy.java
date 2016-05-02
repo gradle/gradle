@@ -21,6 +21,7 @@ import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * This strategy expires the daemon if it's been idle for the longest consecutive period of time.
@@ -30,7 +31,8 @@ import java.util.Date;
 public class LruDaemonExpirationStrategy implements DaemonExpirationStrategy {
     @Override
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
-        return isOldest(daemon.getDaemonContext(), daemon.getDaemonRegistry())
+        DaemonRegistry registry = daemon.getDaemonRegistry();
+        return registry.getAll().size() > 1 && isOldest(daemon.getDaemonContext(), registry)
             ? new DaemonExpirationResult(true, "This is the least recently used daemon")
             : new DaemonExpirationResult(false, null);
     }

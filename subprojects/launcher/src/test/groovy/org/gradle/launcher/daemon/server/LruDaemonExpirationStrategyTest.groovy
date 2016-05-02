@@ -31,46 +31,50 @@ class LruDaemonExpirationStrategyTest extends Specification {
         registry = new EmbeddedDaemonRegistry()
     }
 
-    def "expires one idle daemon"() {
-        when:
-        DaemonInfo info = registerDaemon(10, true)
-
-        then:
-        isOldest(info)
-    }
-
-    def "doesn't expire one busy daemon"() {
-        when:
-        DaemonInfo info = registerDaemon(10, false)
-
-        then:
-        !isOldest(info)
-    }
-
     def "only expires one daemon"() {
         when:
-        DaemonInfo d1 = registerDaemon(10, true)
-        DaemonInfo d2 = registerDaemon(20, true)
+        registry = new EmbeddedDaemonRegistry()
+        DaemonInfo d1 = registerDaemon(true)
+        DaemonInfo d2 = registerDaemon(true)
 
         then:
-        isOldest(d1)
-        !isOldest(d2)
+        wouldExpire(d1)
+        !wouldExpire(d2)
     }
 
     def "only expires idle daemons"() {
         when:
-        DaemonInfo d1 = registerDaemon(10, false)
-        DaemonInfo d2 = registerDaemon(20, true)
-        DaemonInfo d3 = registerDaemon(30, true)
+        DaemonInfo d1 = registerDaemon(false)
+        DaemonInfo d2 = registerDaemon(true)
+        DaemonInfo d3 = registerDaemon(true)
 
         then:
-        !isOldest(d1)
-        isOldest(d2)
-        !isOldest(d3)
+        !wouldExpire(d1)
+        wouldExpire(d2)
+        !wouldExpire(d3)
     }
 
-    private DaemonInfo registerDaemon(long lastIdleTime, boolean idle) {
+    def "doesn't expire if all daemons are busy"() {
+        when:
+        DaemonInfo d1 = registerDaemon(false)
+        DaemonInfo d2 = registerDaemon(false)
+
+        then:
+        !wouldExpire(d1)
+        !wouldExpire(d2)
+    }
+
+    def "doesn't expire if only one daemon is running"() {
+        when:
+        DaemonInfo info = registerDaemon(true)
+
+        then:
+        !wouldExpire(info)
+    }
+
+    private DaemonInfo registerDaemon(boolean idle) {
         final int id = registry.getAll().size() + 1
+        final long lastIdleTime = id * 1000;
         Address daemonAddress = createAddress(id)
         DaemonContext context = Mock(DaemonContext) {
             _ * getPid() >> { id }
@@ -87,7 +91,12 @@ class LruDaemonExpirationStrategyTest extends Specification {
         }
     }
 
-    private boolean isOldest(DaemonInfo info) {
-        return strategy.isOldest(info.getContext(), registry)
+    private boolean wouldExpire(DaemonInfo info) {
+        Daemon daemon = Mock(Daemon) {
+            1 * getDaemonRegistry() >> { registry }
+            _ * getDaemonContext() >> { info.getContext() }
+        }
+
+        return strategy.checkExpiration(daemon).expired
     }
 }
