@@ -17,16 +17,11 @@ package org.gradle.launcher.daemon.bootstrap;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
-import org.gradle.launcher.daemon.server.CompositeDaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.DaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.DaemonIdleTimeoutExpirationStrategy;
-import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.server.DaemonServices;
-import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.launcher.daemon.server.*;
 
 import java.util.concurrent.TimeUnit;
 
@@ -60,6 +55,6 @@ public class ForegroundDaemonAction implements Runnable {
     private DaemonExpirationStrategy initializeExpirationStrategy(final DaemonServerConfiguration config) {
         DaemonIdleTimeoutExpirationStrategy timeoutStrategy = new DaemonIdleTimeoutExpirationStrategy(config.getIdleTimeout(), TimeUnit.MILLISECONDS);
         DaemonRegistryUnavailableExpirationStrategy registryUnavailableStrategy = new DaemonRegistryUnavailableExpirationStrategy();
-        return new CompositeDaemonExpirationStrategy(ImmutableList.of(timeoutStrategy, registryUnavailableStrategy));
+        return new AnyDaemonExpirationStrategy(ImmutableList.of(timeoutStrategy, registryUnavailableStrategy));
     }
 }

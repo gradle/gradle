@@ -38,7 +38,7 @@ class PersistentDaemonRegistryTest extends Specification {
 
     def "corrupt registry file is ignored"() {
         given:
-        registry.store(address(), daemonContext(), "password", true)
+        registry.store(new DaemonInfo(address(), daemonContext(), "password", true))
 
         expect:
         registry.all.size() == 1
@@ -55,7 +55,7 @@ class PersistentDaemonRegistryTest extends Specification {
         def address = address()
 
         and:
-        registry.store(address, daemonContext(), "password", true)
+        registry.store(new DaemonInfo(address, daemonContext(), "password", true))
 
         when:
         registry.remove(address)
