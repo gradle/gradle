@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.signing
 
+import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.DomainObjectSet
 import org.gradle.api.InvalidUserDataException
@@ -27,37 +28,38 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.plugins.signing.signatory.Signatory
+import org.gradle.plugins.signing.signatory.pgp.PgpSignatory
 import org.gradle.plugins.signing.type.SignatureType
 
 import javax.inject.Inject
 
 /**
  * A task for creating digital signature files for one or more; tasks, files, publishable artifacts or configurations.
- * 
+ *
  * <p>The task produces {@link Signature}</p> objects that are publishable artifacts and can be assigned to another configuration.
  * <p>
  * The signature objects are created with defaults and using this tasks signatory and signature type.
  */
+@CompileStatic
 class Sign extends DefaultTask implements SignatureSpec {
-    
+
     SignatureType signatureType
-    
+
     /**
      * The signatory to the generated signatures.
      */
     Signatory signatory
-    
+
     /**
      * Whether or not this task should fail if no signatory or signature type are configured at generation time.
-     * 
+     *
      * <p>Defaults to {@code true}.</p>
      */
     boolean required = true
-    
+
     final private DefaultDomainObjectSet<Signature> signatures = new DefaultDomainObjectSet<Signature>(Signature)
-    
+
     Sign() {
-        super()
 
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf {
@@ -65,12 +67,12 @@ class Sign extends DefaultTask implements SignatureSpec {
         }
 
         // Have to include this in the up-to-date checks because the signatory may have changed
-        inputs.property("signatory") { getSignatory()?.keyId?.asHex }
-        
+        inputs.property("signatory") { (getSignatory() as PgpSignatory)?.keyId?.asHex }
+
         inputs.files { getSignatures()*.toSign }
         outputs.files { getSignatures()*.toSign }
     }
-    
+
     /**
      * Configures the task to sign the archive produced for each of the given tasks (which must be archive tasks).
      */
@@ -79,10 +81,13 @@ class Sign extends DefaultTask implements SignatureSpec {
             if (!(task instanceof AbstractArchiveTask)) {
                 throw new InvalidUserDataException("You cannot sign tasks that are not 'archive' tasks, such as 'jar', 'zip' etc. (you tried to sign $task)")
             }
-            
-            dependsOn(task)
-            addSignature(new Signature({ task.archivePath }, { task.classifier }, this, this))
+            signTask((AbstractArchiveTask)task)
         }
+    }
+
+    private void signTask(AbstractArchiveTask archiveTask) {
+        dependsOn(archiveTask)
+        addSignature(new Signature({ archiveTask.archivePath }, { archiveTask.classifier }, this, this))
     }
 
     /**
@@ -90,22 +95,30 @@ class Sign extends DefaultTask implements SignatureSpec {
      */
     void sign(PublishArtifact... publishArtifacts) {
         for (publishArtifact in publishArtifacts) {
-            dependsOn(publishArtifact)
-            addSignature(new Signature(publishArtifact, this, this))
+            signArtifact(publishArtifact)
         }
+    }
+
+    private void signArtifact(PublishArtifact publishArtifact) {
+        dependsOn(publishArtifact)
+        addSignature(new Signature(publishArtifact, this, this))
     }
 
     /**
      * Configures the task to sign each of the given files
-     */    
+     */
     void sign(File... files) {
-        sign(null, *files)
+        addSignatures(null, files)
     }
-    
+
     /**
      * Configures the task to sign each of the given artifacts, using the given classifier as the classifier for the resultant signature publish artifact.
      */
     void sign(String classifier, File... files) {
+        addSignatures(classifier, files)
+    }
+
+    private void addSignatures(String classifier, File[] files) {
         for (file in files) {
             addSignature(new Signature(file, classifier, this, this))
         }
@@ -117,41 +130,42 @@ class Sign extends DefaultTask implements SignatureSpec {
     void sign(Configuration... configurations) {
         for (configuration in configurations) {
             configuration.allArtifacts.all { PublishArtifact artifact ->
-                if (!(artifact instanceof Signature)) {
-                    sign(artifact)
+                if (artifact instanceof Signature) {
+                    return
                 }
+                signArtifact(artifact)
             }
             configuration.allArtifacts.whenObjectRemoved { PublishArtifact artifact ->
                 signatures.remove(signatures.find { it.toSignArtifact == artifact })
             }
         }
     }
-    
+
     private addSignature(Signature signature) {
         signatures.add(signature)
     }
-    
+
     /**
      * Changes the signature file representation for the signatures.
      */
     void signatureType(SignatureType type) {
         this.signatureType = signatureType
     }
-    
+
     /**
      * Changes the signatory of the signatures.
      */
     void signatory(Signatory signatory) {
         this.signatory = signatory
     }
-    
+
     /**
      * Change whether or not this task should fail if no signatory or signature type are configured at the time of generation.
      */
     void required(boolean required) {
         setRequired(required)
     }
-    
+
     /**
      * Generates the signature files.
      */
@@ -197,13 +211,17 @@ class Sign extends DefaultTask implements SignatureSpec {
      * All of the files that will be signed by this task.
      */
     FileCollection getFilesToSign() {
-        fileCollectionFactory.fixed("Task '$path' files to sign", *getSignatures()*.toSign.findAll({ it != null }))
+        fileCollectionFactory.fixed(
+            "Task '$path' files to sign",
+            getSignatures()*.toSign.findAll({ it != null }))
     }
-    
+
     /**
      * All of the signature files that will be generated by this operation.
      */
     FileCollection getSignatureFiles() {
-        fileCollectionFactory.fixed("Task '$path' signature files", *getSignatures()*.file.findAll({ it != null }))
+        fileCollectionFactory.fixed(
+            "Task '$path' signature files",
+            getSignatures()*.file.findAll({ it != null }))
     }
 }
