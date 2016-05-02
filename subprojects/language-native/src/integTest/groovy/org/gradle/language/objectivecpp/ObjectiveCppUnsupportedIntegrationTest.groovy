@@ -25,7 +25,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import static org.hamcrest.CoreMatchers.containsString
 
 
-@RequiresInstalledToolChain(ToolChainRequirement.VisualCpp)
+@RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP)
 @LeaksFileHandles
 class ObjectiveCppUnsupportedIntegrationTest extends AbstractInstalledToolChainIntegrationSpec{
 

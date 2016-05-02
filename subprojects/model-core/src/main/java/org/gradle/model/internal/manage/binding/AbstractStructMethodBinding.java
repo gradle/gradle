@@ -31,6 +31,7 @@ public abstract class AbstractStructMethodBinding implements StructMethodBinding
         this.accessorType = accessorType;
     }
 
+    @Override
     public WeaklyTypeReferencingMethod<?, ?> getViewMethod() {
         return viewMethod;
     }

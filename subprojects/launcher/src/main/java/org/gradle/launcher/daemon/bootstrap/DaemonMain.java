@@ -15,13 +15,17 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.launcher.bootstrap.EntryPoint;
 import org.gradle.launcher.bootstrap.ExecutionListener;
@@ -29,12 +33,8 @@ import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
-import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.server.DaemonServices;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.messaging.remote.Address;
-import org.gradle.process.internal.child.EncodedStream;
+import org.gradle.launcher.daemon.server.*;
+import org.gradle.process.internal.streams.EncodedStream;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -68,6 +68,7 @@ public class DaemonMain extends EntryPoint {
         File gradleHomeDir;
         File daemonBaseDir;
         int idleTimeoutMs;
+        int periodicCheckIntervalMs;
         String daemonUid;
         List<File> additionalClassPath;
 
@@ -76,6 +77,7 @@ public class DaemonMain extends EntryPoint {
             gradleHomeDir = new File(decoder.readString());
             daemonBaseDir = new File(decoder.readString());
             idleTimeoutMs = decoder.readSmallInt();
+            periodicCheckIntervalMs = decoder.readSmallInt();
             daemonUid = decoder.readString();
             int argCount = decoder.readSmallInt();
             startupOpts = new ArrayList<String>(argCount);
@@ -94,14 +96,13 @@ public class DaemonMain extends EntryPoint {
         LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
 
         NativeServices.initialize(gradleHomeDir);
-        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, startupOpts);
+        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, startupOpts);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
         DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager, new DefaultClassPath(additionalClassPath));
         File daemonLog = daemonServices.getDaemonLogFile();
 
         initialiseLogging(loggingManager, daemonLog);
-
         Daemon daemon = daemonServices.get(Daemon.class);
         daemon.start();
 
@@ -110,8 +111,7 @@ public class DaemonMain extends EntryPoint {
             Long pid = daemonContext.getPid();
             daemonStarted(pid, daemon.getUid(), daemon.getAddress(), daemonLog);
 
-            // Block until idle
-            daemon.requestStopOnIdleTimeout(parameters.getIdleTimeout(), TimeUnit.MILLISECONDS);
+            daemon.stopOnExpiration(initializeExpirationStrategy(parameters), parameters.getPeriodicCheckIntervalMs());
         } finally {
             daemon.stop();
         }
@@ -166,9 +166,20 @@ public class DaemonMain extends EntryPoint {
 
         //Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
         //Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)
-        loggingManager.setLevel(LogLevel.DEBUG);
+        loggingManager.setLevelInternal(LogLevel.DEBUG);
 
         loggingManager.start();
+    }
+
+    private DaemonExpirationStrategy initializeExpirationStrategy(final DaemonServerConfiguration params) {
+        DaemonIdleTimeoutExpirationStrategy timeoutStrategy = new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout(), TimeUnit.MILLISECONDS);
+        DaemonRegistryUnavailableExpirationStrategy registryUnavailableStrategy = new DaemonRegistryUnavailableExpirationStrategy();
+        DaemonExpirationStrategy lowMemoryLruStrategy = new AllDaemonExpirationStrategy(ImmutableList.of(
+            LowMemoryDaemonExpirationStrategy.belowFreePercentage(0.2),
+            new LruDaemonExpirationStrategy())
+        );
+
+        return new AnyDaemonExpirationStrategy(ImmutableList.of(registryUnavailableStrategy, lowMemoryLruStrategy));
     }
 
     private void redirectOutputsAndInput(PrintStream printStream) {

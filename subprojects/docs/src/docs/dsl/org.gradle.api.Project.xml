@@ -189,6 +189,9 @@
                 <td>hasProperty</td>
             </tr>
             <tr>
+                <td>findProperty</td>
+            </tr>
+            <tr>
                 <td>task</td>
             </tr>
             <tr>

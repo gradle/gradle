@@ -189,7 +189,7 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
 
         @Override
         public String toString() {
-            return String.format("%s:%s", componentIdentifier.getDisplayName(), name);
+            return componentIdentifier.getDisplayName() + ":" + name;
         }
 
         public ComponentResolveMetaData getComponent() {

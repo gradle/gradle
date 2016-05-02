@@ -29,7 +29,9 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.operations.BuildOperationProcessor;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -45,6 +47,11 @@ import static org.gradle.util.CollectionUtils.collect;
 public class TestReport extends DefaultTask {
     private File destinationDir;
     private List<Object> results = new ArrayList<Object>();
+
+    @Inject
+    protected BuildOperationProcessor getBuildOperationProcessor() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Returns the directory to write the HTML report to.
@@ -126,7 +133,7 @@ public class TestReport extends DefaultTask {
         TestResultsProvider resultsProvider = createAggregateProvider();
         try {
             if (resultsProvider.isHasResults()) {
-                DefaultTestReport testReport = new DefaultTestReport();
+                DefaultTestReport testReport = new DefaultTestReport(getBuildOperationProcessor());
                 testReport.generateReport(resultsProvider, getDestinationDir());
             } else {
                 getLogger().info("{} - no binary test results found in dirs: {}.", getPath(), getTestResultDirs().getFiles());

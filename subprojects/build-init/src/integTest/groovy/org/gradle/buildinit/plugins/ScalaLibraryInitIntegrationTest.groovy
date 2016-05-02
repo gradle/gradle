@@ -40,7 +40,7 @@ class ScalaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         wrapper.generated()
 
         when:
-        succeeds("build")
+        run("build")
 
         then:
         TestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)

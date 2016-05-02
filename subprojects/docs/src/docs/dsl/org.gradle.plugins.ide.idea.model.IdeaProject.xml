@@ -26,8 +26,13 @@
             </tr>
             <tr>
                 <td>languageLevel</td>
-                <td><literal>'JDK_1_6'</literal></td>
+                <td><literal>JavaVersion.JAVA_1_6</literal></td>
                 <td><literal>project.sourceCompatibility</literal></td>
+            </tr>
+            <tr>
+                <td>targetBytecodeVersion</td>
+                <td><literal>JavaVersion.JAVA_1_6</literal></td>
+                <td>Highest <literal>project.targetCompatibility</literal> value of all java subprojects or <literal>JavaVersion.JAVA_1_6</literal> if no java project found.</td>
             </tr>
             <tr>
                 <td>wildcards</td>

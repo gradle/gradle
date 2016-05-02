@@ -29,7 +29,7 @@ public class DefaultEclipseSourceDirectory implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("source directory '%s'", path);
+        return "source directory '" + path + "'";
     }
 
     public File getDirectory() {

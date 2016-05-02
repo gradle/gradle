@@ -9,13 +9,15 @@
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]platform-base[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
-              files=".*[/\\]subprojects[/\\]maven[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+              files=".*[/\\]subprojects[/\\]resources[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]resources[/\\][^/\\]+"/>
+    <suppress checks="JavadocPackage"
+              files=".*[/\\]subprojects[/\\]maven[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]plugins[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]reporting[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
-              files=".*[/\\]subprojects[/\\]diagnostics[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+              files=".*[/\\]subprojects[/\\]diagnostics[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]plugins[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"

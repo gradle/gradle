@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.util.ContextualSAXHandler;
 import org.apache.ivy.util.XMLHelper;
+import org.gradle.api.resources.MissingResourceException;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.ResourceException;
-import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ class MavenMetadataLoader {
         MavenMetadata metadata = new MavenMetadata();
         try {
             parseMavenMetadataInfo(metadataLocation, metadata);
-        } catch (ResourceNotFoundException e) {
+        } catch (MissingResourceException e) {
             throw e;
         } catch (Exception e) {
             throw new ResourceException(metadataLocation, String.format("Unable to load Maven meta-data from %s.", metadataLocation), e);
@@ -56,7 +56,7 @@ class MavenMetadataLoader {
     private void parseMavenMetadataInfo(final URI metadataLocation, final MavenMetadata metadata) {
         ExternalResource resource = repository.getResource(metadataLocation);
         if (resource == null) {
-            throw new ResourceNotFoundException(metadataLocation, String.format("Maven meta-data not available: %s", metadataLocation));
+            throw new MissingResourceException(metadataLocation, String.format("Maven meta-data not available: %s", metadataLocation));
         }
         try {
             parseMavenMetadataInto(resource, metadata);

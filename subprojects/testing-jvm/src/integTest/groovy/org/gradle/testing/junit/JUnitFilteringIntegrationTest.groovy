@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.AbstractTestFilteringIntegrationTest
 import org.gradle.testing.fixture.JUnitCoverage
-import spock.lang.Ignore
+import spock.lang.Issue
 
 @TargetCoverage({ JUnitCoverage.LARGE_COVERAGE })
 public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrationTest {
@@ -31,15 +31,7 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
         imports = "org.junit.*"
     }
 
-    @Ignore
-    def "can filter parameterized junit tests"() {
-        buildFile << """
-            test {
-              filter {
-                includeTestsMatching "ParameterizedFoo.pass"
-              }
-            }
-        """
+    void theParameterizedFiles() {
         file("src/test/java/ParameterizedFoo.java") << """import $imports;
             import org.junit.runners.Parameterized;
             import org.junit.runners.Parameterized.Parameters;
@@ -68,12 +60,120 @@ public class JUnitFilteringIntegrationTest extends AbstractTestFilteringIntegrat
                 @Test public void fail() {}
             }
         """
+    }
+
+    void theSuiteFiles() {
+        file("src/test/java/FooTest.java") << """
+            import org.junit.Test;
+            public class FooTest {
+                @Test
+                public void testFoo() { }
+            }
+        """
+        file("src/test/java/FooServerTest.java") << """
+            import org.junit.Test;
+            public class FooServerTest {
+                @Test
+                public void testFooServer() { }
+            }
+        """
+        file("src/test/java/BarTest.java") << """
+            import org.junit.Test;
+            public class BarTest {
+                @Test
+                public void testBar() { }
+            }
+        """
+        file("src/test/java/AllFooTests.java") << """
+            import org.junit.runner.RunWith;
+            import org.junit.runners.Suite;
+            import org.junit.runners.Suite.SuiteClasses;
+            @RunWith(Suite.class)
+            @SuiteClasses({FooTest.class, FooServerTest.class})
+            public class AllFooTests {
+            }
+        """
+    }
+
+    @Issue("GRADLE-3112")
+    def "can filter parameterized tests from the build file."() {
+        given:
+        // this addition to the build file ...
+        buildFile << """
+            test {
+              filter {
+                includeTestsMatching "*ParameterizedFoo.pass*"
+              }
+            }
+        """
+        // and ...
+        theParameterizedFiles()
+
         when:
         run("test")
 
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("ParameterizedFoo")
-        result.testClass("ParameterizedFoo").assertTestsExecuted("pass")
+        result.testClass("ParameterizedFoo").assertTestsExecuted("pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
+    }
+
+    @Issue("GRADLE-3112")
+    def "can filter parameterized tests from the command-line"() {
+        given:
+        theParameterizedFiles()
+
+        when:
+        run("test", "--tests", "*ParameterizedFoo.pass*")
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.assertTestClassesExecuted("ParameterizedFoo")
+        result.testClass("ParameterizedFoo").assertTestsExecuted("pass[0]", "pass[1]", "pass[2]", "pass[3]", "pass[4]")
+    }
+
+    @Issue("GRADLE-3112")
+    def "passing a suite argument to --tests runs all tests in the suite"() {
+        given:
+        theSuiteFiles()
+
+        when:
+        run("test", "--tests", "*AllFooTests")
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+
+        result.assertTestClassesExecuted("FooTest", "FooServerTest")
+        result.testClass("FooTest").assertTestCount(1, 0, 0);
+        result.testClass("FooTest").assertTestsExecuted("testFoo")
+        result.testClass("FooServerTest").assertTestCount(1, 0, 0);
+        result.testClass("FooServerTest").assertTestsExecuted("testFooServer")
+    }
+
+    @Issue("GRADLE-3112")
+    def "can filter test Suites from build file."() {
+        given:
+        // this addition to the build files ...
+        buildFile << """
+            test {
+              filter {
+                includeTestsMatching "*AllFooTests"
+              }
+            }
+        """
+        // and ...
+        theSuiteFiles()
+
+        when:
+        run("test")
+
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+
+        result.assertTestClassesExecuted("FooTest", "FooServerTest")
+        result.testClass("FooTest").assertTestCount(1, 0, 0);
+        result.testClass("FooTest").assertTestsExecuted("testFoo")
+        result.testClass("FooServerTest").assertTestCount(1, 0, 0);
+        result.testClass("FooServerTest").assertTestsExecuted("testFooServer")
     }
 }

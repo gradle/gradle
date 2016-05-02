@@ -28,7 +28,7 @@ public class DaemonDir {
 
     public DaemonDir(File baseDir) {
         this.baseDir = baseDir;
-        this.versionedDir = new File(baseDir, String.format("%s", GradleVersion.current().getVersion()));
+        this.versionedDir = new File(baseDir, GradleVersion.current().getVersion());
         this.registryFile = new File(versionedDir, "registry.bin");
         GFileUtils.mkdirs(this.versionedDir);
     }
@@ -36,7 +36,7 @@ public class DaemonDir {
     public File getBaseDir() {
         return baseDir;
     }
-    
+
     public File getVersionedDir() {
         return versionedDir;
     }

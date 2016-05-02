@@ -16,25 +16,52 @@
 
 package org.gradle.api.internal.file;
 
+import com.google.common.base.Charsets;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import org.gradle.api.file.FileTreeElement;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.Collections;
+import java.util.List;
 
 public class FileTreeElementHasher {
     private static final byte HASH_PATH_SEPARATOR = (byte) '/';
+    private static final byte HASH_FIELD_SEPARATOR = (byte) '\t';
     private static final byte HASH_RECORD_SEPARATOR = (byte) '\n';
 
-    public static final int calculateHashForFilePaths(Collection<FileTreeElement> allFileTreeElements) {
-        SortedSet<FileTreeElement> sortedFileTreeElement = asSortedSet(allFileTreeElements);
+    public static final int calculateHashForFileMetadata(Collection<? extends FileTreeElement> allFileTreeElements) {
+        Collection<FileTreeElement> sortedFileTreeElement = sortForHashing(allFileTreeElements);
 
-        Hasher hasher = Hashing.adler32().newHasher();
+        Hasher hasher = createHasher();
         for (FileTreeElement fileTreeElement : sortedFileTreeElement) {
             for (String pathPart : fileTreeElement.getRelativePath().getSegments()) {
-                hasher.putUnencodedChars(pathPart);
+                hasher.putString(pathPart, Charsets.UTF_8);
+                hasher.putByte(HASH_PATH_SEPARATOR);
+            }
+            if (!fileTreeElement.isDirectory()) {
+                hasher.putByte(HASH_FIELD_SEPARATOR);
+                hasher.putLong(fileTreeElement.getSize());
+                hasher.putByte(HASH_FIELD_SEPARATOR);
+                hasher.putLong(fileTreeElement.getLastModified());
+            }
+            hasher.putByte(HASH_RECORD_SEPARATOR);
+        }
+        return hasher.hash().asInt();
+    }
+
+    public static Hasher createHasher() {
+        return Hashing.crc32().newHasher();
+    }
+
+    public static final int calculateHashForFilePaths(Collection<? extends FileTreeElement> allFileTreeElements) {
+        Collection<FileTreeElement> sortedFileTreeElement = sortForHashing(allFileTreeElements);
+
+        Hasher hasher = createHasher();
+        for (FileTreeElement fileTreeElement : sortedFileTreeElement) {
+            for (String pathPart : fileTreeElement.getRelativePath().getSegments()) {
+                hasher.putString(pathPart, Charsets.UTF_8);
                 hasher.putByte(HASH_PATH_SEPARATOR);
             }
             hasher.putByte(HASH_RECORD_SEPARATOR);
@@ -42,12 +69,9 @@ public class FileTreeElementHasher {
         return hasher.hash().asInt();
     }
 
-    private static SortedSet<FileTreeElement> asSortedSet(Collection<FileTreeElement> allFileTreeElements) {
-        if (allFileTreeElements instanceof SortedSet) {
-            return (SortedSet<FileTreeElement>) allFileTreeElements;
-        }
-        SortedSet<FileTreeElement> sortedFileTreeElement = new TreeSet<FileTreeElement>(FileTreeElementComparator.INSTANCE);
-        sortedFileTreeElement.addAll(allFileTreeElements);
+    private static Collection<FileTreeElement> sortForHashing(Collection<? extends FileTreeElement> allFileTreeElements) {
+        List<FileTreeElement> sortedFileTreeElement = new ArrayList<FileTreeElement>(allFileTreeElements);
+        Collections.sort(sortedFileTreeElement, FileTreeElementComparator.INSTANCE);
         return sortedFileTreeElement;
     }
 }

@@ -23,11 +23,15 @@ import java.util.regex.Pattern;
  */
 public enum JavaVersion {
     VERSION_1_1(false), VERSION_1_2(false), VERSION_1_3(false), VERSION_1_4(false), VERSION_1_5(true), VERSION_1_6(true), VERSION_1_7(true), VERSION_1_8(true), VERSION_1_9(true);
-
+    private static JavaVersion currentJavaVersion;
     private final boolean hasMajorVersion;
+    private final String versionName;
+    private final String majorVersion;
 
     JavaVersion(boolean hasMajorVersion) {
         this.hasMajorVersion = hasMajorVersion;
+        this.versionName = name().substring("VERSION_".length()).replace('_', '.');
+        this.majorVersion = name().substring(10);
     }
 
     /**
@@ -70,7 +74,15 @@ public enum JavaVersion {
      * @return The version of the current JVM.
      */
     public static JavaVersion current() {
-        return toVersion(System.getProperty("java.version"));
+        if (currentJavaVersion == null) {
+            currentJavaVersion = toVersion(System.getProperty("java.version"));
+        }
+        return currentJavaVersion;
+    }
+
+    // For testing current() method
+    static void resetCurrent() {
+        currentJavaVersion = null;
     }
 
     public static JavaVersion forClassVersion(int classVersion) {
@@ -127,10 +139,10 @@ public enum JavaVersion {
     }
 
     private String getName() {
-        return name().substring("VERSION_".length()).replace('_', '.');
+        return versionName;
     }
 
     public String getMajorVersion() {
-        return name().substring(10);
+        return majorVersion;
     }
 }

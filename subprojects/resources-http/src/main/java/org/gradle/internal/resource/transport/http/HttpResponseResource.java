@@ -55,7 +55,7 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
 
     @Override
     public String toString() {
-        return String.format("Http %s Resource: %s", method, source);
+        return "Http " + method + " Resource: " + source;
     }
 
     public ExternalResourceMetaData getMetaData() {

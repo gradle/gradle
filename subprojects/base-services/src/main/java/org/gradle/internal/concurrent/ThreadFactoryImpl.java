@@ -36,7 +36,7 @@ public class ThreadFactoryImpl implements ThreadFactory {
         if (count == 1) {
             thread.setName(displayName);
         } else {
-            thread.setName(String.format("%s Thread %s", displayName, count));
+            thread.setName(displayName + " Thread " + count);
         }
         return thread;
     }

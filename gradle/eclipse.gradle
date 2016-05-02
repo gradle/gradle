@@ -1,5 +1,6 @@
-allprojects { project->
-	apply plugin: "eclipse"
+allprojects {
+    apply plugin: 'eclipse'
+
     plugins.withType(JavaPlugin) {
         eclipse {
             classpath {
@@ -8,13 +9,18 @@ allprojects { project->
                     classpath.entries.removeAll { it.path.contains('src/integTest/resources') }
                     //Workaround for some projects referring to themselves as dependent projects
                     classpath.entries.removeAll { it.path.contains("$project.name") && it.kind=='src' }
+                    // Remove references to libraries in the build folder
                     classpath.entries.removeAll { it.path.contains("$project.name/build") && it.kind=='lib' }
+                    // Remove references to other project's binaries
+                    classpath.entries.removeAll { it.path.contains("/subprojects") && it.kind == 'lib' }
                 }
             }
             jdt {
+                sourceCompatibility = 1.7
+                targetCompatibility = 1.7
+                javaRuntimeName = 'JavaSE-1.7'
                 file.withProperties { properties ->
-                    //Eclipse's view of projects treat circular dependencies as errors by default
-                    //Treat these as warnings for now
+                    // Eclipse's view of projects treat circular dependencies as errors by default
                     properties["org.eclipse.jdt.core.circularClasspath"] = "warning"
                 }
             }

@@ -29,7 +29,7 @@ import java.util.Map;
 
 public abstract class RhinoWorkerUtils {
 
-    public static interface ScopeOperation<T> {
+    public interface ScopeOperation<T> {
         void initContext(Context context);
         T action(Scriptable scope, Context context);
     }

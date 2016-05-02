@@ -16,14 +16,8 @@
 
 package org.gradle.plugins.javascript.rhino.worker;
 
-import org.mozilla.javascript.RhinoException;
-
 import java.io.Serializable;
 
 public interface RhinoWorker<R extends Serializable, P extends Serializable> {
-
     R process(P payload);
-
-    Exception convertException(RhinoException rhinoException);
-
 }

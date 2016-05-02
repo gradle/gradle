@@ -32,7 +32,7 @@ public class DefaultEclipseTask implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("task '%s'", path);
+        return "task '" + path + "'";
     }
 
     public DefaultEclipseProject getProject() {

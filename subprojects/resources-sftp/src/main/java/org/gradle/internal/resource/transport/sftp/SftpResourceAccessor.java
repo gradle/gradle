@@ -19,7 +19,7 @@ package org.gradle.internal.resource.transport.sftp;
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.SftpATTRS;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
-import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceAccessor;
@@ -46,7 +46,7 @@ public class SftpResourceAccessor implements ExternalResourceAccessor {
             if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
                 return null;
             }
-            throw ResourceException.getFailed(uri, e);
+            throw ResourceExceptions.getFailed(uri, e);
         } finally {
             sftpClientFactory.releaseSftpClient(sftpClient);
         }

@@ -55,6 +55,7 @@ import org.gradle.model.internal.core.ModelRegistrations;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 import org.gradle.util.WrapUtil;
 
@@ -127,11 +128,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 createCompileJavaTaskForBinary(sourceSet, sourceSet.getJava(), project);
                 createBinaryLifecycleTask(sourceSet, project);
 
-                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, String.format("%sClasses", sourceSet.getName()), sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
+                DefaultComponentSpecIdentifier binaryId = new DefaultComponentSpecIdentifier(project.getPath(), sourceSet.getName());
+                ClassDirectoryBinarySpecInternal binary = instantiator.newInstance(DefaultClassDirectoryBinarySpec.class, binaryId, sourceSet, javaToolChain, DefaultJavaPlatform.current(), instantiator, taskFactory);
 
                 Classpath compileClasspath = new SourceSetCompileClasspath(sourceSet);
-                DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, "java", sourceSet.getName(), sourceSet.getJava(), compileClasspath);
-                JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, "resources", sourceSet.getName(), sourceSet.getResources());
+                DefaultJavaSourceSet javaSourceSet = instantiator.newInstance(DefaultJavaSourceSet.class, binaryId.child("java"), sourceSet.getJava(), compileClasspath);
+                JvmResourceSet resourceSet = instantiator.newInstance(DefaultJvmResourceSet.class, binaryId.child("resources"), sourceSet.getResources());
 
                 binary.addSourceSet(javaSourceSet);
                 binary.addSourceSet(resourceSet);
@@ -145,7 +147,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private void createCompileJavaTaskForBinary(final SourceSet sourceSet, SourceDirectorySet javaSourceSet, Project target) {
         JavaCompile compileTask = target.getTasks().create(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
-        compileTask.setDescription(String.format("Compiles %s.", javaSourceSet));
+        compileTask.setDescription("Compiles " + javaSourceSet + ".");
         compileTask.setSource(javaSourceSet);
         ConventionMapping conventionMapping = compileTask.getConventionMapping();
         conventionMapping.map("classpath", new Callable<Object>() {
@@ -162,7 +164,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private void createProcessResourcesTaskForBinary(final SourceSet sourceSet, SourceDirectorySet resourceSet, final Project target) {
         Copy resourcesTask = target.getTasks().create(sourceSet.getProcessResourcesTaskName(), ProcessResources.class);
-        resourcesTask.setDescription(String.format("Processes %s.", resourceSet));
+        resourcesTask.setDescription("Processes " + resourceSet + ".");
         new DslObject(resourcesTask).getConventionMapping().map("destinationDir", new Callable<File>() {
             public File call() throws Exception {
                 return sourceSet.getOutput().getResourcesDir();
@@ -176,7 +178,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         Task binaryLifecycleTask = target.task(sourceSet.getClassesTaskName());
         binaryLifecycleTask.setGroup(LifecycleBasePlugin.BUILD_GROUP);
-        binaryLifecycleTask.setDescription(String.format("Assembles %s.", sourceSet.getOutput()));
+        binaryLifecycleTask.setDescription("Assembles " + sourceSet.getOutput() + ".");
         binaryLifecycleTask.dependsOn(sourceSet.getOutput().getDirs());
         binaryLifecycleTask.dependsOn(sourceSet.getCompileJavaTaskName());
         binaryLifecycleTask.dependsOn(sourceSet.getProcessResourcesTaskName());
@@ -195,44 +197,48 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     private void definePathsForSourceSet(final SourceSet sourceSet, ConventionMapping outputConventionMapping, final Project project) {
         outputConventionMapping.map("classesDir", new Callable<Object>() {
             public Object call() throws Exception {
-                String classesDirName = String.format("classes/%s", sourceSet.getName());
+                String classesDirName = "classes/" +   sourceSet.getName();
                 return new File(project.getBuildDir(), classesDirName);
             }
         });
         outputConventionMapping.map("resourcesDir", new Callable<Object>() {
             public Object call() throws Exception {
-                String classesDirName = String.format("resources/%s", sourceSet.getName());
+                String classesDirName = "resources/" + sourceSet.getName();
                 return new File(project.getBuildDir(), classesDirName);
             }
         });
 
-        sourceSet.getJava().srcDir(String.format("src/%s/java", sourceSet.getName()));
-        sourceSet.getResources().srcDir(String.format("src/%s/resources", sourceSet.getName()));
+        sourceSet.getJava().srcDir("src/" + sourceSet.getName() + "/java");
+        sourceSet.getResources().srcDir("src/" + sourceSet.getName() + "/resources");
     }
 
     private void defineConfigurationsForSourceSet(SourceSet sourceSet, ConfigurationContainer configurations) {
-        Configuration compileConfiguration = configurations.findByName(sourceSet.getCompileConfigurationName());
-        if (compileConfiguration == null) {
-            compileConfiguration = configurations.create(sourceSet.getCompileConfigurationName());
-        }
+        Configuration compileConfiguration = configurations.maybeCreate(sourceSet.getCompileConfigurationName());
         compileConfiguration.setVisible(false);
-        compileConfiguration.setDescription(String.format("Compile classpath for %s.", sourceSet));
+        compileConfiguration.setDescription("Dependencies for " + sourceSet + ".");
 
-        Configuration runtimeConfiguration = configurations.findByName(sourceSet.getRuntimeConfigurationName());
-        if (runtimeConfiguration == null) {
-            runtimeConfiguration = configurations.create(sourceSet.getRuntimeConfigurationName());
-        }
+        Configuration runtimeConfiguration = configurations.maybeCreate(sourceSet.getRuntimeConfigurationName());
         runtimeConfiguration.setVisible(false);
         runtimeConfiguration.extendsFrom(compileConfiguration);
-        runtimeConfiguration.setDescription(String.format("Runtime classpath for %s.", sourceSet));
+        runtimeConfiguration.setDescription("Runtime dependencies for " + sourceSet + ".");
 
-        sourceSet.setCompileClasspath(compileConfiguration);
+        Configuration compileOnlyConfiguration = configurations.maybeCreate(sourceSet.getCompileOnlyConfigurationName());
+        compileOnlyConfiguration.setVisible(false);
+        compileOnlyConfiguration.extendsFrom(compileConfiguration);
+        compileOnlyConfiguration.setDescription("Compile dependencies for " + sourceSet + ".");
+
+        Configuration compileClasspathConfiguration = configurations.maybeCreate(sourceSet.getCompileClasspathConfigurationName());
+        compileClasspathConfiguration.setVisible(false);
+        compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration);
+        compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSet + ".");
+
+        sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeConfiguration));
     }
 
     public void configureForSourceSet(final SourceSet sourceSet, AbstractCompile compile) {
         ConventionMapping conventionMapping;
-        compile.setDescription(String.format("Compiles the %s.", sourceSet.getJava()));
+        compile.setDescription("Compiles the " + sourceSet.getJava() + ".");
         conventionMapping = compile.getConventionMapping();
         compile.setSource(sourceSet.getJava());
         conventionMapping.map("classpath", new Callable<Object>() {
@@ -350,7 +356,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 test.getLogger().info("Running single tests with pattern: {}", test.getIncludes());
             }
         });
-        test.setIncludes(WrapUtil.toSet(String.format("**/%s*.class", singleTest)));
+        test.setIncludes(WrapUtil.toSet("**/" + singleTest + "*.class"));
         test.addTestListener(new NoMatchingTestsReporter("Could not find matching test for pattern: " + singleTest));
     }
 
@@ -379,7 +385,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         });
         test.getConventionMapping().map("binResultsDir", new Callable<Object>() {
             public Object call() throws Exception {
-                return new File(convention.getTestResultsDir(), String.format("binary/%s", test.getName()));
+                return new File(convention.getTestResultsDir(), "binary/" + test.getName());
             }
         });
         test.workingDir(project.getProjectDir());

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.internal.DynamicObject;
+import org.gradle.internal.metaobject.DynamicObject;
 
 import java.util.Map;
 

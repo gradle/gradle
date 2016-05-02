@@ -22,4 +22,5 @@ public interface ExecActionFactory {
     // Use ProcessOperations to create DSL facing actions
     ExecAction newExecAction();
 
+    JavaExecAction newJavaExecAction();
 }

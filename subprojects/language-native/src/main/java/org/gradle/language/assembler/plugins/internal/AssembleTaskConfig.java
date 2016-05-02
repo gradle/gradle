@@ -31,20 +31,23 @@ import org.gradle.platform.base.BinarySpec;
 import java.io.File;
 
 public class AssembleTaskConfig implements SourceTransformTaskConfig {
+    @Override
     public String getTaskPrefix() {
         return "assemble";
     }
 
+    @Override
     public Class<? extends DefaultTask> getTaskType() {
         return Assemble.class;
     }
 
+    @Override
     public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
         configureAssembleTask((Assemble) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
     }
 
     private void configureAssembleTask(Assemble task, final NativeBinarySpecInternal binary, final LanguageSourceSetInternal sourceSet) {
-        task.setDescription(String.format("Assembles the %s of %s", sourceSet, binary));
+        task.setDescription("Assembles the " + sourceSet + " of " + binary);
 
         task.setToolChain(binary.getToolChain());
         task.setTargetPlatform(binary.getTargetPlatform());

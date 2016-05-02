@@ -48,11 +48,11 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
         }
         if (scope instanceof Project) {
             Project project = (Project) scope;
-            return getCacheDir(getBuildCacheDir(project.getRootProject()), versionStrategy, String.format("projects/%s/%s", project.getPath().replace(':', '_'), key));
+            return getCacheDir(getBuildCacheDir(project.getRootProject()), versionStrategy, "projects/" + project.getPath().replace(':', '_') + "/" + key);
         }
         if (scope instanceof Task) {
             Task task = (Task) scope;
-            return getCacheDir(getBuildCacheDir(task.getProject().getRootProject()), versionStrategy, String.format("tasks/%s/%s", task.getPath().replace(':', '_'), key));
+            return getCacheDir(getBuildCacheDir(task.getProject().getRootProject()), versionStrategy, "tasks/" + task.getPath().replace(':', '_') + "/" + key);
         }
         throw new IllegalArgumentException(String.format("Don't know how to determine the cache directory for scope of type %s.", scope.getClass().getSimpleName()));
     }

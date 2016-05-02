@@ -24,7 +24,7 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
     public DefaultProjectComponentIdentifier(String projectPath) {
         assert projectPath != null : "project path cannot be null";
         this.projectPath = projectPath;
-        displayName = String.format("project %s", projectPath);
+        displayName = "project " + projectPath;
     }
 
     public String getDisplayName() {

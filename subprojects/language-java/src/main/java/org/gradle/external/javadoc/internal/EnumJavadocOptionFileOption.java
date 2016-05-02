@@ -46,6 +46,7 @@ public class EnumJavadocOptionFileOption<T> extends AbstractJavadocOptionFileOpt
         super(option, value);
     }
 
+    @Override
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
         if (value != null) {
             writerContext.writeOption(value.toString().toLowerCase());

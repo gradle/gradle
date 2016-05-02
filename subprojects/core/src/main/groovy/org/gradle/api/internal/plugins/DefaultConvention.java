@@ -16,14 +16,11 @@
 
 package org.gradle.api.internal.plugins;
 
-import groovy.lang.MissingMethodException;
-import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.BeanDynamicObject;
-import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.metaobject.*;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.*;
@@ -145,7 +142,13 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         add(name, value);
     }
     
-    private class ExtensionsDynamicObject implements DynamicObject {
+    private class ExtensionsDynamicObject extends AbstractDynamicObject {
+        @Override
+        public String getDisplayName() {
+            return "extensions";
+        }
+
+        @Override
         public boolean hasProperty(String name) {
             if (extensionsStorage.hasExtension(name)) {
                 return true;
@@ -158,6 +161,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             return false;
         }
 
+        @Override
         public Map<String, Object> getProperties() {
             Map<String, Object> properties = new HashMap<String, Object>();
             List<Object> reverseOrder = new ArrayList<Object>(plugins.values());
@@ -169,64 +173,62 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
             return properties;
         }
 
-        public Object getProperty(String name) throws MissingPropertyException {
-            if (extensionsStorage.hasExtension(name)) {
-                return extensionsStorage.getByName(name);
+        @Override
+        public void getProperty(String name, GetPropertyResult result) {
+            Object extension = extensionsStorage.findByName(name);
+            if (extension != null) {
+                result.result(extension);
+                return;
             }
             for (Object object : plugins.values()) {
-                DynamicObject dynamicObject = new BeanDynamicObject(object);
-                if (dynamicObject.hasProperty(name)) {
-                    return dynamicObject.getProperty(name);
+                DynamicObject dynamicObject = new BeanDynamicObject(object).withNotImplementsMissing();
+                dynamicObject.getProperty(name, result);
+                if (result.isFound()) {
+                    return;
                 }
             }
-            throw new MissingPropertyException(name, Convention.class);
         }
 
         public Object propertyMissing(String name) {
             return getProperty(name);
         }
 
-        public void setProperty(String name, Object value) {
+        @Override
+        public void setProperty(String name, Object value, SetPropertyResult result) {
             extensionsStorage.checkExtensionIsNotReassigned(name);
             for (Object object : plugins.values()) {
-                BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
-                if (dynamicObject.hasProperty(name)) {
-                    dynamicObject.setProperty(name, value);
+                BeanDynamicObject dynamicObject = new BeanDynamicObject(object).withNotImplementsMissing();
+                dynamicObject.setProperty(name, value, result);
+                if (result.isFound()) {
                     return;
                 }
             }
-            throw new MissingPropertyException(name, Convention.class);
         }
 
         public void propertyMissing(String name, Object value) {
             setProperty(name, value);
         }
 
-        public Object invokeMethod(String name, Object... args) {
+        @Override
+        public void invokeMethod(String name, InvokeMethodResult result, Object... args) {
             if (extensionsStorage.isConfigureExtensionMethod(name, args)) {
-                return extensionsStorage.configureExtension(name, args);
+                result.result(extensionsStorage.configureExtension(name, args));
+                return;
             }
             for (Object object : plugins.values()) {
-                BeanDynamicObject dynamicObject = new BeanDynamicObject(object);
-                if (dynamicObject.hasMethod(name, args)) {
-                    return dynamicObject.invokeMethod(name, args);
+                BeanDynamicObject dynamicObject = new BeanDynamicObject(object).withNotImplementsMissing();
+                dynamicObject.invokeMethod(name, result, args);
+                if (result.isFound()) {
+                    return;
                 }
             }
-            throw new MissingMethodException(name, Convention.class, args);
-        }
-
-        public boolean isMayImplementMissingMethods() {
-            return false;
-        }
-
-        public boolean isMayImplementMissingProperties() {
-            return false;
         }
 
         public Object methodMissing(String name, Object args) {
             return invokeMethod(name, (Object[])args);
         }
         
+        @Override
         public boolean hasMethod(String name, Object... args) {
             if (extensionsStorage.isConfigureExtensionMethod(name, args)) {
                 return true;

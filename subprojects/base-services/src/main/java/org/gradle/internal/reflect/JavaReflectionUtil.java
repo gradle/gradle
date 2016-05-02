@@ -136,6 +136,19 @@ public class JavaReflectionUtil {
      * @throws NoSuchPropertyException when the given property does not exist.
      */
     public static PropertyMutator writeableProperty(Class<?> target, String property) throws NoSuchPropertyException {
+        PropertyMutator mutator = writeablePropertyIfExists(target, property);
+        if (mutator != null) {
+            return mutator;
+        }
+        throw new NoSuchPropertyException(String.format("Could not find setter method for property '%s' on class %s.", property, target.getSimpleName()));
+    }
+
+    /**
+     * Locates the property with the given name as a writable property. Searches only public properties.
+     *
+     * Returns null if no such property exists.
+     */
+    public static PropertyMutator writeablePropertyIfExists(Class<?> target, String property) throws NoSuchPropertyException {
         String setterName = toMethodName("set", property);
         for (final Method method : target.getMethods()) {
             if (!method.getName().equals(setterName)) {
@@ -149,7 +162,7 @@ public class JavaReflectionUtil {
             }
             return new MethodBackedPropertyMutator(property, method);
         }
-        throw new NoSuchPropertyException(String.format("Could not find setter method for property '%s' on class %s.", property, target.getSimpleName()));
+        return null;
     }
 
     /**
@@ -367,7 +380,7 @@ public class JavaReflectionUtil {
 
         @Override
         public String toString() {
-            return String.format("property %s.%s", method.getDeclaringClass().getSimpleName(), property);
+            return "property " + method.getDeclaringClass().getSimpleName() + "." + property;
         }
 
         public String getName() {
@@ -431,7 +444,7 @@ public class JavaReflectionUtil {
 
         @Override
         public String toString() {
-            return String.format("property %s.%s", method.getDeclaringClass().getSimpleName(), property);
+            return "property " + method.getDeclaringClass().getSimpleName() + "." + property;
         }
 
         public String getName() {
@@ -464,7 +477,7 @@ public class JavaReflectionUtil {
 
         @Override
         public String toString() {
-            return String.format("field %s.%s", field.getDeclaringClass().getSimpleName(), name);
+            return "field " + field.getDeclaringClass().getSimpleName() + "." + name;
         }
 
         public String getName() {

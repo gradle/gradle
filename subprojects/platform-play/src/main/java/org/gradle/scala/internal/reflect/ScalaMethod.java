@@ -27,7 +27,7 @@ public class ScalaMethod {
     private final Object instance;
 
     public ScalaMethod(ScalaObject scalaObject, String methodName, Class<?>... typeParameters) {
-        description = String.format("%s.%s()", scalaObject.getClassName(), methodName);
+        description = scalaObject.getClassName() + "." + methodName + "()";
         instance = scalaObject.getInstance();
         method = getMethod(scalaObject.getType(), methodName, typeParameters);
     }

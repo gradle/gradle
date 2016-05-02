@@ -40,6 +40,7 @@ public class RoutesCompilerAdapterV24X extends DefaultVersionedRoutesCompilerAda
         super(playVersion, "2.10");
     }
 
+    @Override
     public ScalaMethod getCompileMethod(ClassLoader cl) throws ClassNotFoundException {
         return ScalaReflectionUtil.scalaMethod(
             cl,

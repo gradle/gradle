@@ -39,13 +39,13 @@ class Maven2Gradle {
     Logger logger = Logging.getLogger(getClass())
     private Set<MavenProject> mavenProjects
 
-    Maven2Gradle(Set<MavenProject> mavenProjects) {
+    Maven2Gradle(Set<MavenProject> mavenProjects, File workingDir) {
         assert !mavenProjects.empty: "No Maven projects provided."
         this.mavenProjects = mavenProjects
+        this.workingDir = workingDir.canonicalFile;
     }
 
     def convert() {
-        workingDir = new File('.').canonicalFile
         //For now we're building the effective POM XML from the model
         //and then we parse the XML using slurper.
         //This way we don't have to rewrite the Maven2Gradle just yet.
@@ -118,7 +118,7 @@ subprojects {
                 moduleBuild += testNg(moduleDependencies)
 
                 if (submoduleBuildFile.exists()) {
-                    submoduleBuildFile.renameTo(new File("build.gradle.bak"))
+                    submoduleBuildFile.renameTo(new File(projectDir(module), "build.gradle.bak"))
                 }
                 def packageTests = packageTests(module);
                 if (packageTests) {
@@ -161,9 +161,9 @@ ${globalExclusions(this.effectivePom)}
             }
             generateSettings(workingDir.getName(), this.effectivePom.artifactId, null);
         }
-        def buildFile = new File("build.gradle")
+        def buildFile = new File(workingDir, "build.gradle")
         if (buildFile.exists()) {
-            buildFile.renameTo(new File("build.gradle.bak"))
+            buildFile.renameTo(new File(workingDir, "build.gradle.bak"))
         }
         logger.debug("writing build.gradle file at ${buildFile.absolutePath}");
         buildFile.text = build
@@ -461,9 +461,9 @@ artifacts.archives packageTests
                 }
             }
         }
-        File settingsFile = new File("settings.gradle")
+        File settingsFile = new File(workingDir, "settings.gradle")
         if (settingsFile.exists()) {
-            settingsFile.renameTo(new File("settings.gradle.bak"))
+            settingsFile.renameTo(new File(workingDir, "settings.gradle.bak"))
         }
         StringBuffer settingsText = new StringBuffer(projectName)
         if (moduleNames.size() > 0) {

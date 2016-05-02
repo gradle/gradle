@@ -36,6 +36,7 @@ import org.gradle.api.internal.initialization.RootClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.internal.plugins.PluginManagerInternal
+import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
@@ -47,11 +48,12 @@ import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factory
+import org.gradle.internal.metaobject.BeanDynamicObject
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resource.StringResource
+import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
-import org.gradle.logging.LoggingManagerInternal
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
@@ -112,6 +114,7 @@ class DefaultProjectTest {
     PluginManagerInternal pluginManager = context.mock(PluginManagerInternal.class)
     PluginContainer pluginContainer = context.mock(PluginContainer.class)
     ManagedProxyFactory managedProxyFactory = context.mock(ManagedProxyFactory.class)
+    AntLoggingAdapter antLoggingAdapter = context.mock(AntLoggingAdapter.class)
 
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope(getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache())
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
@@ -120,13 +123,13 @@ class DefaultProjectTest {
     void setUp() {
         rootDir = new File("/path/root").absoluteFile
 
-        testAntBuilder = new DefaultAntBuilder()
+        testAntBuilder = new DefaultAntBuilder(null, antLoggingAdapter)
 
         context.checking {
             allowing(antBuilderFactoryMock).create(); will(returnValue(testAntBuilder))
             allowing(script).getDisplayName(); will(returnValue('[build file]'))
             allowing(script).getClassName(); will(returnValue('scriptClass'))
-            allowing(script).getResource(); will(returnValue(new StringResource("", "")))
+            allowing(script).getResource(); will(returnValue(new StringTextResource("", "")))
             allowing(scriptHandlerMock).getSourceFile(); will(returnValue(new File(rootDir, TEST_BUILD_FILE_NAME)))
         }
 
@@ -604,6 +607,13 @@ def scriptMethod(Closure closure) {
         assert project.hasProperty('nullProp')
     }
 
+    @Test
+    void testFindProperty() {
+        project.ext.someProp = "somePropValue"
+        assert project.findProperty('someProp') == "somePropValue"
+        assertNull(project.findProperty("someNonExistingProp"))
+    }
+
     @Test(expected = MissingPropertyException)
     public void testPropertyMissingWithUnknownProperty() {
         project.unknownProperty
@@ -783,9 +793,14 @@ def scriptMethod(Closure closure) {
         assertEquals(expectedPoint, actualPoint)
     }
 
-    @Test(expected = ReadOnlyPropertyException)
+    @Test()
     void setName() {
-        project.name = "someNewName"
+        try {
+            project.name = "someNewName"
+            fail()
+        } catch (GroovyRuntimeException e) {
+            assertThat(e.message, equalTo("Cannot set the value of read-only property 'name' for root project 'root' of type ${Project.name}." as String))
+        }
     }
 
     @Test

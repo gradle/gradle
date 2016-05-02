@@ -50,17 +50,20 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
         }
 
         ModelType<? extends RuleSource> ruleSourceType = ruleType.asSubtype(RULE_SOURCE_MODEL_TYPE);
-        return new ExtractedRuleSourceDefinitionRule(ruleDefinition, ruleSourceType, context.getRuleExtractor());
+        RuleApplicationScope ruleApplicationScope = RuleApplicationScope.fromRuleDefinition(context, ruleDefinition, 1);
+        return new ExtractedRuleSourceDefinitionRule(ruleDefinition, ruleSourceType, context.getRuleExtractor(), ruleApplicationScope);
     }
 
     private static class ExtractedRuleSourceDefinitionRule  extends AbstractExtractedModelRule {
         private final ModelType<? extends RuleSource> ruleSourceType;
         private final ModelRuleExtractor ruleExtractor;
+        private final RuleApplicationScope ruleApplicationScope;
 
-        public ExtractedRuleSourceDefinitionRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor) {
+        public ExtractedRuleSourceDefinitionRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<? extends RuleSource> ruleSourceType, ModelRuleExtractor ruleExtractor, RuleApplicationScope ruleApplicationScope) {
             super(ruleDefinition);
             this.ruleSourceType = ruleSourceType;
             this.ruleExtractor = ruleExtractor;
+            this.ruleApplicationScope = ruleApplicationScope;
         }
 
         @Override
@@ -68,8 +71,8 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
             MethodRuleDefinition<?, ?> ruleDefinition = getRuleDefinition();
             ModelReference<?> targetReference = ruleDefinition.getReferences().get(1);
             List<ModelReference<?>> inputs = ruleDefinition.getReferences().subList(2, ruleDefinition.getReferences().size());
-            context.getRegistry().configure(ModelActionRole.Defaults,
-                    context.contextualize(new RuleSourceApplicationAction(targetReference, ruleDefinition.getDescriptor(), inputs, ruleSourceType, ruleExtractor)));
+            RuleSourceApplicationAction ruleAction = new RuleSourceApplicationAction(targetReference, ruleDefinition.getDescriptor(), inputs, ruleSourceType, ruleExtractor);
+            RuleExtractorUtils.configureRuleAction(context, ruleApplicationScope, ModelActionRole.Defaults, ruleAction);
         }
 
         @Override
@@ -109,8 +112,8 @@ public class RuleDefinitionRuleExtractor extends AbstractAnnotationDrivenModelRu
             Object[] parameters = new Object[2 + inputs.size()];
             parameters[0] = ruleSource.getFactory().create();
             parameters[1] = subjectNode.asImmutable(targetReference.getType(), descriptor).getInstance();
-            for (int i = 2; i < parameters.length; i++) {
-                parameters[i] = inputs.get(i).getInstance();
+            for (int i = 0; i < inputs.size(); i++) {
+                parameters[i + 2] = inputs.get(i).getInstance();
             }
             invoker.invoke(parameters);
             subjectNode.applyToSelf(ruleSource);

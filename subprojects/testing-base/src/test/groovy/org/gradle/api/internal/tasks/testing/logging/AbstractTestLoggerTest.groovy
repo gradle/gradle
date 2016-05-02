@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.testing.logging
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.gradle.logging.StyledTextOutputFactory
-import org.gradle.logging.TestStyledTextOutputFactory
+import org.gradle.internal.logging.text.StyledTextOutputFactory
+import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.util.TextUtil
 
 import spock.lang.Specification

@@ -17,31 +17,22 @@
 package org.gradle.api.plugins.antlr.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.internal.Factory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.WorkerProcess;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.SingleRequestWorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
 
 public class AntlrWorkerManager {
 
-    public AntlrResult runWorker(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
+    public AntlrResult runWorker(File workingDir, WorkerProcessFactory workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
 
-        WorkerProcess process = createWorkerProcess(workingDir, workerFactory, antlrClasspath, spec);
-        process.start();
-
-        AntlrWorkerClient clientCallBack = new AntlrWorkerClient();
-        process.getConnection().addIncoming(AntlrWorkerClientProtocol.class, clientCallBack);
-        process.getConnection().connect();
-
-        process.waitForStop();
-
-        return clientCallBack.getResult();
+        AntlrWorker antlrWorker = createWorkerProcess(workingDir, workerFactory, antlrClasspath, spec);
+        return antlrWorker.runAntlr(spec);
     }
 
-    private WorkerProcess createWorkerProcess(File workingDir, Factory<WorkerProcessBuilder> workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
-        WorkerProcessBuilder builder = workerFactory.create();
+    private AntlrWorker createWorkerProcess(File workingDir, WorkerProcessFactory workerFactory, FileCollection antlrClasspath, AntlrSpec spec) {
+        SingleRequestWorkerProcessBuilder<AntlrWorker> builder = workerFactory.singleRequestWorker(AntlrWorker.class, AntlrExecuter.class);
         builder.setBaseName("Gradle ANTLR Worker");
 
         if (antlrClasspath != null) {
@@ -53,6 +44,6 @@ public class AntlrWorkerManager {
         javaCommand.setMaxHeapSize(spec.getMaxHeapSize());
         javaCommand.systemProperty("ANTLR_DO_NOT_EXIT", "true");
         javaCommand.redirectErrorStream();
-        return builder.worker(new AntlrWorkerServer(spec)).build();
+        return builder.build();
     }
 }

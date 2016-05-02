@@ -44,6 +44,8 @@ import java.util.List;
 public class RuleVisitor extends ExpressionReplacingVisitorSupport {
 
     public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal non empty string";
+    public static final String SOURCE_URI_TOKEN = "@@sourceuri@@";
+    public static final String SOURCE_DESC_TOKEN = "@@sourcedesc@@";
 
     private static final String AST_NODE_METADATA_INPUTS_KEY = RuleVisitor.class.getName() + ".inputs";
     private static final String AST_NODE_METADATA_LOCATION_KEY = RuleVisitor.class.getName() + ".location";
@@ -130,8 +132,8 @@ public class RuleVisitor extends ExpressionReplacingVisitorSupport {
             statements = new ArrayList<Statement>();
             statements.add(new ReturnStatement(new ConstructorCallExpression(SOURCE_LOCATION,
                     new ArgumentListExpression(Arrays.<Expression>asList(
-                            new ConstantExpression(sourceLocation.getUri().toString()),
-                            new ConstantExpression(sourceLocation.toString()),
+                            new ConstantExpression(SOURCE_URI_TOKEN),
+                            new ConstantExpression(SOURCE_DESC_TOKEN),
                             new ConstantExpression(sourceLocation.getExpression()),
                             new ConstantExpression(sourceLocation.getLineNumber()),
                             new ConstantExpression(sourceLocation.getColumnNumber())

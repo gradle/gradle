@@ -213,4 +213,12 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     public CopySpecResolver buildResolverRelativeToParent(CopySpecResolver parent) {
         return getDelegateCopySpec().buildResolverRelativeToParent(parent);
     }
+
+    public String getFilteringCharset() {
+        return getDelegateCopySpec().getFilteringCharset();
+    }
+
+    public void setFilteringCharset(String charset) {
+        getDelegateCopySpec().setFilteringCharset(charset);
+    }
 }

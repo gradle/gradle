@@ -15,11 +15,13 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Incubating
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.resources.TextResource
 
+@CompileStatic
 class CodeNarcExtension extends CodeQualityExtension {
     private final Project prj
 
@@ -71,7 +73,7 @@ class CodeNarcExtension extends CodeQualityExtension {
 
     void setReportFormat(String reportFormat) {
         if (reportFormat in ["xml", "html", "console", "text"]) {
-            this.reportFormat = reportFormat    
+            this.reportFormat = reportFormat
         } else {
             throw new InvalidUserDataException("'$reportFormat' is not a valid codenarc report format")
         }

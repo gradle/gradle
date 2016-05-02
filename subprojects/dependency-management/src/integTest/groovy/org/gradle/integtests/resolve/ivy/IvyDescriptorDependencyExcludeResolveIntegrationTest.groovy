@@ -167,10 +167,10 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
     def "transitive dependency exclude having multiple artifacts with #name"() {
         given:
         ivyRepo.module('d')
-                .artifact([:])
-                .artifact([type: 'sources', classifier: 'sources', ext: 'jar'])
-                .artifact([type: 'javadoc', classifier: 'javadoc', ext: 'jar'])
-                .publish()
+            .artifact([:])
+            .artifact([type: 'sources', classifier: 'sources', ext: 'jar'])
+            .artifact([type: 'javadoc', classifier: 'javadoc', ext: 'jar'])
+            .publish()
         ivyRepo.module('b').dependsOn('d').publish()
         ivyRepo.module('e').publish()
         ivyRepo.module('c').dependsOn('e').publish()
@@ -195,7 +195,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
     }
 
     /**
-     * Transitive dependency exclude for a module reachable via alternative path using a combination of exclude rules.
+     * When a module is depended on via multiple paths and excluded on one of those paths, it is not excluded.
      *
      * Dependency graph:
      * a -> b, c
@@ -203,7 +203,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * c -> d
      */
     @Unroll
-    def "module excluding #name is not excluded if reachable via path that does not exclude it"() {
+    def "when a module is depended on via multiple paths and excluded on only one of those paths, it is not excluded (#name)"() {
         given:
         ivyRepo.module('d').publish()
         ivyRepo.module('b').dependsOn('d').publish()
@@ -216,26 +216,26 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         succeedsDependencyResolution()
 
         then:
-        assertResolvedFiles(resolvedJars)
+        assertResolvedFiles(['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar'])
 
         where:
-        name                    | excludeAttributes | resolvedJars
-        'non-matching module'   | [module: 'other'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'non-matching artifact' | [name: 'other']   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'matching all modules'  | [module: '*']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'matching module'       | [module: 'd']     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'matching artifact'     | [name: 'd']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        name                    | excludeAttributes
+        'non-matching module'   | [module: 'other']
+        'non-matching artifact' | [name: 'other']
+        'matching all modules'  | [module: '*']
+        'matching module'       | [module: 'd']
+        'matching artifact'     | [name: 'd']
     }
 
     /**
-     * Transitive dependency exclude for a module reachable via alternative path using a combination of exclude rules.
+     * When a module artifact is depended on via multiple paths and excluded on one of those paths, it is not excluded.
      *
      * Dependency graph:
      * a -> b, c
      * b -> d
      * c -> d
      */
-    def "artifact is not excluded if reachable via path that does not exclude it"() {
+    def "when a module artifact is depended on via multiple paths and excluded on one of those paths, it is not excluded"() {
         given:
         ivyRepo.module('d').artifact([type: 'war']).artifact([type: 'ear']) publish()
         def moduleB = ivyRepo.module('b').dependsOn('d')
@@ -244,8 +244,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         def moduleC = ivyRepo.module('c').dependsOn('d')
         addExcludeRuleToModuleDependency(moduleC, 'd', [type: 'ear'])
         moduleC.publish()
-        def moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
-        moduleA.publish()
+        ivyRepo.module('a').dependsOn('b').dependsOn('c').publish()
 
         when:
         succeedsDependencyResolution()
@@ -255,7 +254,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
     }
 
     /**
-     * Transitive dependency exclude for module reachable by multiple paths for all paths by using a combination of exclude rules.
+     * When a module is depended on via multiple paths and excluded on all of those paths, it is excluded.
      *
      * Dependency graph:
      * a -> b, c
@@ -263,7 +262,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * c -> d
      */
     @Unroll
-    def "module reachable by multiple paths excluded for all paths with #name"() {
+    def "when a module is depended on via multiple paths and excluded on all of those paths, it is excluded (#name)"() {
         given:
         ivyRepo.module('d').publish()
         ivyRepo.module('b').dependsOn('d').publish()
@@ -288,7 +287,7 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
     }
 
     /**
-     * Transitive dependency exclude for module reachable by multiple paths for all paths by intersection of exclude rules.
+     * When a module is depended on via multiple paths, it is excluded only if excluded on each of the paths.
      *
      * Dependency graph:
      * a -> b, c
@@ -296,20 +295,15 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * c -> d
      */
     @Unroll
-    def "module reachable by multiple paths excluded for all paths with intersection of #name"() {
+    def "when a module is depended on via multiple paths, it is excluded only if excluded on each of the paths (#name)"() {
         given:
         ivyRepo.module('d').publish()
         ivyRepo.module('b').dependsOn('d').publish()
         ivyRepo.module('c').dependsOn('d').publish()
         IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
 
-        excludeRulesPath1.each { excludeAttributes ->
-            addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
-        }
-
-        excludeRulesPath2.each { excludeAttributes ->
-            addExcludeRuleToModuleDependency(moduleA, 'c', excludeAttributes)
-        }
+        addExcludeRuleToModuleDependency(moduleA, 'b', excludePath1)
+        addExcludeRuleToModuleDependency(moduleA, 'c', excludePath2)
 
         moduleA.publish()
 
@@ -320,35 +314,33 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         assertResolvedFiles(resolvedJars)
 
         where:
-        name                    | excludeRulesPath1                                                              | excludeRulesPath2                       | resolvedJars
-        'non-matching module'   | [[org: 'org.company', module: 'd'], [org: 'org.gradle.test', module: 'e']]     | [[org: 'org.company', module: 'd']]     | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'non-matching artifact' | [[org: 'org.company', name: 'd'], [org: 'org.gradle.test', name: 'e']]         | [[org: 'org.company', name: 'd']]       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-        'matching module'       | [[org: 'org.gradle.test', module: 'd'], [org: 'org.gradle.test', module: 'e']] | [[org: 'org.gradle.test', module: 'd']] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
-        'matching artifact'     | [[org: 'org.gradle.test', name: 'd'], [org: 'org.gradle.test', name: 'e']]     | [[org: 'org.gradle.test', name: 'd']]   | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        name                          | excludePath1  | excludePath2             | resolvedJars
+        'non-matching group'          | [module: 'd'] | [org: 'org.other']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'non-matching module'         | [module: 'e'] | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'non-matching artifact'       | [name: 'e']   | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
+        'matching group and module'   | [module: 'd'] | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'matching group and artifact' | [name: 'd']   | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
     }
 
     /**
-     * Exclude of transitive dependency for union of multiple rules.
+     * When a module is depended on via a single chained path, it is excluded if excluded on any of the links in that path.
      *
      * Dependency graph:
-     * a -> b, c
-     * b -> d -> f
-     * c -> e
+     * a -> b -> c -> d
      */
     @Unroll
-    def "transitive dependency exclude for union of multiple rules with #name"() {
+    def "when a module is depended on via a single chained path, it is excluded if excluded on any of the links in that path (#name)"() {
         given:
-        ivyRepo.module('f').publish()
-        ivyRepo.module('d').dependsOn('f').publish()
-        ivyRepo.module('b').dependsOn('d').publish()
-        ivyRepo.module('e').publish()
-        ivyRepo.module('c').dependsOn('e').publish()
-        IvyModule moduleA = ivyRepo.module('a').dependsOn('b').dependsOn('c')
+        ivyRepo.module('d').publish()
+        IvyModule moduleC = ivyRepo.module('c').dependsOn('d')
+        IvyModule moduleB = ivyRepo.module('b').dependsOn('c')
+        IvyModule moduleA = ivyRepo.module('a').dependsOn('b')
 
-        excludeRules.each { excludeAttributes ->
-            addExcludeRuleToModuleDependency(moduleA, 'b', excludeAttributes)
-        }
+        addExcludeRuleToModuleDependency(moduleA, 'b', excludePath1)
+        addExcludeRuleToModuleDependency(moduleB, 'c', excludePath2)
 
+        moduleB.publish()
+        moduleC.publish()
         moduleA.publish()
 
         when:
@@ -358,11 +350,11 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         assertResolvedFiles(resolvedJars)
 
         where:
-        name               | excludeRules                                      | resolvedJars
-        'no match'         | [[name: 'other'], [name: 'some'], [name: 'more']] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar', 'f-1.0.jar']
-        'all matches'      | [[name: 'b'], [name: 'd'], [name: 'f']]           | ['a-1.0.jar', 'c-1.0.jar', 'e-1.0.jar']
-        'partial match'    | [[name: 'other'], [name: 'd'], [name: 'more']]    | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-1.0.jar', 'f-1.0.jar']
-        'duplicated match' | [[name: 'f'], [name: 'some'], [name: 'f']]        | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar']
+        name                  | excludePath1  | excludePath2             | resolvedJars
+        'excluded by module'  | [module: 'd'] | [module: 'e']            | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'exclude by artifact' | [name: 'd']   | [name: 'e']              | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'excluded by group'   | [module: 'e'] | [org: 'org.gradle.test'] | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar']
+        'not excluded'        | [name: 'e']   | [org: 'org.other']       | ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar']
     }
 
     /**
@@ -378,15 +370,15 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
     def "transitive dependency exclude without provided group or module attribute but matching #name does not exclude its transitive module"() {
         given:
         ivyRepo.module('f')
-                .artifact([:])
-                .artifact([type: 'war'])
-                .publish()
+            .artifact([:])
+            .artifact([type: 'war'])
+            .publish()
         ivyRepo.module('d')
-                .artifact([:])
-                .artifact([type: 'war'])
-                .artifact([type: 'ear'])
-                .dependsOn('f')
-                .publish()
+            .artifact([:])
+            .artifact([type: 'war'])
+            .artifact([type: 'ear'])
+            .dependsOn('f')
+            .publish()
         ivyRepo.module('b').dependsOn('d').publish()
         ivyRepo.module('e').publish()
         ivyRepo.module('c').dependsOn('e').publish()

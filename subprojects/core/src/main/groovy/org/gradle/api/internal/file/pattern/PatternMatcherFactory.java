@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 
@@ -24,6 +25,7 @@ import java.util.List;
 public class PatternMatcherFactory {
 
     public static final EndOfPathMatcher END_OF_PATH_MATCHER = new EndOfPathMatcher();
+    private static final String PATH_SEPARATORS = "\\/";
 
     public static Spec<RelativePath> getPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
         PathMatcher pathMatcher = compile(caseSensitive, pattern);
@@ -39,7 +41,7 @@ public class PatternMatcherFactory {
         if (pattern.endsWith("/") || pattern.endsWith("\\")) {
             pattern = pattern + "**";
         }
-        String[] parts = pattern.split("\\\\|/");
+        String[] parts = StringUtils.split(pattern, PATH_SEPARATORS);
         return compile(parts, 0, caseSensitive);
     }
 

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.typeconversion;
 
+import com.google.common.base.Joiner;
+import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.util.CollectionUtils;
@@ -45,7 +47,12 @@ public class EnumFromCharSequenceNotationParser<T extends Enum> implements Notat
         if (match == null) {
             throw new TypeConversionException(
                     String.format("Cannot convert string value '%s' to an enum value of type '%s' (valid case insensitive values: %s)",
-                            enumString, type.getName(), CollectionUtils.toStringList(Arrays.asList(type.getEnumConstants()))
+                            enumString, type.getName(), Joiner.on(", ").join(CollectionUtils.collect(Arrays.asList(type.getEnumConstants()), new Transformer<String, T>() {
+                                @Override
+                                public String transform(T t) {
+                                    return t.name();
+                                }
+                            }))
                     )
             );
         }

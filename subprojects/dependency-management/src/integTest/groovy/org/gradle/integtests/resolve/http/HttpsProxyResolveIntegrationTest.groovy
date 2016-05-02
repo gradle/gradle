@@ -16,36 +16,39 @@
 
 package org.gradle.integtests.resolve.http
 
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.keystore.TestKeyStore
-import org.gradle.test.fixtures.server.http.TestProxyServer
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.junit.Rule
 
 @LeaksFileHandles
 class HttpsProxyResolveIntegrationTest extends AbstractProxyResolveIntegrationTest {
-    private TestKeyStore testKeyStore
-
     @Override
-    TestProxyServer getProxyServer() {
-        if (testProxyServer == null) {
-            testProxyServer = new TestProxyServer(server, getTestKeyStore().trustStore, getTestKeyStore().trustStorePassword)
-        }
-        return testProxyServer
+    MavenHttpRepository getRepo() {
+        return mavenHttpRepo
     }
 
-    @Override
-    protected void addAdditionalArguments() {
-        getTestKeyStore().configureServerCert(executer)
-    }
+    @Rule TestResources resources = new TestResources(temporaryFolder)
+    TestKeyStore keyStore
 
     @Override
-    protected String getProxyScheme() {
+    String getProxyScheme() {
         return 'https'
     }
 
-    TestKeyStore getTestKeyStore() {
-        if (testKeyStore == null) {
-            testKeyStore = TestKeyStore.init(testDirectory)
-        }
-        return testKeyStore
+    @Override
+    String getRepoServerUrl() {
+        "https://localhost:${server.sslPort}/repo"
+    }
+
+    @Override
+    boolean isTunnel() { true }
+
+    @Override
+    void setupServer() {
+        keyStore = TestKeyStore.init(resources.dir)
+        keyStore.enableSslWithServerCert(server)
+        keyStore.configureServerCert(executer)
     }
 }

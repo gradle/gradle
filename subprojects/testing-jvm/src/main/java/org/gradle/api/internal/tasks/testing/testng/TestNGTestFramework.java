@@ -35,8 +35,8 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.internal.actor.ActorFactory;
+import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.File;
 import java.io.Serializable;
@@ -68,6 +68,7 @@ public class TestNGTestFramework implements TestFramework {
         });
     }
 
+    @Override
     public WorkerTestClassProcessorFactory getProcessorFactory() {
         verifyConfigFailurePolicy();
         verifyPreserveOrder();
@@ -112,6 +113,7 @@ public class TestNGTestFramework implements TestFramework {
         }
     }
 
+    @Override
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
         return new Action<WorkerProcessBuilder>() {
             public void execute(WorkerProcessBuilder workerProcessBuilder) {
@@ -120,6 +122,7 @@ public class TestNGTestFramework implements TestFramework {
         };
     }
 
+    @Override
     public TestNGOptions getOptions() {
         return options;
     }
@@ -128,6 +131,7 @@ public class TestNGTestFramework implements TestFramework {
         this.options = options;
     }
 
+    @Override
     public TestNGDetector getDetector() {
         return detector;
     }
@@ -143,6 +147,7 @@ public class TestNGTestFramework implements TestFramework {
             this.suiteFiles = suiteFiles;
         }
 
+        @Override
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
             return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, serviceRegistry.get(IdGenerator.class), serviceRegistry.get(TimeProvider.class), serviceRegistry.get(ActorFactory.class));
         }

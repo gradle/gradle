@@ -29,6 +29,11 @@ public class BaseTestSuiteSpec extends BaseComponentSpec implements TestSuiteSpe
     }
 
     @Override
+    public void setTestedComponent(ComponentSpec testedComponent) {
+        this.testedComponent = testedComponent;
+    }
+
+    @Override
     public void testing(ComponentSpec testedComponent) {
         this.testedComponent = testedComponent;
     }

@@ -49,7 +49,7 @@ model {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 Native library 'someLib'
 ------------------------
 
@@ -73,8 +73,8 @@ Binaries
         tool chain: Tool chain 'clang' (Clang)
         static library file: build/libs/someLib/static/libsomeLib.a
         source sets:
-            C++ source 'someLib:moreCpp'
-                No source directories
+            C++ source 'someLib:staticLibrary:moreCpp'
+                srcDir: src/staticLibrary/moreCpp
 """
     }
 
@@ -107,7 +107,7 @@ model {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 Native library 'anotherLib'
 ---------------------------
 
@@ -195,7 +195,7 @@ model {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 Native library 'someLib'
 ------------------------
 

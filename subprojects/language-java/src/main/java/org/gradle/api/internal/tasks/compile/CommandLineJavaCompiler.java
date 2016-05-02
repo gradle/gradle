@@ -35,6 +35,7 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
 
     private final CompileSpecToArguments<JavaCompileSpec> argumentsGenerator = new CommandLineJavaCompilerArgumentsGenerator();
 
+    @Override
     public WorkResult execute(JavaCompileSpec spec) {
         String executable = spec.getCompileOptions().getForkOptions().getExecutable();
         LOGGER.info("Compiling with Java command line compiler '{}'.", executable);

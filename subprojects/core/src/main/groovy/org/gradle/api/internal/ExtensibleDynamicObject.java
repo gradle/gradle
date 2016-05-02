@@ -15,14 +15,18 @@
  */
 package org.gradle.api.internal;
 
-import com.google.common.collect.Lists;
+import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
+import org.gradle.internal.metaobject.*;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -46,20 +50,8 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
     private DynamicObject afterConvention;
     private DynamicObject extraPropertiesDynamicObject;
 
-    /**
-     * This variant will internally create a convention that is not fully featured, so should be avoided.
-     *
-     * Use one of the other variants wherever possible.
-     *
-     * @param delegate The delegate
-     * @see org.gradle.api.internal.plugins.DefaultConvention#DefaultConvention()
-     */
-    public ExtensibleDynamicObject(Object delegate) {
-        this(delegate, new BeanDynamicObject(delegate), new DefaultConvention());
-    }
-
-    public ExtensibleDynamicObject(Object delegate, Instantiator instantiator) {
-        this(delegate, new BeanDynamicObject(delegate), new DefaultConvention(instantiator));
+    public ExtensibleDynamicObject(Object delegate, Class<?> publicType, Instantiator instantiator) {
+        this(delegate, createDynamicObject(delegate, publicType), new DefaultConvention(instantiator));
     }
 
     public ExtensibleDynamicObject(Object delegate, AbstractDynamicObject dynamicDelegate, Instantiator instantiator) {
@@ -74,35 +66,55 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         updateDelegates();
     }
 
+    private static BeanDynamicObject createDynamicObject(Object delegate, Class<?> publicType) {
+        return new BeanDynamicObject(delegate, publicType);
+    }
+
     private void updateDelegates() {
-        List<DynamicObject> delegates = Lists.newLinkedList();
-        delegates.add(dynamicDelegate);
-        delegates.add(extraPropertiesDynamicObject);
+        DynamicObject[] delegates = new DynamicObject[6];
+        delegates[0] = dynamicDelegate;
+        delegates[1] = extraPropertiesDynamicObject;
+        int idx = 2;
         if (beforeConvention != null) {
-            delegates.add(beforeConvention);
+            delegates[idx++] = beforeConvention;
         }
         if (convention != null) {
-            delegates.add(convention.getExtensionsAsDynamicObject());
+            delegates[idx++] = convention.getExtensionsAsDynamicObject();
         }
         if (afterConvention != null) {
-            delegates.add(afterConvention);
+            delegates[idx++] = afterConvention;
         }
         boolean addedParent = false;
         if (parent != null) {
             addedParent = true;
-            delegates.add(parent);
+            delegates[idx++] = parent;
         }
-        setObjects(delegates.toArray(new DynamicObject[0]));
+        DynamicObject[] objects = new DynamicObject[idx];
+        System.arraycopy(delegates, 0, objects, 0, idx);
+        setObjects(objects);
 
         if (addedParent) {
-            delegates.remove(delegates.size() - 1);
+            idx--;
         }
-        delegates.add(extraPropertiesDynamicObject);
-        setObjectsForUpdate(delegates.toArray(new DynamicObject[0]));
+        objects = new DynamicObject[idx];
+        System.arraycopy(delegates, 0, objects, 0, idx);
+        setObjectsForUpdate(objects);
     }
 
-    protected String getDisplayName() {
+    @Override
+    public String getDisplayName() {
         return dynamicDelegate.getDisplayName();
+    }
+
+    @Nullable
+    @Override
+    public Class<?> getPublicType() {
+        return dynamicDelegate.getPublicType();
+    }
+
+    @Override
+    public boolean hasUsefulDisplayName() {
+        return dynamicDelegate.hasUsefulDisplayName();
     }
 
     public ExtraPropertiesExtension getDynamicProperties() {
@@ -148,60 +160,90 @@ public class ExtensibleDynamicObject extends CompositeDynamicObject implements H
         return new InheritedDynamicObject();
     }
 
-    private ExtensibleDynamicObject snapshotInheritable() {
-        AbstractDynamicObject emptyBean = new AbstractDynamicObject() {
+    private DynamicObject snapshotInheritable() {
+        final List<DynamicObject> delegates = new ArrayList<DynamicObject>(4);
+        if (parent != null) {
+            delegates.add(parent);
+        }
+        delegates.add(convention.getExtensionsAsDynamicObject());
+        delegates.add(extraPropertiesDynamicObject);
+        if (beforeConvention != null) {
+            delegates.add(beforeConvention);
+        }
+        return new CompositeDynamicObject() {
+            {
+                setObjects(delegates.toArray(new DynamicObject[0]));
+            }
+
             @Override
-            protected String getDisplayName() {
+            public String getDisplayName() {
                 return dynamicDelegate.getDisplayName();
             }
         };
-
-        ExtensibleDynamicObject extensibleDynamicObject = new ExtensibleDynamicObject(emptyBean);
-
-        extensibleDynamicObject.parent = parent;
-        extensibleDynamicObject.convention = convention;
-        extensibleDynamicObject.extraPropertiesDynamicObject = extraPropertiesDynamicObject;
-        if (beforeConvention != null) {
-            extensibleDynamicObject.beforeConvention = beforeConvention;
-        }
-        extensibleDynamicObject.updateDelegates();
-        return extensibleDynamicObject;
     }
 
     private class InheritedDynamicObject implements DynamicObject {
+        @Override
         public void setProperty(String name, Object value) {
             throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
                     dynamicDelegate.getDisplayName()));
         }
 
+        @Override
+        public MissingPropertyException getMissingProperty(String name) {
+            return dynamicDelegate.getMissingProperty(name);
+        }
+
+        @Override
+        public MissingPropertyException setMissingProperty(String name) {
+            return dynamicDelegate.setMissingProperty(name);
+        }
+
+        @Override
+        public MissingMethodException methodMissingException(String name, Object... params) {
+            return dynamicDelegate.methodMissingException(name, params);
+        }
+
+        @Override
+        public void setProperty(String name, Object value, SetPropertyResult result) {
+            setProperty(name, value);
+        }
+
+        @Override
         public boolean hasProperty(String name) {
             return snapshotInheritable().hasProperty(name);
         }
 
+        @Override
         public Object getProperty(String name) {
             return snapshotInheritable().getProperty(name);
         }
 
-        public Map<String, Object> getProperties() {
+        @Override
+        public void getProperty(String name, GetPropertyResult result) {
+            snapshotInheritable().getProperty(name, result);
+        }
+
+        @Override
+        public Map<String, ?> getProperties() {
             return snapshotInheritable().getProperties();
         }
 
+        @Override
         public boolean hasMethod(String name, Object... arguments) {
             return snapshotInheritable().hasMethod(name, arguments);
         }
 
+        @Override
+        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
+            snapshotInheritable().invokeMethod(name, result, arguments);
+        }
+
+        @Override
         public Object invokeMethod(String name, Object... arguments) {
             return snapshotInheritable().invokeMethod(name, arguments);
         }
 
-        public boolean isMayImplementMissingMethods() {
-            return snapshotInheritable().isMayImplementMissingMethods();
-        }
-
-        public boolean isMayImplementMissingProperties() {
-            return snapshotInheritable().isMayImplementMissingProperties();
-        }
     }
-
 }
 

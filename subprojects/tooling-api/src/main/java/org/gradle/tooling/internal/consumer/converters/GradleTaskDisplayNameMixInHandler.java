@@ -26,6 +26,6 @@ public class GradleTaskDisplayNameMixInHandler {
     }
 
     public String getDisplayName() {
-        return String.format("task '%s'", task.getPath());
+        return "task '" + task.getPath() + "'";
     }
 }

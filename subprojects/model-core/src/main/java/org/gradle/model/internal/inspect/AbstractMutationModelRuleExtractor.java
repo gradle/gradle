@@ -36,25 +36,27 @@ public abstract class AbstractMutationModelRuleExtractor<T extends Annotation> e
         if (context.hasProblems()) {
             return null;
         }
-        return new ExtractedMutationRule<S>(getMutationType(), ruleDefinition);
+        RuleApplicationScope ruleApplicationScope = RuleApplicationScope.fromRuleDefinition(context, ruleDefinition, 0);
+        return new ExtractedMutationRule<S>(getMutationType(), ruleDefinition, ruleApplicationScope);
     }
 
     protected abstract ModelActionRole getMutationType();
 
     private static class ExtractedMutationRule<S>  extends AbstractExtractedModelRule {
         private final ModelActionRole mutationType;
+        private final RuleApplicationScope ruleApplicationScope;
 
-        public ExtractedMutationRule(ModelActionRole mutationType, MethodRuleDefinition<?, S> ruleDefinition) {
+        public ExtractedMutationRule(ModelActionRole mutationType, MethodRuleDefinition<?, S> ruleDefinition, RuleApplicationScope ruleApplicationScope) {
             super(ruleDefinition);
             this.mutationType = mutationType;
+            this.ruleApplicationScope = ruleApplicationScope;
         }
 
         @Override
         public void apply(MethodModelRuleApplicationContext context, MutableModelNode target) {
             MethodRuleDefinition<?, S> ruleDefinition = Cast.uncheckedCast(getRuleDefinition());
-            context.getRegistry().configure(mutationType,
-                    context.contextualize(
-                        new MethodBackedModelAction<S>(ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences())));
+            MethodBackedModelAction<S> ruleAction = new MethodBackedModelAction<S>(ruleDefinition.getDescriptor(), ruleDefinition.getSubjectReference(), ruleDefinition.getTailReferences());
+            RuleExtractorUtils.configureRuleAction(context, ruleApplicationScope, mutationType, ruleAction);
         }
 
         @Override

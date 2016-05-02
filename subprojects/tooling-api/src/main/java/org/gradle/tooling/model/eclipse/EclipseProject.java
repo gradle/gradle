@@ -26,7 +26,7 @@ import org.gradle.tooling.model.*;
  *
  * @since 1.0-milestone-3
  */
-public interface EclipseProject extends HierarchicalEclipseProject, HasGradleProject {
+public interface EclipseProject extends HierarchicalEclipseProject {
     /**
      * {@inheritDoc}
      */
@@ -64,7 +64,7 @@ public interface EclipseProject extends HierarchicalEclipseProject, HasGradlePro
      * @return The dependencies. Returns an empty set if the project has no external dependencies.
      * @since 1.0-milestone-3
      */
-    DomainObjectSet<? extends ExternalDependency> getClasspath();
+    DomainObjectSet<? extends EclipseExternalDependency> getClasspath();
 
     /**
      * Returns the Eclipse natures configured on the project.

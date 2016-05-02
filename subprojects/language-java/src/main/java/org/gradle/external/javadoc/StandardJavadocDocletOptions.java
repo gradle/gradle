@@ -87,14 +87,17 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<File> destinationDirectory;
 
+    @Override
     public File getDestinationDirectory() {
         return destinationDirectory.getValue();
     }
 
+    @Override
     public void setDestinationDirectory(File directory) {
         this.destinationDirectory.setValue(directory);
     }
 
+    @Override
     public StandardJavadocDocletOptions destinationDirectory(File destinationDirectory) {
         setDestinationDirectory(destinationDirectory);
         return this;
@@ -218,14 +221,17 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<String> windowTitle;
 
+    @Override
     public String getWindowTitle() {
         return windowTitle.getValue();
     }
 
+    @Override
     public void setWindowTitle(String windowTitle) {
         this.windowTitle.setValue(windowTitle);
     }
 
+    @Override
     public StandardJavadocDocletOptions windowTitle(String windowTitle) {
         setWindowTitle(windowTitle);
         return this;
@@ -240,14 +246,17 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      */
     private final JavadocOptionFileOption<String> header;
 
+    @Override
     public String getHeader() {
         return header.getValue();
     }
 
+    @Override
     public void setHeader(String header) {
         this.header.setValue(header);
     }
 
+    @Override
     public StandardJavadocDocletOptions header(String header) {
         setHeader(header);
         return this;

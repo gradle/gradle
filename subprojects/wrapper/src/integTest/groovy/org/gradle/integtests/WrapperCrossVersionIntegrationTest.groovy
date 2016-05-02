@@ -49,12 +49,12 @@ task wrapper(type: Wrapper) {
     gradleVersion = '$executionVersion.version.version'
 }
 
-if (wrapper.hasProperty('urlRoot')) {
-    println "configuring the wrapper using the old way: 'urlRoot'..."
-    wrapper.urlRoot = '${executionVersion.binDistribution.parentFile.toURI()}'
-} else {
+if (wrapper.hasProperty('distributionUrl')) {
     println "configuring the wrapper using the new way: 'distributionUrl'..."
     wrapper.distributionUrl = '${executionVersion.binDistribution.toURI()}'
+} else {
+    println "configuring the wrapper using the old way: 'urlRoot'..."
+    wrapper.urlRoot = '${executionVersion.binDistribution.parentFile.toURI()}'
 }
 
 println "using Java version \${System.getProperty('java.version')}"

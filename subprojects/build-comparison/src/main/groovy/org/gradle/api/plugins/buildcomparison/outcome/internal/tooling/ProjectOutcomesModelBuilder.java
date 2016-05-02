@@ -19,6 +19,7 @@ package org.gradle.api.plugins.buildcomparison.outcome.internal.tooling;
 import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -55,7 +56,7 @@ public class ProjectOutcomesModelBuilder implements ToolingModelBuilder {
     }
 
     private void addArtifacts(Project project, List<GradleFileBuildOutcome> outcomes) {
-        Configuration configuration = project.getConfigurations().findByName("archives");
+        Configuration configuration = project.getConfigurations().findByName(Dependency.ARCHIVES_CONFIGURATION);
         if (configuration != null) {
             for (PublishArtifact artifact : configuration.getArtifacts()) {
                 GradleFileBuildOutcome outcome = artifactTransformer.transform(artifact, project);

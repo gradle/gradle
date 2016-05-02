@@ -244,9 +244,9 @@ public class ModelRuleExtractor {
             }
             if (reference.getPath() != null) {
                 try {
-                    ModelPath.validatePath(reference.getPath().toString());
+                    ModelPath.validatePath(reference.getPath().getPath());
                 } catch (Exception e) {
-                    problems.add(ruleDefinition, "The declared model element path '" + reference.getPath() + "' used for parameter " + (i + 1) + " is not a valid path", e);
+                    problems.add(ruleDefinition, "The declared model element path '" + reference.getPath().getPath() + "' used for parameter " + (i + 1) + " is not a valid path", e);
                 }
             }
         }
@@ -392,33 +392,18 @@ public class ModelRuleExtractor {
                     }
 
                     @Override
+                    public ModelPath getScope() {
+                        return targetPath;
+                    }
+
+                    @Override
                     public ModelAction contextualize(final MethodRuleAction action) {
                         final List<ModelReference<?>> inputs = withImplicitInputs(action.getInputs());
                         final ModelReference<?> mappedSubject = mapSubject(action.getSubject(), targetPath);
                         mapInputs(inputs.subList(0, action.getInputs().size()), targetPath);
-                        return new ModelAction() {
-                            @Override
-                            public ModelRuleDescriptor getDescriptor() {
-                                return details.method.getDescriptor();
-                            }
-
-                            @Override
-                            public ModelReference<?> getSubject() {
-                                return mappedSubject;
-                            }
-
-                            @Override
-                            public List<? extends ModelReference<?>> getInputs() {
-                                return inputs;
-                            }
-
-                            @Override
-                            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
-                                WeaklyTypeReferencingMethod<Object, Object> method = Cast.uncheckedCast(details.method.getMethod());
-                                ModelRuleInvoker<Object> invoker = new DefaultModelRuleInvoker<Object, Object>(method, getFactory());
-                                action.execute(invoker, modelNode, inputs.subList(0, action.getInputs().size()));
-                            }
-                        };
+                        final MethodRuleDefinition<?, ?> methodRuleDefinition = details.method;
+                        final Factory<? extends T> factory = getFactory();
+                        return new ContextualizedModelAction<T>(methodRuleDefinition, mappedSubject, inputs, action, factory);
                     }
                 }, target);
             }
@@ -471,6 +456,44 @@ public class ModelRuleExtractor {
                     message.append(". Plugin dependencies are not supported in this context.");
                     throw new UnsupportedOperationException(message.toString());
                 }
+            }
+        }
+
+        private static class ContextualizedModelAction<T> implements ModelAction {
+            private final MethodRuleDefinition<?, ?> methodRuleDefinition;
+            private final ModelReference<?> mappedSubject;
+            private final List<ModelReference<?>> inputs;
+            private final MethodRuleAction action;
+            private final Factory<? extends T> factory;
+
+            public ContextualizedModelAction(MethodRuleDefinition<?, ?> methodRuleDefinition, ModelReference<?> mappedSubject, List<ModelReference<?>> inputs, MethodRuleAction action, Factory<? extends T> factory) {
+                this.methodRuleDefinition = methodRuleDefinition;
+                this.mappedSubject = mappedSubject;
+                this.inputs = inputs;
+                this.action = action;
+                this.factory = factory;
+            }
+
+            @Override
+            public ModelRuleDescriptor getDescriptor() {
+                return methodRuleDefinition.getDescriptor();
+            }
+
+            @Override
+            public ModelReference<?> getSubject() {
+                return mappedSubject;
+            }
+
+            @Override
+            public List<? extends ModelReference<?>> getInputs() {
+                return inputs;
+            }
+
+            @Override
+            public void execute(MutableModelNode modelNode, List<ModelView<?>> inputs) {
+                WeaklyTypeReferencingMethod<Object, Object> method = Cast.uncheckedCast(methodRuleDefinition.getMethod());
+                ModelRuleInvoker<Object> invoker = new DefaultModelRuleInvoker<Object, Object>(method, factory);
+                action.execute(invoker, modelNode, inputs.subList(0, action.getInputs().size()));
             }
         }
     }

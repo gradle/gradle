@@ -32,6 +32,11 @@
                 </td>
             </tr>
             <tr>
+                <td>generatedSourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td/>
+            </tr>
+            <tr>
                 <td>downloadSources</td>
                 <td><literal>true</literal></td>
                 <td/>
@@ -75,6 +80,16 @@
                 <td>jdkName</td>
                 <td><literal>'inherited'</literal></td>
                 <td/>
+            </tr>
+            <tr>
+                <td>languageLevel</td>
+                <td/>
+                <td><literal>project.sourceCompatibility</literal></td>
+            </tr>
+            <tr>
+                <td>targetBytecodeVersion</td>
+                <td/>
+                <td><literal>project.targetCompatibility</literal></td>
             </tr>
             <tr>
                 <td>iml</td>

@@ -35,6 +35,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.util.GFileUtils;
 import scala.Option;
 import xsbti.F0;
 
@@ -50,6 +51,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
     private Iterable<File> zincClasspath;
     private final File gradleUserHome;
 
+    public static final String ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY = "org.gradle.zinc.home.dir";
     private static final String ZINC_DIR_SYSTEM_PROPERTY = "zinc.dir";
     public static final String ZINC_DIR_IGNORED_MESSAGE = "In order to guarantee parallel safe Scala compilation, Gradle does not support the '" + ZINC_DIR_SYSTEM_PROPERTY + "' system property and ignores any value provided.";
 
@@ -59,6 +61,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
         this.gradleUserHome = gradleUserHome;
     }
 
+    @Override
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
         return Compiler.execute(scalaClasspath, zincClasspath, gradleUserHome, spec);
     }
@@ -79,6 +82,10 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
                     scalacOptions, javacOptions, spec.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile(), spec.getAnalysisMap(), "mixed", getIncOptions(), true);
             if (LOGGER.isDebugEnabled()) {
                 Inputs.debug(inputs, logger);
+            }
+
+            if (spec.getScalaCompileOptions().isForce()) {
+                GFileUtils.deleteDirectory(spec.getDestinationDir());
             }
 
             try {
@@ -120,7 +127,8 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
         }
 
         static com.typesafe.zinc.Compiler createParallelSafeCompiler(final Iterable<File> scalaClasspath, final Iterable<File> zincClasspath, final xsbti.Logger logger, File gradleUserHome) {
-            CacheRepository cacheRepository = ZincCompilerServices.getInstance(gradleUserHome).get(CacheRepository.class);
+            File zincCacheHomeDir = new File(System.getProperty(ZINC_CACHE_HOME_DIR_SYSTEM_PROPERTY, gradleUserHome.getAbsolutePath()));
+            CacheRepository cacheRepository = ZincCompilerServices.getInstance(zincCacheHomeDir).get(CacheRepository.class);
             final PersistentCache zincCache = cacheRepository.cache("zinc")
                                                             .withDisplayName("Zinc compiler cache")
                                                             .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
@@ -150,22 +158,27 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
     }
 
     private static class SbtLoggerAdapter implements xsbti.Logger {
+        @Override
         public void error(F0<String> msg) {
             LOGGER.error(msg.apply());
         }
 
+        @Override
         public void warn(F0<String> msg) {
             LOGGER.warn(msg.apply());
         }
 
+        @Override
         public void info(F0<String> msg) {
             LOGGER.info(msg.apply());
         }
 
+        @Override
         public void debug(F0<String> msg) {
             LOGGER.debug(msg.apply());
         }
 
+        @Override
         public void trace(F0<Throwable> exception) {
             LOGGER.trace(exception.apply().toString());
         }

@@ -37,7 +37,7 @@ class GradleExecuterBackedSession implements GradleSession {
         cleanup()
     }
 
-    @Override
+
     Runnable runner(GradleInvocationCustomizer invocationCustomizer) {
         def runner = createExecuter(invocationCustomizer, true)
         return { runner.run() }
@@ -54,7 +54,7 @@ class GradleExecuterBackedSession implements GradleSession {
         def executer = invocation.gradleDistribution.executer(testDirectoryProvider).
                 requireGradleHome().
                 requireIsolatedDaemons().
-                withDeprecationChecksDisabled().
+                expectDeprecationWarning().
                 withStackTraceChecksDisabled().
                 withArgument('-u').
                 inDirectory(invocation.workingDirectory).

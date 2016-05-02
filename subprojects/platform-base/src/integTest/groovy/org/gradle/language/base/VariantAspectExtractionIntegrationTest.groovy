@@ -27,8 +27,8 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
             void setVariantProp(Integer variant)
         }
         class Rules extends RuleSource {
-            @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {}
+            @ComponentType
+            void register(TypeBuilder<SampleBinary> builder) {}
         }
         apply plugin: Rules
         """
@@ -47,8 +47,8 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
             void setVariantProp(int variant)
         }
         class Rules extends RuleSource {
-            @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {}
+            @ComponentType
+            void register(TypeBuilder<SampleBinary> builder) {}
         }
         apply plugin: Rules
         """
@@ -66,8 +66,8 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
             void setVariantProp(boolean variant)
         }
         class Rules extends RuleSource {
-            @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {}
+            @ComponentType
+            void register(TypeBuilder<SampleBinary> builder) {}
         }
         apply plugin: Rules
         """
@@ -86,8 +86,8 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
             void setVariantProp(String variant)
         }
         class Rules extends RuleSource {
-            @BinaryType
-            void register(BinaryTypeBuilder<SampleBinary> builder) {}
+            @ComponentType
+            void register(TypeBuilder<SampleBinary> builder) {}
         }
         apply plugin: Rules
         """

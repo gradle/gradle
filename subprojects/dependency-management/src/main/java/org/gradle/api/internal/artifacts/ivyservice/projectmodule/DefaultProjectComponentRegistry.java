@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,42 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ModuleInternal;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 
+import java.util.List;
+
 public class DefaultProjectComponentRegistry implements ProjectComponentRegistry {
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
-    private final ConfigurationComponentMetaDataBuilder metaDataBuilder;
+    private final List<ProjectComponentProvider> providers;
 
-    public DefaultProjectComponentRegistry(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
-        this.projectRegistry = projectRegistry;
-        this.metaDataBuilder = metaDataBuilder;
+    public DefaultProjectComponentRegistry(List<ProjectComponentProvider> providers) {
+        this.providers = providers;
     }
 
-    public LocalComponentMetaData getProject(String projectPath) {
-        ProjectInternal project = projectRegistry.getProject(projectPath);
-        if (project == null) {
-            return null;
+    @Override
+    public LocalComponentMetaData getProject(ProjectComponentIdentifier projectIdentifier) {
+        for (ProjectComponentProvider provider : providers) {
+            LocalComponentMetaData componentMetaData = provider.getProject(projectIdentifier);
+            if (componentMetaData != null) {
+                return componentMetaData;
+            }
         }
-        return getLocalComponentMetaData(project);
-    }
-
-    private LocalComponentMetaData getLocalComponentMetaData(ProjectInternal project) {
-        ModuleInternal module = project.getModule();
-        ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
-        ComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(project.getPath());
-        DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleVersionIdentifier, componentIdentifier, module.getStatus());
-        metaDataBuilder.addConfigurations(metaData, project.getConfigurations());
-        return metaData;
+        return null;
     }
 }

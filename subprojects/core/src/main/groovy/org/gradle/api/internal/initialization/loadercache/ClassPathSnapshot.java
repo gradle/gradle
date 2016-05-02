@@ -16,10 +16,20 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
+import com.google.common.hash.HashCode;
+
 /**
  * Represents the snapshot of given classpath
  */
 public interface ClassPathSnapshot {
     boolean equals(Object other);
     int hashCode();
+
+    /**
+     * @return a hash for this classpath snapshot that is stronger than {@link #hashCode()} in
+     * a way that it should, if possible, be independent from the file paths. Some implementations
+     * may not be capable of doing this, but are encouraged to do so. Order is still important, but
+     * location of files shouldn't matter.
+     */
+    HashCode getStrongHash();
 }

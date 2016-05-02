@@ -19,10 +19,16 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentArtifactIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
-import org.gradle.internal.component.model.*;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentUsage;
+import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
@@ -33,22 +39,25 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver {
     private final ProjectComponentRegistry projectComponentRegistry;
+    private final List<ProjectArtifactBuilder> artifactBuilders;
 
-    public ProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry) {
+    public ProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry, List<ProjectArtifactBuilder> artifactBuilders) {
         this.projectComponentRegistry = projectComponentRegistry;
+        this.artifactBuilders = artifactBuilders;
     }
 
     public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
         if (dependency.getSelector() instanceof ProjectComponentSelector) {
             ProjectComponentSelector selector = (ProjectComponentSelector) dependency.getSelector();
-            String projectPath = selector.getProjectPath();
-            LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(projectPath);
+            ProjectComponentIdentifier project = DefaultProjectComponentIdentifier.newId(selector.getProjectPath());
+            LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(project);
             if (componentMetaData == null) {
-                result.failed(new ModuleVersionResolveException(selector, "project '" + projectPath + "' not found."));
+                result.failed(new ModuleVersionResolveException(selector, "project '" + project.getProjectPath() + "' not found."));
             } else {
                 result.resolved(componentMetaData);
             }
@@ -57,9 +66,9 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         if (identifier instanceof ProjectComponentIdentifier) {
-            String projectPath = ((ProjectComponentIdentifier) identifier).getProjectPath();
-            LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject(projectPath);
+            LocalComponentMetaData componentMetaData = projectComponentRegistry.getProject((ProjectComponentIdentifier) identifier);
             if (componentMetaData == null) {
+                String projectPath = ((ProjectComponentIdentifier) identifier).getProjectPath();
                 result.failed(new ModuleVersionResolveException(new DefaultProjectComponentSelector(projectPath), "project '" + projectPath + "' not found."));
             } else {
                 result.resolved(componentMetaData);
@@ -81,14 +90,20 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
         }
     }
 
-    public void resolveArtifact(ComponentArtifactMetaData component, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
-        if (isProjectModule(component.getComponentId())) {
-            LocalComponentArtifactIdentifier id = (LocalComponentArtifactIdentifier) component.getId();
+    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        if (isProjectModule(artifact.getComponentId())) {
+
+            // Run any registered actions to build this artifact
+            for (ProjectArtifactBuilder artifactBuilder : artifactBuilders) {
+                artifactBuilder.build(artifact);
+            }
+
+            LocalComponentArtifactIdentifier id = (LocalComponentArtifactIdentifier) artifact.getId();
             File localArtifactFile = id.getFile();
             if (localArtifactFile != null) {
                 result.resolved(localArtifactFile);
             } else {
-                result.notFound(component.getId());
+                result.notFound(artifact.getId());
             }
         }
     }

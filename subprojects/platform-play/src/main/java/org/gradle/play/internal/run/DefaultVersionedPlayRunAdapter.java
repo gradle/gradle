@@ -62,6 +62,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
 
     protected abstract Class<?> getBuildDocHandlerClass(ClassLoader docsClassLoader) throws ClassNotFoundException;
 
+    @Override
     public Object getBuildLink(final ClassLoader classLoader, final File projectPath, final File applicationJar, final Iterable<File> changingClasspath, final File assetsJar, final Iterable<File> assetsDirs) throws ClassNotFoundException {
         final ClassLoader assetsClassLoader = createAssetsClassLoader(assetsJar, assetsDirs, classLoader);
         final Class<? extends Throwable> playExceptionClass = Cast.uncheckedCast(classLoader.loadClass(PLAY_EXCEPTION_CLASSNAME));
@@ -149,6 +150,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
         return null;
     }
 
+    @Override
     public Object getBuildDocHandler(ClassLoader docsClassLoader, Iterable<File> classpath) throws NoSuchMethodException, ClassNotFoundException, IOException, IllegalAccessException {
         Class<?> docHandlerFactoryClass = getDocHandlerFactoryClass(docsClassLoader);
         Method docHandlerFactoryMethod = docHandlerFactoryClass.getMethod("fromJar", JarFile.class, String.class);
@@ -171,6 +173,7 @@ public abstract class DefaultVersionedPlayRunAdapter implements VersionedPlayRun
         return new JarFile(docJarFile);
     }
 
+    @Override
     public void runDevHttpServer(ClassLoader classLoader, ClassLoader docsClassLoader, Object buildLink, Object buildDocHandler, int httpPort) throws ClassNotFoundException {
         ScalaMethod runMethod = ScalaReflectionUtil.scalaMethod(classLoader, "play.core.server.NettyServer", "mainDevHttpMode", getBuildLinkClass(classLoader), getBuildDocHandlerClass(docsClassLoader), int.class);
         runMethod.invoke(buildLink, buildDocHandler, httpPort);

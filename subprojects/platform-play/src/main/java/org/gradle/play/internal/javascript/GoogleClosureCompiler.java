@@ -51,7 +51,7 @@ public class GoogleClosureCompiler implements Compiler<JavaScriptCompileSpec>, S
     }
 
     public static Object getDependencyNotation() {
-        return String.format("com.google.javascript:closure-compiler:%s", DEFAULT_GOOGLE_CLOSURE_VERSION);
+        return "com.google.javascript:closure-compiler:" + DEFAULT_GOOGLE_CLOSURE_VERSION;
     }
 
     @Override

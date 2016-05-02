@@ -23,7 +23,7 @@ import java.util.Map;
 
 public abstract class PrimitiveTypes {
 
-    public static final Map<ModelType<?>, Object> TYPES_DEFAULT_VALUES = ImmutableMap.<ModelType<?>, Object>builder()
+    private static final Map<ModelType<?>, Object> TYPES_DEFAULT_VALUES = ImmutableMap.<ModelType<?>, Object>builder()
         .put(ModelType.of(boolean.class), false)
         .put(ModelType.of(char.class), '\u0000')
         .put(ModelType.of(byte.class), (byte) 0)

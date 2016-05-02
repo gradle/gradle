@@ -20,6 +20,7 @@ import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyDescriptor
 import org.gradle.test.fixtures.ivy.IvyFileModule
+import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.ivy.RemoteIvyModule
 
 class IvyHttpModule implements RemoteIvyModule, HttpModule {
@@ -94,6 +95,10 @@ class IvyHttpModule implements RemoteIvyModule, HttpModule {
     IvyHttpModule dependsOn(Map<String, ?> attributes) {
         backingModule.dependsOn(attributes)
         return this
+    }
+
+    IvyModule dependsOn(IvyModule ivyModule) {
+        return backingModule.dependsOn(ivyModule)
     }
 
     IvyHttpModule artifact(Map<String, ?> options = [:]) {

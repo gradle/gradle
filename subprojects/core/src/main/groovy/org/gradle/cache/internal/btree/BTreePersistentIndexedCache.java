@@ -72,7 +72,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     @Override
     public String toString() {
-        return String.format("cache %s (%s)", cacheFile.getName(), cacheFile);
+        return "cache " + cacheFile.getName() + " (" + cacheFile + ")";
     }
 
     private void open() throws Exception {
@@ -202,7 +202,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
     }
 
     private void rebuild() throws Exception {
-        LOGGER.warn(String.format("%s is corrupt. Discarding.", this));
+        LOGGER.warn("{} is corrupt. Discarding.", this);
         store.clear();
         close();
         doOpen();

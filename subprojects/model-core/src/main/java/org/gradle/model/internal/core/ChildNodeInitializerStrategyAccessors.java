@@ -20,11 +20,15 @@ import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
 
 public class ChildNodeInitializerStrategyAccessors {
+
+    private static final ModelType<ChildNodeInitializerStrategy<?>> CHILD_NODE_INITIALIZER_STRATEGY_MODEL_TYPE =
+        Cast.uncheckedCast(ModelType.of(ChildNodeInitializerStrategy.class));
+
     public static <T> ChildNodeInitializerStrategyAccessor<T> fromPrivateData() {
         return new ChildNodeInitializerStrategyAccessor<T>() {
             @Override
             public ChildNodeInitializerStrategy<T> getStrategy(MutableModelNode node) {
-                return Cast.uncheckedCast(node.getPrivateData(ModelType.of(ChildNodeInitializerStrategy.class)));
+                return Cast.uncheckedCast(node.getPrivateData(CHILD_NODE_INITIALIZER_STRATEGY_MODEL_TYPE));
             }
         };
     }

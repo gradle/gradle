@@ -16,65 +16,51 @@
 
 package org.gradle.api.internal.coerce;
 
-import groovy.lang.MetaProperty;
-import org.gradle.api.specs.Spec;
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import org.codehaus.groovy.reflection.CachedClass;
 import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
-
-import java.lang.reflect.Method;
 
 public class StringToEnumTransformer implements MethodArgumentsTransformer, PropertySetTransformer {
 
     public static final StringToEnumTransformer INSTANCE = new StringToEnumTransformer();
 
-    public Object[] transform(Object target, final String methodName, Object... args) {
-        if (args.length != 1 || !(args[0] instanceof CharSequence)) {
-            return args;
-        }
-
-        final CharSequence charSequenceArg = (CharSequence) args[0];
-
-        Method enumMethod = JavaReflectionUtil.findMethod(target.getClass(), new Spec<Method>() {
-            @Override
-            public boolean isSatisfiedBy(Method method) {
-                Class<?>[] parameterTypes = method.getParameterTypes();
-                if (method.getName().equals(methodName) && parameterTypes.length == 1) {
-                    Class<?> parameterType = parameterTypes[0];
-
-                    if (parameterType.isEnum()) {
-                        return true; // stop searching
-                    }
-                }
-
-                return false;
+    @Override
+    public Object[] transform(CachedClass[] types, Object[] args) {
+        boolean needsTransform = false;
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class type = types[i].getTheClass();
+            if (type.isInstance(arg) || arg == null) {
+                // Can use arg without conversion
+                continue;
             }
-        });
-
-        if (enumMethod == null) {
-            return args;
-        } else {
-            @SuppressWarnings("unchecked")
-            Class<? extends Enum> enumType = (Class<? extends Enum>) enumMethod.getParameterTypes()[0];
-            return new Object[]{toEnumValue(enumType, charSequenceArg)};
+            if (!(arg instanceof CharSequence && type.isEnum())) {
+                // Cannot convert
+                return args;
+            }
+            needsTransform = true;
         }
+        if (!needsTransform) {
+            return args;
+        }
+        Object[] transformed = new Object[args.length];
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Class type = types[i].getTheClass();
+            if (type.isEnum() && arg instanceof CharSequence) {
+                transformed[i] = toEnumValue(type, (CharSequence) arg);
+            } else {
+                transformed[i] = args[i];
+            }
+        }
+        return transformed;
     }
 
     @Override
-    public Object transformValue(Object target, MetaProperty property, Object value) {
-        if (value instanceof CharSequence && property.getType().isEnum()) {
-            @SuppressWarnings("unchecked") Class<? extends Enum> enumType = (Class<? extends Enum>) property.getType();
-            final String setterName = MetaProperty.getSetterName(property.getName());
-            Method setter = JavaReflectionUtil.findMethod(target.getClass(), new Spec<Method>() {
-                @Override
-                public boolean isSatisfiedBy(Method element) {
-                    return element.getName().equals(setterName) && element.getParameterTypes().length == 1;
-                }
-            });
-
-            if (setter == null || setter.getParameterTypes()[0].equals(enumType)) {
-                return toEnumValue(enumType, (CharSequence) value);
-            }
+    public Object transformValue(Class<?> type, Object value) {
+        if (value instanceof CharSequence && type.isEnum()) {
+            @SuppressWarnings("unchecked") Class<? extends Enum> enumType = (Class<? extends Enum>) type;
+            return toEnumValue(enumType, (CharSequence) value);
         }
 
         return value;

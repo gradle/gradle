@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.transfer;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.logging.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLogger;
 
 public class ResourceOperation {
     public enum Type{

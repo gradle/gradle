@@ -26,7 +26,7 @@ class PackagePageRenderer extends PageRenderer<PackageTestResults> {
     protected void renderBreadcrumbs(SimpleHtmlWriter htmlWriter) throws IOException {
         htmlWriter.startElement("div").attribute("class", "breadcrumbs");
         htmlWriter.startElement("a").attribute("href", getResults().getUrlTo(getResults().getParent())).characters("all").endElement();
-        htmlWriter.characters(String.format(" > %s", getResults().getName()));
+        htmlWriter.characters(" > " + getResults().getName());
         htmlWriter.endElement();
     }
 

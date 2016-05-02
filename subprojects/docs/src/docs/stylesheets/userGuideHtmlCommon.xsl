@@ -41,7 +41,6 @@
 
     <xsl:param name="generate.toc">
         book toc,title,example
-        part toc,title
     </xsl:param>
 
     <xsl:param name="formal.title.placement">
@@ -119,6 +118,41 @@
             </xsl:call-template>
             <xsl:apply-templates select=".." mode="object.title.markup"/>
         </h1>
+    </xsl:template>
+
+    <!-- Clickable section headers -->
+    <!--
+      The idea here is to replace the <a> generation for section headers so
+      that an 'href' attribute is added alongside the 'name'. They both have
+      the same value, hence the anchor becomes self-referencing.
+
+      The rest of the magic is done in CSS.
+    -->
+    <xsl:template name="anchor">
+        <xsl:param name="node" select="."/>
+        <xsl:param name="conditional" select="1"/>
+
+        <xsl:choose>
+            <xsl:when test="$generate.id.attributes != 0">
+                <!-- No named anchors output when this param is set -->
+            </xsl:when>
+            <xsl:when test="$conditional = 0 or $node/@id or $node/@xml:id">
+                <a>
+                    <xsl:variable name="refId">
+                        <xsl:call-template name="object.id">
+                            <xsl:with-param name="object" select="$node"/>
+                        </xsl:call-template>
+                    </xsl:variable>
+                    <xsl:attribute name="name">
+                        <xsl:value-of select="$refId"/>
+                    </xsl:attribute>
+                    <xsl:if test="$node[local-name() = 'section']">
+                        <xsl:attribute name="class">section-anchor</xsl:attribute>
+                        <xsl:attribute name="href">#<xsl:value-of select="$refId"/></xsl:attribute>
+                    </xsl:if>
+                </a>
+            </xsl:when>
+        </xsl:choose>
     </xsl:template>
 
     <!-- TABLES -->

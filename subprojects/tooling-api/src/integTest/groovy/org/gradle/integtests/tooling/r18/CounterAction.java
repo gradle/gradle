@@ -19,10 +19,12 @@ package org.gradle.integtests.tooling.r18;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildController;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class CounterAction implements BuildAction<Integer> {
-    static int counter;
+    static final AtomicInteger COUNTER = new AtomicInteger();
 
     public Integer execute(BuildController controller) {
-        return ++counter;
+        return COUNTER.incrementAndGet();
     }
 }

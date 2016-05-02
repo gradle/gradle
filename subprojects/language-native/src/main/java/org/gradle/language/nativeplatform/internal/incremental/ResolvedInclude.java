@@ -84,7 +84,7 @@ public class ResolvedInclude implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("Resolved include '%s' -> '%s'", include, resolved());
+        return "Resolved include '" + include + "' -> '" + resolved() + "'";
     }
 
     private String resolved() {

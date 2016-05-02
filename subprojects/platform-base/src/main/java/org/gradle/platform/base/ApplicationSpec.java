@@ -22,5 +22,5 @@ import org.gradle.api.Incubating;
  * A specification of a {@link org.gradle.platform.base.Application}.
  */
 @Incubating
-public interface ApplicationSpec extends ComponentSpec {
+public interface ApplicationSpec extends GeneralComponentSpec {
 }

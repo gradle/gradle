@@ -15,6 +15,6 @@
  */
 
 /**
- * Classes for assisting with plugin development.
+ * Plugins for assisting with plugin development.
  */
 package org.gradle.plugin.devel.plugins;

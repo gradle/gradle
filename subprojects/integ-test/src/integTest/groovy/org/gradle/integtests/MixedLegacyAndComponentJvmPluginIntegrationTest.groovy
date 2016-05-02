@@ -41,8 +41,8 @@ public class MixedLegacyAndComponentJvmPluginIntegrationTest extends AbstractInt
 
                             assert binaries.size() == 3
                             assert binaries.jvmLibJar instanceof JarBinarySpec
-                            assert binaries.mainClasses instanceof ClassDirectoryBinarySpec
-                            assert binaries.testClasses instanceof ClassDirectoryBinarySpec
+                            assert binaries.main instanceof ClassDirectoryBinarySpec
+                            assert binaries.test instanceof ClassDirectoryBinarySpec
                         }
                     }
                 }

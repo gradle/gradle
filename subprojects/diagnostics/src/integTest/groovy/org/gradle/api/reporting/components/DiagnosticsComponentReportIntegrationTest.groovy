@@ -26,7 +26,7 @@ class DiagnosticsComponentReportIntegrationTest extends AbstractNativeComponentR
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 No components defined for this project.
 """
     }
@@ -58,7 +58,7 @@ model {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 JVM library 'jvmLib'
 --------------------
 

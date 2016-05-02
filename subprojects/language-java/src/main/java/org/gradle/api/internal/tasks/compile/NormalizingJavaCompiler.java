@@ -43,6 +43,7 @@ public class NormalizingJavaCompiler implements Compiler<JavaCompileSpec> {
         this.delegate = delegate;
     }
 
+    @Override
     public WorkResult execute(JavaCompileSpec spec) {
         resolveAndFilterSourceFiles(spec);
         resolveClasspath(spec);

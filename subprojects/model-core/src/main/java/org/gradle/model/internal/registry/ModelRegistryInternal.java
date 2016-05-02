@@ -22,15 +22,13 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.inspect.ExtractedRuleSource;
 
 interface ModelRegistryInternal extends ModelRegistry {
+    String getProjectPath();
+
     ExtractedRuleSource<?> newRuleSource(Class<? extends RuleSource> rules);
 
     void registerNode(ModelNodeInternal node, Multimap<ModelActionRole, ? extends ModelAction> actions);
 
     <T> void bind(ModelReference<T> subject, ModelActionRole role, ModelAction mutator);
-
-    ModelRegistry configureMatching(ModelSpec spec, ModelActionRole role, ModelAction action);
-
-    ModelRegistry configureMatching(ModelSpec spec, Class<? extends RuleSource> rules);
 
     void transition(ModelNodeInternal node, ModelNode.State desired, boolean laterOk);
 }

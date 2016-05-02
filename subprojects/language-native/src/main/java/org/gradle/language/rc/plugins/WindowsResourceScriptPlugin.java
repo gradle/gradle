@@ -23,7 +23,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.language.nativeplatform.internal.NativeLanguageTransform;
 import org.gradle.language.rc.WindowsResourceSet;
 import org.gradle.language.rc.internal.DefaultWindowsResourceSet;
@@ -31,9 +30,10 @@ import org.gradle.language.rc.plugins.internal.WindowsResourcesCompileTaskConfig
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
+import org.gradle.nativeplatform.internal.DefaultPreprocessingTool;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
 
 import java.util.Map;
 
@@ -43,15 +43,15 @@ import java.util.Map;
 @Incubating
 public class WindowsResourceScriptPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
-        @LanguageType
-        void registerLanguage(LanguageTypeBuilder<WindowsResourceSet> builder) {
-            builder.setLanguageName("rc");
+        @ComponentType
+        void registerLanguage(TypeBuilder<WindowsResourceSet> builder) {
             builder.defaultImplementation(DefaultWindowsResourceSet.class);
         }
 
@@ -62,16 +62,24 @@ public class WindowsResourceScriptPlugin implements Plugin<Project> {
     }
 
     private static class WindowsResources extends NativeLanguageTransform<WindowsResourceSet> {
+        @Override
         public Class<WindowsResourceSet> getSourceSetType() {
             return WindowsResourceSet.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             Map<String, Class<?>> tools = Maps.newLinkedHashMap();
             tools.put("rcCompiler", DefaultPreprocessingTool.class);
             return tools;
         }
 
+        @Override
+        public String getLanguageName() {
+            return "rc";
+        }
+
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new WindowsResourcesCompileTaskConfig();
         }

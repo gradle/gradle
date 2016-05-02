@@ -25,6 +25,7 @@ import org.gradle.util.ConfigureUtil
  * apply plugin: 'java'
  * apply plugin: 'war'  //needed for wtp
  * apply plugin: 'eclipse'
+ * apply plugin: 'eclipse-wtp'
  *
  * eclipse {
  *   pathVariables 'GRADLE_HOME': file('/best/software/gradle'), 'TOMCAT_HOME': file('../tomcat')

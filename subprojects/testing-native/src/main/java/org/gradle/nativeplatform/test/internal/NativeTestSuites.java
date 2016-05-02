@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.InvalidModelException;
+import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.testing.base.TestSuiteContainer;
 
@@ -47,7 +48,7 @@ public class NativeTestSuites {
                                                      final String typeString, final File buildDir, final ServiceRegistry serviceRegistry) {
         for (final NativeBinarySpec testedBinary : testedBinariesOf(testSuite)) {
             if (testedBinary instanceof SharedLibraryBinary) {
-                // TODO:DAZ For now, we only create test suites for static library variants
+                // For now, we only create test suites for static library variants
                 continue;
             }
             createNativeTestSuiteBinary(binaries, testSuite, testSuiteBinaryClass, typeString, testedBinary, buildDir, serviceRegistry);
@@ -88,7 +89,7 @@ public class NativeTestSuites {
         testBinary.getTasks().create(name, RunTestExecutable.class, new Action<RunTestExecutable>() {
             @Override
             public void execute(RunTestExecutable runTask) {
-                runTask.setDescription(String.format("Runs the %s", testBinary));
+                runTask.setDescription("Runs the " + testBinary);
                 testBinary.getTasks().add(runTask);
             }
         });
@@ -98,7 +99,7 @@ public class NativeTestSuites {
     }
 
     public static <S> Collection<S> testedBinariesWithType(Class<S> type, NativeTestSuiteSpec testSuite) {
-        NativeComponentSpec spec = testSuite.getTestedComponent();
+        VariantComponentSpec spec = (VariantComponentSpec) testSuite.getTestedComponent();
         if (spec == null) {
             throw new InvalidModelException(String.format("Test suite '%s' doesn't declare component under test. Please specify it with `testing $.components.myComponent`.", testSuite.getName()));
         }
@@ -114,7 +115,7 @@ public class NativeTestSuites {
 
     public static <S extends NativeTestSuiteSpec> void createConventionalTestSuites(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components, Class<S> testSuiteSpecClass) {
         for (final NativeComponentSpec component : components.values()) {
-            final String suiteName = String.format("%sTest", component.getName());
+            final String suiteName = component.getName() + "Test";
             testSuites.create(suiteName, testSuiteSpecClass, new Action<S>() {
                 @Override
                 public void execute(S testSuite) {

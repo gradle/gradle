@@ -85,7 +85,7 @@ public class AntlrPlugin implements Plugin<Project> {
                                 = new AntlrSourceVirtualDirectoryImpl(((DefaultSourceSet) sourceSet).getDisplayName(), sourceDirectorySetFactory);
                         new DslObject(sourceSet).getConvention().getPlugins().put(
                                 AntlrSourceVirtualDirectory.NAME, antlrDirectoryDelegate);
-                        final String srcDir = String.format("src/%s/antlr", sourceSet.getName());
+                        final String srcDir = "src/"+ sourceSet.getName() +"/antlr";
                         antlrDirectoryDelegate.getAntlr().srcDir(srcDir);
                         sourceSet.getAllSource().source(antlrDirectoryDelegate.getAntlr());
 
@@ -93,15 +93,13 @@ public class AntlrPlugin implements Plugin<Project> {
                         //    naming conventions via call to sourceSet.getTaskName()
                         final String taskName = sourceSet.getTaskName("generate", "GrammarSource");
                         AntlrTask antlrTask = project.getTasks().create(taskName, AntlrTask.class);
-                        antlrTask.setDescription(String.format("Processes the %s Antlr grammars.",
-                                sourceSet.getName()));
+                        antlrTask.setDescription("Processes the " + sourceSet.getName() + " Antlr grammars.");
 
                         // 3) set up convention mapping for default sources (allows user to not have to specify)
                         antlrTask.setSource(antlrDirectoryDelegate.getAntlr());
 
                         // 4) Set up the Antlr output directory (adding to javac inputs!)
-                        final String outputDirectoryName = String.format("%s/generated-src/antlr/%s",
-                                project.getBuildDir(), sourceSet.getName());
+                        final String outputDirectoryName = project.getBuildDir() + "/generated-src/antlr/" + sourceSet.getName();
                         final File outputDirectory = new File(outputDirectoryName);
                         antlrTask.setOutputDirectory(outputDirectory);
                         sourceSet.getJava().srcDir(outputDirectory);

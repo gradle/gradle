@@ -29,14 +29,14 @@ public class TaskPropertyHandlerFactory {
     }
 
     private static class ConsumerMapping implements Action<SourceObjectMapping>, Serializable {
-        private final VersionDetails versionDetails;
+        private final boolean supportsTaskDisplayName;
 
         public ConsumerMapping(VersionDetails versionDetails) {
-            this.versionDetails = versionDetails;
+            supportsTaskDisplayName = versionDetails.supportsTaskDisplayName();
         }
 
         public void execute(SourceObjectMapping mapping) {
-            if (GradleTask.class.isAssignableFrom(mapping.getTargetType()) && !versionDetails.supportsTaskDisplayName()) {
+            if (GradleTask.class.isAssignableFrom(mapping.getTargetType()) && !supportsTaskDisplayName) {
                 mapping.mixIn(GradleTaskDisplayNameMixInHandler.class);
             }
         }

@@ -51,7 +51,7 @@ class JUnitTestSuiteComponentReportIntegrationTest extends AbstractComponentRepo
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 JUnit test suite 'test'
 -----------------------
 
@@ -92,7 +92,7 @@ model {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 JUnit test suite 'functionalTest'
 ---------------------------------
 
@@ -153,7 +153,7 @@ Binaries
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 JVM library 'main'
 ------------------
 
@@ -220,7 +220,7 @@ Binaries
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 JVM library 'main'
 ------------------
 

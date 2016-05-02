@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -307,7 +308,7 @@ project(':b') {
 
         when:
         if (fluidDependencies) {
-            executer.withDeprecationChecksDisabled()
+            executer.expectDeprecationWarning()
         }
         succeeds ":test"
 
@@ -492,6 +493,53 @@ project('c') {
         executedAndNotSkipped ":b:jar", ":c:jar"
     }
 
+    @NotYetImplemented
+    @Issue('GRADLE-3280')
+    def "can resolve recursive copy of configuration with cyclic project dependencies"() {
+        given:
+        settingsFile << "include 'a', 'b', 'c'"
+        buildScript '''
+            subprojects {
+                apply plugin: 'base'
+                task jar(type: Jar)
+                artifacts {
+                    'default' jar
+                }
+            }
+            project('a') {
+                dependencies {
+                    'default' project(':b')
+                }
+                task assertCanResolve {
+                    doLast {
+                        assert !project.configurations.default.resolvedConfiguration.hasError()
+                    }
+                }
+                task assertCanResolveRecursiveCopy {
+                    doLast {
+                        assert !project.configurations.default.copyRecursive().resolvedConfiguration.hasError()
+                    }
+                }
+            }
+            project('b') {
+                dependencies {
+                    'default' project(':c')
+                }
+            }
+            project('c') {
+                dependencies {
+                    'default' project(':a')
+                }
+            }
+        '''.stripIndent()
+
+        expect:
+        succeeds ':a:assertCanResolve'
+
+        and:
+        succeeds ':a:assertCanResolveRecursiveCopy'
+    }
+
     // this test is largely covered by other tests, but does ensure that there is nothing special about
     // project dependencies that are “built” by built in plugins like the Java plugin's created jars
     @IgnoreIf({GradleContextualExecuter.parallel})
@@ -566,7 +614,7 @@ project('c') {
 """
 
         when:
-        executer.withDeprecationChecksDisabled()
+        executer.expectDeprecationWarning()
         succeeds("impl:check")
 
         then:

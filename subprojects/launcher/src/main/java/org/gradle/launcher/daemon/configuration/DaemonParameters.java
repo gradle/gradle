@@ -22,25 +22,29 @@ import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
+    static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 60 * 1000;
 
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx1024m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final List<String> DEFAULT_JVM_9_ARGS = ImmutableList.of("-Xmx1024m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final String INTERACTIVE_TOGGLE = "org.gradle.interactive";
 
-    private final String uid;
     private final File gradleUserHomeDir;
 
     private File baseDir;
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
-    private final JvmOptions jvmOptions = new JvmOptions(new IdentityFileResolver());
+
+    private int periodicCheckInterval = DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS;
+    private final DaemonJvmOptions jvmOptions = new DaemonJvmOptions(new IdentityFileResolver());
     private DaemonUsage daemonUsage = DaemonUsage.IMPLICITLY_DISABLED;
     private boolean hasJvmArgs;
     private boolean foreground;
@@ -53,7 +57,6 @@ public class DaemonParameters {
     }
 
     public DaemonParameters(BuildLayoutParameters layout, Map<String, String> extraSystemProperties) {
-        this.uid = UUID.randomUUID().toString();
         jvmOptions.systemProperties(extraSystemProperties);
         baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
         gradleUserHomeDir = layout.getGradleUserHomeDir();
@@ -66,10 +69,6 @@ public class DaemonParameters {
     public DaemonParameters setEnabled(boolean enabled) {
         daemonUsage = enabled ? DaemonUsage.EXPLICITLY_ENABLED : DaemonUsage.EXPLICITLY_DISABLED;
         return this;
-    }
-
-    public String getUid() {
-        return uid;
     }
 
     public File getBaseDir() {
@@ -88,8 +87,20 @@ public class DaemonParameters {
         this.idleTimeout = idleTimeout;
     }
 
+    public int getPeriodicCheckInterval() {
+        return periodicCheckInterval;
+    }
+
+    public void setPeriodicCheckInterval(int periodicCheckInterval) {
+        this.periodicCheckInterval = periodicCheckInterval;
+    }
+
     public List<String> getEffectiveJvmArgs() {
         return jvmOptions.getAllImmutableJvmArgs();
+    }
+
+    public List<String> getEffectiveSingleUseJvmArgs() {
+        return jvmOptions.getAllSingleUseImmutableJvmArgs();
     }
 
     public JavaInfo getEffectiveJvm() {
@@ -115,13 +126,14 @@ public class DaemonParameters {
 
     public Map<String, String> getSystemProperties() {
         Map<String, String> systemProperties = new HashMap<String, String>();
-        GUtil.addToMap(systemProperties, jvmOptions.getSystemProperties());
+        GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
         return systemProperties;
     }
 
     public Map<String, String> getEffectiveSystemProperties() {
         Map<String, String> systemProperties = new HashMap<String, String>();
-        GUtil.addToMap(systemProperties, jvmOptions.getSystemProperties());
+        GUtil.addToMap(systemProperties, jvmOptions.getMutableSystemProperties());
+        GUtil.addToMap(systemProperties, jvmOptions.getImmutableDaemonProperties());
         GUtil.addToMap(systemProperties, System.getProperties());
         return systemProperties;
     }

@@ -22,12 +22,8 @@ import org.gradle.api.internal.file.DefaultFileTreeElement;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
-import java.util.regex.Pattern;
 
 public abstract class DirectoryTrees {
-
-    private static final String QUOTED_SEPARATOR = Pattern.quote(File.separator);
-
     private DirectoryTrees() {
     }
 
@@ -37,8 +33,7 @@ public abstract class DirectoryTrees {
             return false;
         }
 
-        String[] partsUnderDir = file.getAbsolutePath().substring(prefix.length()).split(QUOTED_SEPARATOR);
-        RelativePath path = new RelativePath(true, partsUnderDir);
+        RelativePath path = RelativePath.parse(true, file.getAbsolutePath().substring(prefix.length()));
         return tree.getPatterns().getAsSpec().isSatisfiedBy(new DefaultFileTreeElement(file, path, fileSystem, fileSystem));
     }
 

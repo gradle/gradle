@@ -15,13 +15,16 @@
  */
 package org.gradle.internal.jacoco
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
+import org.gradle.util.VersionNumber
 
 /**
  * Helper to resolve the {@code jacocoagent.jar} from inside
  * of the {@code org.jacoco.agent.jar}.
  */
+@CompileStatic
 class JacocoAgentJar {
     private final Project project
     private File agentJar
@@ -43,15 +46,29 @@ class JacocoAgentJar {
      */
     File getJar() {
         if (!agentJar) {
-            agentJar = project.zipTree(getAgentConf().singleFile).filter { it.name == 'jacocoagent.jar' }.singleFile
+            agentJar = project.zipTree(getAgentConf().singleFile).filter { File file -> file.name == 'jacocoagent.jar' }.singleFile
         }
         return agentJar
     }
 
     boolean supportsJmx() {
         def pre062 = getAgentConf().any {
-            it.name ==~ /org.jacoco.agent-([0]\.[0-6]\.[0-1\.].*)\.jar/
+            VersionNumber.parse("0.6.2.0") > extractVersion(it.name)
         }
         return !pre062
+    }
+
+    boolean supportsInclNoLocationClasses() {
+        def pre076 = getAgentConf().any {
+            VersionNumber.parse("0.7.6.0") > extractVersion(it.name)
+        }
+        return !pre076;
+    }
+
+    static VersionNumber extractVersion(String jarName) {
+        // jarName format: org.jacoco.agent-<version>.jar
+        int versionStart = "org.jacoco.agent-".length()
+        int versionEnd = jarName.length() - ".jar".length()
+        return VersionNumber.parse(jarName.substring(versionStart, versionEnd))
     }
 }

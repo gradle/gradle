@@ -22,9 +22,13 @@ import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.plugins.scala.ScalaPlugin
+import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.plugins.ear.EarPlugin
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
+import org.gradle.plugins.ide.eclipse.EclipseWtpPlugin
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
 import org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder
 import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
@@ -229,9 +233,43 @@ class EclipseModelBuilderTest extends Specification {
         "target" | "targetCompatibility" | "targetBytecodeVersion"
     }
 
+    def "non convention source and target compatibility properties are ignored"() {
+        given:
+        def modelBuilder = createEclipseModelBuilder()
+        project.ext.sourceCompatibility = '1.2'
+        project.ext.targetCompatibility = '1.2'
+        project.plugins.apply(JavaPlugin)
+
+        when:
+        def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
+
+        then:
+        eclipseModel.javaSourceSettings.sourceLanguageLevel == JavaVersion.current()
+    }
+
+    def "applies eclipse-wtp plugin on web projects"() {
+        given:
+        def modelBuilder = createEclipseModelBuilder()
+        plugins.each { project.pluginManager.apply(it) }
+
+        when:
+        def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
+
+        then:
+        project.plugins.hasPlugin(EclipseWtpPlugin) == hasWtpPlugin
+
+        where:
+        hasWtpPlugin | plugins
+        false        | []
+        false        | [JavaPlugin]
+        true         | [WarPlugin]
+        true         | [EarPlugin]
+        true         | [WarPlugin, EarPlugin]
+    }
+
     private def createEclipseModelBuilder() {
         def gradleProjectBuilder = Mock(GradleProjectBuilder)
         gradleProjectBuilder.buildAll(_) >> Mock(DefaultGradleProject)
-        new EclipseModelBuilder(gradleProjectBuilder)
+        new EclipseModelBuilder(gradleProjectBuilder, new DefaultServiceRegistry())
     }
 }

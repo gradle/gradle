@@ -17,22 +17,27 @@
 package org.gradle.model.internal.core;
 
 import org.gradle.internal.BiAction;
+import org.gradle.internal.Cast;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.RuleContext;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
 public class ModelMaps {
-    public static <T> MutableModelNode addModelMapNode(MutableModelNode modelNode, Class<T> elementType, String name) {
-        final ModelType<T> elementModelType = ModelType.of(elementType);
+
+    private static final ModelReference<NodeInitializerRegistry> NODE_INITIALIZER_REGISTRY_MODEL_REFERENCE = ModelReference.of(NodeInitializerRegistry.class);
+    private static final ModelType<ChildNodeInitializerStrategy<?>> CHILD_NODE_INITIALIZER_STRATEGY_MODEL_TYPE =
+        Cast.uncheckedCast(ModelType.of(ChildNodeInitializerStrategy.class));
+
+    public static <T> MutableModelNode addModelMapNode(MutableModelNode modelNode, ModelType<T> elementModelType, String name) {
         modelNode.addLink(
             ModelRegistrations.of(modelNode.getPath().child(name))
-                .action(ModelActionRole.Create, ModelReference.of(NodeInitializerRegistry.class), new BiAction<MutableModelNode, NodeInitializerRegistry>() {
+                .action(ModelActionRole.Create, NODE_INITIALIZER_REGISTRY_MODEL_REFERENCE, new BiAction<MutableModelNode, NodeInitializerRegistry>() {
                     @Override
                     public void execute(MutableModelNode node, NodeInitializerRegistry nodeInitializerRegistry) {
                         ChildNodeInitializerStrategy<T> childFactory =
-                            NodeBackedModelMap.createUsingRegistry(elementModelType, nodeInitializerRegistry);
-                        node.setPrivateData(ModelType.of(ChildNodeInitializerStrategy.class), childFactory);
+                            NodeBackedModelMap.createUsingRegistry(nodeInitializerRegistry);
+                        node.setPrivateData(CHILD_NODE_INITIALIZER_STRATEGY_MODEL_TYPE, childFactory);
                     }
                 })
                 .descriptor(modelNode.getDescriptor())
@@ -46,8 +51,7 @@ public class ModelMaps {
         return mapNode;
     }
 
-    public static <T> ModelMap<T> toView(MutableModelNode mapNode, Class<T> elementType) {
-        final ModelType<T> elementModelType = ModelType.of(elementType);
+    public static <T> ModelMap<T> toView(MutableModelNode mapNode, ModelType<T> elementModelType) {
         mapNode.ensureUsable();
         if (mapNode.isMutable()) {
             return mapNode.asMutable(

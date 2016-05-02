@@ -16,38 +16,22 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 @LeaksFileHandles
-class WrapperLoggingIntegrationTest extends AbstractIntegrationSpec {
-
-    void setup() {
-        assert distribution.binDistribution.exists(): "bin distribution must exist to run this test, you need to run the :distributions:binZip task"
-        executer.beforeExecute(new WrapperSetup())
-    }
-
-    private prepareWrapper() {
-        file("build.gradle") << """
-            wrapper {
-                distributionUrl = '${distribution.binDistribution.toURI()}'
-            }
-
-            task emptyTask
-        """
-        executer.withTasks('wrapper').run()
-        executer.usingExecutable('gradlew').inDirectory(testDirectory)
-    }
-
+class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "wrapper does not output anything when executed in quiet mode"() {
         given:
+        file("build.gradle") << """
+task emptyTask
+        """
         prepareWrapper()
 
         when:
         args '-q'
-        succeeds("emptyTask")
+        def result = wrapperExecuter.withTasks("emptyTask").run()
 
         then:
-        output.empty
+        result.output.empty
     }
 }

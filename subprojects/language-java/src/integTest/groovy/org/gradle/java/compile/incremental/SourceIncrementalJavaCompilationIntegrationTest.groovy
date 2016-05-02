@@ -16,8 +16,10 @@
 
 package org.gradle.java.compile.incremental
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
+import spock.lang.Issue
 
 public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -312,6 +314,27 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
         outputs.recompiledClasses("B", "A")
     }
 
+    def "recompilation considers changes from dependent sourceSet"() {
+        buildFile << """
+sourceSets {
+    other {}
+    main { compileClasspath += sourceSets.other.output }
+}
+"""
+
+        java("class Main extends com.foo.Other {}")
+        file("src/other/java/com/foo/Other.java") << "package com.foo; public class Other {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        file("src/other/java/com/foo/Other.java").text = "package com.foo; public class Other { String change; }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("Other", "Main")
+    }
+
     def "detects changes to source in extra source directories"() {
         buildFile << "sourceSets.main.java.srcDir 'extra-java'"
 
@@ -403,5 +426,18 @@ public class SourceIncrementalJavaCompilationIntegrationTest extends AbstractInt
 
         when: fails "compileJava"
         then: failure.assertHasCause("Compilation failed")
+    }
+
+    @Issue("GRADLE-3426")
+    @NotYetImplemented
+    def "supports Java 1.2 dependencies"() {
+        java "class A {}"
+
+        buildFile << """
+repositories { jcenter() }
+dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
+"""
+        expect:
+        run "compileJava"
     }
 }

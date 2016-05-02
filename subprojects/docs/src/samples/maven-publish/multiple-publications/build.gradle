@@ -37,7 +37,7 @@ project(":project1") {
 
 project(":project2") {
     dependencies {
-       compile 'commons-collections:commons-collections:3.1', project(':project1')
+       compile 'commons-collections:commons-collections:3.2.2', project(':project1')
     }
 
     // START SNIPPET multiple-publications

@@ -18,6 +18,7 @@ package org.gradle.api.java.archives.internal;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.Manifest;
@@ -27,32 +28,53 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
+import java.nio.charset.Charset;
 import java.util.*;
 
 public class DefaultManifestMergeSpec implements ManifestMergeSpec {
     List<Object> mergePaths = new ArrayList<Object>();
     private final List<Action<? super ManifestMergeDetails>> actions = new ArrayList<Action<? super ManifestMergeDetails>>();
+    private String contentCharset = Charset.defaultCharset().name();
 
+    @Override
+    public String getContentCharset() {
+        return this.contentCharset;
+    }
+
+    @Override
+    public void setContentCharset(String contentCharset) {
+        if (contentCharset == null) {
+            throw new InvalidUserDataException("contentCharset must not be null");
+        }
+        if (!Charset.isSupported(contentCharset)) {
+            throw new InvalidUserDataException(String.format("Charset for contentCharset '%s' is not supported by your JVM", contentCharset));
+        }
+        this.contentCharset = contentCharset;
+    }
+
+    @Override
     public ManifestMergeSpec from(Object... mergePaths) {
         GUtil.flatten(mergePaths, this.mergePaths);
         return this;
     }
 
+    @Override
     public ManifestMergeSpec eachEntry(Action<? super ManifestMergeDetails> mergeAction) {
         actions.add(mergeAction);
         return this;
     }
 
+    @Override
     public ManifestMergeSpec eachEntry(Closure<?> mergeAction) {
         return eachEntry(new ClosureBackedAction<ManifestMergeDetails>(mergeAction));
     }
 
     public DefaultManifest merge(Manifest baseManifest, PathToFileResolver fileResolver) {
-        DefaultManifest mergedManifest = new DefaultManifest(fileResolver);
+        DefaultManifest mergedManifest = new DefaultManifest(fileResolver, baseManifest.getContentCharset());
         mergedManifest.getAttributes().putAll(baseManifest.getAttributes());
         mergedManifest.getSections().putAll(baseManifest.getSections());
         for (Object mergePath : mergePaths) {
-            DefaultManifest manifestToMerge = createManifest(mergePath, fileResolver);
+            DefaultManifest manifestToMerge = createManifest(mergePath, fileResolver, contentCharset);
             mergedManifest = mergeManifest(mergedManifest, manifestToMerge, fileResolver);
         }
         return mergedManifest;
@@ -82,7 +104,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         for (Map.Entry<String, Object> mergeEntry : mergeOnlyAttributes.entrySet()) {
             mergeDetailsSet.add(getMergeDetails(section, mergeEntry.getKey(), null, mergeEntry.getValue()));
         }
-        
+
         for (DefaultManifestMergeDetails mergeDetails : mergeDetailsSet) {
             for (Action<? super ManifestMergeDetails> action : actions) {
                 action.execute(mergeDetails);
@@ -95,7 +117,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         String value = null;
         String baseValueString = baseValue != null ? baseValue.toString() : null;
         String mergeValueString = mergeValue != null ? mergeValue.toString() : null;
-        value = mergeValueString == null ? baseValueString : mergeValueString; 
+        value = mergeValueString == null ? baseValueString : mergeValueString;
         return new DefaultManifestMergeDetails(section, key, baseValueString, mergeValueString, value);
     }
 
@@ -109,11 +131,11 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
         }
     }
 
-    private DefaultManifest createManifest(Object mergePath, PathToFileResolver fileResolver) {
+    private DefaultManifest createManifest(Object mergePath, PathToFileResolver fileResolver, String contentCharset) {
         if (mergePath instanceof DefaultManifest) {
             return ((DefaultManifest) mergePath).getEffectiveManifest();
         }
-        return new DefaultManifest(mergePath, fileResolver);
+        return new DefaultManifest(mergePath, fileResolver, contentCharset);
     }
 
     public List<Object> getMergePaths() {

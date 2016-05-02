@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,38 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal;
 
-import groovy.lang.MissingMethodException;
-import groovy.lang.MissingPropertyException;
-
-import java.util.Map;
-
 /**
- * An object that can be worked with in a dynamic fashion.
+ * DO NOT REMOVE
  *
- * The semantics of each method is completely up to the implementation. For example, {@link BeanDynamicObject}
- * provides a dynamic view of the functionality of an object and does not provide any decoration or extra functionality.
- * The {@link ExtensibleDynamicObject} implementation on the other hand does provide extra functionality.
+ * @deprecated This is here because tasks implemented in Groovy that are compiled against older versions of Gradle have this type baked into their byte-code, and cannot be loaded if it's not found.
  */
+@Deprecated
 public interface DynamicObject {
-    boolean hasProperty(String name);
-
-    Object getProperty(String name) throws MissingPropertyException;
-
-    void setProperty(String name, Object value) throws MissingPropertyException;
-
-    Map<String, ?> getProperties();
-
-    boolean hasMethod(String name, Object... arguments);
-
-    Object invokeMethod(String name, Object... arguments) throws MissingMethodException;
-
-    /**
-     * Used to indicate that the dynamic object may still be able to invoke the method, regardless of {@link #hasMethod(String, Object...)}
-     */
-    boolean isMayImplementMissingMethods();
-
-    boolean isMayImplementMissingProperties();
-
 }

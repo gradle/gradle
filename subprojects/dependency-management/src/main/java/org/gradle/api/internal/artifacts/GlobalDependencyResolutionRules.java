@@ -15,6 +15,10 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.DependencySubstitution;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRuleProvider;
+
 public interface GlobalDependencyResolutionRules {
 
     GlobalDependencyResolutionRules NO_OP = new GlobalDependencyResolutionRules() {
@@ -27,8 +31,14 @@ public interface GlobalDependencyResolutionRules {
         public ComponentModuleMetadataProcessor getModuleMetadataProcessor() {
             return ComponentModuleMetadataProcessor.NO_OP;
         }
+
+        @Override
+        public Action<DependencySubstitution> getDependencySubstitutionRule() {
+            return DependencySubstitutionRuleProvider.NO_OP;
+        }
     };
 
     ComponentMetadataProcessor getComponentMetadataProcessor();
     ComponentModuleMetadataProcessor getModuleMetadataProcessor();
+    Action<DependencySubstitution> getDependencySubstitutionRule();
 }

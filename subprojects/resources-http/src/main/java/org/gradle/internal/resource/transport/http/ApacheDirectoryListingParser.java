@@ -17,8 +17,8 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.cyberneko.html.parsers.SAXParser;
-import org.gradle.internal.resource.UriResource;
-import org.gradle.internal.resource.ResourceException;
+import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.resource.UriTextResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
@@ -45,7 +45,7 @@ public class ApacheDirectoryListingParser {
         if (contentType == null || !contentType.startsWith("text/html")) {
             throw new ResourceException(baseURI, String.format("Unsupported ContentType %s for directory listing '%s'", contentType, baseURI));
         }
-        String contentEncoding = UriResource.extractCharacterEncoding(contentType, "utf-8");
+        String contentEncoding = UriTextResource.extractCharacterEncoding(contentType, "utf-8");
         final Reader htmlText = new InputStreamReader(content, contentEncoding);
         final InputSource inputSource = new InputSource(htmlText);
         final SAXParser htmlParser = new SAXParser();
@@ -120,7 +120,7 @@ public class ApacheDirectoryListingParser {
             try {
                 uris.add(baseURI.resolve(href));
             } catch (IllegalArgumentException ex) {
-                LOGGER.debug(String.format("Cannot resolve anchor: %s", href));
+                LOGGER.debug("Cannot resolve anchor: {}", href);
             }
         }
         return uris;

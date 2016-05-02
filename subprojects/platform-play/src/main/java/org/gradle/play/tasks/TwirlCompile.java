@@ -196,7 +196,7 @@ public class TwirlCompile extends SourceTask {
         File calculateOutputFile(File inputFile) {
             String inputFileName = inputFile.getName();
             String[] splits = inputFileName.split("\\.");
-            String relativeOutputFilePath = String.format("views/%s/%s.template.scala", splits[2], splits[0]); //TODO: use Twirl library instead?
+            String relativeOutputFilePath = "views/" + splits[2]+ "/" + splits[0] + ".template.scala"; //TODO: use Twirl library instead?
             return new File(destinationDir, relativeOutputFilePath);
         }
     }

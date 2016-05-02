@@ -23,12 +23,17 @@ public interface DependencyArtifact {
     String DEFAULT_TYPE = "jar";
 
     /**
-     * Returns the name of the dependency artifact.
+     * Returns the name of this artifact.
      */
     String getName();
 
     /**
-     * Returns the type of the dependency artifact. Often the type is the same as the extension,
+     * Sets the name of this artifact.
+     */
+    void setName(String name);
+
+    /**
+     * Returns the type of this artifact. Often the type is the same as the extension,
      * but sometimes this is not the case. For example for an ivy XML module descriptor, the type is
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
@@ -37,7 +42,12 @@ public interface DependencyArtifact {
     String getType();
 
     /**
-     * Returns the extension of this dependency artifact. Often the extension is the same as the type,
+     * Sets the type of this artifact.
+     */
+    void setType(String type);
+
+    /**
+     * Returns the extension of this artifact. Often the extension is the same as the type,
      * but sometimes this is not the case. For example for an ivy XML module descriptor, the type is
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
@@ -46,13 +56,28 @@ public interface DependencyArtifact {
     String getExtension();
 
     /**
-     * Returns the classifier of this dependency artifact. 
+     * Sets the extension of this artifact.
+     */
+    void setExtension(String extension);
+
+    /**
+     * Returns the classifier of this artifact.
      */
     String getClassifier();
 
     /**
-     * Returns an URL under which this dependency artifact can be retrieved. If not
+     * Sets the classifier of this artifact.
+     */
+    void setClassifier(String classifier);
+
+    /**
+     * Returns an URL under which this artifact can be retrieved. If not
      * specified the user repositories are used for retrieving. 
      */
     String getUrl();
+
+    /**
+     * Sets the URL for this artifact.
+     */
+    void setUrl(String url);
 }

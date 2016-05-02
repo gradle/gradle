@@ -26,13 +26,16 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.Set;
 
 public class RuleSourceSchemaExtractionStrategy extends StructSchemaExtractionStrategySupport {
+
+    private static final ModelType<RuleSource> RULE_SOURCE_MODEL_TYPE = ModelType.of(RuleSource.class);
+
     public RuleSourceSchemaExtractionStrategy(ModelSchemaAspectExtractor aspectExtractor) {
         super(aspectExtractor);
     }
 
     @Override
     protected boolean isTarget(ModelType<?> type) {
-        return ModelType.of(RuleSource.class).isAssignableFrom(type);
+        return RULE_SOURCE_MODEL_TYPE.isAssignableFrom(type);
     }
 
     @Override

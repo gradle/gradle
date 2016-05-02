@@ -22,6 +22,8 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -57,7 +59,9 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
         private final FileWatcher watcher;
         private final Action<Throwable> onError;
         private boolean watching;
-        private volatile FileWatcherEventListener eventListener;
+        private FileWatcherEventListener eventListener;
+        private final Collection<FileWatcherEvent> eventsBeforeListening = new ArrayList<FileWatcherEvent>();
+        private final Lock eventDeliveryLock = new ReentrantLock();
 
         private ChangeWaiter(FileWatcherFactory fileWatcherFactory, long quietPeriodMillis, BuildCancellationToken cancellationToken) {
             this.quietPeriodMillis = quietPeriodMillis;
@@ -75,10 +79,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                     @Override
                     public void onChange(final FileWatcher watcher, FileWatcherEvent event) {
                         if (!(event.getType() == FileWatcherEvent.Type.MODIFY && event.getFile().isDirectory())) {
-                            FileWatcherEventListener listener = eventListener;
-                            if (listener != null) {
-                                listener.onChange(event);
-                            }
+                            deliverEvent(event);
                             signal(lock, condition, new Runnable() {
                                 @Override
                                 public void run() {
@@ -111,7 +112,7 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
                 }
             };
             try {
-                this.eventListener = eventListener;
+                attachEventListener(eventListener);
                 if (cancellationToken.isCancellationRequested()) {
                     return;
                 }
@@ -134,9 +135,44 @@ public class DefaultFileSystemChangeWaiterFactory implements FileSystemChangeWai
             } catch (Throwable e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             } finally {
-                this.eventListener = null;
+                detachEventListener();
                 cancellationToken.removeCallback(cancellationHandler);
                 watcher.stop();
+            }
+        }
+
+        private void deliverEvent(FileWatcherEvent event) {
+            eventDeliveryLock.lock();
+            try {
+                if (eventListener != null) {
+                    eventListener.onChange(event);
+                } else {
+                    eventsBeforeListening.add(event);
+                }
+            } finally {
+                eventDeliveryLock.unlock();
+            }
+        }
+
+        private void attachEventListener(FileWatcherEventListener eventListener) {
+            eventDeliveryLock.lock();
+            try {
+                this.eventListener = eventListener;
+                for (FileWatcherEvent event : eventsBeforeListening) {
+                    eventListener.onChange(event);
+                }
+                eventsBeforeListening.clear();
+            } finally {
+                eventDeliveryLock.unlock();
+            }
+        }
+
+        private void detachEventListener() {
+            eventDeliveryLock.lock();
+            try {
+                this.eventListener = null;
+            } finally {
+                eventDeliveryLock.unlock();
             }
         }
 

@@ -37,7 +37,7 @@ public class IvyResourcePattern extends AbstractResourcePattern implements Resou
 
     @Override
     public String toString() {
-        return String.format("Ivy pattern '%s'", getPattern());
+        return "Ivy pattern '" + getPattern() + "'";
     }
 
     public ExternalResourceName getLocation(ModuleComponentArtifactMetaData artifact) {

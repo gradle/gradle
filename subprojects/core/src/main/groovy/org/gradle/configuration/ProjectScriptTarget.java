@@ -50,6 +50,11 @@ public class ProjectScriptTarget implements ScriptTarget {
     }
 
     @Override
+    public boolean getSupportsPluginRepositoriesBlock() {
+        return false;
+    }
+
+    @Override
     public boolean getSupportsMethodInheritance() {
         return true;
     }

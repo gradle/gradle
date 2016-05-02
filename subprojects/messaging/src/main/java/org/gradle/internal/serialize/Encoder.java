@@ -21,6 +21,10 @@ import org.gradle.api.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
 
+/**
+ * Provides a way to encode structured data to a backing byte stream. Implementations may buffer outgoing encoded bytes prior
+ * to writing to the backing byte stream.
+ */
 public interface Encoder {
     /**
      * Returns an OutputStream that can be used to write byte content to the stream.

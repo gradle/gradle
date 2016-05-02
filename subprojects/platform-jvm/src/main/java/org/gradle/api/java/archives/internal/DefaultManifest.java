@@ -21,6 +21,7 @@ import org.apache.tools.ant.taskdefs.Manifest;
 import org.apache.tools.ant.taskdefs.Manifest.Attribute;
 import org.apache.tools.ant.taskdefs.Manifest.Section;
 import org.apache.tools.ant.taskdefs.ManifestException;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.ManifestMergeSpec;
@@ -30,6 +31,7 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 
 public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
@@ -41,13 +43,25 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
 
     private PathToFileResolver fileResolver;
 
+    private String contentCharset;
+
     public DefaultManifest(PathToFileResolver fileResolver) {
+        this(fileResolver, Manifest.JAR_ENCODING);
+    }
+
+    public DefaultManifest(PathToFileResolver fileResolver, String contentCharset) {
         this.fileResolver = fileResolver;
+        this.contentCharset = contentCharset;
         init();
     }
 
     public DefaultManifest(Object manifestPath, PathToFileResolver fileResolver) {
+        this(manifestPath, fileResolver, Manifest.JAR_ENCODING);
+    }
+
+    public DefaultManifest(Object manifestPath, PathToFileResolver fileResolver, String contentCharset) {
         this.fileResolver = fileResolver;
+        this.contentCharset = contentCharset;
         read(manifestPath);
     }
 
@@ -55,15 +69,33 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         getAttributes().put("Manifest-Version", "1.0");
     }
 
+    @Override
+    public String getContentCharset() {
+        return contentCharset;
+    }
+
+    @Override
+    public void setContentCharset(String contentCharset) {
+        if (contentCharset == null) {
+            throw new InvalidUserDataException("contentCharset must not be null");
+        }
+        if (!Charset.isSupported(contentCharset)) {
+            throw new InvalidUserDataException(String.format("Charset for contentCharset '%s' is not supported by your JVM", contentCharset));
+        }
+        this.contentCharset = contentCharset;
+    }
+
     public DefaultManifest mainAttributes(Map<String, ?> attributes) {
         return attributes(attributes);
     }
 
+    @Override
     public DefaultManifest attributes(Map<String, ?> attributes) {
         getAttributes().putAll(attributes);
         return this;
     }
 
+    @Override
     public DefaultManifest attributes(Map<String, ?> attributes, String sectionName) {
         if (!sections.containsKey(sectionName)) {
             sections.put(sectionName, new DefaultAttributes());
@@ -72,10 +104,12 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         return this;
     }
 
+    @Override
     public Attributes getAttributes() {
         return attributes;
     }
 
+    @Override
     public Map<String, Attributes> getSections() {
         return sections;
     }
@@ -120,11 +154,13 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         }
     }
 
+    @Override
     public DefaultManifest from(Object... mergePaths) {
         from(mergePaths, null);
         return this;
     }
 
+    @Override
     public DefaultManifest from(Object mergePaths, Closure<?> closure) {
         DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec();
         mergeSpec.from(mergePaths);
@@ -133,6 +169,7 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         return this;
     }
 
+    @Override
     public DefaultManifest getEffectiveManifest() {
         return getEffectiveManifestInternal(this);
     }
@@ -145,6 +182,7 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         return resultManifest;
     }
 
+    @Override
     public DefaultManifest writeTo(Writer writer) {
         PrintWriter printWriter = new PrintWriter(writer);
         try {
@@ -156,8 +194,18 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         return this;
     }
 
+    @Override
+    public org.gradle.api.java.archives.Manifest writeTo(OutputStream outputStream) {
+        try {
+            return writeTo(new OutputStreamWriter(outputStream, contentCharset));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
     public org.gradle.api.java.archives.Manifest writeTo(Object path) {
-        IoActions.writeTextFile(fileResolver.resolve(path), new ErroringAction<Writer>() {
+        IoActions.writeTextFile(fileResolver.resolve(path), contentCharset, new ErroringAction<Writer>() {
             @Override
             protected void doExecute(Writer writer) throws Exception {
                 writeTo(writer);
@@ -194,7 +242,7 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
     private void read(Object manifestPath) {
         File manifestFile = fileResolver.resolve(manifestPath);
         try {
-            FileReader reader = new FileReader(manifestFile);
+            InputStreamReader reader = new InputStreamReader(new FileInputStream(manifestFile), contentCharset);
             Manifest antManifest;
             try {
                 antManifest = new Manifest(reader);

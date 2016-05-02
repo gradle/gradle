@@ -18,10 +18,8 @@ package org.gradle.plugins.javascript.jshint.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorker;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerUtils;
 import org.mozilla.javascript.Context;
-import org.mozilla.javascript.RhinoException;
 import org.mozilla.javascript.Scriptable;
 
 import java.io.File;
@@ -30,10 +28,11 @@ import java.util.Map;
 
 import static org.gradle.plugins.javascript.rhino.worker.RhinoWorkerUtils.*;
 
-public class JsHintWorker implements RhinoWorker<JsHintResult, JsHintSpec> {
+public class JsHintWorker implements JsHintProtocol {
 
     private static final Logger LOGGER = Logging.getLogger(JsHintWorker.class);
 
+    @Override
     public JsHintResult process(JsHintSpec spec) {
         Scriptable jsHintScope = RhinoWorkerUtils.parse(spec.getJsHint(), "UTF-8");
 
@@ -59,11 +58,6 @@ public class JsHintWorker implements RhinoWorker<JsHintResult, JsHintSpec> {
                 return toMap((Scriptable) data);
             }
         });
-    }
-
-    public Exception convertException(RhinoException rhinoException) {
-        // TODO - need to convert this to a non rhino type in case the version is different back at the client
-        return rhinoException;
     }
 
 }

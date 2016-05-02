@@ -73,12 +73,13 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
             htmlWriter.startElement("li");
             htmlWriter.startElement("a").attribute("href", asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults()))).characters(test.getClassResults().getSimpleName()).endElement();
             htmlWriter.characters(".");
-            htmlWriter.startElement("a").attribute("href", String.format("%s#%s", asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults())), test.getName())).characters(test.getName()).endElement();
+            String link = asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults())) + "#" + test.getName();
+            htmlWriter.startElement("a").attribute("href", link).characters(test.getName()).endElement();
             htmlWriter.endElement();
         }
         htmlWriter.endElement();
     }
-    
+
     protected void addIgnoredTab() {
         if (!results.getIgnored().isEmpty()) {
             addTab("Ignored tests", new ErroringAction<SimpleHtmlWriter>() {
@@ -95,7 +96,8 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
             htmlWriter.startElement("li");
             htmlWriter.startElement("a").attribute("href", asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults()))).characters(test.getClassResults().getSimpleName()).endElement();
             htmlWriter.characters(".");
-            htmlWriter.startElement("a").attribute("href", String.format("%s#%s", asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults())), test.getName())).characters(test.getName()).endElement();
+            String link = asHtmlLinkEncoded(getResults().getUrlTo(test.getClassResults())) + "#" + test.getName();
+            htmlWriter.startElement("a").attribute("href", link).characters(test.getName()).endElement();
             htmlWriter.endElement();
         }
         htmlWriter.endElement();
@@ -108,7 +110,7 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
 
     @Override
     protected String getPageTitle() {
-        return String.format("Test results - %s", getModel().getTitle());
+        return "Test results - " + getModel().getTitle();
     }
 
     @Override
@@ -156,7 +158,7 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
                 htmlWriter.endElement();
                 htmlWriter.endElement();
                 htmlWriter.startElement("td");
-                htmlWriter.startElement("div").attribute("class", String.format("infoBox %s", results.getStatusClass())).attribute("id", "successRate");
+                htmlWriter.startElement("div").attribute("class", "infoBox " + results.getStatusClass()).attribute("id", "successRate");
                 htmlWriter.startElement("div").attribute("class", "percent").characters(results.getFormattedSuccessRate()).endElement();
                 htmlWriter.startElement("p").characters("successful").endElement();
                 htmlWriter.endElement();

@@ -55,7 +55,7 @@ public class ComponentSelectionRulesProcessor {
                 processRule(rule, selection, metadataProvider);
 
                 if (selection.isRejected()) {
-                    LOGGER.info(String.format("Selection of %s rejected by component selection rule: %s", selection.getCandidate().getDisplayName(), selection.getRejectionReason()));
+                    LOGGER.info("Selection of {} rejected by component selection rule: {}", selection.getCandidate().getDisplayName(), selection.getRejectionReason());
                     return false;
                 }
             }

@@ -36,7 +36,7 @@ import org.gradle.api.internal.plugins.*;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ant.AntLoggingAdapter;
+import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -53,13 +53,12 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.DefaultTypeConverter;
 import org.gradle.internal.typeconversion.TypeConverter;
-import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.process.internal.DefaultExecActionFactory;
-import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.DefaultToolingModelBuilderRegistry;
 
@@ -70,10 +69,12 @@ import java.io.File;
  */
 public class ProjectScopeServices extends DefaultServiceRegistry {
     private final ProjectInternal project;
+    private final Factory<LoggingManagerInternal> loggingManagerInternalFactory;
 
-    public ProjectScopeServices(final ServiceRegistry parent, final ProjectInternal project) {
+    public ProjectScopeServices(final ServiceRegistry parent, final ProjectInternal project, Factory<LoggingManagerInternal> loggingManagerInternalFactory) {
         super(parent);
         this.project = project;
+        this.loggingManagerInternalFactory = loggingManagerInternalFactory;
         register(new Action<ServiceRegistration>() {
             public void execute(ServiceRegistration registration) {
                 registration.add(DomainObjectContext.class, project);
@@ -102,7 +103,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected LoggingManagerInternal createLoggingManager() {
-        return getFactory(LoggingManagerInternal.class).create();
+        return loggingManagerInternalFactory.create();
     }
 
     protected ProjectConfigurationActionContainer createProjectConfigurationActionContainer() {
@@ -113,8 +114,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultFileOperations(fileResolver, project.getTasks(), temporaryFileProvider, instantiator, fileLookup, directoryFileTreeFactory);
     }
 
-    protected ExecActionFactory createExecActionFactory() {
-        return new DefaultExecActionFactory(get(FileResolver.class));
+    protected DefaultExecActionFactory createExecActionFactory(FileResolver fileResolver) {
+        return new DefaultExecActionFactory(fileResolver);
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
@@ -126,20 +127,20 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected Factory<AntBuilder> createAntBuilderFactory() {
-        return new DefaultAntBuilderFactory(new AntLoggingAdapter(), project);
+        return new DefaultAntBuilderFactory(project, new DefaultAntLoggingAdapterFactory());
     }
 
     protected ToolingModelBuilderRegistry createToolingModelRegistry() {
         return new DefaultToolingModelBuilderRegistry();
     }
 
-    protected PluginManagerInternal createPluginManager(Instantiator instantiator) {
+    protected PluginManagerInternal createPluginManager(Instantiator instantiator, DependencyInjectingInstantiator.ConstructorCache cachedConstructors) {
         PluginApplicator applicator = new RuleBasedPluginApplicator<ProjectInternal>(project, get(ModelRuleExtractor.class), get(ModelRuleSourceDetector.class));
-        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), new DependencyInjectingInstantiator(this), applicator);
+        return instantiator.newInstance(DefaultPluginManager.class, get(PluginRegistry.class), new DependencyInjectingInstantiator(this, cachedConstructors), applicator);
     }
 
     protected ITaskFactory createTaskFactory(ITaskFactory parentFactory) {
-        return parentFactory.createChild(project, new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DependencyInjectingInstantiator(this)));
+        return parentFactory.createChild(project, new ClassGeneratorBackedInstantiator(get(ClassGenerator.class), new DependencyInjectingInstantiator(this, get(DependencyInjectingInstantiator.ConstructorCache.class))));
     }
 
     protected Factory<TaskContainerInternal> createTaskContainerInternal() {
@@ -156,11 +157,16 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             public ProjectInternal getProject(String path) {
                 return project.project(path);
             }
+
+            @Override
+            public ProjectInternal findProject(String path) {
+                return project.findProject(path);
+            }
         };
     }
 
     protected ModelRegistry createModelRegistry(ModelRuleExtractor ruleExtractor) {
-        return new DefaultModelRegistry(ruleExtractor);
+        return new DefaultModelRegistry(ruleExtractor, project.getPath());
     }
 
     protected ScriptHandler createScriptHandler() {
@@ -178,9 +184,6 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
         return new ServiceRegistryFactory() {
             public ServiceRegistry createFor(Object domainObject) {
-                if (domainObject instanceof TaskInternal) {
-                    return new TaskScopeServices(services, project, (TaskInternal) domainObject);
-                }
                 throw new UnsupportedOperationException();
             }
         };

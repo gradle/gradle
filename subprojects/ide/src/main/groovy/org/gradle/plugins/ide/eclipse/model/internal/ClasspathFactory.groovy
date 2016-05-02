@@ -44,7 +44,7 @@ class ClasspathFactory {
     private final ClasspathEntryBuilder projectDependenciesCreator = new ClasspathEntryBuilder() {
         void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
             entries.addAll(dependenciesExtractor.extractProjectDependencies(eclipseClasspath.project, eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations)
-                .collect { IdeProjectDependency it -> new ProjectDependencyBuilder().build(it.project, it.declaredConfiguration.name) })
+                .collect { IdeProjectDependency it -> new ProjectDependencyBuilder().build(it) })
         }
     }
 
@@ -53,12 +53,12 @@ class ClasspathFactory {
             dependenciesExtractor.extractRepoFileDependencies(
                     classpath.project.dependencies, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
             .each { IdeExtendedRepoFileDependency it ->
-                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration.name, classpath, it.id)
+                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration, classpath, it.id)
             }
 
             dependenciesExtractor.extractLocalFileDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
             .each { IdeLocalFileDependency it ->
-                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration.name, classpath, null)
+                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration, classpath, null)
             }
         }
     }

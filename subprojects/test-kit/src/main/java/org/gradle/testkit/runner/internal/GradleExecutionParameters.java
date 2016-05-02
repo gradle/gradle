@@ -17,7 +17,6 @@
 package org.gradle.testkit.runner.internal;
 
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.testkit.runner.internal.dist.GradleDistribution;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -25,7 +24,7 @@ import java.util.List;
 
 public class GradleExecutionParameters {
 
-    private final GradleDistribution gradleDistribution;
+    private final GradleProvider gradleProvider;
     private final File gradleUserHome;
     private final File projectDir;
     private final List<String> buildArgs;
@@ -36,7 +35,7 @@ public class GradleExecutionParameters {
     private final OutputStream standardError;
 
     public GradleExecutionParameters(
-        GradleDistribution gradleDistribution,
+        GradleProvider gradleProvider,
         File gradleUserHome,
         File projectDir,
         List<String> buildArgs,
@@ -46,7 +45,7 @@ public class GradleExecutionParameters {
         OutputStream standardOutput,
         OutputStream standardError
     ) {
-        this.gradleDistribution = gradleDistribution;
+        this.gradleProvider = gradleProvider;
         this.gradleUserHome = gradleUserHome;
         this.projectDir = projectDir;
         this.buildArgs = buildArgs;
@@ -57,8 +56,8 @@ public class GradleExecutionParameters {
         this.standardError = standardError;
     }
 
-    public GradleDistribution getGradleDistribution() {
-        return gradleDistribution;
+    public GradleProvider getGradleProvider() {
+        return gradleProvider;
     }
 
     public File getGradleUserHome() {

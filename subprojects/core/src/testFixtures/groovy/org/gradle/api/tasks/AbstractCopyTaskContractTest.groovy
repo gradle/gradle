@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
-import org.gradle.api.internal.DynamicObject
+import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 import spock.lang.Issue

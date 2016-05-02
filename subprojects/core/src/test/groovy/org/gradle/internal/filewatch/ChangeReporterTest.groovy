@@ -16,7 +16,7 @@
 
 package org.gradle.internal.filewatch
 
-import org.gradle.logging.StyledTextOutput
+import org.gradle.internal.logging.text.StyledTextOutput
 import spock.lang.Specification
 
 import static org.gradle.internal.filewatch.FileWatcherEvent.Type.*

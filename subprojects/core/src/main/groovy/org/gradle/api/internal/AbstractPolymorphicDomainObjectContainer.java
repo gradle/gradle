@@ -16,15 +16,19 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import groovy.lang.MissingPropertyException;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.Namer;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.internal.Transformers;
+import org.gradle.internal.metaobject.*;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
-import java.util.*;
+import java.util.Map;
 
 public abstract class AbstractPolymorphicDomainObjectContainer<T>
         extends AbstractNamedDomainObjectContainer<T> implements PolymorphicDomainObjectContainerInternal<T> {
@@ -79,8 +83,8 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
     }
 
     @Override
-    protected Object createConfigureDelegate(Closure configureClosure) {
-        return new PolymorphicDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this);
+    protected ConfigureDelegate createConfigureDelegate(Closure configureClosure) {
+        return new PolymorphicDomainObjectContainerConfigureDelegate(configureClosure, this);
     }
 
     private class ContainerDynamicObject extends CompositeDynamicObject {
@@ -89,14 +93,14 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         }
 
         @Override
-        protected String getDisplayName() {
+        public String getDisplayName() {
             return AbstractPolymorphicDomainObjectContainer.this.getDisplayName();
         }
     }
 
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {
         @Override
-        protected String getDisplayName() {
+        public String getDisplayName() {
             return AbstractPolymorphicDomainObjectContainer.this.getDisplayName();
         }
 
@@ -106,12 +110,11 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         }
 
         @Override
-        public Object getProperty(String name) throws MissingPropertyException {
+        public void getProperty(String name, GetPropertyResult result) {
             Object object = findByName(name);
-            if (object == null) {
-                return super.getProperty(name);
+            if (object != null) {
+                result.result(object);
             }
-            return object;
         }
 
         @Override
@@ -125,16 +128,14 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         }
 
         @Override
-        public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
+        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
             if (isConfigureMethod(name, arguments)) {
                 T element = getByName(name);
                 Object lastArgument = arguments[arguments.length - 1];
                 if (lastArgument instanceof Closure) {
                     ConfigureUtil.configure((Closure) lastArgument, element);
                 }
-                return element;
-            } else {
-                return super.invokeMethod(name, arguments);
+                result.result(element);
             }
         }
 

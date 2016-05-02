@@ -18,7 +18,7 @@ package org.gradle.internal.serialize;
 
 import java.util.*;
 
-public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
+public class DefaultSerializerRegistry implements SerializerRegistry {
     private final Map<Class<?>, Serializer<?>> serializerMap = new TreeMap<Class<?>, Serializer<?>>(new Comparator<Class<?>>() {
         public int compare(Class<?> o1, Class<?> o2) {
             return o1.getName().compareTo(o2.getName());
@@ -26,41 +26,59 @@ public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
     });
     private final Set<Class<?>> javaSerialization = new HashSet<Class<?>>();
 
-    public <U extends T> void register(Class<U> implementationType, Serializer<U> serializer) {
+    @Override
+    public <T> void register(Class<T> implementationType, Serializer<T> serializer) {
         serializerMap.put(implementationType, serializer);
     }
 
     @Override
-    public <U extends T> void useJavaSerialization(Class<U> implementationType) {
+    public <T> void useJavaSerialization(Class<T> implementationType) {
         javaSerialization.add(implementationType);
     }
 
-    public Serializer<T> build() {
-        if (serializerMap.size() == 1 && javaSerialization.isEmpty()) {
-            return (Serializer<T>) serializerMap.values().iterator().next();
+    @Override
+    public <T> Serializer<T> build(Class<T> baseType) {
+        Map<Class<?>, Serializer<?>> matches = new LinkedHashMap<Class<?>, Serializer<?>>();
+        for (Map.Entry<Class<?>, Serializer<?>> entry : serializerMap.entrySet()) {
+            if (baseType.isAssignableFrom(entry.getKey())) {
+                matches.put(entry.getKey(), entry.getValue());
+            }
         }
-        return new TaggedTypeSerializer<T>(serializerMap, javaSerialization);
+        Set<Class<?>> matchingJavaSerialization = new LinkedHashSet<Class<?>>();
+        for (Class<?> candidate : javaSerialization) {
+            if (baseType.isAssignableFrom(candidate)) {
+                matchingJavaSerialization.add(candidate);
+            }
+        }
+        if (matches.isEmpty() && matchingJavaSerialization.isEmpty()) {
+            throw new IllegalArgumentException(String.format("Don't know how to serialize objects of type %s.", baseType.getName()));
+        }
+        if (matches.size() == 1 && matchingJavaSerialization.isEmpty()) {
+            return (Serializer<T>) matches.values().iterator().next();
+        }
+        return new TaggedTypeSerializer<T>(matches, matchingJavaSerialization);
     }
 
     private static class TypeInfo {
         final int tag;
+        final boolean useForSubtypes;
         final Serializer serializer;
 
-        private TypeInfo(int tag, Serializer serializer) {
+        private TypeInfo(int tag, boolean useForSubtypes, Serializer serializer) {
             this.tag = tag;
+            this.useForSubtypes = useForSubtypes;
             this.serializer = serializer;
         }
     }
 
     private static class TaggedTypeSerializer<T> implements Serializer<T> {
         private static final int JAVA_TYPE = 1; // Reserve 0 for null (to be added later)
-        private static final TypeInfo JAVA_SERIALIZATION = new TypeInfo(JAVA_TYPE, new DefaultSerializer<Object>());
+        private static final TypeInfo JAVA_SERIALIZATION = new TypeInfo(JAVA_TYPE, true, new DefaultSerializer<Object>());
         private final Map<Class<?>, TypeInfo> serializersByType = new HashMap<Class<?>, TypeInfo>();
+        private final Map<Class<?>, TypeInfo> typeHierarchies = new HashMap<Class<?>, TypeInfo>();
         private final TypeInfo[] serializersByTag;
-        private final Set<Class<?>> javaSerialization;
 
         public TaggedTypeSerializer(Map<Class<?>, Serializer<?>> serializerMap, Set<Class<?>> javaSerialization) {
-            this.javaSerialization = new HashSet<Class<?>>(javaSerialization);
             serializersByTag = new TypeInfo[2 + serializerMap.size()];
             serializersByTag[JAVA_TYPE] = JAVA_SERIALIZATION;
             int nextTag = 2;
@@ -68,12 +86,19 @@ public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
                 add(nextTag, entry.getKey(), entry.getValue());
                 nextTag++;
             }
+            for (Class<?> type : javaSerialization) {
+                serializersByType.put(type, JAVA_SERIALIZATION);
+                typeHierarchies.put(type, JAVA_SERIALIZATION);
+            }
         }
 
         private void add(int tag, Class<?> type, Serializer<?> serializer) {
-            TypeInfo typeInfo = new TypeInfo(tag, serializer);
+            TypeInfo typeInfo = new TypeInfo(tag, type.equals(Throwable.class), serializer);
             serializersByType.put(type, typeInfo);
             serializersByTag[typeInfo.tag] = typeInfo;
+            if (typeInfo.useForSubtypes) {
+                typeHierarchies.put(type, typeInfo);
+            }
         }
 
         public T read(Decoder decoder) throws Exception {
@@ -92,14 +117,13 @@ public class DefaultSerializerRegistry<T> implements SerializerRegistry<T> {
         }
 
         private TypeInfo map(Class<?> valueType) {
-            Class<?> targetType = Throwable.class.isAssignableFrom(valueType) ? Throwable.class : valueType;
-            TypeInfo typeInfo = serializersByType.get(targetType);
+            TypeInfo typeInfo = serializersByType.get(valueType);
             if (typeInfo != null) {
                 return typeInfo;
             }
-            for (Class<?> candidate : javaSerialization) {
-                if (candidate.isAssignableFrom(targetType)) {
-                    return JAVA_SERIALIZATION;
+            for (Map.Entry<Class<?>, TypeInfo> entry : typeHierarchies.entrySet()) {
+                if (entry.getKey().isAssignableFrom(valueType)) {
+                    return entry.getValue();
                 }
             }
             throw new IllegalArgumentException(String.format("Don't know how to serialize an object of type %s.", valueType.getName()));

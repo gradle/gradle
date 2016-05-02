@@ -23,9 +23,6 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matcher
 
-import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.SPOCK
-import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.TESTNG
-import static org.gradle.buildinit.plugins.internal.BuildInitTypeIds.*
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
@@ -184,14 +181,19 @@ include 'child'
         run('help', '--task', 'init')
 
         then:
-        def output = result.output
-        output.contains(BASIC)
-        output.contains(POM)
-        output.contains(JAVA_LIBRARY)
-        output.contains(GROOVY_LIBRARY)
-        output.contains(SCALA_LIBRARY)
-        output.contains(SPOCK.id)
-        output.contains(TESTNG.id)
+        result.output.contains("""Options
+     --type     Set type of build to create.
+                Available values are:
+                     basic
+                     groovy-library
+                     java-library
+                     pom
+                     scala-library
+
+     --test-framework     Set alternative test framework to be used.
+                          Available values are:
+                               spock
+                               testng""");
     }
 
     private TestFile pom() {

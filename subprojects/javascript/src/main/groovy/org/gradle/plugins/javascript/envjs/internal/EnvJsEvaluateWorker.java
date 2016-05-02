@@ -16,20 +16,14 @@
 
 package org.gradle.plugins.javascript.envjs.internal;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorker;
 import org.mozilla.javascript.Context;
-import org.mozilla.javascript.RhinoException;
 import org.mozilla.javascript.Scriptable;
 
 import static org.gradle.plugins.javascript.rhino.worker.RhinoWorkerUtils.DefaultScopeOperation;
 import static org.gradle.plugins.javascript.rhino.worker.RhinoWorkerUtils.parseRhino;
 
-public class EnvJsEvaluateWorker implements RhinoWorker<String, EnvJsEvaluateSpec> {
-
-    private static final Logger LOGGER = Logging.getLogger(EnvJsEvaluateWorker.class);
-
+public class EnvJsEvaluateWorker implements EnvJvEvaluateProtocol {
+    @Override
     public String process(EnvJsEvaluateSpec spec) {
 
         final String targetUrl = spec.getUrl();
@@ -48,11 +42,6 @@ public class EnvJsEvaluateWorker implements RhinoWorker<String, EnvJsEvaluateSpe
                 return (String) html;
             }
         });
-    }
-
-    public Exception convertException(RhinoException rhinoException) {
-        // TODO - need to convert this to a non rhino type in case the version is different back at the client
-        return rhinoException;
     }
 
 }

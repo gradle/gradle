@@ -59,7 +59,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(23)
         failure.assertHasCause("There was an error while evaluating a component metadata rule for org.test:projectA:1.0.")
-        failure.assertHasCause("No signature of method: org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter_Decorated.foo()")
+        failure.assertHasCause("Could not find method foo() for arguments [] on object of type org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter_Decorated.")
     }
 
     def "produces sensible error for invalid component metadata rule" () {

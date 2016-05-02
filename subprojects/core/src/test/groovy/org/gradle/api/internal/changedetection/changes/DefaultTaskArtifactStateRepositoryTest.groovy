@@ -68,20 +68,23 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         }
     }
     DefaultTaskArtifactStateRepository repository
+    CachingTreeVisitor treeVisitor
 
     def setup() {
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
         TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
         def stringInterner = new StringInterner()
         def snapshotter = new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner)
-        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.resolver())
+        treeVisitor = new CachingTreeVisitor()
+        def treeSnapshotRepository = new TreeSnapshotRepository(cacheAccess, stringInterner)
+        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.resolver(), treeVisitor, treeSnapshotRepository)
         FileCollectionSnapshotter discoveredFilesSnapshotter = new MinimalFileSetSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.resolver(), TestFiles.fileSystem())
-        FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheAccess, stringInterner)
+        FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(inputFilesSnapshotter, stringInterner)
         SerializerRegistry<FileCollectionSnapshot> serializerRegistry = new DefaultSerializerRegistry<FileCollectionSnapshot>();
         inputFilesSnapshotter.registerSerializers(serializerRegistry);
         outputFilesSnapshotter.registerSerializers(serializerRegistry);
         discoveredFilesSnapshotter.registerSerializers(serializerRegistry);
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(), new RandomLongIdGenerator()), stringInterner)
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(FileCollectionSnapshot), new RandomLongIdGenerator(), treeSnapshotRepository), stringInterner)
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, outputFilesSnapshotter, inputFilesSnapshotter, discoveredFilesSnapshotter, TestFiles.fileCollectionFactory())
     }
 
@@ -246,6 +249,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
         when:
         def file = inputDir.file("other-file").createFile()
+        treeVisitor.clearCache()
 
         then:
         inputsOutOfDate(task).withAddedFile(file)
@@ -257,6 +261,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
         when:
         inputDirFile.delete()
+        treeVisitor.clearCache()
 
         then:
         inputsOutOfDate(task).withRemovedFile(inputDirFile)
@@ -268,6 +273,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
         when:
         inputDirFile.writelns("new content")
+        treeVisitor.clearCache()
 
         then:
         inputsOutOfDate(task).withModifiedFile(inputDirFile)
@@ -280,6 +286,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         when:
         inputDirFile.delete()
         inputDirFile.mkdir()
+        treeVisitor.clearCache()
 
         then:
         inputsOutOfDate(task).withModifiedFile(inputDirFile)
@@ -331,13 +338,16 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
     def artifactsAreNotUpToDateWhenOutputDirWhichUsedToExistHasBeenDeleted() {
         given:
         // Output dir already exists before first execution of task
-        outputDirFile.createFile()
+        outputDir.createDir()
 
-        TaskInternal task1 = builder.withOutputFiles(outputDir).createsFiles(outputDirFile).task()
-        TaskInternal task2 = builder.withPath("other").withOutputFiles(outputDir).createsFiles(outputDirFile2).task()
+        TaskInternal task1 = builder.withOutputFiles(outputDir).task()
+        TaskInternal task2 = builder.withPath("other").withOutputFiles(outputDir).task()
 
         when:
         TaskArtifactState state = repository.getStateFor(task1)
+        state.isUpToDate([])
+        state.beforeTask()
+        outputDirFile.createFile()
         state.afterTask()
 
         then:
@@ -354,7 +364,8 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         !state.isUpToDate([])
 
         when:
-        task2.execute()
+        state.beforeTask()
+        outputDirFile2.createFile()
         state.afterTask()
 
         then:
@@ -466,6 +477,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         !state.isUpToDate([])
 
         when:
+        state.beforeTask()
         task.execute()
         otherFile.write("new content")
         state.afterTask()
@@ -483,6 +495,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
         outputDirFile.delete()
         TaskArtifactState state = repository.getStateFor(task)
+        state.isUpToDate([])
         state.afterTask()
 
         when:
@@ -549,13 +562,13 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
     private void outOfDate(TaskInternal task) {
         final state = repository.getStateFor(task)
-        assert !state.upToDate
+        assert !state.isUpToDate([])
         assert !state.inputChanges.incremental
     }
 
     def inputsOutOfDate(TaskInternal task) {
         final state = repository.getStateFor(task)
-        assert !state.upToDate
+        assert !state.isUpToDate([])
 
         final inputChanges = state.inputChanges
         assert inputChanges.incremental
@@ -594,6 +607,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         for (TaskInternal task : tasks) {
             TaskArtifactState state = repository.getStateFor(task)
             state.isUpToDate([])
+            state.beforeTask()
             task.execute()
             state.afterTask()
         }

@@ -17,8 +17,8 @@
 package org.gradle.internal.event;
 
 import org.gradle.internal.UncheckedException;
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.dispatch.MethodInvocation;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -33,7 +33,7 @@ public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInv
 
     private String getErrorMessage() {
         String typeDescription = type.getSimpleName().replaceAll("(\\p{Upper})", " $1").trim().toLowerCase();
-        return String.format("Failed to notify %s.", typeDescription);
+        return "Failed to notify " + typeDescription + ".";
     }
 
     protected void dispatch(MethodInvocation invocation, Iterator<? extends Dispatch<MethodInvocation>> handlers) {

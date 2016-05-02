@@ -22,8 +22,8 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.id.IdGenerator;
-import org.gradle.messaging.actor.Actor;
-import org.gradle.messaging.actor.ActorFactory;
+import org.gradle.internal.actor.Actor;
+import org.gradle.internal.actor.ActorFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +43,7 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
         this.timeProvider = timeProvider;
     }
 
+    @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
         // Build a result processor chain
         ClassLoader applicationClassLoader = Thread.currentThread().getContextClassLoader();
@@ -59,11 +60,13 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
         executer = new JUnitTestClassExecuter(applicationClassLoader, spec, junitEventAdapter, threadSafeTestClassListener);
     }
 
+    @Override
     public void processTestClass(TestClassRunInfo testClass) {
         LOGGER.debug("Executing test class {}", testClass.getTestClassName());
         executer.execute(testClass.getTestClassName());
     }
 
+    @Override
     public void stop() {
         resultProcessorActor.stop();
     }

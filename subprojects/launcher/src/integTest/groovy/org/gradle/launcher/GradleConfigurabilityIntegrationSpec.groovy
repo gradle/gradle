@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
-import org.gradle.util.GradleVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -29,12 +28,6 @@ import spock.lang.IgnoreIf
 
 @LeaksFileHandles
 class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
-
-    def setup() {
-        executer.requireGradleHome()
-        executer.requireIsolatedDaemons()
-    }
-
     def buildSucceeds(String script) {
         file('build.gradle') << script
         executer.withArguments("--info").useDefaultBuildJvmArgs().run()
@@ -132,15 +125,5 @@ assert inputArgs.find { it.contains('-XX:HeapDumpPath=') }
 
         expect:
         buildSucceeds "assert System.getProperty('java.runtime.version') != '${javaRuntimeVersion}'"
-    }
-
-    @IgnoreIf({ AvailableJavaHomes.java5 == null })
-    def "fails when configured to use Java 5"() {
-        given:
-        file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.java5.javaHome.canonicalPath)
-
-        expect:
-        fails()
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 6 or later to run. Your build is currently configured to use Java 5.")
     }
 }

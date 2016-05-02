@@ -111,6 +111,11 @@ class IvyS3Module implements RemoteIvyModule {
     }
 
     @Override
+    IvyModule dependsOn(IvyModule ivyModule) {
+        return backingModule.dependsOn(ivyModule)
+    }
+
+    @Override
     IvyModule artifact(Map<String, ?> options) {
         return backingModule.artifact(options)
     }

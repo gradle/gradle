@@ -41,6 +41,7 @@ public class DefaultTestClassScanner implements Runnable {
         this.testClassProcessor = testClassProcessor;
     }
 
+    @Override
     public void run() {
         if (testFrameworkDetector == null) {
             filenameScan();
@@ -69,6 +70,7 @@ public class DefaultTestClassScanner implements Runnable {
     }
 
     private abstract class ClassFileVisitor extends EmptyFileVisitor {
+        @Override
         public void visitFile(FileVisitDetails fileDetails) {
             final File file = fileDetails.getFile();
 

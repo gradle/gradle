@@ -20,7 +20,6 @@ import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-import static org.gradle.performance.measure.DataAmount.kbytes
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
@@ -36,7 +35,7 @@ class JavaFullBuildDaemonPerformanceTest extends AbstractCrossVersionPerformance
         runner.tasksToRun = ['clean', 'build']
         runner.maxExecutionTimeRegression = maxTimeReg
         runner.maxMemoryRegression = maxMemReg
-        runner.targetVersions = ['1.0', '2.0', '2.8', '2.10', 'last']
+        runner.targetVersions = ['2.11', 'last']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
 
         when:
@@ -47,7 +46,7 @@ class JavaFullBuildDaemonPerformanceTest extends AbstractCrossVersionPerformance
 
         where:
         testProject | maxTimeReg   | maxMemReg
-        "small"     | millis(500)  | kbytes(1500)
+        "small"     | millis(500)  | mbytes(3)
         "multi"     | millis(1000) | mbytes(10)
     }
 }

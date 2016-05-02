@@ -45,7 +45,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
 
     @Override
     public String getTitle() {
-        return String.format("Test %s", name);
+        return "Test " + name;
     }
 
     @Override
@@ -88,6 +88,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
         ignored = true;
     }
 
+    @Override
     public int compareTo(TestResult testResult) {
         int diff = classResults.getName().compareTo(testResult.classResults.getName());
         if (diff != 0) {

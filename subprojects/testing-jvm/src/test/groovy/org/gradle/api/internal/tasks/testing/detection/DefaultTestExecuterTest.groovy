@@ -19,11 +19,13 @@ package org.gradle.api.internal.tasks.testing.detection
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.tasks.testing.TestFramework
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.tasks.testing.Test
-import org.gradle.messaging.actor.Actor
-import org.gradle.messaging.actor.ActorFactory
+import org.gradle.internal.actor.Actor
+import org.gradle.internal.actor.ActorFactory
+import org.gradle.process.internal.worker.WorkerProcessFactory
 import spock.lang.Specification
 
 class DefaultTestExecuterTest extends Specification {
@@ -31,7 +33,8 @@ class DefaultTestExecuterTest extends Specification {
     TestResultProcessor testResultProcessor = Mock()
     Test testTask = Mock()
     ActorFactory actorFactory = Mock()
-    org.gradle.internal.Factory workerFactory = Mock()
+    WorkerProcessFactory workerFactory = Mock()
+    ModuleRegistry moduleRegistry = Mock()
     TestFramework testFramework = Mock()
     TestResultProcessor resultProcessor = Mock()
     Actor resultProcessorActor = Mock()
@@ -40,7 +43,7 @@ class DefaultTestExecuterTest extends Specification {
     FileCollection testClasspath = Mock()
     Project project = Mock()
 
-    DefaultTestExecuter executer = new DefaultTestExecuter(workerFactory, actorFactory)
+    DefaultTestExecuter executer = new DefaultTestExecuter(workerFactory, actorFactory, moduleRegistry)
 
     def setup() {
         _ * testTask.testFramework >> testFramework

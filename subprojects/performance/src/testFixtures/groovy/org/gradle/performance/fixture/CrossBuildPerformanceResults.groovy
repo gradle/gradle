@@ -28,6 +28,10 @@ class CrossBuildPerformanceResults extends PerformanceTestResult {
         return testId
     }
 
+    protected Map<BuildDisplayInfo, MeasuredOperationList> getBuildResults() {
+        buildResults
+    }
+
     MeasuredOperationList buildResult(BuildDisplayInfo buildInfo) {
         def buildResult = buildResults[buildInfo]
         if (buildResult == null) {

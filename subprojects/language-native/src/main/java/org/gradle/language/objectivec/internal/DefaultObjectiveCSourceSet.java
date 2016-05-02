@@ -21,7 +21,7 @@ import org.gradle.language.objectivec.ObjectiveCSourceSet;
 
 public class DefaultObjectiveCSourceSet extends AbstractHeaderExportingDependentSourceSet implements ObjectiveCSourceSet {
     @Override
-    protected String getTypeName() {
-        return "Objective-C source";
+    protected String getLanguageName() {
+        return "Objective-C";
     }
 }

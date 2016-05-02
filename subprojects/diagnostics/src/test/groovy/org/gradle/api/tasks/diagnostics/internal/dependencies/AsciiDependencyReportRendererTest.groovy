@@ -19,7 +19,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
-import org.gradle.logging.TestStyledTextOutput
+import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 

@@ -25,12 +25,13 @@ import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.language.javascript.JavaScriptSourceSet;
 import org.gradle.language.javascript.internal.DefaultJavaScriptSourceSet;
-import org.gradle.model.ModelMap;
+import org.gradle.model.Each;
+import org.gradle.model.Finalize;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.LanguageType;
-import org.gradle.platform.base.LanguageTypeBuilder;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.JavaScriptSourceCode;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
@@ -52,24 +53,18 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
     }
 
     static class Rules extends RuleSource {
-        @LanguageType
-        void registerJavascript(LanguageTypeBuilder<JavaScriptSourceSet> builder) {
-            builder.setLanguageName("javaScript");
+        @ComponentType
+        void registerJavascript(TypeBuilder<JavaScriptSourceSet> builder) {
             builder.defaultImplementation(DefaultJavaScriptSourceSet.class);
         }
 
-        @Mutate
-        void createJavascriptSourceSets(ModelMap<PlayApplicationSpec> components) {
-            components.afterEach(new Action<PlayApplicationSpec>() {
+        @Finalize
+        void createJavascriptSourceSets(@Each PlayApplicationSpec playComponent) {
+            playComponent.getSources().create("javaScript", JavaScriptSourceSet.class, new Action<JavaScriptSourceSet>() {
                 @Override
-                public void execute(PlayApplicationSpec playComponent) {
-                    playComponent.getSources().create("javaScript", JavaScriptSourceSet.class, new Action<JavaScriptSourceSet>() {
-                        @Override
-                        public void execute(JavaScriptSourceSet javaScriptSourceSet) {
-                            javaScriptSourceSet.getSource().srcDir("app/assets");
-                            javaScriptSourceSet.getSource().include("**/*.js");
-                        }
-                    });
+                public void execute(JavaScriptSourceSet javaScriptSourceSet) {
+                    javaScriptSourceSet.getSource().srcDir("app/assets");
+                    javaScriptSourceSet.getSource().include("**/*.js");
                 }
             });
         }
@@ -81,18 +76,27 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
     }
 
     private static class JavaScript implements LanguageTransform<JavaScriptSourceSet, JavaScriptSourceCode> {
+        @Override
+        public String getLanguageName() {
+            return "javaScript";
+        }
+
+        @Override
         public Class<JavaScriptSourceSet> getSourceSetType() {
             return JavaScriptSourceSet.class;
         }
 
+        @Override
         public Class<JavaScriptSourceCode> getOutputType() {
             return JavaScriptSourceCode.class;
         }
 
+        @Override
         public Map<String, Class<?>> getBinaryTools() {
             return Collections.emptyMap();
         }
 
+        @Override
         public SourceTransformTaskConfig getTransformTask() {
             return new SourceTransformTaskConfig() {
                 public String getTaskPrefix() {
@@ -124,6 +128,7 @@ public class PlayJavaScriptPlugin implements Plugin<Project> {
             };
         }
 
+        @Override
         public boolean applyToBinary(BinarySpec binary) {
             return binary instanceof PlayApplicationBinarySpecInternal;
         }

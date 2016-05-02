@@ -104,6 +104,13 @@ public class ExtensionContainerTest extends Specification {
         then:
         IllegalArgumentException e2 = thrown()
         e2.message == "There's an extension registered with name 'foo'. You should not reassign it via a property setter."
+
+        when:
+        container.create('foo', Thing, 'bar')
+
+        then:
+        IllegalArgumentException e3 = thrown()
+        e3.message == "Cannot add extension with name 'foo', as there is an extension already registered with that name."
     }
 
     def "knows registered extensions"() {

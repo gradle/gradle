@@ -19,6 +19,9 @@ import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.remote.internal.ConnectException;
+import org.gradle.internal.remote.internal.OutgoingConnector;
+import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.internal.serialize.Serializers;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
@@ -28,7 +31,6 @@ import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.messaging.remote.internal.*;
 
 import java.util.List;
 
@@ -39,7 +41,6 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
     public static final int DEFAULT_CONNECT_TIMEOUT = 30000;
     public static final String STARTING_DAEMON_MESSAGE = "Starting a new Gradle Daemon for this build (subsequent builds will be faster).";
-    public static final String DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY = "org.gradle.daemon.disable-starting-message";
     private final DaemonRegistry daemonRegistry;
     protected final OutgoingConnector connector;
     private final DaemonStarter daemonStarter;
@@ -82,9 +83,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             return connection;
         }
 
-        if (!Boolean.getBoolean(DISABLE_STARTING_DAEMON_MESSAGE_PROPERTY)) {
-            LOGGER.lifecycle(STARTING_DAEMON_MESSAGE);
-        }
+        LOGGER.lifecycle(STARTING_DAEMON_MESSAGE);
         return startDaemon(constraint);
     }
 
@@ -147,8 +146,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private DaemonClientConnection connectToDaemon(DaemonInstanceDetails daemon, DaemonClientConnection.StaleAddressDetector staleAddressDetector) throws ConnectException {
         RemoteConnection<Message> connection;
         try {
-            MessageSerializer<Message> serializer = new KryoBackedMessageSerializer<Message>(Serializers.stateful(DaemonMessageSerializer.create()));
-            connection = connector.connect(daemon.getAddress()).create(serializer);
+            connection = connector.connect(daemon.getAddress()).create(Serializers.stateful(DaemonMessageSerializer.create()));
         } catch (ConnectException e) {
             staleAddressDetector.maybeStaleAddress(e);
             throw e;

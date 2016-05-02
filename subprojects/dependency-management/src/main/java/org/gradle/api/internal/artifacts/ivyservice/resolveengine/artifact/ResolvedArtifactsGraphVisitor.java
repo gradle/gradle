@@ -20,7 +20,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultModuleResolutionFilter;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExcludeRuleFilters;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
@@ -84,7 +84,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
         Set<ComponentArtifactMetaData> artifacts = dependency.getArtifacts(metaData);
         if (!artifacts.isEmpty()) {
-            return new DefaultArtifactSet(component.getId(), component.getSource(), DefaultModuleResolutionFilter.all(), artifacts, artifactResolver, allResolvedArtifacts, id);
+            return new DefaultArtifactSet(component.getId(), component.getSource(), ModuleExcludeRuleFilters.excludeNone(), artifacts, artifactResolver, allResolvedArtifacts, id);
         }
 
         ArtifactSet configurationArtifactSet = artifactSetsByConfiguration.get(configurationIdentifier);

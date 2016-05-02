@@ -40,14 +40,17 @@ class GenericFileSystem implements FileSystem {
     private final FileModeAccessor stat;
     private final Symlink symlink;
 
+    @Override
     public boolean isCaseSensitive() {
         return caseSensitive;
     }
 
+    @Override
     public boolean canCreateSymbolicLink() {
         return canCreateSymbolicLink;
     }
 
+    @Override
     public void createSymbolicLink(File link, File target) {
         try {
             symlink.symlink(link, target);
@@ -56,6 +59,12 @@ class GenericFileSystem implements FileSystem {
         }
     }
 
+    @Override
+    public boolean isSymlink(File suspect) {
+        return symlink.isSymlink(suspect);
+    }
+
+    @Override
     public int getUnixMode(File f) {
         try {
             return stat.getUnixMode(f);
@@ -64,6 +73,7 @@ class GenericFileSystem implements FileSystem {
         }
     }
 
+    @Override
     public void chmod(File f, int mode) {
         try {
             chmod.chmod(f, mode);

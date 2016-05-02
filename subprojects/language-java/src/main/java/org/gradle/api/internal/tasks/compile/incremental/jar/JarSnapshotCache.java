@@ -18,10 +18,11 @@ package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import org.gradle.api.internal.cache.Cache;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.hash.HashValue;
 
 import java.io.File;
 import java.util.Map;
 
-public interface JarSnapshotCache extends Cache<byte[], JarSnapshot>, Stoppable {
-    Map<File, JarSnapshot> getJarSnapshots(Map<File, byte[]> jarHashes);
+public interface JarSnapshotCache extends Cache<HashValue, JarSnapshot>, Stoppable {
+    Map<File, JarSnapshot> getJarSnapshots(Map<File, HashValue> jarHashes);
 }

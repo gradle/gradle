@@ -34,6 +34,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -96,6 +97,11 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             public ProjectInternal getProject(String path) {
                 return gradle.getRootProject().project(path);
             }
+
+            @Override
+            public ProjectInternal findProject(String path) {
+                return gradle.getRootProject().findProject(path);
+            }
         };
     }
 
@@ -110,10 +116,11 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
+        final Factory<LoggingManagerInternal> loggingManagerInternalFactory = getFactory(LoggingManagerInternal.class);
         return new ServiceRegistryFactory() {
             public ServiceRegistry createFor(Object domainObject) {
                 if (domainObject instanceof ProjectInternal) {
-                    ProjectScopeServices projectScopeServices = new ProjectScopeServices(services, (ProjectInternal) domainObject);
+                    ProjectScopeServices projectScopeServices = new ProjectScopeServices(services, (ProjectInternal) domainObject, loggingManagerInternalFactory);
                     registries.add(projectScopeServices);
                     return projectScopeServices;
                 }
@@ -126,9 +133,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope());
     }
 
-    PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry) {
+    PluginManagerInternal createPluginManager(Instantiator instantiator, GradleInternal gradleInternal, PluginRegistry pluginRegistry, DependencyInjectingInstantiator.ConstructorCache constructorCache) {
         PluginApplicator applicator = new ImperativeOnlyPluginApplicator<Gradle>(gradleInternal);
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, new DependencyInjectingInstantiator(this), applicator);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, new DependencyInjectingInstantiator(this, constructorCache), applicator);
     }
 
     @Override

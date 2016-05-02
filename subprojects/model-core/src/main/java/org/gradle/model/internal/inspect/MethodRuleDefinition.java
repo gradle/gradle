@@ -39,6 +39,8 @@ public interface MethodRuleDefinition<R, S> {
 
     List<ModelReference<?>> getReferences();
 
+    List<List<Annotation>> getParameterAnnotations();
+
     @Nullable
     ModelReference<S> getSubjectReference();
 

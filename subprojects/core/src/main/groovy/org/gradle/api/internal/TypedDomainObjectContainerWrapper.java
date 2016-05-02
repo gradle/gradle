@@ -21,6 +21,7 @@ import org.gradle.api.*;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -64,9 +65,8 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     public NamedDomainObjectContainer<U> configure(Closure configureClosure) {
-        NamedDomainObjectContainerConfigureDelegate delegate = new NamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this);
-        ConfigureUtil.configure(configureClosure, delegate);
-        return this;
+        NamedDomainObjectContainerConfigureDelegate delegate = new NamedDomainObjectContainerConfigureDelegate(configureClosure, this);
+        return ConfigureUtil.configureSelf(configureClosure, this, delegate);
     }
 
     public Set<U> findAll(Closure spec) {

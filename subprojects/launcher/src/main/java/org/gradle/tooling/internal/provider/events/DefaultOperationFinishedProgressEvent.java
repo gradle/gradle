@@ -33,6 +33,6 @@ public class DefaultOperationFinishedProgressEvent extends AbstractProgressEvent
 
     @Override
     public String getDisplayName() {
-        return String.format("%s %s", getDescriptor().getDisplayName(), result.getOutcomeDescription());
+        return getDescriptor().getDisplayName() + " " + result.getOutcomeDescription();
     }
 }

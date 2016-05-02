@@ -25,7 +25,7 @@ import spock.lang.IgnoreIf
 class EnablingParallelExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        executer.withDeprecationChecksDisabled()
+        executer.expectDeprecationWarning()
     }
 
     def "parallel mode enabled from command line"() {

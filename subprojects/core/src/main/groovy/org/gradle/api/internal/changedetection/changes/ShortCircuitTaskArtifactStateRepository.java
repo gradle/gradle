@@ -69,7 +69,9 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         }
 
         public boolean isUpToDate(Collection<String> messages) {
-            messages.add(reason);
+            if (messages != null) {
+                messages.add(reason);
+            }
             return false;
         }
 
@@ -89,8 +91,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             delegate.afterTask();
         }
 
-        public void finished() {
-            delegate.finished();
+        public void finished(boolean wasUpToDate) {
+            delegate.finished(wasUpToDate);
         }
     }
 

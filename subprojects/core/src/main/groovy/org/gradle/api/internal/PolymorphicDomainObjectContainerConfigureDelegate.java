@@ -17,33 +17,31 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.PolymorphicDomainObjectContainer;
+import org.gradle.internal.metaobject.ConfigureDelegate;
+import org.gradle.internal.metaobject.GetPropertyResult;
+import org.gradle.internal.metaobject.InvokeMethodResult;
 
 public class PolymorphicDomainObjectContainerConfigureDelegate extends ConfigureDelegate {
     private final PolymorphicDomainObjectContainer _container;
 
-    public PolymorphicDomainObjectContainerConfigureDelegate(Object owner, PolymorphicDomainObjectContainer container) {
-        super(owner, container);
+    public PolymorphicDomainObjectContainerConfigureDelegate(Closure configureClosure, PolymorphicDomainObjectContainer container) {
+        super(configureClosure, container);
         this._container = container;
     }
 
     @Override
-    protected boolean _isConfigureMethod(String name, Object[] params) {
-        return params.length == 1 && params[0] instanceof Closure
-                || params.length == 1 && params[0] instanceof Class
-                || params.length == 2 && params[0] instanceof Class && params[1] instanceof Closure;
+    protected void _configure(String name, GetPropertyResult result) {
+        result.result(_container.create(name));
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    protected Object _configure(String name, Object[] params) {
-        if (params.length == 0) {
-            return _container.create(name);
-        } else if (params.length == 1 && params[0] instanceof Closure) {
-            return _container.create(name, (Closure) params[0]);
+    protected void _configure(String name, Object[] params, InvokeMethodResult result) {
+        if (params.length == 1 && params[0] instanceof Closure) {
+            result.result(_container.create(name, (Closure) params[0]));
         } else if (params.length == 1 && params[0] instanceof Class) {
-            return _container.create(name, (Class) params[0]);
-        } else {
-            return _container.create(name, (Class) params[0], new ClosureBackedAction((Closure) params[1]));
+            result.result(_container.create(name, (Class) params[0]));
+        } else if (params.length == 2 && params[0] instanceof Class && params[1] instanceof Closure){
+            result.result(_container.create(name, (Class) params[0], new ClosureBackedAction((Closure) params[1])));
         }
     }
 }

@@ -15,10 +15,13 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.tasks.SourceSet
 
+@CompileStatic
 class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
     public static final String DEFAULT_CODENARC_VERSION = "0.24.1"
     private CodeNarcExtension extension
@@ -52,6 +55,7 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         return extension
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureTaskDefaults(CodeNarc task, String baseName) {
         def codenarcConfiguration = project.configurations['codenarc']
@@ -78,6 +82,7 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         }
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureForSourceSet(SourceSet sourceSet, CodeNarc task) {
         task.with {

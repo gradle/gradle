@@ -47,4 +47,7 @@ abstract class DaemonIntegrationSpec extends AbstractIntegrationSpec {
         new DaemonLogsAnalyzer(executer.daemonBaseDir)
     }
 
+    DaemonsFixture daemons(String gradleVersion){
+        new DaemonLogsAnalyzer(executer.daemonBaseDir, gradleVersion)
+    }
 }

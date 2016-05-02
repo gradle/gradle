@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.internal.hash.HashValue;
+
 public interface FileSnapshot {
-    byte[] getHash();
+    HashValue getHash();
 }

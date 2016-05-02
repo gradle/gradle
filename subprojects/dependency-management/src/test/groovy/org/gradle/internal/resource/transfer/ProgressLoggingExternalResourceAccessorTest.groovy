@@ -17,8 +17,8 @@
 package org.gradle.internal.resource.transfer
 
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
-import org.gradle.logging.ProgressLogger
-import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.internal.logging.progress.ProgressLogger
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import spock.lang.Specification
 import spock.lang.Unroll
 

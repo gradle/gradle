@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
-import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
 
@@ -50,15 +49,15 @@ public class ScalaCompilerFactory implements CompilerFactory<ScalaJavaJointCompi
 
     @SuppressWarnings("unchecked")
     public Compiler<ScalaJavaJointCompileSpec> newCompiler(ScalaJavaJointCompileSpec spec) {
-        ScalaCompileOptions scalaOptions = (ScalaCompileOptions) spec.getScalaCompileOptions();
+        ScalaCompileOptionsInternal scalaOptions = (ScalaCompileOptionsInternal) spec.getScalaCompileOptions();
         Set<File> scalaClasspathFiles = scalaClasspath.getFiles();
-        if (scalaOptions.isUseAnt()) {
+        if (scalaOptions.internalIsUseAnt()) {
             Compiler<ScalaCompileSpec> scalaCompiler = new AntScalaCompiler(antBuilder, scalaClasspathFiles);
             Compiler<JavaCompileSpec> javaCompiler = javaCompilerFactory.createForJointCompilation(spec.getClass());
             return new NormalizingScalaCompiler(new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler));
         }
 
-        if (!scalaOptions.isFork()) {
+        if (!scalaOptions.internalIsFork()) {
             throw new GradleException("The Zinc based Scala compiler ('scalaCompileOptions.useAnt=false') "
                     + "requires forking ('scalaCompileOptions.fork=true'), but the latter is set to 'false'.");
         }

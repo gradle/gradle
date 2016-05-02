@@ -32,6 +32,7 @@ public class TestClassLoaderFactory implements Factory<ClassLoader> {
         this.testTask = testTask;
     }
 
+    @Override
     public ClassLoader create() {
         if (testClassLoader == null) {
             testClassLoader = classLoaderCache.get(ClassLoaderIds.testTaskClasspath(testTask.getPath()), new DefaultClassPath(testTask.getClasspath()), null, null);

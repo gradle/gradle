@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Properties;
 
 public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
-    private static Logger logger = LoggerFactory.getLogger(DefaultGradlePropertiesLoader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultGradlePropertiesLoader.class);
 
     private Map<String, String> defaultProperties = new HashMap<String, String>();
     private Map<String, String> overrideProperties = new HashMap<String, String>();
@@ -84,7 +84,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
                 systemProjectProperties.put(entry.getKey().substring(SYSTEM_PROJECT_PROPERTIES_PREFIX.length()), entry.getValue());
             }
         }
-        logger.debug("Found system project properties: {}", systemProjectProperties.keySet());
+        LOGGER.debug("Found system project properties: {}", systemProjectProperties.keySet());
         return systemProjectProperties;
     }
 
@@ -95,14 +95,14 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
                 envProjectProperties.put(entry.getKey().substring(ENV_PROJECT_PROPERTIES_PREFIX.length()), entry.getValue());
             }
         }
-        logger.debug("Found env project properties: {}", envProjectProperties.keySet());
+        LOGGER.debug("Found env project properties: {}", envProjectProperties.keySet());
         return envProjectProperties;
     }
 
     private void setSystemProperties(Map<String, String> properties) {
-        System.getProperties().putAll(properties);
         addSystemPropertiesFromGradleProperties(defaultProperties);
         addSystemPropertiesFromGradleProperties(overrideProperties);
+        System.getProperties().putAll(properties);
     }
 
     private void addSystemPropertiesFromGradleProperties(Map<String, String> properties) {

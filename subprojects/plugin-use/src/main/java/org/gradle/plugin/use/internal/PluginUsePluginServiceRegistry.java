@@ -17,27 +17,38 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.api.UnknownProjectException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.BasicDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Factory;
+import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.plugin.use.resolve.service.internal.*;
+import org.gradle.plugin.use.repository.internal.DefaultPluginRepositoryHandler;
+import org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient;
+import org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient;
+import org.gradle.plugin.use.resolve.service.internal.InMemoryCachingPluginResolutionServiceClient;
+import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
+import org.gradle.plugin.use.resolve.service.internal.OfflinePluginResolutionServiceClient;
+import org.gradle.plugin.use.resolve.service.internal.PersistentCachingPluginResolutionServiceClient;
+import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceClient;
+import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -82,30 +93,46 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
                                                                               StartParameter startParameter, final DependencyManagementServices dependencyManagementServices,
                                                                               final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider,
                                                                               ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector) {
-            final ProjectFinder projectFinder = new ProjectFinder() {
-                public ProjectInternal getProject(String path) {
-                    throw new UnknownProjectException("Cannot use project dependencies in a plugin resolution definition.");
-                }
-            };
-
-            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter, classLoaderScopeRegistry.getCoreScope(), new Factory<DependencyResolutionServices>() {
-                public DependencyResolutionServices create() {
-                    return dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, projectFinder, new BasicDomainObjectContext());
-                }
-            }, pluginInspector);
+            final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
+            return new PluginResolutionServiceResolver(pluginResolutionServiceClient, versionSelectorScheme, startParameter, classLoaderScopeRegistry.getCoreScope(), dependencyResolutionServicesFactory, pluginInspector);
         }
 
         PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, DocumentationRegistry documentationRegistry, PluginResolutionServiceResolver pluginResolutionServiceResolver,
-                                                          InjectedClasspathPluginResolver injectedClasspathPluginResolver) {
-            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, injectedClasspathPluginResolver);
+                                                          DefaultPluginRepositoryHandler pluginRepositoryHandler, InjectedClasspathPluginResolver injectedClasspathPluginResolver, FileLookup fileLookup) {
+            return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, pluginRepositoryHandler, injectedClasspathPluginResolver);
         }
 
-        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory) {
-            return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory.create());
+        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, PluginRepositoryHandler pluginRepositoryHandler) {
+            return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory, pluginRepositoryHandler);
         }
 
         InjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector, InjectedPluginClasspath injectedPluginClasspath) {
             return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, injectedPluginClasspath.getClasspath());
+        }
+
+        DefaultPluginRepositoryHandler createPluginRepositoryHandler(PluginResolutionServiceResolver pluginResolutionServiceResolver, VersionSelectorScheme versionSelectorScheme,
+                                                                     final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver,
+                                                                     final DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator,
+                                                                     final AuthenticationSchemeRegistry authenticationSchemeRegistry) {
+
+            final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(
+                dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
+            return instantiator.newInstance(
+                DefaultPluginRepositoryHandler.class, pluginResolutionServiceResolver, fileResolver,
+                dependencyResolutionServicesFactory, versionSelectorScheme, instantiator,
+                authenticationSchemeRegistry);
+        }
+
+        private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver, final DependencyMetaDataProvider dependencyMetaDataProvider) {
+            return new Factory<DependencyResolutionServices>() {
+                public DependencyResolutionServices create() {
+                    return dependencyManagementServices.create(fileResolver, dependencyMetaDataProvider, makeUnknownProjectFinder(), new BasicDomainObjectContext());
+                }
+            };
+        }
+
+        private ProjectFinder makeUnknownProjectFinder() {
+            return new UnknownProjectFinder("Cannot use project dependencies in a plugin resolution definition.");
         }
     }
 }

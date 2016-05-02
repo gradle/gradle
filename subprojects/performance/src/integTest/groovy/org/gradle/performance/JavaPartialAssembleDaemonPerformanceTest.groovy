@@ -26,17 +26,43 @@ import static org.gradle.performance.measure.Duration.millis
 @Category([JavaPerformanceTest])
 class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    @Unroll("partial assemble Java build - #testProject")
-    def "partial assemble"() {
+    @Unroll("partial assemble Java software model build - #testProject")
+    def "partial assemble Java software model"() {
         given:
         runner.testId = "partial assemble Java build $testProject (daemon)"
-        runner.previousTestIds = ["big project old java plugin partial build"]
         runner.testProject = testProject
         runner.useDaemon = true
         runner.tasksToRun = [":project1:clean", ":project1:assemble"]
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = mbytes(50)
-        runner.targetVersions = ['2.0', '2.8', '2.11', 'last']
+        runner.targetVersions = targetVersions
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
+
+        when:
+        def result = runner.run()
+
+        then:
+        result.assertCurrentVersionHasNotRegressed()
+
+        where:
+        testProject     | maxExecutionTimeRegression | targetVersions
+        "bigNewJava"    | millis(1000)               | ['2.11', 'last']
+        "mediumNewJava" | millis(500)                | ['2.9', '2.10', 'last']
+    }
+
+    @Unroll("partial assemble Java build - #testProject")
+    def "partial assemble"() {
+        given:
+        runner.testId = "partial assemble Java build $testProject (daemon)"
+        if (testProject == "bigOldJavaMoreSource") {
+            runner.previousTestIds = ["big project old java plugin partial build"]
+        }
+        runner.testProject = testProject
+        runner.useDaemon = true
+        runner.tasksToRun = [":project1:clean", ":project1:assemble"]
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.maxMemoryRegression = mbytes(50)
+        runner.targetVersions = ['2.11', 'last']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
 
         when:
@@ -48,5 +74,7 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         where:
         testProject            | maxExecutionTimeRegression
         "bigOldJavaMoreSource" | millis(1000)
+        "bigOldJava"           | millis(1000)
+        "mediumOldJava"        | millis(500)
     }
 }

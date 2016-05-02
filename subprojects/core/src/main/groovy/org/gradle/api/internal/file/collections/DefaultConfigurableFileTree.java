@@ -55,8 +55,8 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
         this.fileCopier = fileCopier;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         patternSet = resolver.getPatternSetFactory().create();
-        ConfigureUtil.configureByMap(args, this);
         buildDependency = new DefaultTaskDependency(taskResolver);
+        ConfigureUtil.configureByMap(args, this);
     }
 
     public PatternSet getPatterns() {
@@ -81,7 +81,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     public String getDisplayName() {
-        return String.format("directory '%s'", dir);
+        return "directory '" + dir + "'";
     }
 
     public WorkResult copy(final Closure closure) {

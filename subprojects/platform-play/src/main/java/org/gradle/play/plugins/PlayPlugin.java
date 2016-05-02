@@ -26,6 +26,7 @@ import org.gradle.api.Project;
 @Incubating
 public class PlayPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(PlayApplicationPlugin.class);
         project.getPluginManager().apply(PlayTestPlugin.class);

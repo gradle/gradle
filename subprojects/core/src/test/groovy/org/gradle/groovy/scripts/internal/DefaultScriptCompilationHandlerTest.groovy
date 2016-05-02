@@ -37,15 +37,17 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.groovy.scripts.Transformer
 import org.gradle.internal.Actions
-import org.gradle.internal.resource.Resource
+import org.gradle.internal.resource.TextResource
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.hamcrest.Matchers.instanceOf
 import static org.junit.Assert.*
@@ -95,7 +97,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
 
     private ScriptSource scriptSource(final String scriptText) {
         def source = Stub(ScriptSource)
-        def resource = Stub(Resource)
+        def resource = Stub(TextResource)
         _ * source.className >> scriptClassName
         _ * source.fileName >> scriptFileName
         _ * source.displayName >> "script-display-name"
@@ -340,6 +342,7 @@ println 'hi'
             public Serializer<String> getDataSerializer() {
                 return new BaseSerializerFactory().getSerializerFor(String)
             }
+
         }
 
         def source = scriptSource("transformMe()")
@@ -365,9 +368,10 @@ println 'hi'
         1 * verifier.execute(!null)
     }
 
+    @Unroll
     @Issue('GRADLE-3382')
-    def testCompileToDirWithUnknownClass() {
-        ScriptSource source = new StringScriptSource("script.gradle", "new unknownclass()")
+    def "test compile with #unknownClass"() {
+        ScriptSource source = new StringScriptSource("script.gradle", "new ${unknownClass}()")
 
         when:
         scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
@@ -375,10 +379,73 @@ println 'hi'
         then:
         ScriptCompilationException e = thrown()
         e.lineNumber == 1
-        e.cause.message.contains("script.gradle: 1: unable to resolve class unknownclass")
+        e.cause.message.contains("script.gradle: 1: unable to resolve class ${unknownClass}")
 
         and:
         checkScriptCacheEmpty()
+
+        where:
+        unknownClass << [ 'unknownclass', 'fully.qualified.unknownclass', 'not.java.util.Map.Entry' ]
+    }
+
+    @Issue('GRADLE-3423')
+    def testCompileWithInnerClassReference() {
+        ScriptSource source = new StringScriptSource("script.gradle", innerClass)
+
+        when:
+        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        innerClass << [
+            "Map.Entry entry = null",
+            "java.util.Map.Entry entry = null",
+            """
+import java.util.Map.Entry
+Entry entry = null
+""",
+            """
+class Outer {
+    static class Inner { }
+}
+Outer.Inner entry = null
+"""
+        ]
+    }
+
+    @Issue('GRADLE-3423')
+    @Ignore
+    def testCompileWithInnerInnerClassReference() {
+        ScriptSource source = new StringScriptSource("script.gradle", innerClass)
+
+        when:
+        scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, metadataCacheDir, null, expectedScriptClass, verifier)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        innerClass << [
+            // fails
+            "import javax.swing.text.html.HTMLDocument.HTMLReader.SpecialAction",
+            // OK
+            """
+import javax.swing.text.html.HTMLDocument.HTMLReader
+HTMLReader.SpecialAction action = null
+""",
+            "javax.swing.text.html.HTMLDocument.HTMLReader.SpecialAction action = null",
+            """
+class Outer {
+    class Inner {
+         class Deeper {
+         }
+    }
+}
+Outer.Inner.Deeper weMustGoDeeper = null
+"""
+        ]
     }
 
     private void checkScriptClassesInCache(boolean empty = false) {

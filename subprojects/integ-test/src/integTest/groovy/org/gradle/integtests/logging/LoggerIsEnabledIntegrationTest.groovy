@@ -26,6 +26,7 @@ class LoggerIsEnabledIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     def "logger.isEnabled() works correctly for log level #level"() {
+        executer.expectDeprecationWarning()
         executer.withArguments("-Plevel=$level")
 
         expect:

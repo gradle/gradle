@@ -71,7 +71,7 @@ public class MutableURLClassLoader extends URLClassLoader implements ClassLoader
 
         @Override
         public String toString() {
-            return String.format("[%s classpath:%s]", getClass().getSimpleName(), classpath);
+            return "[" + getClass().getSimpleName() + " classpath:"+ classpath+"]";
         }
 
         @Override

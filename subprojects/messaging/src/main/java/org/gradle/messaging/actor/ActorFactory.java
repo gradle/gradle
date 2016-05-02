@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,11 @@
 
 package org.gradle.messaging.actor;
 
+/**
+ * DO NOT REMOVE.
+ *
+ * @deprecated This is here because tasks implemented in Groovy that are compiled against older versions of Gradle have this type baked into their byte-code, and cannot be loaded if it's not found.
+ */
+@Deprecated
 public interface ActorFactory {
-    /**
-     * Creates an asynchronous actor for the given target object.
-     *
-     * @param target The target object.
-     * @return The actor.
-     */
-    Actor createActor(Object target);
-
-    /**
-     * Creates a synchronous actor for the given target object.
-     *
-     * @param target The target object.
-     * @return The actor.
-     */
-    Actor createBlockingActor(Object target);
 }

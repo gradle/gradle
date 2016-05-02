@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.continuous.jdk7
 
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -91,7 +92,13 @@ class SymlinkContinuousIntegrationTest extends Java7RequiringContinuousIntegrati
         when: "symlink is deleted"
         symlink.delete()
         then:
-        noBuildTriggered()
+        // OSX uses a polling implementation, so changes to links are detectable
+        if (OperatingSystem.current().isMacOsX()) {
+            succeeds()
+        } else {
+            // Other OS's do not produce filesystem events for deleted symlinks
+            noBuildTriggered()
+        }
         when: "changes made to target of symlink"
         Files.createSymbolicLink(Paths.get(symlink.toURI()), Paths.get(targetDir.toURI()))
         targetDir.file("C").createFile()

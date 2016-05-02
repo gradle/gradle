@@ -41,6 +41,6 @@ public class JavaScriptCompileDestinationCalculator implements Transformer<File,
         }
         String prefix = fileName.substring(0, extIndex);
         String extension = fileName.substring(extIndex);
-        return String.format("%s.min%s", prefix, extension);
+        return prefix + ".min" + extension;
     }
 }

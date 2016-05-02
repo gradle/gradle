@@ -152,7 +152,7 @@ class ModelGraph {
 
         ModelNodeInternal ancestor = flattened.get(listener.getAncestor());
         if (ancestor != null) {
-            LinkedList<ModelNodeInternal> queue = new LinkedList<ModelNodeInternal>();
+            Deque<ModelNodeInternal> queue = new ArrayDeque<ModelNodeInternal>();
             queue.add(ancestor);
             while (!queue.isEmpty()) {
                 ModelNodeInternal parent = queue.removeFirst();

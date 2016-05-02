@@ -47,6 +47,6 @@ public class DefaultUnresolvedDependencyResult extends AbstractDependencyResult 
 
     @Override
     public String toString() {
-        return String.format("%s -> %s - %s", getRequested(), getAttempted(), failure.getMessage());
+        return getRequested() + " -> " + getAttempted() + " - " + failure.getMessage();
     }
 }

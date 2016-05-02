@@ -24,8 +24,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.util.DistributionLocator;
@@ -72,8 +72,8 @@ public class DistributionFactory {
      * Returns the distribution installed in the specified directory.
      */
     public Distribution getDistribution(File gradleHomeDir) {
-        return new InstalledDistribution(gradleHomeDir, String.format("Gradle installation '%s'", gradleHomeDir),
-                String.format("Gradle installation directory '%s'", gradleHomeDir));
+        return new InstalledDistribution(gradleHomeDir, "Gradle installation '" + gradleHomeDir + "'",
+                "Gradle installation directory '" + gradleHomeDir + "'");
     }
 
     /**
@@ -117,7 +117,7 @@ public class DistributionFactory {
         }
 
         public String getDisplayName() {
-            return String.format("Gradle distribution '%s'", wrapperConfiguration.getDistribution());
+            return "Gradle distribution '" + wrapperConfiguration.getDistribution() + "'";
         }
 
         public ClassPath getToolingImplementationClasspath(final ProgressLoggerFactory progressLoggerFactory, final File userHomeDir, BuildCancellationToken cancellationToken) {
@@ -188,7 +188,7 @@ public class DistributionFactory {
 
         public void download(URI address, File destination) throws Exception {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(DistributionFactory.class);
-            progressLogger.setDescription(String.format("Download %s", address));
+            progressLogger.setDescription("Download " + address);
             progressLogger.started();
             try {
                 new Download(new Logger(false), "Gradle Tooling API", GradleVersion.current().getVersion()).download(address, destination);

@@ -52,7 +52,8 @@ testTasks.all { task ->
         }
     }
     if (javaVersion.java6 || javaVersion.java7) {
-        task.jvmArgs '-XX:+CMSClassUnloadingEnabled'
+        // enable class unloading
+        task.jvmArgs '-XX:+UseConcMarkSweepGC', '-XX:+CMSClassUnloadingEnabled'
     }
 }
 
@@ -88,6 +89,8 @@ class ClasspathManifest extends DefaultTask {
 
     FileCollection input = project.configurations.runtime
 
+    List<String> optionalProjects = []
+
     @OutputFile
     File getManifestFile() {
         return new File(project.generatedResourcesDir, "${project.archivesBaseName}-classpath.properties")
@@ -99,13 +102,22 @@ class ClasspathManifest extends DefaultTask {
         properties.runtime = input.fileCollection {
             (it instanceof ExternalDependency) || (it instanceof FileCollectionDependency)
         }.collect { it.name }.join(',')
-        properties.projects = input.allDependencies.withType(ProjectDependency).collect { it.dependencyProject.archivesBaseName }.join(',')
+        properties.projects = input.allDependencies.withType(ProjectDependency).collect {
+            it.dependencyProject.archivesBaseName
+        }.join(',')
+        if (!optionalProjects.empty) {
+            properties.optional = optionalProjects.join(',')
+        }
         return properties
     }
 
     @TaskAction
     def generate() {
-        manifestFile.withOutputStream { properties.save(it, 'module definition') }
+        // Remove Properties timestamp for reproducible build
+        def sw = new StringWriter()
+        getProperties().store(sw, "")
+        def content = sw.toString().split(/\n/).findAll { !it.startsWith("#") }.join("\n")
+        manifestFile.setText(content, "utf-8")
     }
 }
 

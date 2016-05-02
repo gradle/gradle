@@ -346,6 +346,9 @@ class Module extends XmlPersistableConfigurationObject {
         if (generatedSourceFolders != module.generatedSourceFolders) {
             return false
         }
+        if (jdkName != module.jdkName) {
+            return false
+        }
         if (testOutputDir != module.testOutputDir) {
             return false
         }
@@ -358,12 +361,12 @@ class Module extends XmlPersistableConfigurationObject {
 
     int hashCode() {
         int result;
-
         result = (sourceFolders != null ? sourceFolders.hashCode() : 0)
         result = 31 * result + (generatedSourceFolders != null ? generatedSourceFolders.hashCode() : 0)
         result = 31 * result + (testSourceFolders != null ? testSourceFolders.hashCode() : 0)
         result = 31 * result + (excludeFolders != null ? excludeFolders.hashCode() : 0)
         result = 31 * result + (inheritOutputDirs != null ? inheritOutputDirs.hashCode() : 0)
+        result = 31 * result + (jdkName != null ? jdkName.hashCode() : 0)
         result = 31 * result + outputDir.hashCode()
         result = 31 * result + testOutputDir.hashCode()
         result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0)
@@ -379,6 +382,7 @@ class Module extends XmlPersistableConfigurationObject {
             ", generatedSourceFolders=" + generatedSourceFolders +
             ", excludeFolders=" + excludeFolders +
             ", inheritOutputDirs=" + inheritOutputDirs +
+            ", jdkName=" + jdkName +
             ", outputDir=" + outputDir +
             ", testOutputDir=" + testOutputDir +
             '}'

@@ -31,6 +31,7 @@ public class PathJavadocOptionFileOption extends AbstractListJavadocOptionFileOp
         super(option, value, joinBy);
     }
 
+    @Override
     public void writeCollectionValue(JavadocOptionFileWriterContext writerContext) throws IOException {
         writerContext.writePathOption(option, value, joinBy);
     }

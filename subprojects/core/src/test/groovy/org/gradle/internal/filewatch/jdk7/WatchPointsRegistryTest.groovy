@@ -43,7 +43,7 @@ class WatchPointsRegistryTest extends Specification {
         FileSystemSubset fileSystemSubset = createFileSystemSubset(dirs)
 
         when:
-        def delta = registry.appendFileSystemSubset(fileSystemSubset)
+        def delta = registry.appendFileSystemSubset(fileSystemSubset, [])
 
         then:
         checkWatchPoints delta, dirs
@@ -54,13 +54,13 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b/c"), rootDir.createDir("a/b/d")]
 
         when:
-        def delta = appendDir(dirs[0])
+        def delta = appendInput(dirs[0])
 
         then:
         checkWatchPoints delta, [dirs[0]]
 
         when:
-        delta = appendDir(dirs[1])
+        delta = appendInput(dirs[1])
 
         then:
         checkWatchPoints delta, [dirs[1]]
@@ -73,13 +73,13 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b"), rootDir.createDir("a/b/c")]
 
         when:
-        def delta = appendDir(dirs[0])
+        def delta = appendInput(dirs[0])
 
         then:
         checkWatchPoints delta, [dirs[0]]
 
         when:
-        delta = appendDir(dirs[1])
+        delta = appendInput(dirs[1], [dirs[0]])
 
         then:
         delta.startingWatchPoints.size() == 0
@@ -90,7 +90,7 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b"), rootDir.createDir("a/b/c")]
 
         when:
-        def delta = appendDir(dirs)
+        def delta = appendInput(dirs)
 
         then:
         checkWatchPoints delta, [dirs[0]]
@@ -101,13 +101,13 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b/c"), rootDir.createDir("a/b")]
 
         when:
-        def delta = appendDir(dirs[0])
+        def delta = appendInput(dirs[0])
 
         then:
         checkWatchPoints delta, [dirs[0]]
 
         when:
-        delta = appendDir(dirs[1])
+        delta = appendInput(dirs[1])
 
         then:
         checkWatchPoints delta, [dirs[1]]
@@ -118,7 +118,7 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b/c"), rootDir.createDir("a/b")]
 
         when:
-        def delta = appendDir(dirs)
+        def delta = appendInput(dirs)
 
         then:
         delta.startingWatchPoints as Set == [dirs[1]]as Set
@@ -130,7 +130,7 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b").file("c")]
 
         when:
-        def delta = appendDir(dirs[0])
+        def delta = appendInput(dirs[0])
 
         then:
         checkWatchPoints delta, [dirs[0].getParentFile()]
@@ -141,13 +141,13 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.createDir("a/b").file("c"), rootDir.createDir("a/b/d")]
 
         when:
-        def delta = appendDir(dirs[0])
+        def delta = appendInput(dirs[0])
 
         then:
         checkWatchPoints delta, [dirs[0].getParentFile()]
 
         when:
-        delta = appendDir(dirs[1])
+        delta = appendInput(dirs[1])
 
         then:
         checkWatchPoints delta, [dirs[1]]
@@ -158,7 +158,7 @@ class WatchPointsRegistryTest extends Specification {
         def dirs = [rootDir.file("a/b/c"), rootDir.file("a/b/d")]
 
         when:
-        def delta = appendDir(dirs[0])
+        def delta = appendInput(dirs[0])
 
         then:
         checkWatchPoints delta, [dirs[0].getParentFile().getParentFile().getParentFile()]
@@ -173,7 +173,7 @@ class WatchPointsRegistryTest extends Specification {
 
         when:
         dirs*.createDir()
-        delta = appendDir(dirs[1])
+        delta = appendInput(dirs[1])
 
         then:
         checkWatchPoints delta, [dirs[1]]
@@ -182,40 +182,22 @@ class WatchPointsRegistryTest extends Specification {
         registry.shouldFire(dirs[1].createFile("file2.txt"))
     }
 
-    def "directory doesn't get added when createNewStartingPointsUnderExistingRoots==false"() {
-        given:
-        registry = new WatchPointsRegistry(false)
-        def dirs = [rootDir.createDir("a/b").file("c"), rootDir.createDir("a/b/d")]
-
-        when:
-        def delta = appendDir(dirs[0])
-
-        then:
-        checkWatchPoints delta, [dirs[0].getParentFile()]
-
-        when:
-        delta = appendDir(dirs[1])
-
-        then:
-        delta.startingWatchPoints.isEmpty()
-    }
-
     def "parents for non-existing watch directories get watched"() {
         given:
         rootDir.createDir("a")
         def dirs = [rootDir.file("a/b/c/d/e"), rootDir.file("a/b/c/d2/e2")]
 
         when:
-        def delta = appendDir(dirs[0])
+        def delta = appendInput(dirs[0])
 
         then:
         checkWatchPoints delta, [rootDir.file("a")]
 
         when:
-        delta = appendDir(dirs[1])
+        delta = appendInput(dirs[1], [rootDir.file("a")])
 
         then:
-        checkWatchPoints delta, []
+        checkWatchPoints delta, [rootDir.file("a")]
 
         and: 'should add watch to all parent directories of non-existing root'
         dirs.each { dir ->
@@ -229,6 +211,58 @@ class WatchPointsRegistryTest extends Specification {
         and: 'should not watch a parent of an existing watchpoint'
         !delta.shouldWatch(rootDir)
     }
+
+    def "non-existing directories get watched when events arrive later"() {
+        given:
+        rootDir.createDir("src")
+        def dirs = [rootDir.file("src/main/java"), rootDir.file("src/main/groovy")]
+
+        when:
+        def delta = appendInput(dirs[0])
+
+        then:
+        checkWatchPoints delta, [rootDir.file("src")]
+
+        when:
+        dirs[1].mkdirs()
+        delta = appendInput(dirs[1])
+
+        then:
+        checkWatchPoints delta, [dirs[1]]
+        registry.shouldWatch(rootDir.file("src/main"))
+    }
+
+    def "sub directory gets watched when first input is a single file, where useDirectoryTree: #useDirectoryTree"() {
+        given:
+        rootDir.createDir("src")
+        def towatch = [rootDir.file("src/topLevel.txt"), rootDir.file("src")]
+
+        when:
+        def delta = appendInput(towatch[0])
+
+        then:
+        checkWatchPoints delta, [rootDir.file("src")]
+        !registry.shouldFire(rootDir.file("src/other.txt"))
+        def subdir = rootDir.file("src/subdirectory")
+        !registry.shouldWatch(subdir)
+        subdir.mkdir()
+        !registry.shouldWatch(subdir)
+
+        when:
+        delta = appendInput(towatch[1], [towatch[1]])
+
+        then:
+        checkWatchPoints delta, [towatch[1]]
+        registry.shouldWatch(subdir)
+
+        when:
+        delta = appendInput(subdir)
+        checkWatchPoints delta, [subdir]
+
+        then:
+        registry.shouldFire(rootDir.file("src/subdirectory/nested.txt"))
+    }
+
 
     def parentsUpTo(File subDir, File parentDir) {
         def parents = []
@@ -244,23 +278,23 @@ class WatchPointsRegistryTest extends Specification {
         assert delta.startingWatchPoints as Set == files as Set
     }
 
-    private Delta appendDir(Iterable<File> dirs) {
-        registry.appendFileSystemSubset(createFileSystemSubset(dirs))
+    private Delta appendInput(Iterable<File> files, Iterable<File> currentWatchPoints = []) {
+        registry.appendFileSystemSubset(createFileSystemSubset(files), currentWatchPoints)
     }
 
-    private Delta appendDir(File dir) {
-        registry.appendFileSystemSubset(createFileSystemSubset(dir))
+    private Delta appendInput(File file, Iterable<File> currentWatchPoints = []) {
+        registry.appendFileSystemSubset(createFileSystemSubset(file), currentWatchPoints)
     }
 
-    private static FileSystemSubset createFileSystemSubset(Iterable<File> dirs) {
+    private static FileSystemSubset createFileSystemSubset(Iterable<File> files) {
         def builder = FileSystemSubset.builder()
-        dirs.each { builder.add it }
+        files.each { builder.add it }
         builder.build()
     }
 
-    private static FileSystemSubset createFileSystemSubset(File dir) {
+    private static FileSystemSubset createFileSystemSubset(File file) {
         def builder = FileSystemSubset.builder()
-        builder.add dir
+        builder.add file
         builder.build()
     }
 }

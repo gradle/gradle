@@ -31,9 +31,27 @@ public abstract class OperatingSystem {
     public static final Linux LINUX = new Linux();
     public static final FreeBSD FREE_BSD = new FreeBSD();
     public static final Unix UNIX = new Unix();
+    private static OperatingSystem currentOs;
+    private final String toStringValue;
+    private final String osName;
+    private final String osVersion;
+
+    OperatingSystem() {
+        osName = System.getProperty("os.name");
+        osVersion = System.getProperty("os.version");
+        toStringValue = getName() + " " + getVersion() + " " + System.getProperty("os.arch");
+    }
 
     public static OperatingSystem current() {
-        return forName(System.getProperty("os.name"));
+        if (currentOs == null) {
+            currentOs = forName(System.getProperty("os.name"));
+        }
+        return currentOs;
+    }
+
+    // for testing current()
+    static void resetCurrent() {
+        currentOs = null;
     }
 
     public static OperatingSystem forName(String os) {
@@ -56,15 +74,15 @@ public abstract class OperatingSystem {
 
     @Override
     public String toString() {
-        return String.format("%s %s %s", getName(), getVersion(), System.getProperty("os.arch"));
+        return toStringValue;
     }
 
     public String getName() {
-        return System.getProperty("os.name");
+        return osName;
     }
-    
+
     public String getVersion() {
-        return System.getProperty("os.version");
+        return osVersion;
     }
 
     public boolean isWindows() {
@@ -130,7 +148,7 @@ public abstract class OperatingSystem {
 
         return all;
     }
-    
+
     public List<File> getPath() {
         String path = System.getenv(getPathVar());
         if (path == null) {
@@ -148,6 +166,12 @@ public abstract class OperatingSystem {
     }
 
     static class Windows extends OperatingSystem {
+        private final String nativePrefix;
+
+        Windows() {
+            nativePrefix = resolveNativePrefix();
+        }
+
         @Override
         public boolean isWindows() {
             return true;
@@ -180,6 +204,10 @@ public abstract class OperatingSystem {
 
         @Override
         public String getNativePrefix() {
+            return nativePrefix;
+        }
+
+        private String resolveNativePrefix() {
             String arch = System.getProperty("os.arch");
             if ("i386".equals(arch)) {
                 arch = "x86";
@@ -212,6 +240,12 @@ public abstract class OperatingSystem {
     }
 
     static class Unix extends OperatingSystem {
+        private final String nativePrefix;
+
+        Unix() {
+            this.nativePrefix = resolveNativePrefix();
+        }
+
         @Override
         public String getScriptName(String scriptPath) {
             return scriptPath;
@@ -258,7 +292,12 @@ public abstract class OperatingSystem {
             return true;
         }
 
+        @Override
         public String getNativePrefix() {
+            return nativePrefix;
+        }
+
+        private String resolveNativePrefix() {
             String arch = getArch();
             String osPrefix = getOsPrefix();
             osPrefix += "-" + arch;

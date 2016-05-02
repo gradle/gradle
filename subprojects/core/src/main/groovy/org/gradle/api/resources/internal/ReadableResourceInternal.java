@@ -17,9 +17,10 @@
 package org.gradle.api.resources.internal;
 
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.internal.resource.Resource;
 
 import java.io.File;
 
-public interface ReadableResourceInternal extends ReadableResource {
+public interface ReadableResourceInternal extends ReadableResource, Resource {
     File getBackingFile();
 }

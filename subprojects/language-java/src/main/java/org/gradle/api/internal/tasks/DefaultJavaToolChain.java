@@ -40,12 +40,14 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
         this.javaVersion = JavaVersion.current();
     }
 
+    @Override
     public String getName() {
-        return String.format("JDK%s", javaVersion);
+        return "JDK" + javaVersion;
     }
 
+    @Override
     public String getDisplayName() {
-        return String.format("JDK %s (%s)", javaVersion.getMajorVersion(), javaVersion);
+        return "JDK " + javaVersion.getMajorVersion() + " (" + javaVersion + ")";
     }
 
     @Override
@@ -53,8 +55,8 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
         return getDisplayName();
     }
 
+    @Override
     public ToolProvider select(JavaPlatform targetPlatform) {
-        // TODO:DAZ Remove all of the calls to this method with null platform
         if (targetPlatform != null && targetPlatform.getTargetCompatibility().compareTo(javaVersion) > 0) {
             return new UnavailableToolProvider(targetPlatform);
         }
@@ -62,6 +64,7 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
     }
 
     private class JavaToolProvider implements ToolProvider {
+        @Override
         public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
             if (JavaCompileSpec.class.isAssignableFrom(spec)) {
                 @SuppressWarnings("unchecked") Compiler<T> compiler = (Compiler<T>) compilerFactory.create(spec);
@@ -80,10 +83,12 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
             throw new IllegalArgumentException(String.format("Don't know how to provide tool of type %s.", toolType.getSimpleName()));
         }
 
+        @Override
         public boolean isAvailable() {
             return true;
         }
 
+        @Override
         public void explain(TreeVisitor<? super String> visitor) {
         }
     }
@@ -95,6 +100,7 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
             this.targetPlatform = targetPlatform;
         }
 
+        @Override
         public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> spec) {
             throw new IllegalArgumentException(getMessage());
         }
@@ -104,10 +110,12 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
             throw new IllegalArgumentException(getMessage());
         }
 
+        @Override
         public boolean isAvailable() {
             return false;
         }
 
+        @Override
         public void explain(TreeVisitor<? super String> visitor) {
             visitor.node(getMessage());
         }

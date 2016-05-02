@@ -90,11 +90,11 @@ public class PlayRunAdapterV23X extends DefaultVersionedPlayRunAdapter {
             runsupportPlayVersion = "2.3.7";
             transitive = false;
         }
-        DefaultExternalModuleDependency runSupportDependency = new DefaultExternalModuleDependency("com.typesafe.play", String.format("%s_%s", RUN_SUPPORT_PLAY_MODULE, scalaCompatibilityVersion), runsupportPlayVersion);
+        DefaultExternalModuleDependency runSupportDependency = new DefaultExternalModuleDependency("com.typesafe.play", RUN_SUPPORT_PLAY_MODULE + "_" + scalaCompatibilityVersion, runsupportPlayVersion);
         runSupportDependency.setTransitive(transitive);
         listBuilder.add(runSupportDependency);
 
-        String name = scalaCompatibilityVersion.equals("2.10") ? "io" : String.format("%s_%s", "io", scalaCompatibilityVersion);
+        String name = scalaCompatibilityVersion.equals("2.10") ? "io" : ("io_" + scalaCompatibilityVersion);
         DefaultExternalModuleDependency dependency = new DefaultExternalModuleDependency("org.scala-sbt", name, getIOSupportDependencyVersion(), "runtime");
         dependency.setTransitive(false);
         listBuilder.add(dependency);

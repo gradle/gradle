@@ -65,7 +65,7 @@ class DistributionPlugin implements Plugin<ProjectInternal> {
         def distributions = project.extensions.create("distributions", DefaultDistributionContainer, Distribution, instantiator, fileOperations)
         // TODO - refactor this action out so it can be unit tested
         distributions.all { dist ->
-            dist.conventionMapping.map("baseName", { dist.name == MAIN_DISTRIBUTION_NAME ? project.name : String.format("%s-%s", project.name, dist.name) })
+            dist.conventionMapping.map("baseName", { dist.name == MAIN_DISTRIBUTION_NAME ? project.name : (project.name + "-" + dist.name) })
             dist.contents.from("src/${dist.name}/dist")
             def zipTask = addZipTask(project, dist)
             def tarTask = addTarTask(project, dist)

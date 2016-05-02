@@ -23,7 +23,7 @@ apply plugin: "jacoco"
 
 // START SNIPPET jacoco-configuration
 jacoco {
-    toolVersion = "0.7.1.201405082137"
+    toolVersion = "0.7.6.201602180812"
     reportsDir = file("$buildDir/customJacocoReportDir")
 }
 // END SNIPPET jacoco-configuration

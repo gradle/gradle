@@ -15,6 +15,7 @@
  */
 package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.invocation.DefaultGradle
 
 import static org.hamcrest.Matchers.containsString
 
@@ -35,7 +36,7 @@ public class InitScriptErrorIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating initialization script.")
-                .assertHasCause("Could not find method createTakk() for arguments [do-stuff] on build.")
+                .assertHasCause("Could not find method createTakk() for arguments [do-stuff] on build of type ${DefaultGradle.name}.")
                 .assertHasFileName("Initialization script '$initScript'")
                 .assertHasLineNumber(2)
     }

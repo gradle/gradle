@@ -16,11 +16,15 @@
 
 package org.gradle.api.internal.file.pattern
 
+import spock.lang.Issue
 import spock.lang.Specification
 
 class HasPrefixAndSuffixPatternStepTest extends Specification {
+    static final boolean CASE_SENSITIVE = true;
+    static final boolean CASE_INSENSITIVE = false;
+
     def "matches name case sensitive"() {
-        def step = new HasPrefixAndSuffixPatternStep("pre", "suf", true)
+        def step = new HasPrefixAndSuffixPatternStep("pre", "suf", CASE_SENSITIVE)
 
         expect:
         step.matches("pre-suf")
@@ -39,7 +43,7 @@ class HasPrefixAndSuffixPatternStepTest extends Specification {
     }
 
     def "matches name case insensitive"() {
-        def step = new HasPrefixAndSuffixPatternStep("pre", "suf", false)
+        def step = new HasPrefixAndSuffixPatternStep("pre", "suf", CASE_INSENSITIVE)
 
         expect:
         step.matches("pre-suf")
@@ -50,5 +54,17 @@ class HasPrefixAndSuffixPatternStepTest extends Specification {
         !step.matches("PRSU")
         !step.matches("")
         !step.matches("something else")
+    }
+
+
+    @Issue("GRADLE-3418")
+    def "doesn't match if pre and suf are the same"() {
+        def step = new HasPrefixAndSuffixPatternStep("pat", "pat", CASE_SENSITIVE)
+
+        expect:
+        step.matches("patpat")
+        step.matches("pat-pat")
+        !step.matches("")
+        !step.matches("pat")
     }
 }

@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.reporting.Report
 import org.gradle.api.tasks.SourceSet
@@ -33,6 +35,7 @@ import org.gradle.api.tasks.SourceSet
  * @see FindBugs
  * @see FindBugsExtension
  */
+@CompileStatic
 class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
     public static final String DEFAULT_FINDBUGS_VERSION = "3.0.1"
     private FindBugsExtension extension
@@ -67,6 +70,7 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
         return extension
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureTaskDefaults(FindBugs task, String baseName) {
         task.with {
@@ -98,6 +102,7 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
         }
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureForSourceSet(SourceSet sourceSet, FindBugs task) {
         task.with {
@@ -108,8 +113,8 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
             classes = {
                 // the simple "classes = sourceSet.output" may lead to non-existing resources directory
                 // being passed to FindBugs Ant task, resulting in an error
-                project.fileTree(sourceSet.output.classesDir) {
-                    builtBy sourceSet.output
+                project.fileTree(sourceSet.output.classesDir) { fileTree ->
+                    fileTree.builtBy sourceSet.output
                 }
             }
             classpath = { sourceSet.compileClasspath }

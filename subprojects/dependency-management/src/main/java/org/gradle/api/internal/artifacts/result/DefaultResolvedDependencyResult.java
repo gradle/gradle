@@ -37,7 +37,7 @@ public class DefaultResolvedDependencyResult extends AbstractDependencyResult im
         if (getRequested().matchesStrictly(getSelected().getId())) {
             return getRequested().toString();
         } else {
-            return String.format("%s -> %s", getRequested(), getSelected().getId());
+            return getRequested() + " -> " + getSelected().getId();
         }
     }
 }

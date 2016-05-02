@@ -16,18 +16,23 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.testkit.runner.fixtures.annotations.InspectsBuildOutput
-import org.gradle.testkit.runner.fixtures.annotations.InspectsExecutedTasks
-import org.gradle.util.TextUtil
+import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
+import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
 
-import static org.gradle.testkit.runner.TaskOutcome.*
+import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.*
+import static org.gradle.testkit.runner.TaskOutcome.FAILED
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-@InspectsExecutedTasks
-class GradleRunnerBuildFailureIntegrationTest extends GradleRunnerIntegrationTest {
+class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
-    def "execute build for expected failure"() {
+    /*
+        Note: these tests are very granular to ensure coverage for versions that
+              don't support querying the output or tasks.
+     */
+
+    def "does not throw exception when build fails expectantly"() {
         given:
-        buildFile << """
+        buildScript """
             task helloWorld {
                 doLast {
                     throw new GradleException('Expected exception')
@@ -36,54 +41,75 @@ class GradleRunnerBuildFailureIntegrationTest extends GradleRunnerIntegrationTes
         """
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        BuildResult result = gradleRunner.buildAndFail()
+        runner('helloWorld').buildAndFail()
 
         then:
         noExceptionThrown()
-        result.tasks.collect { it.path } == [':helloWorld']
-        result.taskPaths(SUCCESS).empty
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED) == [':helloWorld']
     }
 
     @InspectsBuildOutput
-    def "execute build for expected failure but succeeds"() {
+    @InspectsExecutedTasks
+    def "exposes result when build fails expectantly"() {
         given:
-        buildFile << helloWorldTask()
+        buildScript """
+            task helloWorld {
+                doLast {
+                    throw new GradleException('Expected exception')
+                }
+            }
+        """
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.buildAndFail()
+        def result = runner('helloWorld').buildAndFail()
 
         then:
-        UnexpectedBuildSuccess t = thrown(UnexpectedBuildSuccess)
-        String expectedMessage = """Unexpected build execution success in ${TextUtil.escapeString(gradleRunner.projectDir.canonicalPath)} with arguments \\u005BhelloWorld\\u005D
+        result.taskPaths(FAILED) == [':helloWorld']
+        result.output.contains("Expected exception")
+    }
 
-Output:
-:helloWorld
+    def "throws when build is expected to fail but does not"() {
+        given:
+        buildScript helloWorldTask()
+
+        when:
+        runner('helloWorld').buildAndFail()
+
+        then:
+        def t = thrown UnexpectedBuildSuccess
+        t.buildResult != null
+    }
+
+    @InspectsBuildOutput
+    @InspectsExecutedTasks
+    def "exposes result when build is expected to fail but does not"() {
+        given:
+        buildScript helloWorldTask()
+
+        when:
+        runner('helloWorld').buildAndFail()
+
+        then:
+        def t = thrown UnexpectedBuildSuccess
+        def expectedOutput = """:helloWorld
 Hello world!
 
 BUILD SUCCESSFUL
 
-Total time: .+ secs
+Total time: 1 secs
 """
-        TextUtil.normaliseLineSeparators(t.message) ==~ expectedMessage
-        BuildResult result = t.buildResult
-        result.output.contains(':helloWorld')
-        result.output.contains('Hello world!')
-        result.tasks.collect { it.path } == [':helloWorld']
-        result.taskPaths(SUCCESS) == [':helloWorld']
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
+        def expectedMessage = """Unexpected build execution success in ${testDirectory.canonicalPath} with arguments [helloWorld]
+
+Output:
+$expectedOutput"""
+
+        normalize(t.message) == expectedMessage
+        normalize(t.buildResult.output) == expectedOutput
+        t.buildResult.taskPaths(SUCCESS) == [':helloWorld']
     }
 
-    @InspectsBuildOutput
-    def "execute build for expected success but fails"() {
+    def "throws when build is expected to succeed but fails"() {
         given:
-        buildFile << """
+        buildScript """
             task helloWorld {
                 doLast {
                     throw new GradleException('Unexpected exception')
@@ -92,82 +118,57 @@ Total time: .+ secs
         """
 
         when:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.build()
+        runner('helloWorld').build()
+
+        then:
+        def t = thrown UnexpectedBuildFailure
+        t.buildResult != null
+    }
+
+    @InspectsExecutedTasks
+    @InspectsBuildOutput
+    def "exposes result with build is expected to succeed but fails "() {
+        given:
+        buildScript """
+            task helloWorld {
+                doLast {
+                    throw new GradleException('Unexpected exception')
+                }
+            }
+        """
+
+        when:
+        runner('helloWorld').build()
 
         then:
         UnexpectedBuildFailure t = thrown(UnexpectedBuildFailure)
-        String expectedMessage = """Unexpected build execution failure in ${TextUtil.escapeString(gradleRunner.projectDir.canonicalPath)} with arguments \\u005BhelloWorld\\u005D
-
-Output:
-:helloWorld FAILED
+        String expectedOutput = """:helloWorld FAILED
 
 FAILURE: Build failed with an exception.
 
-\\u002A Where:
-Build file '${TextUtil.escapeString(new File(gradleRunner.projectDir, "build.gradle").canonicalPath)}' line: 4
+* Where:
+Build file '${buildFile.canonicalPath}' line: 4
 
-\\u002A What went wrong:
+* What went wrong:
 Execution failed for task ':helloWorld'.
 > Unexpected exception
 
-\\u002A Try:
+* Try:
 Run with --stacktrace option to get the stack trace. Run with --info or --debug option to get more log output.
 
 BUILD FAILED
 
-Total time: .+ secs
+Total time: 1 secs
 """
-        TextUtil.normaliseLineSeparators(t.message) ==~ expectedMessage
-        BuildResult result = t.buildResult
-        result.output.contains(':helloWorld FAILED')
-        result.output.contains('Unexpected exception')
-        result.tasks.collect { it.path } == [':helloWorld']
-        result.taskPaths(SUCCESS).empty
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
+        String expectedMessage = """Unexpected build execution failure in ${testDirectory.canonicalPath} with arguments [helloWorld]
+
+Output:
+$expectedOutput"""
+
+        normalize(t.message) == expectedMessage
+        def result = t.buildResult
+        normalize(result.output) == expectedOutput
         result.taskPaths(FAILED) == [':helloWorld']
     }
 
-    def "execute build without assigning a project directory"() {
-        String expectedErrorMessage = 'Please specify a project directory before executing the build'
-
-        given:
-        GradleRunner gradleRunner = runner('helloWorld')
-        gradleRunner.withProjectDir(null)
-
-        when:
-        gradleRunner.build()
-
-        then:
-        Throwable t = thrown(InvalidRunnerConfigurationException)
-        t.message == expectedErrorMessage
-
-        when:
-        gradleRunner.buildAndFail()
-
-        then:
-        t = thrown(InvalidRunnerConfigurationException)
-        t.message == expectedErrorMessage
-    }
-
-    @InspectsBuildOutput
-    def "build execution for non-existent task"() {
-        given:
-        buildFile << helloWorldTask()
-
-        when:
-        GradleRunner gradleRunner = runner('doesNotExist')
-        BuildResult result = gradleRunner.buildAndFail()
-
-        then:
-        noExceptionThrown()
-        result.output.contains('BUILD FAILED')
-        result.output.contains("Task 'doesNotExist' not found in root project")
-        result.tasks.empty
-        result.taskPaths(SUCCESS).empty
-        result.taskPaths(SKIPPED).empty
-        result.taskPaths(UP_TO_DATE).empty
-        result.taskPaths(FAILED).empty
-    }
 }

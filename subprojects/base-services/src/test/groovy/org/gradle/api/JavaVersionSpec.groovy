@@ -23,7 +23,15 @@ import spock.lang.Specification
 public class JavaVersionSpec extends Specification {
 
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
-    
+
+    def setup() {
+        JavaVersion.resetCurrent()
+    }
+
+    def cleanup() {
+        JavaVersion.resetCurrent()
+    }
+
     def toStringReturnsVersion() {
         expect:
         JavaVersion.VERSION_1_3.toString() == "1.3"
@@ -106,7 +114,7 @@ public class JavaVersionSpec extends Specification {
         JavaVersion.toVersion(1.8) == JavaVersion.VERSION_1_8
         JavaVersion.toVersion(1.9) == JavaVersion.VERSION_1_9
     }
-    
+
     def failsToConvertNumberToVersionForUnknownVersion() {
         expect:
         conversionFails(1);
@@ -116,7 +124,7 @@ public class JavaVersionSpec extends Specification {
         conversionFails(2.0);
         conversionFails(4.2);
     }
-    
+
     def currentReturnsJvmVersion() {
         expect:
         JavaVersion.current() == JavaVersion.toVersion(System.getProperty("java.version"))

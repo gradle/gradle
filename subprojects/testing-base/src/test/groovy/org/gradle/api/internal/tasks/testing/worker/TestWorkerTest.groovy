@@ -21,8 +21,8 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
-import org.gradle.messaging.remote.ObjectConnection
-import org.gradle.process.internal.WorkerProcessContext
+import org.gradle.internal.remote.ObjectConnection
+import org.gradle.process.internal.worker.WorkerProcessContext
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -57,7 +57,7 @@ public class TestWorkerTest extends ConcurrentSpec {
         1 * factory.create(_) >> processor
         1 * connection.addOutgoing(TestResultProcessor) >> resultProcessor
         1 * connection.addIncoming(RemoteTestClassProcessor, worker)
-        1 * connection.useParameterSerializer(_)
+        1 * connection.useParameterSerializers(_)
         1 * connection.connect() >> {
             start {
                 worker.startProcessing()

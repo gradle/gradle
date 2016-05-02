@@ -27,7 +27,7 @@ class IvySftpModule implements RemoteIvyModule {
     public final IvySftpRepository repository
     private SFTPServer server
     private IvyFileModule backingModule
-    
+
     IvySftpModule(IvySftpRepository repository, SFTPServer server, IvyFileModule backingModule) {
         this.repository = repository
         this.server = server
@@ -75,6 +75,10 @@ class IvySftpModule implements RemoteIvyModule {
 
     IvyModule dependsOn(Map<String, ?> attributes) {
         return backingModule.dependsOn(attributes)
+    }
+
+    IvyModule dependsOn(IvyModule ivyModule) {
+        return backingModule.dependsOn(ivyModule)
     }
 
     IvyModule artifact(Map<String, ?> options) {

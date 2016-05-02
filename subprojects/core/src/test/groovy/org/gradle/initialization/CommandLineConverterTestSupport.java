@@ -18,8 +18,8 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.logging.ConsoleOutput;
-import org.gradle.logging.ShowStacktrace;
+import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.WrapUtil;
 

@@ -36,7 +36,7 @@ public class DefaultLibraryBinaryIdentifier implements LibraryBinaryIdentifier {
         this.projectPath = projectPath;
         this.libraryName = libraryName;
         this.variant = variant;
-        this.displayName = String.format("project '%s' library '%s' variant '%s'", projectPath, libraryName, variant);
+        this.displayName = "project '" + projectPath + "' library '" + libraryName + "' variant '" + variant + "'";
     }
 
     @Override

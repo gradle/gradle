@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.transfer
 
 import spock.lang.Specification
-import org.gradle.logging.ProgressLogger
+import org.gradle.internal.logging.progress.ProgressLogger
 
 class ResourceOperationTest extends Specification {
 

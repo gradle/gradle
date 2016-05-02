@@ -546,7 +546,7 @@ task test << {
 
         expect:
         def failure = inTestDirectory().runWithFailure()
-        failure.assertHasCause("No such property: modue")
+        failure.assertHasCause("Could not set unknown property 'modue' for object of type org.gradle.api.internal.artifacts.DefaultExcludeRule.")
     }
 
     @Test

@@ -17,8 +17,8 @@
 package org.gradle.internal.event;
 
 import org.gradle.api.Action;
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.Description;
 import org.jmock.Expectations;

@@ -19,55 +19,69 @@ package org.gradle.model.internal.core;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.internal.exceptions.Contextual;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.WeakHashMap;
 
 @ThreadSafe
 public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
-    public static final ModelPath ROOT = new ModelPath("", Collections.<String>emptyList()) {
-        @Override
-        public String toString() {
-            return "<root>";
-        }
+    private static final String SEPARATOR = ".";
+    private static final Splitter PATH_SPLITTER = Splitter.on('.').omitEmptyStrings();
+    private static final Joiner PATH_JOINER = Joiner.on('.');
+    private static final CharMatcher VALID_FIRST_CHAR_MATCHER = CharMatcher.inRange('a', 'z').or(CharMatcher.inRange('A', 'Z')).or(CharMatcher.is('_'));
+    private final static CharMatcher INVALID_FIRST_CHAR_MATCHER = VALID_FIRST_CHAR_MATCHER.negate().precomputed();
+    private final static CharMatcher INVALID_CHAR_MATCHER = CharMatcher.inRange('0', '9').or(VALID_FIRST_CHAR_MATCHER).or(CharMatcher.is('-')).negate().precomputed();
 
-        @Override
-        public ModelPath descendant(ModelPath path) {
-            return path;
-        }
-    };
+    public static final ModelPath ROOT;
+    private static final Cache BY_PATH;
 
-    public static final String SEPARATOR = ".";
-    public static final Splitter PATH_SPLITTER = Splitter.on('.');
-    public static final Joiner PATH_JOINER = Joiner.on('.');
+    static {
+        ROOT = new ModelPath("") {
+            @Override
+            public String toString() {
+                return "<root>";
+            }
+
+            @Override
+            public ModelPath descendant(ModelPath path) {
+                return path;
+            }
+        };
+        BY_PATH = new Cache(ROOT);
+    }
 
     private final String path;
     private final List<String> components;
+    private final ModelPath parent;
 
     public ModelPath(String path) {
         this.path = path;
-        this.components = PATH_SPLITTER.splitToList(path);
+        this.components = new ArrayList<String>(PATH_SPLITTER.splitToList(path));
+        this.parent = doGetParent();
     }
 
-    public ModelPath(Iterable<String> parts) {
-        this.path = PATH_JOINER.join(parts);
-        this.components = ImmutableList.copyOf(parts);
-    }
-
-    private ModelPath(String path, List<String> parts) {
+    private ModelPath(String path, Iterable<String> components) {
+        // one should really avoid using this constructor as it is totally inefficient
+        // and reserved to spurious cases when the components have dots in names
+        // (and this can happen if a task name contains dots)
         this.path = path;
-        this.components = parts;
+        this.components = Lists.newArrayList(components);
+        this.parent = doGetParent();
     }
 
+    @Override
     public int compareTo(ModelPath other) {
+        if (this == other) {
+            return 0;
+        }
         return path.compareTo(other.path);
     }
 
@@ -98,8 +112,13 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
         return components;
     }
 
+    @Override
     public Iterator<String> iterator() {
         return components.iterator();
+    }
+
+    public String getPath() {
+        return path;
     }
 
     @Override
@@ -108,11 +127,17 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
     }
 
     public static ModelPath path(String path) {
-        return new ModelPath(path);
+        return BY_PATH.get(path);
     }
 
     public static ModelPath path(Iterable<String> names) {
-        return new ModelPath(names);
+        String path = pathString(names);
+        for (String name : names) {
+            if (name.indexOf('.') >= 0) {
+                return new ModelPath(path, names);
+            }
+        }
+        return BY_PATH.get(path);
     }
 
     public static String pathString(Iterable<String> names) {
@@ -131,6 +156,10 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
 
     @Nullable
     public ModelPath getParent() {
+        return parent;
+    }
+
+    private ModelPath doGetParent() {
         if (components.isEmpty()) {
             return null;
         }
@@ -138,9 +167,8 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
             return ROOT;
         }
         // Somewhat optimized implementation
-        List<String> parentComponents = components.subList(0, components.size() - 1);
         String parentPath = path.substring(0, path.length() - components.get(components.size() - 1).length() - 1);
-        return new ModelPath(parentPath, parentComponents);
+        return BY_PATH.get(parentPath);
     }
 
     public String getName() {
@@ -187,10 +215,6 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
             super(message, e);
         }
     }
-
-    private static final CharMatcher VALID_FIRST_CHAR_MATCHER = CharMatcher.inRange('a', 'z').or(CharMatcher.inRange('A', 'Z')).or(CharMatcher.is('_'));
-    private final static CharMatcher INVALID_FIRST_CHAR_MATCHER = VALID_FIRST_CHAR_MATCHER.negate().precomputed();
-    private final static CharMatcher INVALID_CHAR_MATCHER = CharMatcher.inRange('0', '9').or(VALID_FIRST_CHAR_MATCHER).or(CharMatcher.is('-')).negate().precomputed();
 
     public static void validateName(String name) {
         if (name.isEmpty()) {
@@ -253,6 +277,24 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
                     throw new InvalidPathException(String.format("Model path '%s' is invalid due to invalid name component.", path), e);
                 }
             }
+        }
+    }
+
+    private static class Cache {
+        private final WeakHashMap<String, ModelPath> cache = new WeakHashMap<String, ModelPath>();
+
+        public Cache(ModelPath root) {
+            cache.put(root.path, root);
+        }
+
+        public synchronized ModelPath get(String path) {
+            ModelPath result = cache.get(path);
+            if (result != null) {
+                return result;
+            }
+            result = new ModelPath(path);
+            cache.put(path, result);
+            return result;
         }
     }
 }

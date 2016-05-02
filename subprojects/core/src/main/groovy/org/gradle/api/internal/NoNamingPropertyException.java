@@ -17,7 +17,7 @@
 package org.gradle.api.internal;
 
 public class NoNamingPropertyException extends RuntimeException {
-    NoNamingPropertyException(Object thing, String property) {
-        super(String.format("Unable to determine the name of '%s' because it does not have a '%s' property", thing, property));
+    NoNamingPropertyException(Object thing) {
+        super(String.format("Unable to determine the name of '%s' because it does not have a 'name' property", thing));
     }
 }

@@ -25,8 +25,8 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.deployment.internal.DeploymentRegistry;
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.play.internal.run.*;
 import org.gradle.play.internal.toolchain.PlayToolProvider;
 import org.slf4j.Logger;
@@ -42,7 +42,7 @@ import java.util.Set;
  */
 @Incubating
 public class PlayRun extends ConventionTask {
-    private static Logger logger = LoggerFactory.getLogger(PlayRun.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PlayRun.class);
 
     private int httpPort;
 
@@ -96,15 +96,15 @@ public class PlayRun extends ConventionTask {
 
         if (!getProject().getGradle().getStartParameter().isContinuous()) {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
-                .start(String.format("Run Play App at http://localhost:%d/", httpPort),
-                    String.format("Running at http://localhost:%d/", httpPort));
+                .start("Run Play App at http://localhost:" + httpPort + "/",
+                    "Running at http://localhost:"+ httpPort + "/");
             try {
                 waitForCtrlD();
             } finally {
                 progressLogger.completed();
             }
         } else {
-            logger.warn(String.format("Running Play App (%s) at http://localhost:%d/", getPath(), httpPort));
+            LOGGER.warn("Running Play App ({}) at http://localhost:{}/", getPath(), httpPort);
         }
     }
 
@@ -114,7 +114,7 @@ public class PlayRun extends ConventionTask {
                 int c = System.in.read();
                 if (c == -1 || c == 4) {
                     // STOP on Ctrl-D or EOF.
-                    logger.info("received end of stream (ctrl+d)");
+                    LOGGER.info("received end of stream (ctrl+d)");
                     return;
                 }
             } catch (IOException e) {

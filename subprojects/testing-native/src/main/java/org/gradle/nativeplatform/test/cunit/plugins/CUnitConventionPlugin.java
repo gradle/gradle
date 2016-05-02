@@ -33,6 +33,7 @@ import org.gradle.testing.base.TestSuiteContainer;
 @Incubating
 public class CUnitConventionPlugin implements Plugin<Project> {
 
+    @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(CUnitPlugin.class);
     }

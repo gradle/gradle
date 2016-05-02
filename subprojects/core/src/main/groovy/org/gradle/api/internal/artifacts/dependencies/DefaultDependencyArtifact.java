@@ -39,20 +39,45 @@ public class DefaultDependencyArtifact implements DependencyArtifact {
         return name;
     }
 
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getType() {
         return type;
+    }
+
+    @Override
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getExtension() {
         return extension;
     }
 
+    @Override
+    public void setExtension(String extension) {
+        this.extension = extension;
+    }
+
     public String getClassifier() {
         return classifier;
     }
 
+    @Override
+    public void setClassifier(String classifier) {
+        this.classifier = classifier;
+    }
+
     public String getUrl() {
         return url;
+    }
+
+    @Override
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     @Override

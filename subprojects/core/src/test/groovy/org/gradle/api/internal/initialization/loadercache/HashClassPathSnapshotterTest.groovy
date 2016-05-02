@@ -16,21 +16,18 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
-import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
 import org.gradle.api.internal.hash.DefaultHasher
-import org.gradle.cache.internal.MapBackedInMemoryStore
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Subject
 
 class HashClassPathSnapshotterTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    MapBackedInMemoryStore inMemoryStore = new MapBackedInMemoryStore()
-    @Subject def snapshotter = new HashClassPathSnapshotter(new CachingFileSnapshotter(new DefaultHasher(), inMemoryStore, new StringInterner()), inMemoryStore)
+    @Rule
+    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+
+    def snapshotter = new HashClassPathSnapshotter(new DefaultHasher())
 
     def "classpaths are different if file hashes are different"() {
         def file = temp.file("a.txt")
@@ -41,6 +38,7 @@ class HashClassPathSnapshotterTest extends Specification {
         expect:
         a != b
         a.hashCode() != b.hashCode()
+        a.strongHash != b.strongHash
     }
 
     def "classpaths are different when file names don't match"() {
@@ -55,9 +53,21 @@ class HashClassPathSnapshotterTest extends Specification {
         a.hashCode() != b.hashCode()
     }
 
+    def "classpaths content hash are equal when file names don't match"() {
+        def fa = temp.file("a.txt") << "a"
+        def fb = temp.file("b.txt") << "a" //same content
+
+        def a = snapshotter.snapshot(new DefaultClassPath(fa))
+        def b = snapshotter.snapshot(new DefaultClassPath(fb))
+
+        expect:
+        a != b
+        a.strongHash == b.strongHash
+    }
+
     def "classpaths are different when files have different order"() {
         def fa = temp.file("a.txt") << "a"
-        def fb = temp.file("b.txt") << "a"
+        def fb = temp.file("b.txt") << "ab"
 
         def a = snapshotter.snapshot(new DefaultClassPath(fa, fb))
         def b = snapshotter.snapshot(new DefaultClassPath(fb, fa))
@@ -65,6 +75,7 @@ class HashClassPathSnapshotterTest extends Specification {
         expect:
         a != b
         a.hashCode() != b.hashCode()
+        a.strongHash != b.strongHash
     }
 
     def "classpaths are equal if all files are the same"() {
@@ -75,6 +86,7 @@ class HashClassPathSnapshotterTest extends Specification {
         expect:
         a == b
         a.hashCode() == b.hashCode()
+        a.strongHash == b.strongHash
     }
 
     def "classpaths are equal if dirs are the same"() {
@@ -85,6 +97,7 @@ class HashClassPathSnapshotterTest extends Specification {
         expect:
         a == b
         a.hashCode() == b.hashCode()
+        a.strongHash == b.strongHash
     }
 
     def "classpaths are different if dir names are different"() {
@@ -97,6 +110,16 @@ class HashClassPathSnapshotterTest extends Specification {
         a.hashCode() != b.hashCode()
     }
 
+    def "classpaths content hash are equal if dir names are different"() {
+        temp.file("dir1/a.txt") << "a"; temp.file("dir2/a.txt") << "a"
+        def a = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir1")))
+        def b = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir2")))
+
+        expect:
+        a != b
+        a.strongHash == b.strongHash
+    }
+
     def "classpaths are the same for 2 empty dirs"() {
         def a = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir1")))
         def b = snapshotter.snapshot(new DefaultClassPath(temp.createDir("dir2")))
@@ -104,6 +127,7 @@ class HashClassPathSnapshotterTest extends Specification {
         expect:
         a == b
         a.hashCode() == b.hashCode()
+        a.strongHash == b.strongHash
     }
 
     def "empty snapshots are the same"() {

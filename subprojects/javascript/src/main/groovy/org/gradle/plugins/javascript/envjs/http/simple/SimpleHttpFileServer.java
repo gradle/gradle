@@ -38,7 +38,7 @@ public class SimpleHttpFileServer implements HttpFileServer {
     }
 
     public String getResourceUrl(String path) {
-        return String.format("http://localhost:%s/%s", port, path.startsWith("/") ? path.substring(1) : path);
+        return "http://localhost:" + port + "/" + (path.startsWith("/") ? path.substring(1) : path);
     }
 
     public File getContentRoot() {

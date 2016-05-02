@@ -15,21 +15,18 @@
  */
 package org.gradle.api.dsl
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.test.fixtures.file.TestFile
-import org.junit.Test
+import org.gradle.api.DefaultTask
+import org.gradle.api.Project
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
-class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
-
-    TestFile getBuildFile() {
-        file("build.gradle")
+class DynamicObjectIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        file('settings.gradle') << "rootProject.name = 'test'"
     }
 
-    @Test
-    public void canAddDynamicPropertiesToProject() {
-        
-        file("settings.gradle").writelns("include 'child'");
+    def canAddDynamicPropertiesToProject() {
+        file("settings.gradle").writelns("include 'child'")
         file("build.gradle").writelns(
                 "ext.rootProperty = 'root'",
                 "ext.sharedProperty = 'ignore me'",
@@ -38,7 +35,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
                 "task rootTask",
                 "task testTask",
                 "class ConventionBean { def getConventionProperty() { 'convention' } }"
-        );
+        )
         file("child/build.gradle").writelns(
                 "ext.childProperty = 'child'",
                 "ext.sharedProperty = 'shared'",
@@ -67,15 +64,15 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
                 "    try { object.rootTask; fail() } catch (MissingPropertyException e) { }",
                 "  }",
                 "}"
-        );
+        )
 
-        executer.withTasks("testTask").run();
+        expect:
+        succeeds("testTask")
     }
 
-    @Test
-    public void canAddDynamicMethodsToProject() {
-        
-        file("settings.gradle").writelns("include 'child'");
+    def canAddDynamicMethodsToProject() {
+
+        file("settings.gradle").writelns("include 'child'")
         file("build.gradle").writelns(
                 "def rootMethod(p) { 'root' + p }",
                 "def sharedMethod(p) { 'ignore me' }",
@@ -83,7 +80,7 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
                 "task rootTask",
                 "task testTask",
                 "class ConventionBean { def conventionMethod(name) { 'convention' + name } }"
-        );
+        )
         file("child/build.gradle").writelns(
                 "def childMethod(p) { 'child' + p }",
                 "def sharedMethod(p) { 'shared' + p }",
@@ -101,14 +98,14 @@ class DynamicObjectIntegrationTest extends AbstractIntegrationTest {
                 "    try { object.rootTask { }; fail() } catch (MissingMethodException e) { }",
                 "  }",
                 "}"
-        );
+        )
 
-        executer.withTasks("testTask").run();
+        expect:
+        succeeds("testTask")
     }
 
-    @Test
-    public void canAddMixinsToProject() {
-        
+    def canAddMixinsToProject() {
+
         file('build.gradle') << '''
 convention.plugins.test = new ConventionBean()
 
@@ -121,12 +118,12 @@ class ConventionBean {
 }
 '''
 
-        executer.run();
+        expect:
+        succeeds()
     }
 
-    @Test
-    public void canAddExtensionsToProject() {
-        
+    def canAddExtensionsToProject() {
+
         file('build.gradle') << '''
 extensions.test = new ExtensionBean()
 
@@ -139,13 +136,13 @@ class ExtensionBean {
 }
 '''
 
-        executer.run();
+        expect:
+        succeeds()
     }
 
-    @Test
-    public void canAddPropertiesToProjectUsingGradlePropertiesFile() {
-        
-        file("settings.gradle").writelns("include 'child'");
+    def canAddPropertiesToProjectUsingGradlePropertiesFile() {
+
+        file("settings.gradle").writelns("include 'child'")
         file("gradle.properties") << '''
 global=some value
 '''
@@ -166,12 +163,12 @@ global=overridden value
 assert 'overridden value' == global
 '''
 
-        executer.run();
+        expect:
+        succeeds()
     }
 
-    @Test
-    public void canAddDynamicPropertiesToCoreDomainObjects() {
-        
+    def canAddDynamicPropertiesToCoreDomainObjects() {
+
         file('build.gradle') << '''
             class GroovyTask extends DefaultTask { }
 
@@ -228,12 +225,13 @@ assert 'overridden value' == global
             }
 '''
 
-        executer.withTasks("defaultTask").run();
+
+        expect:
+        succeeds("defaultTask")
     }
 
-    @Test
-    public void canAddMixInsToCoreDomainObjects() {
-        
+    def canAddMixInsToCoreDomainObjects() {
+
         file('build.gradle') << '''
             class Extension { def doStuff() { 'method' } }
             class GroovyTask extends DefaultTask { }
@@ -282,12 +280,13 @@ assert 'overridden value' == global
             }
 '''
 
-        executer.withTasks("defaultTask").run();
+
+        expect:
+        succeeds("defaultTask")
     }
 
-    @Test
-    public void canAddExtensionsToCoreDomainObjects() {
-        
+    def canAddExtensionsToCoreDomainObjects() {
+
         file('build.gradle') << '''
             class Extension { def doStuff() { 'method' } }
             class GroovyTask extends DefaultTask { }
@@ -336,12 +335,13 @@ assert 'overridden value' == global
             }
 '''
 
-        executer.withTasks("defaultTask").run();
+
+        expect:
+        succeeds("defaultTask")
     }
 
-    @Test
-    public void mixesDslMethodsIntoCoreDomainObjects() {
-        
+    def mixesDslMethodsIntoCoreDomainObjects() {
+
         file('build.gradle') << '''
             class GroovyTask extends DefaultTask {
                 def String prop
@@ -362,12 +362,49 @@ assert 'overridden value' == global
             assert test.prop == 'new value'
 '''
 
-        executer.withTasks("test").run();
+
+        expect:
+        succeeds("test")
     }
 
-    @Test
-    void canAddExtensionsToDynamicExtensions() {
-        
+    def mixesConversionMethodsIntoDecoratedObjects() {
+        file('build.gradle') << '''
+            enum Letter { A, B, C }
+            class SomeThing {
+                Letter letter
+                def withLetter(Letter l) {
+                    letter = l
+                }
+                def other(String s) {
+                    letter = Letter.valueOf(s.substring(0, 1))
+                }
+                def other(Letter l) {
+                    letter = l
+                }
+                def other(Letter l, String s) {
+                    letter = l
+                }
+            }
+            extensions.add('things', SomeThing)
+            things {
+                letter = 'a'
+                withLetter('b')
+            }
+            assert things.letter == Letter.B
+            things.other('ABC')
+            assert things.letter == Letter.A
+            things.other(Letter.C)
+            assert things.letter == Letter.C
+            things.other('A', 'ignore')
+            assert things.letter == Letter.A
+'''
+
+        expect:
+        succeeds()
+    }
+
+    def canAddExtensionsToDynamicExtensions() {
+
         file('build.gradle') << '''
             class Extension {
                 String name
@@ -387,12 +424,12 @@ assert 'overridden value' == global
             }
         '''
 
-        executer.withTasks("test").run();
+        expect:
+        succeeds("test")
     }
 
-    @Test
-    public void canInjectMethodsFromParentProject() {
-        
+    def canInjectMethodsFromParentProject() {
+
         file("settings.gradle").writelns("include 'child'");
         file("build.gradle").writelns(
                 "subprojects {",
@@ -405,11 +442,13 @@ assert 'overridden value' == global
                 "}"
         );
 
-        executer.withTasks("testTask").run();
+
+        expect:
+        succeeds("testTask")
     }
-    
-    @Test void canAddNewPropertiesViaTheAdhocNamespace() {
-        
+
+    def canAddNewPropertiesViaTheAdhocNamespace() {
+
         file("build.gradle") << """
             assert !hasProperty("p1")
 
@@ -444,35 +483,216 @@ assert 'overridden value' == global
                 assert ext.p1 == 2
             }
         """
-        
-        executer.withTasks("run").run()
+
+        expect:
+        succeeds("run")
     }
 
-    @Test void failsWhenNewPropertiesAreAddedDirectlyOnTargetObject() {
-        file('settings.gradle') << "rootProject.name = 'test'"
+    def failsWhenGettingUnknownPropertyOnProject() {
+        buildFile << """
+            assert !hasProperty("p1")
+            println p1
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(3)
+        failure.assertHasCause("Could not get unknown property 'p1' for root project 'test' of type ${Project.name}.")
+    }
+
+    def failsWhenSettingUnknownPropertyOnProject() {
         buildFile << """
             assert !hasProperty("p1")
 
             p1 = 1
+        """
 
-            assert p1 == 1
-            assert ext.p1 == 1
+        expect:
+        fails()
+        failure.assertHasLineNumber(4)
+        failure.assertHasCause("Could not set unknown property 'p1' for root project 'test' of type ${Project.name}.")
+    }
 
-            task run << { task ->
-                p2 = 2
+    def failsWhenInvokingUnknownMethodOnProject() {
+        buildFile << """
+            unknown(12, "things")
+        """
 
-                assert p2 == 2
-                assert task.ext.p2 == 2
+        expect:
+        fails()
+        failure.assertHasLineNumber(2)
+        failure.assertHasCause("Could not find method unknown() for arguments [12, things] on root project 'test' of type ${Project.name}.")
+    }
+
+    def failsWhenGettingUnknownPropertyOnTask() {
+        buildFile << """
+            task p
+            assert !tasks.p.hasProperty("p1")
+            println tasks.p.p1
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(4)
+        failure.assertHasCause("Could not get unknown property 'p1' for task ':p' of type ${DefaultTask.name}.")
+    }
+
+    def failsWhenGettingUnknownPropertyOnDecoratedObject() {
+        buildFile << """
+            class Thing {
+                String toString() { "<thing>" }
+            }
+            extensions.add('thing', Thing)
+            assert !thing.hasProperty("p1")
+            println thing.p1
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(7)
+        failure.assertHasCause("Could not get unknown property 'p1' for <thing> of type Thing.")
+    }
+
+    def failsWhenGettingUnknownPropertyOnDecoratedObjectThatIsSubjectOfConfigureClosure() {
+        buildFile << """
+            task p
+            tasks.p {
+                assert !hasProperty("p1")
+                println p1
             }
         """
 
-        def result = executer.withTasks("run").runWithFailure()
-        result.assertHasCause("No such property: p1 for class: org.gradle.api.internal.project.DefaultProject_Decorated")
+        expect:
+        fails()
+        failure.assertHasLineNumber(5)
+        failure.assertHasCause("Could not get unknown property 'p1' for task ':p' of type ${DefaultTask.name}.")
+    }
+
+    def failsWhenSettingUnknownPropertyOnTask() {
+        buildFile << """
+            task p
+            assert !tasks.p.hasProperty("p1")
+            tasks.p.p1 = 1
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(4)
+        failure.assertHasCause("Could not set unknown property 'p1' for task ':p' of type ${DefaultTask.name}.")
+    }
+
+    def failsWhenSettingUnknownPropertyOnDecoratedObject() {
+        buildFile << """
+            class Thing {
+                String toString() { "<thing>" }
+            }
+            extensions.add('thing', Thing)
+            assert !thing.hasProperty("p1")
+            thing.p1 = 1
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(7)
+        failure.assertHasCause("Could not set unknown property 'p1' for <thing> of type Thing.")
+    }
+
+    def failsWhenSettingUnknownPropertyOnDecoratedObjectWhenSubjectOfConfigureClosure() {
+        buildFile << """
+            task p
+            tasks.p {
+                assert !hasProperty("p1")
+                p1 = 1
+            }
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(5)
+        failure.assertHasCause("Could not set unknown property 'p1' for task ':p' of type ${DefaultTask.name}.")
+    }
+
+    def failsWhenInvokingUnknownMethodOnDecoratedObject() {
+        buildFile << """
+            task p
+            tasks.p.unknown(12, "things")
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(3)
+        failure.assertHasCause("Could not find method unknown() for arguments [12, things] on task ':p' of type ${DefaultTask.name}.")
+    }
+
+    def failsWhenInvokingUnknownMethodOnDecoratedObjectWhenSubjectOfConfigureClosure() {
+        buildFile << """
+            task p
+            tasks.p {
+                unknown(12, "things")
+            }
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(4)
+        failure.assertHasCause("Could not find method unknown() for arguments [12, things] on task ':p' of type ${DefaultTask.name}.")
+    }
+
+    def canApplyACategoryToDecoratedObject() {
+        buildFile << '''
+            class SomeCategory {
+                static String show(Project p, String val) {
+                    "project $val path '$p.path'"
+                }
+                static String show(Task t, String val) {
+                    "task $val path '$t.path'"
+                }
+            }
+
+            task t
+
+            use(SomeCategory) {
+                assert project.show("p1") == "project p1 path ':'"
+                assert show("p2") == "project p2 path ':'"
+                assert t.show("t1") == "task t1 path ':t'"
+                tasks.t {
+                    assert show("t2") == "task t2 path ':t'"
+                }
+            }
+        '''
+
+        expect:
+        succeeds()
+    }
+
+    def canAddMethodsAndPropertiesToMetaClassOfDecoratedObject() {
+        buildFile << '''
+            class SomeTask extends DefaultTask {
+            }
+            class SomeExtension {
+            }
+
+            SomeTask.metaClass.p1 = 12
+            SomeTask.metaClass.m1 = { -> "m1" }
+            SomeExtension.metaClass.p2 = 10
+            SomeExtension.metaClass.m2 = { String p -> p }
+
+            task t(type: SomeTask)
+            extensions.add("e", SomeExtension)
+
+            assert t.p1 == 12
+            assert t.m1() == "m1"
+            assert e.p2 == 10
+            assert e.m2("hi") == "hi"
+        '''
+
+        expect:
+        succeeds()
     }
 
     @Issue("GRADLE-2163")
-    @Test void canDecorateBooleanPrimitiveProperties() {
-        
+    def canDecorateBooleanPrimitiveProperties() {
+
         file("build.gradle") << """
             class CustomBean {
                 boolean b
@@ -488,11 +708,108 @@ assert 'overridden value' == global
             }
         """
 
-        executer.withTasks("run").run()
+
+        expect:
+        succeeds("run")
+    }
+
+    def ignoresDynamicBehaviourOfMixIn() {
+        buildFile << """
+            class DynamicThing {
+                def methods = [:]
+                def props = [:]
+
+                def methodMissing(String name, args) {
+                    methods[name] = args.toList()
+                }
+
+                def propertyMissing(String name) {
+                    props[name]
+                }
+
+                def propertyMissing(String name, value) {
+                    props[name] = value
+                }
+            }
+
+            convention.plugins.test = new DynamicThing()
+
+            props
+
+            convention.plugins.test.m1(1,2,3)
+            try {
+                m1(1,2,3)
+                fail()
+            } catch (MissingMethodException e) {
+                assert e.message == "Could not find method m1() for arguments [1, 2, 3] on root project 'test' of type ${Project.name}."
+            }
+
+            convention.plugins.test.p1 = 1
+            try {
+                p1 = 2
+                fail()
+            } catch (MissingPropertyException e) {
+                assert e.message == "Could not set unknown property 'p1' for root project 'test' of type ${Project.name}."
+            }
+
+            convention.plugins.test.p1 += 1
+            try {
+                p1 += 1
+                fail()
+            } catch (MissingPropertyException e) {
+                assert e.message == "Could not get unknown property 'p1' for root project 'test' of type ${Project.name}."
+            }
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def canHaveDynamicDecoratedObject() {
+        buildFile << """
+            class DynamicTask extends DefaultTask {
+                def methods = [:]
+                def props = [:]
+
+                def methodMissing(String name, args) {
+                    methods[name] = args.toList()
+                }
+
+                def propertyMissing(String name) {
+                    props[name]
+                }
+
+                def propertyMissing(String name, value) {
+                    props[name] = value
+                }
+            }
+
+            task t(type: DynamicTask)
+            t.props
+            t.m1(1,2,3)
+            t.p1 = 1
+            t.p1 += 1
+
+            assert t.methods.size() == 1
+            assert t.props.p1 == 2
+
+            t {
+                props
+                m1(1,2,3)
+                p1 = 4
+                p1 += 1
+            }
+
+            assert t.methods.size() == 1
+            assert t.props.p1 == 5
+        """
+
+        expect:
+        succeeds()
     }
 
     @Issue("GRADLE-2417")
-    @Test void canHaveDynamicExtension() {
+    def canHaveDynamicExtension() {
         buildFile << """
             class DynamicThing {
                 def methods = [:]
@@ -519,12 +836,80 @@ assert 'overridden value' == global
                 p1 += 1
             }
 
+            assert dynamic.methods.size() == 1
+            assert dynamic.props.p1 == 2
+
+            dynamic.m1(1,2,3)
+            dynamic.p1 = 5
+            dynamic.p1 += 1
+
+            assert dynamic.methods.size() == 1
+            assert dynamic.props.p1 == 6
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def dynamicPropertiesTakePrecedenceOverDecorations() {
+        buildFile << """
+            class DynamicTask extends DefaultTask {
+                def props = [:]
+
+                def propertyMissing(String name) {
+                    if (props.containsKey(name)) {
+                        return props[name]
+                    }
+                    throw new MissingPropertyException(name, DynamicTask)
+                }
+
+                def propertyMissing(String name, value) {
+                    props[name] = value
+                }
+            }
+
+            task t(type: DynamicTask)
+            t.ext.p1 = 1
+            assert t.p1 == 1
+            t.p1 = 12
+            assert t.p1 == 12
+
+            assert t.ext.p1 == 1
+            assert t.props.p1 == 12
+
+            t {
+                p1 = 4
+                p1 += 1
+            }
+
+            assert t.props.p1 == 5
+            assert t.ext.p1 == 1
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def findPropertyShouldReturnValueIfFound() {
+        buildFile << """
             task run << {
-                assert dynamic.methods.size() == 1
-                assert dynamic.props.p1 == 2
+                assert project.findProperty('foundProperty') == 'foundValue'
             }
         """
 
-        executer.withTasks("run").run()
+        expect:
+        executer.withArguments('-PfoundProperty=foundValue')
+        succeeds("run")
+    }
+
+    def findPropertyShouldReturnNullIfNotFound() {
+        buildFile << """
+            task run << {
+                assert project.findProperty('notFoundProperty') == null
+            }
+        """
+
+        expect:
+        succeeds("run")
     }
 }

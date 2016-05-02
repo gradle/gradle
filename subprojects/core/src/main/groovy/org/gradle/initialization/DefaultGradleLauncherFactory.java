@@ -39,9 +39,9 @@ import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
 import org.gradle.util.DeprecationLogger;
@@ -70,7 +70,12 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         sharedServices.get(ListenerManager.class).removeListener(listener);
     }
 
+    @Override
     public GradleLauncher newInstance(StartParameter startParameter) {
+        return newInstance(startParameter, sharedServices);
+    }
+
+    public GradleLauncher newInstance(StartParameter startParameter, ServiceRegistry parentRegistry) {
         BuildRequestMetaData requestMetaData;
         BuildCancellationToken cancellationToken;
         BuildEventConsumer buildEventConsumer;
@@ -85,7 +90,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             buildEventConsumer = new NoOpBuildEventConsumer();
         }
 
-        final BuildScopeServices buildScopeServices = BuildScopeServices.singleSession(sharedServices, startParameter);
+        final BuildScopeServices buildScopeServices = BuildScopeServices.singleSession(parentRegistry, startParameter);
         return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices);
     }
 
@@ -112,7 +117,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         serviceRegistry.add(BuildCancellationToken.class, cancellationToken);
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
         LoggingManagerInternal loggingManager = serviceRegistry.newInstance(LoggingManagerInternal.class);
-        loggingManager.setLevel(startParameter.getLogLevel());
+        loggingManager.setLevelInternal(startParameter.getLogLevel());
 
         //this hooks up the ListenerManager and LoggingConfigurer so you can call Gradle.addListener() with a StandardOutputListener.
         loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));

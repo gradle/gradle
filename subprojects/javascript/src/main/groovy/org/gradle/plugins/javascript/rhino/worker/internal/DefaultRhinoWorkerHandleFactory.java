@@ -16,42 +16,33 @@
 
 package org.gradle.plugins.javascript.rhino.worker.internal;
 
-import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.Factory;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandle;
 import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerHandleFactory;
-import org.gradle.plugins.javascript.rhino.worker.RhinoWorkerSpec;
-import org.gradle.process.JavaExecSpec;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.WorkerProcess;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.SingleRequestWorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import java.io.File;
-import java.io.Serializable;
 
 public class DefaultRhinoWorkerHandleFactory implements RhinoWorkerHandleFactory {
 
-    private final Factory<WorkerProcessBuilder> workerProcessBuilderFactory;
+    private final WorkerProcessFactory workerProcessBuilderFactory;
 
-    public DefaultRhinoWorkerHandleFactory(Factory<WorkerProcessBuilder> workerProcessBuilderFactory) {
+    public DefaultRhinoWorkerHandleFactory(WorkerProcessFactory workerProcessBuilderFactory) {
         this.workerProcessBuilderFactory = workerProcessBuilderFactory;
     }
 
-    public <R extends Serializable, P extends Serializable> RhinoWorkerHandle<R, P> create(Iterable<File> rhinoClasspath, RhinoWorkerSpec<R, P> workerSpec, LogLevel logLevel, Action<JavaExecSpec> javaExecSpecAction) {
-        WorkerProcessBuilder builder = workerProcessBuilderFactory.create();
+    @Override
+    public <T> T create(Iterable<File> rhinoClasspath, Class<T> protocolType, Class<? extends T> workerImplementationType, LogLevel logLevel, File workingDir) {
+        SingleRequestWorkerProcessBuilder<T> builder = workerProcessBuilderFactory.singleRequestWorker(protocolType, workerImplementationType);
         builder.setBaseName("Gradle Rhino Worker");
         builder.setLogLevel(logLevel);
         builder.applicationClasspath(rhinoClasspath);
         builder.sharedPackages("org.mozilla.javascript");
 
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
-        if (javaExecSpecAction != null) {
-            javaExecSpecAction.execute(javaCommand);
-        }
+        javaCommand.setWorkingDir(workingDir);
 
-        WorkerProcess workerProcess = builder.worker(new RhinoServer<R, P>(workerSpec)).build();
-        return new DefaultRhinoWorkerHandle<R, P>(workerSpec.getResultType(), workerProcess);
+        return builder.build();
     }
-
 }

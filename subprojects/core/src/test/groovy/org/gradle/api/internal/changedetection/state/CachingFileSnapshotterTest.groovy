@@ -19,6 +19,8 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.hash.Hasher
 import org.gradle.cache.PersistentIndexedCache
+import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.resource.TextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -29,7 +31,7 @@ class CachingFileSnapshotterTest extends Specification {
     def target = Mock(Hasher)
     def cache = Mock(PersistentIndexedCache)
     def cacheAccess = Mock(TaskArtifactStateCacheAccess)
-    def byte[] hash = "hash".bytes
+    def hash = HashUtil.createHash("hello", "md5")
     def file = tmpDir.createFile("testfile")
     CachingFileSnapshotter hasher
 
@@ -102,6 +104,36 @@ class CachingFileSnapshotterTest extends Specification {
 
         and:
         1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), file.lastModified())
+        0 * _._
+    }
+
+    def hashesBackingFileWhenResourceIsBackedByFile() {
+        def resource = Mock(TextResource)
+
+        when:
+        def result = hasher.snapshot(resource)
+
+        then:
+        result.hash == hash
+
+        and:
+        1 * resource.file >> file
+        1 * cache.get(file.getAbsolutePath()) >> new CachingFileSnapshotter.FileInfo(hash, file.length(), file.lastModified())
+        0 * _._
+    }
+
+    def hashesContentWhenResourceIsNotBackedByFile() {
+        def resource = Mock(TextResource)
+
+        when:
+        def result = hasher.snapshot(resource)
+
+        then:
+        result.hash == hash
+
+        and:
+        1 * resource.file >> null
+        1 * resource.text >> "hello"
         0 * _._
     }
 }

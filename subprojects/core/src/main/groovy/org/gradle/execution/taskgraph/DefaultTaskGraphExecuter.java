@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
-    private static Logger logger = LoggerFactory.getLogger(DefaultTaskGraphExecuter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskGraphExecuter.class);
 
     private enum TaskGraphState {
         EMPTY, DIRTY, POPULATED
@@ -98,7 +98,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         taskExecutionPlan.addToTaskGraph(taskSet);
         taskGraphState = TaskGraphState.DIRTY;
 
-        logger.debug("Timing: Creating the DAG took " + clock.getTime());
+        LOGGER.debug("Timing: Creating the DAG took " + clock.getTime());
     }
 
     public void execute() {
@@ -108,7 +108,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         graphListeners.getSource().graphPopulated(this);
         try {
             taskPlanExecutor.process(taskExecutionPlan, new EventFiringTaskWorker(taskExecuter.create(), buildOperationExecutor.getCurrentOperationId()));
-            logger.debug("Timing: Executing the DAG took " + clock.getTime());
+            LOGGER.debug("Timing: Executing the DAG took " + clock.getTime());
         } finally {
             taskExecutionPlan.clear();
         }

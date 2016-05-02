@@ -22,7 +22,7 @@ public class HasPrefixAndSuffixPatternStep implements PatternStep {
 
     public HasPrefixAndSuffixPatternStep(String prefix, String suffix, boolean caseSensitive) {
         prefixMatch = new HasPrefixPatternStep(prefix, caseSensitive);
-        suffixMatch = new HasSuffixPatternStep(suffix, caseSensitive);
+        suffixMatch = new HasSuffixPatternStep(suffix, caseSensitive, prefix.length());
     }
 
     @Override

@@ -56,6 +56,7 @@ public class PreprocessingReader extends BaseFilterReader {
      *     <li>Line continuation (backslash-newline) will be removed</li>
      * </ul>
      */
+    @Override
     public int read() throws IOException {
         int ch = next();
 

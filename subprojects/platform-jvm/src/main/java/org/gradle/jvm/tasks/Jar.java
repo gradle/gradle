@@ -27,12 +27,12 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.concurrent.Callable;
 
 /**
@@ -48,6 +48,7 @@ public class Jar extends Zip {
 
     public Jar() {
         setExtension(DEFAULT_EXTENSION);
+        setMetadataCharset("UTF-8");
 
         manifest = new DefaultManifest(getFileResolver());
         // Add these as separate specs, so they are not affected by the changes to the main spec
@@ -61,9 +62,8 @@ public class Jar extends Zip {
                         if (manifest == null) {
                             manifest = new DefaultManifest(null);
                         }
-                        manifest.writeTo(new OutputStreamWriter(outputStream));
+                        manifest.writeTo(outputStream);
                     }
-
                 });
                 return new FileTreeAdapter(manifestSource);
             }
@@ -75,6 +75,33 @@ public class Jar extends Zip {
                 }
             }
         });
+    }
+
+    /**
+     * The character set used to encode JAR metadata like file names.
+     * Defaults to UTF-8.
+     * You can change this property but it is not recommended as JVMs expect JAR metadata to be encoded using UTF-8
+     *
+     * @return the character set used to encode JAR metadata like file names
+     * @since 2.14
+     */
+    @Input
+    @Override
+    public String getMetadataCharset() {
+        return super.getMetadataCharset();
+    }
+
+    /**
+     * The character set used to encode JAR metadata like file names.
+     * Defaults to UTF-8.
+     * You can change this property but it is not recommended as JVMs expect JAR metadata to be encoded using UTF-8
+     *
+     * @param metadataCharset the character set used to encode JAR metadata like file names
+     * @since 2.14
+     */
+    @Override
+    public void setMetadataCharset(String metadataCharset) {
+        super.setMetadataCharset(metadataCharset);
     }
 
     /**

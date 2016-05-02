@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.jvm;
 
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
 import org.gradle.internal.os.OperatingSystem;
@@ -50,7 +51,7 @@ public class InstalledJvmLocator {
         Map<File, JvmInstallation> installs = new HashMap<File, JvmInstallation>();
         Collection<JvmInstallation> jvms;
         if (operatingSystem.isMacOsX()) {
-            jvms = new OsXInstalledJvmLocator().findJvms();
+            jvms = new OsXInstalledJvmLocator(TestFiles.execHandleFactory()).findJvms();
         } else if (operatingSystem.isWindows()) {
             jvms = new WindowsOracleJvmLocator(windowsRegistry, systemInfo).findJvms();
         } else if (operatingSystem.isLinux()) {

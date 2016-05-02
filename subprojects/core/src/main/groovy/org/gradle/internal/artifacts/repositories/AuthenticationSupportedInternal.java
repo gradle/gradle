@@ -17,7 +17,9 @@
 package org.gradle.internal.artifacts.repositories;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.authentication.Authentication;
 
 import java.util.Collection;
@@ -29,4 +31,11 @@ public interface AuthenticationSupportedInternal extends AuthenticationSupported
      */
     @Incubating
     Collection<Authentication> getConfiguredAuthentication();
+
+    @Incubating
+    void setConfiguredCredentials(Credentials credentials);
+
+    @Incubating
+    @Nullable
+    Credentials getConfiguredCredentials();
 }

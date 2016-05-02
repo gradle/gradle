@@ -16,7 +16,12 @@
 
 package org.gradle.nativeplatform.test.plugins
 
+import org.gradle.nativeplatform.StaticLibraryBinarySpec
+import org.gradle.nativeplatform.platform.NativePlatform
+import org.gradle.nativeplatform.platform.OperatingSystem
+import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec
+import org.gradle.nativeplatform.test.tasks.RunTestExecutable
 import org.gradle.platform.base.PlatformBaseSpecification
 
 class NativeBinariesTestPluginTest extends PlatformBaseSpecification {
@@ -25,7 +30,27 @@ class NativeBinariesTestPluginTest extends PlatformBaseSpecification {
         dsl {
             apply plugin: NativeBinariesTestPlugin
             model {
-                binary(NativeTestSuiteBinarySpec)
+                library(StaticLibraryBinarySpec)
+            }
+        }
+
+        def library = realize("library")
+
+        dsl {
+            model {
+                binary(NativeTestSuiteBinarySpec) {
+                    testedBinary = library
+                    tasks.create("run", RunTestExecutable) {}
+                    tasks.create("install", InstallExecutable) {
+                        it.destinationDir = new File(".")
+                        it.executable = new File("exe")
+                        it.platform = Mock(NativePlatform) {
+                            getOperatingSystem() >> Mock(OperatingSystem) {
+                                getName() >> "test"
+                            }
+                        }
+                    }
+                }
             }
         }
 

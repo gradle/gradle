@@ -39,6 +39,15 @@ public class PropertiesToDaemonParametersConverter {
             }
         }
 
+        prop = properties.get(PERIODIC_CHECK_INTERVAL_PROPERTY);
+        if (prop != null) {
+            try {
+                target.setPeriodicCheckInterval(new Integer(prop));
+            } catch (NumberFormatException e) {
+                throw new GradleException(String.format("Unable to parse %s property. Expected an int but got: %s", PERIODIC_CHECK_INTERVAL_PROPERTY, prop), e);
+            }
+        }
+
         prop = properties.get(JVM_ARGS_PROPERTY);
         if (prop != null) {
             target.setJvmArgs(JvmOptions.fromString(prop));

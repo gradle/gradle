@@ -26,6 +26,6 @@ public class DefaultTestStartedProgressEvent extends AbstractProgressEvent<Defau
 
     @Override
     public String getDisplayName() {
-        return String.format("%s started", getDescriptor().getDisplayName());
+        return getDescriptor().getDisplayName() + " started";
     }
 }

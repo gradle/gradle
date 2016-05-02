@@ -142,7 +142,7 @@ class YourKitProfiler implements Profiler {
     }
 
     @Override
-    void addProfilerDefaults(GradleInvocationSpec.Builder invocation) {
+    void addProfilerDefaults(GradleInvocationSpec.InvocationBuilder invocation) {
         if (System.getProperty(USE_YOURKIT)) {
             invocation.useProfiler().profilerOpts(loadProperties())
         }

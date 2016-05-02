@@ -19,9 +19,9 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
-import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.io.FilterReader;
 import java.util.Map;
@@ -324,4 +324,23 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     CopySpec eachFile(Closure closure);
+
+    /**
+     * Gets the charset used to read and write files when filtering.
+     * By default, the JVM default charset is used.
+     *
+     * @return the charset used to read and write files when filtering
+     * @since 2.14
+     */
+    @Incubating
+    String getFilteringCharset();
+
+    /**
+     * Specifies the charset used to read and write files when filtering.
+     *
+     * @param charset the name of the charset to use when filtering files
+     * @since 2.14
+     */
+    @Incubating
+    void setFilteringCharset(String charset);
 }

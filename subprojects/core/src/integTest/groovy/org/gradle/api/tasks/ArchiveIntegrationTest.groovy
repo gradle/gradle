@@ -223,9 +223,6 @@ public class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     def "knows compression of the tar"() {
         given:
-        TestFile tar = file()
-        tar.tbzTo(file('test.tbz2'))
-        and:
         buildFile << '''
             task myTar(type: Tar) {
                 assert compression == Compression.NONE

@@ -68,6 +68,16 @@ public abstract class AvailableJavaHomes {
         });
     }
 
+    public static List<JavaInfo> getAvailableJvms() {
+        return FluentIterable.from(getJvms())
+            .transform(new Function<JvmInstallation, JavaInfo>() {
+                @Override
+                public JavaInfo apply(@javax.annotation.Nullable JvmInstallation input) {
+                    return Jvm.forHome(input.getJavaHome());
+                }
+            }).toList();
+    }
+
     public static List<JavaInfo> getAvailableJdks() {
         return getAvailableJdks(Specs.satisfyAll());
     }

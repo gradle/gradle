@@ -17,7 +17,7 @@ package org.gradle.foundation.ipc.gradle;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.foundation.ipc.basic.MessageObject;
-import org.gradle.logging.ShowStacktrace;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 
 import java.io.File;
 

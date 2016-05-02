@@ -37,6 +37,7 @@ class War extends Jar {
 
     War() {
         extension = WAR_EXTENSION
+        metadataCharset = 'UTF-8'
         // Add these as separate specs, so they are not affected by the changes to the main spec
 
         webInf = rootSpec.addChildBeforeSpec(mainSpec).into('WEB-INF')

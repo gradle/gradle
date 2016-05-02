@@ -65,7 +65,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     @Test
     public void testDefaultTask() {
-        DefaultTask task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, { new DefaultTask() } as Callable)
+        DefaultTask task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, Task, { new DefaultTask() } as Callable)
         assertThat(task.dependsOn, isEmpty())
         assertEquals([], task.actions)
     }
@@ -77,7 +77,7 @@ class DefaultTaskTest extends AbstractTaskTest {
 
     @Test
     public void testCanInjectValuesIntoTaskWhenUsingNoArgsConstructor() {
-        DefaultTask task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, { new DefaultTask() } as Callable)
+        DefaultTask task = AbstractTask.injectIntoNewInstance(project, TEST_TASK_NAME, Task, { new DefaultTask() } as Callable)
         assertThat(task.project, sameInstance(project))
         assertThat(task.name, equalTo(TEST_TASK_NAME))
     }

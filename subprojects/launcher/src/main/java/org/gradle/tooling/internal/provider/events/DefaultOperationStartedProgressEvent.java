@@ -25,6 +25,6 @@ public class DefaultOperationStartedProgressEvent extends AbstractProgressEvent<
 
     @Override
     public String getDisplayName() {
-        return String.format("%s started", getDescriptor().getName());
+        return getDescriptor().getName() + " started";
     }
 }

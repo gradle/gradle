@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Descriptor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.component.external.model.*;
 import org.gradle.internal.component.model.*;
@@ -31,9 +32,8 @@ import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolv
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
-import org.gradle.internal.resource.ResourceNotFoundException;
 import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
@@ -66,7 +66,7 @@ public class MavenResolver extends ExternalResourceResolver {
 
     @Override
     public String toString() {
-        return String.format("Maven repository '%s'", getName());
+        return "Maven repository '" + getName() + "'";
     }
 
     public URI getRoot() {
@@ -154,7 +154,7 @@ public class MavenResolver extends ExternalResourceResolver {
 
         if (mavenMetadata.timestamp != null) {
             // we have found a timestamp, so this is a snapshot unique version
-            String timestamp = String.format("%s-%s", mavenMetadata.timestamp, mavenMetadata.buildNumber);
+            String timestamp = mavenMetadata.timestamp + "-" + mavenMetadata.buildNumber;
             return new MavenUniqueSnapshotModuleSource(timestamp);
         }
         return null;
@@ -172,7 +172,7 @@ public class MavenResolver extends ExternalResourceResolver {
     private MavenMetadata parseMavenMetadata(URI metadataLocation) {
         try {
             return mavenMetaDataLoader.load(metadataLocation);
-        } catch (ResourceNotFoundException e) {
+        } catch (MissingResourceException e) {
             return new MavenMetadata();
         }
     }

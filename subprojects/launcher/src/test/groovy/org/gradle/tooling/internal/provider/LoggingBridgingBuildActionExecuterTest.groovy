@@ -20,7 +20,7 @@ import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.exec.BuildActionExecuter
-import org.gradle.logging.LoggingManagerInternal
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters
 import spock.lang.Specification
 
@@ -68,6 +68,6 @@ class LoggingBridgingBuildActionExecuterTest extends Specification {
         executer.execute(action, buildRequestContext, parameters, contextServices)
 
         then:
-        1 * loggingManager.setLevel(LogLevel.QUIET)
+        1 * loggingManager.setLevelInternal(LogLevel.QUIET)
     }
 }

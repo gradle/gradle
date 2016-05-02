@@ -21,17 +21,20 @@ import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.installation.CurrentGradleInstallation
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.messaging.remote.MessagingServer
-import org.gradle.process.internal.DefaultWorkerProcessFactory
-import org.gradle.process.internal.WorkerProcessBuilder
-import org.gradle.process.internal.child.WorkerProcessClassPathProvider
+import org.gradle.internal.remote.MessagingServer
+import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
+import org.gradle.process.internal.ExecHandleFactory
+import org.gradle.process.internal.worker.WorkerProcessFactory
+import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -46,7 +49,7 @@ class BuildSessionScopeServicesTest extends Specification {
     def setup() {
         startParameter.gradleUserHomeDir = tmpDir.testDirectory
         parent.get(CacheFactory) >> Stub(CacheFactory)
-        parent.get(ModuleRegistry) >> new DefaultModuleRegistry()
+        parent.get(ModuleRegistry) >> new DefaultModuleRegistry(CurrentGradleInstallation.get())
         parent.get(FileResolver) >> Stub(FileResolver)
     }
 
@@ -65,10 +68,12 @@ class BuildSessionScopeServicesTest extends Specification {
     def "provides a WorkerProcessBuilder factory"() {
         setup:
         expectParentServiceLocated(MessagingServer)
+        expectParentServiceLocated(TemporaryFileProvider)
+        expectParentServiceLocated(ExecHandleFactory)
 
         expect:
-        registry.getFactory(WorkerProcessBuilder) instanceof DefaultWorkerProcessFactory
-        registry.getFactory(WorkerProcessBuilder) == registry.getFactory(WorkerProcessBuilder)
+        registry.get(WorkerProcessFactory) instanceof DefaultWorkerProcessFactory
+        registry.get(WorkerProcessFactory) == registry.get(WorkerProcessFactory)
     }
 
     def "provides a ClassPathRegistry"() {

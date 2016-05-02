@@ -22,7 +22,7 @@ import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.ServiceLocator;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
@@ -67,7 +67,9 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
 
             // Adopting the connection to a refactoring friendly type that the consumer owns
             AbstractConsumerConnection adaptedConnection;
-            if (connection instanceof InternalTestExecutionConnection){
+            if (connection instanceof InternalCompositeAwareConnection) {
+                adaptedConnection = new CompositeAwareConsumerConnection(connection, modelMapping, adapter);
+            } else if (connection instanceof InternalTestExecutionConnection){
                 adaptedConnection = new TestExecutionConsumerConnection(connection, modelMapping, adapter);
             } else if (connection instanceof StoppableConnection) {
                 adaptedConnection = new ShutdownAwareConsumerConnection(connection, modelMapping, adapter);

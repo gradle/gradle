@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
 import java.io.File;
 

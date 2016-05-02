@@ -19,6 +19,7 @@ package org.gradle.scala.compile
 abstract class AbstractAntForkingScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     def setup() {
         executer.requireIsolatedDaemons()
+        executer.expectDeprecationWarning()
     }
 
     String compilerConfiguration() {

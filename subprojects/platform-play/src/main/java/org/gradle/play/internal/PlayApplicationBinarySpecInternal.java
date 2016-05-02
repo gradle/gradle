@@ -33,6 +33,7 @@ public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinary
 
     void setToolChain(PlayToolChainInternal toolChain);
 
+    @Override
     PlayToolChainInternal getToolChain();
 
     void setJarFile(File file);
@@ -43,6 +44,7 @@ public interface PlayApplicationBinarySpecInternal extends PlayApplicationBinary
 
     void setClasspath(FileCollection applicationClasspath);
 
+    @Override
     ScalaJvmAssembly getAssembly();
 
     void addGeneratedScala(LanguageSourceSet input, SourceDirectorySetFactory sourceDirectorySetFactory);

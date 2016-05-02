@@ -255,7 +255,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     public void abort() {
         lock.lock();
         try {
-            if (state == ExecHandleState.SUCCEEDED) {
+            if (state == ExecHandleState.SUCCEEDED || state == ExecHandleState.FAILED || state == ExecHandleState.ABORTED) {
                 return;
             }
             if (!stateIn(ExecHandleState.STARTED, ExecHandleState.DETACHED)) {

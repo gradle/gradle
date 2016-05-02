@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
 
@@ -73,7 +74,7 @@ public class OutputDirectoryPropertyAnnotationHandler implements PropertyAnnotat
                             throw UncheckedException.throwAsUncheckedException(e);
                         }
                         for (File file : files) {
-                            file = GFileUtils.canonicalise(file);
+                            file = FileUtils.canonicalize(file);
                             GFileUtils.mkdirs(file);
                         }
                     }

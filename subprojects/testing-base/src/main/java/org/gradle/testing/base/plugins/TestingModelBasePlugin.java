@@ -25,7 +25,7 @@ import org.gradle.model.*;
 import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.ComponentType;
-import org.gradle.platform.base.ComponentTypeBuilder;
+import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.testing.base.TestSuiteBinarySpec;
 import org.gradle.testing.base.TestSuiteContainer;
@@ -48,7 +48,7 @@ public class TestingModelBasePlugin implements Plugin<Project> {
 
     static class Rules extends RuleSource {
         @ComponentType
-        void registerTestSuiteSpec(ComponentTypeBuilder<TestSuiteSpec> builder) {
+        void registerTestSuiteSpec(TypeBuilder<TestSuiteSpec> builder) {
             builder.defaultImplementation(BaseTestSuiteSpec.class);
         }
 
@@ -66,11 +66,13 @@ public class TestingModelBasePlugin implements Plugin<Project> {
         }
 
         @Mutate
-        void attachBinariesToCheckLifecycle(@Path("tasks.check") Task checkTask, ModelMap<TestSuiteBinarySpec> binaries) {
+        void attachBinariesToCheckLifecycle(@Path("tasks.check") Task checkTask, @Path("binaries") ModelMap<TestSuiteBinarySpec> binaries) {
             for (TestSuiteBinarySpec testBinary : binaries) {
-                BinaryTasksCollection tasks = testBinary.getTasks();
-                if (tasks instanceof TestSuiteTaskCollection) {
-                    checkTask.dependsOn(((TestSuiteTaskCollection) tasks).getRun());
+                if (testBinary.isBuildable()) {
+                    BinaryTasksCollection tasks = testBinary.getTasks();
+                    if (tasks instanceof TestSuiteTaskCollection) {
+                        checkTask.dependsOn(((TestSuiteTaskCollection) tasks).getRun());
+                    }
                 }
             }
         }

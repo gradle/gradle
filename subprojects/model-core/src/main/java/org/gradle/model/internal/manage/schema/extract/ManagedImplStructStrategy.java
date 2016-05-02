@@ -31,6 +31,7 @@ public class ManagedImplStructStrategy extends StructSchemaExtractionStrategySup
         super(aspectExtractor);
     }
 
+    @Override
     protected boolean isTarget(ModelType<?> type) {
         return type.isAnnotationPresent(Managed.class);
     }

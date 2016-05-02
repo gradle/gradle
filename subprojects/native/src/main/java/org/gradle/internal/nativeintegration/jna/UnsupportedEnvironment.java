@@ -24,42 +24,52 @@ import java.io.File;
 import java.util.Map;
 
 public class UnsupportedEnvironment implements ProcessEnvironment {
+    @Override
     public boolean maybeSetEnvironment(Map<String, String> source) {
         return false;
     }
 
+    @Override
     public void removeEnvironmentVariable(String name) throws NativeIntegrationException {
         throw notSupported();
     }
 
+    @Override
     public boolean maybeRemoveEnvironmentVariable(String name) {
         return false;
     }
 
+    @Override
     public void setEnvironmentVariable(String name, String value) throws NativeIntegrationException {
         throw notSupported();
     }
 
+    @Override
     public boolean maybeSetEnvironmentVariable(String name, String value) {
         return false;
     }
 
+    @Override
     public File getProcessDir() throws NativeIntegrationException {
         throw notSupported();
     }
 
+    @Override
     public void setProcessDir(File processDir) throws NativeIntegrationException {
         throw notSupported();
     }
 
+    @Override
     public boolean maybeSetProcessDir(File processDir) {
         return false;
     }
 
+    @Override
     public Long getPid() throws NativeIntegrationException {
         throw notSupported();
     }
 
+    @Override
     public Long maybeGetPid() {
         return null;
     }

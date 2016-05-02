@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal;
 
+import org.gradle.internal.metaobject.DynamicObject;
+
 /**
  * An object that can present a dynamic view of itself.
  *
@@ -25,7 +27,7 @@ package org.gradle.api.internal;
 public interface DynamicObjectAware {
 
     /**
-     * Returns a {@link DynamicObject} for this object.
+     * Returns a {@link DynamicObject} for this object. This should include all static and dynamic properties and methods for this object.
      *
      * @return The dynamic object.
      */

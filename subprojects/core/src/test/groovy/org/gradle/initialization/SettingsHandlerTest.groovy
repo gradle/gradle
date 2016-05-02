@@ -21,8 +21,8 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.initialization.buildsrc.BuildSourceBuilder
+import org.gradle.internal.FileUtils
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.util.GFileUtils
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
@@ -30,7 +30,7 @@ class SettingsHandlerTest extends Specification {
 
     def gradle = Mock(GradleInternal)
     def settings = Mock(SettingsInternal)
-    def settingsLocation = new SettingsLocation(GFileUtils.canonicalise(new File("someDir")), null);
+    def settingsLocation = new SettingsLocation(FileUtils.canonicalize(new File("someDir")), null);
     def startParameter = new StartParameter();
     def classLoaderScope = Mock(ClassLoaderScope)
     def settingsFinder = Mock(ISettingsFinder)

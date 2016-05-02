@@ -19,22 +19,19 @@ package org.gradle.launcher.daemon.bootstrap;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
-import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
-import org.gradle.launcher.daemon.logging.DaemonMessages;
-import org.gradle.messaging.remote.Address;
-import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.serialize.OutputStreamBackedEncoder;
-import org.gradle.process.internal.child.EncodedStream;
+import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
+import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
+import org.gradle.internal.remote.Address;
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
+import org.gradle.process.internal.streams.EncodedStream;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 public class DaemonStartupCommunication {
 
@@ -50,14 +47,7 @@ public class DaemonStartupCommunication {
             encoder.writeNullableString(pid == null ? null : pid.toString());
             encoder.writeString(uid);
             MultiChoiceAddress multiChoiceAddress = (MultiChoiceAddress) address;
-            UUID canonicalAddress = (UUID) multiChoiceAddress.getCanonicalAddress();
-            encoder.writeLong(canonicalAddress.getMostSignificantBits());
-            encoder.writeLong(canonicalAddress.getLeastSignificantBits());
-            encoder.writeInt(multiChoiceAddress.getPort());
-            encoder.writeSmallInt(multiChoiceAddress.getCandidates().size());
-            for (InetAddress inetAddress : multiChoiceAddress.getCandidates()) {
-                encoder.writeBinary(inetAddress.getAddress());
-            }
+            new MultiChoiceAddressSerializer().write(encoder, multiChoiceAddress);
             encoder.writeString(daemonLog.getPath());
             encoder.flush();
         } catch (IOException e) {
@@ -85,15 +75,7 @@ public class DaemonStartupCommunication {
             String pidString = decoder.readNullableString();
             String uid = decoder.readString();
             Long pid = pidString == null ? null : Long.valueOf(pidString);
-            UUID canonicalAddress = new UUID(decoder.readLong(), decoder.readLong());
-            int port = decoder.readInt();
-            int addressCount = decoder.readSmallInt();
-            List<InetAddress> addresses = new ArrayList<InetAddress>(addressCount);
-            for (int i = 0; i < addressCount; i++) {
-                InetAddress address = InetAddress.getByAddress(decoder.readBinary());
-                addresses.add(address);
-            }
-            Address address = new MultiChoiceAddress(canonicalAddress, port, addresses);
+            Address address = new MultiChoiceAddressSerializer().read(decoder);
             File daemonLog = new File(decoder.readString());
             return new DaemonStartupInfo(uid, address, new DaemonDiagnostics(daemonLog, pid));
         } catch (IOException e) {

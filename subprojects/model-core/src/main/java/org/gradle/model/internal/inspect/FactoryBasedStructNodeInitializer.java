@@ -17,15 +17,15 @@
 package org.gradle.model.internal.inspect;
 
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.core.InstanceFactory;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.manage.binding.StructBindings;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.model.internal.typeregistration.InstanceFactory;
 
 public class FactoryBasedStructNodeInitializer<T, S extends T> extends StructNodeInitializer<S> {
-    private final InstanceFactory.ImplementationInfo<T> implementationInfo;
+    private final InstanceFactory.ImplementationInfo implementationInfo;
 
-    public FactoryBasedStructNodeInitializer(StructBindings<S> bindings, InstanceFactory.ImplementationInfo<T> implementationInfo) {
+    public FactoryBasedStructNodeInitializer(StructBindings<S> bindings, InstanceFactory.ImplementationInfo implementationInfo) {
         super(bindings);
         this.implementationInfo = implementationInfo;
     }
@@ -33,7 +33,7 @@ public class FactoryBasedStructNodeInitializer<T, S extends T> extends StructNod
     @Override
     protected void initializePrivateData(MutableModelNode modelNode) {
         ModelType<T> delegateType = Cast.uncheckedCast(implementationInfo.getDelegateType());
-        T instance = implementationInfo.create(modelNode);
+        T instance = Cast.uncheckedCast(implementationInfo.create(modelNode));
         modelNode.setPrivateData(delegateType, instance);
     }
 }

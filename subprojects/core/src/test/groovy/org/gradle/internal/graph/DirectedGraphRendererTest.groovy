@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.graph
 
-import org.gradle.logging.StyledTextOutput
-import org.gradle.logging.TestStyledTextOutput
+import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 

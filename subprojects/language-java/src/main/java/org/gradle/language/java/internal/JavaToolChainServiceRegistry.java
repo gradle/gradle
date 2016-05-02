@@ -30,30 +30,35 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.process.internal.ExecActionFactory;
-import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.worker.WorkerProcessFactory;
 
 import javax.tools.JavaCompiler;
 
 public class JavaToolChainServiceRegistry implements PluginServiceRegistry {
+    @Override
     public void registerGlobalServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.addProvider(new BuildSessionScopeCompileServices());
     }
 
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerGradleServices(ServiceRegistration registration) {
     }
 
+    @Override
     public void registerProjectServices(ServiceRegistration registration) {
         registration.addProvider(new ProjectScopeCompileServices());
     }
 
     private static class BuildSessionScopeCompileServices {
-        CompilerDaemonManager createCompilerDaemonManager(Factory<WorkerProcessBuilder> workerFactory, StartParameter startParameter) {
+        CompilerDaemonManager createCompilerDaemonManager(WorkerProcessFactory workerFactory, StartParameter startParameter) {
             return new CompilerDaemonManager(new CompilerClientsManager(new CompilerDaemonStarter(workerFactory, startParameter)));
         }
 

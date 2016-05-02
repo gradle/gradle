@@ -8,7 +8,7 @@
 :server:mainJava5ApiJar
 :server:mainJava5Jar
 :core:compileMainJava6JarMainJava
-:core:compileMainJava6JarMainJava6
+:core:compileMainJava6JarMainJava6JarJava
 :core:processMainJava6JarMainResources
 :core:mainJava6ApiJar
 :server:compileMainJava6JarMainJava

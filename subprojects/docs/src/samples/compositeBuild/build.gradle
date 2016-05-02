@@ -1,0 +1,60 @@
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.connection.GradleConnection
+
+task showDependencies << {
+    def connection = openCompositeConnection()
+    try {
+        executeTask(connection, "projectA", ":dependencies")
+    } finally {
+        connection.close()
+    }
+}
+
+task build << {
+    def connection = openCompositeConnection()
+    try {
+        executeTask(connection, "projectA", ":assemble")
+    } finally {
+        connection.close()
+    }
+}
+
+task publishAll << {
+    def connection = openCompositeConnection()
+    try {
+        executeTask(connection, "projectC", ":uploadArchives")
+        executeTask(connection, "projectB", ":b1:uploadArchives", ":b2:uploadArchives")
+        executeTask(connection, "projectA", ":uploadArchives")
+    } finally {
+        connection.close()
+    }
+}
+
+private openCompositeConnection() {
+    def projectA = file("projects/projectA")
+    def projectB = file("projects/projectB")
+    def projectC = file("projects/projectC")
+
+    def gradleHome = project.gradle.gradleHomeDir
+
+    def builder = GradleConnector.newGradleConnection()
+    builder.addParticipant(projectA).useInstallation(gradleHome)
+    builder.addParticipant(projectB).useInstallation(gradleHome)
+    builder.addParticipant(projectC).useInstallation(gradleHome)
+    builder.useInstallation(gradleHome)
+
+    // Switch to enable (experimental) dependency substitution
+    builder.integratedComposite(project.hasProperty("integrated"))
+
+    return builder.build()
+}
+
+private executeTask(GradleConnection connection, String participant, String... tasks) {
+    def rootDir = file("projects/${participant}")
+    logger.lifecycle("Running tasks ${tasks} in participant: ${participant}")
+    def buildLauncher = connection.newBuild()
+    buildLauncher.forTasks(rootDir, tasks)
+    buildLauncher.standardOutput = System.out
+    buildLauncher.standardError = System.err
+    buildLauncher.run()
+}

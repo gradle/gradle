@@ -1,72 +1,49 @@
-# Provide a smooth upgrade and assistance when a user switches from STS Gradle to Buildship
+# Story: Detect STS Gradle installation and notify the user
 
-- [ ] Rename labels contributed by the STS plugin
-- [ ] Detect STS Gradle installation and notify the user
-- [ ] Document steps for migration from STS to Buildship
-- [ ] Implement missing Buildship features
+Document the migration steps from STS Gradle integration to Buildship. Provide contribution to the STS plugin to show a dialog that the development is discontinued and users should use Buildship. The migration document should be accessible from the dialog.
 
-# Stories
+## Estimate
 
-### Story: Rename labels contributed by the STS plugin
+- Migration guide - 1 day
+- Detect STS installation - 3 days
 
-- The common UI elements have the same labels:
-    - Wizards: `New > Gradle > Gradle Project`, and `Import > Gradle > Gradle Project`
-    - Gradle context menu
-    - Gradle Tasks view: `Gradle  > Gradle Tasks`
-As a result it is hard to tell which UI contribution belongs to what plugin. Ideally, the STS plugin will use labels that are clearly distinct from those provided by Buildship. Alternatively, Buildship could provide de-duplicated labels when the STS plugin is detected.
+## Implementation
 
-##### Estimate
+**Create a migration guide**
+- Write a migration guide for STS Gradle plugin users explaining how to transition to Buildship.
+- Document features that are available in the STS Gradle plugin but not in Buildship.
+    - Automatically run tasks on Gradle project import.
+    - Allow Buildship setting files to be shared between developers.
+        - Buildship stores absolute locations in the `.settings/gradle.prefs` import preference file. This makes the ‘Import existing project’ wizard unusable, and makes it difficult to share a fully configured Buildship workspace.
+    - Import subset of modules from a multi-module build.
+    - Support renaming for eclipse projects, or deduplicate naming conflicts with a non-Gradle project.
+- It should reference the relevant points from the [STS plugin documentation](https://github.com/spring-projects/eclipse-integration-gradle/wiki).
+- The document should be published as a wiki page in Buildship GitHub repository
 
--
+**Notify users about the migration**
+- Implement a new Buildship plugin which:
+    - Activates at Eclipse startup and checks the installed plugins.
+    - If the STS Gradle integration plugin is installed, then a dialog is presented to the user, which
+        - Informs that the STS Gradle plugin development will be discontinued,
+        - Has a link to the migration guide,
+        - Has a checkbox not to display the message again.
+- Add the new plugin to the Buildship feature.
+- Ask Pivotal to include the new plugin in the STS Gradle integration feature too.
 
-##### Implementation
+**Implementation plan for the notification plugin**
+- Add two new plugins to buildship `org.eclipse.buidship.stsmigration` and `org.eclipse.buidship.stsmigration.test`.
+- Add new `org.eclipse.ui.startup` extension with the `StartupHandler` class in the plugin to ensure the plugin is always activated.
+- Implement `StsMigrationDialog` to show the UI elements.
+- Implement `StsMigrationService` to 1) check if STS is installed 2) checks if the notification is muted and 3) shows the dialog if necessary.
+- Call `StsMigrationService.run()` from `StartupHandler`.
 
-We already contacted the STS project maintainers. The feedback was that they are willing to change them, but a next
-release is scheduled March 2016.
+## Test cases
+- Can detect if STS plugin is installed in Eclipse.
+- STS plugin detection is activated upon startup.
+- Dialog is presented to the user upon startup.
+     - If the user does not check the option, then the dialog will continue to be rendered upon startup.
+- User can directly click on the link in the dialog and a browser will be opened.
 
-##### Test cases
+ -Note: Eclipse provides an API to install-uninstall bundles in the current runtime. We'll make use of this feature to provide integration tests verifying how Buildship behaves when STS is installed.
 
--
-
-##### Open issues
-
-- Do we want to wait until March 2016 to have it implemented?
-- Should we create a [feature patch](http://eclipsesource.com/blogs/2012/07/30/patching-your-own-eclipse-ide)
-  to modify the labels on our own?
-
-### Story: Detect STS Gradle installation and notify the user
-
-Query the list of installed Eclipse plugins, and if STS Gradle is installed then notify the user about it being superceded by Buildship.
-The notification should contain a link to a document outlining the steps required for migration, including uninstalling the STS plugin.
-
-##### Estimate
-
--
-
-##### Implementation
-
--
-
-##### Test cases
-
--
-
-##### Open issues
-
--
-
-# Open issues: STS features that are missing from Buildship
-
-The following features are available in the STS Gradle but not in Buildship.
-
-- Automatically run tasks on Gradle project import
-- Optionally regenerate project descriptors (the `.project` and the `.classpath` file) when importing the modules
-- Allow Buildship setting files to be shared between developers
-    - Buildship stores absolute locations in the `.settings/gradle.prefs`  import preference file. This makes the ‘Import existing project’ wizard unusable, and makes it difficult to share a fully configured Buildship workspace
-- Support renaming for eclipse projects, or deduplicate naming conflicts with a non-Gradle project
-
-Note that not all of these features necessarily need to be implemented by Buildship in order to replace STS.
-
-
-
-
+## Open issues

@@ -34,31 +34,23 @@ class OutputFilesSnapshotSerializer implements Serializer<OutputFilesCollectionS
     }
 
     public OutputFilesCollectionSnapshotter.OutputFilesSnapshot read(Decoder decoder) throws Exception {
-        Map<String, Long> rootFileIds = new HashMap<String, Long>();
+        Map<String, Boolean> roots = new HashMap<String, Boolean>();
         int rootFileIdsCount = decoder.readSmallInt();
         for (int i = 0; i < rootFileIdsCount; i++) {
             String key = stringInterner.intern(decoder.readString());
-            boolean notNull = decoder.readBoolean();
-            Long value = notNull? decoder.readLong() : null;
-            rootFileIds.put(key, value);
+            roots.put(key, decoder.readBoolean());
         }
         FileCollectionSnapshot snapshot = serializer.read(decoder);
 
-        return new OutputFilesCollectionSnapshotter.OutputFilesSnapshot(rootFileIds, snapshot);
+        return new OutputFilesCollectionSnapshotter.OutputFilesSnapshot(roots, snapshot);
     }
 
     public void write(Encoder encoder, OutputFilesCollectionSnapshotter.OutputFilesSnapshot value) throws Exception {
-        int rootFileIds = value.rootFileIds.size();
-        encoder.writeSmallInt(rootFileIds);
-        for (String key : value.rootFileIds.keySet()) {
-            Long id = value.rootFileIds.get(key);
-            encoder.writeString(key);
-            if (id == null) {
-                encoder.writeBoolean(false);
-            } else {
-                encoder.writeBoolean(true);
-                encoder.writeLong(id);
-            }
+        int roots = value.roots.size();
+        encoder.writeSmallInt(roots);
+        for (Map.Entry<String, Boolean> entry : value.roots.entrySet()) {
+            encoder.writeString(entry.getKey());
+            encoder.writeBoolean(entry.getValue());
         }
 
         serializer.write(encoder, value.filesSnapshot);

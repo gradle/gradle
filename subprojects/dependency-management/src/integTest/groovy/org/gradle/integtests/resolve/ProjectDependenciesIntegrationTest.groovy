@@ -75,7 +75,7 @@ class ProjectDependenciesIntegrationTest extends AbstractDependencyResolutionTes
         runAndFail("extraKey")
 
         then:
-        failureHasCause("No such property: foo for class: ")
+        failureHasCause("Could not set unknown property 'foo' for ")
 
         when:
         run("missingConfiguration")

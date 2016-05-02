@@ -70,7 +70,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
     @Override
     public String getDisplayName() {
-        return String.format("Classpath for %s", descriptor);
+        return "Classpath for " + descriptor;
     }
 
     @Override
@@ -111,7 +111,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
             throw new LibraryResolveException(String.format("Could not resolve all dependencies for '%s' %s", binary.getDisplayName(), descriptor), notFound);
         }
     }
-    
+
     class ResolveResult implements DependencyGraphVisitor, DependencyArtifactsVisitor {
         public final DefaultTaskDependency taskDependency = new DefaultTaskDependency();
         public final List<Throwable> notFound = new LinkedList<Throwable>();

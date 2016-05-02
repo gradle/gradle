@@ -35,7 +35,7 @@ public class BuildConfigurationRule extends AbstractRule {
     }
 
     public String getDescription() {
-        return String.format("Pattern: %s<ConfigurationName>: Assembles the artifacts of a configuration.", PREFIX);
+        return "Pattern: " + PREFIX + "<ConfigurationName>: Assembles the artifacts of a configuration.";
     }
 
     public void apply(String taskName) {
@@ -46,7 +46,7 @@ public class BuildConfigurationRule extends AbstractRule {
             if (configuration != null) {
                 Task task = tasks.create(taskName);
                 task.dependsOn(configuration.getAllArtifacts());
-                task.setDescription(String.format("Builds the artifacts belonging to %s.", configuration));
+                task.setDescription("Builds the artifacts belonging to " + configuration + ".");
             }
         }
     }

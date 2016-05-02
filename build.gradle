@@ -151,6 +151,7 @@ ext {
         project(it)
     }
     publishedProjects = [
+        project(':logging'),
         project(':core'),
         project(':toolingApi'),
         project(':wrapper'),
@@ -225,6 +226,7 @@ configurations {
 dependencies {
     runtime project(':launcher')
     runtime project(':wrapper')
+    runtime project(":installationBeacon")
     sonar libraries.logback_classic
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')
@@ -278,7 +280,7 @@ ext.preferencesTraceFile = new File(reportsFolder, "preferences.trace.log")
 def userPrefsDirectory = new File("${System.getProperty("user.home")}/.java/.userPrefs")
 
 gradle.addListener(new TaskExecutionListener() {
-    public void beforeExecute(Task task) {
+    void beforeExecute(Task task) {
         if (task.name != "clean") {
             doLog("before executing ", task)
             if (userPrefsDirectory.exists()) {
@@ -287,7 +289,7 @@ gradle.addListener(new TaskExecutionListener() {
         }
     }
 
-    public void afterExecute(Task task, TaskState state) {
+    void afterExecute(Task task, TaskState state) {
         if (task.name != "clean") {
             doLog("after executing", task)
             if (userPrefsDirectory.exists()) {

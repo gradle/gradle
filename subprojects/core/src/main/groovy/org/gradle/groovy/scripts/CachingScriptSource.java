@@ -15,37 +15,33 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.gradle.internal.resource.CachingResource;
-import org.gradle.internal.resource.Resource;
+import org.gradle.internal.resource.CachingTextResource;
+import org.gradle.internal.resource.TextResource;
 
 public class CachingScriptSource extends DelegatingScriptSource {
-    private Resource resource;
+    private final TextResource resource;
+    private final String displayName;
 
-    public CachingScriptSource(ScriptSource source) {
+    public static ScriptSource of(ScriptSource source) {
+        if (source.getResource().isContentCached()) {
+            return source;
+        }
+        return new CachingScriptSource(source);
+    }
+
+    private CachingScriptSource(ScriptSource source) {
         super(source);
-        resource = new CachingResource(source.getResource());
+        resource = new CachingTextResource(source.getResource());
+        displayName = source.getDisplayName();
     }
 
     @Override
-    public Resource getResource() {
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    @Override
+    public TextResource getResource() {
         return resource;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-
-        CachingScriptSource other = (CachingScriptSource) obj;
-        return other.getSource().equals(getSource());
-    }
-
-    @Override
-    public int hashCode() {
-        return getSource().hashCode();
     }
 }

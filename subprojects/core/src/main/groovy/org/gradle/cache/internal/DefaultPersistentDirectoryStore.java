@@ -36,7 +36,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         this.dir = dir;
         this.lockOptions = lockOptions;
         this.lockManager = fileLockManager;
-        this.displayName = displayName != null ? String.format("%s (%s)", displayName, dir) : String.format("cache directory %s (%s)", dir.getName(), dir);
+        this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
     }
 
     public DefaultPersistentDirectoryStore open() {

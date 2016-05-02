@@ -28,13 +28,14 @@ public class SimpleModelRuleDescriptor extends AbstractModelRuleDescriptor {
     private final String descriptor;
 
     public SimpleModelRuleDescriptor(String descriptor) {
-        this.descriptor = descriptor;
+        this.descriptor = STRING_INTERNER.intern(descriptor);
     }
 
     public SimpleModelRuleDescriptor(String descriptor, Object... args) {
         this(String.format(descriptor, args));
     }
 
+    @Override
     public void describeTo(Appendable appendable) {
         try {
             appendable.append(descriptor);

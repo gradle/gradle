@@ -15,6 +15,8 @@
  */
 package org.gradle.testing.jacoco.plugins
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.Incubating
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -36,6 +38,7 @@ import javax.inject.Inject
  * Plugin that provides support for generating Jacoco coverage data.
  */
 @Incubating
+@CompileStatic
 class JacocoPlugin implements Plugin<ProjectInternal> {
     static final String AGENT_CONFIGURATION_NAME = 'jacocoAgent'
     static final String ANT_CONFIGURATION_NAME = 'jacocoAnt'
@@ -53,13 +56,14 @@ class JacocoPlugin implements Plugin<ProjectInternal> {
         this.instantiator = instantiator
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     void apply(ProjectInternal project) {
         project.pluginManager.apply(ReportingBasePlugin)
         this.project = project
         addJacocoConfigurations()
         JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar, project)
         JacocoPluginExtension extension = project.extensions.create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension, project, agent)
-        ReportingExtension reportingExtension = project.extensions.getByName(ReportingExtension.NAME)
+        ReportingExtension reportingExtension = (ReportingExtension) project.extensions.getByName(ReportingExtension.NAME)
         extension.conventionMapping.reportsDir = { reportingExtension.file("jacoco") }
 
         configureAgentDependencies(agent, extension)
@@ -70,7 +74,8 @@ class JacocoPlugin implements Plugin<ProjectInternal> {
         addDefaultReportTasks(extension)
     }
 
-    private void configureJacocoReportDefaults(Project project, extension) {
+    @CompileStatic(TypeCheckingMode.SKIP)
+    private void configureJacocoReportDefaults(Project project, JacocoPluginExtension extension) {
         project.tasks.withType(JacocoReport) { reportTask ->
             reportTask.reports.all { report ->
                 report.conventionMapping.with {
@@ -85,6 +90,7 @@ class JacocoPlugin implements Plugin<ProjectInternal> {
         }
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     def configureDefaultOutputPathForJacocoMerge() {
         project.tasks.withType(JacocoMerge) { task ->
             task.conventionMapping.destinationFile = { new File(project.buildDir, "/jacoco/${task.name}.exec") }
@@ -114,6 +120,7 @@ class JacocoPlugin implements Plugin<ProjectInternal> {
      * @param project the project to add the dependencies to
      * @param extension the extension that has the tool version to use
      */
+    @CompileStatic(TypeCheckingMode.SKIP)
     private void configureAgentDependencies(JacocoAgentJar jacocoAgentJar, JacocoPluginExtension extension) {
         def config = this.project.configurations[AGENT_CONFIGURATION_NAME]
         jacocoAgentJar.conventionMapping.agentConf = { config }
@@ -127,6 +134,7 @@ class JacocoPlugin implements Plugin<ProjectInternal> {
      * Uses the version information declared in 'toolVersion' of the Jacoco extension if no dependencies are explicitly declared.
      * @param extension the JacocoPluginExtension
      */
+    @CompileStatic(TypeCheckingMode.SKIP)
     private void configureTaskClasspathDefaults(JacocoPluginExtension extension) {
         def config = this.project.configurations[ANT_CONFIGURATION_NAME]
         this.project.tasks.withType(JacocoBase) { task ->
@@ -142,8 +150,8 @@ class JacocoPlugin implements Plugin<ProjectInternal> {
      * @param extension the extension to apply Jacoco with
      */
     private void applyToDefaultTasks(JacocoPluginExtension extension) {
-        project.tasks.withType(Test) {
-            extension.applyTo(it)
+        project.tasks.withType(Test) { Test task ->
+            extension.applyTo(task)
         }
     }
 
@@ -151,6 +159,7 @@ class JacocoPlugin implements Plugin<ProjectInternal> {
      * Adds report tasks for specific default test tasks.
      * @param extension the extension describing the test task names
      */
+    @CompileStatic(TypeCheckingMode.SKIP)
     private void addDefaultReportTasks(JacocoPluginExtension extension) {
         this.project.plugins.withType(JavaPlugin) {
             this.project.tasks.withType(Test) { task ->

@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit.result
 
 import org.gradle.api.internal.tasks.testing.*
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
-import org.gradle.messaging.remote.internal.PlaceholderException
+import org.gradle.internal.serialize.PlaceholderException
 import spock.lang.Issue
 import spock.lang.Specification
 

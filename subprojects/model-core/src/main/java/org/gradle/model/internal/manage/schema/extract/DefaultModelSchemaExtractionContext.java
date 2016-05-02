@@ -59,6 +59,7 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
         return parent;
     }
 
+    @Override
     public ModelType<T> getType() {
         return type;
     }
@@ -98,17 +99,19 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
     }
 
     public String getDescription() {
-        return description == null ? type.toString() : String.format("%s (%s)", description, type);
+        return description == null ? type.toString() : (description + " (" + type + ")");
     }
 
     public List<DefaultModelSchemaExtractionContext<?>> getChildren() {
         return children;
     }
 
+    @Override
     public <C> DefaultModelSchemaExtractionContext<C> child(ModelType<C> type, String description) {
         return child(type, description, Actions.doNothing());
     }
 
+    @Override
     public <C> DefaultModelSchemaExtractionContext<C> child(ModelType<C> type, String description, Action<? super ModelSchema<C>> validator) {
         DefaultModelSchemaExtractionContext<C> childContext = new DefaultModelSchemaExtractionContext<C>(this, type, description, validator);
         children.add(childContext);
@@ -120,6 +123,7 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
         return result;
     }
 
+    @Override
     public void found(ModelSchema<T> result) {
         this.result = result;
     }

@@ -17,10 +17,10 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.ResourceException;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 
 import java.util.Collection;

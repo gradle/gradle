@@ -26,7 +26,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
-import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VisualCpp
+import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 @LeaksFileHandles
@@ -123,7 +123,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         executable(objectiveCpp.dir.file("build/exe/main/main")).exec().out == "Hello world!\n"
     }
 
-    @RequiresInstalledToolChain(VisualCpp)
+    @RequiresInstalledToolChain(VISUALCPP)
     def "win rc"() {
         given:
         sample windowsResources

@@ -16,7 +16,6 @@
 package org.gradle.gradleplugin.foundation;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
-import org.gradle.api.internal.classpath.DefaultGradleDistributionLocator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
@@ -34,7 +33,9 @@ import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.logging.ShowStacktrace;
+import org.gradle.internal.installation.CurrentGradleInstallation;
+import org.gradle.internal.installation.GradleInstallation;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -143,7 +144,8 @@ public class GradlePluginLord {
         if (gradleHomeProperty != null) {
             gradleHomeDirectory = new File(gradleHomeProperty);
         } else {
-            gradleHomeDirectory = new DefaultGradleDistributionLocator().getGradleHome();
+            GradleInstallation gradleInstallation = CurrentGradleInstallation.get();
+            gradleHomeDirectory = gradleInstallation == null ? null : gradleInstallation.getGradleHome();
         }
     }
 

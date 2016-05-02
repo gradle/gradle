@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.coerce;
 
+import org.codehaus.groovy.reflection.CachedClass;
+
 /**
  * Potentially transforms arguments to call a method with.
  */
@@ -25,12 +27,7 @@ public interface MethodArgumentsTransformer {
      * Transforms an argument list to call a method with.
      *
      * May return {@code args} if no transform is necessary.
-     *
-     * @param target The object to call the method on
-     * @param methodName The name of the method to call
-     * @param args The args to call the method with
-     * @return The args transformed, or args. Never null.
      */
-    Object[] transform(Object target, String methodName, Object... args);
+    Object[] transform(CachedClass[] types, Object[] args);
 
 }

@@ -26,21 +26,18 @@ class TempTestKitDirProviderTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
-    File expectedTmpDir
-    TestKitDirProvider testKitDirProvider
-
-    def setup() {
-        testKitDirProvider = new TempTestKitDirProvider(testDirectoryProvider.testDirectory)
-        expectedTmpDir = new File(testDirectoryProvider.testDirectory, ".gradle-test-kit-${SystemProperties.instance.userName}")
-    }
-
     def "can create temporary directory"() {
+        def systemProperties = Mock(SystemProperties) {
+            getJavaIoTmpDir() >> testDirectoryProvider.testDirectory.absolutePath
+            getUserName() >> "foo"
+        }
+
         when:
-        File tmpDir = testKitDirProvider.getDir()
+        def testKitDirProvider = new TempTestKitDirProvider(systemProperties)
+        def expectedTmpDir = new File(testDirectoryProvider.testDirectory, ".gradle-test-kit-foo")
 
         then:
-        !tmpDir.exists()
-        tmpDir == expectedTmpDir
+        testKitDirProvider.dir.absolutePath == expectedTmpDir.absolutePath
     }
 
 }

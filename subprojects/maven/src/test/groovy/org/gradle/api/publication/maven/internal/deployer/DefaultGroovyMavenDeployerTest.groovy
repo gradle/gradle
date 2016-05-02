@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.maven.PomFilterContainer
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer
-import org.gradle.logging.LoggingManagerInternal
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.util.JUnit4GroovyMockery
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -43,15 +43,14 @@ class DefaultGroovyMavenDeployerTest {
 
     @Test
     void repositoryBuilder() {
-        checkRepositoryBuilder(DefaultGroovyMavenDeployer.REPOSITORY_BUILDER)
+        checkRepositoryBuilder("repository")
     }
 
     @Test
     void snapshotRepositoryBuilder() {
-        checkRepositoryBuilder(DefaultGroovyMavenDeployer.SNAPSHOT_REPOSITORY_BUILDER)
+        checkRepositoryBuilder("snapshotRepository")
     }
-
-
+    
     void checkRepositoryBuilder(String repositoryName) {
         String testUrl = 'testUrl'
         String testProxyHost = 'hans'

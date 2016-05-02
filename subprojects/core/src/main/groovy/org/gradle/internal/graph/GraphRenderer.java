@@ -16,9 +16,9 @@
 package org.gradle.internal.graph;
 
 import org.gradle.api.Action;
-import org.gradle.logging.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutput;
 
-import static org.gradle.logging.StyledTextOutput.Style.Info;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
 public class GraphRenderer {
     private final StyledTextOutput output;

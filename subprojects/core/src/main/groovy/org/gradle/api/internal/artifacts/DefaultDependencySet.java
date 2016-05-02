@@ -45,7 +45,7 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
     private class DependencySetTaskDependency extends AbstractTaskDependency {
         @Override
         public String toString() {
-            return String.format("build dependencies %s", DefaultDependencySet.this);
+            return "build dependencies " + DefaultDependencySet.this;
         }
 
         @Override

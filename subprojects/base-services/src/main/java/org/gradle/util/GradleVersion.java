@@ -35,14 +35,13 @@ import java.util.regex.Pattern;
 
 public class GradleVersion implements Comparable<GradleVersion> {
     public static final String URL = "http://www.gradle.org";
-    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(\\d{14}([-+]\\d{4})?))?");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+[a-z]?))?(-(SNAPSHOT|\\d{14}([-+]\\d{4})?))?");
     private static final int STAGE_MILESTONE = 0;
 
     private final String version;
     private final int majorPart;
     private final String buildTime;
     private final String commitId;
-    private final String buildNumber;
     private final Long snapshot;
     private final String versionPart;
     private final Stage stage;
@@ -62,11 +61,15 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
             String version = properties.get("versionNumber").toString();
             String buildTimestamp = properties.get("buildTimestamp").toString();
-            String buildNumber = properties.get("buildNumber").toString();
             String commitId = properties.get("commitId").toString();
-            Date buildTime = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(buildTimestamp);
+            Date buildTime;
+            if ("unknown".equals(buildTimestamp)) {
+                buildTime = null;
+            } else {
+                buildTime = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(buildTimestamp);
+            }
 
-            CURRENT = new GradleVersion(version, buildTime, buildNumber, commitId);
+            CURRENT = new GradleVersion(version, buildTime, commitId);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not load version details from resource '%s'.", resource), e);
         } finally {
@@ -90,12 +93,11 @@ public class GradleVersion implements Comparable<GradleVersion> {
      * @throws IllegalArgumentException On unrecognized version string.
      */
     public static GradleVersion version(String version) throws IllegalArgumentException {
-        return new GradleVersion(version, null, null, null);
+        return new GradleVersion(version, null, null);
     }
 
-    private GradleVersion(String version, Date buildTime, String buildNumber, String commitId) {
+    private GradleVersion(String version, Date buildTime, String commitId) {
         this.version = version;
-        this.buildNumber = buildNumber;
         this.commitId = commitId;
         this.buildTime = buildTime == null ? null : formatBuildTime(buildTime);
         Matcher matcher = VERSION_PATTERN.matcher(version);
@@ -123,7 +125,11 @@ public class GradleVersion implements Comparable<GradleVersion> {
             stage = null;
         }
 
-        if (matcher.group(8) != null) {
+        if (matcher.group(8) == null) {
+            snapshot = null;
+        } else if ("SNAPSHOT".equals(matcher.group(8))) {
+            snapshot = 0L;
+        } else {
             try {
                 if (matcher.group(9) != null) {
                     snapshot = new SimpleDateFormat("yyyyMMddHHmmssZ").parse(matcher.group(8)).getTime();
@@ -135,8 +141,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
             } catch (ParseException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
-        } else {
-            snapshot = null;
         }
     }
 
@@ -148,7 +152,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
     @Override
     public String toString() {
-        return String.format("Gradle %s", version);
+        return "Gradle " + version;
     }
 
     public String getVersion() {
@@ -157,10 +161,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
     public String getBuildTime() {
         return buildTime;
-    }
-
-    public String getBuildNumber() {
-        return buildNumber;
     }
 
     public String getRevision() {

@@ -20,7 +20,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.resource.Resource
+import org.gradle.internal.resource.ResourceLocation
+import org.gradle.internal.resource.TextResource
 import spock.lang.Specification
 
 class DefaultInitScriptProcessorTest extends Specification {
@@ -31,9 +32,11 @@ class DefaultInitScriptProcessorTest extends Specification {
         def scriptHandlerFactory = Mock(ScriptHandlerFactory)
         def gradleScope = Mock(ClassLoaderScope)
         def uri = new URI("file:///foo")
-        def initScriptMock = Mock(ScriptSource) {
-            getResource() >> Mock(Resource) {
-                getURI() >> uri
+        def initScriptMock = Stub(ScriptSource) {
+            getResource() >> Stub(TextResource) {
+                getLocation() >> Stub(ResourceLocation) {
+                    getURI() >> uri
+                }
             }
         }
         def gradleMock = Mock(GradleInternal)

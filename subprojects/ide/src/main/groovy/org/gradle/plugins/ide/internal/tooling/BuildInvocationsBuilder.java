@@ -29,7 +29,7 @@ import org.gradle.tooling.internal.consumer.converters.TaskNameComparator;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultBuildInvocations;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTaskSelector;
-import org.gradle.tooling.model.internal.ProjectSensitiveToolingModelBuilder;
+import org.gradle.tooling.provider.model.internal.ProjectSensitiveToolingModelBuilder;
 
 import java.util.Collection;
 import java.util.List;
@@ -73,7 +73,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                     setName(selectorName).
                     setTaskName(selectorName).
                     setProjectPath(project.getPath()).
-                    setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())).
+                    setDisplayName(selectorName + " in " + project + " and subprojects.").
                     setPublic(visibleTasks.contains(selectorName)));
         }
 

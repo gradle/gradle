@@ -25,7 +25,7 @@ import java.util.Map;
  * <p>
  * Extra properties extensions allow new properties to be added to existing domain objects. They act like maps,
  * allowing the storage of arbitrary key/value pairs. All {@link ExtensionAware} Gradle domain objects intrinsically have an extension
- * named “{@value #EXTENSION_NAME}” of this type. 
+ * named “{@value #EXTENSION_NAME}” of this type.
  * <p>
  * An important feature of extra properties extensions is that all of its properties are exposed for reading and writing via the {@link ExtensionAware}
  * object that owns the extension.
@@ -73,7 +73,7 @@ public interface ExtraPropertiesExtension {
     /**
      * The name of this extension in all {@link ExtensionContainer ExtensnionContainers}, {@value}.
      */
-    public static final String EXTENSION_NAME = "ext";
+    String EXTENSION_NAME = "ext";
 
     /**
      * Returns whether or not the extension has a property registered via the given name.
@@ -168,9 +168,13 @@ public interface ExtraPropertiesExtension {
     /**
      * The exception that will be thrown when an attempt is made to read a property that is not set.
      */
-    public static class UnknownPropertyException extends InvalidUserDataException {
+    class UnknownPropertyException extends InvalidUserDataException {
         public UnknownPropertyException(ExtraPropertiesExtension extension, String propertyName) {
-            super(String.format("Cannot get property '%s' on extra properties extension as it does not exist", propertyName));
+            super(createMessage(propertyName));
+        }
+
+        public static String createMessage(String propertyName) {
+            return String.format("Cannot get property '%s' on extra properties extension as it does not exist", propertyName);
         }
     }
 

@@ -26,7 +26,7 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.logging.LoggingManager
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.logging.StandardOutputCapture
+import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestUtil
 import org.jmock.integration.junit4.JMock

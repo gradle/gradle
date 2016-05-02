@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.registry
 
 import org.gradle.launcher.daemon.context.DaemonContext
-import org.gradle.messaging.remote.Address
+import org.gradle.internal.remote.Address
 import spock.lang.Specification
 
 class EmbeddedDaemonRegistrySpec extends Specification {
@@ -24,7 +24,7 @@ class EmbeddedDaemonRegistrySpec extends Specification {
     @Delegate EmbeddedDaemonRegistry registry = new EmbeddedDaemonRegistry()
 
     def context = [:] as DaemonContext
-    
+
     def address(value) {
         [key: value] as Address
     }
@@ -38,8 +38,8 @@ class EmbeddedDaemonRegistrySpec extends Specification {
 
     def "lifecycle"() {
         given:
-        store(address(10), context, "password", true)
-        store(address(20), context, "password", true)
+        store(new DaemonInfo(address(10), context, "password", true))
+        store(new DaemonInfo(address(20), context, "password", true))
 
         expect:
         all.size() == 2

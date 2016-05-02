@@ -18,10 +18,11 @@ package org.gradle.language.coffeescript;
 
 import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
+import org.gradle.model.Managed;
 
 /**
  * Represents a source set for CoffeeScript sources
  */
-@Incubating
+@Incubating @Managed
 public interface CoffeeScriptSourceSet extends LanguageSourceSet {
 }

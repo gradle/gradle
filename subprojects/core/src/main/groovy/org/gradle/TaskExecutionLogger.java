@@ -22,8 +22,8 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.internal.progress.LoggerProvider;
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;

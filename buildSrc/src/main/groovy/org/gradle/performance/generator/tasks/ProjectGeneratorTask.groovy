@@ -33,7 +33,6 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     Integer testSourceFiles
     int linesOfCodePerSourceFile = 5
     int filesPerPackage = 100
-    boolean useSubProjectNumberInSourceFileNames = false
     List<String> additionalProjectFiles = []
     final List<TestProject> projects = []
     List<String> rootProjectTemplates = ['root-project']
@@ -213,6 +212,9 @@ abstract class ProjectGeneratorTask extends DefaultTask {
 
         destFile.parentFile.mkdirs()
         destFile.withWriter { Writer writer ->
+            if (templateName.endsWith('.gradle')) {
+                writer << "// Generated ${UUID.randomUUID()}\n"
+            }
             getTemplate(templateFiles.last()).make(templateArgs).writeTo(writer)
         }
     }

@@ -17,9 +17,9 @@ package org.gradle.api.internal;
 
 import groovy.lang.*;
 import groovy.lang.MissingMethodException;
-import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.plugins.Convention;
-import org.gradle.testfixtures.ProjectBuilder;
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 
@@ -65,8 +65,8 @@ public class ExtensibleDynamicObjectTest {
         try {
             bean.setProperty("readOnlyProperty", "value");
             fail();
-        } catch (ReadOnlyPropertyException e) {
-            assertThat(e.getMessage(), equalTo("Cannot set the value of read-only property 'readOnlyProperty' on <bean>."));
+        } catch (GroovyRuntimeException e) {
+            assertThat(e.getMessage(), equalTo("Cannot set the value of read-only property 'readOnlyProperty' for <bean> of type " + Bean.class.getName() + "."));
         }
     }
 
@@ -85,7 +85,7 @@ public class ExtensibleDynamicObjectTest {
             bean.getProperty("writeOnlyProperty");
             fail();
         } catch (GroovyRuntimeException e) {
-            assertThat(e.getMessage(), equalTo("Cannot get the value of write-only property 'writeOnlyProperty' on <bean>."));
+            assertThat(e.getMessage(), equalTo("Cannot get the value of write-only property 'writeOnlyProperty' for <bean> of type " + Bean.class.getName() + "."));
         }
     }
 
@@ -367,7 +367,7 @@ public class ExtensibleDynamicObjectTest {
             bean.getProperty("unknown");
             fail();
         } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("Could not find property 'unknown' on <bean>."));
+            assertThat(e.getMessage(), equalTo("Could not get unknown property 'unknown' for <bean> of type " + Bean.class.getName() + "."));
         }
 
         bean.setParent(new Bean() {
@@ -381,7 +381,43 @@ public class ExtensibleDynamicObjectTest {
             bean.getProperty("unknown");
             fail();
         } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("Could not find property 'unknown' on <bean>."));
+            assertThat(e.getMessage(), equalTo("Could not get unknown property 'unknown' for <bean> of type " + Bean.class.getName() + "."));
+        }
+    }
+
+    @Test
+    public void doesNotIncludeToStringInGetPropertyErrorMessageWhenItIsNotImplemented() {
+        DynamicObject bean = new ExtensibleDynamicObject(new Object(), Object.class, ThreadGlobalInstantiator.getOrCreate());
+
+        try {
+            bean.getProperty("unknown");
+            fail();
+        } catch (MissingPropertyException e) {
+            assertThat(e.getMessage(), equalTo("Could not get unknown property 'unknown' for object of type java.lang.Object."));
+        }
+    }
+
+    @Test
+    public void setPropertyFailsForUnknownProperty() {
+        Bean bean = new Bean();
+
+        try {
+            bean.setProperty("unknown", 12);
+            fail();
+        } catch (MissingPropertyException e) {
+            assertThat(e.getMessage(), equalTo("Could not set unknown property 'unknown' for <bean> of type " + Bean.class.getName() + "."));
+        }
+    }
+
+    @Test
+    public void doesNotIncludeToStringInSetPropertyErrorMessageWhenItIsNotImplemented() {
+        DynamicObject bean = new ExtensibleDynamicObject(new Object(), Object.class, ThreadGlobalInstantiator.getOrCreate());
+
+        try {
+            bean.setProperty("unknown", "value");
+            fail();
+        } catch (MissingPropertyException e) {
+            assertThat(e.getMessage(), equalTo("Could not set unknown property 'unknown' for object of type java.lang.Object."));
         }
     }
 
@@ -496,7 +532,7 @@ public class ExtensibleDynamicObjectTest {
             bean.getAsDynamicObject().invokeMethod("unknown", "a", 12);
             fail();
         } catch (MissingMethodException e) {
-            assertThat(e.getMessage(), equalTo("Could not find method unknown() for arguments [a, 12] on <bean>."));
+            assertThat(e.getMessage(), equalTo("Could not find method unknown() for arguments [a, 12] on <bean> of type " + Bean.class.getName() + "."));
         }
     }
 
@@ -719,38 +755,15 @@ public class ExtensibleDynamicObjectTest {
     @Test
     public void canGetObjectAsDynamicObject() {
         Bean bean = new Bean();
-        assertThat(DynamicObjectUtil.asDynamicObject(bean), sameInstance((DynamicObject) bean.getAsDynamicObject()));
-
-        AbstractProject project = (AbstractProject) ProjectBuilder.builder().build();
-        assertThat(DynamicObjectUtil.asDynamicObject(project), sameInstance(project.getAsDynamicObject()));
+        assertThat(DynamicObjectUtil.asDynamicObject(bean), sameInstance(bean.getAsDynamicObject()));
 
         assertThat(DynamicObjectUtil.asDynamicObject(new Object()), instanceOf(DynamicObject.class));
     }
 
     @Test
-    public void canGetAndSetGroovyDynamicProperties() {
-        DynamicObject object = new BeanDynamicObject(new DynamicGroovyBean());
-        object.setProperty("foo", "bar");
-        assertThat((String) object.getProperty("foo"), equalTo("bar"));
-
-        try {
-            object.getProperty("additional");
-            fail();
-        } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("No such property: additional for class: org.gradle.api.internal.DynamicGroovyBean"));
-        }
-
-        try {
-            object.setProperty("additional", "foo");
-            fail();
-        } catch (MissingPropertyException e) {
-            assertThat(e.getMessage(), equalTo("No such property: additional for class: org.gradle.api.internal.DynamicGroovyBean"));
-        }
-    }
-
-    @Test
     public void canCallGroovyDynamicMethods() {
-        DynamicObject object = new BeanDynamicObject(new DynamicGroovyBean());
+        DynamicGroovyBean bean = new DynamicGroovyBean();
+        DynamicObject object = new ExtensibleDynamicObject(bean, DynamicGroovyBean.class, ThreadGlobalInstantiator.getOrCreate());
         Integer doubled = (Integer) object.invokeMethod("bar", 1);
         assertThat(doubled, equalTo(2));
 
@@ -758,19 +771,19 @@ public class ExtensibleDynamicObjectTest {
             object.invokeMethod("xxx", 1, 2, 3);
             fail();
         } catch (MissingMethodException e) {
-            assertThat(e.getMessage(), startsWith("No signature of method: org.gradle.api.internal.DynamicGroovyBean.xxx() is applicable for argument types: (java.lang.Integer, java.lang.Integer, java.lang.Integer) values: [1, 2, 3]\nPossible solutions:"));
+            assertThat(e.getMessage(), equalTo("Could not find method xxx() for arguments [1, 2, 3] on object of type " + DynamicGroovyBean.class.getName() + "."));
         }
     }
 
     public static class Bean extends GroovyObjectSupport implements DynamicObjectAware {
         private String readWriteProperty;
-        private String readOnlyProperty;
+        private String _readOnlyProperty;
         private String writeOnlyProperty;
         private Integer differentTypesProperty;
         final ExtensibleDynamicObject extensibleDynamicObject;
 
         public Bean() {
-            extensibleDynamicObject = new ExtensibleDynamicObject(this, ThreadGlobalInstantiator.getOrCreate());
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, Bean.class, ThreadGlobalInstantiator.getOrCreate());
         }
 
         public DynamicObject getAsDynamicObject() {
@@ -787,11 +800,11 @@ public class ExtensibleDynamicObjectTest {
         }
 
         public String getReadOnlyProperty() {
-            return readOnlyProperty;
+            return _readOnlyProperty;
         }
 
         public void doSetReadOnlyProperty(String readOnlyProperty) {
-            this.readOnlyProperty = readOnlyProperty;
+            this._readOnlyProperty = readOnlyProperty;
         }
 
         public String doGetWriteOnlyProperty() {

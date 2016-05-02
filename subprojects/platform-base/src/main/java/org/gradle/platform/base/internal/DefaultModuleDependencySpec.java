@@ -65,7 +65,7 @@ public final class DefaultModuleDependencySpec implements ModuleDependencySpec {
 
     @Override
     public String getDisplayName() {
-        return String.format("%s:%s:%s", getGroup(), getName(), effectiveVersionFor(getVersion()));
+        return getGroup() + ":" + getName() + ":" + effectiveVersionFor(getVersion());
     }
 
    public static class Builder implements ModuleDependencySpecBuilder {

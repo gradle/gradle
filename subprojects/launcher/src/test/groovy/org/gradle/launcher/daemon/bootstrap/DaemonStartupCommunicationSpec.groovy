@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon.bootstrap
 
-import org.gradle.messaging.remote.internal.inet.MultiChoiceAddress
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddress
 import spock.lang.Specification
 
 class DaemonStartupCommunicationSpec extends Specification {

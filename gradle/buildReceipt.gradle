@@ -107,39 +107,19 @@ task determineCommitId {
 
 task createBuildReceipt(dependsOn: determineCommitId) {
     ext.receiptFile = file("$buildDir/$buildReceiptFileName")
+    inputs.property "version", { version }
+    inputs.property "versionBase", { versionBase }
+    inputs.property "isSnapshot", { isSnapshot }
+    inputs.property "buildTimestamp", { buildTimestamp }
+    inputs.property "commitId", { devBuild ? "HEAD" : determineCommitId.commitId }
     outputs.file receiptFile
-    outputs.upToDateWhen { false }
     doLast {
-        def hostName
-        try {
-            hostName = InetAddress.localHost.hostName
-        } catch (UnknownHostException e) {
-            def baos = new ByteArrayOutputStream()
-            def execResult = exec {
-                ignoreExitValue = true
-                commandLine = ["hostname"]
-                standardOutput = baos
-            }
-            if (execResult.exitValue == 0) {
-                hostName = new String(baos.toByteArray(), "utf8").trim()
-            } else {
-                hostName = "unknown"
-            }
-        }
         def data = [
-                commitId: determineCommitId.commitId,
+                commitId: devBuild ? "HEAD" : determineCommitId.commitId,
                 versionNumber: version,
                 versionBase: versionBase,
                 isSnapshot: isSnapshot,
-                rcNumber: rcNumber == null ? "" : rcNumber,
                 buildTimestamp: buildTimestamp,
-                buildNumber: System.properties["build.number"] ?: 'none',
-                username: System.properties["user.name"],
-                hostname: hostName,
-                javaVersion: System.properties["java.version"],
-                osName: System.properties["os.name"],
-                osVersion: System.properties["os.version"],
-                project: 'gradle'
         ]
 
         receiptFile.parentFile.mkdirs()

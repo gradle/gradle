@@ -180,6 +180,13 @@
                 <listitem>user.language</listitem>
                 <listitem>user.country</listitem>
                 <listitem>user.variant</listitem>
+                <listitem>java.io.tmpdir</listitem>
+                <listitem>javax.net.ssl.keyStore</listitem>
+                <listitem>javax.net.ssl.keyStorePassword</listitem>
+                <listitem>javax.net.ssl.keyStoreType</listitem>
+                <listitem>javax.net.ssl.trustStore</listitem>
+                <listitem>javax.net.ssl.trustStorePassword</listitem>
+                <listitem>javax.net.ssl.trustStoreType</listitem>
                 <listitem>com.sun.management.jmxremote</listitem>
             </itemizedlist>
             <para>

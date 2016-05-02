@@ -59,6 +59,7 @@ class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelP
             this.path = path;
         }
 
+        @Override
         public int compareTo(Suggestion o) {
             int distanceDifference = distance - o.distance;
             if (distanceDifference == 0) {
@@ -69,6 +70,7 @@ class ModelPathSuggestionProvider implements Transformer<List<ModelPath>, ModelP
         }
     }
 
+    @Override
     public List<ModelPath> transform(final ModelPath unavailable) {
         Iterable<Suggestion> suggestions = Iterables.transform(availablePaths, new Function<ModelPath, Suggestion>() {
             public Suggestion apply(ModelPath available) {

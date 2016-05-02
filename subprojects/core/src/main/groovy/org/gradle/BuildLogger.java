@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,23 +45,23 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener {
     public void buildStarted(Gradle gradle) {
         StartParameter startParameter = gradle.getStartParameter();
         logger.info("Starting Build");
-        logger.debug("Gradle user home: " + startParameter.getGradleUserHomeDir());
-        logger.debug("Current dir: " + startParameter.getCurrentDir());
-        logger.debug("Settings file: " + startParameter.getSettingsFile());
-        logger.debug("Build file: " + startParameter.getBuildFile());
+        logger.debug("Gradle user home: {}", startParameter.getGradleUserHomeDir());
+        logger.debug("Current dir: {}", startParameter.getCurrentDir());
+        logger.debug("Settings file: {}", startParameter.getSettingsFile());
+        logger.debug("Build file: {}", startParameter.getBuildFile());
     }
 
     public void settingsEvaluated(Settings settings) {
         SettingsInternal settingsInternal = (SettingsInternal) settings;
-        logger.info(String.format("Settings evaluated using %s.",
-                settingsInternal.getSettingsScript().getDisplayName()));
+        logger.info("Settings evaluated using {}.",
+                settingsInternal.getSettingsScript().getDisplayName());
     }
 
     public void projectsLoaded(Gradle gradle) {
         ProjectInternal projectInternal = (ProjectInternal) gradle.getRootProject();
-        logger.info(String.format("Projects loaded. Root project using %s.",
-                projectInternal.getBuildScriptSource().getDisplayName()));
-        logger.info(String.format("Included projects: %s", projectInternal.getAllprojects()));
+        logger.info("Projects loaded. Root project using {}.",
+                projectInternal.getBuildScriptSource().getDisplayName());
+        logger.info("Included projects: {}", projectInternal.getAllprojects());
     }
 
     public void projectsEvaluated(Gradle gradle) {

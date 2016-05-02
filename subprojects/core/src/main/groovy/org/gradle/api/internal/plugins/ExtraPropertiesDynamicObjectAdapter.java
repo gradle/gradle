@@ -16,46 +16,50 @@
 
 package org.gradle.api.internal.plugins;
 
-import groovy.lang.MissingPropertyException;
-import org.gradle.api.internal.BeanDynamicObject;
+import org.gradle.internal.metaobject.AbstractDynamicObject;
+import org.gradle.internal.metaobject.GetPropertyResult;
+import org.gradle.internal.metaobject.SetPropertyResult;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 
 import java.util.Map;
 
-public class ExtraPropertiesDynamicObjectAdapter extends BeanDynamicObject {
+public class ExtraPropertiesDynamicObjectAdapter extends AbstractDynamicObject {
     private final ExtraPropertiesExtension extension;
     private final Class<?> delegateType;
 
     public ExtraPropertiesDynamicObjectAdapter(Class<?> delegateType, ExtraPropertiesExtension extension) {
-        super(extension);
         this.delegateType = delegateType;
         this.extension = extension;
     }
 
-    public boolean hasProperty(String name) {
-        return super.hasProperty(name) || extension.has(name);
+    @Override
+    public String getDisplayName() {
+        return delegateType.getName();
     }
 
+    @Override
+    public boolean hasProperty(String name) {
+        return extension.has(name);
+    }
+
+    @Override
     public Map<String, ?> getProperties() {
         return extension.getProperties();
     }
 
     @Override
-    public void setProperty(String name, Object value) throws MissingPropertyException {
-        if (!hasProperty(name)) {
-            throw new MissingPropertyException(name, delegateType);
+    public void getProperty(String name, GetPropertyResult result) {
+        if (extension.has(name)) {
+            result.result(extension.get(name));
         }
-
-        super.setProperty(name, value);
     }
 
     @Override
-    public boolean isMayImplementMissingMethods() {
-        return false;
+    public void setProperty(String name, Object value, SetPropertyResult result) {
+        if (extension.has(name)) {
+            extension.set(name, value);
+            result.found();
+        }
     }
 
-    @Override
-    public boolean isMayImplementMissingProperties() {
-        return false;
-    }
 }

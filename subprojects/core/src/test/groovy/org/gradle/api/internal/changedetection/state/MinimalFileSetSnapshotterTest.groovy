@@ -55,24 +55,22 @@ class MinimalFileSetSnapshotterTest extends Specification {
         def collection = new SimpleFileCollection(included, missing, includedDirectory)
 
         when:
-        snapshot = minimalFileSnapshotter.snapshot(collection)
+        FileCollectionSnapshot.PreCheck preCheck = minimalFileSnapshotter.preCheck(collection, true)
+        snapshot = minimalFileSnapshotter.snapshot(preCheck)
 
         then:
-        findSnapshot(included) instanceof DefaultFileCollectionSnapshotter.FileHashSnapshot
-        findSnapshot(missing) instanceof DefaultFileCollectionSnapshotter.MissingFileSnapshot
-        findSnapshot(includedDirectory) instanceof DefaultFileCollectionSnapshotter.DirSnapshot
+        findSnapshot(included) instanceof FileHashSnapshot
+        findSnapshot(missing) instanceof MissingFileSnapshot
+        findSnapshot(includedDirectory) instanceof DirSnapshot
         !findSnapshot(fileInDirectory)
         !findSnapshot(notIncluded)
 
         and:
-        // getAllFiles() returns missing file snapshots and existing file snapshots, but not directories
-        snapshot.allFiles.sort() == [ included, missing ]
-
-        // getFiles() returns only existing file snapshots
-        snapshot.files == [ included ]
+        // getFiles() returns missing file snapshots and existing file snapshots, but not directories
+        snapshot.files.sort() == [ included, missing ]
     }
 
-    DefaultFileCollectionSnapshotter.IncrementalFileSnapshot findSnapshot(File file) {
+    IncrementalFileSnapshot findSnapshot(File file) {
         snapshot.snapshots.get(file.absolutePath)
     }
 }

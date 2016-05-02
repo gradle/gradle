@@ -85,20 +85,20 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
     @Issue("GRADLE-3068")
     def "can use gradleApi in test"() {
         given:
-        file("src/test/groovy/org/acme/BreakingTest.groovy") << """
-            package com.acme
-import org.gradle.api.Project
-import org.gradle.testfixtures.ProjectBuilder
-import org.junit.Test
+        file("src/test/groovy/org/acme/ProjectBuilderTest.groovy") << """
+            package org.acme
+            import org.gradle.api.Project
+            import org.gradle.testfixtures.ProjectBuilder
+            import org.junit.Test
 
-class BreakingTest {
-  @Test
-  void "can evaluate ProjectBuilder"() {
-    def project = ProjectBuilder.builder().build()
-    project.apply(plugin: 'groovy')
-    project.evaluate()
-  }
-}
+            class ProjectBuilderTest {
+                @Test
+                void "can evaluate ProjectBuilder"() {
+                    def project = ProjectBuilder.builder().build()
+                    project.apply(plugin: 'groovy')
+                    project.evaluate()
+                }
+            }
         """
 
         and:
@@ -112,10 +112,12 @@ class BreakingTest {
             dependencies {
                 compile gradleApi()
                 compile localGroovy()
+                testCompile 'junit:junit:4.12'
             }
         '''
 
         expect:
+        executer.withArgument("--debug")
         succeeds("test")
     }
 }

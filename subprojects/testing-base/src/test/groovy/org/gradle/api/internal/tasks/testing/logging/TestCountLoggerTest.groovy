@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing.logging
 
-import org.gradle.logging.ProgressLoggerFactory
-import org.gradle.logging.ProgressLogger
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestResult
 import org.slf4j.Logger
@@ -59,20 +59,17 @@ class TestCountLoggerTest extends Specification {
 
         when:
         logger.afterTest(test1, result())
+        logger.beforeTest(test2)
 
         then:
         1 * progressLogger.progress('1 test completed')
 
         when:
         logger.afterTest(test2, result())
-
-        then:
-        1 * progressLogger.progress('2 tests completed')
-
-        when:
         logger.afterSuite(rootSuite, result())
 
         then:
+        1 * progressLogger.progress('2 tests completed')
         1 * progressLogger.completed()
     }
 
@@ -84,20 +81,17 @@ class TestCountLoggerTest extends Specification {
 
         when:
         logger.afterTest(test1, result())
+        logger.beforeTest(test2)
 
         then:
         1 * progressLogger.progress('1 test completed')
 
         when:
         logger.afterTest(test2, result(true))
-
-        then:
-        1 * progressLogger.progress('2 tests completed, 1 failed')
-
-        when:
         logger.afterSuite(rootSuite, result())
 
         then:
+        1 * progressLogger.progress('2 tests completed, 1 failed')
         1 * errorLogger.error("${sep}2 tests completed, 1 failed")
         1 * progressLogger.completed()
     }
@@ -140,7 +134,7 @@ class TestCountLoggerTest extends Specification {
     private test() {
         [:] as TestDescriptor
     }
-    
+
     private suite(boolean root = false) {
         [getParent: {root ? null : [:] as TestDescriptor}] as TestDescriptor
     }

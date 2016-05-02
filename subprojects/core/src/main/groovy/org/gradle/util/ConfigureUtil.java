@@ -17,10 +17,15 @@
 package org.gradle.util;
 
 import groovy.lang.Closure;
-import groovy.lang.MissingMethodException;
+import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.DynamicObjectUtil;
+import org.gradle.internal.Actions;
+import org.gradle.internal.metaobject.ConfigureDelegate;
+import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.InvokeMethodResult;
+import org.gradle.internal.metaobject.SetPropertyResult;
 
 import java.util.Collection;
 import java.util.Map;
@@ -36,14 +41,16 @@ public class ConfigureUtil {
             String name = entry.getKey().toString();
             Object value = entry.getValue();
 
-            if (dynamicObject.hasProperty(name)) {
-                dynamicObject.setProperty(name, value);
-            } else {
-                try {
-                    dynamicObject.invokeMethod(name, value);
-                } catch (MissingMethodException e) {
-                    dynamicObject.setProperty(name, value);
-                }
+            SetPropertyResult setterResult = new SetPropertyResult();
+            dynamicObject.setProperty(name, value, setterResult);
+            if (setterResult.isFound()) {
+                continue;
+            }
+
+            InvokeMethodResult invokeResult = new InvokeMethodResult();
+            dynamicObject.invokeMethod(name, invokeResult, value);
+            if (!invokeResult.isFound()) {
+                throw dynamicObject.setMissingProperty(name);
             }
         }
 
@@ -75,59 +82,76 @@ public class ConfigureUtil {
     }
 
     /**
-     * <p>Configures {@code delegate} with {@code configureClosure}, via the {@link Configurable} interface if necessary.</p>
+     * <p>Configures {@code target} with {@code configureClosure}, via the {@link Configurable} interface if necessary.</p>
      * 
-     * <p>If {@code delegate} does not implement {@link Configurable} interface, it is set as the delegate of a clone of 
+     * <p>If {@code target} does not implement {@link Configurable} interface, it is set as the delegate of a clone of
      * {@code configureClosure} with a resolve strategy of {@code DELEGATE_FIRST}.</p>
      * 
-     * <p>If {@code delegate} does implement the {@link Configurable} interface, the {@code configureClosure} will be passed to
+     * <p>If {@code target} does implement the {@link Configurable} interface, the {@code configureClosure} will be passed to
      * {@code delegate}'s {@link Configurable#configure(Closure)} method.</p>
      * 
      * @param configureClosure The configuration closure
-     * @param delegate The object to be configured
+     * @param target The object to be configured
      * @return The delegate param
      */
-    public static <T> T configure(Closure configureClosure, T delegate) {
-        return configure(configureClosure, delegate, Closure.DELEGATE_FIRST, true);
+    public static <T> T configure(@Nullable Closure configureClosure, T target) {
+        if (configureClosure == null) {
+            return target;
+        }
+
+        if (target instanceof Configurable) {
+            ((Configurable) target).configure(configureClosure);
+        } else {
+            Action<T> action = configureActionFor(configureClosure, target, new ConfigureDelegate(configureClosure, target));
+            action.execute(target);
+        }
+
+        return target;
     }
 
     /**
-     * <p>Configures {@code delegate} with {@code configureClosure}, via the {@link Configurable} interface if necessary.</p>
-     * 
-     * <p>If {@code delegate} does not implement {@link Configurable} interface, it is set as the delegate of a clone of 
-     * {@code configureClosure} with a resolve strategy of {@code DELEGATE_FIRST}.</p>
-     * 
-     * <p>If {@code delegate} does implement the {@link Configurable} interface, the {@code configureClosure} will be passed to
-     * {@code delegate}'s {@link Configurable#configure(Closure)} method. However, if {@code configureableAware} is false then
-     * {@code delegate} will be treated like it does not implement the configurable interface.</p>
-     * 
-     * @param configureClosure The configuration closure
-     * @param delegate The object to be configured
-     * @param configureableAware Whether or not to use the {@link Configurable} interface to configure the object if possible
-     * @return The delegate param
+     * Creates an action that uses the given closure to configure objects of type T.
      */
-    public static <T> T configure(Closure configureClosure, T delegate, boolean configureableAware) {
-        return configure(configureClosure, delegate, Closure.DELEGATE_FIRST, configureableAware);
+    public static <T> Action<T> configureUsing(@Nullable final Closure configureClosure) {
+        if (configureClosure == null) {
+            return Actions.doNothing();
+        }
+
+        return new Action<T>() {
+            @Override
+            public void execute(T t) {
+                configure(configureClosure, t);
+            }
+        };
     }
 
     /**
-     * <p>Configures {@code delegate} with {@code configureClosure}, ignoring the {@link Configurable} interface.</p>
-     * 
-     * <p>{@code delegate} is set as the delegate of a clone of {@code configureClosure} with a resolve strategy 
-     * of the {@code resolveStrategy} param.</p>
-     * 
-     * @param configureClosure The configuration closure
-     * @param delegate The object to be configured
-     * @param resolveStrategy The resolution strategy to use for the configuration closure
-     * @return The delegate param
+     * Called from an object's {@link Configuable#configure} method.
      */
-    public static <T> T configure(Closure configureClosure, T delegate, int resolveStrategy) {
-        return configure(configureClosure, delegate, resolveStrategy, false);
+    public static <T> T configureSelf(@Nullable Closure configureClosure, T target) {
+        if (configureClosure == null) {
+            return target;
+        }
+
+        configureActionFor(configureClosure, target, new ConfigureDelegate(configureClosure, target)).execute(target);
+        return target;
     }
 
-    private static <T> T configure(Closure configureClosure, T delegate, int resolveStrategy, boolean configureableAware) {
-        ClosureBackedAction<T> action = new ClosureBackedAction<T>(configureClosure, resolveStrategy, configureableAware);
-        action.execute(delegate);
-        return delegate;
+    /**
+     * Called from an object's {@link Configuable#configure} method.
+     */
+    public static <T> T configureSelf(@Nullable Closure configureClosure, T target, ConfigureDelegate closureDelegate) {
+        if (configureClosure == null) {
+            return target;
+        }
+
+        configureActionFor(configureClosure, target, closureDelegate).execute(target);
+        return target;
+    }
+
+    private static <T> Action<T> configureActionFor(Closure configureClosure, T target, ConfigureDelegate closureDelegate) {
+        // Hackery to make closure execution faster, by short-circuiting the expensive property and method lookup on Closure
+        Closure withNewOwner = configureClosure.rehydrate(target, closureDelegate, configureClosure.getThisObject());
+        return new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false);
     }
 }

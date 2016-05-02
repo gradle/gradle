@@ -41,8 +41,8 @@ model {
             def binaries = $.binaries
             doLast {
                 assert binaries.size() == 5
-                assert binaries.mainClasses instanceof ClassDirectoryBinarySpec
-                assert binaries.testClasses instanceof ClassDirectoryBinarySpec
+                assert binaries.main instanceof ClassDirectoryBinarySpec
+                assert binaries.test instanceof ClassDirectoryBinarySpec
                 assert binaries.mainExeExecutable instanceof NativeExecutableBinarySpec
                 assert binaries.mainLibSharedLibrary instanceof SharedLibraryBinarySpec
                 assert binaries.mainLibStaticLibrary instanceof StaticLibraryBinarySpec

@@ -16,7 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.nativeplatform.internal.AbstractBinaryToolSpec;
 import org.gradle.nativeplatform.toolchain.internal.NativeCompileSpec;
@@ -36,84 +36,103 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
     private BuildOperationLogger oplogger;
     private File prefixHeaderFile;
     private File preCompiledHeaderObjectFile;
-    private Map<File, SourceIncludes> sourceFileIncludes;
+    private Map<File, IncludeDirectives> sourceFileIncludeDirectives;
     private String preCompiledHeader;
-    private IncrementalTaskInputs incrementalTaskInputs;
+    private DiscoveredInputRecorder discoveredInputRecorder;
 
+    @Override
     public List<File> getIncludeRoots() {
         return includeRoots;
     }
 
+    @Override
     public void include(File... includeRoots) {
         Collections.addAll(this.includeRoots, includeRoots);
     }
 
+    @Override
     public void include(Iterable<File> includeRoots) {
         addAll(this.includeRoots, includeRoots);
     }
 
+    @Override
     public List<File> getSourceFiles() {
         return sourceFiles;
     }
 
+    @Override
     public void source(Iterable<File> sources) {
         addAll(sourceFiles, sources);
     }
 
+    @Override
     public void setSourceFiles(Collection<File> sources) {
         sourceFiles.clear();
         sourceFiles.addAll(sources);
     }
 
+    @Override
     public List<File> getRemovedSourceFiles() {
         return removedSourceFiles;
     }
 
+    @Override
     public void removedSource(Iterable<File> sources) {
         addAll(removedSourceFiles, sources);
     }
 
+    @Override
     public void setRemovedSourceFiles(Collection<File> sources) {
         removedSourceFiles.clear();
         removedSourceFiles.addAll(sources);
     }
 
+    @Override
     public boolean isIncrementalCompile() {
         return incrementalCompile;
     }
 
+    @Override
     public void setIncrementalCompile(boolean flag) {
         incrementalCompile = flag;
     }
 
+    @Override
     public File getObjectFileDir() {
         return objectFileDir;
     }
 
+    @Override
     public void setObjectFileDir(File objectFileDir) {
         this.objectFileDir = objectFileDir;
     }
 
+    @Override
     public Map<String, String> getMacros() {
         return macros;
     }
 
+    @Override
     public void setMacros(Map<String, String> macros) {
         this.macros = macros;
     }
 
+    @Override
     public void define(String name) {
         macros.put(name, null);
     }
 
+    @Override
     public void define(String name, String value) {
         macros.put(name, value);
     }
 
+    @Override
     public boolean isPositionIndependentCode() {
         return positionIndependentCode;
     }
 
+    @Override
     public void setPositionIndependentCode(boolean positionIndependentCode) {
         this.positionIndependentCode = positionIndependentCode;
     }
@@ -154,29 +173,33 @@ public abstract class AbstractNativeCompileSpec extends AbstractBinaryToolSpec i
         }
     }
 
+    @Override
     public BuildOperationLogger getOperationLogger() {
         return oplogger;
     }
 
+    @Override
     public void setOperationLogger(BuildOperationLogger oplogger) {
         this.oplogger = oplogger;
     }
 
     @Override
-    public Map<File, SourceIncludes> getSourceFileIncludes() {
-        return sourceFileIncludes;
+    public Map<File, IncludeDirectives> getSourceFileIncludeDirectives() {
+        return sourceFileIncludeDirectives;
     }
 
     @Override
-    public void setSourceFileIncludes(Map<File, SourceIncludes> map) {
-        this.sourceFileIncludes = map;
+    public void setSourceFileIncludeDirectives(Map<File, IncludeDirectives> map) {
+        this.sourceFileIncludeDirectives = map;
     }
 
-    public void setIncrementalInputs(IncrementalTaskInputs inputs) {
-        this.incrementalTaskInputs = inputs;
+    @Override
+    public void setDiscoveredInputRecorder(DiscoveredInputRecorder inputs) {
+        this.discoveredInputRecorder = inputs;
     }
 
-    public IncrementalTaskInputs getIncrementalInputs() {
-        return incrementalTaskInputs;
+    @Override
+    public DiscoveredInputRecorder getDiscoveredInputRecorder() {
+        return discoveredInputRecorder;
     }
 }

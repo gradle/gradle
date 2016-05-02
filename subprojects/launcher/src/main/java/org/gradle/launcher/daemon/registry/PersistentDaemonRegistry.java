@@ -24,7 +24,7 @@ import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.OnDemandFileAccess;
 import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.messaging.remote.Address;
+import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.DefaultSerializer;
 
 import java.io.File;
@@ -157,7 +157,12 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         }
     }
 
-    public void store(final Address address, final DaemonContext daemonContext, final String password, final boolean idle) {
+    public void store(final DaemonInfo info) {
+        final Address address = info.getAddress();
+        final DaemonContext daemonContext = info.getContext();
+        final String password = info.getPassword();
+        final boolean idle = info.isIdle();
+
         lock.lock();
         LOGGER.debug("Storing daemon address: {}, context: {}", address, daemonContext);
         try {

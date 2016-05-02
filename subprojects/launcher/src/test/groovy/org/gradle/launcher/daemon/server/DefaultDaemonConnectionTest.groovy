@@ -19,7 +19,8 @@ package org.gradle.launcher.daemon.server
 import org.gradle.launcher.daemon.protocol.CloseInput
 import org.gradle.launcher.daemon.protocol.ForwardInput
 import org.gradle.launcher.daemon.server.api.StdinHandler
-import org.gradle.messaging.remote.internal.Connection
+import org.gradle.internal.remote.internal.MessageIOException
+import org.gradle.internal.remote.internal.RemoteConnection
 import org.gradle.util.ConcurrentSpecification
 
 import java.util.concurrent.CountDownLatch
@@ -346,15 +347,18 @@ class DefaultDaemonConnectionTest extends ConcurrentSpecification {
         result == ["incoming1", "incoming2"]
     }
 
-    static class TestConnection implements Connection<Object> {
+    static class TestConnection implements RemoteConnection<Object> {
         final Object lock = new Object()
         final Object endInput = new Object()
         final LinkedList<Object> receiveQueue = new LinkedList<Object>()
 
-        void requestStop() {
+        void dispatch(Object message) {
+            throw new UnsupportedOperationException()
         }
 
-        void dispatch(Object message) {
+        @Override
+        void flush() throws MessageIOException {
+            throw new UnsupportedOperationException()
         }
 
         void queueIncoming(Object message) {

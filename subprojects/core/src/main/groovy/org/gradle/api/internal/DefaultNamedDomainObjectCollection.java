@@ -16,7 +16,6 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import groovy.lang.MissingPropertyException;
 import org.gradle.api.*;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
@@ -25,6 +24,8 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.metaobject.*;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -150,7 +151,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     public String getDisplayName() {
-        return String.format("%s container", getTypeDisplayName());
+        return getTypeDisplayName() + " container";
     }
 
     public SortedMap<String, T> getAsMap() {
@@ -300,14 +301,14 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        protected String getDisplayName() {
+        public String getDisplayName() {
             return DefaultNamedDomainObjectCollection.this.getDisplayName();
         }
     }
 
     private class ContainerElementsDynamicObject extends AbstractDynamicObject {
         @Override
-        protected String getDisplayName() {
+        public String getDisplayName() {
             return DefaultNamedDomainObjectCollection.this.getDisplayName();
         }
 
@@ -317,12 +318,11 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public T getProperty(String name) throws MissingPropertyException {
+        public void getProperty(String name, GetPropertyResult result) {
             T t = findByName(name);
-            if (t == null) {
-                return (T) super.getProperty(name);
+            if (t != null) {
+                result.result(t);
             }
-            return t;
         }
 
         @Override
@@ -336,11 +336,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public Object invokeMethod(String name, Object... arguments) throws groovy.lang.MissingMethodException {
+        public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
             if (isConfigureMethod(name, arguments)) {
-                return ConfigureUtil.configure((Closure) arguments[0], getByName(name));
-            } else {
-                return super.invokeMethod(name, arguments);
+                result.result(ConfigureUtil.configure((Closure) arguments[0], getByName(name)));
             }
         }
 
@@ -349,7 +347,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
     }
 
-    protected static interface Index<T> {
+    protected interface Index<T> {
         void put(String name, T value);
 
         T get(String name);

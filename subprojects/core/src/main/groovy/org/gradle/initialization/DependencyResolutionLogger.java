@@ -17,8 +17,8 @@ package org.gradle.initialization;
 
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.ResolvableDependencies;
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
 import java.util.LinkedList;
 
@@ -38,7 +38,7 @@ public class DependencyResolutionLogger implements DependencyResolutionListener 
         LinkedList<ProgressLogger> loggers = progressLoggers.get();
         progressLoggers.set(loggers);
         ProgressLogger logger = loggerFactory.newOperation(DependencyResolutionLogger.class);
-        logger.start(String.format("Resolve %s", dependencies), String.format("Resolving %s", dependencies));
+        logger.start("Resolve " + dependencies, "Resolving " + dependencies);
         loggers.add(logger);
     }
 

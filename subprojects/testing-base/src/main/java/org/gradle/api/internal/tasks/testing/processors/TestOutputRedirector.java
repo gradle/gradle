@@ -67,6 +67,7 @@ class TestOutputRedirector {
             this.dest = dest;
         }
 
+        @Override
         public void onOutput(CharSequence output) {
             if (outputOwner == null) {
                 throw new RuntimeException("Unable send output event from test executor. Please report this problem. Destination: " + dest + ", event: " + output.toString());

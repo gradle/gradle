@@ -125,6 +125,7 @@
         <xi:include href='potentialTraps.xml'/>
         <xi:include href='featureLifecycle.xml'/>
         <xi:include href='commandLine.xml'/>
+        <xi:include href='licenses.xml'/>
         <xi:include href='glossary.xml'/>
     </part>
 </book>

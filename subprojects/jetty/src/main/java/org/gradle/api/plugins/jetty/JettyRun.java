@@ -55,7 +55,7 @@ import java.util.Set;
  * web container, eliminating development time that is wasted on rebuilding, reassembling and redeploying. </p>
  */
 public class JettyRun extends AbstractJettyRunTask {
-    private static Logger logger = LoggerFactory.getLogger(JettyRun.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JettyRun.class);
 
     /**
      * List of other contexts to set up. Optional.
@@ -113,7 +113,7 @@ public class JettyRun extends AbstractJettyRunTask {
                         + (getWebAppSourceDirectory() == null ? "null" : getWebAppSourceDirectory().getCanonicalPath())
                         + " does not exist");
             } else {
-                logger.info("Webapp source directory = " + getWebAppSourceDirectory().getCanonicalPath());
+                LOGGER.info("Webapp source directory = " + getWebAppSourceDirectory().getCanonicalPath());
             }
         } catch (IOException e) {
             throw new InvalidUserDataException("Webapp source directory does not exist", e);
@@ -123,14 +123,14 @@ public class JettyRun extends AbstractJettyRunTask {
         if (!"automatic".equalsIgnoreCase(reload) && !"manual".equalsIgnoreCase(reload)) {
             throw new InvalidUserDataException("invalid reload mechanic specified, must be 'automatic' or 'manual'");
         } else {
-            logger.info("Reload Mechanic: " + reload);
+            LOGGER.info("Reload Mechanic: " + reload);
         }
 
         // get the web.xml file if one has been provided, otherwise assume it is in the webapp src directory
         if (getWebXml() == null) {
             setWebXml(new File(new File(getWebAppSourceDirectory(), "WEB-INF"), "web.xml"));
         }
-        logger.info("web.xml file = " + getWebXml());
+        LOGGER.info("web.xml file = " + getWebXml());
 
         //check if a jetty-env.xml location has been provided, if so, it must exist
         if (getJettyEnvXml() != null) {
@@ -140,7 +140,7 @@ public class JettyRun extends AbstractJettyRunTask {
                 if (!getJettyEnvXmlFile().exists()) {
                     throw new InvalidUserDataException("jetty-env.xml file does not exist at location " + jettyEnvXml);
                 } else {
-                    logger.info(" jetty-env.xml = " + getJettyEnvXmlFile().getCanonicalPath());
+                    LOGGER.info(" jetty-env.xml = " + getJettyEnvXmlFile().getCanonicalPath());
                 }
             } catch (IOException e) {
                 throw new InvalidUserDataException("jetty-env.xml does not exist");
@@ -150,7 +150,7 @@ public class JettyRun extends AbstractJettyRunTask {
         setExtraScanTargets(new ArrayList<File>());
         if (scanTargets != null) {
             for (File scanTarget : scanTargets) {
-                logger.info("Added extra scan target:" + scanTarget);
+                LOGGER.info("Added extra scan target:" + scanTarget);
                 getExtraScanTargets().add(scanTarget);
             }
         }
@@ -185,7 +185,7 @@ public class JettyRun extends AbstractJettyRunTask {
         if (getWebAppConfig().getWar() == null) {
             getWebAppConfig().setWar(getWebAppSourceDirectory().getCanonicalPath());
         }
-        logger.info("Webapp directory = " + getWebAppSourceDirectory().getCanonicalPath());
+        LOGGER.info("Webapp directory = " + getWebAppSourceDirectory().getCanonicalPath());
 
         getWebAppConfig().configure();
     }
@@ -212,7 +212,7 @@ public class JettyRun extends AbstractJettyRunTask {
                     boolean reconfigure = changes.contains(getProject().getBuildFile().getCanonicalPath());
                     restartWebApp(reconfigure);
                 } catch (Exception e) {
-                    logger.error("Error reconfiguring/restarting webapp after change in watched files", e);
+                    LOGGER.error("Error reconfiguring/restarting webapp after change in watched files", e);
                 }
             }
         });
@@ -220,17 +220,17 @@ public class JettyRun extends AbstractJettyRunTask {
     }
 
     public void restartWebApp(boolean reconfigureScanner) throws Exception {
-        logger.info("restarting " + getWebAppConfig());
-        logger.debug("Stopping webapp ...");
+        LOGGER.info("restarting " + getWebAppConfig());
+        LOGGER.debug("Stopping webapp ...");
         getWebAppConfig().stop();
-        logger.debug("Reconfiguring webapp ...");
+        LOGGER.debug("Reconfiguring webapp ...");
 
         validateConfiguration();
         configureWebApplication();
 
         // check if we need to reconfigure the scanner
         if (reconfigureScanner) {
-            logger.info("Reconfiguring scanner ...");
+            LOGGER.info("Reconfiguring scanner ...");
             List<File> scanList = new ArrayList<File>();
             scanList.add(getWebXml());
             if (getJettyEnvXmlFile() != null) {
@@ -242,16 +242,16 @@ public class JettyRun extends AbstractJettyRunTask {
             getScanner().setScanDirs(scanList);
         }
 
-        logger.debug("Restarting webapp ...");
+        LOGGER.debug("Restarting webapp ...");
         getWebAppConfig().start();
-        logger.info("Restart completed at " + new Date().toString());
+        LOGGER.info("Restart completed at " + new Date().toString());
     }
 
     private Set<File> getDependencyFiles() {
         List<Resource> overlays = new ArrayList<Resource>();
 
         Set<File> dependencies = getClasspath().getFiles();
-        logger.debug("Adding dependencies {} for WEB-INF/lib ", dependencies);
+        LOGGER.debug("Adding dependencies {} for WEB-INF/lib ", dependencies);
 
         //todo incorporate overlays when our resolved dependencies provide type information
 //            if (artifact.getType().equals("war")) {
@@ -270,13 +270,13 @@ public class JettyRun extends AbstractJettyRunTask {
                 Resource resource = getWebAppConfig().getBaseResource();
                 ResourceCollection rc = new ResourceCollection();
                 if (resource == null) {
-                    // nothing configured, so we automagically enable the overlays                    
+                    // nothing configured, so we automagically enable the overlays
                     int size = overlays.size() + 1;
                     Resource[] resources = new Resource[size];
                     resources[0] = Resource.newResource(getWebAppSourceDirectory().toURI().toURL());
                     for (int i = 1; i < size; i++) {
                         resources[i] = overlays.get(i - 1);
-                        logger.info("Adding overlay: " + resources[i]);
+                        LOGGER.info("Adding overlay: " + resources[i]);
                     }
                     rc.setResources(resources);
                 } else {
@@ -288,13 +288,13 @@ public class JettyRun extends AbstractJettyRunTask {
                         System.arraycopy(old, 0, resources, 0, old.length);
                         for (int i = old.length; i < size; i++) {
                             resources[i] = overlays.get(i - old.length);
-                            logger.info("Adding overlay: " + resources[i]);
+                            LOGGER.info("Adding overlay: " + resources[i]);
                         }
                         rc.setResources(resources);
                     } else {
                         // baseResource was already configured w/c could be src/main/webapp
                         if (!resource.isDirectory() && String.valueOf(resource.getFile()).endsWith(".war")) {
-                            // its a war                            
+                            // its a war
                             resource = Resource.newResource("jar:" + resource.getURL().toString() + "!/");
                         }
                         int size = overlays.size() + 1;
@@ -302,7 +302,7 @@ public class JettyRun extends AbstractJettyRunTask {
                         resources[0] = resource;
                         for (int i = 1; i < size; i++) {
                             resources[i] = overlays.get(i - 1);
-                            logger.info("Adding overlay: " + resources[i]);
+                            LOGGER.info("Adding overlay: " + resources[i]);
                         }
                         rc.setResources(resources);
                     }
@@ -320,9 +320,9 @@ public class JettyRun extends AbstractJettyRunTask {
 
         classPathFiles.addAll(getDependencyFiles());
 
-        if (logger.isDebugEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
             for (File classPathFile : classPathFiles) {
-                logger.debug("classpath element: " + classPathFile.getName());
+                LOGGER.debug("classpath element: " + classPathFile.getName());
             }
         }
         return classPathFiles;
@@ -348,7 +348,7 @@ public class JettyRun extends AbstractJettyRunTask {
             return;
         }
 
-        logger.info("Configuring Jetty from xml configuration file = " + getJettyConfig());
+        LOGGER.info("Configuring Jetty from xml configuration file = " + getJettyConfig());
         XmlConfiguration xmlConfiguration = new XmlConfiguration(getJettyConfig().toURI().toURL());
         xmlConfiguration.configure(getServer().getProxiedObject());
     }

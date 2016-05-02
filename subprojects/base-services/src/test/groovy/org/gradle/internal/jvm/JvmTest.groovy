@@ -16,6 +16,7 @@
 
 package org.gradle.internal.jvm
 
+import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -38,6 +39,14 @@ class JvmTest extends Specification {
 
     Jvm getJvm() {
         new Jvm(os)
+    }
+
+    def setup() {
+        JavaVersion.resetCurrent()
+    }
+
+    def cleanup() {
+        JavaVersion.resetCurrent()
     }
 
     def "uses system property to determine if Java 5/6/7"() {

@@ -47,7 +47,7 @@ import java.util.Arrays;
 @Incubating
 public class PlayTestPlugin extends RuleSource {
     @Mutate
-    void createTestTasks(ModelMap<Task> tasks, ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final PlayPluginConfigurations configurations,
+    void createTestTasks(ModelMap<Task> tasks, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, final PlayPluginConfigurations configurations,
                          final FileResolver fileResolver, final ProjectIdentifier projectIdentifier, @Path("buildDir") final File buildDir) {
         for (final PlayApplicationBinarySpecInternal binary : playBinaries) {
             final PlayToolProvider playToolProvider = binary.getToolChain().select(binary.getTargetPlatform());
@@ -56,7 +56,7 @@ public class PlayTestPlugin extends RuleSource {
             final String testCompileTaskName = binary.getTasks().taskName("compile", "tests");
             final File testSourceDir = fileResolver.resolve("test");
             final FileCollection testSources = new SimpleFileCollection(testSourceDir).getAsFileTree().matching(new PatternSet().include("**/*.scala", "**/*.java"));
-            final File testClassesDir = new File(buildDir, String.format("%s/testClasses", binary.getProjectScopedName()));
+            final File testClassesDir = new File(buildDir, binary.getProjectScopedName() + "/testClasses");
             tasks.create(testCompileTaskName, PlatformScalaCompile.class, new Action<PlatformScalaCompile>() {
                 public void execute(PlatformScalaCompile scalaCompile) {
                     scalaCompile.setDescription("Compiles the scala and java test sources for the " + binary.getDisplayName() + ".");
@@ -72,7 +72,7 @@ public class PlayTestPlugin extends RuleSource {
                     scalaCompile.setTargetCompatibility(targetCompatibility);
 
                     IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
-                    incrementalOptions.setAnalysisFile(new File(buildDir, String.format("tmp/scala/compilerAnalysis/%s.analysis", testCompileTaskName)));
+                    incrementalOptions.setAnalysisFile(new File(buildDir, "tmp/scala/compilerAnalysis/" + testCompileTaskName + ".analysis"));
                 }
             });
 
@@ -80,12 +80,12 @@ public class PlayTestPlugin extends RuleSource {
             final File binaryBuildDir = new File(buildDir, binary.getProjectScopedName());
             tasks.create(testTaskName, Test.class, new Action<Test>() {
                 public void execute(Test test) {
-                    test.setDescription(String.format("Runs %s.", WordUtils.uncapitalize(binary.getDisplayName())));
+                    test.setDescription("Runs " + WordUtils.uncapitalize(binary.getDisplayName() + "."));
 
                     test.setClasspath(getRuntimeClasspath(testClassesDir, testCompileClasspath));
 
                     test.setTestClassesDir(testClassesDir);
-                    test.setBinResultsDir(new File(binaryBuildDir, String.format("results/%s/bin", testTaskName)));
+                    test.setBinResultsDir(new File(binaryBuildDir, "results/" + testTaskName + "/bin"));
                     test.getReports().getJunitXml().setDestination(new File(binaryBuildDir, "reports/test/xml"));
                     test.getReports().getHtml().setDestination(new File(binaryBuildDir, "reports/test"));
                     test.dependsOn(testCompileTaskName);
@@ -106,7 +106,7 @@ public class PlayTestPlugin extends RuleSource {
     }
 
     @Mutate
-    void attachTestSuitesToCheckTask(ModelMap<Task> tasks, final ModelMap<PlayApplicationBinarySpec> playBinaries) {
+    void attachTestSuitesToCheckTask(ModelMap<Task> tasks, @Path("binaries") final ModelMap<PlayApplicationBinarySpec> playBinaries) {
         // TODO - binaries aren't an input to this rule, they're an input to the action
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
             @Override

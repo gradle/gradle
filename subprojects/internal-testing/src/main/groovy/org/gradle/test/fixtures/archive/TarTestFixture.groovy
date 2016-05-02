@@ -20,24 +20,25 @@ import org.apache.tools.tar.TarEntry
 import org.apache.tools.tar.TarInputStream
 import org.gradle.test.fixtures.file.TestFile
 
+import java.nio.charset.Charset
 import java.util.zip.GZIPInputStream
 
 class TarTestFixture extends ArchiveTestFixture {
     private final TestFile tarFile
 
-    public TarTestFixture(TestFile tarFile) {
+    public TarTestFixture(TestFile tarFile, String metadataCharset = null, String contentCharset = null) {
         this.tarFile = tarFile
 
         boolean gzip = !tarFile.name.endsWith("tar")
         tarFile.withInputStream { inputStream ->
-            TarInputStream tarInputStream = new TarInputStream(gzip ? new GZIPInputStream(inputStream) : inputStream)
+            TarInputStream tarInputStream = new TarInputStream(gzip ? new GZIPInputStream(inputStream) : inputStream, metadataCharset)
             for (TarEntry tarEntry = tarInputStream.nextEntry; tarEntry != null; tarEntry = tarInputStream.nextEntry) {
                 if (tarEntry.directory) {
                     continue
                 }
                 ByteArrayOutputStream stream = new ByteArrayOutputStream()
                 tarInputStream.copyEntryContents(stream)
-                add(tarEntry.name, new String(stream.toByteArray(), "utf-8"))
+                add(tarEntry.name, new String(stream.toByteArray(), contentCharset ?: Charset.defaultCharset().name()))
             }
         }
     }

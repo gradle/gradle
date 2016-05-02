@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.consumer.loader;
 
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.logging.ProgressLogger;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;

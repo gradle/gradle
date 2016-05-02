@@ -25,11 +25,12 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.cached.CachedExternalResource;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.local.*;
@@ -98,7 +99,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             );
 
             if (isUnchanged) {
-                LOGGER.info("Cached resource {} is up-to-date (lastModified: {}).", cached.getExternalLastModified(), location);
+                LOGGER.info("Cached resource {} is up-to-date (lastModified: {}).", location, cached.getExternalLastModified());
                 // TODO - update the index with the new remote meta-data
                 return new DefaultLocallyAvailableExternalResource(location, new DefaultLocallyAvailableResource(cached.getCachedFile()), cached.getExternalResourceMetaData());
             }
@@ -191,7 +192,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                     resource.close();
                 }
             } catch (Exception e) {
-                throw ResourceException.failure(source, String.format("Failed to download resource '%s'.", source), e);
+                throw ResourceExceptions.getFailed(source, e);
             }
             return moveIntoCache(source, destination, fileStore, downloadAction.metaData);
         } finally {
@@ -200,7 +201,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     }
 
     private LocallyAvailableExternalResource moveIntoCache(final URI source, final File destination, final ResourceFileStore fileStore, final ExternalResourceMetaData metaData) {
-        return cacheLockingManager.useCache(String.format("Store %s", source), new Factory<LocallyAvailableExternalResource>() {
+        return cacheLockingManager.useCache("Store " + source, new Factory<LocallyAvailableExternalResource>() {
             public LocallyAvailableExternalResource create() {
                 LocallyAvailableResource cachedResource = fileStore.moveIntoCache(destination);
                 File fileInFileStore = cachedResource.getFile();

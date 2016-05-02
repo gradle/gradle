@@ -17,7 +17,9 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.Factory;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.JvmOptions;
@@ -60,7 +62,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     protected void transformInvocation(GradleInvocation invocation) {
         if (getDistribution().isSupportsSpacesInGradleAndJavaOpts()) {
             // Mix the implicit launcher JVM args in with the requested JVM args
-            invocation.launcherJvmArgs.addAll(invocation.implicitLauncherJvmArgs);
+            super.transformInvocation(invocation);
         } else {
             // Need to move those implicit JVM args that contain a space to the Gradle command-line (if possible)
             // Note that this isn't strictly correct as some system properties can only be set on JVM start up.
@@ -72,7 +74,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                     invocation.args.add(jvmArg);
                 } else {
                     throw new UnsupportedOperationException(String.format("Cannot handle launcher JVM arg '%s' as it contains whitespace. This is not supported by Gradle %s.",
-                            jvmArg, getDistribution().getVersion().getVersion()));
+                        jvmArg, getDistribution().getVersion().getVersion()));
                 }
             }
         }
@@ -89,7 +91,8 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             // This could be handled, just not implemented yet
             throw new UnsupportedOperationException(String.format("Both GRADLE_OPTS and JAVA_OPTS environment variables are being used. Cannot provide JVM args %s to Gradle command.", invocation.launcherJvmArgs));
         }
-        environmentVars.put(jvmOptsEnvVar, toJvmArgsString(invocation.launcherJvmArgs));
+        final String value = toJvmArgsString(invocation.launcherJvmArgs);
+        environmentVars.put(jvmOptsEnvVar, value);
 
         // Add a JAVA_HOME if none provided
         if (!environmentVars.containsKey("JAVA_HOME")) {
@@ -107,11 +110,23 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     private void addPropagatedSystemProperties(List<String> args) {
-        for (String propName : propagatedSystemProperties) {
+        for (String propName : PROPAGATED_SYSTEM_PROPERTIES) {
             String propValue = System.getProperty(propName);
             if (propValue != null) {
                 args.add("-D" + propName + "=" + propValue);
             }
+        }
+    }
+
+    protected boolean supportsWhiteSpaceInEnvVars() {
+        final Jvm current = Jvm.current();
+        if (getJavaHome().equals(current.getJavaHome())) {
+            // we can tell for sure
+            return current.getJavaVersion().isJava7Compatible();
+        } else {
+            // TODO improve lookup by reusing AvailableJavaHomes testfixture
+            // for now we play it safe and just return false;
+            return false;
         }
     }
 
@@ -123,7 +138,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
 
         NativeServicesTestFixture.initialize();
-        ExecHandleBuilder builder = new ExecHandleBuilder() {
+        ExecHandleBuilder builder = new ExecHandleBuilder(TestFiles.resolver()) {
             @Override
             public File getWorkingDir() {
                 // Override this, so that the working directory is not canonicalised. Some int tests require that
@@ -148,9 +163,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
         ExecHandlerConfigurer configurer = OperatingSystem.current().isWindows() ? new WindowsConfigurer() : new UnixConfigurer();
         configurer.configure(builder);
-
-        getLogger().info(String.format("Execute in %s with: %s %s", builder.getWorkingDir(), builder.getExecutable(), builder.getArgs()));
-
+        getLogger().debug(String.format("Execute in %s with: %s %s", builder.getWorkingDir(), builder.getExecutable(), builder.getArgs()));
         return builder;
     }
 

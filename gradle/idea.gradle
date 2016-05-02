@@ -5,6 +5,10 @@ allprojects {
 
     idea {
         module {
+            // Inherit this from the idea project's language level.
+            languageLevel = null
+            // Inherit from the root idea project's target bytecode version.
+            targetBytecodeVersion = null
             iml {
                 whenMerged { module ->
                     module.dependencies.removeAll {
@@ -55,7 +59,9 @@ idea {
     project {
         wildcards += ['?*.gradle']
 
-        languageLevel = '1.6'
+        sourceCompatibility = 1.6
+        targetCompatibility = 1.6
+
         vcs = 'Git'
         ipr {
             withXml { provider ->
@@ -148,6 +154,7 @@ idea {
             <option name="PER_PROJECT_SETTINGS">
               <value>
                 <option name="USE_SAME_INDENTS" value="true" />
+                <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="999" />
                 <option name="RIGHT_MARGIN" value="200" />
                 <option name="JD_ALIGN_PARAM_COMMENTS" value="false" />
                 <option name="JD_ALIGN_EXCEPTION_COMMENTS" value="false" />
@@ -213,7 +220,11 @@ idea {
         def defaultTestVmParams = [
                 "-Dorg.gradle.docs.releasenotes.source=${docsProject.releaseNotesMarkdown.source.singleFile}",
                 "-Dorg.gradle.docs.releasenotes.rendered=${new File(docsProject.releaseNotes.destinationDir, docsProject.releaseNotes.fileName)}",
-                "-DintegTest.gradleHomeDir=${intTestImage.destinationDir}",
+                "-DintegTest.gradleHomeDir=${rootProject.intTestImage.destinationDir.absolutePath}",
+                "-DintegTest.gradleUserHomeDir=${rootProject.file('intTestHomeDir').absolutePath}",
+                "-DintegTest.libsRepo=${rootProject.file('build/repo').absolutePath}",
+                "-Dorg.gradle.integtest.daemon.registry=${rootProject.file('build/daemon').absolutePath}",
+                "-DintegTest.distsDir=${rootProject.distsDir.absolutePath}",
                 "-Dorg.gradle.integtest.executer=embedded",
                 "-ea",
                 "-XX:MaxPermSize=512m",
@@ -261,7 +272,7 @@ idea {
         def gradleRunners = [
                 "Quick Check (precommit)": "quickCheck --daemon",
                 "Regenerate IDEA metadata": "idea --daemon",
-                "Regenerate Int Test Image": "intTestImage --daemon"
+                "Regenerate Int Test Image": "prepareVersionsInfo intTestImage publishLocalArchives --daemon"
         ]
 
         def runnerClass = "org.gradle.testing.internal.util.GradlewRunner"
@@ -292,10 +303,23 @@ idea {
             listItems << "<item index='${listItems.size() + 1}' class='java.lang.String' itemvalue='Application.${runnerName}' />"
         }
 
+        // Add remote debugger configuration
+        runManagerConfig.append(new XmlParser().parseText("""
+            <configuration default="false" name="Remote debug port 5005" type="Remote" factoryName="Remote">
+              <option name="USE_SOCKET_TRANSPORT" value="true" />
+              <option name="SERVER_MODE" value="false" />
+              <option name="SHMEM_ADDRESS" value="javadebug" />
+              <option name="HOST" value="localhost" />
+              <option name="PORT" value="5005" />
+              <method />
+            </configuration>
+        """))
+        listItems << "<item index='${listItems.size() + 1}' class='java.lang.String' itemvalue='Remote.Remote debug port 5005' />"
+
         runManagerConfig.append(new XmlParser().parseText("""
             <list size='${listItems.size() + 1}'>
               <item index='0' class='java.lang.String' itemvalue='Application.Gradle' />
-              ${listItems}
+              ${listItems.join('\n')}
             </list>
         """))
     }

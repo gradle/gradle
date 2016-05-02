@@ -15,42 +15,36 @@
  */
 package org.gradle.api.internal.project
 
-import org.apache.tools.ant.BuildListener
+import org.gradle.api.AntBuilder
 import org.gradle.api.Project
+import org.gradle.api.internal.project.ant.AntLoggingAdapter
+import org.gradle.api.internal.project.ant.AntLoggingAdapterFactory
 import org.gradle.util.TestUtil
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import spock.lang.Specification
 
-@RunWith (JMock)
-public class DefaultAntBuilderFactoryTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final BuildListener listener = context.mock(BuildListener)
+public class DefaultAntBuilderFactoryTest extends Specification {
+    private final AntLoggingAdapterFactory adapterFactory = Stub(AntLoggingAdapterFactory)
     private final Project project = TestUtil.createRootProject()
-    private final DefaultAntBuilderFactory factory = new DefaultAntBuilderFactory(listener, project)
+    private final DefaultAntBuilderFactory factory = new DefaultAntBuilderFactory(project, adapterFactory)
 
-    @Before
-    public void setUp() {
-        context.checking {
-            allowing(listener).messageLogged(withParam(anything()))
-            allowing(listener).taskStarted(withParam(anything()))
-            allowing(listener).taskFinished(withParam(anything()))
-        }
+    def setup() {
+        adapterFactory.create() >> Stub(AntLoggingAdapter)
     }
 
-    @Test
-    public void createsAnAntBuilder() {
+    public void "can create AntBuilder"() {
+        when:
         def ant = factory.create()
-        assertThat(ant, notNullValue())
+
+        then:
+        ant != null
+        ant instanceof AntBuilder
     }
 
-    @Test
-    public void setsBaseDirOfAntProject() {
+    public void "sets base directory of Ant project"() {
+        when:
         def ant = factory.create()
-        assertThat(ant.project.baseDir, equalTo(project.projectDir))
+
+        then:
+        ant.project.baseDir == project.projectDir
     }
 }

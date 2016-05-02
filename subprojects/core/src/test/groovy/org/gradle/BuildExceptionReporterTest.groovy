@@ -21,10 +21,11 @@ import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.LocationAwareException
-import org.gradle.logging.LoggingConfiguration
-import org.gradle.logging.ShowStacktrace
-import org.gradle.logging.StyledTextOutputFactory
-import org.gradle.logging.TestStyledTextOutput
+import org.gradle.internal.logging.DefaultLoggingConfiguration
+import org.gradle.api.logging.configuration.LoggingConfiguration
+import org.gradle.api.logging.configuration.ShowStacktrace
+import org.gradle.internal.logging.text.StyledTextOutputFactory
+import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
@@ -32,7 +33,7 @@ class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()
     final StyledTextOutputFactory factory = Mock()
     final BuildClientMetaData clientMetaData = Mock()
-    final LoggingConfiguration configuration = new LoggingConfiguration()
+    final LoggingConfiguration configuration = new DefaultLoggingConfiguration()
     final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, configuration, clientMetaData)
 
     def setup() {

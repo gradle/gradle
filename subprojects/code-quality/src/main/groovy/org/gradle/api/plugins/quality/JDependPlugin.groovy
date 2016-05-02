@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.reporting.Report
@@ -34,6 +36,7 @@ import org.gradle.api.tasks.SourceSet
  * @see JDependExtension
  * @see JDepend
  */
+@CompileStatic
 class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
     public static final String DEFAULT_JDEPEND_VERSION = "2.9.1"
     private JDependExtension extension
@@ -50,20 +53,21 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
 
     @Override
     protected CodeQualityExtension createExtension() {
-        extension = project.extensions.create("jdepend", JDependExtension)
+        extension = (JDependExtension) project.extensions.create('jdepend', JDependExtension)
         extension.with {
             toolVersion = DEFAULT_JDEPEND_VERSION
         }
         return extension
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureTaskDefaults(JDepend task, String baseName) {
         def config = project.configurations['jdepend']
         config.defaultDependencies { dependencies ->
-            this.project.dependencies {
-                jdepend "jdepend:jdepend:${this.extension.toolVersion}"
-                jdepend("org.apache.ant:ant-jdepend:1.9.4")
+            this.project.dependencies { handler ->
+                handler.jdepend "jdepend:jdepend:${this.extension.toolVersion}"
+                handler.jdepend 'org.apache.ant:ant-jdepend:1.9.6'
             }
         }
         task.conventionMapping.with {
@@ -80,6 +84,7 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
         }
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureForSourceSet(SourceSet sourceSet, JDepend task) {
         task.with {

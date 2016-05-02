@@ -54,6 +54,19 @@ class RetryRuleTest extends Specification {
         true
     }
 
+    def "should retry and pass when spock expects a specific exception"() {
+        given:
+        iteration++;
+
+        when:
+        throwWhen(new IOException(), iteration == 1)
+        throwWhen(new RuntimeException("test"), iteration == 2)
+
+        then:
+        RuntimeException ex = thrown()
+        ex.message.contains("test")
+    }
+
     @ExpectedFailure(expected = RetryFailure.class)
     def "should fail when expected exception happens three times"() {
         given:

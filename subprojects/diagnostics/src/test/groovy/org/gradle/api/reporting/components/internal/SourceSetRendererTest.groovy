@@ -22,7 +22,7 @@ import org.gradle.api.tasks.diagnostics.internal.text.DefaultTextReportBuilder
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.base.DependentSourceSet
-import org.gradle.logging.TestStyledTextOutput
+import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.platform.base.DependencySpecContainer
 import org.gradle.platform.base.internal.DefaultDependencySpecContainer
 import spock.lang.Specification

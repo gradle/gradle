@@ -17,25 +17,27 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.internal.metaobject.ConfigureDelegate;
+import org.gradle.internal.metaobject.GetPropertyResult;
+import org.gradle.internal.metaobject.InvokeMethodResult;
 
 public class NamedDomainObjectContainerConfigureDelegate extends ConfigureDelegate {
     private final NamedDomainObjectContainer _container;
 
-    public NamedDomainObjectContainerConfigureDelegate(Object owner, NamedDomainObjectContainer container) {
-        super(owner, container);
+    public NamedDomainObjectContainerConfigureDelegate(Closure configureClosure, NamedDomainObjectContainer container) {
+        super(configureClosure, container);
         _container = container;
     }
 
     @Override
-    protected boolean _isConfigureMethod(String name, Object[] params) {
-        return params.length == 1 && params[0] instanceof Closure;
+    protected void _configure(String name, GetPropertyResult result) {
+        result.result(_container.create(name));
     }
 
     @Override
-    protected Object _configure(String name, Object[] params) {
-        if (params.length == 0) {
-            return _container.create(name);
+    protected void _configure(String name, Object[] params, InvokeMethodResult result) {
+        if (params.length == 1 && params[0] instanceof Closure) {
+            result.result(_container.create(name, (Closure) params[0]));
         }
-        return _container.create(name, (Closure) params[0]);
     }
 }

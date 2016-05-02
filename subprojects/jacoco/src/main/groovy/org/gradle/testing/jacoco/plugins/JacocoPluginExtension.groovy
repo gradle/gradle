@@ -15,6 +15,8 @@
  */
 package org.gradle.testing.jacoco.plugins
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.Incubating
 import org.gradle.api.Project
 import org.gradle.api.logging.Logger
@@ -28,6 +30,7 @@ import static org.gradle.api.logging.Logging.getLogger
  * Extension including common properties and methods for Jacoco.
  */
 @Incubating
+@CompileStatic
 class JacocoPluginExtension {
     static final String TASK_EXTENSION_NAME = 'jacoco'
 
@@ -36,7 +39,7 @@ class JacocoPluginExtension {
     /**
      * Version of Jacoco JARs to use.
      */
-    String toolVersion = '0.7.1.201405082137'
+    String toolVersion = '0.7.6.201602180812'
 
     protected final Project project
 
@@ -63,6 +66,7 @@ class JacocoPluginExtension {
      * Jacoco will be run as an agent during the execution of the task.
      * @param task the task to apply Jacoco to.
      */
+    @CompileStatic(TypeCheckingMode.SKIP)
     void applyTo(JavaForkOptions task) {
         logger.debug "Applying Jacoco to $task.name"
         JacocoTaskExtension extension = task.extensions.create(TASK_EXTENSION_NAME, JacocoTaskExtension, agent, task)
@@ -81,8 +85,8 @@ class JacocoPluginExtension {
      * @see #applyTo(JavaForkOptions)
      */
     void applyTo(TaskCollection tasks) {
-        tasks.withType(JavaForkOptions) {
-            applyTo(it)
+        tasks.withType(JavaForkOptions) { JavaForkOptions task ->
+            applyTo(task)
         }
     }
 }

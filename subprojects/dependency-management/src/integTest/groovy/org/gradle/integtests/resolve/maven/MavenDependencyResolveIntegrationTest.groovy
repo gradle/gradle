@@ -209,4 +209,31 @@ task check << {
         expect:
         succeeds "check"
     }
+
+    def "dependency with wildcard exclusions is treated as non-transitive"() {
+        given:
+        def thirdLevel = mavenRepo().module("org.gradle", "thirdLevel", "1.0").publish()
+        def secondLevel = mavenRepo().module("org.gradle", "secondLevel", "1.0").dependsOn(thirdLevel).publish()
+        def firstLevel = mavenRepo().module("org.gradle", "firstLevel", "1.0").dependsOn(secondLevel.groupId,
+            secondLevel.artifactId, secondLevel.version, null, null, null, [[groupId: '*', artifactId: '*']]).publish()
+
+        and:
+        buildFile << """
+repositories { maven { url "${mavenRepo().uri}" } }
+configurations { compile }
+dependencies {
+    compile "$firstLevel.groupId:$firstLevel.artifactId:$firstLevel.version"
+}
+
+task check << {
+    assert configurations.compile.collect { it.name } == [
+        '$firstLevel.artifactId-${firstLevel.version}.jar',
+        '$secondLevel.artifactId-${secondLevel.version}.jar']
+}
+"""
+
+        expect:
+        succeeds "check"
+    }
+
 }

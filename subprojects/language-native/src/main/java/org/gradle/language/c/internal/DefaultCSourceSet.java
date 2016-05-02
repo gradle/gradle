@@ -20,8 +20,4 @@ import org.gradle.language.c.CSourceSet;
 import org.gradle.language.nativeplatform.internal.AbstractHeaderExportingDependentSourceSet;
 
 public class DefaultCSourceSet extends AbstractHeaderExportingDependentSourceSet implements CSourceSet {
-    @Override
-    protected String getTypeName() {
-        return "C source";
-    }
 }

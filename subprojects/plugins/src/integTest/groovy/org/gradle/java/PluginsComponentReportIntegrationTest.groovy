@@ -30,7 +30,7 @@ plugins {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 No components defined for this project.
 
 Additional source sets
@@ -80,7 +80,7 @@ model {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 JVM library 'lib'
 -----------------
 
@@ -143,7 +143,7 @@ sourceSets {
         succeeds "components"
 
         then:
-        outputMatches output, """
+        outputMatches """
 No components defined for this project.
 
 Additional source sets

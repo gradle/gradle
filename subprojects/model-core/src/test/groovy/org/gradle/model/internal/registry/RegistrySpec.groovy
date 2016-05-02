@@ -54,7 +54,7 @@ abstract class RegistrySpec extends Specification {
         }
 
         @Override
-        def <T> void addReference(String name, ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
+        def <T> void addReference(String name, ModelType<T> type, ModelNode target, ModelRuleDescriptor ruleDescriptor) {
 
         }
 
@@ -101,6 +101,11 @@ abstract class RegistrySpec extends Specification {
         @Override
         Set<String> getLinkNames(Predicate<? super MutableModelNode> predicate) {
             return null
+        }
+
+        @Override
+        Set<String> getLinkNames() {
+            []
         }
 
         @Override

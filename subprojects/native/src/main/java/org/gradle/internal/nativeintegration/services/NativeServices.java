@@ -216,6 +216,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             this.type = type;
         }
 
+        @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             throw new org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException(String.format("%s is not supported on this operating system.", type));
         }

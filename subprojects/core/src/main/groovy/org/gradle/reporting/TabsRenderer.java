@@ -38,7 +38,7 @@ public class TabsRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
             htmlWriterWriter.startElement("ul").attribute("class", "tabLinks");
                 for (int i = 0; i < this.tabs.size(); i++) {
                     TabDefinition tab = this.tabs.get(i);
-                    String tabId = String.format("tab%s", i);
+                    String tabId = "tab" + i;
                     htmlWriterWriter.startElement("li");
                         htmlWriterWriter.startElement("a").attribute("href", "#" + tabId).characters(tab.title).endElement();
                     htmlWriterWriter.endElement();
@@ -47,7 +47,7 @@ public class TabsRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
 
             for (int i = 0; i < this.tabs.size(); i++) {
                 TabDefinition tab = this.tabs.get(i);
-                String tabId = String.format("tab%s", i);
+                String tabId = "tab" + i;
                 htmlWriterWriter.startElement("div").attribute("id", tabId).attribute("class", "tab");
                     htmlWriterWriter.startElement("h2").characters(tab.title).endElement();
                     tab.renderer.render(model, htmlWriterWriter);

@@ -52,14 +52,17 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
         this.taskType = taskType;
     }
 
+    @Override
     public String getTaskPrefix() {
         return "compile";
     }
 
+    @Override
     public Class<? extends DefaultTask> getTaskType() {
         return taskType;
     }
 
+    @Override
     public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
         configureCompileTaskCommon((AbstractNativeCompileTask) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
         configureCompileTask((AbstractNativeCompileTask) task, (NativeBinarySpecInternal) binary, (LanguageSourceSetInternal) sourceSet);
@@ -70,7 +73,6 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
         task.setTargetPlatform(binary.getTargetPlatform());
         task.setPositionIndependentCode(binary instanceof SharedLibraryBinarySpec);
 
-        // TODO:DAZ Not sure if these both need to be lazy
         task.includes(new Callable<Set<File>>() {
             public Set<File> call() throws Exception {
                 return ((HeaderExportingSourceSet) sourceSet).getExportedHeaders().getSrcDirs();

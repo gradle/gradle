@@ -30,10 +30,12 @@ public class JUnitDetector extends AbstractTestFrameworkDetector<JUnitTestClassD
         super(classFileExtractionManager);
     }
 
+    @Override
     protected JUnitTestClassDetecter createClassVisitor() {
         return new JUnitTestClassDetecter(this);
     }
 
+    @Override
     protected boolean processTestClass(final File testClassFile, boolean superClass) {
         final TestClassVisitor classVisitor = classVisitor(testClassFile);
 

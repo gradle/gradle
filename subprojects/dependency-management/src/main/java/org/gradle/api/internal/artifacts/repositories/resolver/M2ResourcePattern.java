@@ -37,7 +37,7 @@ public class M2ResourcePattern extends AbstractResourcePattern {
 
     @Override
     public String toString() {
-        return String.format("M2 pattern '%s'", getPattern());
+        return "M2 pattern '" + getPattern() + "'";
     }
 
     public ExternalResourceName getLocation(ModuleComponentArtifactMetaData artifact) {

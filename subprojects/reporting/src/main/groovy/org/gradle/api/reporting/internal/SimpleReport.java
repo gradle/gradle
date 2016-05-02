@@ -24,7 +24,7 @@ import org.gradle.util.ConfigureUtil;
 import java.io.File;
 
 public class SimpleReport implements Report {
-                          
+
     private String name;
     private String displayName;
     private FileResolver fileResolver;
@@ -49,9 +49,9 @@ public class SimpleReport implements Report {
     }
 
     public String toString() {
-        return String.format("Report %s", getName());
+        return "Report " + getName();
     }
-    
+
     public File getDestination() {
         return destination == null ? null : resolveToFile(destination);
     }
@@ -67,9 +67,9 @@ public class SimpleReport implements Report {
     private File resolveToFile(Object file) {
         return fileResolver.resolve(file);
     }
-    
+
     public Report configure(Closure configure) {
-        return ConfigureUtil.configure(configure, this, false);
+        return ConfigureUtil.configureSelf(configure, this);
     }
 
     public boolean isEnabled() {

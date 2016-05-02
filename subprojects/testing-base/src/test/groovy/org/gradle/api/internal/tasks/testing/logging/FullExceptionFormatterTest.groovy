@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.logging
 import spock.lang.Specification
 import org.gradle.api.tasks.testing.logging.TestLogging
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter
-import org.gradle.messaging.remote.internal.PlaceholderException
+import org.gradle.internal.serialize.PlaceholderException
 
 class FullExceptionFormatterTest extends Specification {
     def testDescriptor = new SimpleTestDescriptor()

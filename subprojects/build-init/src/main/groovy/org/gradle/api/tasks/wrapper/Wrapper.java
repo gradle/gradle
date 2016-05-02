@@ -50,8 +50,6 @@ import java.util.Properties;
 public class Wrapper extends DefaultTask {
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
 
-    private String distributionUrl;
-
     /**
      * Specifies how the wrapper path should be interpreted.
      */
@@ -61,21 +59,12 @@ public class Wrapper extends DefaultTask {
 
     private Object scriptFile;
     private Object jarFile;
-
-    @Input
     private String distributionPath;
-
-    @Input
     private PathBase distributionBase = PathBase.GRADLE_USER_HOME;
-
+    private String distributionUrl;
     private GradleVersion gradleVersion;
-
-    @Input
     private String archivePath;
-
-    @Input
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
-
     private final DistributionLocator locator = new DistributionLocator();
 
     public Wrapper() {
@@ -177,6 +166,7 @@ public class Wrapper extends DefaultTask {
      *
      * @see #setDistributionPath(String)
      */
+    @Input
     public String getDistributionPath() {
         return distributionPath;
     }
@@ -196,6 +186,7 @@ public class Wrapper extends DefaultTask {
      *
      * @see #setGradleVersion(String)
      */
+    @Input
     public String getGradleVersion() {
         return gradleVersion.getVersion();
     }
@@ -241,6 +232,7 @@ public class Wrapper extends DefaultTask {
      * The distribution base specifies whether the unpacked wrapper distribution should be stored in the project or in
      * the gradle user home dir.
      */
+    @Input
     public PathBase getDistributionBase() {
         return distributionBase;
     }
@@ -257,6 +249,7 @@ public class Wrapper extends DefaultTask {
      * Returns the path where the gradle distributions archive should be saved (i.e. the parent dir). The path is
      * relative to the archive base directory.
      */
+    @Input
     public String getArchivePath() {
         return archivePath;
     }
@@ -273,6 +266,7 @@ public class Wrapper extends DefaultTask {
      * The archive base specifies whether the unpacked wrapper distribution should be stored in the project or in the
      * gradle user home dir.
      */
+    @Input
     public PathBase getArchiveBase() {
         return archiveBase;
     }

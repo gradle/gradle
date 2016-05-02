@@ -103,6 +103,7 @@ class Antlr4PluginIntegrationTest extends AbstractAntlrIntegrationTest {
 
         expect:
         fails("generateGrammarSource")
+        failure.assertHasCause("There was 1 error during grammar generation")
         assertAntlrVersion(4)
     }
 

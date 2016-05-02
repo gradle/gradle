@@ -83,4 +83,9 @@ public class CachingTaskStateChanges implements TaskStateChanges {
     public void snapshotAfterTask() {
         delegate.snapshotAfterTask();
     }
+
+    @Override
+    public void snapshotBeforeTask() {
+        delegate.snapshotBeforeTask();
+    }
 }

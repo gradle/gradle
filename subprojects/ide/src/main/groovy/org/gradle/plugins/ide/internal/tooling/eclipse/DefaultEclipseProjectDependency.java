@@ -15,34 +15,46 @@
  */
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import java.io.Serializable;
+import org.gradle.tooling.internal.protocol.eclipse.DefaultEclipseProjectIdentifier;
 
-public class DefaultEclipseProjectDependency implements Serializable {
+import java.io.File;
+import java.io.Serializable;
+import java.util.ArrayList;
+
+public class DefaultEclipseProjectDependency extends DefaultEclipseDependency implements Serializable {
+    private final DefaultEclipseProjectIdentifier targetIdentifier;
     private final String path;
 
-    private final boolean exported;
-    private final DefaultEclipseProject target;
+    private final DefaultEclipseProject targetProject;
 
-    public DefaultEclipseProjectDependency(String path, DefaultEclipseProject target, boolean exported) {
-        this.target = target;
+    public DefaultEclipseProjectDependency(String path, DefaultEclipseProject targetProject, boolean exported) {
+        super(exported, new ArrayList<DefaultClasspathAttribute>());
+        this.targetProject = targetProject;
         this.path = path;
-        this.exported = exported;
+        this.targetIdentifier = new DefaultEclipseProjectIdentifier(targetProject.getProjectDirectory());
+    }
+
+    public DefaultEclipseProjectDependency(String path, File targetProjectDirectory, boolean exported) {
+        super(exported, new ArrayList<DefaultClasspathAttribute>());
+        this.targetProject = null;
+        this.path = path;
+        this.targetIdentifier = new DefaultEclipseProjectIdentifier(targetProjectDirectory);
     }
 
     public DefaultEclipseProject getTargetProject() {
-        return target;
+        return targetProject;
+    }
+
+    public DefaultEclipseProjectIdentifier getTarget() {
+        return targetIdentifier;
     }
 
     public String getPath() {
         return path;
     }
 
-    public boolean isExported() {
-        return exported;
-    }
-
     @Override
     public String toString() {
-        return String.format("project dependency %s (%s)", path, target);
+        return "project dependency " + path + " (" + targetProject + ")";
     }
 }

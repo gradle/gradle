@@ -20,6 +20,7 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
 import org.gradle.api.internal.initialization.loadercache.DummyClassLoaderCache
 import org.gradle.api.internal.project.ProjectScript
 import org.gradle.configuration.ImportsReader
+import org.gradle.configuration.ScriptTarget
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.internal.Actions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,10 +35,10 @@ class BuildScriptTransformerSpec extends Specification {
 
     def importsReader = Mock(ImportsReader) {
         getImportPackages() >> ([] as String[])
+        getSimpleNameToFullClassNamesMapping() >> [:]
     }
 
     final DefaultScriptCompilationHandler scriptCompilationHandler = new DefaultScriptCompilationHandler(new DummyClassLoaderCache(), importsReader)
-    final String classpathClosureName = "buildscript"
 
     File scriptCacheDir
     File metadataCacheDir
@@ -51,8 +52,11 @@ class BuildScriptTransformerSpec extends Specification {
 
     private CompiledScript<Script, BuildScriptData> parse(String script) {
         def source = new StringScriptSource("test script", script)
+        def target = Mock(ScriptTarget) {
+            getClasspathBlockName() >> "buildscript"
+        }
         def loader = getClass().getClassLoader()
-        def transformer = new BuildScriptTransformer(classpathClosureName, source)
+        def transformer = new BuildScriptTransformer(source, target)
         def operation = new FactoryBackedCompileOperation<BuildScriptData>("id", transformer, transformer, new BuildScriptDataSerializer())
         scriptCompilationHandler.compileToDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, Actions.doNothing())
         return scriptCompilationHandler.loadFromDir(source, loader, scriptCacheDir, metadataCacheDir, operation, ProjectScript, classLoaderId)

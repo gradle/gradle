@@ -1,0 +1,16 @@
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven'
+    apply plugin: 'idea'
+
+    group = 'org'
+    version = '1.0'
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                repository(url: "file://" + rootProject.file("../repo"))
+            }
+        }
+    }
+}

@@ -15,15 +15,19 @@
  */
 package org.gradle.internal.reflect;
 
+import com.google.common.annotations.VisibleForTesting;
+
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.WeakHashMap;
 
 public class DirectInstantiator implements Instantiator {
 
     public static final Instantiator INSTANCE = new DirectInstantiator();
+
+    private final ConstructorCache constructorCache = new ConstructorCache();
 
     public static <T> T instantiate(Class<? extends T> type, Object... params) {
         return INSTANCE.newInstance(type, params);
@@ -34,19 +38,8 @@ public class DirectInstantiator implements Instantiator {
 
     public <T> T newInstance(Class<? extends T> type, Object... params) {
         try {
-            List<Constructor<?>> matches = new ArrayList<Constructor<?>>();
-            for (Constructor<?> constructor : type.getConstructors()) {
-                if (isMatch(constructor, params)) {
-                    matches.add(constructor);
-                }
-            }
-            if (matches.isEmpty()) {
-                throw new IllegalArgumentException(String.format("Could not find any public constructor for %s which accepts parameters %s.", type, Arrays.toString(params)));
-            }
-            if (matches.size() > 1) {
-                throw new IllegalArgumentException(String.format("Found multiple public constructors for %s which accept parameters %s.", type, Arrays.toString(params)));
-            }
-            return type.cast(matches.get(0).newInstance(params));
+            Constructor<?> match = doGetConstructor(type, constructorCache.get(type), params);
+            return type.cast(match.newInstance(params));
         } catch (InvocationTargetException e) {
             throw new ObjectInstantiationException(type, e.getCause());
         } catch (Exception e) {
@@ -54,13 +47,32 @@ public class DirectInstantiator implements Instantiator {
         }
     }
 
-    private boolean isMatch(Constructor<?> constructor, Object... params) {
-        if (constructor.getParameterTypes().length != params.length) {
+    private <T> Constructor<?> doGetConstructor(Class<? extends T> type, Constructor<?>[] constructors, Object[] params) {
+        Constructor<?> match = null;
+        if (constructors.length > 0) {
+            for (Constructor<?> constructor : constructors) {
+                if (isMatch(constructor, params)) {
+                    if (match != null) {
+                        throw new IllegalArgumentException(String.format("Found multiple public constructors for %s which accept parameters %s.", type, Arrays.toString(params)));
+                    }
+                    match = constructor;
+                }
+            }
+        }
+        if (match == null) {
+            throw new IllegalArgumentException(String.format("Could not find any public constructor for %s which accepts parameters %s.", type, Arrays.toString(params)));
+        }
+        return match;
+    }
+
+    private static boolean isMatch(Constructor<?> constructor, Object... params) {
+        Class<?>[] parameterTypes = constructor.getParameterTypes();
+        if (parameterTypes.length != params.length) {
             return false;
         }
         for (int i = 0; i < params.length; i++) {
             Object param = params[i];
-            Class<?> parameterType = constructor.getParameterTypes()[i];
+            Class<?> parameterType = parameterTypes[i];
             if (parameterType.isPrimitive()) {
                 if (!JavaReflectionUtil.getWrapperTypeForPrimitiveType(parameterType).isInstance(param)) {
                     return false;
@@ -72,5 +84,34 @@ public class DirectInstantiator implements Instantiator {
             }
         }
         return true;
+    }
+
+    @VisibleForTesting
+    public static class ConstructorCache {
+        private final Object lock = new Object();
+        private final WeakHashMap<Class<?>, WeakReference<Constructor<?>[]>> cache = new WeakHashMap<Class<?>, WeakReference<Constructor<?>[]>>();
+
+        public Constructor<?>[] get(Class<?> key) {
+            WeakReference<Constructor<?>[]> cached;
+            synchronized (lock) {
+                cached = cache.get(key);
+            }
+            if (cached != null) {
+                Constructor<?>[] ctrs = cached.get();
+                if (ctrs != null) {
+                    return ctrs;
+                }
+            }
+            return getAndCache(key);
+        }
+
+        private Constructor<?>[] getAndCache(Class<?> key) {
+            Constructor<?>[] ctors = key.getConstructors();
+            WeakReference<Constructor<?>[]> value = new WeakReference<Constructor<?>[]>(ctors);
+            synchronized (lock) {
+                cache.put(key, value);
+            }
+            return ctors;
+        }
     }
 }

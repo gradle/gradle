@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import org.gradle.api.*;
 import org.gradle.internal.Actions;
+import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -60,17 +61,18 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
         return object;
     }
 
-    protected Object createConfigureDelegate(Closure configureClosure) {
-        return new NamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this);
+    protected ConfigureDelegate createConfigureDelegate(Closure configureClosure) {
+        return new NamedDomainObjectContainerConfigureDelegate(configureClosure, this);
     }
 
     public AbstractNamedDomainObjectContainer<T> configure(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, createConfigureDelegate(configureClosure));
+        ConfigureDelegate delegate = createConfigureDelegate(configureClosure);
+        ConfigureUtil.configureSelf(configureClosure, delegate, delegate);
         return this;
     }
 
     public String getDisplayName() {
-        return String.format("%s container", getTypeDisplayName());
+        return getTypeDisplayName() + " container";
     }
 
 }

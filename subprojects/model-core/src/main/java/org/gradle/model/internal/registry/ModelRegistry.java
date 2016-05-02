@@ -17,6 +17,7 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.api.Nullable;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.type.ModelType;
 
@@ -102,7 +103,29 @@ public interface ModelRegistry {
 
     ModelRegistry register(ModelRegistration registration);
 
+    /**
+     * Bind the given action directly to its subject node in the given role. Calling {@link #bindAllReferences()} fails
+     * if the subject of the action is not matched by any node.
+     */
     ModelRegistry configure(ModelActionRole role, ModelAction action);
+
+    /**
+     * Registers a listener and binds the given action in the given role whenever a node that matches the spec is discovered.
+     * Matching nodes that are already discovered when {@code configureMatching()} is called are bound directly.
+     * Unlike with {@link #configure(ModelActionRole, ModelAction)}, {@link #bindAllReferences()} will <em>not</em> fail
+     * if no nodes match the given spec.
+     *
+     * @throws IllegalArgumentException if the given action has a <code>path</code> set.
+     */
+    ModelRegistry configureMatching(ModelSpec spec, ModelActionRole role, ModelAction action);
+
+    /**
+     * Registers a listener and applies the given {@link RuleSource} whenever a node that matches the spec is discovered.
+     * Matching nodes that are already discovered when {@code configureMatching()} is called are bound directly.
+     * Unlike with {@link #configure(ModelActionRole, ModelAction)}, {@link #bindAllReferences()} will <em>not</em> fail
+     * if no nodes match the given spec.
+     */
+    ModelRegistry configureMatching(ModelSpec spec, Class<? extends RuleSource> rules);
 
     MutableModelNode getRoot();
 }

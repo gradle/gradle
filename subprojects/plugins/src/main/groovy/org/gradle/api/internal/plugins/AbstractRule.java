@@ -22,6 +22,6 @@ public abstract class AbstractRule implements Rule {
 
     @Override
     public String toString() {
-        return String.format("Rule: %s", getDescription());
+        return "Rule: " + getDescription();
     }
 }

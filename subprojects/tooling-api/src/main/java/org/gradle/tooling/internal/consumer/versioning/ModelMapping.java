@@ -27,6 +27,7 @@ import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
+import org.gradle.tooling.model.gradle.ProjectPublications;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
@@ -55,6 +56,7 @@ public class ModelMapping {
         map.put(ProjectOutcomes.class, "1.2");
         map.put(Void.class, "1.0-milestone-3");
         map.put(GradleBuild.class, "1.8");
+        map.put(ProjectPublications.class, "1.12");
     }
 
     static void addModelToProtocolMappings(Map<Class<?>, Class<?>> map) {
@@ -135,7 +137,7 @@ public class ModelMapping {
 
         @Override
         public String toString() {
-            return String.format("tooling model %s", model);
+            return "tooling model " + model;
         }
 
         public String getName() {

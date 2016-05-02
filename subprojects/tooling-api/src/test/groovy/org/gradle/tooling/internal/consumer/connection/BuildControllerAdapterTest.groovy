@@ -34,7 +34,7 @@ class BuildControllerAdapterTest extends Specification {
             }
         }
     }
-    def controller = new BuildControllerAdapter(adapter, internalController, mapping)
+    def controller = new BuildControllerAdapter(adapter, internalController, mapping, null)
 
     def "unpacks unsupported model exception"() {
         def failure = new RuntimeException()

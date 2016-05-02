@@ -35,6 +35,16 @@ public interface GradleLauncherFactory {
 
     /**
      * Creates a new {@link GradleLauncher} instance for the given parameters.
+     * The request context from the current build will be reused, if present.
+     * Caller must call {@link GradleLauncher#stop()} when finished with the launcher.
+     *
+     * @param startParameter The settings for the build.
+     * @param parent The parent service registry for this build.
+     */
+    GradleLauncher newInstance(StartParameter startParameter, ServiceRegistry parent);
+
+    /**
+     * Creates a new {@link GradleLauncher} instance for the given parameters.
      * Caller must call {@link GradleLauncher#stop()} when finished with the launcher.
      */
     GradleLauncher newInstance(StartParameter startParameter);

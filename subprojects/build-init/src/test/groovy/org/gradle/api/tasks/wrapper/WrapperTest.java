@@ -90,7 +90,7 @@ public class WrapperTest extends AbstractTaskTest {
         wrapper.setJarFile("build/gradle-wrapper.jar");
         assertEquals(getProject().file("build/gradle-wrapper.properties"), wrapper.getPropertiesFile());
     }
-    
+
     @Test
     public void testDownloadsFromReleaseRepositoryForReleaseVersions() {
         wrapper.setGradleVersion("0.9.1");
@@ -124,7 +124,7 @@ public class WrapperTest extends AbstractTaskTest {
     @Test
     public void testCheckInputs() throws IOException {
         assertThat(wrapper.getInputs().getProperties().keySet(),
-                equalTo(WrapUtil.toSet("distributionBase", "distributionPath", "distributionUrl", "archiveBase", "archivePath")));
+                equalTo(WrapUtil.toSet("distributionBase", "distributionPath", "distributionUrl", "archiveBase", "archivePath", "gradleVersion")));
     }
 
     @Test

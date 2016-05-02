@@ -19,11 +19,11 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecuter;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.internal.OutputEvent;
-import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.logging.internal.ProgressCompleteEvent;
-import org.gradle.logging.internal.ProgressStartEvent;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.events.OutputEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.ProgressCompleteEvent;
+import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
@@ -54,7 +54,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecuter<P
         ProgressListenerVersion1 progressListener = actionParameters.getProgressListener();
         OutputEventListenerAdapter listener = new OutputEventListenerAdapter(progressListener);
         loggingManager.addOutputEventListener(listener);
-        loggingManager.setLevel(actionParameters.getBuildLogLevel());
+        loggingManager.setLevelInternal(actionParameters.getBuildLogLevel());
         loggingManager.start();
         try {
             return executer.execute(action, buildRequestContext, actionParameters, contextServices);

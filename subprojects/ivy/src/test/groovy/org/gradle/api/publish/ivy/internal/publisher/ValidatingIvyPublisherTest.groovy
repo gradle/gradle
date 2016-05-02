@@ -213,7 +213,7 @@ public class ValidatingIvyPublisherTest extends Specification {
 
         then:
         def e = thrown InvalidIvyPublicationException
-        e.message == "Invalid publication 'pub-name': Could not parse Ivy file ${ivyFile.toURI()}"
+        e.message == "Invalid publication 'pub-name': Could not parse Ivy file ${ivyFile}"
     }
 
     def "validates artifact attributes"() {

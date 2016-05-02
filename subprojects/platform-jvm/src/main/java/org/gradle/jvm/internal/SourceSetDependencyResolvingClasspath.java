@@ -36,7 +36,7 @@ public class SourceSetDependencyResolvingClasspath extends DependencyResolvingCl
             VariantsMetaData binaryVariants,
             List<ResolutionAwareRepository> remoteRepositories) {
         super(binarySpec,
-            String.format("source set '%s'", sourceSet.getDisplayName()),
+            "source set '" + sourceSet.getDisplayName() + "'",
             dependencyResolver,
             remoteRepositories,
             new LocalComponentResolveContext(binarySpec.getId(), binaryVariants, dependencies, UsageKind.API, sourceSet.getDisplayName()));

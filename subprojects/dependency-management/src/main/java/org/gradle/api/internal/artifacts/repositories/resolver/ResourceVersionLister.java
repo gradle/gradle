@@ -18,10 +18,11 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.ResourceException;
+import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,7 @@ public class ResourceVersionLister implements VersionLister {
                         dest.add(versionString);
                     }
                 } catch (Exception e) {
-                    throw ResourceException.failure(versionListPattern.getUri(), String.format("Could not list versions using %s.", pattern), e);
+                    throw ResourceExceptions.failure(versionListPattern.getUri(), String.format("Could not list versions using %s.", pattern), e);
                 }
             }
 

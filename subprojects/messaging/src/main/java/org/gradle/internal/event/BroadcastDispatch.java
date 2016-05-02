@@ -17,9 +17,9 @@
 package org.gradle.internal.event;
 
 import org.gradle.api.Action;
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.MethodInvocation;
-import org.gradle.messaging.dispatch.ReflectionDispatch;
+import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.internal.dispatch.MethodInvocation;
+import org.gradle.internal.dispatch.ReflectionDispatch;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

@@ -120,7 +120,7 @@ public class MavenArtifactNotationParserFactoryTest extends Specification {
     def "creates MavenArtifact for ArchivePublishArtifact"() {
         when:
         def rootProject = TestUtil.createRootProject()
-        def archive = rootProject.task(type: Jar, {})
+        def archive = rootProject.task('foo', type: Jar, {})
         archive.setBaseName("baseName")
         archive.setExtension(archiveExtension)
         archive.setClassifier(archiveClassifier)

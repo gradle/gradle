@@ -16,11 +16,11 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.ExecResult;
 
 public class DefaultExecAction extends ExecHandleBuilder implements ExecAction {
-    public DefaultExecAction(FileResolver fileResolver) {
+    public DefaultExecAction(PathToFileResolver fileResolver) {
         super(fileResolver);
     }
 

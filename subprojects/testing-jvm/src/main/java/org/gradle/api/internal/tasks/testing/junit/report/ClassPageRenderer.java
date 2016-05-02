@@ -40,7 +40,7 @@ class ClassPageRenderer extends PageRenderer<ClassTestResults> {
             .startElement("a").attribute("href", getResults().getUrlTo(getResults().getParent().getParent())).characters("all").endElement()
             .characters(" > ")
             .startElement("a").attribute("href", getResults().getUrlTo(getResults().getPackageResults())).characters(getResults().getPackageResults().getName()).endElement()
-            .characters(String.format(" > %s", getResults().getSimpleName()))
+            .characters(" > " + getResults().getSimpleName())
         .endElement();
     }
 

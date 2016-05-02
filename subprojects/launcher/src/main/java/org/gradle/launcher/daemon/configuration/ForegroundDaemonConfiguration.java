@@ -16,12 +16,14 @@
 
 package org.gradle.launcher.daemon.configuration;
 
+import org.gradle.process.internal.CurrentProcess;
+
 import java.io.File;
 
 public class ForegroundDaemonConfiguration extends DefaultDaemonServerConfiguration {
-    public ForegroundDaemonConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs) {
+    public ForegroundDaemonConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs, int periodicCheckIntervalMs) {
         // Foreground daemon cannot be 'told' what's his startup options as the client sits in the same process so we will infer the jvm opts from the inputArguments()
         // Simplification, we will make the foreground daemon interested only in managed jvm args
-        super(daemonUid, daemonBaseDir, idleTimeoutMs, new CurrentProcess().getJvmOptions().getManagedJvmArgs());
+        super(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, new CurrentProcess().getJvmOptions().getManagedJvmArgs());
     }
 }

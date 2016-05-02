@@ -15,7 +15,7 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.gradle.logging.TestStyledTextOutput;
+import org.gradle.internal.logging.text.TestStyledTextOutput;
 import org.junit.Test;
 
 import static org.gradle.util.Matchers.containsLine;

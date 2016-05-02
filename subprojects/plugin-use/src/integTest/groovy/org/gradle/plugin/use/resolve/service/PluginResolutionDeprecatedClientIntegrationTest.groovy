@@ -21,9 +21,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.hash.HashUtil
 import org.gradle.plugin.use.internal.PluginUsePluginServiceRegistry
 import org.gradle.plugin.use.resolve.service.internal.PersistentCachingPluginResolutionServiceClient
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 
 import static org.gradle.util.Matchers.containsText
@@ -32,7 +32,10 @@ import static org.gradle.util.Matchers.containsText
 class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegrationSpec {
 
     public static final String PLUGIN_ID_1 = "org.my.myplugin_1"
-    public static final String PLUGIN_ID_2 = "org.my.myplugin_2"
+    // We need to use a string of a different size here, otherwise we reach a limit of Gradle in
+    // detecting changes of the same file that happen within a few milliseconds, and do not change
+    // the size of the file. See File#lastModified() for details
+    public static final String PLUGIN_ID_2 = "org.my.myplugin__2"
     public static final String VERSION = "1.0"
     public static final String GROUP = "my"
     public static final String ARTIFACT_1 = "plugin_1"
@@ -48,7 +51,7 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
     def setup() {
         executer.requireOwnGradleUserHomeDir()
         executer.beforeExecute {
-            it.withDeprecationChecksDisabled().withStackTraceChecksDisabled()
+            it.expectDeprecationWarning()
             moduleResolution()
         }
 
@@ -216,11 +219,9 @@ class PluginResolutionDeprecatedClientIntegrationTest extends AbstractIntegratio
         pluginQuery1()
         service.expectStatusQueryOutOfProtocol()
         build()
-        output.contains("Exception thrown fetching client status")
 
         service.expectStatusQueryOutOfProtocol()
         build()
-        output.contains("Exception thrown fetching client status")
 
         // Test that if the issue gets resolved, everything works as it should
         service.expectStatusQuery()

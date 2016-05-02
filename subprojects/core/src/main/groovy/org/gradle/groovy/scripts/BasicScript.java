@@ -17,12 +17,12 @@
 package org.gradle.groovy.scripts;
 
 import groovy.lang.MetaClass;
-import org.gradle.api.internal.DynamicObject;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.api.internal.DynamicObjectUtil;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.logging.StandardOutputCapture;
+import org.gradle.internal.logging.StandardOutputCapture;
 
 import java.util.Map;
 

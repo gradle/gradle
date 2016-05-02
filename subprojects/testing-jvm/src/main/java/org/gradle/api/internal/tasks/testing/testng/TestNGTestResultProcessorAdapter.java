@@ -44,6 +44,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         this.timeProvider = timeProvider;
     }
 
+    @Override
     public void onStart(ISuite suite) {
         TestDescriptorInternal testInternal;
         synchronized (lock) {
@@ -57,6 +58,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         resultProcessor.started(testInternal, new TestStartEvent(timeProvider.getCurrentTime()));
     }
 
+    @Override
     public void onFinish(ISuite suite) {
         Object id;
         synchronized (lock) {
@@ -70,6 +72,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         resultProcessor.completed(id, new TestCompleteEvent(timeProvider.getCurrentTime()));
     }
 
+    @Override
     public void onStart(ITestContext iTestContext) {
         TestDescriptorInternal testInternal;
         Object parentId;
@@ -84,6 +87,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         resultProcessor.started(testInternal, new TestStartEvent(iTestContext.getStartDate().getTime(), parentId));
     }
 
+    @Override
     public void onFinish(ITestContext iTestContext) {
         Object id;
         synchronized (lock) {
@@ -95,6 +99,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         resultProcessor.completed(id, new TestCompleteEvent(iTestContext.getEndDate().getTime()));
     }
 
+    @Override
     public void onTestStart(ITestResult iTestResult) {
         TestDescriptorInternal testInternal;
         Object parentId;
@@ -151,18 +156,22 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         }
     }
 
+    @Override
     public void onTestSuccess(ITestResult iTestResult) {
         onTestFinished(iTestResult, TestResult.ResultType.SUCCESS);
     }
 
+    @Override
     public void onTestFailure(ITestResult iTestResult) {
         onTestFinished(iTestResult, TestResult.ResultType.FAILURE);
     }
 
+    @Override
     public void onTestSkipped(ITestResult iTestResult) {
         onTestFinished(iTestResult, TestResult.ResultType.SKIPPED);
     }
 
+    @Override
     public void onTestFailedButWithinSuccessPercentage(ITestResult iTestResult) {
         onTestFinished(iTestResult, TestResult.ResultType.SUCCESS);
     }
@@ -173,7 +182,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         synchronized (lock) {
             testId = testMethodId.remove(iTestResult);
             if (testId == null) {
-                // This can happen when a method fails which this method depends on 
+                // This can happen when a method fails which this method depends on
                 testId = idGenerator.generateId();
                 Object parentId = testMethodParentId.get(iTestResult.getMethod());
                 startEvent = new TestStartEvent(iTestResult.getStartMillis(), parentId);
@@ -189,12 +198,15 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         resultProcessor.completed(testId, new TestCompleteEvent(iTestResult.getEndMillis(), resultType));
     }
 
+    @Override
     public void onConfigurationSuccess(ITestResult testResult) {
     }
 
+    @Override
     public void onConfigurationSkip(ITestResult testResult) {
     }
 
+    @Override
     public void onConfigurationFailure(ITestResult testResult) {
         synchronized (lock) {
             if (!failedConfigurations.add(testResult)) {
@@ -210,6 +222,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         resultProcessor.completed(test.getId(), new TestCompleteEvent(testResult.getEndMillis(), TestResult.ResultType.FAILURE));
     }
 
+    @Override
     public void beforeConfiguration(ITestResult tr) {
     }
 }

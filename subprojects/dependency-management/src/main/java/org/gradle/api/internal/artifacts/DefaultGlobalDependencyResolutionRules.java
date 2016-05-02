@@ -16,13 +16,32 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.Action;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.DependencySubstitution;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRuleProvider;
+import org.gradle.internal.Actions;
+import org.gradle.util.CollectionUtils;
+
+import java.util.List;
+
 public class DefaultGlobalDependencyResolutionRules implements GlobalDependencyResolutionRules {
     private final ComponentMetadataProcessor componentMetadataProcessor;
     private final ComponentModuleMetadataProcessor moduleMetadataProcessor;
+    private final Action<DependencySubstitution> globalDependencySubstitutionRule;
 
-    public DefaultGlobalDependencyResolutionRules(ComponentMetadataProcessor componentMetadataProcessor, ComponentModuleMetadataProcessor moduleMetadataProcessor) {
+    public DefaultGlobalDependencyResolutionRules(ComponentMetadataProcessor componentMetadataProcessor,
+                                                  ComponentModuleMetadataProcessor moduleMetadataProcessor,
+                                                  List<DependencySubstitutionRuleProvider> ruleProviders) {
         this.componentMetadataProcessor = componentMetadataProcessor;
         this.moduleMetadataProcessor = moduleMetadataProcessor;
+        List<Action<DependencySubstitution>> globalActions = CollectionUtils.collect(ruleProviders, new Transformer<Action<DependencySubstitution>, DependencySubstitutionRuleProvider>() {
+            @Override
+            public Action<DependencySubstitution> transform(DependencySubstitutionRuleProvider dependencySubstitutionRuleProvider) {
+                return dependencySubstitutionRuleProvider.getDependencySubstitutionRule();
+            }
+        });
+        this.globalDependencySubstitutionRule = Actions.composite(globalActions);
     }
 
     public ComponentMetadataProcessor getComponentMetadataProcessor() {
@@ -31,5 +50,10 @@ public class DefaultGlobalDependencyResolutionRules implements GlobalDependencyR
 
     public ComponentModuleMetadataProcessor getModuleMetadataProcessor() {
         return moduleMetadataProcessor;
+    }
+
+    @Override
+    public Action<DependencySubstitution> getDependencySubstitutionRule() {
+        return globalDependencySubstitutionRule;
     }
 }

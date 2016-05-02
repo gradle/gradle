@@ -24,3 +24,4 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ':messaging')
 useTestFixtures(project: ":platformBase")
+useTestFixtures(project: ":logging")

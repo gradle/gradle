@@ -19,7 +19,6 @@ import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.*;
-import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.NamedDomainObjectContainerConfigureDelegate;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -29,6 +28,7 @@ import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
@@ -167,8 +167,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public TaskContainerInternal configure(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, new NamedDomainObjectContainerConfigureDelegate(configureClosure.getOwner(), this));
-        return this;
+        return ConfigureUtil.configureSelf(configureClosure, this, new NamedDomainObjectContainerConfigureDelegate(configureClosure, this));
     }
 
     @Override
@@ -181,7 +180,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
     }
 
     public SortedSet<String> getNames() {
-        return Sets.newTreeSet(modelNode.getLinkNames(ModelType.of(Task.class)));
+        return Sets.newTreeSet(modelNode.getLinkNames());
     }
 
     public void realize() {

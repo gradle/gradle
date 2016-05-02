@@ -52,7 +52,7 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
     }
 
     private String operationName(String action) {
-        return String.format("%s artifact resolution cache '%s'", action, persistentCacheFile);
+        return action + " artifact resolution cache '" + persistentCacheFile + "'";
     }
 
     public V lookup(final K key) {

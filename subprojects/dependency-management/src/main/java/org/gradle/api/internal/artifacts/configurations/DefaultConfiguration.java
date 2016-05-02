@@ -128,16 +128,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         DefaultDomainObjectSet<Dependency> ownDependencies = new DefaultDomainObjectSet<Dependency>(Dependency.class);
         ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
 
-        dependencies = new DefaultDependencySet(String.format("%s dependencies", getDisplayName()), ownDependencies);
+        final String displayName = getDisplayName();
+        dependencies = new DefaultDependencySet(displayName + " dependencies", ownDependencies);
         inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
-        allDependencies = new DefaultDependencySet(String.format("%s all dependencies", getDisplayName()), inheritedDependencies);
+        allDependencies = new DefaultDependencySet(displayName + " all dependencies", inheritedDependencies);
 
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
         ownArtifacts.beforeChange(validateMutationType(this, MutationType.ARTIFACTS));
 
-        artifacts = new DefaultPublishArtifactSet(String.format("%s artifacts", getDisplayName()), ownArtifacts, fileCollectionFactory);
+        artifacts = new DefaultPublishArtifactSet(displayName + " artifacts", ownArtifacts, fileCollectionFactory);
         inheritedArtifacts = CompositeDomainObjectSet.create(PublishArtifact.class, ownArtifacts);
-        allArtifacts = new DefaultPublishArtifactSet(String.format("%s all artifacts", getDisplayName()), inheritedArtifacts, fileCollectionFactory);
+        allArtifacts = new DefaultPublishArtifactSet(displayName + " all artifacts", inheritedArtifacts, fileCollectionFactory);
 
         resolutionStrategy.setMutationValidator(this);
         resolutionStrategy.setCallingModule(this.getModule());
@@ -395,9 +396,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void markReferencedProjectConfigurationsObserved(final InternalState requestedState) {
         for (ResolvedProjectConfiguration projectResult : cachedResolverResults.getResolvedLocalComponents().getResolvedProjectConfigurations()) {
-            ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
-            ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
-            targetConfig.markAsObserved(requestedState);
+            ProjectInternal project = projectFinder.findProject(projectResult.getId().getProjectPath());
+            if (project != null) {
+                ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
+                targetConfig.markAsObserved(requestedState);
+            }
         }
     }
 
@@ -546,7 +549,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolutionStrategy;
     }
 
-    // TODO:DAZ ResolveContext should have-a Configuration, not be one
     public ComponentResolveMetaData toRootComponentMetaData() {
         ModuleInternal module = getModule();
         Set<? extends Configuration> configurations = getAll();
@@ -658,7 +660,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public String getDisplayName() {
-            return String.format("%s dependencies", DefaultConfiguration.this);
+            return DefaultConfiguration.this + " dependencies";
         }
 
         public Set<File> getFiles() {
@@ -744,7 +746,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public String toString() {
-            return String.format("dependencies '%s'", path);
+            return "dependencies '" + path + "'";
         }
 
         public FileCollection getFiles() {

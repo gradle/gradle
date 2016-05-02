@@ -16,10 +16,14 @@
 
 package org.gradle.groovy.scripts;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.internal.hash.HashUtil;
 
 import java.net.URI;
+
+import static java.lang.Character.isJavaIdentifierPart;
+import static java.lang.Character.isJavaIdentifierStart;
+import static org.apache.commons.lang.StringUtils.substringAfterLast;
+import static org.apache.commons.lang.StringUtils.substringBeforeLast;
 
 public abstract class AbstractUriScriptSource implements ScriptSource {
 
@@ -31,28 +35,29 @@ public abstract class AbstractUriScriptSource implements ScriptSource {
      */
     public String getClassName() {
         if (className == null) {
-            URI sourceUri = getResource().getURI();
-            String name = StringUtils.substringBeforeLast(StringUtils.substringAfterLast(sourceUri.toString(), "/"), ".");
-            StringBuilder className = new StringBuilder(name.length());
-            for (int i = 0; i < name.length(); i++) {
-                char ch = name.charAt(i);
-                if (Character.isJavaIdentifierPart(ch)) {
-                    className.append(ch);
-                } else {
-                    className.append('_');
-                }
-            }
-            if (!Character.isJavaIdentifierStart(className.charAt(0))) {
-                className.insert(0, '_');
-            }
-            className.setLength(Math.min(className.length(), 30));
-            className.append('_');
+            URI sourceUri = getResource().getLocation().getURI();
             String path = sourceUri.toString();
-            className.append(HashUtil.createCompactMD5(path));
-
-            this.className = className.toString();
+            this.className = classNameFromPath(path);
         }
-
         return className;
+    }
+
+    private String classNameFromPath(String path) {
+        String name = substringBeforeLast(substringAfterLast(path, "/"), ".");
+
+        StringBuilder className = new StringBuilder(name.length());
+        for (int i = 0; i < name.length(); i++) {
+            char ch = name.charAt(i);
+            className.append(
+                isJavaIdentifierPart(ch) ? ch : '_');
+        }
+        if (!isJavaIdentifierStart(className.charAt(0))) {
+            className.insert(0, '_');
+        }
+        className.setLength(Math.min(className.length(), 30));
+        className.append('_');
+        className.append(HashUtil.createCompactMD5(path));
+
+        return className.toString();
     }
 }

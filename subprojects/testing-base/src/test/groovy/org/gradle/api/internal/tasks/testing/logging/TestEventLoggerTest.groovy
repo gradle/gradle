@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.testing.SimpleTestResult
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.gradle.logging.TestStyledTextOutputFactory
+import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import spock.lang.Specification
 
 class TestEventLoggerTest extends Specification {

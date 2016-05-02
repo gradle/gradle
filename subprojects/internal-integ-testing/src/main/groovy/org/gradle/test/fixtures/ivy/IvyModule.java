@@ -44,6 +44,8 @@ public interface IvyModule extends Module {
 
     IvyModule dependsOn(Map<String, ?> attributes);
 
+    IvyModule dependsOn(IvyModule ivyModule);
+
     IvyModule artifact(Map<String, ?> options);
 
     /**

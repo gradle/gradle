@@ -25,16 +25,14 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.*;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ModuleInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
@@ -56,13 +54,15 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.StandardOutputCapture;
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.StandardOutputCapture;
 import org.gradle.model.Model;
 import org.gradle.model.RuleSource;
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking;
@@ -72,6 +72,7 @@ import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelType;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -91,7 +92,12 @@ import static org.gradle.util.GUtil.isTrue;
 
 public abstract class AbstractProject extends AbstractPluginAware implements ProjectInternal, DynamicObjectAware {
 
-    private static Logger buildLogger = Logging.getLogger(Project.class);
+    private static final ModelType<ServiceRegistry> SERVICE_REGISTRY_MODEL_TYPE = ModelType.of(ServiceRegistry.class);
+    private static final ModelType<File> FILE_MODEL_TYPE = ModelType.of(File.class);
+    private static final ModelType<ProjectIdentifier> PROJECT_IDENTIFIER_MODEL_TYPE = ModelType.of(ProjectIdentifier.class);
+    private static final ModelType<ExtensionContainer> EXTENSION_CONTAINER_MODEL_TYPE = ModelType.of(ExtensionContainer.class);
+    private static final Logger BUILD_LOGGER = Logging.getLogger(Project.class);
+
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
     private ServiceRegistry services;
@@ -129,6 +135,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     private AntBuilder ant;
 
     private Object buildDir = Project.DEFAULT_BUILD_DIR_NAME;
+
+    private File buildDirCached;
 
     private final int depth;
 
@@ -179,7 +187,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.newInstance(TaskContainerInternal.class);
 
-        extensibleDynamicObject = new ExtensibleDynamicObject(this, services.get(Instantiator.class));
+        extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(Instantiator.class));
         if (parent != null) {
             extensibleDynamicObject.setParent(parent.getInheritedScope());
         }
@@ -192,8 +200,18 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     static class BasicServicesRules extends RuleSource {
         @Hidden @Model
+        SourceDirectorySetFactory sourceDirectorySetFactory(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(SourceDirectorySetFactory.class);
+        }
+
+        @Hidden @Model
         ITaskFactory taskFactory(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(ITaskFactory.class);
+        }
+
+        @Hidden @Model
+        Instantiator instantiator(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(Instantiator.class);
         }
 
         @Hidden @Model
@@ -228,24 +246,24 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     private void populateModelRegistry(ModelRegistry modelRegistry) {
-        registerServiceOn(modelRegistry, "serviceRegistry", ServiceRegistry.class, services, instanceDescriptorFor("serviceRegistry"));
+        registerServiceOn(modelRegistry, "serviceRegistry", SERVICE_REGISTRY_MODEL_TYPE, services, instanceDescriptorFor("serviceRegistry"));
         // TODO:LPTR This ignores changes to Project.buildDir after model node has been created
-        registerFactoryOn(modelRegistry, "buildDir", File.class, new Factory<File>() {
+        registerFactoryOn(modelRegistry, "buildDir", FILE_MODEL_TYPE, new Factory<File>() {
             @Override
             public File create() {
                 return getBuildDir();
             }
         });
-        registerInstanceOn(modelRegistry, "projectIdentifier", ProjectIdentifier.class, this);
-        registerInstanceOn(modelRegistry, "extensionContainer", ExtensionContainer.class, getExtensions());
+        registerInstanceOn(modelRegistry, "projectIdentifier", PROJECT_IDENTIFIER_MODEL_TYPE, this);
+        registerInstanceOn(modelRegistry, "extensionContainer", EXTENSION_CONTAINER_MODEL_TYPE, getExtensions());
         modelRegistry.getRoot().applyToSelf(BasicServicesRules.class);
     }
 
-    private <T> void registerInstanceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance) {
+    private <T> void registerInstanceOn(ModelRegistry modelRegistry, String path, ModelType<T> type, T instance) {
         registerFactoryOn(modelRegistry, path, type, Factories.constant(instance));
     }
 
-    private <T> void registerFactoryOn(ModelRegistry modelRegistry, String path, Class<T> type, Factory<T> factory) {
+    private <T> void registerFactoryOn(ModelRegistry modelRegistry, String path, ModelType<T> type, Factory<T> factory) {
         modelRegistry.register(ModelRegistrations
             .unmanagedInstance(ModelReference.of(path, type), factory)
             .descriptor(instanceDescriptorFor(path))
@@ -253,7 +271,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
             .build());
     }
 
-    private <T> void registerServiceOn(ModelRegistry modelRegistry, String path, Class<T> type, T instance, String descriptor) {
+    private <T> void registerServiceOn(ModelRegistry modelRegistry, String path, ModelType<T> type, T instance, String descriptor) {
         modelRegistry.register(ModelRegistrations.serviceInstance(ModelReference.of(path, type), instance)
             .descriptor(descriptor)
             .build()
@@ -340,7 +358,8 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         } else if (this == rootProject) {
             return "";
         }
-        return rootProject.getName() + (getParent() == rootProject ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
+        group = rootProject.getName() + (getParent() == rootProject ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
+        return group;
     }
 
     public void setGroup(Object group) {
@@ -559,11 +578,15 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public File getBuildDir() {
-        return file(buildDir);
+        if (buildDirCached == null) {
+            buildDirCached = file(buildDir);
+        }
+        return buildDirCached;
     }
 
     public void setBuildDir(Object path) {
         buildDir = path;
+        buildDirCached = null;
     }
 
     public void evaluationDependsOnChildren() {
@@ -701,6 +724,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return getFileOperations().delete(paths);
     }
 
+    public WorkResult delete(Action<? super DeleteSpec> action) {
+        return getFileOperations().delete(action);
+    }
+
     public Factory<AntBuilder> getAntBuilderFactory() {
         if (antBuilderFactory == null) {
             antBuilderFactory = services.getFactory(AntBuilder.class);
@@ -740,7 +767,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
     }
 
     public Logger getLogger() {
-        return buildLogger;
+        return BUILD_LOGGER;
     }
 
     public StandardOutputCapture getStandardOutputCapture() {
@@ -761,6 +788,10 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
 
     public Object property(String propertyName) throws MissingPropertyException {
         return extensibleDynamicObject.getProperty(propertyName);
+    }
+
+    public Object findProperty(String propertyName) {
+        return hasProperty(propertyName) ? property(propertyName) : null;
     }
 
     public void setProperty(String name, Object value) {

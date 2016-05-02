@@ -32,7 +32,7 @@ import java.util.List;
  * A {@link org.gradle.api.internal.tasks.TaskExecuter} which executes the actions of a task.
  */
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
-    private static Logger logger = Logging.getLogger(ExecuteActionsTaskExecuter.class);
+    private static final Logger LOGGER = Logging.getLogger(ExecuteActionsTaskExecuter.class);
     private final TaskActionListener listener;
 
     public ExecuteActionsTaskExecuter(TaskActionListener listener) {
@@ -52,7 +52,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     }
 
     private GradleException executeActions(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        logger.debug("Executing actions for {}.", task);
+        LOGGER.debug("Executing actions for {}.", task);
         final List<ContextAwareTaskAction> actions = new ArrayList<ContextAwareTaskAction>(task.getTaskActions());
         for (ContextAwareTaskAction action : actions) {
             state.setDidWork(true);
@@ -61,9 +61,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 executeAction(task, action, context);
             } catch (StopActionException e) {
                 // Ignore
-                logger.debug("Action stopped by some action with message: {}", e.getMessage());
+                LOGGER.debug("Action stopped by some action with message: {}", e.getMessage());
             } catch (StopExecutionException e) {
-                logger.info("Execution stopped by some action with message: {}", e.getMessage());
+                LOGGER.info("Execution stopped by some action with message: {}", e.getMessage());
                 break;
             } catch (Throwable t) {
                 return new TaskExecutionException(task, t);

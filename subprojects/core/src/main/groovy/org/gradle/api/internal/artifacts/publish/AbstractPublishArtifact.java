@@ -38,6 +38,6 @@ public abstract class AbstractPublishArtifact implements PublishArtifact {
 
     @Override
     public String toString() {
-        return String.format("%s %s:%s:%s:%s", getClass().getSimpleName(), getName(), getType(), getExtension(), getClassifier());
+        return getClass().getSimpleName() + " " + getName() + ":" + getType() + ":" +getExtension()  + ":" + getClassifier();
     }
 }

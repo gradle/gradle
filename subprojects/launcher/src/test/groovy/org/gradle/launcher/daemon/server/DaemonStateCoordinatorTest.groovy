@@ -19,8 +19,6 @@ import org.gradle.launcher.daemon.server.api.DaemonStoppedException
 import org.gradle.launcher.daemon.server.api.DaemonUnavailableException
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-import java.util.concurrent.TimeUnit
-
 class DaemonStateCoordinatorTest extends ConcurrentSpec {
     final Runnable onStartCommand = Mock(Runnable)
     final Runnable onFinishCommand = Mock(Runnable)
@@ -49,24 +47,10 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.stop()
 
         when:
-        coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
+        coordinator.awaitStop()
 
         then:
         coordinator.stopped
-    }
-
-    def "await idle timeout waits for specified time and then stops"() {
-        when:
-        operation.waitForIdle {
-            coordinator.stopOnIdleTimeout(100, TimeUnit.MILLISECONDS)
-        }
-
-        then:
-        coordinator.stopped
-        operation.waitForIdle.duration in approx(100)
-
-        and:
-        0 * _._
     }
 
     def "runs actions when command is run"() {
@@ -238,7 +222,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         0 * _._
 
         when:
-        coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
+        coordinator.awaitStop()
 
         then:
         IllegalStateException illegalStateException = thrown()
@@ -303,7 +287,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         0 * _._
 
         when:
-        coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
+        coordinator.awaitStop()
 
         then:
         IllegalStateException illegalStateException = thrown()
@@ -382,7 +366,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         async {
             thread.blockUntil.actionStarted
             coordinator.requestStop()
-            coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
+            coordinator.awaitStop()
             instant.idle
         }
 
@@ -453,7 +437,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         async {
             thread.blockUntil.startAction
             coordinator.requestForcefulStop()
-            coordinator.stopOnIdleTimeout(10000, TimeUnit.SECONDS)
+            coordinator.awaitStop()
             instant.idle
         }
 
@@ -592,5 +576,27 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         }
         2 * onFinishCommand.run()
         0 * _._
+    }
+
+    def "idle millis is 0 if daemon is busy"() {
+        given:
+        Runnable command = Mock()
+
+        when:
+        coordinator.runCommand(command, "some command")
+
+        then:
+        1 * command.run() >> {
+            coordinator.getIdleMillis(System.currentTimeMillis()) == 0L
+        }
+    }
+
+    def "idle millis is > 0 when daemon is idle"() {
+        when:
+        coordinator.lastActivityAt = 100
+
+        then:
+        coordinator.idle
+        coordinator.getIdleMillis(110) == 10
     }
 }

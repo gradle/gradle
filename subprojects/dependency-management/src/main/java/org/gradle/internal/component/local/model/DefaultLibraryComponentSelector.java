@@ -43,11 +43,11 @@ public class DefaultLibraryComponentSelector implements LibraryComponentSelector
     public String getDisplayName() {
         String txt;
         if (Strings.isNullOrEmpty(libraryName)) {
-            txt = String.format("project '%s'", projectPath);
+            txt = "project '" + projectPath + "'";
         } else if (Strings.isNullOrEmpty(variant)) {
-            txt = String.format("project '%s' library '%s'", projectPath, libraryName);
+            txt = "project '" + projectPath + "' library '" + libraryName + "'";
         } else {
-            txt = String.format("project '%s' library '%s' binary '%s'", projectPath, libraryName, variant);
+            txt = "project '" + projectPath + "' library '" + libraryName + "' binary '" + variant + "'";
         }
         return txt;
     }

@@ -40,7 +40,7 @@ class PomProjectInitDescriptor implements ProjectInitDescriptor {
         try {
             def settings = settingsProvider.buildSettings()
             def mavenProjects = new MavenProjectsCreator().create(settings, pom)
-            new Maven2Gradle(mavenProjects).convert()
+            new Maven2Gradle(mavenProjects, fileResolver.resolve('.')).convert()
         } catch (Exception exception) {
             throw new MavenConversionException("Could not convert Maven POM $pom to a Gradle build.", exception)
         }

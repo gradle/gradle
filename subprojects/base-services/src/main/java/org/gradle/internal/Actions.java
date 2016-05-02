@@ -26,6 +26,8 @@ import java.util.Collection;
 
 public abstract class Actions {
 
+    private static final Action<?> DO_NOTHING = new NullAction<Object>();
+
     /**
      * Creates an action implementation that simply does nothing.
      *
@@ -33,8 +35,9 @@ public abstract class Actions {
      *
      * @return An action object with an empty implementation
      */
+    @SuppressWarnings("unchecked")
     public static <T> Action<T> doNothing() {
-        return new NullAction<T>();
+        return (Action<T>) DO_NOTHING;
     }
 
     private static class NullAction<T> implements Action<T>, Serializable {
@@ -172,7 +175,7 @@ public abstract class Actions {
 
         @Override
         public String toString() {
-            return String.format("RunnableActionAdapter{runnable=%s}", runnable);
+            return "RunnableActionAdapter{runnable=" + runnable + "}";
         }
     }
 

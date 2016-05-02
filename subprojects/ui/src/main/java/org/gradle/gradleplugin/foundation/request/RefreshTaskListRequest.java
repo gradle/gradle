@@ -22,7 +22,7 @@ import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
 import org.gradle.foundation.ipc.gradle.TaskListServerProtocol;
 import org.gradle.foundation.queue.ExecutionQueue;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
-import org.gradle.logging.ShowStacktrace;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 
 import java.io.File;
 import java.util.List;

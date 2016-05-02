@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.messaging.remote.internal.inet.InetAddressFactory;
+import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 
 import java.io.*;
 import java.net.DatagramPacket;

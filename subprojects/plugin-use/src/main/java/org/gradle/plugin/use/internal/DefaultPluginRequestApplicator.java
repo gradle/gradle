@@ -17,6 +17,7 @@
 package org.gradle.plugin.use.internal;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -24,10 +25,14 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.*;
+import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
+import org.gradle.plugin.use.repository.internal.BackedByArtifactRepository;
+import org.gradle.api.internal.plugins.repositories.PluginRepository;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
@@ -43,11 +48,13 @@ import static org.gradle.util.CollectionUtils.collect;
 
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginRegistry pluginRegistry;
-    private final PluginResolver pluginResolver;
+    private final PluginResolverFactory pluginResolverFactory;
+    private PluginRepositoryHandler pluginRepositoryHandler;
 
-    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolver pluginResolver) {
+    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryHandler pluginRepositoryHandler) {
         this.pluginRegistry = pluginRegistry;
-        this.pluginResolver = pluginResolver;
+        this.pluginResolverFactory = pluginResolver;
+        this.pluginRepositoryHandler = pluginRepositoryHandler;
     }
 
     public void applyPlugins(PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, ClassLoaderScope classLoaderScope) {
@@ -74,7 +81,17 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         final Map<Result, PluginImplementation<?>> pluginImplsFromOtherLoaders = Maps.newLinkedHashMap();
 
         if (!results.isEmpty()) {
+
+            List<ArtifactRepository> pluginArtifactRepositories = Lists.newArrayList();
+            for (PluginRepository pluginRepository : pluginRepositoryHandler) {
+                if (pluginRepository instanceof BackedByArtifactRepository) {
+                    pluginArtifactRepositories.add(((BackedByArtifactRepository) pluginRepository).getArtifactRepository());
+                }
+            }
+
             final RepositoryHandler repositories = scriptHandler.getRepositories();
+            repositories.addAll(0, pluginArtifactRepositories);
+
             final List<MavenArtifactRepository> mavenRepos = repositories.withType(MavenArtifactRepository.class);
             final Set<String> repoUrls = Sets.newLinkedHashSet();
 
@@ -84,8 +101,13 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                     public void run() {
                         result.found.execute(new PluginResolveContext() {
                             public void addLegacy(PluginId pluginId, final String m2RepoUrl, Object dependencyNotation) {
-                                legacyActualPluginIds.put(result, pluginId);
                                 repoUrls.add(m2RepoUrl);
+                                addLegacy(pluginId, dependencyNotation);
+                            }
+
+                            @Override
+                            public void addLegacy(PluginId pluginId, Object dependencyNotation) {
+                                legacyActualPluginIds.put(result, pluginId);
                                 scriptHandler.addScriptClassPathDependency(dependencyNotation);
                             }
 
@@ -157,7 +179,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private PluginResolver wrapInNotInClasspathCheck(ClassLoaderScope classLoaderScope) {
         PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(classLoaderScope.getParent().getExportClassLoader());
-        return new NotNonCorePluginOnClasspathCheckPluginResolver(pluginResolver, pluginRegistry, scriptClasspathPluginDescriptorLocator);
+        return new NotNonCorePluginOnClasspathCheckPluginResolver(pluginResolverFactory.create(), pluginRegistry, scriptClasspathPluginDescriptorLocator);
     }
 
     private void applyPlugin(PluginRequest request, PluginId id, Runnable applicator) {

@@ -16,9 +16,9 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.RootClassLoaderScope;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 
 public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry {
 

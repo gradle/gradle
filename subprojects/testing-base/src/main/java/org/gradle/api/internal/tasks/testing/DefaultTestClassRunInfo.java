@@ -28,6 +28,7 @@ public class DefaultTestClassRunInfo implements TestClassRunInfo {
         this.testClassName = testClassName;
     }
 
+    @Override
     public String getTestClassName() {
         return testClassName;
     }

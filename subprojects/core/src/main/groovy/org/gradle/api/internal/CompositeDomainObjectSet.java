@@ -106,12 +106,20 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     @SuppressWarnings({"NullableProblems", "unchecked"})
     @Override
     public Iterator<T> iterator() {
-        return Iterators.unmodifiableIterator(new LinkedHashSet<T>(getStore()).iterator());
+        CompositeCollection store = getStore();
+        if (store.isEmpty()) {
+            return Iterators.emptyIterator();
+        }
+        return Iterators.unmodifiableIterator(new LinkedHashSet<T>(store).iterator());
     }
 
     @SuppressWarnings("unchecked")
     public int size() {
-        return new HashSet<T>(getStore()).size();
+        CompositeCollection store = getStore();
+        if (store.isEmpty()) {
+            return 0;
+        }
+        return new HashSet<T>(store).size();
     }
 
     public void all(Action<? super T> action) {

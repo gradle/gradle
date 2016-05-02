@@ -15,15 +15,20 @@
  */
 package org.gradle.api.plugins.quality.internal
 
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.Plugin
+import org.gradle.api.Task
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.plugins.quality.CodeQualityExtension
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 
-abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
+@CompileStatic
+abstract class AbstractCodeQualityPlugin<T extends Task> implements Plugin<ProjectInternal> {
     protected ProjectInternal project
     protected CodeQualityExtension extension
 
@@ -56,7 +61,7 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
         return toolName.toLowerCase()
     }
 
-    protected Class<?> getBasePlugin() {
+    protected Class<? extends Plugin> getBasePlugin() {
         return JavaBasePlugin
     }
 
@@ -82,6 +87,7 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
 
     protected abstract CodeQualityExtension createExtension()
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private void configureExtensionRule() {
         extension.conventionMapping.with {
             sourceSets = { [] }
@@ -106,7 +112,7 @@ abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
 
     private void configureSourceSetRule() {
         project.plugins.withType(basePlugin) {
-            project.sourceSets.all { SourceSet sourceSet ->
+            project.getConvention().getPlugin(JavaPluginConvention).sourceSets.all { SourceSet sourceSet ->
                 T task = project.tasks.create(sourceSet.getTaskName(taskBaseName, null), taskType)
                 configureForSourceSet(sourceSet, task)
             }

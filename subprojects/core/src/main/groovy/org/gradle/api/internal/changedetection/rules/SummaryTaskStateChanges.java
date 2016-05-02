@@ -73,4 +73,10 @@ class SummaryTaskStateChanges implements TaskStateChanges {
             state.snapshotAfterTask();
         }
     }
+
+    public void snapshotBeforeTask() {
+        for (TaskStateChanges state : sources) {
+            state.snapshotBeforeTask();
+        }
+    }
 }

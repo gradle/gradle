@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.process.internal.WorkerProcessContext;
+import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -42,6 +42,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         this.runAdapter = runAdapter;
     }
 
+    @Override
     public void execute(WorkerProcessContext context) {
         stop = new CountDownLatch(1);
         final PlayRunWorkerClientProtocol clientProtocol = context.getServerConnection().addOutgoing(PlayRunWorkerClientProtocol.class);
@@ -101,6 +102,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
         }
     }
 
+    @Override
     public void stop() {
         stop.countDown();
     }
