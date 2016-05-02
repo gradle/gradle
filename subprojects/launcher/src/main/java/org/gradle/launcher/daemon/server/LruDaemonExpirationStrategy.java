@@ -21,7 +21,6 @@ import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  * This strategy expires the daemon if it's been idle for the longest consecutive period of time.
