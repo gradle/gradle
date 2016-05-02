@@ -154,6 +154,7 @@ idea {
             <option name="PER_PROJECT_SETTINGS">
               <value>
                 <option name="USE_SAME_INDENTS" value="true" />
+                <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="999" />
                 <option name="RIGHT_MARGIN" value="200" />
                 <option name="JD_ALIGN_PARAM_COMMENTS" value="false" />
                 <option name="JD_ALIGN_EXCEPTION_COMMENTS" value="false" />
