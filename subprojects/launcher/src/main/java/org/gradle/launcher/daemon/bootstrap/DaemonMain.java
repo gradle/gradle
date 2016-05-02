@@ -33,15 +33,12 @@ import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
-import org.gradle.launcher.daemon.server.AllDaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.AnyDaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.DaemonIdleTimeoutExpirationStrategy;
 import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy;
 import org.gradle.launcher.daemon.server.DaemonServices;
-import org.gradle.launcher.daemon.server.LowMemoryDaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.LruDaemonExpirationStrategy;
 import org.gradle.process.internal.streams.EncodedStream;
 
 import java.io.*;
@@ -182,12 +179,7 @@ public class DaemonMain extends EntryPoint {
     private DaemonExpirationStrategy initializeExpirationStrategy(final DaemonServerConfiguration params) {
         DaemonIdleTimeoutExpirationStrategy timeoutStrategy = new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout(), TimeUnit.MILLISECONDS);
         DaemonRegistryUnavailableExpirationStrategy registryUnavailableStrategy = new DaemonRegistryUnavailableExpirationStrategy();
-        DaemonExpirationStrategy lowMemoryLruStrategy = new AllDaemonExpirationStrategy(ImmutableList.of(
-            LowMemoryDaemonExpirationStrategy.belowFreePercentage(0.2),
-            new LruDaemonExpirationStrategy())
-        );
-
-        return new AnyDaemonExpirationStrategy(ImmutableList.of(timeoutStrategy, registryUnavailableStrategy, lowMemoryLruStrategy));
+        return new AnyDaemonExpirationStrategy(ImmutableList.of(timeoutStrategy, registryUnavailableStrategy));
     }
 
     private void redirectOutputsAndInput(PrintStream printStream) {
