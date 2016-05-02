@@ -130,7 +130,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             List<Provider> allProviders = new ArrayList<Provider>(2);
             allProviders.add(ownServices);
             allProviders.add(parentServices);
-            allServices = new CompositeProvider(allProviders);
+            allServices = new CachingProvider(new CompositeProvider(allProviders));
         }
 
         findProviderMethods(this);
@@ -485,21 +485,10 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private class OwnServices implements Provider {
-        private ConcurrentMap<Object, Optional<ServiceProvider>> seen;
         private List<Provider> providers;
 
         public ServiceProvider getFactory(LookupContext context, Class<?> type) {
             if (providers == null) {
-                return null;
-            }
-            Optional<ServiceProvider> cached = seen.get(type);
-            if (cached != null) {
-                if (cached.isPresent()) {
-                    // This cache allows to significantly reduce the number of lookups that are done in providers. The idea
-                    // is that we need to go through all of them only a single time, to gather possible cycles (handled
-                    // by lookup context) and duplicates (handled below). Both of them only need to be done once for all.
-                    return cached.get();
-                }
                 return null;
             }
             List<ServiceProvider> candidates = new ArrayList<ServiceProvider>();
@@ -512,11 +501,9 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
                 }
             }
             if (candidates.size() == 0) {
-                seen.putIfAbsent(type, Optional.<ServiceProvider>absent());
                 return null;
             }
             if (candidates.size() == 1) {
-                seen.putIfAbsent(type, Optional.of(unique));
                 return candidates.get(0);
             }
 
@@ -537,16 +524,6 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             if (providers == null) {
                 return null;
             }
-            Optional<ServiceProvider> cached = seen.get(serviceType);
-            if (cached != null) {
-                if (cached.isPresent()) {
-                    // This cache allows to significantly reduce the number of lookups that are done in providers. The idea
-                    // is that we need to go through all of them only a single time, to gather possible cycles (handled
-                    // by lookup context) and duplicates (handled below). Both of them only need to be done once for all.
-                    return cached.get();
-                }
-                return null;
-            }
             List<ServiceProvider> candidates = new ArrayList<ServiceProvider>();
             for (Provider provider : providers) {
                 ServiceProvider service = provider.getService(context, serviceType);
@@ -556,13 +533,10 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
             }
 
             if (candidates.size() == 0) {
-                seen.putIfAbsent(serviceType, Optional.<ServiceProvider>absent());
                 return null;
             }
             if (candidates.size() == 1) {
-                ServiceProvider serviceProvider = candidates.get(0);
-                seen.putIfAbsent(serviceType, Optional.of(serviceProvider));
-                return serviceProvider;
+                return candidates.get(0);
             }
 
             Set<String> descriptions = new TreeSet<String>();
@@ -597,7 +571,6 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         public void add(Provider provider) {
             if (providers == null) {
                 providers = Lists.newArrayList();
-                seen = Maps.newConcurrentMap();
             }
             this.providers.add(provider);
         }
@@ -970,43 +943,89 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
     }
 
+    private static class CachingProvider implements Provider {
+        private final ConcurrentMap<Object, Optional<ServiceProvider>> seen = Maps.newConcurrentMap();
+        private final ConcurrentMap<Class<?>, List<?>> allServicesCache = Maps.newConcurrentMap();
+
+        private final Provider delegate;
+
+        private CachingProvider(Provider delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public ServiceProvider getService(LookupContext context, TypeSpec serviceType) {
+            Optional<ServiceProvider> cached = seen.get(serviceType);
+            if (cached != null) {
+                return cached.orNull();
+            }
+            ServiceProvider service = delegate.getService(context, serviceType);
+            return cacheServiceProvider(serviceType, service);
+        }
+
+        private ServiceProvider cacheServiceProvider(Object key, ServiceProvider service) {
+            seen.putIfAbsent(key, service == null ? Optional.<ServiceProvider>absent() : Optional.of(service));
+            return service;
+        }
+
+        @Override
+        public ServiceProvider getFactory(LookupContext context, Class<?> type) {
+            Optional<ServiceProvider> cached = seen.get(type);
+            if (cached != null) {
+                return cached.orNull();
+            }
+            ServiceProvider service = delegate.getFactory(context, type);
+            return cacheServiceProvider(type, service);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <T> void getAll(LookupContext context, Class<T> serviceType, List<T> result) {
+            List<T> services = (List<T>) allServicesCache.get(serviceType);
+            if (services != null) {
+                result.addAll(services);
+                return;
+            }
+            ArrayList<T> tmp = new ArrayList<T>();
+            delegate.getAll(context, serviceType, tmp);
+            allServicesCache.putIfAbsent(serviceType, tmp);
+            if (!tmp.isEmpty()) {
+                result.addAll(tmp);
+            }
+        }
+
+        @Override
+        public void stop() {
+            delegate.stop();
+            seen.clear();
+            allServicesCache.clear();
+        }
+    }
+
     private static class CompositeProvider implements Provider {
         private final Collection<Provider> providers;
-        private final ConcurrentMap<Object, Optional<ServiceProvider>> seen = Maps.newConcurrentMap();
 
         private CompositeProvider(Collection<Provider> providers) {
             this.providers = providers;
         }
 
         public ServiceProvider getService(LookupContext context, TypeSpec serviceType) {
-            Optional<ServiceProvider> cached = seen.get(serviceType);
-            if (cached != null) {
-                return cached.orNull();
-            }
             for (Provider provider : providers) {
                 ServiceProvider service = provider.getService(context, serviceType);
                 if (service != null) {
-                    seen.putIfAbsent(serviceType, Optional.of(service));
                     return service;
                 }
             }
-            seen.putIfAbsent(serviceType, Optional.<ServiceProvider>absent());
             return null;
         }
 
         public ServiceProvider getFactory(LookupContext context, Class<?> type) {
-            Optional<ServiceProvider> cached = seen.get(type);
-            if (cached != null) {
-                return cached.orNull();
-            }
             for (Provider provider : providers) {
                 ServiceProvider factory = provider.getFactory(context, type);
                 if (factory != null) {
-                    seen.putIfAbsent(type, Optional.of(factory));
                     return factory;
                 }
             }
-            seen.putIfAbsent(type, Optional.<ServiceProvider>absent());
             return null;
         }
 
