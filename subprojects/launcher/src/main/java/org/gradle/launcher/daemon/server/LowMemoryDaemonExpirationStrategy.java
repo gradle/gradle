@@ -60,6 +60,7 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
         );
     }
 
+    @Override
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
         long freeMem = memoryInfo.getFreePhysicalMemory();
         if (freeMem < minFreeMemoryBytes) {

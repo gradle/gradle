@@ -18,6 +18,8 @@ package org.gradle.launcher.daemon.server.health;
 
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.reflect.Method;
 
 public class MemoryInfo {
 
@@ -60,20 +62,34 @@ public class MemoryInfo {
     }
 
     /**
-    * Retrieves the total physical memory size on the system in bytes.
-    * This value is independent of {@link #getMaxMemory()}, which is the total memory available to the JVM.
-    */
+     * Retrieves the total physical memory size on the system in bytes.
+     * This value is independent of {@link #getMaxMemory()}, which is the total memory available to the JVM.
+     *
+     * @throws UnsupportedOperationException if the JVM doesn't support getting total physical memory.
+     */
     public long getTotalPhysicalMemory() {
-        return ((com.sun.management.OperatingSystemMXBean)
-            ManagementFactory.getOperatingSystemMXBean()).getTotalPhysicalMemorySize();
+        OperatingSystemMXBean bean = ManagementFactory.getOperatingSystemMXBean();
+        try {
+            Method getTotalPhysicalMemorySize = bean.getClass().getMethod("getTotalPhysicalMemorySize");
+            return (Long) getTotalPhysicalMemorySize.invoke(bean);
+        } catch (ReflectiveOperationException e) {
+            throw new UnsupportedOperationException("getTotalPhysicalMemory is unsupported on this JVM.", e);
+        }
     }
 
     /**
      * Retrieves the free physical memory on the system in bytes.
      * This value is independent of {@link #getCommittedMemory()}, which is the memory reserved by the JVM.
+     *
+     * @throws UnsupportedOperationException if the JVM doesn't support getting free physical memory.
      */
     public long getFreePhysicalMemory() {
-        return ((com.sun.management.OperatingSystemMXBean)
-            ManagementFactory.getOperatingSystemMXBean()).getFreePhysicalMemorySize();
+        OperatingSystemMXBean bean = ManagementFactory.getOperatingSystemMXBean();
+        try {
+            Method getFreePhysicalMemorySize = bean.getClass().getMethod("getFreePhysicalMemorySize");
+            return (Long) getFreePhysicalMemorySize.invoke(bean);
+        } catch (ReflectiveOperationException e) {
+            throw new UnsupportedOperationException("getFreePhysicalMemory is unsupported on this JVM.", e);
+        }
     }
 }
