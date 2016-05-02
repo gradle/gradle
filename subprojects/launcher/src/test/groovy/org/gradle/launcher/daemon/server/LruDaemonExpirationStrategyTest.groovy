@@ -33,7 +33,6 @@ class LruDaemonExpirationStrategyTest extends Specification {
 
     def "only expires one daemon"() {
         when:
-        registry = new EmbeddedDaemonRegistry()
         DaemonInfo d1 = registerDaemon(true)
         DaemonInfo d2 = registerDaemon(true)
 
@@ -79,7 +78,8 @@ class LruDaemonExpirationStrategyTest extends Specification {
         DaemonContext context = Mock(DaemonContext) {
             _ * getPid() >> { id }
         }
-        DaemonInfo info = new DaemonInfo(daemonAddress, context, "password", idle, new MockTimeProvider(lastIdleTime))
+        DaemonInfo info = new DaemonInfo(daemonAddress, context, "password", false, new MockTimeProvider(lastIdleTime))
+        info.setIdle(idle)
         registry.store(info)
         return info
     }
