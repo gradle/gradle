@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownProjectException;
@@ -97,4 +98,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, FileOperati
     void addDeferredConfiguration(Runnable configuration);
 
     void fireDeferredConfiguration();
+
+    void setScriptClassPathHash(HashCode hashCode);
+    HashCode getScriptClassPathHash();
 }

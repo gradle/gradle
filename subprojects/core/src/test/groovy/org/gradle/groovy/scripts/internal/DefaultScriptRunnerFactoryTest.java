@@ -97,6 +97,9 @@ public class DefaultScriptRunnerFactoryTest {
             one(scriptMock).init(target, scriptServices);
             inSequence(sequence);
 
+            one(compiledScriptMock).getClassPathHash();
+            one(scriptMock).setClassPathHash(null);
+
             one(standardOutputCaptureMock).start();
             inSequence(sequence);
 
@@ -143,6 +146,9 @@ public class DefaultScriptRunnerFactoryTest {
 
             one(scriptMock).init(target, scriptServices);
             inSequence(sequence);
+
+            one(compiledScriptMock).getClassPathHash();
+            one(scriptMock).setClassPathHash(null);
 
             one(standardOutputCaptureMock).start();
             inSequence(sequence);

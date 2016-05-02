@@ -15,6 +15,8 @@
  */
 package org.gradle.groovy.scripts.internal;
 
+import com.google.common.collect.Lists;
+import com.google.common.hash.HashCode;
 import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
@@ -30,6 +32,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
@@ -39,6 +42,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
@@ -72,13 +76,13 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                                                               final Class<T> scriptBaseClass,
                                                               final Action<? super ClassNode> verifier) {
         assert source.getResource().isContentCached();
+        final String dslId = operation.getId();
+        final HashCode classpathHash = HashUtil.combine(HashCode.fromInt(dslId.hashCode()), getClassLoaderHash(classLoader));
         if (source.getResource().getHasEmptyContent()) {
-            return emptyCompiledScript(classLoaderId, operation);
+            return emptyCompiledScript(classLoaderId, operation, classpathHash);
         }
 
         final String sourceHash = hashFor(source);
-        final String dslId = operation.getId();
-        final String classpathHash = dslId + getClassLoaderHash(classLoader);
         final RemappingScriptSource remapped = new RemappingScriptSource(source);
 
         // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice
@@ -90,7 +94,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         PersistentCache remappedClassesCache = cacheRepository.cache("scripts-remapped/" + source.getClassName() + "/" + sourceHash + "/" + classpathHash)
             .withDisplayName(dslId + " remapped class cache for " + sourceHash)
             .withValidator(validator)
-            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M, T>(remapped, classpathHash, sourceHash, dslId, classLoader, operation, verifier, scriptBaseClass),
+            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M, T>(remapped, classpathHash.toString(), sourceHash, dslId, classLoader, operation, verifier, scriptBaseClass),
                 "Compiling script into cache",
                 "Compiling " + source.getFileName() + " into local build cache"))
             .open();
@@ -99,63 +103,70 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         File remappedClassesDir = classesDir(remappedClassesCache);
         File remappedMetadataDir = metadataDir(remappedClassesCache);
 
-        return scriptCompilationHandler.loadFromDir(source, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
+        return scriptCompilationHandler.loadFromDir(source, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId, classpathHash);
     }
 
-    private long getClassLoaderHash(ClassLoader cl) {
+    private HashCode getClassLoaderHash(ClassLoader cl) {
         ClassloaderHasher hasher = new ClassloaderHasher(classLoaderRegistry);
         hasher.visit(cl);
-        return hasher.hash;
+        return HashUtil.combine(hasher.hashs.toArray(new HashCode[0]));
     }
 
     private static class ClassloaderHasher extends ClassLoaderVisitor {
+        private static final HashCode RUNTIME = HashCode.fromInt(1);
+        private static final HashCode API = HashCode.fromInt(2);
+        private static final HashCode CORE_API = HashCode.fromInt(3);
+        private static final HashCode PLUGINS = HashCode.fromInt(5);
+        private static final HashCode SYSTEM = HashCode.fromInt(7);
+        private static final HashCode ROOT = HashCode.fromInt(11);
+        private static final HashCode ZERO = HashCode.fromInt(0);
         private final ClassLoaderRegistry classLoaderRegistry;
 
-        private long hash;
+        private List<HashCode> hashs = Lists.newArrayList();
 
         private ClassloaderHasher(ClassLoaderRegistry classLoaderRegistry) {
             this.classLoaderRegistry = classLoaderRegistry;
         }
 
-        private long hashFor(ClassLoader cl) {
+        private HashCode hashFor(ClassLoader cl) {
             if (classLoaderRegistry.getRuntimeClassLoader() == cl) {
-                return 1;
+                return RUNTIME;
             }
             if (classLoaderRegistry.getGradleApiClassLoader() == cl) {
-                return 2;
+                return API;
             }
             if (classLoaderRegistry.getGradleCoreApiClassLoader() == cl) {
-                return 3;
+                return CORE_API;
             }
             if (classLoaderRegistry.getPluginsClassLoader() == cl) {
-                return 5;
+                return PLUGINS;
             }
             ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
             if (systemClassLoader == cl) {
-                return 7;
+                return SYSTEM;
             }
             if (systemClassLoader != null && systemClassLoader.getParent() == cl) {
-                return 11;
+                return ROOT;
             }
             if (cl instanceof DefaultClassLoaderCache.HashedClassLoader) {
                 return ((DefaultClassLoaderCache.HashedClassLoader) cl).getClassLoaderHash();
             }
-            return 0;
+            return ZERO;
         }
 
         public void visit(ClassLoader classLoader) {
             ClassLoader end = ClassLoader.getSystemClassLoader();
             if (classLoader != null && classLoader != end) {
-                hash = 31 * hash + hashFor(classLoader);
+                hashs.add(hashFor(classLoader));
             }
             super.visit(classLoader);
         }
 
     }
 
-    private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation) {
+    private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation, HashCode classPathHash) {
         classLoaderCache.remove(classLoaderId);
-        return new EmptyCompiledScript<T, M>(operation);
+        return new EmptyCompiledScript<T, M>(operation, classPathHash);
     }
 
     private String hashFor(ScriptSource source) {
@@ -225,9 +236,11 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
     private static class EmptyCompiledScript<T extends Script, M> implements CompiledScript<T, M> {
         private final M data;
+        private final HashCode classPathHash;
 
-        public EmptyCompiledScript(CompileOperation<M> operation) {
+        public EmptyCompiledScript(CompileOperation<M> operation, HashCode classPathHash) {
             this.data = operation.getExtractedData();
+            this.classPathHash = classPathHash;
         }
 
         @Override
@@ -247,6 +260,11 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         @Override
         public M getData() {
             return data;
+        }
+
+        @Override
+        public HashCode getClassPathHash() {
+            return classPathHash;
         }
     }
 

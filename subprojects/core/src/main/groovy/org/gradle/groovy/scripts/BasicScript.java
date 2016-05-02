@@ -21,6 +21,7 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.api.internal.DynamicObjectUtil;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.logging.StandardOutputCapture;
 
@@ -34,6 +35,9 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
     public void init(Object target, ServiceRegistry services) {
         standardOutputCapture = services.get(StandardOutputCapture.class);
         setScriptTarget(target);
+        if (target instanceof ProjectInternal) {
+            ((ProjectInternal) target).setScriptClassPathHash(getClassPathHash());
+        }
     }
 
     public Object getScriptTarget() {
