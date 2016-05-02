@@ -59,6 +59,7 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 
 import java.beans.PropertyChangeEvent;
@@ -74,9 +75,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static final Logger BUILD_LOGGER = Logging.getLogger(Task.class);
     private static final ThreadLocal<TaskInfo> NEXT_INSTANCE = new ThreadLocal<TaskInfo>();
 
-    private final ProjectInternal project;
+    // TODO Make this final once setProject() is removed
+    private ProjectInternal project;
 
-    private final String name;
+    // TODO Make this final once setName() is removed
+    private String name;
 
     private final List<ContextAwareTaskAction> actions = new ArrayList<ContextAwareTaskAction>();
 
@@ -106,10 +109,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final TaskStateInternal state;
 
-    private final List<TaskValidator> validators = new ArrayList<TaskValidator>();
+    private List<TaskValidator> validators = new ArrayList<TaskValidator>();
 
     private final TaskMutator taskMutator;
-    private final ObservableList observableActionList;
+    private ObservableList observableActionList;
     private boolean impliesSubProjects;
     private boolean hasCustomActions;
 
@@ -190,8 +193,20 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return project;
     }
 
+    @Deprecated
+    public void setProject(Project project) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("AbstractTask.setProject()");
+        this.project = (ProjectInternal) project;
+    }
+
     public String getName() {
         return name;
+    }
+
+    @Deprecated
+    public void setName(String name) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("AbstractTask.setName()");
+        this.name = name;
     }
 
     public List<Action<? super Task>> getActions() {
