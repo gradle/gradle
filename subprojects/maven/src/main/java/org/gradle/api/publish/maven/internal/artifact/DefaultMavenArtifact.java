@@ -66,6 +66,6 @@ public class DefaultMavenArtifact implements MavenArtifact {
 
     @Override
     public String toString() {
-        return String.format("%s %s:%s", getClass().getSimpleName(), getExtension(), getClassifier());
+        return getClass().getSimpleName() + " " + getExtension() + ":" + getClassifier();
     }
 }

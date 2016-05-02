@@ -34,12 +34,12 @@ public class PackageTestResults extends CompositeTestResults {
 
     @Override
     public String getTitle() {
-        return name.equals(DEFAULT_PACKAGE) ? "Default package" : String.format("Package %s", name);
+        return name.equals(DEFAULT_PACKAGE) ? "Default package" : ("Package " + name);
     }
 
     @Override
     public String getBaseUrl() {
-        return String.format("packages/%s.html", name);
+        return "packages/" + name + ".html";
     }
 
     public String getName() {

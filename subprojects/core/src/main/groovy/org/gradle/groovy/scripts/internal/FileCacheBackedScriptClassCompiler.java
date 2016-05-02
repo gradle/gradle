@@ -87,8 +87,8 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         // Both caches can be closed directly after use because:
         // For 1, if the script changes or its compile classpath changes, a different directory will be used
         // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
-        PersistentCache remappedClassesCache = cacheRepository.cache(String.format("scripts-remapped/%s/%s/%s", source.getClassName(), sourceHash, classpathHash))
-            .withDisplayName(String.format("%s remapped class cache for %s", dslId, sourceHash))
+        PersistentCache remappedClassesCache = cacheRepository.cache("scripts-remapped/" + source.getClassName() + "/" + sourceHash + "/" + classpathHash)
+            .withDisplayName(dslId + " remapped class cache for " + sourceHash)
             .withValidator(validator)
             .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M, T>(remapped, classpathHash, sourceHash, dslId, classLoader, operation, verifier, scriptBaseClass),
                 "Compiling script into cache",
@@ -388,9 +388,9 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
 
         public void execute(final PersistentCache remappedClassesCache) {
-            final PersistentCache cache = cacheRepository.cache(String.format("scripts/%s/%s/%s", sourceHash, dslId, classpathHash))
+            final PersistentCache cache = cacheRepository.cache("scripts/" + sourceHash + "/" + dslId + "/" + classpathHash)
                 .withValidator(validator)
-                .withDisplayName(String.format("%s generic class cache for %s", dslId, source.getDisplayName()))
+                .withDisplayName(dslId + " generic class cache for " + source.getDisplayName())
                 .withInitializer(new ProgressReportingInitializer(
                     progressLoggerFactory,
                     new CompileToCrossBuildCacheAction(remapped, classLoader, operation, verifier, scriptBaseClass),

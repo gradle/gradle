@@ -35,7 +35,7 @@ public class UploadRule extends AbstractRule {
     }
 
     public String getDescription() {
-        return String.format("Pattern: %s<ConfigurationName>: Assembles and uploads the artifacts belonging to a configuration.", PREFIX);
+        return "Pattern: " + PREFIX + "<ConfigurationName>: Assembles and uploads the artifacts belonging to a configuration.";
     }
 
     public void apply(String taskName) {
@@ -50,7 +50,7 @@ public class UploadRule extends AbstractRule {
 
     private Upload createUploadTask(String name, final Configuration configuration, final Project project) {
         Upload upload = project.getTasks().create(name, Upload.class);
-        upload.setDescription(String.format("Uploads all artifacts belonging to %s", configuration));
+        upload.setDescription("Uploads all artifacts belonging to " + configuration);
         upload.setGroup(BasePlugin.UPLOAD_GROUP);
         upload.setConfiguration(configuration);
         upload.setUploadDescriptor(true);

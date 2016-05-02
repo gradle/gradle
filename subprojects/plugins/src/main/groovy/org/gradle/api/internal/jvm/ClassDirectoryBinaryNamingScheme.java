@@ -33,7 +33,7 @@ public class ClassDirectoryBinaryNamingScheme {
     }
 
     public String getDescription() {
-        return String.format("classes '%s'", baseName);
+        return "classes '" + baseName + "'";
     }
 
     public String getBaseName() {
@@ -53,7 +53,7 @@ public class ClassDirectoryBinaryNamingScheme {
         if (target != null) {
             name = collapsedName;
         }
-        return GUtil.toLowerCamelCase(String.format("%s %s %s", nullToEmpty(verb), name, nullToEmpty(target)));
+        return GUtil.toLowerCamelCase(nullToEmpty(verb) + " " + name + " " + nullToEmpty(target));
     }
 
     private String nullToEmpty(String input) {

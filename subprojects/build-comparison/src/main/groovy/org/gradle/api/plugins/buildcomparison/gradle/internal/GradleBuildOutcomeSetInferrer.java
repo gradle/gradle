@@ -61,7 +61,7 @@ public class GradleBuildOutcomeSetInferrer implements Transformer<Set<BuildOutco
 
             LocallyAvailableResource resource = null;
             if (file.exists()) {
-                String filestoreDestination = String.format("%s/%s/%s", fileStorePrefix, taskPath, file.getName());
+                String filestoreDestination = fileStorePrefix + "/" + taskPath + "/" + file.getName();
                 resource = fileStore.move(filestoreDestination, file);
             }
 

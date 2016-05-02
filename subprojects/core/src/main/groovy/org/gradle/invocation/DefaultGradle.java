@@ -78,7 +78,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public String toString() {
-        return rootProject == null ? "build" : String.format("build '%s'", rootProject.getName());
+        return rootProject == null ? "build" : ("build '" + rootProject.getName() + "'");
     }
 
     public Gradle getParent() {

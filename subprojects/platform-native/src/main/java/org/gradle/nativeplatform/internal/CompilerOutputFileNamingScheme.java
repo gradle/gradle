@@ -39,6 +39,6 @@ public class CompilerOutputFileNamingScheme {
         final String baseName = FilenameUtils.removeExtension(sourceFile.getName());
         String compactMD5 = HashUtil.createCompactMD5(sourceFile.getAbsolutePath());
         File hashDirectory = new File(outputBaseFolder, compactMD5);
-        return new File(hashDirectory, String.format("%s%s", baseName, objectFileNameSuffix));
+        return new File(hashDirectory, baseName + objectFileNameSuffix);
     }
 }

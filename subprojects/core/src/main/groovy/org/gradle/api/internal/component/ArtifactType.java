@@ -21,6 +21,6 @@ public enum ArtifactType {
     SOURCES, JAVADOC, IVY_DESCRIPTOR, MAVEN_POM;
 
     public String toString() {
-        return String.format("'%s' artifacts", GUtil.toWords(name()));
+        return "'" + GUtil.toWords(name()) + "' artifacts";
     }
 }

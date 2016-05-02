@@ -28,7 +28,7 @@ public class DefaultEclipseProjectNature implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("nature '%s'", id);
+        return "nature '" + id + "'";
     }
 
     public String getId() {

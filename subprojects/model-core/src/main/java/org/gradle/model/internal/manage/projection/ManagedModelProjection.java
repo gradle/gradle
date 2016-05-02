@@ -93,7 +93,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
                 @Override
                 public String getDisplayName() {
-                    return String.format("%s '%s'", getType(), modelNode.getPath().toString());
+                    return getType() + " '" + modelNode.getPath().toString() + "'";
                 }
 
                 @Override

@@ -33,7 +33,7 @@ public class DefaultEclipseBuildCommand implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("build command '%s'", name);
+        return "build command '" + name + "'";
     }
 
     public String getName() {

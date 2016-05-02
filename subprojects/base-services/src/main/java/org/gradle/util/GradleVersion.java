@@ -152,7 +152,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
     @Override
     public String toString() {
-        return String.format("Gradle %s", version);
+        return "Gradle " + version;
     }
 
     public String getVersion() {

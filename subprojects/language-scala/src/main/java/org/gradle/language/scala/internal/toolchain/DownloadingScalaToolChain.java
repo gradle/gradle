@@ -48,19 +48,19 @@ public class DownloadingScalaToolChain implements ScalaToolChainInternal {
 
     @Override
     public String getName() {
-        return String.format("Scala Toolchain");
+        return "Scala Toolchain";
     }
 
     @Override
     public String getDisplayName() {
-        return String.format("Scala Toolchain (JDK %s (%s))", javaVersion.getMajorVersion(), javaVersion);
+        return "Scala Toolchain (JDK " + javaVersion.getMajorVersion() + " (" + javaVersion + "))";
     }
 
     @Override
     public ToolProvider select(ScalaPlatform targetPlatform) {
         try {
-            Configuration scalaClasspath = resolveDependency(String.format("org.scala-lang:scala-compiler:%s", targetPlatform.getScalaVersion()));
-            Configuration zincClasspath = resolveDependency(String.format("com.typesafe.zinc:zinc:%s", DefaultScalaToolProvider.DEFAULT_ZINC_VERSION));
+            Configuration scalaClasspath = resolveDependency("org.scala-lang:scala-compiler:" + targetPlatform.getScalaVersion());
+            Configuration zincClasspath = resolveDependency("com.typesafe.zinc:zinc:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
             Set<File> resolvedScalaClasspath = scalaClasspath.resolve();
             Set<File> resolvedZincClasspath = zincClasspath.resolve();
             return new DefaultScalaToolProvider(gradleUserHomeDir, rootProjectDir, compilerDaemonManager, resolvedScalaClasspath, resolvedZincClasspath);

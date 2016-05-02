@@ -32,6 +32,6 @@ public class BuildEvent extends Message {
 
     @Override
     public String toString() {
-        return String.format("%s[event=%s]", getClass().getSimpleName(), payload);
+        return getClass().getSimpleName() + "[event=" + payload + "]";
     }
 }

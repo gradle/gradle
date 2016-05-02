@@ -120,7 +120,7 @@ public class ApacheDirectoryListingParser {
             try {
                 uris.add(baseURI.resolve(href));
             } catch (IllegalArgumentException ex) {
-                LOGGER.debug(String.format("Cannot resolve anchor: %s", href));
+                LOGGER.debug("Cannot resolve anchor: {}", href);
             }
         }
         return uris;

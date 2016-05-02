@@ -52,7 +52,7 @@ public class DefaultLocalMavenRepositoryLocator implements LocalMavenRepositoryL
                 return new File(resolvePlaceholders(repoPath.trim()));
             } else {
                 File defaultLocation = new File(system.getProperty("user.home"), "/.m2/repository").getAbsoluteFile();
-                LOGGER.debug(String.format("No local repository in Settings file defined. Using default path: %s", defaultLocation));
+                LOGGER.debug("No local repository in Settings file defined. Using default path: {}", defaultLocation);
                 return defaultLocation;
             }
         } catch (SettingsBuildingException e) {

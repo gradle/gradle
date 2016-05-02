@@ -81,7 +81,7 @@ public class BuildProfile {
         if (tasks.length() == 0) {
             tasks = "(no tasks specified)";
         }
-        return String.format("Profiled build: %s", tasks);
+        return "Profiled build: " + tasks;
     }
 
     public boolean isSuccessful() {
@@ -201,7 +201,7 @@ public class BuildProfile {
      * Get the total elapsed time (in mSec) between the start of profiling and the buildFinished event.
      * @return
      */
-    public long getElapsedTotal() { 
+    public long getElapsedTotal() {
         return buildFinished - profilingStarted;
     }
 
@@ -243,7 +243,7 @@ public class BuildProfile {
     }
 
     public String getBuildStartedDescription() {
-        return String.format("Started on: %s", DATE_FORMAT.format(buildStarted));
+        return "Started on: " + DATE_FORMAT.format(buildStarted);
     }
 
     public StartParameter getStartParameter() {

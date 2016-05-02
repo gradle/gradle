@@ -75,9 +75,9 @@ public abstract class AbstractLanguageSourceSet extends AbstractBuildableCompone
     public String getDisplayName() {
         String languageName = getLanguageName();
         if (languageName.toLowerCase().endsWith("resources")) {
-            return String.format("%s '%s'", languageName, getIdentifier().getPath());
+            return languageName + " '" + getIdentifier().getPath() + "'";
         }
-        return String.format("%s source '%s'", languageName, getIdentifier().getPath());
+        return languageName + " source '" + getIdentifier().getPath() + "'";
     }
 
     @Override

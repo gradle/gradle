@@ -88,7 +88,7 @@ public class ArgWriter implements ArgCollector {
                 } catch (IOException e) {
                     throw new UncheckedIOException(String.format("Could not write options file '%s'.", argsFile.getAbsolutePath()), e);
                 }
-                return Collections.singletonList(String.format("@%s", argsFile.getAbsolutePath()));
+                return Collections.singletonList("@" + argsFile.getAbsolutePath());
             }
         };
     }

@@ -26,9 +26,9 @@ public class DefaultScalaSourceSet implements ScalaSourceSet {
     private final SourceDirectorySet allScala;
 
     public DefaultScalaSourceSet(String displayName, SourceDirectorySetFactory sourceDirectorySetFactory) {
-        scala = sourceDirectorySetFactory.create(String.format("%s Scala source", displayName));
+        scala = sourceDirectorySetFactory.create(displayName + " Scala source");
         scala.getFilter().include("**/*.java", "**/*.scala");
-        allScala = sourceDirectorySetFactory.create(String.format("%s Scala source", displayName));
+        allScala = sourceDirectorySetFactory.create(displayName + " Scala source");
         allScala.getFilter().include("**/*.scala");
         allScala.source(scala);
     }

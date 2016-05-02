@@ -57,8 +57,7 @@ public class ProjectReportTask extends AbstractReportTask {
 
         textOutput.println();
         textOutput.text("To see a list of the tasks of a project, run ");
-        metaData.describeCommand(textOutput.withStyle(UserInput), String.format("<project-path>:%s",
-                ProjectInternal.TASKS_TASK));
+        metaData.describeCommand(textOutput.withStyle(UserInput), "<project-path>:" + ProjectInternal.TASKS_TASK);
         textOutput.println();
 
         textOutput.text("For example, try running ");

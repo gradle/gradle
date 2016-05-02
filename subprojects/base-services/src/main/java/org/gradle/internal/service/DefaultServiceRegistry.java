@@ -805,7 +805,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         public String getDisplayName() {
-            return String.format("Service %s at %s.%s()", format(method.getGenericReturnType()), method.getDeclaringClass().getSimpleName(), method.getName());
+            return "Service " + format(method.getGenericReturnType()) + " at " + method.getDeclaringClass().getSimpleName() + "." +  method.getName() + "()";
         }
 
         protected Type[] getParameterTypes() {
@@ -846,7 +846,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     private ServiceProvider getThisAsProvider() {
         return new ServiceProvider() {
             public String getDisplayName() {
-                return String.format("ServiceRegistry %s", getDisplayName());
+                return "ServiceRegistry " + DefaultServiceRegistry.this.getDisplayName();
             }
 
             public Object get() {
@@ -865,7 +865,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         public String getDisplayName() {
-            return String.format("Service %s with implementation %s", format(serviceType), getInstance());
+            return "Service " + format(serviceType) + " with implementation " + getInstance();
         }
 
         @Override
@@ -908,7 +908,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         public String getDisplayName() {
-            return String.format("Service %s", format(serviceType));
+            return "Service " + format(serviceType);
         }
     }
 
@@ -924,7 +924,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         }
 
         public String getDisplayName() {
-            return String.format("Service %s at %s.%s()", format(method.getGenericReturnType()), method.getDeclaringClass().getSimpleName(), method.getName());
+            return "Service " + format(method.getGenericReturnType()) + " at " + method.getDeclaringClass().getSimpleName() + "." + method.getName() + "()";
         }
 
         @Override
@@ -1061,7 +1061,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
         private ServiceProvider wrap(final Object instance) {
             return new ServiceProvider() {
                 public String getDisplayName() {
-                    return String.format("ServiceRegistry %s", parent);
+                    return "ServiceRegistry " + parent;
                 }
 
                 public Object get() {

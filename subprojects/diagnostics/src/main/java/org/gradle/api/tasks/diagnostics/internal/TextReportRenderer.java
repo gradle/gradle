@@ -71,7 +71,7 @@ public class TextReportRenderer implements ReportRenderer {
         if (project.getRootProject() == project) {
             header = "Root project";
         } else {
-            header = String.format("Project %s", project.getPath());
+            header = "Project " + project.getPath();
         }
         if (GUtil.isTrue(project.getDescription())) {
             header = header + " - " + project.getDescription();

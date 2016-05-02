@@ -31,6 +31,6 @@ public class Command extends Message {
 
     @Override
     public String toString() {
-        return String.format("%s[id=%s]", getClass().getSimpleName(), identifier);
+        return getClass().getSimpleName() + "[id=" + identifier + "]";
     }
 }

@@ -74,7 +74,7 @@ public class LeakyOnJava7GroovySystemLoader implements GroovySystemLoader {
                     Class clazz = (Class) clazzField.get(classInfo);
                     removeFromGlobalClassValue.invoke(globalClassValue, clazz);
                     if (LOG.isDebugEnabled()) {
-                        LOG.debug(String.format("Removed ClassInfo from %s loaded by %s", clazz.getName(), clazz.getClassLoader()));
+                        LOG.debug("Removed ClassInfo from {} loaded by {}", clazz.getName(), clazz.getClassLoader());
                     }
                 }
             }
@@ -98,7 +98,7 @@ public class LeakyOnJava7GroovySystemLoader implements GroovySystemLoader {
                     if (clazz.getClassLoader() == classLoader) {
                         removeFromGlobalClassValue.invoke(globalClassValue, clazz);
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug(String.format("Removed ClassInfo from %s loaded by %s", clazz.getName(), clazz.getClassLoader()));
+                            LOG.debug("Removed ClassInfo from {} loaded by {}", clazz.getName(), clazz.getClassLoader());
                         }
                     }
                 }

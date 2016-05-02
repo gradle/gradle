@@ -40,7 +40,7 @@ public class ProgressCompleteEvent extends CategorisedOutputEvent {
 
     @Override
     public String toString() {
-        return String.format("ProgressComplete %s", status);
+        return "ProgressComplete " + status;
     }
 
     public OperationIdentifier getOperationId() {

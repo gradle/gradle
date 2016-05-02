@@ -55,7 +55,7 @@ class ArStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec> {
         List<String> args = argsTransformer.transform(spec);
         invocationContext.getArgAction().execute(args);
         final CommandLineToolInvocation invocation = invocationContext.createInvocation(
-                String.format("archiving %s", spec.getOutputFile().getName()), args, spec.getOperationLogger());
+                "archiving " + spec.getOutputFile().getName(), args, spec.getOperationLogger());
 
         buildOperationProcessor.run(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override

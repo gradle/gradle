@@ -98,7 +98,7 @@ public class JavaInstallationProbe {
             JavaVersion javaVersion = JavaVersion.toVersion(metadata.get(SysProp.VERSION));
             install.setJavaVersion(javaVersion);
             String jdkName = computeJdkName(installType, metadata);
-            install.setDisplayName(String.format("%s %s", jdkName, javaVersion.getMajorVersion()));
+            install.setDisplayName(jdkName + " " + javaVersion.getMajorVersion());
         }
     }
 

@@ -137,7 +137,7 @@ public class ModelMapping {
 
         @Override
         public String toString() {
-            return String.format("tooling model %s", model);
+            return "tooling model " + model;
         }
 
         public String getName() {

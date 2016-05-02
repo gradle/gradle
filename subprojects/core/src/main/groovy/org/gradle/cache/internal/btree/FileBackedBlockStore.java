@@ -36,7 +36,7 @@ public class FileBackedBlockStore implements BlockStore {
 
     @Override
     public String toString() {
-        return String.format("cache '%s'", cacheFile);
+        return "cache '" + cacheFile + "'";
     }
 
     public void open(Runnable runnable, Factory factory) {

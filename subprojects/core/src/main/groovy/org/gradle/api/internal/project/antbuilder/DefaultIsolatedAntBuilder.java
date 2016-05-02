@@ -112,7 +112,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
 
     public IsolatedAntBuilder withClasspath(Iterable<File> classpath) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug(String.format("Forking a new isolated ant builder for classpath : %s", classpath));
+            LOG.debug("Forking a new isolated ant builder for classpath : {}", classpath);
         }
         return new DefaultIsolatedAntBuilder(this, classpath);
     }

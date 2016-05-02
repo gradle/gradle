@@ -69,6 +69,6 @@ public class ModuleDescriptorStore {
     }
 
     private String getFilePath(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
-        return String.format(FILE_PATH_PATTERN, moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion(), repository.getId());
+        return moduleComponentIdentifier.getGroup() + "/" + moduleComponentIdentifier.getModule() + "/" + moduleComponentIdentifier.getVersion() + "/" + repository.getId() + "/ivy.xml";
     }
 }

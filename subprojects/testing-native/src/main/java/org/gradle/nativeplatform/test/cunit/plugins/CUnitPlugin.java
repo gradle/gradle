@@ -68,7 +68,7 @@ public class CUnitPlugin implements Plugin<Project> {
             suite.getSources().create(CUNIT_LAUNCHER_SOURCE_SET, CSourceSet.class, new Action<CSourceSet>() {
                 @Override
                 public void execute(CSourceSet launcherSources) {
-                    File baseDir = new File(buildDir, String.format("src/%s/cunitLauncher", suite.getName()));
+                    File baseDir = new File(buildDir, "src/" + suite.getName() + "/cunitLauncher");
                     launcherSources.getSource().srcDir(new File(baseDir, "c"));
                     launcherSources.getExportedHeaders().srcDir(new File(baseDir, "headers"));
                 }

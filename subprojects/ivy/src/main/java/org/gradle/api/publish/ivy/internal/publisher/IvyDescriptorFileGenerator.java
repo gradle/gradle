@@ -16,17 +16,19 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-import javax.xml.namespace.QName;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.XmlProvider;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
-import org.gradle.internal.xml.SimpleXmlWriter;
-import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
+import org.gradle.internal.xml.SimpleXmlWriter;
+import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.util.CollectionUtils;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -121,7 +123,7 @@ public class IvyDescriptorFileGenerator {
         if (extraInfo != null) {
             for (Map.Entry<QName, String> entry : extraInfo.entrySet()) {
                 if (entry.getKey() != null) {
-                    xmlWriter.startElement(String.format("ns:%s", entry.getKey().getLocalPart()))
+                    xmlWriter.startElement("ns:" + entry.getKey().getLocalPart())
                             .attribute("xmlns:ns", entry.getKey().getNamespaceURI())
                             .characters(entry.getValue())
                             .endElement();

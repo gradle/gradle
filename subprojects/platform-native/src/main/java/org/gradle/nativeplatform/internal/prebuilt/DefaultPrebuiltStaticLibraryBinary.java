@@ -35,7 +35,7 @@ public class DefaultPrebuiltStaticLibraryBinary extends AbstractPrebuiltLibraryB
 
     @Override
     public String getDisplayName() {
-        return String.format("prebuilt static library '%s:%s'", getComponent().getName(), getName());
+        return "prebuilt static library '" + getComponent().getName() + ":" + getName() + "'";
     }
 
     @Override

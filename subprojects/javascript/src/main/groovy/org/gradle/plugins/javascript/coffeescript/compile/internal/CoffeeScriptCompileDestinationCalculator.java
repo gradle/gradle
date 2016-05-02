@@ -31,13 +31,13 @@ public class CoffeeScriptCompileDestinationCalculator implements Transformer<Fil
 
     public File transform(RelativePath relativePath) {
         String sourceFileName = relativePath.getLastName();
-        
+
         String destinationFileNameBase = sourceFileName;
         if (sourceFileName.endsWith(".coffee")) {
             destinationFileNameBase = sourceFileName.substring(0, sourceFileName.length() - 7);
         }
-        
-        String destinationFileName = String.format("%s.js", destinationFileNameBase);
+
+        String destinationFileName = destinationFileNameBase + ".js";
         RelativePath destinationRelativePath = relativePath.replaceLastName(destinationFileName);
         return new File(destination, destinationRelativePath.getPathString());
     }

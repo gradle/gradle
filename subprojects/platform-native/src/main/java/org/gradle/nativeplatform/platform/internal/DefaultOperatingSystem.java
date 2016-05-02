@@ -39,7 +39,7 @@ public class DefaultOperatingSystem implements OperatingSystemInternal {
 
     @Override
     public String getDisplayName() {
-        return String.format("operating system '%s'", name);
+        return "operating system '" + name + "'";
     }
 
     @Override

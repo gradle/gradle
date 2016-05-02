@@ -39,7 +39,7 @@ public abstract class LanguageLibraryProjectInitDescriptor implements ProjectIni
     protected TemplateOperation whenNoSourcesAvailable(TemplateOperation... operations) {
         return new ConditionalTemplateOperation(new Factory<Boolean>() {
             public Boolean create() {
-                return fileResolver.resolveFilesAsTree(String.format("src/main/%s", language)).isEmpty() || fileResolver.resolveFilesAsTree(String.format("src/test/%s", language)).isEmpty();
+                return fileResolver.resolveFilesAsTree("src/main/" + language).isEmpty() || fileResolver.resolveFilesAsTree("src/test/" + language).isEmpty();
             }
         }, operations);
     }
@@ -56,7 +56,7 @@ public abstract class LanguageLibraryProjectInitDescriptor implements ProjectIni
     protected TemplateOperation fromClazzTemplate(String clazzTemplate, String sourceSetName, String language, String targetFileName) {
         return templateOperationFactory.newTemplateOperation()
                 .withTemplate(clazzTemplate)
-                .withTarget(String.format("src/%s/%s/%s", sourceSetName, language, targetFileName))
+                .withTarget("src/" + sourceSetName + "/" + language + "/" + targetFileName)
                 .create();
     }
 }

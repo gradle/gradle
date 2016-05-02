@@ -89,7 +89,7 @@ public class NativeTestSuites {
         testBinary.getTasks().create(name, RunTestExecutable.class, new Action<RunTestExecutable>() {
             @Override
             public void execute(RunTestExecutable runTask) {
-                runTask.setDescription(String.format("Runs the %s", testBinary));
+                runTask.setDescription("Runs the " + testBinary);
                 testBinary.getTasks().add(runTask);
             }
         });
@@ -115,7 +115,7 @@ public class NativeTestSuites {
 
     public static <S extends NativeTestSuiteSpec> void createConventionalTestSuites(TestSuiteContainer testSuites, ModelMap<NativeComponentSpec> components, Class<S> testSuiteSpecClass) {
         for (final NativeComponentSpec component : components.values()) {
-            final String suiteName = String.format("%sTest", component.getName());
+            final String suiteName = component.getName() + "Test";
             testSuites.create(suiteName, testSuiteSpecClass, new Action<S>() {
                 @Override
                 public void execute(S testSuite) {

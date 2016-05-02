@@ -35,7 +35,7 @@ public class MultiChoiceAddress implements InetEndpoint {
     }
 
     public String getDisplayName() {
-        return String.format("[%s port:%s, addresses:%s]", canonicalAddress, port, candidates);
+        return "[" + canonicalAddress + " port:" + port + ", addresses:" + candidates + "]";
     }
 
     public UUID getCanonicalAddress() {

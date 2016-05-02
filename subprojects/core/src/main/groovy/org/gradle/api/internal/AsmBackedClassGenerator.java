@@ -644,7 +644,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private String propFieldName(PropertyMetaData property) {
-            return String.format("__%s__", property.getName());
+            return "__" + property.getName() + "__";
         }
 
         public void applyConventionMappingToGetter(PropertyMetaData property, Method getter) throws Exception {

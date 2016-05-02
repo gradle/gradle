@@ -30,7 +30,7 @@ public class AbstractProgressLoggingHandler {
     }
 
     protected ResourceOperation createResourceOperation(String resourceName, ResourceOperation.Type operationType, Class loggingClazz, long contentLength) {
-        ProgressLogger progressLogger = startProgress(String.format("%s %s", operationType.getCapitalized(), resourceName), loggingClazz);
+        ProgressLogger progressLogger = startProgress(operationType.getCapitalized() + " " + resourceName, loggingClazz);
         return new ResourceOperation(progressLogger, operationType, contentLength);
     }
 

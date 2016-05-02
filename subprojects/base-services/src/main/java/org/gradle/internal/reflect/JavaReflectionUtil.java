@@ -380,7 +380,7 @@ public class JavaReflectionUtil {
 
         @Override
         public String toString() {
-            return String.format("property %s.%s", method.getDeclaringClass().getSimpleName(), property);
+            return "property " + method.getDeclaringClass().getSimpleName() + "." + property;
         }
 
         public String getName() {
@@ -444,7 +444,7 @@ public class JavaReflectionUtil {
 
         @Override
         public String toString() {
-            return String.format("property %s.%s", method.getDeclaringClass().getSimpleName(), property);
+            return "property " + method.getDeclaringClass().getSimpleName() + "." + property;
         }
 
         public String getName() {
@@ -477,7 +477,7 @@ public class JavaReflectionUtil {
 
         @Override
         public String toString() {
-            return String.format("field %s.%s", field.getDeclaringClass().getSimpleName(), name);
+            return "field " + field.getDeclaringClass().getSimpleName() + "." + name;
         }
 
         public String getName() {

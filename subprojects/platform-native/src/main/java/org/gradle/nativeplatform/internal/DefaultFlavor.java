@@ -38,6 +38,6 @@ public class DefaultFlavor implements Flavor {
 
     @Override
     public String getDisplayName() {
-        return String.format("flavor '%s'", name);
+        return "flavor '" + name + "'";
     }
 }

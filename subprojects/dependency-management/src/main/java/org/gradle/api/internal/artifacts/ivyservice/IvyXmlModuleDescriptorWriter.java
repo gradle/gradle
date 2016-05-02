@@ -404,7 +404,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             }
             if (extraDescr.getKey() instanceof NamespaceId) {
                 NamespaceId id = (NamespaceId) extraDescr.getKey();
-                writer.startElement(String.format("ns:%s", id.getName()));
+                writer.startElement("ns:" + id.getName());
                 writer.attribute("xmlns:ns", id.getNamespace());
             } else {
                 writer.startElement(extraDescr.getKey().toString());

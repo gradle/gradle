@@ -106,7 +106,7 @@ public class DefaultArtifactRepositoryContainer extends DefaultNamedDomainObject
             return proposedName;
         }
         for (int index = 2; true; index++) {
-            String candidate = String.format("%s%d", proposedName, index);
+            String candidate = proposedName + index;
             if (findByName(candidate) == null) {
                 return candidate;
             }

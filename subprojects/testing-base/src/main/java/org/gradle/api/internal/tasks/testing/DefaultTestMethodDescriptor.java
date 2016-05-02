@@ -23,6 +23,6 @@ public class DefaultTestMethodDescriptor extends DefaultTestDescriptor {
 
     @Override
     public String toString() {
-        return String.format("Test method %s(%s)", getName(), getClassName());
+        return "Test method " + getName() + "(" + getClassName() + ")";
     }
 }

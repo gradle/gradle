@@ -34,7 +34,7 @@ public class MissingLocalArtifactMetaData implements LocalComponentArtifactIdent
     }
 
     public String getDisplayName() {
-        return String.format("%s (%s)", name, componentDisplayName);
+        return name + " (" + componentDisplayName+ ")";
     }
 
     @Override

@@ -22,9 +22,8 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.LibraryBinaryDependencySpec;
 
+import java.util.Arrays;
 import java.util.List;
-
-import static com.google.common.collect.Lists.newArrayList;
 
 public class DefaultLibraryBinaryDependencySpec implements LibraryBinaryDependencySpec {
 
@@ -58,10 +57,10 @@ public class DefaultLibraryBinaryDependencySpec implements LibraryBinaryDependen
 
     @Override
     public String getDisplayName() {
-        List<String> parts = newArrayList();
-        parts.add(String.format("project '%s'", getProjectPath()));
-        parts.add(String.format("library '%s'", getLibraryName()));
-        parts.add(String.format("variant '%s'", getVariant()));
+        List<String> parts = Arrays.asList(
+            "project '" + getProjectPath() + "'",
+            "library '" + getLibraryName() + "'",
+            "variant '" + getVariant() + "'");
         return Joiner.on(' ').join(parts);
     }
 

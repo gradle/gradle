@@ -88,9 +88,9 @@ public class JvmOptions {
     protected void formatSystemProperties(Map<String, ?> properties, List<String> args) {
         for (Map.Entry<String, ?> entry : properties.entrySet()) {
             if (entry.getValue() != null && entry.getValue().toString().length() > 0) {
-                args.add(String.format("-D%s=%s", entry.getKey(), entry.getValue().toString()));
+                args.add("-D" + entry.getKey() + "=" + entry.getValue().toString());
             } else {
-                args.add(String.format("-D%s", entry.getKey()));
+                args.add("-D" + entry.getKey());
             }
         }
     }
@@ -114,14 +114,14 @@ public class JvmOptions {
     public List<String> getManagedJvmArgs() {
         List<String> args = new ArrayList<String>();
         if (minHeapSize != null) {
-            args.add(String.format("-Xms%s", minHeapSize));
+            args.add("-Xms" + minHeapSize);
         }
         if (maxHeapSize != null) {
-            args.add(String.format("-Xmx%s", maxHeapSize));
+            args.add("-Xmx" + maxHeapSize);
         }
         FileCollection bootstrapClasspath = getBootstrapClasspath();
         if (!bootstrapClasspath.isEmpty()) {
-            args.add(String.format("-Xbootclasspath:%s", bootstrapClasspath.getAsPath()));
+            args.add("-Xbootclasspath:" + bootstrapClasspath.getAsPath());
         }
 
         // These are implemented as a system property, but don't really function like one

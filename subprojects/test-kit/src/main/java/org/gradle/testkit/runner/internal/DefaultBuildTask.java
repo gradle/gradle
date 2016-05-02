@@ -38,6 +38,6 @@ public class DefaultBuildTask implements BuildTask {
 
     @Override
     public String toString() {
-        return String.format("%s=%s", path, outcome);
+        return path + "=" + outcome;
     }
 }

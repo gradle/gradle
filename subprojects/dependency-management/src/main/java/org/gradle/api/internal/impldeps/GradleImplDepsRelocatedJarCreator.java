@@ -59,7 +59,7 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
     public void create(final File outputJar, final Iterable<? extends File> files) {
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(GradleImplDepsRelocatedJarCreator.class);
         progressLogger.setDescription("Gradle JARs generation");
-        progressLogger.setLoggingHeader(String.format("Generating JAR file '%s'", outputJar.getName()));
+        progressLogger.setLoggingHeader("Generating JAR file '" + outputJar.getName() + "'");
         progressLogger.started();
 
         try {

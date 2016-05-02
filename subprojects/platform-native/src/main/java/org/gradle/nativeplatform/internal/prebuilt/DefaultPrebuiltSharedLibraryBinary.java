@@ -36,7 +36,7 @@ public class DefaultPrebuiltSharedLibraryBinary extends AbstractPrebuiltLibraryB
 
     @Override
     public String getDisplayName() {
-        return String.format("prebuilt shared library '%s:%s'", getComponent().getName(), getName());
+        return "prebuilt shared library '" + getComponent().getName() + ":" + getName() + "'";
     }
 
     @Override

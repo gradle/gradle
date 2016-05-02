@@ -45,7 +45,7 @@ public class TestResult extends TestResultModel implements Comparable<TestResult
 
     @Override
     public String getTitle() {
-        return String.format("Test %s", name);
+        return "Test " + name;
     }
 
     @Override

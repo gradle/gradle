@@ -49,6 +49,6 @@ public class LogEvent extends RenderableOutputEvent {
 
     @Override
     public String toString() {
-        return String.format("[%s] [%s] %s", getLogLevel(), getCategory(), message);
+        return "[" + getLogLevel() + "] [" + getCategory() + "] " + message;
     }
 }

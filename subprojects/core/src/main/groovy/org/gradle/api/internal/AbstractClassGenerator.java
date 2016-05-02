@@ -367,7 +367,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         public String toString() {
-            return String.format("[property %s]", name);
+            return "[property " + name + "]";
         }
 
         public String getName() {

@@ -73,7 +73,7 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
                     setName(selectorName).
                     setTaskName(selectorName).
                     setProjectPath(project.getPath()).
-                    setDisplayName(String.format("%s in %s and subprojects.", selectorName, project.toString())).
+                    setDisplayName(selectorName + " in " + project + " and subprojects.").
                     setPublic(visibleTasks.contains(selectorName)));
         }
 

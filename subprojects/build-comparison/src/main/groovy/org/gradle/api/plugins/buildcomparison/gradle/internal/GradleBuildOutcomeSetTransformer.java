@@ -83,7 +83,7 @@ public class GradleBuildOutcomeSetTransformer implements Transformer<Set<BuildOu
 
             LocallyAvailableResource resource = null;
             if (originalFile.exists()) {
-                String filestoreDestination = String.format("%s/%s/%s", fileStorePrefix, outcome.getTaskPath(), originalFile.getName());
+                String filestoreDestination = fileStorePrefix + "/" + outcome.getTaskPath() + "/" + originalFile.getName();
                 resource = fileStore.move(filestoreDestination, originalFile);
             }
 

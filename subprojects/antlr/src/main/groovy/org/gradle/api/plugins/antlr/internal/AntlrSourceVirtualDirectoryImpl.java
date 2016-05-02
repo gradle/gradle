@@ -28,10 +28,10 @@ public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirect
     private final SourceDirectorySet antlr;
 
     public AntlrSourceVirtualDirectoryImpl(String parentDisplayName, SourceDirectorySetFactory sourceDirectorySetFactory) {
-        final String displayName = String.format("%s Antlr source", parentDisplayName);
+        final String displayName = parentDisplayName + " Antlr source";
         antlr = sourceDirectorySetFactory.create(displayName);
         antlr.getFilter().include("**/*.g");
-        antlr.getFilter().include("**/*.g4");  
+        antlr.getFilter().include("**/*.g4");
     }
 
     public SourceDirectorySet getAntlr() {

@@ -34,7 +34,7 @@ public class PathAssembler {
     }
 
     /**
-     * Determines the local locations for the distribution to use given the supplied configuration. 
+     * Determines the local locations for the distribution to use given the supplied configuration.
      */
     public LocalDistribution getDistribution(WrapperConfiguration configuration) {
         String baseName = getDistName(configuration.getDistribution());
@@ -47,7 +47,7 @@ public class PathAssembler {
 
     private String rootDirName(String distName, WrapperConfiguration configuration) {
         String urlHash = getHash(configuration.getDistribution().toString());
-        return String.format("%s/%s", distName, urlHash);
+        return distName + "/" + urlHash;
     }
 
     /**
@@ -97,7 +97,7 @@ public class PathAssembler {
             throw new RuntimeException("Base: " + base + " is unknown");
         }
     }
-    
+
     public class LocalDistribution {
         private final File distZip;
         private final File distDir;

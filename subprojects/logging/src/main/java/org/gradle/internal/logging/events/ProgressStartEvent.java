@@ -62,7 +62,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent {
 
     @Override
     public String toString() {
-        return String.format("ProgressStart %s", description);
+        return "ProgressStart " + description;
     }
 
     public OperationIdentifier getOperationId() {

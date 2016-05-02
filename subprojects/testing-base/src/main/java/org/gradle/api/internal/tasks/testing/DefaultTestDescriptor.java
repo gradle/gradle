@@ -28,7 +28,7 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor implements Ser
 
     @Override
     public String toString() {
-        return String.format("Test %s(%s)", getName(), className);
+        return "Test " + getName() + "(" + className + ")";
     }
 
     @Override

@@ -74,7 +74,7 @@ public class DaemonServices extends DefaultServiceRegistry {
     public File getDaemonLogFile() {
         final DaemonContext daemonContext = get(DaemonContext.class);
         final Long pid = daemonContext.getPid();
-        String fileName = String.format("daemon-%s.out.log", pid == null ? UUID.randomUUID() : pid);
+        String fileName = "daemon-" + (pid == null ? UUID.randomUUID() : pid) + ".out.log";
         return new File(get(DaemonDir.class).getVersionedDir(), fileName);
     }
 

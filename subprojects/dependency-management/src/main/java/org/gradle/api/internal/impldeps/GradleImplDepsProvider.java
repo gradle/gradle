@@ -52,7 +52,7 @@ public class GradleImplDepsProvider implements Closeable {
             final File implDepsJarFile = jarFile(cache, gradleImplDepsJarType.getIdentifier());
 
             if (!implDepsJarFile.exists()) {
-                cache.useCache(String.format("Generating %s", implDepsJarFile.getName()), new Runnable() {
+                cache.useCache("Generating " + implDepsJarFile.getName(), new Runnable() {
                     public void run() {
                         if (!implDepsJarFile.exists()) {
                             relocatedJarCreator.create(implDepsJarFile, classpath);
@@ -73,6 +73,6 @@ public class GradleImplDepsProvider implements Closeable {
     }
 
     private File jarFile(PersistentCache cache, String name) {
-        return new File(cache.getBaseDir(), String.format("gradle-%s-%s.jar", name, gradleVersion));
+        return new File(cache.getBaseDir(), "gradle-" + name + "-" + gradleVersion + ".jar");
     }
 }

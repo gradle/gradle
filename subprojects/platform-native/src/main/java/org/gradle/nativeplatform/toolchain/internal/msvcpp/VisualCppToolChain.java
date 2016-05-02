@@ -139,7 +139,7 @@ public class VisualCppToolChain extends ExtendableToolChain<VisualCppPlatformToo
 
     @Override
     public String getDisplayName() {
-        return String.format("Tool chain '%s' (%s)", getName(), getTypeName());
+        return "Tool chain '" + getName() + "' (" + getTypeName() + ")";
     }
 
 }

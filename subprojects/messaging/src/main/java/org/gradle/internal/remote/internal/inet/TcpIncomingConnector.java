@@ -65,7 +65,7 @@ public class TcpIncomingConnector implements IncomingConnector {
         final Address address = new MultiChoiceAddress(id, localPort, addresses);
         LOGGER.debug("Listening on {}.", address);
 
-        final StoppableExecutor executor = executorFactory.create(String.format("Incoming %s TCP Connector on port %s", allowRemote ? "remote" : "local", localPort));
+        final StoppableExecutor executor = executorFactory.create("Incoming " + (allowRemote ? "remote" : "local")+ " TCP Connector on port " + localPort);
         executor.execute(new Receiver(serverSocket, action, allowRemote));
 
         return new ConnectionAcceptor() {

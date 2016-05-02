@@ -63,7 +63,7 @@ public class DefaultNamedDomainObjectSet<T> extends DefaultNamedDomainObjectColl
 
     @Override
     public String getDisplayName() {
-        return String.format("%s set", getTypeDisplayName());
+        return getTypeDisplayName() + " set";
     }
 
     @Override

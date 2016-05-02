@@ -59,7 +59,7 @@ public class MessageHub implements AsyncStoppable {
     public MessageHub(String displayName, ExecutorFactory executorFactory, Action<? super Throwable> errorHandler) {
         this.displayName = displayName;
         this.errorHandler = errorHandler;
-        workers = executorFactory.create(String.format("%s workers", displayName));
+        workers = executorFactory.create(displayName + " workers");
     }
 
     /**
@@ -329,7 +329,7 @@ public class MessageHub implements AsyncStoppable {
 
         @Override
         public String toString() {
-            return String.format("Dispatch %s to %s channel %s", type.getSimpleName(), displayName, channelIdentifier);
+            return "Dispatch " + type.getSimpleName() + " to " + displayName + " channel " + channelIdentifier;
         }
 
         public void dispatch(T message) {

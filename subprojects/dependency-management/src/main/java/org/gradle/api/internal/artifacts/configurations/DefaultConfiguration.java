@@ -659,7 +659,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public String getDisplayName() {
-            return String.format("%s dependencies", DefaultConfiguration.this);
+            return DefaultConfiguration.this + " dependencies";
         }
 
         public Set<File> getFiles() {
@@ -745,7 +745,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
         @Override
         public String toString() {
-            return String.format("dependencies '%s'", path);
+            return "dependencies '" + path + "'";
         }
 
         public FileCollection getFiles() {

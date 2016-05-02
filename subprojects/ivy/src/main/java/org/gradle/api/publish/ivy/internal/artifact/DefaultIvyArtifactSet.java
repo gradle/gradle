@@ -64,7 +64,7 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
     private class ArtifactsFileCollection implements MinimalFileSet {
         @Override
         public String getDisplayName() {
-            return String.format("artifacts for Ivy publication '%s'", publicationName);
+            return "artifacts for Ivy publication '" + publicationName + "'";
         }
 
         @Override

@@ -36,9 +36,9 @@ public abstract class Result<T> extends Message {
     public T getValue() {
         return value;
     }
-    
+
     @Override
     public String toString() {
-        return String.format("%s[value=%s]", getClass().getSimpleName(), getValue());
+        return getClass().getSimpleName() + "[value=" + getValue() + "]";
     }
 }

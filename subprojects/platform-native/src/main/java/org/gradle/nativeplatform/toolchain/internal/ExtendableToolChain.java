@@ -48,7 +48,7 @@ public abstract class ExtendableToolChain<T extends NativePlatformToolChain> imp
 
     @Override
     public String getDisplayName() {
-        return String.format("Tool chain '%s' (%s)", getName(), getTypeName());
+        return "Tool chain '" + getName() + "' (" + getTypeName() + ")";
     }
 
     @Override
@@ -58,7 +58,7 @@ public abstract class ExtendableToolChain<T extends NativePlatformToolChain> imp
 
     @Override
     public String getOutputType() {
-        return String.format("%s-%s", getName(), operatingSystem.getName());
+        return getName() + "-" + operatingSystem.getName();
     }
 
     public void eachPlatform(Action<? super T> action) {

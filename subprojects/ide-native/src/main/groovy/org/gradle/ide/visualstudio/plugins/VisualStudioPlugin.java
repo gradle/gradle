@@ -96,7 +96,7 @@ public class VisualStudioPlugin implements Plugin<Project> {
 
             for (VisualStudioSolution vsSolution : visualStudioExtension.getSolutions()) {
                 Task solutionTask = tasks.create(vsSolution.getName() + "VisualStudio");
-                solutionTask.setDescription(String.format("Generates the '%s' Visual Studio solution file.", vsSolution.getName()));
+                solutionTask.setDescription("Generates the '" + vsSolution.getName() + "' Visual Studio solution file.");
                 vsSolution.setBuildTask(solutionTask);
                 vsSolution.builtBy(createSolutionTask(tasks, vsSolution));
 
@@ -105,7 +105,7 @@ public class VisualStudioPlugin implements Plugin<Project> {
                 Task lifecycleTask = tasks.maybeCreate(component.getName() + "VisualStudio");
                 lifecycleTask.dependsOn(vsSolution);
                 lifecycleTask.setGroup("IDE");
-                lifecycleTask.setDescription(String.format("Generates the Visual Studio solution for %s.", component));
+                lifecycleTask.setDescription("Generates the Visual Studio solution for " + component + ".");
             }
 
             addCleanTask(tasks);

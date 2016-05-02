@@ -42,7 +42,7 @@ public class ReportingExtension {
      * The name of this extension ("{@value}")
      */
     public static final String NAME = "reporting";
-    
+
     /**
      * The default name of the base directory for all reports, relative to {@link org.gradle.api.Project#getBuildDir()} ({@value}).
      */
@@ -67,7 +67,7 @@ public class ReportingExtension {
      * The base directory for all reports
      * <p>
      * This value can be changed, so any files derived from this should be calculated on demand.
-     * 
+     *
      * @return The base directory for all reports
      */
     public File getBaseDir() {
@@ -101,9 +101,9 @@ public class ReportingExtension {
     public String getApiDocTitle() {
         Object version = project.getVersion();
         if (Project.DEFAULT_VERSION.equals(version)) {
-            return String.format("%s API", project.getName());
+            return project.getName() + " API";
         } else {
-            return String.format("%s %s API", project.getName(), version);
+            return project.getName() + " " + version + " API";
         }
     }
 

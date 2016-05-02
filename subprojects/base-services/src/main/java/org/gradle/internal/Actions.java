@@ -175,7 +175,7 @@ public abstract class Actions {
 
         @Override
         public String toString() {
-            return String.format("RunnableActionAdapter{runnable=%s}", runnable);
+            return "RunnableActionAdapter{runnable=" + runnable + "}";
         }
     }
 

@@ -55,6 +55,6 @@ public class DefaultEclipseProjectDependency extends DefaultEclipseDependency im
 
     @Override
     public String toString() {
-        return String.format("project dependency %s (%s)", path, targetProject);
+        return "project dependency " + path + " (" + targetProject + ")";
     }
 }

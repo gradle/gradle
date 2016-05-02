@@ -80,7 +80,7 @@ public class DefaultColorMap implements ColorMap {
     }
 
     private Color createColor(String style) {
-        String colorSpec = System.getProperty(String.format("org.gradle.color.%s", style), defaults.get(style));
+        String colorSpec = System.getProperty("org.gradle.color." + style, defaults.get(style));
 
         if (colorSpec != null) {
             if (colorSpec.equalsIgnoreCase(BOLD)) {

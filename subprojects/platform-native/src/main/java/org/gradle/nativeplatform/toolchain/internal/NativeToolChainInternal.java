@@ -34,7 +34,7 @@ public interface NativeToolChainInternal extends NativeToolChain, ToolChainInter
 
     class Identifier {
         public static String identify(NativeToolChainInternal toolChain, NativePlatformInternal platform) {
-            return String.format("%s:%s:%s", toolChain.getOutputType(), platform.getArchitecture().getName(), platform.getOperatingSystem().getName());
+            return toolChain.getOutputType() + ":" + platform.getArchitecture().getName() + ":" + platform.getOperatingSystem().getName();
         }
     }
 }

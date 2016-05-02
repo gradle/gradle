@@ -35,7 +35,7 @@ public abstract class Block {
         payload.setBlock(null);
         payload = null;
     }
-    
+
     public abstract BlockPointer getPos();
 
     public abstract int getSize();
@@ -44,7 +44,7 @@ public abstract class Block {
 
     @Override
     public String toString() {
-        return String.format("%s %s", payload.getClass().getSimpleName(), getPos());
+        return payload.getClass().getSimpleName() + " " + getPos();
     }
 
     public BlockPointer getNextPos() {

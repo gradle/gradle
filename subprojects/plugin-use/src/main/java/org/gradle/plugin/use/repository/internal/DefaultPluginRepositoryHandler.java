@@ -115,7 +115,7 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
         int attempt = 1;
         while (repositories.containsKey(proposedName)) {
             attempt++;
-            proposedName = String.format("%s%d", proposedName, attempt);
+            proposedName = proposedName + attempt;
         }
         return proposedName;
     }

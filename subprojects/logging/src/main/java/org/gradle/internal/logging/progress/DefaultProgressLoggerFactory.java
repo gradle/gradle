@@ -78,7 +78,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
 
         @Override
         public String toString() {
-            return String.format("%s - %s", category, description);
+            return category + " - " + description;
         }
 
         public String getDescription() {

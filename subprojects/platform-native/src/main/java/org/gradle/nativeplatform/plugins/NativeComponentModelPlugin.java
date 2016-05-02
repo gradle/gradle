@@ -201,7 +201,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                 @Override
                 public void execute(DependentSourceSetInternal dependentSourceSet) {
                     if (dependentSourceSet.getPreCompiledHeader() != null) {
-                        String prefixHeaderDirName = String.format("tmp/%s/%s/prefixHeaders", componentSpec.getName(), dependentSourceSet.getName());
+                        String prefixHeaderDirName = "tmp/" + componentSpec.getName() + "/" + dependentSourceSet.getName() + "/prefixHeaders";
                         File prefixHeaderDir = new File(buildDir, prefixHeaderDirName);
                         File prefixHeaderFile = new File(prefixHeaderDir, "prefix-headers.h");
                         dependentSourceSet.setPrefixHeaderFile(prefixHeaderFile);
@@ -215,7 +215,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             for (final SourceComponentSpec nativeComponentSpec : components.withType(SourceComponentSpec.class).values()) {
                 for (final DependentSourceSetInternal dependentSourceSet : nativeComponentSpec.getSources().withType(DependentSourceSetInternal.class).values()) {
                     if (dependentSourceSet.getPrefixHeaderFile() != null) {
-                        String taskName = String.format("generate%s%sPrefixHeaderFile", StringUtils.capitalize(nativeComponentSpec.getName()), StringUtils.capitalize(dependentSourceSet.getName()));
+                        String taskName = "generate" + StringUtils.capitalize(nativeComponentSpec.getName()) + StringUtils.capitalize(dependentSourceSet.getName()) + "PrefixHeaderFile";
                         tasks.create(taskName, PrefixHeaderFileGenerateTask.class, new Action<PrefixHeaderFileGenerateTask>() {
                             @Override
                             public void execute(PrefixHeaderFileGenerateTask prefixHeaderFileGenerateTask) {
@@ -239,7 +239,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
                             if (dependentSourceSet.getPreCompiledHeader() != null) {
                                 nativeBinarySpec.addPreCompiledHeaderFor(dependentSourceSet);
                                 final SourceTransformTaskConfig pchTransformTaskConfig = transform.getPchTransformTask();
-                                String pchTaskName = String.format("%s%s%sPreCompiledHeader", pchTransformTaskConfig.getTaskPrefix(), StringUtils.capitalize(nativeBinarySpec.getProjectScopedName()), StringUtils.capitalize(dependentSourceSet.getName()));
+                                String pchTaskName = pchTransformTaskConfig.getTaskPrefix() + StringUtils.capitalize(nativeBinarySpec.getProjectScopedName()) + StringUtils.capitalize(dependentSourceSet.getName()) + "PreCompiledHeader";
                                 Task pchTask = tasks.create(pchTaskName, pchTransformTaskConfig.getTaskType(), new Action<DefaultTask>() {
                                     @Override
                                     public void execute(DefaultTask task) {
@@ -319,7 +319,7 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
         void applyHeaderSourceSetConventions(@Each HeaderExportingSourceSet headerSourceSet) {
             // Only apply default locations when none explicitly configured
             if (headerSourceSet.getExportedHeaders().getSrcDirs().isEmpty()) {
-                headerSourceSet.getExportedHeaders().srcDir(String.format("src/%s/headers", headerSourceSet.getParentName()));
+                headerSourceSet.getExportedHeaders().srcDir("src/" + headerSourceSet.getParentName() + "/headers");
             }
 
             headerSourceSet.getImplicitHeaders().setSrcDirs(headerSourceSet.getSource().getSrcDirs());

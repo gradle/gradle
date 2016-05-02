@@ -51,11 +51,11 @@ public class PlayCoffeeScriptPlugin implements Plugin<Project> {
     private static final String DEFAULT_RHINO_VERSION = "1.7R4";
 
     static String getDefaultCoffeeScriptDependencyNotation() {
-        return String.format("org.coffeescript:coffee-script-js:%s@js", DEFAULT_COFFEESCRIPT_VERSION);
+        return "org.coffeescript:coffee-script-js:" + DEFAULT_COFFEESCRIPT_VERSION + "@js";
     }
 
     static String getDefaultRhinoDependencyNotation() {
-        return String.format("org.mozilla:rhino:%s", DEFAULT_RHINO_VERSION);
+        return "org.mozilla:rhino:" + DEFAULT_RHINO_VERSION;
     }
 
     @Override

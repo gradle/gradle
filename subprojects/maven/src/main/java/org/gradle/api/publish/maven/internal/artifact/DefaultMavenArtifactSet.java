@@ -63,7 +63,7 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
     private class ArtifactsFileCollection implements MinimalFileSet {
         @Override
         public String getDisplayName() {
-            return String.format("artifacts for Maven publication '%s'", publicationName);
+            return "artifacts for Maven publication '" + publicationName + "'";
         }
 
         @Override

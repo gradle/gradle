@@ -63,7 +63,7 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
 
     @Override
     public String toString() {
-        return String.format("project '%s'", path);
+        return "project '" + path + "'";
     }
 
     public DefaultEclipseProjectIdentifier getIdentifier() {

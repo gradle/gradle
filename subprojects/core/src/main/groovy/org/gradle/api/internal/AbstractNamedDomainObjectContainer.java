@@ -72,7 +72,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
     }
 
     public String getDisplayName() {
-        return String.format("%s container", getTypeDisplayName());
+        return getTypeDisplayName() + " container";
     }
 
 }

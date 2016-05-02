@@ -106,7 +106,7 @@ public class ClassPathToClassLoaderCache implements Stoppable {
             cachedClassLoader = maybeGet(cacheEntry);
             if (cachedClassLoader == null) {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format("Classloader cache miss for classpath : %s. Creating classloader.", libClasspath.getAsURIs()));
+                    LOG.debug("Classloader cache miss for classpath : {}. Creating classloader.", libClasspath.getAsURIs());
                 }
                 // Lock is held while creating ClassLoader - nothing else can happen while this is running
                 ClassLoader classLoader = factory.create();
@@ -118,7 +118,7 @@ public class ClassPathToClassLoaderCache implements Stoppable {
                 cacheEntries.put(libClasspath, cacheEntry);
             } else {
                 if (LOG.isDebugEnabled()) {
-                    LOG.debug(String.format("Classloader found in cache: %s", libClasspath.getAsURIs()));
+                    LOG.debug("Classloader found in cache: {}", libClasspath.getAsURIs());
                 }
             }
 

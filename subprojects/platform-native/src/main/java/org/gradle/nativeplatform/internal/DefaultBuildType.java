@@ -36,6 +36,6 @@ public class DefaultBuildType implements BuildType {
 
     @Override
     public String getDisplayName() {
-        return String.format("build type '%s'", name);
+        return "build type '" + name + "'";
     }
 }

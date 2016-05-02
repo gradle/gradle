@@ -76,7 +76,7 @@ public class HttpPluginResolutionServiceClient implements PluginResolutionServic
     }
 
     private String toRequestUrl(String portalUrl, String path) {
-        return String.format("%s/%s%s", portalUrl, CLIENT_REQUEST_BASE, path);
+        return portalUrl + "/" + CLIENT_REQUEST_BASE + path;
     }
 
     private <T> Response<T> request(final String requestUrl, final Class<T> type, final Action<? super T> validator) {

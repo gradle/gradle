@@ -134,7 +134,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec  implements
 
     @Override
     public void addGeneratedScala(LanguageSourceSet input, SourceDirectorySetFactory sourceDirectorySetFactory) {
-        String lssName = String.format("%sScalaSources", input.getName());
+        String lssName = input.getName() + "ScalaSources";
         // TODO: To get rid of this, we need a `FunctionalSourceSet` instance here, and that's surprisingly difficult to get.
         ScalaLanguageSourceSet generatedScalaSources = BaseLanguageSourceSet.create(ScalaLanguageSourceSet.class, DefaultScalaLanguageSourceSet.class, getIdentifier().child(lssName), sourceDirectorySetFactory);
         generatedScalaSources.builtBy();
@@ -148,7 +148,7 @@ public class DefaultPlayApplicationBinarySpec extends BaseBinarySpec  implements
 
     @Override
     public void addGeneratedJavaScript(LanguageSourceSet input, SourceDirectorySetFactory sourceDirectorySetFactory) {
-        String lssName = String.format("%sJavaScript", input.getName());
+        String lssName = input.getName() + "JavaScript";
         JavaScriptSourceSet javaScript = BaseLanguageSourceSet.create(JavaScriptSourceSet.class, DefaultJavaScriptSourceSet.class, getIdentifier().child(lssName), sourceDirectorySetFactory);
         javaScript.builtBy();
         generatedJavaScript.put(input, javaScript);

@@ -89,7 +89,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
             return module(moduleName, properties, implementationClasspath);
         }
 
-        String resourceName = String.format("%s-classpath.properties", moduleName);
+        String resourceName = moduleName + "-classpath.properties";
         Set<File> implementationClasspath = new LinkedHashSet<File>();
         findImplementationClasspath(moduleName, implementationClasspath);
         for (File file : implementationClasspath) {
@@ -150,12 +150,12 @@ public class DefaultModuleRegistry implements ModuleRegistry {
         matcher.matches();
         String projectDirName = matcher.group(1);
         String projectName = toCamelCase(projectDirName);
-        suffixes.add(String.format("/out/production/%s", projectName).replace('/', File.separatorChar));
-        suffixes.add(String.format("/%s/bin", projectDirName).replace('/', File.separatorChar));
-        suffixes.add(String.format("/%s/src/main/resources", projectDirName).replace('/', File.separatorChar));
-        suffixes.add(String.format("/%s/build/classes/main", projectDirName).replace('/', File.separatorChar));
-        suffixes.add(String.format("/%s/build/resources/main", projectDirName).replace('/', File.separatorChar));
-        suffixes.add(String.format("/%s/build/generated-resources/main", projectDirName).replace('/', File.separatorChar));
+        suffixes.add(("/out/production/" + projectName).replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/bin").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/src/main/resources").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/classes/main").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/resources/main").replace('/', File.separatorChar));
+        suffixes.add(("/" + projectDirName + "/build/generated-resources/main").replace('/', File.separatorChar));
         for (File file : classpath) {
             if (file.isDirectory()) {
                 for (String suffix : suffixes) {
@@ -182,7 +182,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
         try {
             ZipFile zipFile = new ZipFile(jarFile);
             try {
-                final String entryName = String.format("%s-classpath.properties", name);
+                final String entryName = name + "-classpath.properties";
                 ZipEntry entry = zipFile.getEntry(entryName);
                 if (entry == null) {
                     throw new IllegalStateException("Did not find " + entryName + " in " + jarFile.getAbsolutePath());
@@ -259,7 +259,7 @@ public class DefaultModuleRegistry implements ModuleRegistry {
 
         @Override
         public String toString() {
-            return String.format("module '%s'", name);
+            return "module '" + name + "'";
         }
 
         public Set<Module> getRequiredModules() {

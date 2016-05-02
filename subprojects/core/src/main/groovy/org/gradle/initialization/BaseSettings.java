@@ -69,7 +69,7 @@ public class BaseSettings extends AbstractPluginAware implements SettingsInterna
 
     @Override
     public String toString() {
-        return String.format("settings '%s'", rootProjectDescriptor.getName());
+        return "settings '" + rootProjectDescriptor.getName() + "'";
     }
 
     public GradleInternal getGradle() {

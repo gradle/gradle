@@ -34,7 +34,7 @@ public class DefaultBuildIdentifier implements BuildIdentifier, Serializable {
 
     @Override
     public String toString() {
-        return String.format("build=%s", rootDir.getPath());
+        return "build=" + rootDir.getPath();
     }
 
     @Override

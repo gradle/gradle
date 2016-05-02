@@ -52,7 +52,7 @@ public class WindowsResourcesCompileTaskConfig implements SourceTransformTaskCon
     }
 
     private void configureResourceCompileTask(WindowsResourceCompile task, final NativeBinarySpecInternal binary, final WindowsResourceSet sourceSet) {
-        task.setDescription(String.format("Compiles resources of the %s of %s", sourceSet, binary));
+        task.setDescription("Compiles resources of the " + sourceSet + " of " + binary);
 
         task.setToolChain(binary.getToolChain());
         task.setTargetPlatform(binary.getTargetPlatform());

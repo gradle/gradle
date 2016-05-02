@@ -66,7 +66,7 @@ public class MavenResolver extends ExternalResourceResolver {
 
     @Override
     public String toString() {
-        return String.format("Maven repository '%s'", getName());
+        return "Maven repository '" + getName() + "'";
     }
 
     public URI getRoot() {
@@ -154,7 +154,7 @@ public class MavenResolver extends ExternalResourceResolver {
 
         if (mavenMetadata.timestamp != null) {
             // we have found a timestamp, so this is a snapshot unique version
-            String timestamp = String.format("%s-%s", mavenMetadata.timestamp, mavenMetadata.buildNumber);
+            String timestamp = mavenMetadata.timestamp + "-" + mavenMetadata.buildNumber;
             return new MavenUniqueSnapshotModuleSource(timestamp);
         }
         return null;

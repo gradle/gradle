@@ -42,12 +42,12 @@ public class DefaultJavaToolChain implements JavaToolChainInternal {
 
     @Override
     public String getName() {
-        return String.format("JDK%s", javaVersion);
+        return "JDK" + javaVersion;
     }
 
     @Override
     public String getDisplayName() {
-        return String.format("JDK %s (%s)", javaVersion.getMajorVersion(), javaVersion);
+        return "JDK " + javaVersion.getMajorVersion() + " (" + javaVersion + ")";
     }
 
     @Override

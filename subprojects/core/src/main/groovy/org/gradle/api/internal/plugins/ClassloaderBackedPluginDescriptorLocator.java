@@ -27,7 +27,7 @@ public class ClassloaderBackedPluginDescriptorLocator implements PluginDescripto
     }
 
     public PluginDescriptor findPluginDescriptor(String pluginId) {
-        URL resource = classLoader.getResource(String.format("META-INF/gradle-plugins/%s.properties", pluginId));
+        URL resource = classLoader.getResource("META-INF/gradle-plugins/" + pluginId + ".properties");
         if (resource == null) {
             return null;
         } else {

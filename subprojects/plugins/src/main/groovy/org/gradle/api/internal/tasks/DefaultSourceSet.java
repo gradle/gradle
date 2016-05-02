@@ -45,7 +45,7 @@ public class DefaultSourceSet implements SourceSet {
         displayName = GUtil.toWords(this.name);
         namingScheme = new ClassDirectoryBinaryNamingScheme(name);
 
-        String javaSrcDisplayName = String.format("%s Java source", displayName);
+        String javaSrcDisplayName = displayName + " Java source";
 
         javaSource = sourceDirectorySetFactory.create(javaSrcDisplayName);
         javaSource.getFilter().include("**/*.java");
@@ -54,7 +54,7 @@ public class DefaultSourceSet implements SourceSet {
         allJavaSource.getFilter().include("**/*.java");
         allJavaSource.source(javaSource);
 
-        String resourcesDisplayName = String.format("%s resources", displayName);
+        String resourcesDisplayName = displayName + " resources";
         resources = sourceDirectorySetFactory.create(resourcesDisplayName);
         resources.getFilter().exclude(new Spec<FileTreeElement>() {
             public boolean isSatisfiedBy(FileTreeElement element) {
@@ -62,7 +62,7 @@ public class DefaultSourceSet implements SourceSet {
             }
         });
 
-        String allSourceDisplayName = String.format("%s source", displayName);
+        String allSourceDisplayName = displayName + " source";
         allSource = sourceDirectorySetFactory.create(allSourceDisplayName);
         allSource.source(resources);
         allSource.source(javaSource);
@@ -74,7 +74,7 @@ public class DefaultSourceSet implements SourceSet {
 
     @Override
     public String toString() {
-        return String.format("source set '%s'", getDisplayName());
+        return "source set '" + getDisplayName() + "'";
     }
 
     public String getDisplayName() {
@@ -110,20 +110,20 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public String getCompileConfigurationName() {
-        return StringUtils.uncapitalize(String.format("%sCompile", getTaskBaseName()));
+        return StringUtils.uncapitalize(getTaskBaseName() + "Compile");
     }
 
     public String getRuntimeConfigurationName() {
-        return StringUtils.uncapitalize(String.format("%sRuntime", getTaskBaseName()));
+        return StringUtils.uncapitalize(getTaskBaseName() + "Runtime");
     }
 
     public String getCompileOnlyConfigurationName() {
-        return StringUtils.uncapitalize(String.format("%sCompileOnly", getTaskBaseName()));
+        return StringUtils.uncapitalize(getTaskBaseName() + "CompileOnly");
     }
 
     @Override
     public String getCompileClasspathConfigurationName() {
-        return StringUtils.uncapitalize(String.format("%sCompileClasspath", getTaskBaseName()));
+        return StringUtils.uncapitalize(getTaskBaseName() + "CompileClasspath");
     }
 
     public SourceSetOutput getOutput() {

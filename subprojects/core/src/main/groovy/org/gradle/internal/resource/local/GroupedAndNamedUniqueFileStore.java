@@ -54,7 +54,7 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
         String group = grouper.transform(key);
         String name = namer.transform(key);
 
-        return String.format("%s/%s/%s", group, checksumPart, name);
+        return group + "/" + checksumPart + "/" + name;
     }
 
     private String getChecksum(File contentFile) {

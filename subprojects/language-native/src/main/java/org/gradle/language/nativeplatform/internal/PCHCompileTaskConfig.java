@@ -44,7 +44,7 @@ public class PCHCompileTaskConfig extends CompileTaskConfig {
         // input sourceSet to the compile task.
         final DependentSourceSetInternal sourceSet = (DependentSourceSetInternal) languageSourceSet;
 
-        task.setDescription(String.format("Compiles a pre-compiled header for the %s of %s", sourceSet, binary));
+        task.setDescription("Compiles a pre-compiled header for the " + sourceSet + " of " + binary);
 
         // Add the source of the source set to the include paths to resolve any headers that may be in source directories
         task.includes(new Callable<Set<File>>() {

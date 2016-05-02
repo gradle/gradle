@@ -32,7 +32,7 @@ class SocketConnectCompletion implements ConnectCompletion {
 
     @Override
     public String toString() {
-        return String.format("%s to %s", socket.socket().getLocalSocketAddress(), socket.socket().getRemoteSocketAddress());
+        return socket.socket().getLocalSocketAddress() + " to " + socket.socket().getRemoteSocketAddress();
     }
 
     public <T> RemoteConnection<T> create(StatefulSerializer<T> serializer) {

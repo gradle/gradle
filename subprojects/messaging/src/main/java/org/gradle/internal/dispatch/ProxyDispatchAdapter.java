@@ -88,7 +88,7 @@ public class ProxyDispatchAdapter<T> {
                 return dispatch.hashCode();
             }
             if (method.getName().equals("toString")) {
-                return String.format("%s broadcast", type.getSimpleName());
+                return type.getSimpleName() + " broadcast";
             }
             dispatch.dispatch(new MethodInvocation(method, parameters));
             return null;

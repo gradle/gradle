@@ -122,7 +122,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
                 public void configureTask(Task task, BinarySpec binarySpec, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     PlatformScalaCompile compile = (PlatformScalaCompile) task;
-                    configureScalaTask(compile, ((WithJvmAssembly) binarySpec).getAssembly(), String.format("Compiles %s.", sourceSet));
+                    configureScalaTask(compile, ((WithJvmAssembly) binarySpec).getAssembly(), "Compiles " + sourceSet + ".");
                     addSourceSetToCompile(compile, sourceSet);
                     addSourceSetClasspath(compile, (ScalaLanguageSourceSet) sourceSet);
                 }
@@ -138,7 +138,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
 
                     compile.setDescription(description);
                     compile.setDestinationDir(single(assembly.getClassDirectories()));
-                    File analysisFile = new File(compile.getProject().getBuildDir(), String.format("tmp/scala/compilerAnalysis/%s.analysis", compile.getName()));
+                    File analysisFile = new File(compile.getProject().getBuildDir(), "tmp/scala/compilerAnalysis/" + compile.getName() + ".analysis");
                     compile.getScalaCompileOptions().getIncrementalOptions().setAnalysisFile(analysisFile);
 
                     JavaPlatform javaPlatform = assembly.getTargetPlatform();

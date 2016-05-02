@@ -62,6 +62,6 @@ public class TemplateValue {
 
     @Override
     public String toString() {
-        return String.format(">>>%s<<<", value);
+        return ">>>" + value + "<<<";
     }
 }

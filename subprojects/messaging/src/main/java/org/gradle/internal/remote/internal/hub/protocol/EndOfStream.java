@@ -19,7 +19,7 @@ package org.gradle.internal.remote.internal.hub.protocol;
 public class EndOfStream extends InterHubMessage {
     @Override
     public String toString() {
-        return String.format("[%s]", getClass().getSimpleName());
+        return "[" + getClass().getSimpleName() + "]";
     }
 
     @Override

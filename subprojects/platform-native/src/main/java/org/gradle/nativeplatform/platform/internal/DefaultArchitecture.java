@@ -34,7 +34,7 @@ public class DefaultArchitecture implements ArchitectureInternal {
 
     @Override
     public String getDisplayName() {
-        return String.format("architecture '%s'", name);
+        return "architecture '" + name + "'";
     }
 
     @Override

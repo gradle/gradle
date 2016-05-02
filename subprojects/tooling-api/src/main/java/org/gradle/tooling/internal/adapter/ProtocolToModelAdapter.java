@@ -656,7 +656,7 @@ public class ProtocolToModelAdapter implements Serializable {
                 return;
             }
 
-            String getterName = String.format("get%s", matcher.group(1));
+            String getterName = "get" + matcher.group(1);
             MethodInvocation getterInvocation = new MethodInvocation(getterName, invocation.getReturnType(), invocation.getGenericReturnType(), new Class[0], invocation.getDelegate(), EMPTY);
             next.invoke(getterInvocation);
             invocation.setResult(getterInvocation.found());

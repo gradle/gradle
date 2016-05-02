@@ -75,7 +75,7 @@ public class TaskDetailPrinter {
             final LinePrefixingStyledTextOutput typeOutput = createIndentedOutput(output, INDENT);
             typeOutput.println("Type");
             typeOutput.withStyle(UserInput).text(clazz.getSimpleName());
-            typeOutput.println(String.format(" (%s)", clazz.getName()));
+            typeOutput.println(" (" + clazz.getName() + ")");
 
             printlnCommandlineOptions(output, tasksByType);
 
@@ -152,7 +152,7 @@ public class TaskDetailPrinter {
         } else {
             attributeOutput.println(attributeHeader + "s");
             for (Task task : tasks) {
-                attributeOutput.withStyle(UserInput).text(String.format("(%s) ", task.getPath()));
+                attributeOutput.withStyle(UserInput).text("(" + task.getPath() + ") ");
                 String value = transformer.transform(task);
                 attributeOutput.println(value == null ? "-" : value);
             }
@@ -174,7 +174,7 @@ public class TaskDetailPrinter {
         while (optionNames.hasNext()) {
             String currentOption = optionNames.next();
             Set<String> availableValues = optionToAvailableOptionsValues.get(currentOption);
-            String optionString = String.format("--%s", currentOption);
+            String optionString = "--" + currentOption;
             output.text(INDENT).withStyle(UserInput).text(optionString);
             output.text(INDENT).text(optionToDescription.get(currentOption));
             if (!availableValues.isEmpty()) {

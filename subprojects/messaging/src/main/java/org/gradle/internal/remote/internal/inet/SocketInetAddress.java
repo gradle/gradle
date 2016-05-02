@@ -29,7 +29,7 @@ public class SocketInetAddress implements InetEndpoint {
     }
 
     public String getDisplayName() {
-        return String.format("%s:%s", address, port);
+        return address + ":" + port;
     }
 
     @Override

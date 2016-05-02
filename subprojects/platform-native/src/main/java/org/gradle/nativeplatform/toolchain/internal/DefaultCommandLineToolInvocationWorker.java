@@ -40,7 +40,7 @@ public class DefaultCommandLineToolInvocationWorker implements CommandLineToolIn
 
     @Override
     public String getDisplayName() {
-        return String.format("command line tool '%s'", name);
+        return "command line tool '" + name + "'";
     }
 
     @Override

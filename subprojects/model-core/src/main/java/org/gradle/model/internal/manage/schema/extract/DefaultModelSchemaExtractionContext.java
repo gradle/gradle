@@ -99,7 +99,7 @@ public class DefaultModelSchemaExtractionContext<T> implements ModelSchemaExtrac
     }
 
     public String getDescription() {
-        return description == null ? type.toString() : String.format("%s (%s)", description, type);
+        return description == null ? type.toString() : (description + " (" + type + ")");
     }
 
     public List<DefaultModelSchemaExtractionContext<?>> getChildren() {

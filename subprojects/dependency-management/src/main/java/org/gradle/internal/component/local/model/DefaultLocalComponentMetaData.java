@@ -155,7 +155,7 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
 
         @Override
         public String toString() {
-            return String.format("%s:%s", componentIdentifier.getDisplayName(), name);
+            return componentIdentifier.getDisplayName() + ":" + name;
         }
 
         public ComponentResolveMetaData getComponent() {

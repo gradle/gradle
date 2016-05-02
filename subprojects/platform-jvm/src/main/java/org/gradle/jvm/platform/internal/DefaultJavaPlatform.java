@@ -42,7 +42,7 @@ public class DefaultJavaPlatform implements JavaPlatform {
 
     @Override
     public String getDisplayName() {
-        return String.format("Java SE %s", targetCompatibility.getMajorVersion());
+        return "Java SE " + targetCompatibility.getMajorVersion();
     }
 
     @Override

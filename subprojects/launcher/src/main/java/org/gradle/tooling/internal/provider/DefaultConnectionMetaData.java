@@ -25,6 +25,6 @@ class DefaultConnectionMetaData implements ConnectionMetaDataVersion1 {
     }
 
     public String getDisplayName() {
-        return String.format("Gradle %s", getVersion());
+        return "Gradle " + getVersion();
     }
 }

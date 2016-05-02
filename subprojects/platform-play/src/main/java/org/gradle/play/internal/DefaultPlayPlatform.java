@@ -40,7 +40,7 @@ public class DefaultPlayPlatform implements PlayPlatformInternal {
 
     @Override
     public String getDisplayName() {
-        return String.format("Play Platform (Play %s, Scala: %s, Java: %s)", playVersion, scalaPlatform.getScalaCompatibilityVersion(), javaPlatform.getDisplayName());
+        return "Play Platform (Play " + playVersion + ", Scala: " + scalaPlatform.getScalaCompatibilityVersion() + ", Java: " + javaPlatform.getDisplayName() + ")";
     }
 
     @Override
@@ -60,7 +60,7 @@ public class DefaultPlayPlatform implements PlayPlatformInternal {
 
     @Override
     public String getDependencyNotation(String playModule) {
-        return String.format("com.typesafe.play:%s_%s:%s", playModule, scalaPlatform.getScalaCompatibilityVersion(), playVersion);
+        return "com.typesafe.play:" + playModule + "_" + scalaPlatform.getScalaCompatibilityVersion() + ":" + playVersion;
     }
 
     @Override

@@ -130,7 +130,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
         private final ExceptionTrackingFailureHandler failureHandler;
 
         public NonBlockingActor(Object targetObject) {
-            executor = executorFactory.create(String.format("Dispatch %s", targetObject));
+            executor = executorFactory.create("Dispatch " + targetObject);
             failureHandler = new ExceptionTrackingFailureHandler(LoggerFactory.getLogger(NonBlockingActor.class));
             dispatch = new AsyncDispatch<MethodInvocation>(executor,
                     new FailureHandlingDispatch<MethodInvocation>(

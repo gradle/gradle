@@ -115,7 +115,7 @@ public class Jvm implements JavaInfo {
         if (userSupplied) {
             return "User-supplied java: " + javaBase;
         }
-        return String.format("%s (%s %s)", SystemProperties.getInstance().getJavaVersion(), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
+        return SystemProperties.getInstance().getJavaVersion() + " (" + System.getProperty("java.vm.vendor") + " " + System.getProperty("java.vm.version") + ")";
     }
 
     @Override
@@ -243,9 +243,9 @@ public class Jvm implements JavaInfo {
         if (os.isWindows()) {
             File jreDir;
             if (javaVersion.isJava5()) {
-                jreDir = new File(javaHome.getParentFile(), String.format("jre%s", SystemProperties.getInstance().getJavaVersion()));
+                jreDir = new File(javaHome.getParentFile(), "jre" + SystemProperties.getInstance().getJavaVersion());
             } else {
-                jreDir = new File(javaHome.getParentFile(), String.format("jre%s", javaVersion.getMajorVersion()));
+                jreDir = new File(javaHome.getParentFile(), "jre" + javaVersion.getMajorVersion());
             }
             if (jreDir.isDirectory()) {
                 return new DefaultJre(jreDir);
@@ -286,8 +286,8 @@ public class Jvm implements JavaInfo {
 
         if (os.isWindows()) {
             String version = SystemProperties.getInstance().getJavaVersion();
-            if (javaHome.getName().matches("jre\\d+") || javaHome.getName().equals(String.format("jre%s", version))) {
-                javaHome = new File(javaHome.getParentFile(), String.format("jdk%s", version));
+            if (javaHome.getName().matches("jre\\d+") || javaHome.getName().equals("jre" + version)) {
+                javaHome = new File(javaHome.getParentFile(), "jdk" + version);
                 toolsJar = new File(javaHome, "lib/tools.jar");
                 if (toolsJar.exists()) {
                     return toolsJar;

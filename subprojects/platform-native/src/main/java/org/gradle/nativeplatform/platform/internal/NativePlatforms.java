@@ -87,7 +87,7 @@ public class NativePlatforms {
     }
 
     private static String platformName(String os, String arch) {
-        return String.format("%s_%s", os, arch);
+        return os + "_" + arch;
     }
 
     public String getDefaultPlatformName() {

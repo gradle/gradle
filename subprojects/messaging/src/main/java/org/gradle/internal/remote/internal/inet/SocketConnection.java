@@ -70,7 +70,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
 
     @Override
     public String toString() {
-        return String.format("socket connection from %s to %s", localAddress, remoteAddress);
+        return "socket connection from " + localAddress + " to " + remoteAddress;
     }
 
     public T receive() throws MessageIOException {

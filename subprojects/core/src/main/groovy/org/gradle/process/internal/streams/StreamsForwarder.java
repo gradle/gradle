@@ -58,7 +58,7 @@ public class StreamsForwarder implements StreamsHandler {
         standardInputRunner = new ExecOutputHandleRunner("write standard input into: " + processName,
                 instr, process.getOutputStream());
 
-        this.executor = executorFactory.create(String.format("Forward streams with process: %s", processName));
+        this.executor = executorFactory.create("Forward streams with process: " + processName);
     }
 
     public void start() {

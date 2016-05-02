@@ -245,7 +245,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             tasks.create(createRuntimeJar, Jar.class, new Action<Jar>() {
                 @Override
                 public void execute(Jar jar) {
-                    jar.setDescription(String.format("Creates the binary file for %s.", binary));
+                    jar.setDescription("Creates the binary file for " + binary + ".");
                     jar.from(assembly.getClassDirectories());
                     jar.from(assembly.getResourceDirectories());
                     jar.setDestinationDir(runtimeJarDestDir);
@@ -261,7 +261,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
             tasks.create(apiJarTaskName, ApiJar.class, new Action<ApiJar>() {
                 @Override
                 public void execute(ApiJar apiJarTask) {
-                    apiJarTask.setDescription(String.format("Creates the API binary file for %s.", binary));
+                    apiJarTask.setDescription("Creates the API binary file for " + binary + ".");
                     apiJarTask.setOutputFile(apiJarFile.getFile());
                     apiJarTask.setExportedPackages(exportedPackages);
                     configureApiJarInputs(apiJarTask, assembly);
@@ -333,8 +333,8 @@ public class JvmComponentPlugin implements Plugin<Project> {
         void configureJarBinaries(@Each JarBinarySpecInternal jarBinary, ProjectLayout projectLayout, JavaToolChainRegistry toolChains) {
             String libraryName = jarBinary.getId().getLibraryName();
             File jarsDir = jarBinary.getNamingScheme().getOutputDirectory(projectLayout.getBuildDir(), "jars");
-            jarBinary.setJarFile(new File(jarsDir, String.format("%s.jar", libraryName)));
-            jarBinary.setApiJarFile(new File(jarsDir, String.format("api/%s.jar", libraryName)));
+            jarBinary.setJarFile(new File(jarsDir, libraryName + ".jar"));
+            jarBinary.setApiJarFile(new File(jarsDir, "api/" + libraryName + ".jar"));
             jarBinary.setToolChain(toolChains.getForPlatform(jarBinary.getTargetPlatform()));
         }
     }

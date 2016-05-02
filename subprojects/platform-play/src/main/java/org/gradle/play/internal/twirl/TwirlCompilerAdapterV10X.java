@@ -108,6 +108,6 @@ class TwirlCompilerAdapterV10X implements VersionedTwirlCompilerAdapter {
 
     @Override
     public String getDependencyNotation() {
-        return String.format("com.typesafe.play:twirl-compiler_%s:%s", scalaVersion, twirlVersion);
+        return "com.typesafe.play:twirl-compiler_" + scalaVersion + ":" + twirlVersion;
     }
 }

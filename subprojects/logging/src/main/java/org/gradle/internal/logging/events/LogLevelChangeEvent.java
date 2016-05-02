@@ -34,7 +34,7 @@ public class LogLevelChangeEvent extends OutputEvent {
 
     @Override
     public String toString() {
-        return String.format("%s %s", LogLevelChangeEvent.class.getSimpleName(), newLogLevel);
+        return LogLevelChangeEvent.class.getSimpleName() + " " + newLogLevel;
     }
 
     @Override

@@ -37,7 +37,7 @@ public class ClassTestResults extends CompositeTestResults {
         this.id = id;
         this.name = name;
         this.packageResults = packageResults;
-        baseUrl = String.format("classes/%s.html", FileUtils.toSafeFileName(name));
+        baseUrl = "classes/" + FileUtils.toSafeFileName(name) + ".html";
     }
 
     public long getId() {
@@ -46,7 +46,7 @@ public class ClassTestResults extends CompositeTestResults {
 
     @Override
     public String getTitle() {
-        return String.format("Class %s", name);
+        return "Class " + name;
     }
 
     @Override

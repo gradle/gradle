@@ -39,7 +39,7 @@ public abstract class OperatingSystem {
     OperatingSystem() {
         osName = System.getProperty("os.name");
         osVersion = System.getProperty("os.version");
-        toStringValue = String.format("%s %s %s", getName(), getVersion(), System.getProperty("os.arch"));
+        toStringValue = getName() + " " + getVersion() + " " + System.getProperty("os.arch");
     }
 
     public static OperatingSystem current() {

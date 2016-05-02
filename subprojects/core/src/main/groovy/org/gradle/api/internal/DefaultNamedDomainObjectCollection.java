@@ -151,7 +151,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     public String getDisplayName() {
-        return String.format("%s container", getTypeDisplayName());
+        return getTypeDisplayName() + " container";
     }
 
     public SortedMap<String, T> getAsMap() {

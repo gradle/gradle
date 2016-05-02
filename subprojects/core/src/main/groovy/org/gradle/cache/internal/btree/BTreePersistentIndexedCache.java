@@ -72,7 +72,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     @Override
     public String toString() {
-        return String.format("cache %s (%s)", cacheFile.getName(), cacheFile);
+        return "cache " + cacheFile.getName() + " (" + cacheFile + ")";
     }
 
     private void open() throws Exception {
@@ -80,7 +80,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         try {
             doOpen();
         } catch (CorruptedCacheException e) {
-            rebuild(e);
+            rebuild();
         }
     }
 
@@ -121,7 +121,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
                 }
                 return null;
             } catch (CorruptedCacheException e) {
-                rebuild(e);
+                rebuild();
                 return null;
             }
         } catch (Exception e) {
@@ -201,8 +201,8 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         return store.isOpen();
     }
 
-    private void rebuild(CorruptedCacheException exception) throws Exception {
-        LOGGER.warn("{} is corrupt. Discarding due to exception: {}", this, exception);
+    private void rebuild() throws Exception {
+        LOGGER.warn("{} is corrupt. Discarding.", this);
         store.clear();
         close();
         doOpen();

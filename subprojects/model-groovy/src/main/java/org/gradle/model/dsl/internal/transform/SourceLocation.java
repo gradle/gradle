@@ -64,10 +64,10 @@ public class SourceLocation {
 
     @Override
     public String toString() {
-        return String.format("%s line %d, column %d", scriptSourceDescription, lineNumber, columnNumber);
+        return scriptSourceDescription + " line " + lineNumber + ", column " + columnNumber;
     }
 
     public ModelRuleDescriptor asDescriptor() {
-        return new SimpleModelRuleDescriptor(String.format("%s @ %s", expression, toString()));
+        return new SimpleModelRuleDescriptor(expression + " @ " + toString());
     }
 }

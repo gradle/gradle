@@ -40,7 +40,7 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
     }
 
     public String getDisplayName() {
-        return String.format("file '%s'", file);
+        return "file '" + file + "'";
     }
 
     public long getLastModified() {

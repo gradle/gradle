@@ -96,15 +96,15 @@ public class PlayRun extends ConventionTask {
 
         if (!getProject().getGradle().getStartParameter().isContinuous()) {
             ProgressLogger progressLogger = progressLoggerFactory.newOperation(PlayRun.class)
-                .start(String.format("Run Play App at http://localhost:%d/", httpPort),
-                    String.format("Running at http://localhost:%d/", httpPort));
+                .start("Run Play App at http://localhost:" + httpPort + "/",
+                    "Running at http://localhost:"+ httpPort + "/");
             try {
                 waitForCtrlD();
             } finally {
                 progressLogger.completed();
             }
         } else {
-            LOGGER.warn(String.format("Running Play App (%s) at http://localhost:%d/", getPath(), httpPort));
+            LOGGER.warn("Running Play App ({}) at http://localhost:{}/", getPath(), httpPort);
         }
     }
 

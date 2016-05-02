@@ -109,7 +109,7 @@ public class IncrementalCompileProcessor {
 
             for (ResolvedInclude dep : newState.getResolvedIncludes()) {
                 if (dep.isUnknown()) {
-                    LOGGER.info(String.format("Cannot determine changed state of included '%s' in source file '%s'. Assuming changed.", dep.getInclude(), file.getName()));
+                    LOGGER.info("Cannot determine changed state of included '{}' in source file '{}'. Assuming changed.", dep.getInclude(), file.getName());
                     changed = true;
                 } else {
                     boolean depChanged = checkChangedAndUpdateState(dep.getFile());

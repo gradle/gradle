@@ -53,7 +53,7 @@ public class TarFileTree implements MinimalFileTree, FileSystemMirroringFileTree
         this.chmod = chmod;
         this.stat = stat;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        String expandDirName = String.format("%s_%s", resource.getBaseName(), HashUtil.createCompactMD5(resource.getURI().toString()));
+        String expandDirName = resource.getBaseName() + "_" + HashUtil.createCompactMD5(resource.getURI().toString());
         this.tmpDir = new File(tmpDir, expandDirName);
     }
 

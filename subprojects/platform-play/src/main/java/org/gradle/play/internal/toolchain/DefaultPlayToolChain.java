@@ -56,12 +56,12 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
 
     @Override
     public String getName() {
-        return String.format("PlayToolchain");
+        return "PlayToolchain";
     }
 
     @Override
     public String getDisplayName() {
-        return String.format("Default Play Toolchain");
+        return "Default Play Toolchain";
     }
 
     @Override

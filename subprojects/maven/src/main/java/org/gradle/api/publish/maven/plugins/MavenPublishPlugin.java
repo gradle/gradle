@@ -115,14 +115,14 @@ public class MavenPublishPlugin implements Plugin<Project> {
             for (final MavenArtifactRepository repository : extension.getRepositories().withType(MavenArtifactRepository.class)) {
                 final String repositoryName = repository.getName();
 
-                String publishTaskName = String.format("publish%sPublicationTo%sRepository", capitalize(publicationName), capitalize(repositoryName));
+                String publishTaskName = "publish" + capitalize(publicationName) + "PublicationTo" + capitalize(repositoryName) + "Repository";
 
                 tasks.create(publishTaskName, PublishToMavenRepository.class, new Action<PublishToMavenRepository>() {
                     public void execute(PublishToMavenRepository publishTask) {
                         publishTask.setPublication(publication);
                         publishTask.setRepository(repository);
                         publishTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-                        publishTask.setDescription(String.format("Publishes Maven publication '%s' to Maven repository '%s'.", publicationName, repositoryName));
+                        publishTask.setDescription("Publishes Maven publication '" + publicationName + "' to Maven repository '" + repositoryName + "'.");
 
                     }
                 });
@@ -131,23 +131,23 @@ public class MavenPublishPlugin implements Plugin<Project> {
         }
 
         private void createLocalInstallTask(ModelMap<Task> tasks, final Task publishLocalLifecycleTask, final MavenPublicationInternal publication, final String publicationName) {
-            final String installTaskName = String.format("publish%sPublicationToMavenLocal", capitalize(publicationName));
+            final String installTaskName = "publish" + capitalize(publicationName) + "PublicationToMavenLocal";
 
             tasks.create(installTaskName, PublishToMavenLocal.class, new Action<PublishToMavenLocal>() {
                 public void execute(PublishToMavenLocal publishLocalTask) {
                     publishLocalTask.setPublication(publication);
                     publishLocalTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
-                    publishLocalTask.setDescription(String.format("Publishes Maven publication '%s' to the local Maven repository.", publicationName));
+                    publishLocalTask.setDescription("Publishes Maven publication '" + publicationName + "' to the local Maven repository.");
                 }
             });
             publishLocalLifecycleTask.dependsOn(installTaskName);
         }
 
-        private void createGeneratePomTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, String publicationName, final File buildDir) {
-            String descriptorTaskName = String.format("generatePomFileFor%sPublication", capitalize(publicationName));
+        private void createGeneratePomTask(ModelMap<Task> tasks, final MavenPublicationInternal publication, final String publicationName, final File buildDir) {
+            String descriptorTaskName = "generatePomFileFor" + capitalize(publicationName) + "Publication";
             tasks.create(descriptorTaskName, GenerateMavenPom.class, new Action<GenerateMavenPom>() {
                 public void execute(final GenerateMavenPom generatePomTask) {
-                    generatePomTask.setDescription(String.format("Generates the Maven POM file for publication '%s'.", publication.getName()));
+                    generatePomTask.setDescription("Generates the Maven POM file for publication '" + publicationName + "'.");
                     generatePomTask.setGroup(PublishingPlugin.PUBLISH_TASK_GROUP);
                     generatePomTask.setPom(publication.getPom());
                     generatePomTask.setDestination(new File(buildDir, "publications/" + publication.getName() + "/pom-default.xml"));
