@@ -58,7 +58,7 @@ class LibExeStaticLibraryArchiver implements Compiler<StaticLibraryArchiverSpec>
         invocationContext.getArgAction().execute(args);
         new VisualCppOptionsFileArgsWriter(spec.getTempDir()).execute(args);
         final CommandLineToolInvocation invocation = invocationContext.createInvocation(
-                "archiving %s" + spec.getOutputFile().getName(), args, spec.getOperationLogger());
+                "archiving " + spec.getOutputFile().getName(), args, spec.getOperationLogger());
 
         buildOperationProcessor.run(commandLineToolInvocationWorker, new Action<BuildOperationQueue<CommandLineToolInvocation>>() {
             @Override

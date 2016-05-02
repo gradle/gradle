@@ -41,6 +41,12 @@ public interface LibraryResolutionErrorMessageBuilder {
     class LibraryResolutionResult {
         private static final LibraryResolutionResult EMPTY = new LibraryResolutionResult();
         private static final LibraryResolutionResult PROJECT_NOT_FOUND = new LibraryResolutionResult();
+        public static final Function<String, String> QUOTE_TRANSFORMER = new Function<String, String>() {
+            @Override
+            public String apply(String input) {
+                return "'" + input + "'";
+            }
+        };
         private final Map<String, VariantComponentSpec> libsMatchingRequirements;
         private final Map<String, VariantComponentSpec> libsNotMatchingRequirements;
 
@@ -151,12 +157,7 @@ public interface LibraryResolutionErrorMessageBuilder {
         }
 
         private static List<String> formatLibraryNames(List<String> libs) {
-            List<String> list = Lists.transform(libs, new Function<String, String>() {
-                @Override
-                public String apply(String input) {
-                    return String.format("'%s'", input);
-                }
-            });
+            List<String> list = Lists.transform(libs, QUOTE_TRANSFORMER);
             return Ordering.natural().sortedCopy(list);
         }
     }
