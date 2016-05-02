@@ -15,6 +15,9 @@
  */
 package org.gradle.launcher.daemon.server;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+
 import java.util.List;
 
 /**
@@ -29,13 +32,26 @@ public class AllDaemonExpirationStrategy implements DaemonExpirationStrategy {
 
     @Override
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
+        // If no expiration strategies exist, the daemon will not expire.
         DaemonExpirationResult expirationResult = new DaemonExpirationResult(false, null);
+        List<String> reasons = Lists.newArrayList();
+
         for (DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
+            // If any of the child strategies don't expire the daemon, the daemon will not expire.
+            // Otherwise, the daemon will expire and aggregate the reasons together.
             expirationResult = expirationStrategy.checkExpiration(daemon);
+
             if (!expirationResult.isExpired()) {
                 return new DaemonExpirationResult(false, null);
+            } else {
+                reasons.add(expirationResult.getReason());
             }
         }
-        return expirationResult;
+
+        if (!expirationResult.isExpired()) {
+            return expirationResult;
+        } else {
+            return new DaemonExpirationResult(true, Joiner.on(" and ").skipNulls().join(reasons));
+        }
     }
 }
