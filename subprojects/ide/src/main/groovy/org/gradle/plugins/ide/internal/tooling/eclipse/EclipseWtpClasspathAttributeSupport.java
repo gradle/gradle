@@ -19,70 +19,119 @@ package org.gradle.plugins.ide.internal.tooling.eclipse;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.plugins.WarPlugin;
+import org.gradle.plugins.ear.Ear;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.eclipse.model.*;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
+import org.gradle.plugins.ide.internal.IdeDependenciesExtractor;
+import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
 
 import java.util.*;
 
-public class EclipseWtpClasspathAttributeSupport {
+public abstract class EclipseWtpClasspathAttributeSupport {
+
+    public abstract void defineAttributesForExternalDependencies(Map<AbstractLibrary, DefaultEclipseExternalDependency> entryToExternalDependency);
+
+    public abstract void defineAttributesForProjectDependencies(Map<ProjectDependency, DefaultEclipseProjectDependency> entryToProjectDependency);
 
     private static final String ATTRIBUTE_WTP_DEPLOYED = "org.eclipse.jst.component.dependency";
     private static final String ATTRIBUTE_WTP_NONDEPLOYED = "org.eclipse.jst.component.nondependency";
+    private static final String DEFAULT_DEPLOY_DIR_NAME = "/WEB-INF/lib";
 
-    private final boolean isWtpUtilityProject;
-    private final Set<ModuleVersionIdentifier> rootConfigModuleVersions;
-    private final Set<ModuleVersionIdentifier> libConfigModuleVersions;
+    public static final EclipseWtpClasspathAttributeSupport from(Project project) {
+        EclipseModel eclipseModel = project.getExtensions().findByType(EclipseModel.class);
+        if (eclipseModel != null) {
+            EclipseWtp eclipseWtp = eclipseModel.getWtp();
+            if (eclipseWtp != null) {
+                boolean isUtilityProject = !project.getPlugins().hasPlugin(WarPlugin.class) && !project.getPlugins().hasPlugin(EarPlugin.class);
 
-    public EclipseWtpClasspathAttributeSupport(Project project, EclipseWtp wtp) {
-        this.isWtpUtilityProject = !project.getPlugins().hasPlugin(WarPlugin.class) && !project.getPlugins().hasPlugin(EarPlugin.class);
-        this.rootConfigModuleVersions = collectConfigurationsModuleVersions(wtp.getComponent().getRootConfigurations());
-        this.libConfigModuleVersions = collectConfigurationsModuleVersions(wtp.getComponent().getLibConfigurations());
-    }
+                Ear ear = (Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME);
+                String libDirName = ear == null ? DEFAULT_DEPLOY_DIR_NAME : ear.getLibDirName();
 
-    private Set<ModuleVersionIdentifier> collectConfigurationsModuleVersions(Set<Configuration> configurations) {
-        Set<ModuleVersionIdentifier> result = new HashSet<ModuleVersionIdentifier>();
-        for (Configuration configuration : configurations) {
-            ResolvedConfiguration resolvedConfiguration = configuration.getResolvedConfiguration();
-            Set<ResolvedArtifact> artifacts = resolvedConfiguration.getResolvedArtifacts();
-            for (ResolvedArtifact artifact : artifacts) {
-                ResolvedModuleVersion artifactModuleVersion = artifact.getModuleVersion();
-                result.add(artifactModuleVersion.getId());
+                IdeDependenciesExtractor depsExtractor = new IdeDependenciesExtractor();
+
+                EclipseWtpComponent wtpComponent = eclipseWtp.getComponent();
+                Set<Configuration> rootConfigs = wtpComponent.getRootConfigurations();
+                Set<Configuration> libConfigs = wtpComponent.getLibConfigurations();
+                Set<Configuration> minusConfigs = wtpComponent.getMinusConfigurations();
+
+                return new DefaultWtpClasspathAttributeSupport(depsExtractor, isUtilityProject, libDirName, rootConfigs, libConfigs, minusConfigs);
             }
         }
-        return result;
+
+        return new NoOpWtpClasspathAttributeSupport();
     }
 
-    public void defineAttributesForProjectDependencies(Map<ProjectDependency, DefaultEclipseProjectDependency> entryToProjectDependency) {
-        for (DefaultEclipseProjectDependency dependency : entryToProjectDependency.values()) {
-            dependency.getClasspathAttributes().add(new DefaultClasspathAttribute(ATTRIBUTE_WTP_NONDEPLOYED, ""));
+    private static class NoOpWtpClasspathAttributeSupport extends EclipseWtpClasspathAttributeSupport {
+
+        @Override
+        public void defineAttributesForExternalDependencies(Map<AbstractLibrary, DefaultEclipseExternalDependency> entryToExternalDependency) {
+        }
+
+        @Override
+        public void defineAttributesForProjectDependencies(Map<ProjectDependency, DefaultEclipseProjectDependency> entryToProjectDependency) {
         }
     }
 
-    public void defineAttributesForExternalDependencies(Map<AbstractLibrary, DefaultEclipseExternalDependency> entryToExternalDependency) {
-        for (AbstractLibrary library : entryToExternalDependency.keySet()) {
-            DefaultEclipseExternalDependency dependency = entryToExternalDependency.get(library);
-            defineAttributesForExternalDependency(library, dependency);
+    private static class DefaultWtpClasspathAttributeSupport extends EclipseWtpClasspathAttributeSupport {
+
+        private final String libDirName;
+        private final boolean isUtilityProject;
+        private final Set<ModuleVersionIdentifier> rootConfigModuleVersions;
+        private final Set<ModuleVersionIdentifier> libConfigModuleVersions;
+
+
+        public DefaultWtpClasspathAttributeSupport(IdeDependenciesExtractor depsExtractor, boolean isUtilityProject,
+                                                   String libDirName, Set<Configuration> rootConfigs,
+                                                   Set<Configuration> libConfigs, Set<Configuration> minusConfigs) {
+            this.isUtilityProject = isUtilityProject;
+            this.libDirName = libDirName;
+            this.rootConfigModuleVersions = collectModuleVersions(depsExtractor, rootConfigs, minusConfigs);
+            this.libConfigModuleVersions = collectModuleVersions(depsExtractor, libConfigs, minusConfigs);
         }
-    }
 
-    private void defineAttributesForExternalDependency(AbstractLibrary library, DefaultEclipseExternalDependency dependency) {
-        DefaultClasspathAttribute classpathAttribute = createDeploymentAttributeFor(library);
-        dependency.getClasspathAttributes().add(classpathAttribute);
-    }
+        private Set<ModuleVersionIdentifier> collectModuleVersions(IdeDependenciesExtractor depsExtractor, Set<Configuration> configs, Set<Configuration> minusConfigs) {
+            Collection<IdeExtendedRepoFileDependency> dependencies = depsExtractor.resolvedExternalDependencies(configs, minusConfigs);
+            Set<ModuleVersionIdentifier> result = new HashSet<ModuleVersionIdentifier>();
+            for (IdeExtendedRepoFileDependency dependency : dependencies) {
+                dependency.getId();
+                result.add(dependency.getId());
+            }
+            return result;
+        }
 
-    private DefaultClasspathAttribute createDeploymentAttributeFor(AbstractLibrary library) {
-        if (!isWtpUtilityProject) {
-            ModuleVersionIdentifier moduleVersion = library.getModuleVersion();
-            if (moduleVersion != null) {
-                if (rootConfigModuleVersions.contains(moduleVersion)) {
-                    return new DefaultClasspathAttribute(ATTRIBUTE_WTP_DEPLOYED, "/");
-                } else if (libConfigModuleVersions.contains(moduleVersion)) {
-                    return new DefaultClasspathAttribute(ATTRIBUTE_WTP_DEPLOYED, "/WEB-INF/lib");
+        @Override
+        public void defineAttributesForProjectDependencies(Map<ProjectDependency, DefaultEclipseProjectDependency> entryToProjectDependency) {
+            for (DefaultEclipseProjectDependency dependency : entryToProjectDependency.values()) {
+                dependency.getClasspathAttributes().add(new DefaultClasspathAttribute(ATTRIBUTE_WTP_NONDEPLOYED, ""));
+            }
+        }
+
+        @Override
+        public void defineAttributesForExternalDependencies(Map<AbstractLibrary, DefaultEclipseExternalDependency> entryToExternalDependency) {
+            for (AbstractLibrary library : entryToExternalDependency.keySet()) {
+                DefaultEclipseExternalDependency dependency = entryToExternalDependency.get(library);
+                defineAttributesForExternalDependency(library, dependency);
+            }
+        }
+
+        private void defineAttributesForExternalDependency(AbstractLibrary library, DefaultEclipseExternalDependency dependency) {
+            DefaultClasspathAttribute classpathAttribute = createDeploymentAttributeFor(library);
+            dependency.getClasspathAttributes().add(classpathAttribute);
+        }
+
+        private DefaultClasspathAttribute createDeploymentAttributeFor(AbstractLibrary library) {
+            if (!isUtilityProject) {
+                ModuleVersionIdentifier moduleVersion = library.getModuleVersion();
+                if (moduleVersion != null) {
+                    if (rootConfigModuleVersions.contains(moduleVersion)) {
+                        return new DefaultClasspathAttribute(ATTRIBUTE_WTP_DEPLOYED, "/");
+                    } else if (libConfigModuleVersions.contains(moduleVersion)) {
+                        return new DefaultClasspathAttribute(ATTRIBUTE_WTP_DEPLOYED, libDirName);
+                    }
                 }
             }
+            return new DefaultClasspathAttribute(ATTRIBUTE_WTP_NONDEPLOYED, "");
         }
-        return new DefaultClasspathAttribute(ATTRIBUTE_WTP_NONDEPLOYED, "");
     }
-
 }

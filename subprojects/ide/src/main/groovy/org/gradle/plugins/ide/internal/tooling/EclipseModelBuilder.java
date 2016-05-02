@@ -221,12 +221,9 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
             );
         }
 
-        if (isWebProject(project)) {
-            EclipseWtp wtp = project.getExtensions().findByType(EclipseModel.class).getWtp();
-            EclipseWtpClasspathAttributeSupport wtpSupport = new EclipseWtpClasspathAttributeSupport(project, wtp);
-            wtpSupport.defineAttributesForExternalDependencies(entryToExternalDependency);
-            wtpSupport.defineAttributesForProjectDependencies(entryToProjectDependency);
-        }
+        EclipseWtpClasspathAttributeSupport wtpSupport = EclipseWtpClasspathAttributeSupport.from(project);
+        wtpSupport.defineAttributesForExternalDependencies(entryToExternalDependency);
+        wtpSupport.defineAttributesForProjectDependencies(entryToProjectDependency);
 
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);
