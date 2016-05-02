@@ -18,8 +18,8 @@ dependencies {
     compile libraries.groovy
 
     compile project(':core')
-    compile project(":plugins")
-    compile project(":maven")
+    compile project(':plugins')
+    compile project(':maven')
 
     compile libraries.bouncycastle_pgp
 }
