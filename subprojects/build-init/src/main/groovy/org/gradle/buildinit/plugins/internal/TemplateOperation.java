@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal
+package org.gradle.buildinit.plugins.internal;
 
-
-class DefaultTemplateLibraryVersionProvider implements TemplateLibraryVersionProvider{
-
-    private final Properties libraryVersions = new Properties()
-
-    public DefaultTemplateLibraryVersionProvider() {
-        libraryVersions.load(getClass().getResourceAsStream("/org/gradle/buildinit/tasks/templates/library-versions.properties"))
-    }
-
-    String getVersion(String module){
-        libraryVersions.getProperty(module)
-    }
+public interface TemplateOperation {
+    void generate();
 }

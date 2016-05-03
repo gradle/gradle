@@ -16,6 +16,7 @@
 
 package org.gradle.buildinit.tasks
 
+import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Incubating
@@ -33,6 +34,7 @@ import static BuildInitTestFramework.NONE
  * Generates a Gradle project structure.
   */
 @Incubating
+@CompileStatic
 class InitBuild extends DefaultTask {
     private String type
     private String testFramework
@@ -86,6 +88,7 @@ class InitBuild extends DefaultTask {
     }
 
     @OptionValues("type")
+    @SuppressWarnings("GroovyUnusedDeclaration")
     List<String> getAvailableBuildTypes(){
         return getProjectLayoutRegistry().getSupportedTypes();
     }
@@ -96,6 +99,7 @@ class InitBuild extends DefaultTask {
     }
 
     @OptionValues("test-framework")
+    @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
     List<String> getAvailableTestFrameworks() {
         return BuildInitTestFramework.listSupported();
     }

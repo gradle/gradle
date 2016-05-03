@@ -15,9 +15,14 @@
  */
 
 package org.gradle.buildinit.plugins.internal
+
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 class SimpleTemplateOperationSpec extends Specification {
+    @Rule
+    TemporaryFolder temporaryFolder
 
     def "Template URL must not be null"() {
         when:
@@ -37,22 +42,14 @@ class SimpleTemplateOperationSpec extends Specification {
 
     def "writes file from template with binding support"() {
         setup:
-        def targetFile = GroovyMock(File)
-        def targetParent = Mock(File)
-        1 * targetFile.parentFile >> targetParent
-        def templateURL = GroovyMock(URL)
-        1 * templateURL.text >> '${someBindedValue.groovyComment}'
+        def targetFile = temporaryFolder.newFile("test.out")
+        def templateURL = getClass().getResource("SimpleTemplateOperationSpec-binding.template")
         def templateOperation = new SimpleTemplateOperation(templateURL, targetFile, [someBindedValue: new TemplateValue("someTemplateValue")])
 
         when:
         templateOperation.generate()
 
         then:
-        1 * targetParent.mkdirs() >> true
-        1 * targetFile.withWriter("utf-8", _) >> { encoding, writerClosure ->
-            def writerMock = new StringWriter()
-            writerClosure.call(writerMock)
-            assert writerMock.toString() == "someTemplateValue"
-        }
+        targetFile.text == "someTemplateValue"
     }
 }

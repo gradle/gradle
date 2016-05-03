@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.buildinit.plugins.internal.action
+package org.gradle.buildinit.plugins.internal.action;
 
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.buildinit.tasks.internal.TaskConfiguration
-import org.gradle.configuration.project.ProjectConfigureAction
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.buildinit.tasks.internal.TaskConfiguration;
+import org.gradle.configuration.project.ProjectConfigureAction;
 
 public class WrapperPluginAutoApplyAction implements ProjectConfigureAction {
-
-    public void execute(final ProjectInternal projectInternal) {
-        TaskConfiguration.addWrapperPlaceholder(projectInternal);
+    @Override
+    public void execute(ProjectInternal project) {
+        TaskConfiguration.addWrapperPlaceholder(project);
     }
-
 }
