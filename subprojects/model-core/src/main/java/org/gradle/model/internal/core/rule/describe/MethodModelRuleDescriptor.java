@@ -91,42 +91,55 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
     }
 
     public static <T, R> ModelRuleDescriptor of(WeaklyTypeReferencingMethod<T, R> method) {
-        return DESCRIPTOR_CACHE.get(method.getDeclaringType().getConcreteClass(), method.getName());
+        return DESCRIPTOR_CACHE.get(method);
     }
 
     private static class Cache {
         private final WeakHashMap<Class<?>, CacheEntry> cached = new WeakHashMap<Class<?>, CacheEntry>();
 
-        public synchronized ModelRuleDescriptor get(Class<?> clazz, String method) {
+        public synchronized <T, R> ModelRuleDescriptor get(WeaklyTypeReferencingMethod<T, R> method) {
+            Class<?> clazz = method.getDeclaringType().getConcreteClass();
             CacheEntry cacheEntry = cached.get(clazz);
             if (cacheEntry == null) {
                 cacheEntry = new CacheEntry(clazz);
                 cached.put(clazz, cacheEntry);
             }
-            return cacheEntry.get(method);
+            MethodModelRuleDescriptor methodModelRuleDescriptor = cacheEntry.get(method);
+            if (methodModelRuleDescriptor == null) {
+                methodModelRuleDescriptor = new MethodModelRuleDescriptor(method);
+            }
+            return methodModelRuleDescriptor;
         }
 
         private static class CacheEntry {
-            private final ModelType<?> clazzType;
             private final Map<String, MethodModelRuleDescriptor> descriptors;
 
             public CacheEntry(Class<?> clazz) {
-                this.clazzType = ModelType.of(clazz);
                 this.descriptors = new HashMap<String, MethodModelRuleDescriptor>(clazz.getDeclaredMethods().length);
             }
 
-            public MethodModelRuleDescriptor get(String methodName) {
+            public <T, R> MethodModelRuleDescriptor get(WeaklyTypeReferencingMethod<T, R> weakMethod) {
+                String methodName = weakMethod.getName();
                 MethodModelRuleDescriptor desc = descriptors.get(methodName);
                 if (desc != null) {
                     return desc;
                 }
-                Class<?> clazz = clazzType.getConcreteClass();
+                desc = new MethodModelRuleDescriptor(weakMethod);
+                if (isOverloadedInClass(weakMethod.getDeclaringType().getConcreteClass(), methodName)) {
+                    return desc;
+                }
+                // Only cache non-overloaded methods by name
+                descriptors.put(methodName, desc);
+                return desc;
+            }
+
+            private boolean isOverloadedInClass(Class<?> clazz, String methodName) {
                 Method[] declaredMethods = clazz.getDeclaredMethods();
                 Method method = null;
                 for (Method declaredMethod : declaredMethods) {
                     if (declaredMethod.getName().equals(methodName)) {
                         if (method != null) {
-                            throw new IllegalStateException("Class " + clazz.getName() + " has more than one method named '" + methodName + "'");
+                            return true;
                         }
                         method = declaredMethod;
                     }
@@ -134,9 +147,7 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
                 if (method == null) {
                     throw new IllegalStateException("Class " + clazz.getName() + " has no method named '" + methodName + "'");
                 }
-                desc = new MethodModelRuleDescriptor(ModelType.of(clazz), ModelType.returnType(method), method);
-                descriptors.put(methodName, desc);
-                return desc;
+                return false;
             }
         }
     }
