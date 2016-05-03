@@ -236,7 +236,7 @@ class Signature extends AbstractPublishArtifact {
                 null
             } else {
                 def modified = file.lastModified()
-                if (modified == 0) {
+                if (modified == 0L) {
                     null
                 } else {
                     new Date(modified)
