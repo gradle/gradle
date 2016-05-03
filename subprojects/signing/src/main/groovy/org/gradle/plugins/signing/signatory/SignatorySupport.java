@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.signing.signatory
+package org.gradle.plugins.signing.signatory;
 
-abstract class SignatorySupport implements Signatory {
-    
-    byte[] sign(InputStream toSign) {
-        def signature = new ByteArrayOutputStream()
-        sign(toSign, signature)
-        signature.toByteArray()
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+
+/**
+ * Convenience base class for {@link Signatory} implementations.
+ */
+public abstract class SignatorySupport implements Signatory {
+
+    @Override
+    public byte[] sign(InputStream toSign) {
+        ByteArrayOutputStream signature = new ByteArrayOutputStream();
+        sign(toSign, signature);
+        return signature.toByteArray();
     }
-    
 }
