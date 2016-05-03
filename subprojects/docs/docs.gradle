@@ -24,6 +24,7 @@ import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask
 import org.gradle.build.docs.releasenotes.*
 import org.gradle.build.docs.releasenotes.checks.*
 import org.apache.tools.ant.filters.ReplaceTokens
+import org.jsoup.Jsoup
 
 apply plugin: 'base'
 apply plugin: 'pegdown'
@@ -266,8 +267,14 @@ task dslHtml(type: Docbook2Xhtml) {
     ext.entryPoint = "$destDir/index.html"
 }
 
+task checkSectionIds {
+    doLast {
+        userguideSrcDir
+    }
+}
+
 // This is used in the distribution and for the online version
-task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook, defaultImports]) {
+task userguideDocbook(type: UserGuideTransformTask, dependsOn: [checkSectionIds, samples, samplesDocbook, defaultImports]) {
     destFile = new File(docbookSrc, 'userguide.xml')
 }
 
@@ -302,6 +309,20 @@ task userguideSingleHtml(type: Docbook2Xhtml) {
         include 'img/*.png'
     } + cssFiles
     ext.entryPoint = destFile
+
+    doLast {
+        println "!!!!!!!!!!! Here !!!!!!!!!"
+        // Check whether any headings have duplicate IDs in the single-page
+        // user guide.
+        def idDuplicates = Jsoup.parse(destFile.text).select(".title > a[name]").
+                countBy { node -> node.attr("name") }.
+                findAll { entry -> entry.value > 1 }.
+                collect { entry -> entry.key }
+        println ">>> $idDuplicates"
+        if (idDuplicates) {
+            throw new GradleException("Found duplicate heading IDs in the user guide: ${idDuplicates}")
+        }
+    }
 }
 
 task pdfUserguideXhtml(type: Docbook2Xhtml) {

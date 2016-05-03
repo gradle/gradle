@@ -9,7 +9,7 @@
  	</itemizedlist>
 	</para>
 
-    <section id="sec:usage">
+    <section id="artifacts_and_configurations">
         <title>Usage</title>
         <para>To use the announce plugin, apply it to your build script:</para>
         <sample id="useAnnouncePlugin" dir="announce" title="Using the announce plugin">
