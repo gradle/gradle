@@ -1,12 +1,10 @@
 Thank you very much for your contribution. We highly appreciate the time
 and effort you put into pull request. Before you submit the pull request,
-please review the [Contribution Guidelines](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md#contribution-workflow).
+please:
 
-Make sure you check the following boxes.
-
-For all changes:
-
+- [ ] Review the [Contribution Guidelines](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md#contribution-workflow).
 - [ ] Sign the [Gradle CLA](http://gradle.org/contributor-license-agreement/).
+- [ ] Ensure basic checks pass: `./gradlew quickCheck`
 
 For all non-trivial changes that modify the behavior or public API:
 
@@ -22,7 +20,7 @@ in the Gradle GitHub repository. Please let us know if you need help with
 creating the design document. We are happy to help!
 - [ ] The pull request contains an appropriate level of unit and integration
 test coverage to verify the behavior. Before submitting the pull request
-you ran a build on your local machine via the command `./gradlew quickCheck`
-and the tests for the modified module.
+you ran a build on your local machine via the command
+`./gradlew quickCheck <impacted-subproject>:check`.
 - [ ] The pull request updates the Gradle documentation like user guide,
 DSL reference and Javadocs where applicable.
