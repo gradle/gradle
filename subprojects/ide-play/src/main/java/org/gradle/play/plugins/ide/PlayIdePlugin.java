@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.AppliedPlugin;
-import org.gradle.play.plugins.ide.internal.PlayIdeaRules;
+import org.gradle.play.plugins.ide.internal.PlayIdeaPlugin;
 
 public class PlayIdePlugin implements Plugin<Project> {
     @Override
@@ -28,7 +28,7 @@ public class PlayIdePlugin implements Plugin<Project> {
         project.getPluginManager().withPlugin("idea", new Action<AppliedPlugin>() {
             @Override
             public void execute(AppliedPlugin appliedPlugin) {
-                project.getPluginManager().apply(PlayIdeaRules.class);
+                project.getPluginManager().apply(PlayIdeaPlugin.class);
                 ideaModuleDependsOnRoot(project);
             }
         });

@@ -46,7 +46,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-public class PlayIdeaRules extends RuleSource {
+public class PlayIdeaPlugin extends RuleSource {
     @Mutate
     public void configureIdeaModule(@Path("tasks.ideaModule") GenerateIdeaModule ideaModule,
                                     @Path("binaries.playBinary") final PlayApplicationBinarySpec playApplicationBinarySpec,
