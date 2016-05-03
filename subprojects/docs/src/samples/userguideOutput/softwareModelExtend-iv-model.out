@@ -5,15 +5,15 @@ Root project
 
 + components
       | Type:   	org.gradle.platform.base.ComponentSpecContainer
-      | Creator: 	ComponentBasePlugin.PluginRules#components
+      | Creator: 	ComponentBasePlugin.PluginRules#components(ComponentSpecContainer)
       | Rules:
          ⤷ components { ... } @ build.gradle line 42, column 5
-         ⤷ MyPlugin#mutateMyComponents
+         ⤷ MyPlugin#mutateMyComponents(ModelMap<MyComponentInternal>)
     + my
           | Type:   	MyComponent
           | Creator: 	components { ... } @ build.gradle line 42, column 5 > create(my)
           | Rules:
-             ⤷ MyPlugin#mutateMyComponents > all()
+             ⤷ MyPlugin#mutateMyComponents(ModelMap<MyComponentInternal>) > all()
         + publicData
               | Type:   	java.lang.String
               | Value:  	Some PUBLIC data
@@ -68,7 +68,7 @@ Root project
           | Value:  	task ':dependencyInsight'
           | Creator: 	tasks.addPlaceholderAction(dependencyInsight)
           | Rules:
-             ⤷ HelpTasksPlugin.Rules#addDefaultDependenciesReportConfiguration
+             ⤷ HelpTasksPlugin.Rules#addDefaultDependenciesReportConfiguration(DependencyInsightReportTask, ServiceRegistry)
              ⤷ copyToTaskContainer
     + help
           | Type:   	org.gradle.configuration.Help

@@ -6,57 +6,57 @@ Root project
 
 + person
       | Type:   	Person
-      | Creator: 	PersonRules#person
+      | Creator: 	PersonRules#person(Person)
       | Rules:
          ⤷ person { ... } @ build.gradle line 59, column 3
-         ⤷ PersonRules#setFirstName
+         ⤷ PersonRules#setFirstName(Person)
     + age
           | Type:   	int
           | Value:  	0
-          | Creator: 	PersonRules#person
+          | Creator: 	PersonRules#person(Person)
     + children
           | Type:   	org.gradle.model.ModelSet<Person>
-          | Creator: 	PersonRules#person
+          | Creator: 	PersonRules#person(Person)
     + employed
           | Type:   	boolean
           | Value:  	false
-          | Creator: 	PersonRules#person
+          | Creator: 	PersonRules#person(Person)
     + father
           | Type:   	Person
           | Value:  	null
-          | Creator: 	PersonRules#person
+          | Creator: 	PersonRules#person(Person)
     + firstName
           | Type:   	java.lang.String
           | Value:  	John
-          | Creator: 	PersonRules#person
+          | Creator: 	PersonRules#person(Person)
     + homeDirectory
           | Type:   	java.io.File
           | Value:  	null
-          | Creator: 	PersonRules#person
+          | Creator: 	PersonRules#person(Person)
     + id
           | Type:   	java.lang.Long
           | Value:  	null
-          | Creator: 	PersonRules#person
+          | Creator: 	PersonRules#person(Person)
     + lastName
           | Type:   	java.lang.String
           | Value:  	Smith
-          | Creator: 	PersonRules#person
+          | Creator: 	PersonRules#person(Person)
     + maritalStatus
           | Type:   	MaritalStatus
-          | Creator: 	PersonRules#person
+          | Creator: 	PersonRules#person(Person)
     + mother
           | Type:   	Person
           | Value:  	null
-          | Creator: 	PersonRules#person
+          | Creator: 	PersonRules#person(Person)
     + userGroups
           | Type:   	java.util.List<java.lang.String>
           | Value:  	null
-          | Creator: 	PersonRules#person
+          | Creator: 	PersonRules#person(Person)
 + tasks
       | Type:   	org.gradle.model.ModelMap<org.gradle.api.Task>
       | Creator: 	Project.<init>.tasks()
       | Rules:
-         ⤷ PersonRules#createHelloTask
+         ⤷ PersonRules#createHelloTask(ModelMap<Task>, Person)
     + buildEnvironment
           | Type:   	org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask
           | Value:  	task ':buildEnvironment'
@@ -80,12 +80,12 @@ Root project
           | Value:  	task ':dependencyInsight'
           | Creator: 	tasks.addPlaceholderAction(dependencyInsight)
           | Rules:
-             ⤷ HelpTasksPlugin.Rules#addDefaultDependenciesReportConfiguration
+             ⤷ HelpTasksPlugin.Rules#addDefaultDependenciesReportConfiguration(DependencyInsightReportTask, ServiceRegistry)
              ⤷ copyToTaskContainer
     + hello
           | Type:   	org.gradle.api.Task
           | Value:  	task ':hello'
-          | Creator: 	PersonRules#createHelloTask > create(hello)
+          | Creator: 	PersonRules#createHelloTask(ModelMap<Task>, Person) > create(hello)
           | Rules:
              ⤷ copyToTaskContainer
     + help
