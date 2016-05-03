@@ -99,7 +99,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
                 } catch (Throwable t) {
                     failure = exceptionAnalyser.transform(t);
                 }
-                BuildResult buildResult = new BuildResult(gradle, failure);
+                BuildResult buildResult = new BuildResult(upTo.name(), gradle, failure);
                 buildListener.buildFinished(buildResult);
                 if (failure != null) {
                     throw new ReportedException(failure);

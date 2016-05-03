@@ -22,10 +22,16 @@ import org.gradle.api.invocation.Gradle;
  * <p>A {@code BuildResult} packages up the results of a build executed by a {@link org.gradle.initialization.GradleLauncher} instance.</p>
  */
 public class BuildResult {
+    private final String action;
     private final Throwable failure;
     private final Gradle gradle;
 
     public BuildResult(Gradle gradle, Throwable failure) {
+        this("Build", gradle, failure);
+    }
+
+    public BuildResult(String action, Gradle gradle, Throwable failure) {
+        this.action = action;
         this.gradle = gradle;
         this.failure = failure;
     }
@@ -39,6 +45,13 @@ public class BuildResult {
     }
 
     /**
+     * The action performed by this build. Either `Build` or `Configure`.
+     */
+    public String getAction() {
+        return action;
+    }
+
+    /**
      * <p>Rethrows the build failure. Does nothing if there was no build failure.</p>
      */
     public BuildResult rethrowFailure() {
@@ -46,7 +59,7 @@ public class BuildResult {
             throw (GradleException) failure;
         }
         if (failure != null) {
-            throw new GradleException("Build aborted because of an internal error.", failure);
+            throw new GradleException(action + " aborted because of an internal error.", failure);
         }
         return this;
     }

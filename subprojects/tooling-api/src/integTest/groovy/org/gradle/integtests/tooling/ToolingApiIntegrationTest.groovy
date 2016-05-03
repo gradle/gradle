@@ -25,6 +25,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.GradleVersion
 import spock.lang.Issue
@@ -48,6 +49,20 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         model != null
+    }
+
+    def "tooling api output reports 'CONFIGURE SUCCESSFUL' for model requests"() {
+        projectDir.file('build.gradle') << "assert gradle.gradleVersion == '${GradleVersion.current().version}'"
+
+        when:
+        def stdOut = new ByteArrayOutputStream()
+        toolingApi.withConnection { ProjectConnection connection ->
+            connection.model(GradleProject.class).setStandardOutput(stdOut).get()
+        }
+
+        then:
+        stdOut.toString().contains("CONFIGURE SUCCESSFUL")
+        !stdOut.toString().contains("BUILD SUCCESSFUL")
     }
 
     def "tooling api uses the wrapper properties to determine which version to use"() {

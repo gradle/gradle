@@ -39,10 +39,11 @@ public class BuildResultLogger extends BuildAdapter {
     public void buildFinished(BuildResult result) {
         StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, LogLevel.LIFECYCLE);
         textOutput.println();
+        String action = result.getAction().toUpperCase();
         if (result.getFailure() == null) {
-            textOutput.withStyle(Success).text("BUILD SUCCESSFUL");
+            textOutput.withStyle(Success).text(action + " SUCCESSFUL");
         } else {
-            textOutput.withStyle(Failure).text("BUILD FAILED");
+            textOutput.withStyle(Failure).text(action + " FAILED");
         }
         textOutput.println();
         textOutput.println();

@@ -53,9 +53,9 @@ public class BuildResultLoggerTest {
             will(returnValue(textOutput));
         }});
 
-        listener.buildFinished(new BuildResult(null, null));
+        listener.buildFinished(new BuildResult("Action", null, null));
 
-        assertEquals("\n{success}BUILD SUCCESSFUL{normal}\n\nTotal time: 10s\n", textOutput.getValue());
+        assertEquals("\n{success}ACTION SUCCESSFUL{normal}\n\nTotal time: 10s\n", textOutput.getValue());
     }
 
     @Test
@@ -67,8 +67,8 @@ public class BuildResultLoggerTest {
             will(returnValue(textOutput));
         }});
 
-        listener.buildFinished(new BuildResult(null, new RuntimeException()));
+        listener.buildFinished(new BuildResult("Action", null, new RuntimeException()));
 
-        assertEquals("\n{failure}BUILD FAILED{normal}\n\nTotal time: 10s\n", textOutput.getValue());
+        assertEquals("\n{failure}ACTION FAILED{normal}\n\nTotal time: 10s\n", textOutput.getValue());
     }
 }
