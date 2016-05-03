@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.signing.signatory.pgp
 
+import groovy.transform.CompileStatic
 import org.gradle.plugins.signing.signatory.SignatoryProvider
 
 import org.gradle.util.ConfigureUtil
@@ -23,9 +24,10 @@ import org.gradle.api.Project
 
 import org.gradle.plugins.signing.SigningExtension
 
+@CompileStatic
 class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
 
-    private final factory = new PgpSignatoryFactory()
+    private final PgpSignatoryFactory factory = new PgpSignatoryFactory()
     private final Map<String, PgpSignatory> signatories = [:]
 
     void configure(SigningExtension settings, Closure closure) {
