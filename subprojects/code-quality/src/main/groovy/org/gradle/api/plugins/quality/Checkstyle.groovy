@@ -143,7 +143,7 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
         antBuilder.withClasspath(getCheckstyleClasspath()).execute {
             try {
                 ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
-            } catch (ClassNotFoundException cnfe) {
+            } catch (RuntimeException ex) {
                 ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask')
             }
 
