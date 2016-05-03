@@ -15,8 +15,10 @@
  */
 package org.gradle.plugins.signing.type
 
+import groovy.transform.CompileStatic
 import org.gradle.api.InvalidUserDataException
 
+@CompileStatic
 abstract class AbstractSignatureTypeProvider implements SignatureTypeProvider {
     
     private String defaultTypeExtension
