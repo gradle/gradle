@@ -20,10 +20,10 @@ import org.gradle.api.Incubating
 import org.gradle.api.JavaVersion
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
+import org.gradle.language.scala.ScalaPlatform
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider
 import org.gradle.plugins.ide.internal.resolver.UnresolvedDependenciesLogger
 import org.gradle.util.ConfigureUtil
-
 /**
  * Enables fine-tuning module details (*.iml file) of the IDEA plugin.
  * <p>
@@ -291,6 +291,12 @@ class IdeaModule {
      */
     @Incubating
     JavaVersion targetBytecodeVersion
+
+    /**
+     * TODO:
+     */
+    @Incubating
+    ScalaPlatform scalaPlatform
 
     /**
      * See {@link #iml(Closure)}

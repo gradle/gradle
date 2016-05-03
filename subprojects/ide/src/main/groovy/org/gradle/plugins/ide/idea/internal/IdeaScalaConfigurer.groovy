@@ -18,9 +18,11 @@ package org.gradle.plugins.ide.idea.internal
 import org.gradle.api.GradleScriptException
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
+import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.tasks.ScalaRuntime
 import org.gradle.language.scala.ScalaPlatform
+import org.gradle.language.scala.internal.DefaultScalaPlatform
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.*
@@ -73,31 +75,39 @@ class IdeaScalaConfigurer {
             def filePaths = moduleLibraries.collectMany { it.classes.findAll { it instanceof FilePath } }
             def files = filePaths.collect { it.file }
 
-            ProjectLibrary library
-            def runtime = scalaProject.getExtensions().findByType(ScalaRuntime)
-            if (runtime) {
-                library = createScalaSdkFromRuntime(runtime, files, useScalaSdk)
-            } else {
-                library = createScalaSdkFromPlatform(scalaProject.idea.module.scalaPlatform, files, useScalaSdk)
+            ProjectLibrary library = createScalaSdkLibrary(scalaProject, files, useScalaSdk, ideaModule)
+            if (library) {
+                def duplicate = scalaCompilerLibraries.values().find { it == library }
+                scalaCompilerLibraries[scalaProject.path] = duplicate ?: library
             }
-            def duplicate = scalaCompilerLibraries.values().find { it == library }
-            scalaCompilerLibraries[scalaProject.path] = duplicate ?: library
         }
 
         return scalaCompilerLibraries
     }
 
-    private ProjectLibrary createScalaSdkFromPlatform(ScalaPlatform platform, List files, boolean useScalaSdk) {
-        def version = platform.scalaVersion
-        // TODO: Wrong, using the full classpath of the application
-        def library = useScalaSdk ? createScalaSdkLibrary("scala-sdk-$version", files) : createProjectLibrary("scala-compiler-$version", files)
-        library
+    private ProjectLibrary createScalaSdkLibrary(Project scalaProject, List files, boolean useScalaSdk, IdeaModule ideaModule) {
+        def runtime = scalaProject.getExtensions().findByType(ScalaRuntime)
+        if (runtime) {
+            // Old Scala Plugin does not specify a ScalaPlatform
+            def scalaClasspath = runtime.inferScalaClasspath(files)
+            def compilerJar = runtime.findScalaJar(scalaClasspath, "compiler")
+            def scalaPlatform = new DefaultScalaPlatform()
+            if (compilerJar != null) {
+                scalaPlatform = new DefaultScalaPlatform(runtime.getScalaVersion(compilerJar))
+            }
+            return createScalaSdkFromPlatform(scalaPlatform, scalaClasspath, useScalaSdk)
+        } else if (ideaModule.scalaPlatform) {
+            // TODO: Wrong, using the full classpath of the application
+            return createScalaSdkFromPlatform(ideaModule.scalaPlatform, scalaProject.files(files), useScalaSdk)
+        } else {
+            // One of the Scala plugins is applied, but ScalaRuntime extension is missing or the ScalaPlatform is undefined.
+            // we can't create a Scala SDK without either one
+            return null
+        }
     }
 
-    private ProjectLibrary createScalaSdkFromRuntime(ScalaRuntime runtime, List files, boolean useScalaSdk) {
-        def scalaClasspath = runtime.inferScalaClasspath(files)
-        def compilerJar = runtime.findScalaJar(scalaClasspath, "compiler")
-        def version = compilerJar == null ? "?" : runtime.getScalaVersion(compilerJar)
+    private ProjectLibrary createScalaSdkFromPlatform(ScalaPlatform platform, FileCollection scalaClasspath, boolean useScalaSdk) {
+        def version = platform.scalaVersion
         def library = useScalaSdk ? createScalaSdkLibrary("scala-sdk-$version", scalaClasspath) : createProjectLibrary("scala-compiler-$version", scalaClasspath)
         library
     }
@@ -116,14 +126,17 @@ class IdeaScalaConfigurer {
     }
 
     private void declareScalaSdk(ProjectLibrary scalaSdkLibrary, Node iml) {
-        def newModuleRootManager = iml.component.find { it.@name == "NewModuleRootManager" }
-        if (!newModuleRootManager) {
-            newModuleRootManager = iml.appendNode("component", [name: "NewModuleRootManager"])
-        }
+        // only define a Scala SDK for a module if we could create a scalaSdkLibrary
+        if (scalaSdkLibrary) {
+            def newModuleRootManager = iml.component.find { it.@name == "NewModuleRootManager" }
+            if (!newModuleRootManager) {
+                newModuleRootManager = iml.appendNode("component", [name: "NewModuleRootManager"])
+            }
 
-        def sdkLibrary = newModuleRootManager.orderEntry.find { it.@name == scalaSdkLibrary.name }
-        if (!sdkLibrary) {
-            newModuleRootManager.appendNode("orderEntry", [type: "library", name: scalaSdkLibrary.name, level: "project"])
+            def sdkLibrary = newModuleRootManager.orderEntry.find { it.@name == scalaSdkLibrary.name }
+            if (!sdkLibrary) {
+                newModuleRootManager.appendNode("orderEntry", [type: "library", name: scalaSdkLibrary.name, level: "project"])
+            }
         }
     }
 

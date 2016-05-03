@@ -399,6 +399,15 @@ idea.project {
         hasProjectLibrary("root.ipr", "someLib", ["someClasses.jar"], ["someJavadoc.jar"], ["someSources.jar"], [])
     }
 
+    // We don't currently support generating an IDEA project from a software model component
+    @Test
+    void "does not explode if only ScalaLanguagePlugin is applied"() {
+        runTask("idea", """
+apply plugin: 'idea'
+apply plugin: 'org.gradle.scala-lang'
+""")
+    }
+
     private void assertHasExpectedContents(String path) {
         TestFile actualFile = testDirectory.file(path).assertIsFile()
         TestFile expectedFile = testDirectory.file("expectedFiles/${path}.xml").assertIsFile()

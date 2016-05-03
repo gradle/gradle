@@ -95,8 +95,7 @@ public class PlayIdeaPlugin extends RuleSource {
             }
         });
 
-        // Hacky, include the Scala version that the Play application will build with
-        wrapped.getExtensions().getExtraProperties().set("scalaPlatform", playApplicationBinarySpec.getTargetPlatform().getScalaPlatform());
+        module.setScalaPlatform(playApplicationBinarySpec.getTargetPlatform().getScalaPlatform());
 
         conventionMapping.map("targetBytecodeVersion", new Callable<JavaVersion>() {
             @Override

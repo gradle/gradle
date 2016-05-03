@@ -149,7 +149,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     if (assembly instanceof ScalaJvmAssembly) {
                         compile.setPlatform(((ScalaJvmAssembly) assembly).getScalaPlatform());
                     } else {
-                        compile.setPlatform(new DefaultScalaPlatform("2.10.4"));
+                        compile.setPlatform(new DefaultScalaPlatform());
                     }
                 }
 

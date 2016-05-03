@@ -26,6 +26,7 @@ import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.xml.XmlTransformer
+import org.gradle.language.scala.plugins.ScalaLanguagePlugin
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer
@@ -225,12 +226,19 @@ class IdeaPlugin extends IdePlugin {
 
     private void configureForScalaPlugin() {
         project.plugins.withType(ScalaBasePlugin) {
-            //see IdeaScalaConfigurer
-            project.tasks.findByName('ideaModule').dependsOn(project.rootProject.tasks.findByName('ideaProject'))
+            ideaModuleDependsOnRoot()
+        }
+        project.plugins.withType(ScalaLanguagePlugin) {
+            ideaModuleDependsOnRoot()
         }
         if (isRoot(project)) {
             new IdeaScalaConfigurer(project).configure()
         }
+    }
+
+    private void ideaModuleDependsOnRoot() {
+        // see IdeaScalaConfigurer which requires the ipr to be generated first
+        project.getTasks().findByName("ideaModule").dependsOn(project.getRootProject().getTasks().findByName("ideaProject"));
     }
 
     private static boolean isRoot(Project project) {

@@ -29,14 +29,8 @@ public class PlayIdePlugin implements Plugin<Project> {
             @Override
             public void execute(AppliedPlugin appliedPlugin) {
                 project.getPluginManager().apply(PlayIdeaPlugin.class);
-                ideaModuleDependsOnRoot(project);
             }
         });
         // TODO: Configure 'eclipse' projects too
-    }
-
-    private void ideaModuleDependsOnRoot(Project project) {
-        // see IdeaScalaConfigurer which requires the ipr to be generated first
-        project.getTasks().findByName("ideaModule").dependsOn(project.getRootProject().getTasks().findByName("ideaProject"));
     }
 }
