@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide
+package org.gradle.plugins.ide.idea
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.plugins.ide.idea.IdeaFixtures
-import org.gradle.plugins.ide.idea.IdeaModuleFixture
-
-abstract class AbstractIdeIntegrationSpec extends AbstractIntegrationSpec {
-    protected IdeaModuleFixture parseIml(String moduleFile) {
-        return IdeaFixtures.parseIml(file(moduleFile))
+class IdeaFixtures {
+    static parseFile(File file) {
+        new XmlSlurper().parse(file)
     }
+
+    static IdeaProjectFixture parseIpr(File projectFile) {
+        return new IdeaProjectFixture(parseFile(projectFile))
+    }
+
+    static IdeaModuleFixture parseIml(File moduleFile) {
+        return new IdeaModuleFixture(parseFile(moduleFile))
+    }
+
+    private IdeaFixtures() {}
 }

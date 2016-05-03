@@ -23,6 +23,7 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ":platformPlay")
+useTestFixtures(project: ":ide")
 useClassycle()
 strictCompile()
 

@@ -428,7 +428,7 @@ allprojects {
     }
 
     def getIpr() {
-        return parseIpr("root.ipr")
+        return IdeaFixtures.parseIpr(file("root.ipr"))
     }
 
     def iml(String name = 'root') {
@@ -436,9 +436,5 @@ allprojects {
             return parseIml('root.iml')
         }
         return parseIml("${name}/${name}.iml")
-    }
-
-    protected IdeaProjectFixture parseIpr(Map options = [:], String projectFile) {
-        return new IdeaProjectFixture(parseFile(options, projectFile))
     }
 }

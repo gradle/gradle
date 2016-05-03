@@ -16,9 +16,7 @@
 
 package org.gradle.play.plugins.ide.internal;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
@@ -41,7 +39,6 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -57,8 +54,7 @@ public class PlayIdeaPlugin extends RuleSource {
 
         module.setScopes(buildScopes(configurations));
 
-        DslObject wrapped = wrapped(module);
-        ConventionMapping conventionMapping = wrapped.getConventionMapping();
+        ConventionMapping conventionMapping = conventionMappingFor(module);
 
         conventionMapping.map("sourceDirs", new Callable<Set<File>>() {
             @Override
@@ -83,14 +79,11 @@ public class PlayIdeaPlugin extends RuleSource {
         conventionMapping.map("singleEntryLibraries", new Callable<Map<String, Iterable<File>>>() {
             @Override
             public Map<String, Iterable<File>> call() throws Exception {
-                List<File> runtime = ImmutableList.<File>builder().
-                    add(playApplicationBinarySpec.getClasses().getClassesDir()).
-                    addAll(playApplicationBinarySpec.getClasses().getResourceDirs()).
-                    build();
                 return ImmutableMap.<String, Iterable<File>>builder().
-                    put("RUNTIME", runtime).
+                    put("COMPILE", Collections.singleton(playApplicationBinarySpec.getClasses().getClassesDir())).
+                    put("RUNTIME", playApplicationBinarySpec.getClasses().getResourceDirs()).
                     // TODO: This should be modeled as a source set
-                    put("TEST", Lists.newArrayList(new File(buildDir, "playBinary/testClasses"))).
+                    put("TEST", Collections.singleton(new File(buildDir, "playBinary/testClasses"))).
                     build();
             }
         });
@@ -109,15 +102,16 @@ public class PlayIdeaPlugin extends RuleSource {
                 return new IdeaLanguageLevel(getTargetJavaVersion(playApplicationBinarySpec));
             }
         });
+
         ideaModule.dependsOn(playApplicationBinarySpec.getInputs());
+    }
+
+    private ConventionMapping conventionMappingFor(IdeaModule module) {
+        return new DslObject(module).getConventionMapping();
     }
 
     private JavaVersion getTargetJavaVersion(PlayApplicationBinarySpec playApplicationBinarySpec) {
         return playApplicationBinarySpec.getTargetPlatform().getJavaPlatform().getTargetCompatibility();
-    }
-
-    private DslObject wrapped(IdeaModule module) {
-        return new DslObject(module);
     }
 
     private Map<String, Map<String, Collection<Configuration>>> buildScopes(ConfigurationContainer configurations) {

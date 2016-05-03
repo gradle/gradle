@@ -16,45 +16,32 @@
 
 package org.gradle.play.plugins.ide
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.play.integtest.fixtures.PlayMultiVersionApplicationIntegrationTest
 
-import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
+abstract class PlayIdePluginIntegrationTest extends PlayMultiVersionApplicationIntegrationTest {
+    abstract String getIdePlugin()
+    abstract String getIdeTask()
+    abstract List<File> getIdeFiles()
 
-class PlayIdePluginIntegrationTest extends AbstractIntegrationSpec {
-    def setup() {
-        settingsFile << "rootProject.name = 'ide-test'"
-        buildFile << """
-    plugins {
-        id "play"
-        id "${idePlugin}"
-        id "play-ide"
-    }
-
-    ${PLAY_REPOSITORIES}
-
-"""
-    }
-
-    String getIdePlugin() {
-        "idea"
-    }
-
-    String getIdeTask() {
-        "idea"
-    }
-
-    List<String> getIdeFiles() {
-        ["ide-test.iml",
-         "ide-test.ipr",
-         "ide-test.iws"]
-    }
-
-    def "generates ide configuration"() {
+    def "generates IDE configuration"() {
+        applyIdePlugin()
         when:
         succeeds(ideTask)
         then:
+        result.assertTasksExecuted(":compilePlayBinaryPlayRoutes", ":compilePlayBinaryPlayTwirlTemplates", ":ideaProject", ":ideaModule", ":ideaWorkspace", ":idea")
         ideFiles.each {
             file(it).assertExists()
         }
+    }
+
+    def "does not blow up when no IDE plugin is applied"() {
+        expect:
+        succeeds("tasks")
+    }
+
+    protected void applyIdePlugin() {
+        buildFile << """
+        apply plugin: "${idePlugin}"
+"""
     }
 }

@@ -16,7 +16,10 @@
 
 package org.gradle.plugins.ide.idea
 
+import groovy.transform.ToString
 import groovy.util.slurpersupport.GPathResult
+import org.gradle.internal.Transformers
+import org.gradle.util.CollectionUtils
 
 class IdeaModuleFixture {
     private GPathResult iml
@@ -26,10 +29,59 @@ class IdeaModuleFixture {
     }
 
     String getLanguageLevel() {
-        if(iml.component.@LANGUAGE_LEVEL.size() != 0){
+        if (iml.component.@LANGUAGE_LEVEL.size() != 0) {
             return iml.component.@LANGUAGE_LEVEL
         }
         return null
+    }
+
+    IdeaContentRoot getContent() {
+        def contentRoot = iml.component.content
+        def sourceFolders = contentRoot.sourceFolder.collect {
+            new SourceFolder(url: it.@url, isTestSource: "true" == it.@isTestSource)
+        }
+        def excludeFolders = contentRoot.excludeFolder.collect {
+            new ExcludeFolder(url: it.@url)
+        }
+        return new IdeaContentRoot(rootUrl: contentRoot.@url, sources: sourceFolders, excludes: excludeFolders)
+    }
+
+    @ToString
+    class SourceFolder {
+        String url
+        boolean isTestSource = false
+    }
+
+    @ToString
+    class ExcludeFolder {
+        String url
+    }
+
+    @ToString
+    class IdeaContentRoot {
+        String rootUrl
+        List<SourceFolder> sources
+        List<ExcludeFolder> excludes
+
+        void assertContainsSourcePaths(String... paths) {
+            def sourceRoots = sources.collect {
+                it.url - 'file://$MODULE_DIR$/'
+            } as Set
+
+            def setDiff = CollectionUtils.diffSetsBy(sourceRoots, CollectionUtils.toSet(paths as List), Transformers.noOpTransformer())
+            assert setDiff.leftOnly.empty
+            assert setDiff.rightOnly.empty
+        }
+
+        void assertContainsExcludes(String... paths) {
+            def excludeRoots = excludes.collect {
+                it.url - 'file://$MODULE_DIR$/'
+            } as Set
+
+            def setDiff = CollectionUtils.diffSetsBy(excludeRoots, CollectionUtils.toSet(paths as List), Transformers.noOpTransformer())
+            assert setDiff.leftOnly.empty
+            assert setDiff.rightOnly.empty
+        }
     }
 
     ImlDependencies getDependencies() {
@@ -84,7 +136,7 @@ class IdeaModuleFixture {
         }
 
         void assertHasSource(String forTests) {
-            assert dependencies.findAll { it.type == 'sourceFolder' }.any { ImlSource it -> it.forTests = forTests }
+            assert dependencies.findAll { it.type == 'sourceFolder' }.any { ImlSource it -> it.forTests == forTests }
         }
 
         void assertHasModule(String scope, String name) {
@@ -122,10 +174,10 @@ class IdeaModuleFixture {
         @Override
         public String toString() {
             return "ImlLibrary{" +
-                    "type='" + type + '\'' +
-                    ", scope='" + scope + '\'' +
-                    ", url='" + url + '\'' +
-                    '}';
+                "type='" + type + '\'' +
+                ", scope='" + scope + '\'' +
+                ", url='" + url + '\'' +
+                '}';
         }
 
         String getJarName() {
