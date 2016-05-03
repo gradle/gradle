@@ -311,7 +311,7 @@ model {
           | Value:  \ttask ':dependencyInsight'
           | Creator: \ttasks.addPlaceholderAction(dependencyInsight)
           | Rules:
-             ⤷ HelpTasksPlugin.Rules#addDefaultDependenciesReportConfiguration
+             ⤷ HelpTasksPlugin.Rules#addDefaultDependenciesReportConfiguration(DependencyInsightReportTask, ServiceRegistry)
              ⤷ copyToTaskContainer
     + help
           | Type:   \torg.gradle.configuration.Help
@@ -401,15 +401,15 @@ apply plugin: ClassHolder.InnerRules
 
         then:
         def modelNode = ModelReportOutput.from(output).modelNode
-        modelNode.myNumbers.@creator[0] == 'NumberRules#createRule'
+        modelNode.myNumbers.@creator[0] == 'NumberRules#createRule(Numbers)'
 
         int i = 0
         def rules = modelNode.myNumbers.@rules[0]
-        rules[i++] == 'NumberRules#defaultsRule'
-        rules[i++] == 'NumberRules#mutateRule'
-        rules[i++] == 'ClassHolder.InnerRules#mutateRule'
-        rules[i++] == 'NumberRules#finalizeRule'
-        rules[i] == 'NumberRules#validateRule'
+        rules[i++] == 'NumberRules#defaultsRule(Numbers)'
+        rules[i++] == 'NumberRules#mutateRule(Numbers)'
+        rules[i++] == 'ClassHolder.InnerRules#mutateRule(Numbers)'
+        rules[i++] == 'NumberRules#finalizeRule(Numbers)'
+        rules[i] == 'NumberRules#validateRule(Numbers)'
     }
 
     def "hidden nodes are not displayed on the report"() {
