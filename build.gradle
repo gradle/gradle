@@ -144,7 +144,7 @@ ext {
         'ide', 'announce', 'scala', 'sonar', 'signing', 'ear', 'javascript', 'buildComparison',
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
-        'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'testingBase',
+        'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
         'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
         'resourcesSftp', 'resourcesS3', 'toolingApiBuilders'
     ].collect {
