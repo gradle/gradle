@@ -28,7 +28,7 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter
-import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler
+import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry
 import org.gradle.api.internal.project.*
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder
 import org.gradle.api.logging.configuration.LoggingConfiguration
@@ -93,7 +93,7 @@ public class BuildScopeServicesTest extends Specification {
         sessionServices.get(ClassPathSnapshotter) >> Mock(ClassPathSnapshotter)
         sessionServices.get(CrossBuildInMemoryCachingScriptClassCache) >> Mock(CrossBuildInMemoryCachingScriptClassCache)
         sessionServices.get(InjectedPluginClasspath) >> Mock(InjectedPluginClasspath)
-        sessionServices.get(PluginRepositoryHandler) >> Mock(PluginRepositoryHandler)
+        sessionServices.get(PluginRepositoryRegistry) >> Mock(PluginRepositoryRegistry)
         sessionServices.getAll(_) >> []
 
         registry = new BuildScopeServices(sessionServices, false)

@@ -17,6 +17,7 @@ package org.gradle.initialization;
 
 import groovy.lang.Closure;
 import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
+import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry;
 import org.gradle.api.internal.plugins.repositories.ScriptScopedPluginRepositoryHandler;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
@@ -28,9 +29,9 @@ import org.gradle.util.ConfigureUtil;
 public abstract class InitialPassSettingsScript extends SettingsScript {
     public PluginRepositoryHandler getPluginRepositoryHandler() {
         Instantiator instantiator = __scriptServices.get(Instantiator.class);
-        PluginRepositoryHandler pluginRepositoryHandler = __scriptServices.get(PluginRepositoryHandler.class);
+        PluginRepositoryRegistry pluginRepositoryRegistry = __scriptServices.get(PluginRepositoryRegistry.class);
         return instantiator.newInstance(
-            ScriptScopedPluginRepositoryHandler.class, pluginRepositoryHandler, getFileResolver(), instantiator);
+            ScriptScopedPluginRepositoryHandler.class, pluginRepositoryRegistry, getFileResolver());
     }
 
     public void pluginRepositories(Closure config) {

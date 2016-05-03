@@ -19,36 +19,39 @@ package org.gradle.plugin.use.internal;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;
+import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.plugin.use.repository.internal.PluginRepositoryInternal;
-import org.gradle.plugin.use.resolve.internal.*;
+import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
+import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
+import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
+import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.InjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class PluginResolverFactory implements Factory<PluginResolver> {
+class PluginResolverFactory implements Factory<PluginResolver> {
 
     private final PluginRegistry pluginRegistry;
     private final DocumentationRegistry documentationRegistry;
     private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
-    private final PluginRepositoryHandler pluginRepositoryHandler;
+    private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final InjectedClasspathPluginResolver injectedClasspathPluginResolver;
 
-    public PluginResolverFactory(
+    PluginResolverFactory(
         PluginRegistry pluginRegistry,
         DocumentationRegistry documentationRegistry,
         PluginResolutionServiceResolver pluginResolutionServiceResolver,
-        PluginRepositoryHandler pluginRepositoryHandler,
+        PluginRepositoryRegistry pluginRepositoryRegistry,
         InjectedClasspathPluginResolver injectedClasspathPluginResolver
     ) {
         this.pluginRegistry = pluginRegistry;
         this.documentationRegistry = documentationRegistry;
         this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
-        this.pluginRepositoryHandler = pluginRepositoryHandler;
+        this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
     }
 
@@ -83,14 +86,13 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
             resolvers.add(injectedClasspathPluginResolver);
         }
 
-        for (PluginRepository pluginRepository : pluginRepositoryHandler) {
+        for (PluginRepository pluginRepository : pluginRepositoryRegistry) {
             PluginResolver resolver = ((PluginRepositoryInternal) pluginRepository).asResolver();
             resolvers.add(resolver);
         }
 
-        if (Iterables.isEmpty(pluginRepositoryHandler)) {
+        if (Iterables.isEmpty(pluginRepositoryRegistry)) {
             resolvers.add(pluginResolutionServiceResolver);
         }
-
     }
 }

@@ -26,7 +26,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshot
 import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter
-import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler
+import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectScript
 import org.gradle.groovy.scripts.*
@@ -34,9 +34,9 @@ import org.gradle.groovy.scripts.internal.BuildScriptData
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation
 import org.gradle.internal.Factory
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.plugin.use.internal.PluginRequests
@@ -64,10 +64,10 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def directoryFileTreeFactory = Mock(DirectoryFileTreeFactory)
     def documentationRegistry = Mock(DocumentationRegistry)
     def classPathSnapshotter = Mock(ClassPathSnapshotter)
-    def pluginRepositoryHandler = Mock(PluginRepositoryHandler)
+    def pluginRepositoryRegistry = Mock(PluginRepositoryRegistry)
 
     def factory = new DefaultScriptPluginFactory(scriptCompilerFactory, loggingManagerFactory, instantiator, scriptHandlerFactory, pluginRequestApplicator, fileLookup,
-        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), pluginRepositoryHandler)
+        directoryFileTreeFactory, documentationRegistry, new ModelRuleSourceDetector(), pluginRepositoryRegistry)
 
     def setup() {
         def configurations = Mock(ConfigurationContainer)

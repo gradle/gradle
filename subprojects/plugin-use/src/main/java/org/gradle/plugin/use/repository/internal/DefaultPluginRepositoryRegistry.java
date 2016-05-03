@@ -23,11 +23,11 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.repositories.AuthenticationSupporter;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
 import org.gradle.api.internal.plugins.repositories.GradlePluginPortal;
 import org.gradle.api.internal.plugins.repositories.IvyPluginRepository;
 import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;
+import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Factory;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
@@ -41,23 +41,21 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
+public class DefaultPluginRepositoryRegistry implements PluginRepositoryRegistry {
     private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
-    private final FileResolver fileResolver;
     private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
     private final VersionSelectorScheme versionSelectorScheme;
     private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
     private final Instantiator instantiator;
     private final List<PluginRepository> repositories;
 
-    public DefaultPluginRepositoryHandler(
-        PluginResolutionServiceResolver pluginResolutionServiceResolver, FileResolver fileResolver,
+    public DefaultPluginRepositoryRegistry(
+        PluginResolutionServiceResolver pluginResolutionServiceResolver,
         Factory<DependencyResolutionServices> dependencyResolutionServicesFactory,
         VersionSelectorScheme versionSelectorScheme, Instantiator instantiator,
         AuthenticationSchemeRegistry authenticationSchemeRegistry) {
         this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
         this.instantiator = instantiator;
-        this.fileResolver = fileResolver;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
         this.versionSelectorScheme = versionSelectorScheme;
         this.repositories = new ArrayList<PluginRepository>();
@@ -65,7 +63,7 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
     }
 
     @Override
-    public MavenPluginRepository maven(Action<? super MavenPluginRepository> configurationAction) {
+    public MavenPluginRepository maven(Action<? super MavenPluginRepository> configurationAction, FileResolver fileResolver) {
         AuthenticationContainer authenticationContainer = makeAuthenticationContainer(instantiator, authenticationSchemeRegistry);
         AuthenticationSupportedInternal delegate = new AuthenticationSupporter(instantiator, authenticationContainer);
         DefaultMavenPluginRepository mavenPluginRepository = instantiator.newInstance(
@@ -76,7 +74,7 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
     }
 
     @Override
-    public IvyPluginRepository ivy(Action<? super IvyPluginRepository> configurationAction) {
+    public IvyPluginRepository ivy(Action<? super IvyPluginRepository> configurationAction, FileResolver fileResolver) {
         AuthenticationContainer authenticationContainer = makeAuthenticationContainer(instantiator, authenticationSchemeRegistry);
         AuthenticationSupportedInternal delegate = new AuthenticationSupporter(instantiator, authenticationContainer);
         DefaultIvyPluginRepository ivyPluginRepository = instantiator.newInstance(
@@ -105,7 +103,7 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
 
     private void add(BackedByArtifactRepository pluginRepository) {
         pluginRepository.setPosition(repositories.size() + 1);
-        repositories.add((PluginRepositoryInternal) pluginRepository);
+        repositories.add(pluginRepository);
     }
 
 
