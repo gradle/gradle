@@ -15,15 +15,18 @@
  */
 package org.gradle.plugins.signing.signatory.pgp
 
+import groovy.transform.CompileStatic
 import org.bouncycastle.openpgp.PGPSecretKey
+import org.bouncycastle.openpgp.PGPSecretKeyRing
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
 
-import org.gradle.api.Project
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Project
 
+@CompileStatic
 class PgpSignatoryFactory {
 
-    static private final PROPERTIES = ["keyId", "secretKeyRingFile", "password"]
+    static private final List<String> PROPERTIES = ["keyId", "secretKeyRingFile", "password"]
 
     PgpSignatory createSignatory(Project project, boolean required = false) {
         readProperties(project, null, "default", required)
@@ -40,7 +43,7 @@ class PgpSignatoryFactory {
     protected PgpSignatory readProperties(Project project, String prefix, String name, boolean required = false) {
         def qualifiedProperties = PROPERTIES.collect { getQualifiedPropertyName(prefix, it) }
         def values = []
-        for (property in qualifiedProperties) {
+        for (String property in qualifiedProperties) {
             if (project.hasProperty(property)) {
                 values << project[property]
             } else {
@@ -59,7 +62,7 @@ class PgpSignatoryFactory {
         createSignatory(name, keyId, keyRing, password)
     }
 
-    protected getQualifiedPropertyName(String propertyPrefix, String name) {
+    protected String getQualifiedPropertyName(String propertyPrefix, String name) {
         "signing.${propertyPrefix ? propertyPrefix + '.' : ''}${name}"
     }
 
@@ -76,7 +79,7 @@ class PgpSignatoryFactory {
             throw new InvalidUserDataException("Unable to retrieve secret key from key ring file '$file' as it does not exist")
         }
 
-        file.withInputStream { readSecretKey(it, keyId, "file: $file.absolutePath") }
+        file.withInputStream { readSecretKey(it, keyId, "file: $file.absolutePath") } as PGPSecretKey
     }
 
     protected PGPSecretKey readSecretKey(InputStream input, String keyId, String sourceDescription) {
@@ -91,11 +94,19 @@ class PgpSignatoryFactory {
     }
 
     protected PGPSecretKey readSecretKey(PGPSecretKeyRingCollection keyRings, PgpKeyId keyId, String sourceDescription) {
-        def key = keyRings.keyRings*.secretKeys*.collect { it }.flatten().find { new PgpKeyId(it.keyID) == keyId }
+        PGPSecretKey key = secretKeysOf(keyRings).find { PGPSecretKey key -> new PgpKeyId(key.keyID) == keyId }
         if (key == null) {
             throw new InvalidUserDataException("did not find secret key for id '$keyId' in key source '$sourceDescription'")
         }
         key
+    }
+
+    private List<PGPSecretKey> secretKeysOf(PGPSecretKeyRingCollection keyRings) {
+        secreteKeyRings(keyRings)*.secretKeys.collectMany { (it as Iterator<PGPSecretKey>).toList() }
+    }
+
+    private Iterator<PGPSecretKeyRing> secreteKeyRings(PGPSecretKeyRingCollection keyRings) {
+        keyRings.keyRings as Iterator<PGPSecretKeyRing>
     }
 
     // TODO - move out to DSL adapter layer (i.e. signatories container)
