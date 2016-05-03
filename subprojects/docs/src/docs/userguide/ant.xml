@@ -50,7 +50,7 @@
         during the entire process.
     </para>
 
-    <section>
+    <section id="sec:using_ant_tasks">
         <title>Using Ant tasks and types in your build</title>
 
         <para>In your build script, a property called <literal>ant</literal> is provided by Gradle. This is a reference
@@ -97,7 +97,7 @@
             <ulink url="http://groovy.codehaus.org/Using+Ant+from+Groovy">Groovy Wiki</ulink>
         </para>
 
-        <section>
+        <section id="sec:using_custom_ant_tasks">
             <title>Using custom Ant tasks in your build</title>
             <para>To make custom tasks available in your build,
                 you can use the <literal>taskdef</literal> (usually easier) or <literal>typedef</literal> Ant task,
@@ -123,7 +123,7 @@
         </section>
     </section>
 
-    <section>
+    <section id="sec:import_ant_build">
         <title>Importing an Ant build</title>
         <para>You can use the <literal>ant.importBuild()</literal> method to import an Ant build into your Gradle
             project. When you import an Ant build, each Ant target is treated as a Gradle task. This means you can
@@ -166,7 +166,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:ant_properties">
         <title>Ant properties and references</title>
 
         <para>There are several ways to set an Ant property, so that the property can be used by Ant tasks. You can
@@ -197,7 +197,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:ant_api">
         <title>API</title>
         <para>The Ant integration is provided by <apilink class="org.gradle.api.AntBuilder"/>.</para>
     </section>
