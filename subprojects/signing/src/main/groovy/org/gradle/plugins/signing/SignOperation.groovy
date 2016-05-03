@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.signing
 
+import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.PublishArtifact
 
 import org.gradle.api.file.FileCollection
@@ -34,6 +35,7 @@ import org.gradle.plugins.signing.type.SignatureType
  * A sign operation manages one or more {@link Signature} objects. The {@code sign} methods are used to register things to generate signatures
  * for. The {@link #execute()} method generates the signatures for all of the registered items at that time.
  */
+@CompileStatic
 class SignOperation implements SignatureSpec {
 
     /**
@@ -104,7 +106,7 @@ class SignOperation implements SignatureSpec {
      * Change the signature type for signature generation.
      */
     SignOperation signatureType(SignatureType type) {
-        this.type = type
+        this.signatureType = type
         this
     }
     
@@ -113,6 +115,7 @@ class SignOperation implements SignatureSpec {
      */
     SignOperation signatory(Signatory signatory) {
         this.signatory = signatory
+        this
     }
     
     /**
