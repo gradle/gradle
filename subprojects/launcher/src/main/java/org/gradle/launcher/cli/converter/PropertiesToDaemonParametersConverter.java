@@ -39,12 +39,12 @@ public class PropertiesToDaemonParametersConverter {
             }
         }
 
-        prop = properties.get(PERIODIC_CHECK_INTERVAL_PROPERTY);
+        prop = properties.get(HEALTH_CHECK_INTERVAL_PROPERTY);
         if (prop != null) {
             try {
                 target.setPeriodicCheckInterval(new Integer(prop));
             } catch (NumberFormatException e) {
-                throw new GradleException(String.format("Unable to parse %s property. Expected an int but got: %s", PERIODIC_CHECK_INTERVAL_PROPERTY, prop), e);
+                throw new GradleException(String.format("Unable to parse %s property. Expected an int but got: %s", HEALTH_CHECK_INTERVAL_PROPERTY, prop), e);
             }
         }
 

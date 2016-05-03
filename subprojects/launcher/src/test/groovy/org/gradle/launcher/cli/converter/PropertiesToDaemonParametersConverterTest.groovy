@@ -67,13 +67,13 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     def "configures from gradle properties"() {
         when:
         converter.convert([
-                (JVM_ARGS_PROPERTY)                 : '-Xmx256m',
-                (JAVA_HOME_PROPERTY)                : Jvm.current().javaHome.absolutePath,
-                (DAEMON_ENABLED_PROPERTY)           : "true",
-                (DAEMON_BASE_DIR_PROPERTY)          : new File("baseDir").absolutePath,
-                (IDLE_TIMEOUT_PROPERTY)             : "115",
-                (PERIODIC_CHECK_INTERVAL_PROPERTY)  : "42",
-                (DEBUG_MODE_PROPERTY)               : "true",
+            (JVM_ARGS_PROPERTY)                 : '-Xmx256m',
+            (JAVA_HOME_PROPERTY)                : Jvm.current().javaHome.absolutePath,
+            (DAEMON_ENABLED_PROPERTY)           : "true",
+            (DAEMON_BASE_DIR_PROPERTY)          : new File("baseDir").absolutePath,
+            (IDLE_TIMEOUT_PROPERTY)             : "115",
+            (HEALTH_CHECK_INTERVAL_PROPERTY)  : "42",
+            (DEBUG_MODE_PROPERTY)               : "true",
         ], params)
 
         then:
@@ -119,11 +119,11 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
 
     def "shows nice message for invalid periodic check interval"() {
         when:
-        converter.convert((GradleProperties.PERIODIC_CHECK_INTERVAL_PROPERTY): 'bogus', params)
+        converter.convert((GradleProperties.HEALTH_CHECK_INTERVAL_PROPERTY): 'bogus', params)
 
         then:
         def ex = thrown(GradleException)
-        ex.message.contains 'org.gradle.daemon.periodiccheckinterval'
+        ex.message.contains 'org.gradle.daemon.healthcheckinterval'
         ex.message.contains 'bogus'
     }
 

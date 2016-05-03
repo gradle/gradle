@@ -71,7 +71,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             executer.withTasks("watch")
             executer.withArguments(
                     "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}",
-                    "-Dorg.gradle.daemon.periodiccheckinterval=${periodicCheckInterval * 1000}",
+                    "-Dorg.gradle.daemon.healthcheckinterval=${periodicCheckInterval * 1000}",
                     "--info",
                     "-Dorg.gradle.jvmargs=-ea")
             if (javaHome) {
@@ -149,7 +149,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         if (javaHome) {
             executer.withJavaHome(javaHome)
         }
-        executer.withArguments("--foreground", "--info", "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}", "-Dorg.gradle.daemon.periodiccheckinterval=${periodicCheckInterval * 1000}",)
+        executer.withArguments("--foreground", "--info", "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}", "-Dorg.gradle.daemon.healthcheckinterval=${periodicCheckInterval * 1000}",)
         foregroundDaemons << executer.start()
     }
 
