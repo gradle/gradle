@@ -156,12 +156,14 @@ class SignOperation implements SignatureSpec {
      * @throws IllegalStateException if there is not exactly one registered signature.
      */
     Signature getSingleSignature() {
-        if (signatures.size() == 0) {
-            throw new IllegalStateException("Expected operation to contain exactly one signature, however, it contains no signatures.")
-        } else if (signatures.size() == 1) {
-            signatures.first()
-        } else {
-            throw new IllegalStateException("Expected operation to contain exactly one signature, however, it contains ${signatures.size()} signatures.")
+        int size = signatures.size()
+        switch (size) {
+            case 1:
+                return signatures.first()
+            case 0:
+                throw new IllegalStateException("Expected operation to contain exactly one signature, however, it contains no signatures.")
+            default:
+                throw new IllegalStateException("Expected operation to contain exactly one signature, however, it contains ${size} signatures.")
         }
     }
     
