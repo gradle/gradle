@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.signing
 
+import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact
 
@@ -29,6 +30,7 @@ import org.gradle.api.InvalidUserDataException
  * 
  * <p>A signature file is always generated from another file, which may be a {@link PublishArtifact}.</p>
  */
+@CompileStatic
 class Signature extends AbstractPublishArtifact {
     
     /**
@@ -159,7 +161,7 @@ class Signature extends AbstractPublishArtifact {
         if (toSign == null) {
             null
         } else if (toSign instanceof File) {
-            toSign
+            (File) toSign
         } else {
             new File(toSign.toString())
         }
