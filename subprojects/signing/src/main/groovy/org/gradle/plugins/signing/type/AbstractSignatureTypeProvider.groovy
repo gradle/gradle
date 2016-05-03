@@ -22,8 +22,8 @@ import org.gradle.api.InvalidUserDataException
 abstract class AbstractSignatureTypeProvider implements SignatureTypeProvider {
     
     private String defaultTypeExtension
-    private Map<String, SignatureType> types = [:]
-    
+    private final Map<String, SignatureType> types = [:]
+
     SignatureType getDefaultType() {
         getTypeForExtension(defaultTypeExtension)
     }
