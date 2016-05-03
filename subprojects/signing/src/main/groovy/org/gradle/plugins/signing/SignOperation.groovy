@@ -154,11 +154,11 @@ class SignOperation implements SignatureSpec {
      */
     Signature getSingleSignature() {
         if (signatures.size() == 0) {
-            throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains no signatures.")
+            throw new IllegalStateException("Expected operation to contain exactly one signature, however, it contains no signatures.")
         } else if (signatures.size() == 1) {
             signatures.first()
         } else {
-            throw new IllegalStateException("Expected %s to contain exactly one signature, however, it contains no ${signature.size()} signatures.")
+            throw new IllegalStateException("Expected operation to contain exactly one signature, however, it contains ${signatures.size()} signatures.")
         }
     }
     
