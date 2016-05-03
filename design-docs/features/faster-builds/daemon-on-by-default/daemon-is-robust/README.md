@@ -79,7 +79,75 @@ Example gradle.properties: 'org.gradle.daemon.performance.info=true'
 - First build presents "Starting build..." message
 - Subsequent builds present "Executing x build..." message
 
-### Prevent memory leaks make daemon unusable, ensure high daemon performance
+### Prevent daemon with a leak from reaching a point where gc is thrashing
+
+We need to monitor garbage collection behavior and stop the daemon when a leak appears to be exhausting tenured heap space.  In order to do so, we want to look at two metrics:
+
+- Garbage collection rate - rate at which the tenured heap is being garbage collected
+- Tenured heap usage - the amount of space allocated in the tenured heap _after_ garbage collection
+
+We need to check these values after a build has completed (to decide whether a new build should occur) as well as periodically to catch scenarios where a runaway thread is leaking memory outside of a build.  If thresholds for both values have been tripped, we should expire the daemon either immediately or after the build if a build is running.
+
+#### Implementation
+
+- Register a polling mechanism to check garbage collection statistics once a second.  Gather:
+  - Garbage collection count (from GarbageCollectorMXBean)
+  - Tenured memory pool usage after garbage collection (from MemoryPoolMXBean)
+  - Timestamp of the current check
+- Maintain a window of up to 20 measurements (i.e. the state of the garbage collector over the last 20 seconds)
+- At the end of a build or during a periodic check, calculate the GC rate and average tenured heap usage from the window of events.  If both thresholds are crossed, request the daemon should stop.
+- For the Sun JVM, the threshold should be a GC rate of 1.5/s and 80% usage of tenured space.
+- For the IBM JVM, the threshold should be a GC rate of 1.5/s and 70% usage of tenured space.
+- For other JVMs, we won't implement this check.
+
+#### Test coverage
+
+- Detects fast leaks in builds with both a small (200m) and large heap (1024m) and stops daemon.
+- Detects slow leaks in builds with both a small (200m) and large heap (1024m) and stops daemon.
+- For a build that leaks without tripping the thresholds, the daemon is not stopped.
+
+### Prevent daemon with a Perm Gen leak on <=JDK7 from reaching a point where gc is thrashing
+
+We need to monitor garbage collection behavior and stop the daemon when a leak appears to be exhausting perm gen space.  In order to do so, we should only need to look at the usage of the perm gen memory pool.  There should not be a ton of churn on this pool, so simply measuring the usage after garbage collection should be enough to decide if there is a perm gen leak.
+
+We need to check this value after a build has completed (to decide whether a new build should occur) as well as periodically to catch scenarios where a runaway thread is leaking memory outside of a build.  If thresholds for both values have been tripped, we should expire the daemon either immediately or after the build if a build is running.
+
+#### Implementation
+
+- Register a polling mechanism to check perm gen memory pool usage once a second.
+- Maintain a window of up to 20 measurements (i.e. the state of the perm gen space over the last 20 seconds)
+- At the end of a build or during a periodic check, calculate the average perm gen usage from the window of events.  If the threshold is crossed, request the daemon should stop.
+- For the Sun JVM, the threshold should be 85% usage of perm gen space.
+- Most other JVMs don't use perm gen space, so we won't implement this check for anything other than the Sun JVM.
+
+#### Test coverage
+
+- Detects a perm gen leak in a build and expires the deamon at the end of a build
+
+### Detect when gc is thrashing and premptively stop the daemon
+
+We need to monitor garbage collection behavior and forcefully stop the daemon when it appears that the garbage collector is actively thrashing.  In order to do so, we want to look at two metrics:
+
+- Garbage collection rate - rate at which the tenured heap is being garbage collected
+- Tenured heap usage - the amount of space allocated in the tenured heap _after_ garbage collection
+
+We need to check these values periodically during a build.  If thresholds for both values have been tripped, we should forcefully stop the daemon to prevent an unresponsive state and notify the user.
+
+This story depends on the story for making daemon health visible.
+
+#### Test coverage
+
+- Detects gc thrash in a build that agrressively allocates/leaks memory and preemptively stops the daemon with a sensible error message.
+
+#### Implementation
+
+- Leverage the periodic garbage collection statistic checks to gather information about GC rate and average tenured usage. 
+- As part of the check, if both thresholds are crossed, immediately force stop the daemon, sending a message to the user.
+- For the Sun JVM, the threshold should be a GC rate of 20/s and 90% usage of tenured space.
+- For the IBM JVM, the threshold should be a GC rate of 20/s and 80% usage of tenured space.
+- For other JVMs, we won't implement this check.
+
+### Prevent memory leaks from making the daemon unusable, ensure high daemon performance
 
 Allow using daemon everywhere and always, even for CI builds. Ensure stability in serving builds.
 Prevent stalled builds when n-th build becomes memory-exhausted and stalls.
@@ -98,15 +166,3 @@ This can ensure stability in serving builds and avoid stalled build due to exhau
 #### Coverage
 
 - integration test that contains a leaky build. The build fails with OOME if the feature is turned off.
-
-### Prevent daemon become unresponsive due to gc thrashing
-
-#### Ideas
-
-- Daemon automatically prints out gc log events to the file in daemon dir. Useful for diagnosing offline.
-- Daemon writes gc log events and analyzes them:
-    - Understands and warns the user if throughput is going down
-    - Knows when gc is about to freeze the vm and and exits eagerly providing decent message to the user
-    - tracks memory leaks
-- Daemon scales memory automatically by starting with some defaults and gradually lowering the heap size
-- Daemon knows why the previous daemon exited. If it was due to memory problems a message is shown to the user.
