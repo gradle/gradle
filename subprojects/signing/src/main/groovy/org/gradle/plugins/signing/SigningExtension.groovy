@@ -15,28 +15,31 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.api.Task
+import groovy.transform.CompileStatic
+import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.maven.MavenDeployment
 import org.gradle.api.internal.IConventionAware
-
-import org.gradle.plugins.signing.signatory.*
-
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.plugins.signing.signatory.Signatory
+import org.gradle.plugins.signing.signatory.SignatoryProvider
+import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider
+import org.gradle.plugins.signing.type.DefaultSignatureTypeProvider
 import org.gradle.plugins.signing.type.SignatureType
 import org.gradle.plugins.signing.type.SignatureTypeProvider
-import org.gradle.plugins.signing.type.DefaultSignatureTypeProvider
-
-import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider
-import java.util.concurrent.Callable
-import org.gradle.api.artifacts.maven.MavenDeployment
 import org.gradle.util.ConfigureUtil
-import org.gradle.internal.reflect.Instantiator
+
+import java.util.concurrent.Callable
 
 /**
  * The global signing configuration for a project.
  */
+@CompileStatic
 class SigningExtension {
     
     /**
@@ -94,7 +97,7 @@ class SigningExtension {
      */
     boolean isRequired() {
         if (required instanceof Callable) {
-            required.call()
+            ((Callable) required).call()
         } else {
             required
         }
@@ -119,7 +122,7 @@ class SigningExtension {
         this.signatureTypes = createSignatureTypeProvider()
         this.signatories = createSignatoryProvider()
 
-        project.tasks.withType(Sign) { task ->
+        project.tasks.withType(Sign) { Sign task ->
             addSignatureSpecConventions(task)
         }
     }
@@ -194,10 +197,11 @@ class SigningExtension {
         if (!(spec instanceof IConventionAware)) {
             throw new InvalidUserDataException("Cannot add conventions to signature spec '$spec' as it is not convention aware")
         }
-        
-        spec.conventionMapping.map('signatory') { getSignatory() }
-        spec.conventionMapping.map('signatureType') { getSignatureType() }
-        spec.conventionMapping.required = { isRequired() }
+
+        def conventionMapping = ((IConventionAware) spec).conventionMapping
+        conventionMapping.map('signatory') { getSignatory() }
+        conventionMapping.map('signatureType') { getSignatureType() }
+        conventionMapping.map('required') { isRequired() }
     }
     
     /**
@@ -215,12 +219,10 @@ class SigningExtension {
      * @return the created tasks.
      */
     List<Sign> sign(Task... tasksToSign) {
-        tasksToSign.collect { taskToSign ->
-            def signTask = project.task("sign${taskToSign.name.capitalize()}", type: Sign) {
-                sign taskToSign
+        tasksToSign.collect { Task taskToSign ->
+            createSignTaskFor(taskToSign.name) { Sign task ->
+                task.sign taskToSign
             }
-            addSignaturesToConfiguration(signTask, getConfiguration())
-            signTask
         }
     }
     
@@ -236,18 +238,22 @@ class SigningExtension {
      * @return the created tasks.
      */
     List<Sign> sign(Configuration... configurations) {
-        configurations.collect { configuration ->
-            def signTask = project.task("sign${configuration.name.capitalize()}", type: Sign) {
-                sign configuration
+        configurations.collect { Configuration configuration ->
+            createSignTaskFor(configuration.name) { Sign task ->
+                task.sign configuration
             }
-            this.addSignaturesToConfiguration(signTask, getConfiguration())
-            signTask
         }
     }
-    
+
+    private Sign createSignTaskFor(String name, Action<Sign> taskConfiguration) {
+        Sign signTask = project.tasks.create("sign${name.capitalize()}", Sign, taskConfiguration)
+        addSignaturesToConfiguration(signTask, getConfiguration())
+        signTask
+    }
+
     protected addSignaturesToConfiguration(Sign task, Configuration configuration) {
-        task.signatures.all { configuration.artifacts.add(it) }
-        task.signatures.whenObjectRemoved { configuration.artifacts.remove(it) }
+        task.signatures.all { Signature sig -> configuration.artifacts.add(sig) }
+        task.signatures.whenObjectRemoved { Signature sig -> configuration.artifacts.remove(sig) }
     }
 
     /**
@@ -263,8 +269,8 @@ class SigningExtension {
      * @return The executed {@link SignOperation sign operation}
      */
     SignOperation sign(PublishArtifact... publishArtifacts) {
-        doSignOperation {
-            sign(*publishArtifacts)
+        doSignOperation { SignOperation so ->
+            so.sign(publishArtifacts)
         }
     }
 
@@ -281,8 +287,8 @@ class SigningExtension {
      * @return The executed {@link SignOperation sign operation}.
      */
     SignOperation sign(File... files) {
-        doSignOperation {
-            sign(*files)
+        doSignOperation { SignOperation so ->
+            so.sign(files)
         }
     }
 
@@ -300,8 +306,8 @@ class SigningExtension {
      * @return The executed {@link SignOperation sign operation}.
      */
     SignOperation sign(String classifier, File... files) {
-        doSignOperation {
-            sign(classifier, *files)
+        doSignOperation { SignOperation so ->
+            so.sign(classifier, files)
         }
     }
 
@@ -348,8 +354,8 @@ class SigningExtension {
      * @return the generated signature artifact
      */
     Signature signPom(MavenDeployment mavenDeployment, Closure closure = null) {
-        def signOperation = sign {
-            sign(mavenDeployment.pomArtifact)
+        def signOperation = sign { SignOperation so ->
+            so.sign(mavenDeployment.pomArtifact)
             ConfigureUtil.configure(closure, delegate)
         }
 
@@ -370,10 +376,14 @@ class SigningExtension {
     }
 
     protected SignOperation doSignOperation(Closure setup) {
-        def operation = project.services.get(Instantiator).newInstance(SignOperation)
+        SignOperation operation = (SignOperation) instantiator().newInstance(SignOperation)
         addSignatureSpecConventions(operation)
         operation.configure(setup)
         operation.execute()
         operation
+    }
+
+    private Instantiator instantiator() {
+        ((ProjectInternal) project).services.get(Instantiator)
     }
 }
