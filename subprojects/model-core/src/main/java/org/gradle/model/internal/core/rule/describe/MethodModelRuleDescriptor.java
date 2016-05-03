@@ -63,9 +63,13 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private String getDescription() {
         if (description == null) {
-            description = STRING_INTERNER.intern(getClassName() + "#" + method.getName() + "(" + toParameterList(method.getGenericParameterTypes()) + ")");
+            description = createDescription();
         }
         return description;
+    }
+
+    private String createDescription() {
+        return getClassName() + "#" + method.getName() + "(" + toParameterList(method.getGenericParameterTypes()) + ")";
     }
 
     private static String toParameterList(List<ModelType<?>> genericParameterTypes) {
