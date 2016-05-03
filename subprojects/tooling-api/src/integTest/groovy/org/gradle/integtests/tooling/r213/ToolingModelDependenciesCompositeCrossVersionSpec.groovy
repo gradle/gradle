@@ -23,7 +23,6 @@ import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
-
 /**
  * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
  */
@@ -32,11 +31,11 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeTooling
     def buildA
     def buildB
     def builds = []
-    def mavenRepo
+    def publishedModuleB
 
     def setup() {
-        mavenRepo = new MavenFileRepository(file("maven-repo"))
-        mavenRepo.module("org.test", "buildB", "1.0").publish()
+        def mavenRepo = new MavenFileRepository(file("maven-repo"))
+        publishedModuleB = mavenRepo.module("org.test", "buildB", "1.0").publish()
 
         buildA = singleProjectBuild("buildA") {
                     buildFile << """
@@ -80,11 +79,8 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeTooling
         } else {
             assert eclipseProjectA.projectDependencies.empty
             assert eclipseProjectA.classpath.size() == 1
-            with (eclipseProjectA.classpath.first().gradleModuleVersion) {
-                assert group == 'org.test'
-                assert name == 'buildB'
-                assert version == '1.0'
-            }
+            def externalDependency = eclipseProjectA.classpath.first()
+            assert externalDependency.file == publishedModuleB.artifactFile
         }
     }
 
@@ -111,12 +107,9 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeTooling
             }
         } else {
             assert ideaModuleA.dependencies.size() == 1
-            with(ideaModuleA.dependencies.first()) {
-                assert it instanceof IdeaSingleEntryLibraryDependency
-                assert it.gradleModuleVersion.group == 'org.test'
-                assert it.gradleModuleVersion.name == 'buildB'
-                assert it.gradleModuleVersion.version == '1.0'
-            }
+            def externalDependency = ideaModuleA.dependencies.first()
+            assert externalDependency instanceof IdeaSingleEntryLibraryDependency
+            assert externalDependency.file == publishedModuleB.artifactFile
         }
     }
 }
