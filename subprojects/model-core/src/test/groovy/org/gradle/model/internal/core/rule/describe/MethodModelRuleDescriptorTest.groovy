@@ -28,14 +28,14 @@ class MethodModelRuleDescriptorTest extends Specification {
         MethodModelRuleDescriptor.of(weakMethod(getClass(), method)).describeTo(sb)
 
         then:
-        sb.toString() == ModelType.of(getClass()).displayName + "#" + method
+        sb.toString() == ModelType.of(getClass()).displayName + "#" + desc
 
         where:
-        method << [
-            "noArgs",
-            "oneArg",
-            "twoArgs",
-            "genericArgs"]
+        method        | desc
+        "noArgs"      | 'noArgs()'
+        "oneArg"      | 'oneArg(String)'
+        "twoArgs"     | 'twoArgs(String, String)'
+        "genericArgs" | 'genericArgs(List<String>, Map<Integer, List<String>>)'
     }
 
     def "inner classes are described"() {
@@ -44,15 +44,13 @@ class MethodModelRuleDescriptorTest extends Specification {
         MethodModelRuleDescriptor.of(weakMethod(Outer.Inner, "noArgs")).describeTo(sb)
 
         then:
-        sb.toString() == 'MethodModelRuleDescriptorTest.Outer.Inner#noArgs'
+        sb.toString() == 'MethodModelRuleDescriptorTest.Outer.Inner#noArgs()'
     }
 
     private WeaklyTypeReferencingMethod weakMethod(Class type, String name) {
         def declaringType = ModelType.of(type)
-        Stub(WeaklyTypeReferencingMethod) {
-            getDeclaringType() >> declaringType
-            getName() >> name
-        }
+        def method = type.getDeclaredMethods().find { it.name == name }
+        WeaklyTypeReferencingMethod.of(declaringType, ModelType.of(method.returnType), method)
     }
 
     def noArgs() {}

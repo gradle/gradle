@@ -70,7 +70,7 @@ class ScopedRuleTest extends ProjectRegistrySpec {
         then:
         ModelRuleExecutionException e = thrown()
         e.cause.class == UnsupportedOperationException
-        e.cause.message == "ScopedRuleTest.RuleSourceUsingRuleWithDependencies#rule has dependencies on plugins: [$ImperativePlugin]. Plugin dependencies are not supported in this context."
+        e.cause.message == "ScopedRuleTest.RuleSourceUsingRuleWithDependencies#rule() has dependencies on plugins: [$ImperativePlugin]. Plugin dependencies are not supported in this context."
     }
 
     static class CreatorRule extends RuleSource {
@@ -91,7 +91,7 @@ class ScopedRuleTest extends ProjectRegistrySpec {
         then:
         ModelRuleExecutionException e = thrown()
         e.cause.class == InvalidModelRuleDeclarationException
-        e.cause.message == "Rule ScopedRuleTest.CreatorRule#string cannot be applied at the scope of model element values as creation rules cannot be used when applying rule sources to particular elements"
+        e.cause.message == "Rule ScopedRuleTest.CreatorRule#string() cannot be applied at the scope of model element values as creation rules cannot be used when applying rule sources to particular elements"
     }
 
     static class ByPathBoundInputsChildRule extends RuleSource {

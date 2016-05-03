@@ -114,7 +114,7 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         def buildType = ModelReportOutput.from(output).modelNode.buildType
 
         buildType.sources.@type[0] == 'org.gradle.language.base.FunctionalSourceSet'
-        buildType.sources.@creator[0] == 'Rules#buildType'
+        buildType.sources.@creator[0] == 'Rules#buildType(BuildType)'
     }
 
     def "can have FunctionalSourceSets as managed collection"() {
@@ -146,14 +146,14 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         def buildType = ModelReportOutput.from(output).modelNode.buildType
 
         buildType.componentSources.@type[0] == 'org.gradle.model.ModelMap<org.gradle.language.base.FunctionalSourceSet>'
-        buildType.componentSources.@creator[0] == 'Rules#buildType'
+        buildType.componentSources.@creator[0] == 'Rules#buildType(BuildType)'
         buildType.componentSources.componentA.@type[0] == 'org.gradle.language.base.FunctionalSourceSet'
-        buildType.componentSources.componentA.@creator[0] == 'Rules#addSources > create(componentA)'
+        buildType.componentSources.componentA.@creator[0] == 'Rules#addSources(BuildType) > create(componentA)'
 
         buildType.testSources.@type[0] == 'org.gradle.model.ModelSet<org.gradle.language.base.FunctionalSourceSet>'
-        buildType.testSources.@creator[0] == 'Rules#buildType'
+        buildType.testSources.@creator[0] == 'Rules#buildType(BuildType)'
         buildType.testSources."0".@type[0] == 'org.gradle.language.base.FunctionalSourceSet'
-        buildType.testSources."0".@creator[0] == 'Rules#addSources > create()'
+        buildType.testSources."0".@creator[0] == 'Rules#addSources(BuildType) > create()'
     }
 
     def "can register a language source set"() {

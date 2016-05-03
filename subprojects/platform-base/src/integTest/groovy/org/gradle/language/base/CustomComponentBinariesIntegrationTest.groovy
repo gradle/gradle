@@ -74,11 +74,11 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
             components {
                 sampleLib {
                     binaries {
-                        binary(type: 'SampleBinary', creator: 'MyComponentBinariesPlugin.Rules#createBinariesForSampleLibrary > create(binary)') {
+                        binary(type: 'SampleBinary', creator: 'MyComponentBinariesPlugin.Rules#createBinariesForSampleLibrary(ModelMap<SampleBinary>, SampleLibrary) > create(binary)') {
                             tasks()
                             sources()
                         }
-                        otherBinary(type: 'OtherSampleBinary', creator: 'MyComponentBinariesPlugin.Rules#createBinariesForSampleLibrary > create(otherBinary)') {
+                        otherBinary(type: 'OtherSampleBinary', creator: 'MyComponentBinariesPlugin.Rules#createBinariesForSampleLibrary(ModelMap<SampleBinary>, SampleLibrary) > create(otherBinary)') {
                             tasks()
                             sources()
                         }
@@ -399,7 +399,7 @@ Binaries
         fails "tasks"
 
         then:
-        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.illegal' using creation rule 'IllegallyMutatingComponentBinariesRules#createBinariesForSampleLibrary > create(illegal)' as model element 'components.sampleLib.binaries' is no longer mutable.")
+        failure.assertHasCause("Cannot create 'components.sampleLib.binaries.illegal' using creation rule 'IllegallyMutatingComponentBinariesRules#createBinariesForSampleLibrary(ModelMap<SampleBinary>, SampleLibrary, BinariesHolder) > create(illegal)' as model element 'components.sampleLib.binaries' is no longer mutable.")
     }
 
     def "reports failure in @ComponentBinaries rule"() {

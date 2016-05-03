@@ -234,7 +234,7 @@ A managed collection can not contain 'java.io.InputStream's""")
 
         and:
         failure.assertHasDescription('A problem occurred configuring root project')
-        failure.assertHasCause('Exception thrown while executing model rule: Rules#people > create(foo)')
+        failure.assertHasCause('Exception thrown while executing model rule: Rules#people(ModelMap<Person>) > create(foo)')
         failure.assertHasCause('broken')
     }
 
@@ -265,8 +265,8 @@ A managed collection can not contain 'java.io.InputStream's""")
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#people")
-        failure.assertHasCause("Attempt to read from a write only view of model element 'people' of type 'ModelMap<Person>' given to rule 'RulePlugin#people'")
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#people(ModelMap<Person>)")
+        failure.assertHasCause("Attempt to read from a write only view of model element 'people' of type 'ModelMap<Person>' given to rule 'RulePlugin#people(ModelMap<Person>)'")
     }
 
     def "cannot mutate when used as an input"() {
@@ -295,8 +295,8 @@ A managed collection can not contain 'java.io.InputStream's""")
         fails "tasks"
 
         and:
-        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#mutate")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelMap<Person>' given to rule 'RulePlugin#mutate'")
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#mutate(ModelMap<Task>, ModelMap<Person>)")
+        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelMap<Person>' given to rule 'RulePlugin#mutate(ModelMap<Task>, ModelMap<Person>)'")
     }
 
     def "can read children of map when used as input"() {

@@ -264,7 +264,7 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
         fails 'tasks'
 
         and:
-        failure.assertHasCause "Attempt to mutate closed view of model of type 'java.util.$type<java.lang.String>' given to rule 'Rules#tryToMutate'"
+        failure.assertHasCause "Attempt to mutate closed view of model of type 'java.util.$type<java.lang.String>' given to rule 'Rules#tryToMutate(ModelMap<Task>, Container)'"
 
         where:
         type << MANAGED_SCALAR_COLLECTION_TYPES
@@ -304,7 +304,7 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
         fails 'tasks'
 
         and:
-        failure.assertHasCause "Attempt to mutate closed view of model of type 'java.util.$type<java.lang.String>' given to rule 'Rules#tryToMutate'"
+        failure.assertHasCause "Attempt to mutate closed view of model of type 'java.util.$type<java.lang.String>' given to rule 'Rules#tryToMutate(ModelMap<Task>, Container)'"
 
         where:
         type << MANAGED_SCALAR_COLLECTION_TYPES

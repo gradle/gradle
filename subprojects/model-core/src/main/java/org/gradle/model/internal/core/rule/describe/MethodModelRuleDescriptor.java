@@ -16,15 +16,18 @@
 
 package org.gradle.model.internal.core.rule.describe;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
+import com.google.common.collect.Iterables;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -33,14 +36,17 @@ import java.util.WeakHashMap;
 @ThreadSafe
 public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
     private final static Cache DESCRIPTOR_CACHE = new Cache();
+    private final static Joiner PARAM_JOINER = Joiner.on(", ");
+    private static final Function<ModelType<?>, String> TYPE_DISPLAYNAME_FUNCTION = new Function<ModelType<?>, String>() {
+        @Override
+        public String apply(ModelType<?> input) {
+            return input.getDisplayName();
+        }
+    };
 
     private final WeaklyTypeReferencingMethod<?, ?> method;
     private String description;
     private int hashCode;
-
-    public MethodModelRuleDescriptor(ModelType<?> target, ModelType<?> returnType, Method method) {
-        this(WeaklyTypeReferencingMethod.of(target, returnType, method));
-    }
 
     public MethodModelRuleDescriptor(WeaklyTypeReferencingMethod<?, ?> method) {
         this.method = method;
@@ -57,10 +63,13 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
 
     private String getDescription() {
         if (description == null) {
-            description = STRING_INTERNER.intern(getClassName() + "#" + method.getName());
+            description = STRING_INTERNER.intern(getClassName() + "#" + method.getName() + "(" + toParameterList(method.getGenericParameterTypes()) + ")");
         }
-
         return description;
+    }
+
+    private static String toParameterList(List<ModelType<?>> genericParameterTypes) {
+        return PARAM_JOINER.join(Iterables.transform(genericParameterTypes, TYPE_DISPLAYNAME_FUNCTION));
     }
 
     private String getClassName() {
@@ -112,42 +121,21 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
         }
 
         private static class CacheEntry {
-            private final Map<String, MethodModelRuleDescriptor> descriptors;
+            private final Map<WeaklyTypeReferencingMethod<?, ?>, MethodModelRuleDescriptor> descriptors;
 
             public CacheEntry(Class<?> clazz) {
-                this.descriptors = new HashMap<String, MethodModelRuleDescriptor>(clazz.getDeclaredMethods().length);
+                this.descriptors = new HashMap<WeaklyTypeReferencingMethod<?, ?>, MethodModelRuleDescriptor>(clazz.getDeclaredMethods().length);
             }
 
             public <T, R> MethodModelRuleDescriptor get(WeaklyTypeReferencingMethod<T, R> weakMethod) {
-                String methodName = weakMethod.getName();
-                MethodModelRuleDescriptor desc = descriptors.get(methodName);
+                MethodModelRuleDescriptor desc = descriptors.get(weakMethod);
                 if (desc != null) {
                     return desc;
                 }
                 desc = new MethodModelRuleDescriptor(weakMethod);
-                if (isOverloadedInClass(weakMethod.getDeclaringType().getConcreteClass(), methodName)) {
-                    return desc;
-                }
                 // Only cache non-overloaded methods by name
-                descriptors.put(methodName, desc);
+                descriptors.put(weakMethod, desc);
                 return desc;
-            }
-
-            private boolean isOverloadedInClass(Class<?> clazz, String methodName) {
-                Method[] declaredMethods = clazz.getDeclaredMethods();
-                Method method = null;
-                for (Method declaredMethod : declaredMethods) {
-                    if (declaredMethod.getName().equals(methodName)) {
-                        if (method != null) {
-                            return true;
-                        }
-                        method = declaredMethod;
-                    }
-                }
-                if (method == null) {
-                    throw new IllegalStateException("Class " + clazz.getName() + " has no method named '" + methodName + "'");
-                }
-                return false;
             }
         }
     }

@@ -198,6 +198,6 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
 
         expect:
         def failure = fails("validate")
-        failure.assertHasCause "Factory registration for 'SampleLibrarySpec' is invalid because the implementation type 'DefaultSampleLibrarySpec' does not implement internal view 'NotImplementedInternalView', implementation type was registered by RegisterComponentRules#registerComponent, internal view was registered by RegisterComponentRules#registerInternalView"
+        failure.assertHasCause "Factory registration for 'SampleLibrarySpec' is invalid because the implementation type 'DefaultSampleLibrarySpec' does not implement internal view 'NotImplementedInternalView', implementation type was registered by RegisterComponentRules#registerComponent(TypeBuilder<SampleLibrarySpec>), internal view was registered by RegisterComponentRules#registerInternalView(TypeBuilder<SampleLibrarySpec>)"
     }
 }

@@ -579,7 +579,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         fails "model"
         failure.assertHasCause('''The following model rules could not be applied due to unbound inputs and/or subjects:
 
-  UnboundRuleSource#unboundRule
+  UnboundRuleSource#unboundRule(String, Integer, String)
     subject:
       - <no path> String (parameter 1) [*]
           scope: strings

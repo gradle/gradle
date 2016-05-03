@@ -136,7 +136,7 @@ model {
 
         then:
         failure.assertHasCause("Exception thrown while executing model rule: binaries { ... } @ build.gradle line 54, column 5")
-        failure.assertHasCause("Cannot create 'binaries.mylibMain' using creation rule 'mylibMain(CustomBinary) { ... } @ build.gradle line 55, column 9' as the rule 'ComponentModelBasePlugin.PluginRules#collectBinaries > put()' is already registered to create this model element.")
+        failure.assertHasCause("Cannot create 'binaries.mylibMain' using creation rule 'mylibMain(CustomBinary) { ... } @ build.gradle line 55, column 9' as the rule 'ComponentModelBasePlugin.PluginRules#collectBinaries(BinaryContainer, ComponentSpecContainer) > put()' is already registered to create this model element.")
     }
 
     def "binaries of a component can be configured using a rule attached to the top level binaries container"() {

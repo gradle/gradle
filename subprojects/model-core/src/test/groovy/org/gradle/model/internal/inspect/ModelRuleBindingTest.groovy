@@ -71,11 +71,9 @@ class ModelRuleBindingTest extends ProjectRegistrySpec {
 
     private ModelRuleDescriptor methodDescriptor(Class type, String methodName) {
         def declaringType = ModelType.of(type)
-        def method = Stub(WeaklyTypeReferencingMethod) {
-            getDeclaringType() >> declaringType
-            getName() >> methodName
-        }
-        MethodModelRuleDescriptor.of(method)
+        def method = type.getDeclaredMethods().find { it.name == methodName }
+
+        MethodModelRuleDescriptor.of(WeaklyTypeReferencingMethod.of(declaringType, ModelType.of(method.returnType), method))
     }
 
 

@@ -38,15 +38,15 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
         output.contains """
             + components
                   | Type:   \torg.gradle.platform.base.ComponentSpecContainer
-                  | Creator: \tComponentBasePlugin.PluginRules#components
+                  | Creator: \tComponentBasePlugin.PluginRules#components(ComponentSpecContainer)
                   | Rules:
                      ⤷ components { ... } @ build.gradle line 42, column 5
-                     ⤷ MyPlugin#mutateMyComponents
+                     ⤷ MyPlugin#mutateMyComponents(ModelMap<MyComponentInternal>)
                 + my
                       | Type:   \tMyComponent
                       | Creator: \tcomponents { ... } @ build.gradle line 42, column 5 > create(my)
                       | Rules:
-                         ⤷ MyPlugin#mutateMyComponents > all()
+                         ⤷ MyPlugin#mutateMyComponents(ModelMap<MyComponentInternal>) > all()
                     + publicData
                           | Type:   \tjava.lang.String
                           | Value:  \tSome PUBLIC data

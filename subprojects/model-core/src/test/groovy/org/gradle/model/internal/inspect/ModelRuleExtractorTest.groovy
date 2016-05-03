@@ -205,7 +205,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         then:
         1 * registry.register(_) >> { ModelRegistration registration ->
             assert registration.path.toString() == "modelPath"
-            assert registration.descriptor.toString() == "ModelRuleExtractorTest.SimpleModelCreationRuleInferredName#modelPath"
+            assert registration.descriptor.toString() == "ModelRuleExtractorTest.SimpleModelCreationRuleInferredName#modelPath()"
         }
         0 * _
     }
@@ -410,7 +410,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         1 * registry.configure(ModelActionRole.Mutate, _) >> { ModelActionRole role, ModelAction action ->
-            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationRules#mutate1'
+            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationRules#mutate1(List<String>)'
         }
         0 * registry._
     }
@@ -441,7 +441,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         1 * registry.configure(ModelActionRole.Finalize, _) >> { ModelActionRole role, ModelAction action ->
-            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#finalize1'
+            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#finalize1(List<String>)'
         }
     }
 
@@ -455,17 +455,17 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         1 * registry.configure(ModelActionRole.Finalize, _) >> { ModelActionRole role, ModelAction action ->
-            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#finalize1'
+            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#finalize1(List<String>)'
         }
 
         then:
         1 * registry.configure(ModelActionRole.Mutate, _) >> { ModelActionRole role, ModelAction action ->
-            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#mutate1'
+            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#mutate1(List<String>)'
         }
 
         then:
         1 * registry.configure(ModelActionRole.Mutate, _) >> { ModelActionRole role, ModelAction action ->
-            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#mutate3'
+            assert action.descriptor.toString() == 'ModelRuleExtractorTest.MutationAndFinalizeRules#mutate3(List<Integer>)'
         }
         0 * registry._
     }
@@ -538,7 +538,7 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "Declaration of model rule ModelRuleExtractorTest.$inspected.simpleName#bar is invalid."
+        e.message == "Declaration of model rule ModelRuleExtractorTest.$inspected.simpleName#bar($managedType.simpleName) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == """Type $ModelMap.name<?> is not a valid model element type:
 - type parameter of org.gradle.model.ModelMap cannot be a wildcard.
@@ -566,7 +566,7 @@ ${managedType.name}
 
         then:
         InvalidModelRuleDeclarationException e = thrown()
-        e.message == "Declaration of model rule ModelRuleExtractorTest.RuleSourceCreatingManagedWithNonManageableParent#bar is invalid."
+        e.message == "Declaration of model rule ModelRuleExtractorTest.RuleSourceCreatingManagedWithNonManageableParent#bar(ManagedWithNonManageableParents) is invalid."
         e.cause instanceof InvalidManagedModelElementTypeException
         e.cause.message == """Type $ModelMap.name<?> is not a valid model element type:
 - type parameter of org.gradle.model.ModelMap cannot be a wildcard.
@@ -712,7 +712,7 @@ ${ManagedWithNonManageableParents.name}
 
         then:
         def e = thrown(UnsupportedOperationException)
-        e.message == "ModelRuleExtractorTest.RuleSourceWithDependencies#method1 has dependencies on plugins: [class java.lang.Long]. Plugin dependencies are not supported in this context."
+        e.message == "ModelRuleExtractorTest.RuleSourceWithDependencies#method1(Long) has dependencies on plugins: [class java.lang.Long]. Plugin dependencies are not supported in this context."
     }
 
     def "extracted stateless rules are cached"() {

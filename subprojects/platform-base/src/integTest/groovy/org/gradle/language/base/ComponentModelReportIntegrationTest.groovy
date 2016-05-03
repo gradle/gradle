@@ -35,29 +35,29 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
         output.contains """
             + components
                   | Type:   	org.gradle.platform.base.ComponentSpecContainer
-                  | Creator: 	ComponentBasePlugin.PluginRules#components
+                  | Creator: 	ComponentBasePlugin.PluginRules#components(ComponentSpecContainer)
                   | Rules:
                      ⤷ components { ... } @ build.gradle line 88, column 5
                 + myComponent
                       | Type:   	UnmanagedComponent
                       | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9
                       | Rules:
-                         ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet
-                         ⤷ ComponentModelBasePlugin.PluginRules#inputRules
-                         ⤷ DeclarationRules#mutateMyComponent
+                         ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet(SourceComponentSpec, ProjectSourceSet)
+                         ⤷ ComponentModelBasePlugin.PluginRules#inputRules(ComponentModelBasePlugin.PluginRules.AttachInputs, GeneralComponentSpec)
+                         ⤷ DeclarationRules#mutateMyComponent(UnmanagedComponent)
                     + binaries
                           | Type:   	org.gradle.model.ModelMap<org.gradle.platform.base.BinarySpec>
                           | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9
                           | Rules:
-                             ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets
+                             ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets(ModelMap<BinarySpec>)
                         + myBinary
                               | Type:   	UnmanagedBinary
                               | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9 > create(myBinary)
                               | Rules:
-                                 ⤷ DeclarationRules#mutateMyBinary
-                                 ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets > withType()
-                                 ⤷ BinaryBasePlugin.Rules#defineBuildLifecycleTask
-                                 ⤷ BinaryBasePlugin.Rules#addSourceSetsOwnedByBinariesToTheirInputs
+                                 ⤷ DeclarationRules#mutateMyBinary(UnmanagedBinary)
+                                 ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets(ModelMap<BinarySpec>) > withType()
+                                 ⤷ BinaryBasePlugin.Rules#defineBuildLifecycleTask(BinarySpecInternal, ITaskFactory)
+                                 ⤷ BinaryBasePlugin.Rules#addSourceSetsOwnedByBinariesToTheirInputs(BinarySpecInternal)
                             + sources
                                   | Type:   	org.gradle.model.ModelMap<org.gradle.language.base.LanguageSourceSet>
                                   | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9 > create(myBinary)
@@ -66,8 +66,8 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                                       | Value:  	Unmanaged source 'myComponent:myBinary:myBinarySource'
                                       | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9 > create(myBinary) > create(myBinarySource)
                                       | Rules:
-                                         ⤷ DeclarationRules#mutateMyBinarySource
-                                         ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions
+                                         ⤷ DeclarationRules#mutateMyBinarySource(UnmanagedLanguageSourceSet)
+                                         ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions(LanguageSourceSet, ProjectIdentifier)
                             + tasks
                                   | Type:   	org.gradle.platform.base.BinaryTasksCollection
                                   | Value:  	[]
@@ -80,9 +80,9 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                               | Value:  	Unmanaged source 'myComponent:myComponentSource'
                               | Creator: 	myComponent(UnmanagedComponent) { ... } @ build.gradle line 89, column 9 > create(myComponentSource)
                               | Rules:
-                                 ⤷ DeclarationRules#mutateMyComponentSource
-                                 ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet > afterEach()
-                                 ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions
+                                 ⤷ DeclarationRules#mutateMyComponentSource(UnmanagedLanguageSourceSet)
+                                 ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet(SourceComponentSpec, ProjectSourceSet) > afterEach()
+                                 ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions(LanguageSourceSet, ProjectIdentifier)
         """.stripIndent().trim()
     }
 
@@ -100,29 +100,29 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
         output.contains """
             + components
                   | Type:   	org.gradle.platform.base.ComponentSpecContainer
-                  | Creator: 	ComponentBasePlugin.PluginRules#components
+                  | Creator: 	ComponentBasePlugin.PluginRules#components(ComponentSpecContainer)
                   | Rules:
                      ⤷ components { ... } @ build.gradle line 88, column 5
                 + myComponent
                       | Type:   	ManagedComponent
                       | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 89, column 9
                       | Rules:
-                         ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet
-                         ⤷ ComponentModelBasePlugin.PluginRules#inputRules
-                         ⤷ DeclarationRules#mutateMyComponent
+                         ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet(SourceComponentSpec, ProjectSourceSet)
+                         ⤷ ComponentModelBasePlugin.PluginRules#inputRules(ComponentModelBasePlugin.PluginRules.AttachInputs, GeneralComponentSpec)
+                         ⤷ DeclarationRules#mutateMyComponent(ManagedComponent)
                     + binaries
                           | Type:   	org.gradle.model.ModelMap<org.gradle.platform.base.BinarySpec>
                           | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 89, column 9
                           | Rules:
-                             ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets
+                             ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets(ModelMap<BinarySpec>)
                         + myBinary
                               | Type:   	ManagedBinary
                               | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 89, column 9 > create(myBinary)
                               | Rules:
-                                 ⤷ DeclarationRules#mutateMyBinary
-                                 ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets > withType()
-                                 ⤷ BinaryBasePlugin.Rules#defineBuildLifecycleTask
-                                 ⤷ BinaryBasePlugin.Rules#addSourceSetsOwnedByBinariesToTheirInputs
+                                 ⤷ DeclarationRules#mutateMyBinary(ManagedBinary)
+                                 ⤷ ComponentModelBasePlugin.PluginRules.AttachInputs#initializeBinarySourceSets(ModelMap<BinarySpec>) > withType()
+                                 ⤷ BinaryBasePlugin.Rules#defineBuildLifecycleTask(BinarySpecInternal, ITaskFactory)
+                                 ⤷ BinaryBasePlugin.Rules#addSourceSetsOwnedByBinariesToTheirInputs(BinarySpecInternal)
                             + data
                                   | Type:   	java.lang.String
                                   | Value:  	my binary
@@ -134,8 +134,8 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                                       | Type:   	ManagedLanguageSourceSet
                                       | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 89, column 9 > create(myBinary) > create(myBinarySource)
                                       | Rules:
-                                         ⤷ DeclarationRules#mutateMyBinarySource
-                                         ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions
+                                         ⤷ DeclarationRules#mutateMyBinarySource(ManagedLanguageSourceSet)
+                                         ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions(LanguageSourceSet, ProjectIdentifier)
                                     + data
                                           | Type:   	java.lang.String
                                           | Value:  	my binary sources
@@ -155,9 +155,9 @@ class ComponentModelReportIntegrationTest extends AbstractIntegrationSpec {
                               | Type:   	ManagedLanguageSourceSet
                               | Creator: 	myComponent(ManagedComponent) { ... } @ build.gradle line 89, column 9 > create(myComponentSource)
                               | Rules:
-                                 ⤷ DeclarationRules#mutateMyComponentSource
-                                 ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet > afterEach()
-                                 ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions
+                                 ⤷ DeclarationRules#mutateMyComponentSource(ManagedLanguageSourceSet)
+                                 ⤷ ComponentModelBasePlugin.PluginRules#addComponentSourcesSetsToProjectSourceSet(SourceComponentSpec, ProjectSourceSet) > afterEach()
+                                 ⤷ ComponentModelBasePlugin.PluginRules#applyFallbackSourceConventions(LanguageSourceSet, ProjectIdentifier)
                             + data
                                   | Type:   	java.lang.String
                                   | Value:  	my component sources

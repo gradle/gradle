@@ -42,6 +42,8 @@ public class WeaklyTypeReferencingMethod<T, R> {
     private final ImmutableList<ModelType<?>> paramTypes;
     private final int modifiers;
 
+    private int cachedHashCode = -1;
+
     private WeaklyTypeReferencingMethod(ModelType<T> declaringType, ModelType<R> returnType, Method method) {
         if (declaringType.getRawClass() != method.getDeclaringClass()) {
             throw new IllegalArgumentException("Unexpected target class.");
@@ -119,12 +121,18 @@ public class WeaklyTypeReferencingMethod<T, R> {
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder()
+        if (cachedHashCode != -1) {
+            return cachedHashCode;
+        }
+        // there's a risk, for some methods, that the hash is always
+        // recomputed but it won't be worse than before
+        cachedHashCode = new HashCodeBuilder()
                 .append(declaringType)
                 .append(returnType)
                 .append(name)
                 .append(paramTypes)
                 .toHashCode();
+        return cachedHashCode;
     }
 
     @Override

@@ -170,7 +170,7 @@ model {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyOtherPlugin']")
-        failure.assertHasCause("Cannot create 'string' using creation rule 'MyOtherPlugin.Rules#string' as the rule 'MyPlugin.Rules#string' is already registered to create this model element.")
+        failure.assertHasCause("Cannot create 'string' using creation rule 'MyOtherPlugin.Rules#string()' as the rule 'MyPlugin.Rules#string()' is already registered to create this model element.")
     }
 
     def "informative error message when two plugins declare model at the same path and model is already created"() {
@@ -210,7 +210,7 @@ model {
 
         and:
         failure.assertHasCause("Failed to apply plugin [class 'MyOtherPlugin']")
-        failure.assertHasCause("Cannot create 'string' using creation rule 'MyOtherPlugin.Rules#string' as the rule 'MyPlugin.Rules#string' has already been used to create this model element.")
+        failure.assertHasCause("Cannot create 'string' using creation rule 'MyOtherPlugin.Rules#string()' as the rule 'MyPlugin.Rules#string()' has already been used to create this model element.")
     }
 
     def "informative error message when creation rule throws"() {
@@ -297,7 +297,7 @@ model {
         fails "tasks"
 
         and:
-        failure.assertHasCause("error executing model rule: MyPlugin.Rules#string - rule returned null")
+        failure.assertHasCause("error executing model rule: MyPlugin.Rules#string() - rule returned null")
     }
 
     def "plugin applied by plugin can contribute rules"() {

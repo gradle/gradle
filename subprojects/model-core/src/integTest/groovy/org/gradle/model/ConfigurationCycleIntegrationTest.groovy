@@ -59,11 +59,11 @@ class ConfigurationCycleIntegrationTest extends AbstractIntegrationSpec {
         and:
         failure.assertHasCause("""A cycle has been detected in model rule dependencies. References forming the cycle:
 first
-\\- Rules#first
+\\- Rules#first(String)
    \\- second
       \\- second { ... } @ build.gradle line 26, column 17
          \\- third
-            \\- Rules#third
+            \\- Rules#third(String)
                \\- first""")
     }
 
@@ -98,9 +98,9 @@ first
         and:
         failure.assertHasCause("""A cycle has been detected in model rule dependencies. References forming the cycle:
 m1
-\\- Rules#m3ToM1
+\\- Rules#m3ToM1(Object, Object)
    \\- m3
-      \\- Rules#m1ToM3
+      \\- Rules#m1ToM3(Object, Object)
          \\- m1""")
     }
 
@@ -143,9 +143,9 @@ m1
         and:
         failure.assertHasCause("""A cycle has been detected in model rule dependencies. References forming the cycle:
 m1
-\\- Rules#m3ToM1
+\\- Rules#m3ToM1(Object, Object)
    \\- m3
-      \\- Rules#m1ToM3
+      \\- Rules#m1ToM3(Object, Object)
          \\- m1""")
 
     }

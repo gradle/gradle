@@ -145,7 +145,7 @@ class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrat
 
         and:
         failureCauseContains '''
-  UnboundRuleSource#unboundRule
+  UnboundRuleSource#unboundRule(String, Integer, String)
     subject:
       - <no path> String (parameter 1) [*]
           scope: tasks.taskWithUnboundRuleSourceApplied

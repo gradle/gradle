@@ -61,7 +61,7 @@ class ModelRuleBindingValidationIntegrationTest extends AbstractIntegrationSpec 
         then:
         fails "help"
         failureCauseContains("""
-  Rules#s1
+  Rules#s1(Integer)
     inputs:
       - <no path> Integer (parameter 1) [*]
 

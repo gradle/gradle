@@ -57,7 +57,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureCauseContains '''
-  MyPlugin.Rules#mutateThing2
+  MyPlugin.Rules#mutateThing2(MyPlugin.MyThing2, MyPlugin.MyThing3, String, Integer)
     subject:
       - <no path> MyPlugin.MyThing2 (parameter 1) [*]
     inputs:
@@ -65,11 +65,11 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
       - <no path> String (parameter 3) [*]
       - <no path> Integer (parameter 4) [*]
 
-  MyPlugin.Rules#subjectOnly
+  MyPlugin.Rules#subjectOnly(MyPlugin.MyThing2)
     subject:
       - <no path> MyPlugin.MyThing2 (parameter 1) [*]
 
-  MyPlugin.Rules#thing1
+  MyPlugin.Rules#thing1(MyPlugin.MyThing2)
     inputs:
       - <no path> MyPlugin.MyThing2 (parameter 1) [*]
 '''
@@ -103,7 +103,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failureCauseContains '''
-  MyPlugin.Rules#mutateThing2
+  MyPlugin.Rules#mutateThing2(MyPlugin.MyThing2, MyPlugin.MyThing3, String, Integer)
     subject:
       - foo MyPlugin.MyThing2 (parameter 1) [*]
     inputs:
@@ -111,7 +111,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
       - <no path> String (parameter 3) [*]
       - <no path> Integer (parameter 4) [*]
 
-  MyPlugin.Rules#thing1
+  MyPlugin.Rules#thing1(MyPlugin.MyThing2)
     inputs:
       - foo.bar.baz MyPlugin.MyThing2 (parameter 1) [*]
 '''
@@ -225,10 +225,10 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred configuring root project")
-        failure.assertHasCause("There is a problem with model rule Plugin3.Rules#m.")
+        failure.assertHasCause("There is a problem with model rule Plugin3.Rules#m(String).")
         failure.assertHasCause("""Type-only model reference of type java.lang.String (parameter 1) is ambiguous as multiple model elements are available for this type:
-  - s1 (created by: Plugin1.Rules#s1)
-  - s2 (created by: Plugin2.Rules#s2)""")
+  - s1 (created by: Plugin1.Rules#s1())
+  - s2 (created by: Plugin2.Rules#s2())""")
     }
 
     def "fails on incompatible by-type reference"() {
@@ -250,7 +250,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasCause("There is a problem with model rule Plugin1.Rules#addTasks.")
+        failure.assertHasCause("There is a problem with model rule Plugin1.Rules#addTasks(Integer).")
         failure.assertHasCause("""Model reference to element 'tasks' with type java.lang.Integer (parameter 1) is invalid due to incompatible types.
 This element was created by Project.<init>.tasks() and can be mutated as the following types:
   - org.gradle.model.ModelMap<org.gradle.api.Task>
@@ -297,13 +297,13 @@ model {
 
         then:
         failureCauseContains """
-  MyPlugin#checkName
+  MyPlugin#checkName(Person, Person)
     subject:
       - person.parent.parent Person (parameter 1) [*]
     inputs:
       - person.parent.parent.parent.parent Person (parameter 2) [*]
 
-  MyPlugin#name
+  MyPlugin#name(Person, Person)
     inputs:
       - person.parent.parent Person (parameter 1) [*]
       - person.parent.parent.parent.parent Person (parameter 2) [*]
@@ -350,13 +350,13 @@ model {
 
         then:
         failureCauseContains '''
-  MyPlugin.Rules#mutateThing2
+  MyPlugin.Rules#mutateThing2(MyPlugin.MyThing2, MyPlugin.MyThing1)
     subject:
       - <no path> MyPlugin.MyThing2 (parameter 1) [*]
     inputs:
       - thing1 MyPlugin.MyThing1 (parameter 2)
 
-  MyPlugin.Rules#thing1
+  MyPlugin.Rules#thing1(MyPlugin.MyThing1, MyPlugin.MyThing3)
     subject:
       - thing1 MyPlugin.MyThing1 (parameter 1)
     inputs:
