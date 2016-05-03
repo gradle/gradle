@@ -90,10 +90,6 @@ public class MethodModelRuleDescriptor extends AbstractModelRuleDescriptor {
         return result;
     }
 
-    public static ModelRuleDescriptor of(Class<?> clazz, final String methodName) {
-        return DESCRIPTOR_CACHE.get(clazz, methodName);
-    }
-
     public static <T, R> ModelRuleDescriptor of(WeaklyTypeReferencingMethod<T, R> method) {
         return DESCRIPTOR_CACHE.get(method.getDeclaringType().getConcreteClass(), method.getName());
     }

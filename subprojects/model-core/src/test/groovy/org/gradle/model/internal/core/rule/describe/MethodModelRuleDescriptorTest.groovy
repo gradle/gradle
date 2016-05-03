@@ -16,6 +16,7 @@
 
 package org.gradle.model.internal.core.rule.describe
 
+import org.gradle.model.internal.method.WeaklyTypeReferencingMethod
 import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
@@ -24,7 +25,7 @@ class MethodModelRuleDescriptorTest extends Specification {
     def "check description"() {
         when:
         def sb = new StringBuilder()
-        MethodModelRuleDescriptor.of(getClass(), method).describeTo(sb)
+        MethodModelRuleDescriptor.of(weakMethod(getClass(), method)).describeTo(sb)
 
         then:
         sb.toString() == ModelType.of(getClass()).displayName + "#" + method
@@ -40,10 +41,18 @@ class MethodModelRuleDescriptorTest extends Specification {
     def "inner classes are described"() {
         when:
         def sb = new StringBuilder()
-        MethodModelRuleDescriptor.of(Outer.Inner, "noArgs").describeTo(sb)
+        MethodModelRuleDescriptor.of(weakMethod(Outer.Inner, "noArgs")).describeTo(sb)
 
         then:
         sb.toString() == 'MethodModelRuleDescriptorTest.Outer.Inner#noArgs'
+    }
+
+    private WeaklyTypeReferencingMethod weakMethod(Class type, String name) {
+        def declaringType = ModelType.of(type)
+        Stub(WeaklyTypeReferencingMethod) {
+            getDeclaringType() >> declaringType
+            getName() >> name
+        }
     }
 
     def noArgs() {}
