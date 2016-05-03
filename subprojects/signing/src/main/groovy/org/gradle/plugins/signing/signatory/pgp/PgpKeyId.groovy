@@ -15,12 +15,14 @@
  */
 package org.gradle.plugins.signing.signatory.pgp
 
+import groovy.transform.CompileStatic
 import org.bouncycastle.openpgp.PGPPublicKey
 import org.bouncycastle.openpgp.PGPSignature
 
 /**
  * A normalised form for keys, which are friendliest for users as hex strings but used internally as longs.
  */
+@CompileStatic
 class PgpKeyId implements Comparable<PgpKeyId> {
     
     final String asHex
