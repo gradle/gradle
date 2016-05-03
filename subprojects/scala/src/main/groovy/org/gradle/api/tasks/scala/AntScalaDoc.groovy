@@ -15,49 +15,55 @@
  */
 package org.gradle.api.tasks.scala
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
+import groovy.transform.CompileStatic
 import org.gradle.api.file.FileCollection
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.gradle.api.internal.project.IsolatedAntBuilder
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
 
 @Deprecated
-class AntScalaDoc {
-    private static Logger logger = LoggerFactory.getLogger(AntScalaDoc)
+@CompileStatic
+public class AntScalaDoc {
+    private final IsolatedAntBuilder antBuilder;
+    private final List<File> bootclasspathFiles;
+    private final List<File> extensionDirs;
 
-    private final IsolatedAntBuilder antBuilder
-    private final Iterable<File> bootclasspathFiles
-    private final Iterable<File> extensionDirs
-
-    def AntScalaDoc(IsolatedAntBuilder antBuilder) {
-        this.antBuilder = antBuilder
-        this.bootclasspathFiles = []
-        this.extensionDirs = []
+    public AntScalaDoc(IsolatedAntBuilder antBuilder) {
+        this(antBuilder, ImmutableList.<File>of(), ImmutableList.<File>of());
     }
 
-    def AntScalaDoc(IsolatedAntBuilder antBuilder, Iterable<File> bootclasspathFiles, Iterable<File> extensionDirs) {
-        this.antBuilder = antBuilder
-        this.bootclasspathFiles = bootclasspathFiles
-        this.extensionDirs = extensionDirs
+    public AntScalaDoc(IsolatedAntBuilder antBuilder, Iterable<File> bootclasspathFiles, Iterable<File> extensionDirs) {
+        this.antBuilder = antBuilder;
+        this.bootclasspathFiles = ImmutableList.copyOf(bootclasspathFiles);
+        this.extensionDirs = ImmutableList.copyOf(extensionDirs);
     }
 
-    void execute(FileCollection source, File targetDir, Iterable<File> classpathFiles, Iterable<File> scalaClasspath, ScalaDocOptions docOptions) {
-        antBuilder.withClasspath(scalaClasspath).execute { ant ->
-            taskdef(resource: 'scala/tools/ant/antlib.xml')
+    public void execute(final FileCollection source, final File targetDir, final Iterable<File> classpathFiles, Iterable<File> scalaClasspath, final ScalaDocOptions docOptions) {
+        antBuilder.withClasspath(scalaClasspath).execute(new Closure<Object>(this) {
+            @SuppressWarnings("unused")
+            public Object doCall(final AntBuilderDelegate ant) {
+                ant.invokeMethod("taskdef", Collections.singletonMap("resource", "scala/tools/ant/antlib.xml"));
+                ImmutableMap.Builder<String, Object> optionsBuilder = ImmutableMap.builder();
+                optionsBuilder.put("destDir", targetDir);
+                optionsBuilder.putAll(docOptions.optionMap());
+                ImmutableMap<String, Object> options = optionsBuilder.build();
 
-            Map options = ['destDir': targetDir] + docOptions.optionMap()
-
-            scaladoc(options) {
-                source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
-                bootclasspathFiles.each {file ->
-                    bootclasspath(location: file)
-                }
-                extensionDirs.each {dir ->
-                    extdirs(location: dir)
-                }
-                classpathFiles.each {file ->
-                    classpath(location: file)
-                }
+                return ant.invokeMethod("scaladoc", [options, new Closure<Void>(this) {
+                    public void doCall() {
+                        source.addToAntBuilder(ant, "src", FileCollection.AntType.MatchingTask);
+                        for (File file : bootclasspathFiles) {
+                            ant.invokeMethod("bootclasspath", Collections.singletonMap("location", file));
+                        }
+                        for (File dir : extensionDirs) {
+                            ant.invokeMethod("extdirs", Collections.singletonMap("location", dir));
+                        }
+                        for (File file : classpathFiles) {
+                            ant.invokeMethod("classpath", Collections.singletonMap("location", file));
+                        }
+                    }
+                }] as Object[]);
             }
-        }
+        });
     }
 }

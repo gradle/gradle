@@ -15,115 +15,179 @@
  */
 package org.gradle.api.plugins.scala
 
+import com.google.common.annotations.VisibleForTesting
+import groovy.transform.CompileStatic
+import org.codehaus.groovy.runtime.InvokerHelper
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTreeElement
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.file.SourceDirectorySetFactory
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet
+import org.gradle.api.internal.tasks.scala.ScalaCompileOptionsInternal
+import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.ScalaRuntime
+import org.gradle.api.tasks.ScalaSourceSet
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.scala.IncrementalCompileOptions
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
+import org.gradle.jvm.tasks.Jar
 import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 
 import javax.inject.Inject
+import java.util.concurrent.Callable
 
-class ScalaBasePlugin implements Plugin<Project> {
-    static final String ZINC_CONFIGURATION_NAME = "zinc"
+@CompileStatic
+public class ScalaBasePlugin implements Plugin<Project> {
 
-    static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime"
-
-    private final SourceDirectorySetFactory sourceDirectorySetFactory
-
-    private Project project
-    private ScalaRuntime scalaRuntime
+    @VisibleForTesting
+    static final String ZINC_CONFIGURATION_NAME = "zinc";
+    private static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime";
+    private final SourceDirectorySetFactory sourceDirectorySetFactory;
 
     @Inject
-    ScalaBasePlugin(SourceDirectorySetFactory sourceDirectorySetFactory) {
-        this.sourceDirectorySetFactory = sourceDirectorySetFactory
+    public ScalaBasePlugin(SourceDirectorySetFactory sourceDirectorySetFactory) {
+        this.sourceDirectorySetFactory = sourceDirectorySetFactory;
     }
 
-    void apply(Project project) {
-        this.project = project
-        project.pluginManager.apply(JavaBasePlugin)
-        def javaPlugin = project.plugins.getPlugin(JavaBasePlugin.class)
+    public void apply(Project project) {
+        project.getPluginManager().apply(JavaBasePlugin.class);
 
-        configureConfigurations(project)
-        configureScalaRuntimeExtension()
-        configureCompileDefaults()
-        configureSourceSetDefaults(javaPlugin)
-        configureScaladoc()
+        configureConfigurations(project);
+        ScalaRuntime scalaRuntime = configureScalaRuntimeExtension(project);
+        configureCompileDefaults(project, scalaRuntime);
+        configureSourceSetDefaults(project, sourceDirectorySetFactory);
+        configureScaladoc(project, scalaRuntime);
     }
 
-    private void configureConfigurations(Project project) {
-        project.configurations.create(ZINC_CONFIGURATION_NAME)
-                .setVisible(false)
-                .setDescription("The Zinc incremental compiler to be used for this Scala project.")
+    private static void configureConfigurations(Project project) {
+        project.getConfigurations().create(ZINC_CONFIGURATION_NAME).setVisible(false).setDescription("The Zinc incremental compiler to be used for this Scala project.");
     }
 
-    private void configureScalaRuntimeExtension() {
-        scalaRuntime = project.extensions.create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime, project)
+    private static ScalaRuntime configureScalaRuntimeExtension(Project project) {
+        return project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
     }
 
-    private void configureSourceSetDefaults(JavaBasePlugin javaPlugin) {
-        project.convention.getPlugin(JavaPluginConvention.class).sourceSets.all { SourceSet sourceSet ->
-            sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, sourceDirectorySetFactory)
-            sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala") }
-            sourceSet.allJava.source(sourceSet.scala)
-            sourceSet.allSource.source(sourceSet.scala)
-            sourceSet.resources.filter.exclude { FileTreeElement element -> sourceSet.scala.contains(element.file) }
+    private static void configureSourceSetDefaults(final Project project, final SourceDirectorySetFactory sourceDirectorySetFactory) {
+        final JavaBasePlugin javaPlugin = project.getPlugins().getPlugin(JavaBasePlugin.class);
+        project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
+            @Override
+            public void execute(final SourceSet sourceSet) {
+                String displayName = (String) InvokerHelper.invokeMethod(sourceSet, "getDisplayName", null);
+                Convention sourceSetConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
+                DefaultScalaSourceSet scalaSourceSet = new DefaultScalaSourceSet(displayName, sourceDirectorySetFactory);
+                sourceSetConvention.getPlugins().put("scala", scalaSourceSet);
+                final SourceDirectorySet scalaDirectorySet = scalaSourceSet.getScala();
+                scalaDirectorySet.srcDir(new Callable<File>() {
+                    @Override
+                    public File call() throws Exception {
+                        return project.file("src/" + sourceSet.getName() + "/scala");
+                    }
+                });
+                sourceSet.getAllJava().source(scalaDirectorySet);
+                sourceSet.getAllSource().source(scalaDirectorySet);
+                sourceSet.getResources().getFilter().exclude(new Spec<FileTreeElement>() {
+                    @Override
+                    public boolean isSatisfiedBy(FileTreeElement element) {
+                        return scalaDirectorySet.contains(element.getFile());
+                    }
+                });
 
-            configureScalaCompile(javaPlugin, sourceSet)
-        }
+                configureScalaCompile(project, javaPlugin, sourceSet);
+            }
+
+        });
     }
 
-    private void configureScalaCompile(JavaBasePlugin javaPlugin, SourceSet sourceSet) {
-        def taskName = sourceSet.getCompileTaskName('scala')
-        def scalaCompile = project.tasks.create(taskName, ScalaCompile)
-        scalaCompile.dependsOn sourceSet.compileJavaTaskName
-        javaPlugin.configureForSourceSet(sourceSet, scalaCompile)
-        scalaCompile.description = "Compiles the $sourceSet.scala."
-        scalaCompile.source = sourceSet.scala
-        project.tasks[sourceSet.classesTaskName].dependsOn(taskName)
+    private static void configureScalaCompile(final Project project, JavaBasePlugin javaPlugin, final SourceSet sourceSet) {
+        String taskName = sourceSet.getCompileTaskName("scala");
+        final ScalaCompile scalaCompile = project.getTasks().create(taskName, ScalaCompile.class);
+        scalaCompile.dependsOn(sourceSet.getCompileJavaTaskName());
+        javaPlugin.configureForSourceSet(sourceSet, scalaCompile);
+        Convention scalaConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
+        ScalaSourceSet scalaSourceSet = scalaConvention.findPlugin(ScalaSourceSet.class);
+        scalaCompile.setDescription("Compiles the " + scalaSourceSet.getScala() + ".");
+        scalaCompile.setSource(scalaSourceSet.getScala());
+        project.getTasks().getByName(sourceSet.getClassesTaskName()).dependsOn(taskName);
 
         // cannot use convention mapping because the resulting object won't be serializable
         // cannot compute at task execution time because we need association with source set
-        project.gradle.projectsEvaluated {
-            scalaCompile.scalaCompileOptions.incrementalOptions.with {
-                if (!analysisFile) {
-                    analysisFile = new File("$project.buildDir/tmp/scala/compilerAnalysis/${scalaCompile.name}.analysis")
+        project.getGradle().projectsEvaluated(new Closure<Void>(project) {
+            @SuppressWarnings("GroovyUnusedDeclaration")
+            public void doCall() {
+                IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
+                if (incrementalOptions.getAnalysisFile() == null) {
+                    String analysisFilePath = project.getBuildDir().getPath() + "/tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".analysis";
+                    incrementalOptions.setAnalysisFile(new File(analysisFilePath));
                 }
-                if (!publishedCode) {
-                    def jarTask = project.tasks.findByName(sourceSet.getJarTaskName())
-                    publishedCode = jarTask?.archivePath
+
+                if (incrementalOptions.getPublishedCode() == null) {
+                    Jar jarTask = (Jar) project.getTasks().findByName(sourceSet.getJarTaskName());
+                    incrementalOptions.setPublishedCode(jarTask == null ? null : jarTask.getArchivePath());
                 }
             }
-        }
+        });
     }
 
-    private void configureCompileDefaults() {
-        project.tasks.withType(ScalaCompile.class) { ScalaCompile compile ->
-            compile.conventionMapping.scalaClasspath = { scalaRuntime.inferScalaClasspath(compile.classpath) }
-            compile.conventionMapping.zincClasspath = {
-                def config = project.configurations[ZINC_CONFIGURATION_NAME]
-                if (!compile.scalaCompileOptions.internalIsUseAnt() && config.dependencies.empty) {
-                    project.dependencies {
-                        zinc("com.typesafe.zinc:zinc:$DefaultScalaToolProvider.DEFAULT_ZINC_VERSION")
+    private static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime) {
+        project.getTasks().withType(ScalaCompile.class, new Closure<Void>(project) {
+            @SuppressWarnings("GroovyUnusedDeclaration")
+            public void doCall(final ScalaCompile compile) {
+                compile.getConventionMapping().map("scalaClasspath", new Callable<FileCollection>() {
+                    @Override
+                    public FileCollection call() throws Exception {
+                        return scalaRuntime.inferScalaClasspath(compile.getClasspath());
                     }
-                }
-                config
+                });
+                compile.getConventionMapping().map("zincClasspath", new Callable<Configuration>() {
+                    @Override
+                    public Configuration call() throws Exception {
+                        Configuration config = project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME);
+                        if (!((ScalaCompileOptionsInternal) compile.getScalaCompileOptions()).internalIsUseAnt() && config.getDependencies().isEmpty()) {
+                            project.getDependencies().add("zinc", "com.typesafe.zinc:zinc:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
+                        }
+                        return config;
+                    }
+                });
             }
-        }
+        });
     }
 
-    private void configureScaladoc() {
-        project.tasks.withType(ScalaDoc) { ScalaDoc scalaDoc ->
-            scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
-            scalaDoc.conventionMapping.title = { project.extensions.getByType(ReportingExtension).apiDocTitle }
-            scalaDoc.conventionMapping.scalaClasspath = { scalaRuntime.inferScalaClasspath(scalaDoc.classpath) }
-        }
+    private static void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {
+        project.getTasks().withType(ScalaDoc.class, new Closure<Void>(project) {
+            @SuppressWarnings("GroovyUnusedDeclaration")
+            public void doCall(final ScalaDoc scalaDoc) {
+                scalaDoc.getConventionMapping().map("destinationDir", new Callable<File>() {
+                    @Override
+                    public File call() throws Exception {
+                        File docsDir = project.getConvention().getPlugin(JavaPluginConvention.class).getDocsDir();
+                        return project.file(docsDir.getPath() + "/scaladoc");
+                    }
+
+                });
+                scalaDoc.getConventionMapping().map("title", new Callable<String>() {
+                    @Override
+                    public String call() throws Exception {
+                        return project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle();
+                    }
+
+                });
+                scalaDoc.getConventionMapping().map("scalaClasspath", new Callable<FileCollection>() {
+                    @Override
+                    public FileCollection call() throws Exception {
+                        return scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath());
+                    }
+
+                });
+            }
+        });
     }
 }
