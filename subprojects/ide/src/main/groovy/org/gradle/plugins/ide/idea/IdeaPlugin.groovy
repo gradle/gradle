@@ -118,7 +118,7 @@ class IdeaPlugin extends IdePlugin {
                     }
                 }
 
-                ideaProject.wildcards = ['!?*.java', '!?*.groovy'] as Set
+                ideaProject.wildcards = ['!?*.class', '!?*.scala', '!?*.groovy', '!?*.java'] as Set
                 conventionMapping.map('modules') {
                     project.rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }.collect {
                         ideaModelFor(it).module

@@ -24,4 +24,5 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ":platformPlay")
 useClassycle()
+strictCompile()
 

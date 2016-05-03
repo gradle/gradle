@@ -220,7 +220,7 @@ idea.module.iml {
 }
 
 tasks.idea << {
-    assert hookActivated == 1 : "withXml() hook shoold be fired"
+    assert hookActivated == 1 : "withXml() hook should be fired"
 }
 '''
     }

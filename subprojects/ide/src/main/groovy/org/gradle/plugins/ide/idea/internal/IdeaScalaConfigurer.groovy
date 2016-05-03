@@ -19,6 +19,9 @@ import org.gradle.api.GradleScriptException
 import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.api.tasks.ScalaRuntime
+import org.gradle.language.scala.ScalaPlatform
+import org.gradle.language.scala.plugins.ScalaLanguagePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.*
 import org.gradle.util.VersionNumber
@@ -70,16 +73,33 @@ class IdeaScalaConfigurer {
             def filePaths = moduleLibraries.collectMany { it.classes.findAll { it instanceof FilePath } }
             def files = filePaths.collect { it.file }
 
-            def runtime = scalaProject.scalaRuntime
-            def scalaClasspath = runtime.inferScalaClasspath(files)
-            def compilerJar = runtime.findScalaJar(scalaClasspath, "compiler")
-            def version = compilerJar == null ? "?" : runtime.getScalaVersion(compilerJar)
-            def library = useScalaSdk ? createScalaSdkLibrary("scala-sdk-$version", scalaClasspath) : createProjectLibrary("scala-compiler-$version", scalaClasspath)
+            ProjectLibrary library
+            def runtime = scalaProject.getExtensions().findByType(ScalaRuntime)
+            if (runtime) {
+                library = createScalaSdkFromRuntime(runtime, files, useScalaSdk)
+            } else {
+                library = createScalaSdkFromPlatform(scalaProject.idea.module.scalaPlatform, files, useScalaSdk)
+            }
             def duplicate = scalaCompilerLibraries.values().find { it == library }
             scalaCompilerLibraries[scalaProject.path] = duplicate ?: library
         }
 
         return scalaCompilerLibraries
+    }
+
+    private ProjectLibrary createScalaSdkFromPlatform(ScalaPlatform platform, List files, boolean useScalaSdk) {
+        def version = platform.scalaVersion
+        // TODO: Wrong, using the full classpath of the application
+        def library = useScalaSdk ? createScalaSdkLibrary("scala-sdk-$version", files) : createProjectLibrary("scala-compiler-$version", files)
+        library
+    }
+
+    private ProjectLibrary createScalaSdkFromRuntime(ScalaRuntime runtime, List files, boolean useScalaSdk) {
+        def scalaClasspath = runtime.inferScalaClasspath(files)
+        def compilerJar = runtime.findScalaJar(scalaClasspath, "compiler")
+        def version = compilerJar == null ? "?" : runtime.getScalaVersion(compilerJar)
+        def library = useScalaSdk ? createScalaSdkLibrary("scala-sdk-$version", scalaClasspath) : createProjectLibrary("scala-compiler-$version", scalaClasspath)
+        library
     }
 
     private void declareUniqueProjectLibraries(Set<ProjectLibrary> projectLibraries) {
@@ -139,7 +159,7 @@ class IdeaScalaConfigurer {
 
     private Collection<Project> findProjectsApplyingIdeaAndScalaPlugins() {
         rootProject.allprojects.findAll {
-            it.plugins.hasPlugin(IdeaPlugin) && it.plugins.hasPlugin(ScalaBasePlugin)
+            it.plugins.hasPlugin(IdeaPlugin) && (it.plugins.hasPlugin(ScalaBasePlugin) || it.plugins.hasPlugin(ScalaLanguagePlugin))
         }
     }
 

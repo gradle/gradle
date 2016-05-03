@@ -53,7 +53,7 @@ class IdeaPluginTest extends Specification {
         applyPluginToProjects()
 
         then:
-        project.idea.project.wildcards == ['!?*.java', '!?*.groovy'] as Set
+        project.idea.project.wildcards == ['!?*.java', '!?*.groovy', '!?*.class', '!?*.scala'] as Set
         project.idea.project.languageLevel.level ==  new IdeaLanguageLevel(JavaVersion.VERSION_1_6).level
     }
 
