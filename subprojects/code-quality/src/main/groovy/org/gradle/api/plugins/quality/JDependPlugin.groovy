@@ -16,8 +16,8 @@
 package org.gradle.api.plugins.quality
 
 import groovy.transform.CompileStatic
-import groovy.transform.TypeCheckingMode
 import org.gradle.api.Plugin
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.reporting.Report
 import org.gradle.api.tasks.SourceSet
@@ -60,23 +60,18 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
         return extension
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureTaskDefaults(JDepend task, String baseName) {
         def config = project.configurations['jdepend']
-        config.defaultDependencies { dependencies ->
-            this.project.dependencies { handler ->
-                handler.jdepend "jdepend:jdepend:${this.extension.toolVersion}"
-                handler.jdepend 'org.apache.ant:ant-jdepend:1.9.6'
-            }
+        config.defaultDependencies { DependencySet dependencies ->
+            dependencies.add(project.dependencies.create("jdepend:jdepend:${extension.toolVersion}"))
+            dependencies.add(project.dependencies.create('org.apache.ant:ant-jdepend:1.9.6'))
         }
-        task.conventionMapping.with {
-            jdependClasspath = { config }
-        }
+        conventionMappingOf(task).map('jdependClasspath') { config }
         task.reports.all { Report report ->
-            report.conventionMapping.with {
-                enabled = { report.name == "xml" }
-                destination = {
+            conventionMappingOf(report).with {
+                map('enabled') { report.name == "xml" }
+                map('destination') {
                     def fileSuffix = report.name == 'text' ? 'txt' : report.name
                     new File(extension.reportsDir, "${baseName}.${fileSuffix}")
                 }
@@ -84,15 +79,12 @@ class JDependPlugin extends AbstractCodeQualityPlugin<JDepend> {
         }
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureForSourceSet(SourceSet sourceSet, JDepend task) {
         task.with {
             dependsOn(sourceSet.output)
             description = "Run JDepend analysis for ${sourceSet.name} classes"
         }
-        task.conventionMapping.with {
-            classesDir = { sourceSet.output.classesDir }
-        }
+        conventionMappingOf(task).map('classesDir') { sourceSet.output.classesDir }
     }
 }

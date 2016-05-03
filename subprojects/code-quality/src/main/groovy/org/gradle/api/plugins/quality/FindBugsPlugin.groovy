@@ -16,7 +16,8 @@
 package org.gradle.api.plugins.quality
 
 import groovy.transform.CompileStatic
-import groovy.transform.TypeCheckingMode
+import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
 import org.gradle.api.reporting.Report
 import org.gradle.api.tasks.SourceSet
@@ -70,39 +71,35 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
         return extension
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureTaskDefaults(FindBugs task, String baseName) {
-        task.with {
-            pluginClasspath = project.configurations['findbugsPlugins']
-        }
+        task.pluginClasspath = project.configurations['findbugsPlugins']
         def config = project.configurations['findbugs']
-        config.defaultDependencies { dependencies ->
-            dependencies.add(this.project.dependencies.create("com.google.code.findbugs:findbugs:${this.extension.toolVersion}"))
+        config.defaultDependencies { DependencySet dependencies ->
+            dependencies.add(project.dependencies.create("com.google.code.findbugs:findbugs:${extension.toolVersion}"))
         }
         task.conventionMapping.with {
-            findbugsClasspath = { config }
-            ignoreFailures = { extension.ignoreFailures }
-            effort = { extension.effort }
-            reportLevel = { extension.reportLevel }
-            visitors = { extension.visitors }
-            omitVisitors = { extension.omitVisitors }
+            map('findbugsClasspath') { config }
+            map('ignoreFailures') { extension.ignoreFailures }
+            map('effort') { extension.effort }
+            map('reportLevel') { extension.reportLevel }
+            map('visitors') { extension.visitors }
+            map('omitVisitors') { extension.omitVisitors }
 
-            excludeFilterConfig = { extension.excludeFilterConfig }
-            includeFilterConfig = { extension.includeFilterConfig }
-            excludeBugsFilterConfig = { extension.excludeBugsFilterConfig }
+            map('excludeFilterConfig') { extension.excludeFilterConfig }
+            map('includeFilterConfig') { extension.includeFilterConfig }
+            map('excludeBugsFilterConfig') { extension.excludeBugsFilterConfig }
 
-            extraArgs = { extension.extraArgs }
+            map('extraArgs') { extension.extraArgs }
         }
         task.reports.all { Report report ->
-            report.conventionMapping.with {
-                enabled = { report.name == "xml" }
-                destination = { new File(extension.reportsDir, "${baseName}.${report.name}") }
+            conventionMappingOf(report).with {
+                map('enabled') { report.name == "xml" }
+                map('destination') { new File(extension.reportsDir, "${baseName}.${report.name}") }
             }
         }
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureForSourceSet(SourceSet sourceSet, FindBugs task) {
         task.with {
@@ -110,14 +107,14 @@ class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
         }
         task.source = sourceSet.allJava
         task.conventionMapping.with {
-            classes = {
+            map('classes') {
                 // the simple "classes = sourceSet.output" may lead to non-existing resources directory
                 // being passed to FindBugs Ant task, resulting in an error
-                project.fileTree(sourceSet.output.classesDir) { fileTree ->
+                project.fileTree(sourceSet.output.classesDir) { ConfigurableFileTree fileTree ->
                     fileTree.builtBy sourceSet.output
                 }
             }
-            classpath = { sourceSet.compileClasspath }
+            map('classpath') { sourceSet.compileClasspath }
         }
     }
 }

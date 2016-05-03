@@ -16,9 +16,12 @@
 package org.gradle.api.plugins.quality
 
 import groovy.transform.CompileStatic
-import groovy.transform.TypeCheckingMode
+import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.internal.plugins.DslObject
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
+import org.gradle.api.reporting.Report
+import org.gradle.api.tasks.GroovySourceSet
 import org.gradle.api.tasks.SourceSet
 
 @CompileStatic
@@ -55,26 +58,25 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         return extension
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureTaskDefaults(CodeNarc task, String baseName) {
         def codenarcConfiguration = project.configurations['codenarc']
-        codenarcConfiguration.defaultDependencies { dependencies ->
-            dependencies.add(this.project.dependencies.create("org.codenarc:CodeNarc:${this.extension.toolVersion}"))
+        codenarcConfiguration.defaultDependencies { DependencySet dependencies ->
+            dependencies.add(project.dependencies.create("org.codenarc:CodeNarc:${extension.toolVersion}"))
         }
         task.conventionMapping.with {
-            codenarcClasspath = { codenarcConfiguration }
-            config = { extension.config }
-            maxPriority1Violations = { extension.maxPriority1Violations }
-            maxPriority2Violations = { extension.maxPriority2Violations }
-            maxPriority3Violations = { extension.maxPriority3Violations }
-            ignoreFailures = { extension.ignoreFailures }
+            map('codenarcClasspath') { codenarcConfiguration }
+            map('config') { extension.config }
+            map('maxPriority1Violations') { extension.maxPriority1Violations }
+            map('maxPriority2Violations') { extension.maxPriority2Violations }
+            map('maxPriority3Violations') { extension.maxPriority3Violations }
+            map('ignoreFailures') { extension.ignoreFailures }
         }
 
-        task.reports.all { report ->
-            report.conventionMapping.with {
-                enabled = { report.name == extension.reportFormat }
-                destination = {
+        task.reports.all { Report report ->
+            conventionMappingOf(report).with {
+                map('enabled') { report.name == extension.reportFormat }
+                map('destination') {
                     def fileSuffix = report.name == 'text' ? 'txt' : report.name
                     new File(extension.reportsDir, "$baseName.$fileSuffix")
                 }
@@ -82,12 +84,10 @@ class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         }
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureForSourceSet(SourceSet sourceSet, CodeNarc task) {
-        task.with {
-            description = "Run CodeNarc analysis for $sourceSet.name classes"
-        }
-        task.setSource(sourceSet.allGroovy)
+        task.description = "Run CodeNarc analysis for $sourceSet.name classes"
+        def groovySourceSet = new DslObject(sourceSet).convention.getPlugin(GroovySourceSet.class)
+        task.setSource(groovySourceSet.allGroovy)
     }
 }

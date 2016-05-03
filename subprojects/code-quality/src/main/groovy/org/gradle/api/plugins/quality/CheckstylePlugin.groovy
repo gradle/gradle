@@ -16,8 +16,9 @@
 package org.gradle.api.plugins.quality
 
 import groovy.transform.CompileStatic
-import groovy.transform.TypeCheckingMode
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
+import org.gradle.api.reporting.Report
 import org.gradle.api.tasks.SourceSet
 
 @CompileStatic
@@ -47,26 +48,25 @@ class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         return extension
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureTaskDefaults(Checkstyle task, String baseName) {
         def conf = project.configurations['checkstyle']
-        conf.defaultDependencies { dependencies ->
-            dependencies.add(this.project.dependencies.create("com.puppycrawl.tools:checkstyle:${this.extension.toolVersion}"))
+        conf.defaultDependencies { DependencySet dependencies ->
+            dependencies.add(project.dependencies.create("com.puppycrawl.tools:checkstyle:${extension.toolVersion}"))
         }
 
         task.conventionMapping.with {
-            checkstyleClasspath = { conf }
-            config = { extension.config }
-            configProperties = { extension.configProperties }
-            ignoreFailures = { extension.ignoreFailures }
-            showViolations = { extension.showViolations }
+            map('checkstyleClasspath') { conf }
+            map('config') { extension.config }
+            map('configProperties') { extension.configProperties }
+            map('ignoreFailures') { extension.ignoreFailures }
+            map('showViolations') { extension.showViolations }
         }
 
-        task.reports.all { report ->
-            report.conventionMapping.with {
-                enabled = { true }
-                destination = { new File(extension.reportsDir, "${baseName}.${report.name}") }
+        task.reports.all { Report report ->
+            conventionMappingOf(report).with {
+                map('enabled') { true }
+                map('destination') { new File(extension.reportsDir, "${baseName}.${report.name}") }
             }
         }
     }

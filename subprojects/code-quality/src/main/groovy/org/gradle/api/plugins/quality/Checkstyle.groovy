@@ -122,9 +122,8 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
      * @param closure The configuration
      * @return The reports container
      */
-    @CompileStatic(TypeCheckingMode.SKIP)
     CheckstyleReports reports(Closure closure) {
-        reports.configure(closure)
+        (CheckstyleReports) reports.configure(closure)
     }
 
     /**

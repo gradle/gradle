@@ -98,9 +98,8 @@ class JDepend extends DefaultTask implements Reporting<JDependReports> {
      * @param closure The configuration
      * @return The reports container
      */
-    @CompileStatic(TypeCheckingMode.SKIP)
     JDependReports reports(Closure closure) {
-        reports.configure(closure)
+        (JDependReports) reports.configure(closure)
     }
 
     @CompileStatic(TypeCheckingMode.SKIP)

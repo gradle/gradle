@@ -16,10 +16,11 @@
 package org.gradle.api.plugins.quality
 
 import groovy.transform.CompileStatic
-import groovy.transform.TypeCheckingMode
 import org.gradle.api.JavaVersion
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin
+import org.gradle.api.reporting.Report
 import org.gradle.api.tasks.SourceSet
 import org.gradle.util.VersionNumber
 
@@ -50,7 +51,6 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         return Pmd
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected CodeQualityExtension createExtension() {
         extension = project.extensions.create("pmd", PmdExtension, project)
@@ -59,8 +59,8 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
             ruleSets = ["java-basic"]
             ruleSetFiles = project.files()
         }
-        extension.getConventionMapping().with {
-            targetJdk = { getDefaultTargetJdk(project.convention.getPlugin(JavaPluginConvention).sourceCompatibility) }
+        conventionMappingOf(extension).with {
+            map('targetJdk') { getDefaultTargetJdk(project.convention.getPlugin(JavaPluginConvention).sourceCompatibility) }
         }
         return extension
     }
@@ -75,28 +75,27 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         }
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureTaskDefaults(Pmd task, String baseName) {
         def config = project.configurations['pmd']
-        config.defaultDependencies { dependencies ->
-            VersionNumber version = VersionNumber.parse(this.extension.toolVersion)
+        config.defaultDependencies { DependencySet dependencies ->
+            VersionNumber version = VersionNumber.parse(extension.toolVersion)
             String dependency = calculateDefaultDependencyNotation(version)
-            dependencies.add(this.project.dependencies.create(dependency))
+            dependencies.add(project.dependencies.create(dependency))
         }
         task.conventionMapping.with {
-            pmdClasspath = { config }
-            ruleSets = { extension.ruleSets }
-            ruleSetConfig = { extension.ruleSetConfig }
-            ruleSetFiles = { extension.ruleSetFiles }
-            ignoreFailures = { extension.ignoreFailures }
-            rulePriority = { extension.rulePriority }
-            consoleOutput = { extension.consoleOutput }
-            targetJdk = { extension.targetJdk }
-            task.reports.all { report ->
-                report.conventionMapping.with {
-                    enabled = { true }
-                    destination = { new File(extension.reportsDir, "${baseName}.${report.name}") }
+            map('pmdClasspath') { config }
+            map('ruleSets') { extension.ruleSets }
+            map('ruleSetConfig') { extension.ruleSetConfig }
+            map('ruleSetFiles') { extension.ruleSetFiles }
+            map('ignoreFailures') { extension.ignoreFailures }
+            map('rulePriority') { extension.rulePriority }
+            map('consoleOutput') { extension.consoleOutput }
+            map('targetJdk') { extension.targetJdk }
+            task.reports.all { Report report ->
+                conventionMappingOf(report).with {
+                    map('enabled') { true }
+                    map('destination') { new File(extension.reportsDir, "${baseName}.${report.name}") }
                 }
             }
         }
@@ -111,7 +110,6 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         return "net.sourceforge.pmd:pmd-java:$extension.toolVersion"
     }
 
-    @CompileStatic(TypeCheckingMode.SKIP)
     @Override
     protected void configureForSourceSet(SourceSet sourceSet, Pmd task) {
         task.with {
@@ -119,7 +117,7 @@ class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         }
         task.setSource(sourceSet.allJava)
         task.conventionMapping.with {
-            classpath = { sourceSet.compileClasspath }
+            map('classpath') { sourceSet.compileClasspath }
         }
     }
 }
