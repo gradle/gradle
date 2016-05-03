@@ -21,4 +21,12 @@ import org.gradle.api.internal.plugins.repositories.PluginRepository;
 
 public interface BackedByArtifactRepository extends PluginRepository {
     ArtifactRepository getArtifactRepository();
+
+    /**
+     * This {@link PluginRepository}'s position in the resolution order.
+     * <p>
+     * This is needed just so that the underlying {@link ArtifactRepository}
+     * can have a unique name.
+     */
+    void setPosition(int position);
 }

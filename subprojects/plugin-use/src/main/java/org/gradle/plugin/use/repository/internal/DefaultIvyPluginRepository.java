@@ -31,18 +31,15 @@ import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInterna
 class DefaultIvyPluginRepository extends AbstractPluginRepository implements IvyPluginRepository {
     private static final String IVY = "ivy";
 
-    private final DependencyResolutionServices dependencyResolutionServices;
-
     public DefaultIvyPluginRepository(
         FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices,
         VersionSelectorScheme versionSelectorScheme, AuthenticationSupportedInternal delegate) {
         super(IVY, fileResolver, dependencyResolutionServices, versionSelectorScheme, delegate);
-        this.dependencyResolutionServices = dependencyResolutionServices;
     }
 
     @Override
     protected ArtifactRepository createArtifactRepository(RepositoryHandler repositoryHandler) {
-        return dependencyResolutionServices.getResolveRepositoryHandler().ivy(new Action<IvyArtifactRepository>() {
+        return repositoryHandler.ivy(new Action<IvyArtifactRepository>() {
             @Override
             public void execute(IvyArtifactRepository ivyArtifactRepository) {
                 ivyArtifactRepository.setName(getArtifactRepositoryName());

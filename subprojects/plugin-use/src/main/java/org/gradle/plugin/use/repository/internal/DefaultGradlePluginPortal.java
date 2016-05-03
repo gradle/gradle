@@ -33,12 +33,6 @@ public class DefaultGradlePluginPortal implements GradlePluginPortal, PluginRepo
     }
 
     @Override
-    public void setName(String name) {
-        throw new UnsupportedOperationException("Cannot change name of Gradle Plugin Portal");
-    }
-
-
-    @Override
     public PluginResolver asResolver() {
         return pluginResolutionServiceResolver;
     }

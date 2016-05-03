@@ -25,25 +25,4 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface PluginRepository {
-    /**
-     * Returns the name for this repository. A name must be unique amongst a repository set. A
-     * default name is provided for the repository if none is provided.
-     *
-     * <p>The name is used in logging output and error reporting to point to information related to this repository.
-     *
-     * @return The name.
-     */
-    String getName();
-
-    /**
-     * Sets the name for this repository.
-     *
-     * If this repository is to be added to a
-     * {@link org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler}, its name should not be changed
-     * after it has been added to the container. This capability has been deprecated and is
-     * scheduled to be removed in the next major Gradle version.
-     *
-     * @param name The name. Must not be null.
-     */
-    void setName(String name);
 }

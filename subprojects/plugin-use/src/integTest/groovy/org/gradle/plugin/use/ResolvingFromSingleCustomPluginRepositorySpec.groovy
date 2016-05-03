@@ -47,7 +47,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         }
     }
 
-    def useCustomRepository(String repoType, PathType pathType) {
+    private String useCustomRepository(String repoType, PathType pathType) {
         def repoUrl = 'Nothing'
         if (repoType == MAVEN) {
             repoUrl = PathType.ABSOLUTE.equals(pathType) ? mavenRepo.uri : mavenRepo.getRootDir().name
@@ -61,6 +61,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
               }
           }
         """
+        return repoUrl
     }
 
     @Unroll
@@ -148,7 +149,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         """
 
         and:
-        useCustomRepository(repoType, PathType.ABSOLUTE)
+        def repoUrl = useCustomRepository(repoType, PathType.ABSOLUTE)
 
         when:
         fails("pluginTask")
@@ -157,7 +158,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         failure.assertHasDescription("""Plugin [id: 'org.example.foo', version: '1.1'] was not found in any of the following sources:
 
 - Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-- ${repoType} (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')"""
+- ${repoType}(${repoUrl}) (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')"""
         )
 
         where:

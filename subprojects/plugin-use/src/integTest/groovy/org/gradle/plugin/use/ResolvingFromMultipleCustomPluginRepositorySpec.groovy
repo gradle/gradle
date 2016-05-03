@@ -74,9 +74,9 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
             pluginRepositories {
                 ${repositories.collect {
                     if (it instanceof MavenFileRepository) {
-                        "maven {url '${it.uri}' }"
+                        "maven { url '${it.uri}' }"
                     } else {
-                        "ivy {url '${it.uri}' }"
+                        "ivy { url '${it.uri}' }"
                     }
                   }.join('\n')}
             }
@@ -167,14 +167,15 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         failure.assertHasDescription("""Plugin [id: 'org.example.foo', version: '1.1'] was not found in any of the following sources:
 
 - Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-- ${repoType} (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
-- ${repoType}2 (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')"""
+- ${repoType}(${repoA.uri}) (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')
+- ${repoType}(${repoB.uri}) (Could not resolve plugin artifact 'org.example.foo:org.example.foo:1.1')"""
         )
 
         where:
         repoType << [IVY, MAVEN]
     }
 
+    @Unroll
     def "Does not fall through to plugin portal if custom #repoType repos are defined"(String repoType) {
         given:
         publishPlugins(repoType)
@@ -190,8 +191,8 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
 
         then:
         failure.assertThatDescription(containsNormalizedString("""
-- ${repoType} (Could not resolve plugin artifact 'org.gradle.hello-world:org.gradle.hello-world:0.2')
-- ${repoType}2 (Could not resolve plugin artifact 'org.gradle.hello-world:org.gradle.hello-world:0.2')"""
+- ${repoType}(${repoA.uri}) (Could not resolve plugin artifact 'org.gradle.hello-world:org.gradle.hello-world:0.2')
+- ${repoType}(${repoB.uri}) (Could not resolve plugin artifact 'org.gradle.hello-world:org.gradle.hello-world:0.2')"""
         ))
 
         where:

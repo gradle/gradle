@@ -27,14 +27,14 @@ import java.net.URI;
 @Incubating
 public interface MavenPluginRepository extends PluginRepository, AuthenticationSupported {
     /**
-     * The base URL of this repository. This URL is used to find both POMs and artifact files.
+     * The base URL of this repository. This URL is used to find Gradle plugins.
      *
      * @return The URL.
      */
     URI getUrl();
 
     /**
-     * Sets the base URL of this repository. This URL is used to find both POMs and artifact files.
+     * Sets the base URL of this repository. This URL is used to find Gradle plugins.
      *
      * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This
      * means, for example, you can pass in a {@code File} object, or a relative path to be

@@ -33,13 +33,14 @@ import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import java.net.URI;
 
 abstract class AbstractPluginRepository implements AuthenticationSupported, PluginRepositoryInternal, BackedByArtifactRepository {
-    private static final String REPOSITORY_PREFIX = "__plugins__";
+    private static final String REPOSITORY_PREFIX = "__pluginRepository";
     private final FileResolver fileResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
     private final VersionSelectorScheme versionSelectorScheme;
     private final AuthenticationSupportedInternal authenticationSupport;
 
     private String name;
+    private int position;
     private Object url;
     private PluginResolver resolver;
     private ArtifactRepository artifactRepository;
@@ -61,18 +62,12 @@ abstract class AbstractPluginRepository implements AuthenticationSupported, Plug
     }
 
     String getArtifactRepositoryName() {
-        return REPOSITORY_PREFIX + name;
+        return REPOSITORY_PREFIX + position;
     }
 
     @Override
     public String getName() {
         return name;
-    }
-
-    @Override
-    public void setName(String name) {
-        checkMutable();
-        this.name = name;
     }
 
     public URI getUrl() {
@@ -121,9 +116,15 @@ abstract class AbstractPluginRepository implements AuthenticationSupported, Plug
     public PluginResolver asResolver() {
         if (resolver == null) {
             prepareArtifactRepository();
-            resolver = new ArtifactRepositoryPluginResolver(name, dependencyResolutionServices, versionSelectorScheme);
+            resolver = new ArtifactRepositoryPluginResolver(name + '(' + url + ')', dependencyResolutionServices, versionSelectorScheme);
         }
         return resolver;
+    }
+
+    @Override
+    public void setPosition(int position) {
+        checkMutable();
+        this.position = position;
     }
 
     @Override

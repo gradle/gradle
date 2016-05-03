@@ -97,16 +97,6 @@ public class ScriptScopedPluginRepositoryHandler implements PluginRepositoryHand
         }
 
         @Override
-        public String getName() {
-            return delegate.getName();
-        }
-
-        @Override
-        public void setName(String name) {
-            delegate.setName(name);
-        }
-
-        @Override
         public PasswordCredentials getCredentials() {
             return delegate.getCredentials();
         }
@@ -154,16 +144,6 @@ public class ScriptScopedPluginRepositoryHandler implements PluginRepositoryHand
         @Override
         public void setUrl(Object url) {
             delegate.setUrl(fileResolver.resolveUri(url));
-        }
-
-        @Override
-        public String getName() {
-            return delegate.getName();
-        }
-
-        @Override
-        public void setName(String name) {
-            delegate.setName(name);
         }
 
         @Override

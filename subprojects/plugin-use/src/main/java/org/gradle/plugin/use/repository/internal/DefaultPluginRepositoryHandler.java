@@ -36,8 +36,9 @@ import org.gradle.internal.authentication.DefaultAuthenticationContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
@@ -47,7 +48,7 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
     private final VersionSelectorScheme versionSelectorScheme;
     private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
     private final Instantiator instantiator;
-    private final Map<String, PluginRepository> repositories;
+    private final List<PluginRepository> repositories;
 
     public DefaultPluginRepositoryHandler(
         PluginResolutionServiceResolver pluginResolutionServiceResolver, FileResolver fileResolver,
@@ -59,7 +60,7 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
         this.fileResolver = fileResolver;
         this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
         this.versionSelectorScheme = versionSelectorScheme;
-        this.repositories = new LinkedHashMap<String, PluginRepository>();
+        this.repositories = new ArrayList<PluginRepository>();
         this.authenticationSchemeRegistry = authenticationSchemeRegistry;
     }
 
@@ -88,37 +89,25 @@ public class DefaultPluginRepositoryHandler implements PluginRepositoryHandler {
     @Override
     public GradlePluginPortal gradlePluginPortal() {
         DefaultGradlePluginPortal gradlePluginPortal = new DefaultGradlePluginPortal(pluginResolutionServiceResolver);
-        if (repositories.containsKey(gradlePluginPortal.getName())) {
-            throw new IllegalArgumentException("Cannot add Gradle Plugin Portal more than once");
+        for (PluginRepository pluginRepository : repositories) {
+            if (((PluginRepositoryInternal) pluginRepository).getName().equals(gradlePluginPortal.getName())) {
+                throw new IllegalArgumentException("Cannot add Gradle Plugin Portal more than once");
+            }
         }
-        repositories.put(gradlePluginPortal.getName(), gradlePluginPortal);
+        repositories.add(gradlePluginPortal);
         return gradlePluginPortal;
     }
 
     @Override
     public Iterator<PluginRepository> iterator() {
-        return Iterators.unmodifiableIterator(repositories.values().iterator());
+        return Iterators.unmodifiableIterator(repositories.iterator());
     }
 
-    private void add(PluginRepository pluginRepository) {
-        uniquifyName(pluginRepository);
-        repositories.put(pluginRepository.getName(), pluginRepository);
+    private void add(BackedByArtifactRepository pluginRepository) {
+        pluginRepository.setPosition(repositories.size() + 1);
+        repositories.add((PluginRepositoryInternal) pluginRepository);
     }
 
-    private void uniquifyName(PluginRepository pluginRepository) {
-        String name = pluginRepository.getName();
-        name = uniquifyName(name);
-        pluginRepository.setName(name);
-    }
-
-    private String uniquifyName(String proposedName) {
-        int attempt = 1;
-        while (repositories.containsKey(proposedName)) {
-            attempt++;
-            proposedName = proposedName + attempt;
-        }
-        return proposedName;
-    }
 
     private AuthenticationContainer makeAuthenticationContainer(Instantiator instantiator, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
         DefaultAuthenticationContainer container = instantiator.newInstance(DefaultAuthenticationContainer.class, instantiator);
