@@ -39,6 +39,7 @@ import org.gradle.testing.jacoco.plugins.JacocoTaskExtension;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 
 /**
@@ -286,7 +287,7 @@ public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsC
      * @param dirs one or more directories containing classes to report coverage of
      */
     public void additionalClassDirs(File... dirs) {
-        additionalClassDirs(getProject().files(dirs));
+        additionalClassDirs(getProject().files(Arrays.asList(dirs)));
     }
 
     /**
@@ -308,7 +309,7 @@ public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsC
      * @param dirs one or more directories containing source files for the classes included in the report
      */
     public void additionalSourceDirs(File... dirs) {
-        additionalSourceDirs(getProject().files(dirs));
+        additionalSourceDirs(getProject().files(Arrays.asList(dirs)));
     }
 
     /**
