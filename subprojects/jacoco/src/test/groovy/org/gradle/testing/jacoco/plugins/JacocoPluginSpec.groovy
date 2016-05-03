@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,6 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
-import org.gradle.testing.jacoco.tasks.JacocoReport
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -27,19 +26,6 @@ class JacocoPluginSpec extends Specification {
 
     def setup() {
         project.apply plugin: 'jacoco'
-    }
-
-    def 'jacoco plugin adds coverage report for test task when java plugin applied'() {
-        project.file("src/main/java").mkdirs()
-        when:
-        project.apply plugin:"java"
-        and:
-        project.evaluate()
-        then:
-        project.test.extensions.getByType(JacocoTaskExtension) != null
-        project.jacocoTestReport instanceof JacocoReport
-        project.jacocoTestReport.sourceDirectories*.absolutePath == project.files("src/main/java")*.absolutePath
-        project.jacocoTestReport.classDirectories == project.sourceSets.main.output
     }
 
     def 'jacoco applied to specific JavaExec task'() {

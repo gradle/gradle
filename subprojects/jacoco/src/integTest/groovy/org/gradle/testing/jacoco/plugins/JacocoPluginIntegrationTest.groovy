@@ -45,6 +45,23 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         createTestFiles()
     }
 
+    def "jacoco plugin adds coverage report for test task when java plugin applied"() {
+        given:
+        buildFile << '''
+            task doCheck {
+                doLast {
+                    assert project.test.extensions.getByType(JacocoTaskExtension) != null
+                    assert project.jacocoTestReport instanceof JacocoReport
+                    assert project.jacocoTestReport.sourceDirectories*.absolutePath == project.files("src/main/java")*.absolutePath
+                    assert project.jacocoTestReport.classDirectories == project.sourceSets.main.output
+                }
+            }
+        '''.stripIndent()
+
+        expect:
+        succeeds 'doCheck'
+    }
+
     def "dependencies report shows default jacoco dependencies"() {
         when: succeeds("dependencies", "--configuration", "jacocoAgent")
         then: output.contains "org.jacoco:org.jacoco.agent:"

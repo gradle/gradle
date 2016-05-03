@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.testing.jacoco.tasks
-
-import groovy.transform.CompileStatic
-import org.gradle.api.DefaultTask
-import org.gradle.api.Incubating
-import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.InputFiles
 
 /**
- * Base class for Jacoco tasks.
+ * Plugins to work with the JaCoCo code coverage library.
  */
-@Incubating
-@CompileStatic
-abstract class JacocoBase extends DefaultTask {
-	/**
-	 * Classpath containing Jacoco classes for use by the task.
-	 */
-	@InputFiles
-	FileCollection jacocoClasspath
-}
+@org.gradle.api.Incubating
+package org.gradle.testing.jacoco.plugins;
