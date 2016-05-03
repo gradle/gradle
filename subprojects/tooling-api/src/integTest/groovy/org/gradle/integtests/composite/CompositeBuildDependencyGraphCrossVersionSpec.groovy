@@ -17,11 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.RequiresIntegratedComposite
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersions
+import org.gradle.integtests.tooling.fixture.*
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.BuildException
 
@@ -39,6 +35,7 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
     List builds
     MavenFileRepository mavenRepo
     ResolveTestFixture resolve
+    def buildArgs = []
 
     def setup() {
         mavenRepo = new MavenFileRepository(file("maven-repo"))
@@ -413,6 +410,38 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
         }
     }
 
+    def "evaluates subprojects when substituting external dependencies with subproject dependencies"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile "group.requires.subproject.evaluation:b1:1.0"
+            }
+"""
+
+        buildB.file("b1", "build.gradle") << """
+afterEvaluate {
+    group = 'group.requires.subproject.evaluation'
+}
+"""
+
+        when:
+        withArgs(args)
+        checkDependencies()
+
+        then:
+        checkGraph {
+            edge("group.requires.subproject.evaluation:b1:1.0", "project buildB::b1", "group.requires.subproject.evaluation:b1:2.0") {
+                compositeSubstitute()
+            }
+        }
+
+        where:
+        name                  | args
+        "regular"             | []
+        "configure on demand" | ["--configure-on-demand"]
+        "parallel"            | ["--parallel"]
+    }
+
     def "can resolve with dependency cycle between substituted projects in a multiproject build"() {
         given:
         buildA.buildFile << """
@@ -688,6 +717,10 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
         assertFailure(t, "Module version org.test:buildA:1.0, configuration 'compile' declares a dependency on configuration 'default' which is not declared in the module descriptor for org.test:buildC:1.0")
     }
 
+    private void withArgs(List<String> args) {
+        buildArgs = args as List
+    }
+
     private void checkDependencies() {
         resolve.prepare()
         execute(buildA, ":checkDeps")
@@ -698,6 +731,7 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(System.out)
             buildLauncher.forTasks(build, tasks)
+            buildLauncher.withArguments(buildArgs)
             buildLauncher.run()
         }
     }

@@ -172,6 +172,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         for (GradleParticipantBuild participant : compositeParameters.getBuilds()) {
             StartParameter startParameter = modelAction.getStartParameter().newInstance();
             startParameter.setProjectDir(participant.getProjectDir());
+            startParameter.setConfigureOnDemand(false);
 
             BuildModelAction configureAction = new BuildModelAction(startParameter, ModelIdentifier.NULL_MODEL, false, modelAction.getClientSubscriptions());
             buildActionExecuter.execute(configureAction, buildRequestContext, null, sharedServices);
