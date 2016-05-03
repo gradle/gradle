@@ -14,29 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.signing
+package org.gradle.plugins.signing;
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.plugins.BasePlugin;
 
 /**
  * Adds the ability to digitally sign files and artifacts.
  */
-class SigningPlugin implements Plugin<Project> {
+public class SigningPlugin implements Plugin<Project> {
 
     /**
      * <p>Adds the ability to digitally sign files and artifacts.</p>
-     * 
-     * <p>Adds the extension {@link org.gradle.plugins.signing.SigningExtension} with the name “signing”.
-     * <p>Also adds conventions to all {@link org.gradle.plugins.signing.Sign sign tasks} to use the signing extension setting defaults.</p>
-     * 
-     * @see org.gradle.plugins.signing.SigningExtension
+     *
+     * <p>Adds the extension {@link SigningExtension} with the name “signing”.</p>
+     * <p>Also adds conventions to all {@link Sign sign tasks} to use the signing extension setting defaults.</p>
+     *
+     * @see SigningExtension
      */
-    void apply(Project project) {
-        project.pluginManager.apply(BasePlugin)
-
-        project.extensions.create("signing", SigningExtension, project)
+    public void apply(Project project) {
+        project.getPluginManager().apply(BasePlugin.class);
+        project.getExtensions().create("signing", SigningExtension.class, project);
     }
-    
 }
