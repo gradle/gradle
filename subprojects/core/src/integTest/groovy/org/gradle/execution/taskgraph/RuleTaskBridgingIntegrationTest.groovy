@@ -282,7 +282,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         fails "foo"
 
         and:
-        failure.assertHasCause("Cannot create 'tasks.foo' using creation rule 'MyPlugin#addTask > create(foo)' as the rule 'Project.<init>.tasks.foo()' is already registered to create this model element.")
+        failure.assertHasCause("Cannot create 'tasks.foo' using creation rule 'MyPlugin#addTask(ModelMap<Task>) > create(foo)' as the rule 'Project.<init>.tasks.foo()' is already registered to create this model element.")
     }
 
     def "a non-rule-source task can depend on a rule-source task"() {
@@ -420,7 +420,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
 
         then:
         failure.assertHasCause('Bang')
-        failure.assertHasDescription('Exception thrown while executing model rule: Rules#addTasks > create(climbTask)')
+        failure.assertHasDescription('Exception thrown while executing model rule: Rules#addTasks(ModelMap<Task>) > create(climbTask)')
     }
 
     def "can not depend on a general Task"() {
