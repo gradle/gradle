@@ -156,7 +156,7 @@ fi
 
 # Split up the JVM_OPTS And ${optsEnvironmentVar} values into an array, following the shell quoting and substitution rules
 splitJvmOpts ( ) {
-    JVM_OPTS="\$@"
+    for i in "\$@"; do JVM_OPTS="\$JVM_OPTS \"\$i\"";done
 }
 
 eval splitJvmOpts \$DEFAULT_JVM_OPTS \$JAVA_OPTS \$${optsEnvironmentVar}
@@ -166,4 +166,4 @@ if [[ "\$(uname)" == "Darwin" ]] && [[ "\$HOME" == "\$PWD" ]]; then
   cd "\$(dirname "\$0")"
 fi
 
-exec "\$JAVACMD" `echo \$JVM_OPTS` <% if ( appNameSystemProperty ) { %>"-D${appNameSystemProperty}=\$APP_BASE_NAME"<% } %> -classpath "\$CLASSPATH" ${mainClassName} "\$@"
+eval "\$JAVACMD" \$JVM_OPTS <% if ( appNameSystemProperty ) { %>"-D${appNameSystemProperty}=\$APP_BASE_NAME"<% } %> -classpath "\"\$CLASSPATH\"" ${mainClassName} "\$@"
