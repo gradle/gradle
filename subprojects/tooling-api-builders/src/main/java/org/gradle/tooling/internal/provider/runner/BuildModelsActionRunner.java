@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import com.beust.jcommander.internal.Maps;
+import com.google.common.collect.Maps;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
