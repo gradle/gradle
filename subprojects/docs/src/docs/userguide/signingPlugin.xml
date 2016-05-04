@@ -179,7 +179,7 @@ gradle.taskGraph.whenReady { taskGraph ->
         <title>Signing POM files</title>
         <para>
             When deploying signatures for your artifacts to a Maven repository, you will also want to sign the published POM file. The signing plugin adds a
-            <literal>signing.signPom()</literal> (see: <apilink class="org.gradle.plugins.signing.SigningExtension" method="signPom" />) method that can be used in the
+            <literal>signing.signPom()</literal> (see: <apilink class="org.gradle.plugins.signing.SigningExtension" method="signPom(org.gradle.api.artifacts.maven.MavenDeployment, groovy.lang.Closure)" />) method that can be used in the
             <literal>beforeDeployment()</literal> block in your upload task configuration.
         </para>
         <sample id="signingMavenPom" dir="signing/maven" title="Signing a POM for deployment">
