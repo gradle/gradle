@@ -138,11 +138,17 @@ tasks, please use the [AntBuilder.setLifecycleLogLevel()](javadoc/org/gradle/api
 
 Running Gradle using Java 6 is now deprecated, and support will be removed in Gradle 3.0.
 
-It will continue to be possible to build JVM based projects for Java 6, by running Gradle using Java 7 and configuring Gradle to use Java 6 to compile, test and run your code.
+It will continue to be possible to build JVM based projects for Java 6 using Gradle 3.0, by running Gradle using Java 7 and configuring your build to use Java 6 to compile, test and run your code.
+
+Using the Gradle Tooling API and TestKit on Java 6 is also deprecated, and support will be removed in Gradle 3.0.
 
 ### `StartParameter.colorOutput` property
 
 The `StartParameter.colorOutput` property has been deprecated and will be removed in Gradle 3.0. You should use the `consoleOutput` property instead.
+
+### Tooling API support for Gradle versions 1.1 and older
+
+Using the Gradle tooling API to run Gradle builds for Gradle versions 1.1 and older is now deprecated, and support will be removed in Gradle 3.0.
 
 ### Tooling API model properties
 
