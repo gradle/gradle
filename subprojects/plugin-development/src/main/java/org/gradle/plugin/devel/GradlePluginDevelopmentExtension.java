@@ -42,6 +42,7 @@ import java.util.Set;
  *         plugins {
  *             helloPlugin {
  *                 id  = 'org.example.hello'
+ *                 implementationClass = 'org.example.HelloPlugin'
  *             }
  *         }
  *     }

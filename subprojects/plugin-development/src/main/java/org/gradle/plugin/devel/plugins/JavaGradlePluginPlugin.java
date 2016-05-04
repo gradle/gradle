@@ -59,7 +59,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
- * A plugin for validating java gradle plugins during the jar task. Emits warnings for common error conditions.
+ * A plugin for building java gradle plugins. Automatically generates plugin descriptors. Emits warnings for common error conditions.
  * <p>
  * Provides a direct integration with TestKit by declaring the {@code gradleTestKit()} dependency for the test
  * compile configuration and a dependency on the plugin classpath manifest generation task for the test runtime
