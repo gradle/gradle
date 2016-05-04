@@ -18,10 +18,10 @@ package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.tooling.model.GradleTask;
 
-public class GradleTaskDisplayNameMixIn {
+public class TaskDisplayNameMixin {
     private final GradleTask task;
 
-    public GradleTaskDisplayNameMixIn(GradleTask task) {
+    public TaskDisplayNameMixin(GradleTask task) {
         this.task = task;
     }
 
