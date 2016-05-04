@@ -219,7 +219,7 @@ And as a result might cause different behavior when used as base types. The affe
  - `SigningPlugin`, `SigningExtension`, `Signature` and `SignOperation`
  - `AbstractSignatureType`, `BinarySignatureType` and `ArmoredSignatureType`
  - `AbstractSignatureTypeProvider` and `DefaultSignatureTypeProvider`
- - `SignatorySupport`, `PgpKeyId`, `PgpSignatory` and `PgpSignatoryFactory`
+ - `SignatorySupport`, `PgpKeyId`, `PgpSignatory`, `PgpSignatoryProvider` and `PgpSignatoryFactory`
 
 ## External contributions
 
