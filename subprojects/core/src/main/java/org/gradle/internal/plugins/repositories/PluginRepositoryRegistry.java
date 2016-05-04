@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.repository.internal;
+package org.gradle.internal.plugins.repositories;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;
-import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry;
 
-public interface PluginRepositoryRegistryInternal extends PluginRepositoryRegistry {
+public interface PluginRepositoryRegistry {
+    void add(PluginRepository pluginRepository);
+
     void lock();
 
     ImmutableList<PluginRepository> getPluginRepositories();

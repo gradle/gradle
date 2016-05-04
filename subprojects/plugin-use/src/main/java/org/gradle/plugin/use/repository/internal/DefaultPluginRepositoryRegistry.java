@@ -19,12 +19,13 @@ package org.gradle.plugin.use.repository.internal;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.plugins.repositories.GradlePluginPortal;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;
+import org.gradle.internal.plugins.repositories.PluginRepositoryRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DefaultPluginRepositoryRegistry implements PluginRepositoryRegistryInternal {
+public class DefaultPluginRepositoryRegistry implements PluginRepositoryRegistry {
     private final List<PluginRepository> repositories;
     private final AtomicBoolean locked;
     private final AtomicBoolean portalAdded;

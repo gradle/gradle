@@ -28,8 +28,8 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter
-import org.gradle.api.internal.plugins.repositories.PluginRepositoryFactory
-import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry
+import org.gradle.internal.plugins.repositories.PluginRepositoryFactory
+import org.gradle.internal.plugins.repositories.PluginRepositoryRegistry
 import org.gradle.api.internal.project.*
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder
 import org.gradle.api.logging.configuration.LoggingConfiguration

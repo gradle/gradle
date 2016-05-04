@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins.repositories;
+package org.gradle.internal.plugins.repositories;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.dsl.PluginRepositorySpec;
+import org.gradle.api.internal.plugins.repositories.GradlePluginPortal;
+import org.gradle.api.internal.plugins.repositories.IvyPluginRepository;
+import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
 
 /**
  * Bridges between a global PluginRepositorySpec and a {@link org.gradle.api.Script}.
