@@ -52,7 +52,6 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -70,6 +69,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
+import static org.gradle.util.GUtil.uncheckedCall;
 
 public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static final Logger BUILD_LOGGER = Logging.getLogger(Task.class);
@@ -171,11 +172,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Class<? extends Task> publicType, Callable<T> factory) {
         NEXT_INSTANCE.set(new TaskInfo(project, name, publicType));
         try {
-            try {
-                return factory.call();
-            } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+            return uncheckedCall(factory);
         } finally {
             NEXT_INSTANCE.set(null);
         }

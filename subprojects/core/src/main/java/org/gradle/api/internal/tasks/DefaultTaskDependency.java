@@ -21,12 +21,13 @@ import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.GUtil;
 
 import java.util.*;
 import java.util.concurrent.Callable;
+
+import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultTaskDependency extends AbstractTaskDependency {
     private final Set<Object> values = new HashSet<Object>();
@@ -72,12 +73,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 queue.addAll(0, Arrays.asList(array));
             } else if (dependency instanceof Callable) {
                 Callable callable = (Callable) dependency;
-                Object callableResult;
-                try {
-                    callableResult = callable.call();
-                } catch (Exception e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+                Object callableResult = uncheckedCall(callable);
                 if (callableResult != null) {
                     queue.add(0, callableResult);
                 }

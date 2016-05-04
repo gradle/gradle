@@ -24,10 +24,13 @@ import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.GUtil;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
+import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultTaskInputs implements TaskInputs {
     private final DefaultConfigurableFileCollection inputFiles;
@@ -126,11 +129,7 @@ public class DefaultTaskInputs implements TaskInputs {
         while (true) {
             if (value instanceof Callable) {
                 Callable callable = (Callable) value;
-                try {
-                    value = callable.call();
-                } catch (Exception e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+                value = uncheckedCall(callable);
             } else if (value instanceof Closure) {
                 Closure closure = (Closure) value;
                 value = closure.call();

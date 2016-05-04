@@ -20,13 +20,14 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.Callable;
+
+import static org.gradle.util.GUtil.uncheckedCall;
 
 public class OutputDirectoryPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
@@ -67,12 +68,7 @@ public class OutputDirectoryPropertyAnnotationHandler implements PropertyAnnotat
                 task.getOutputs().files(futureValue);
                 task.prependParallelSafeAction(new Action<Task>() {
                     public void execute(Task task) {
-                        Iterable<File> files;
-                        try {
-                            files = valueTransformer.transform(futureValue.call());
-                        } catch (Exception e) {
-                            throw UncheckedException.throwAsUncheckedException(e);
-                        }
+                        Iterable<File> files = valueTransformer.transform(uncheckedCall(futureValue));
                         for (File file : files) {
                             file = FileUtils.canonicalize(file);
                             GFileUtils.mkdirs(file);
