@@ -20,9 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.FileUtils;
-import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
