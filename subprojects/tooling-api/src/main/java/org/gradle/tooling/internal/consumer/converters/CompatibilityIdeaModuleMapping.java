@@ -26,7 +26,7 @@ public class CompatibilityIdeaModuleMapping {
         this.ideaModule = ideaModule;
     }
 
-    public DefaultIdeaModuleIdentifier getTarget() {
+    public DefaultIdeaModuleIdentifier getIdentifier() {
         return new DefaultIdeaModuleIdentifier(ideaModule.getGradleProject().getPath());
     }
 }

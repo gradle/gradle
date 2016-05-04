@@ -19,8 +19,8 @@ package org.gradle.tooling.internal.consumer.converters;
 import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.EclipseProjectDependency;
+import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.util.GradleVersion;
 
 import java.io.Serializable;
@@ -39,7 +39,7 @@ public class EclipseModelCompatibilityMapper implements Action<SourceObjectMappi
         if (!versionSupportsEclipseProjectIdentifier()) {
             if (EclipseProjectDependency.class.isAssignableFrom(targetType)) {
                 mapping.mixIn(CompatibilityEclipseProjectDependencyMapping.class);
-            } else if (EclipseProject.class.isAssignableFrom(targetType)) {
+            } else if (HierarchicalEclipseProject.class.isAssignableFrom(targetType)) {
                 mapping.mixIn(CompatibilityEclipseProjectMapping.class);
             }
         }

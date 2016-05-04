@@ -17,7 +17,6 @@ package org.gradle.integtests.tooling.r214
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.internal.protocol.eclipse.DefaultEclipseProjectIdentifier
 import org.gradle.tooling.model.eclipse.EclipseProjectDependency
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
@@ -43,21 +42,25 @@ project(':a') {
 '''
 
         when:
-        HierarchicalEclipseProject minimalModel = loadToolingModel(HierarchicalEclipseProject)
+        HierarchicalEclipseProject eclipseProjectRoot = loadToolingModel(HierarchicalEclipseProject)
+        HierarchicalEclipseProject eclipseProjectA = eclipseProjectRoot.children[0]
+        HierarchicalEclipseProject eclipseProjectB = eclipseProjectA.children[0]
 
         then:
-        HierarchicalEclipseProject minimalProject = minimalModel.children[0]
+        eclipseProjectRoot.gradleProject.path == ':'
+        eclipseProjectA.gradleProject.path == ':a'
+        eclipseProjectB.gradleProject.path == ':a:b'
 
-        minimalProject.projectDependencies.size() == 2
+        eclipseProjectA.projectDependencies.size() == 2
 
-        EclipseProjectDependency rootDependency = minimalProject.projectDependencies.find { it.path == 'root' }
+        EclipseProjectDependency rootDependency = eclipseProjectA.projectDependencies.find { it.path == 'root' }
         rootDependency != null
-        rootDependency.targetProject == minimalModel
-        rootDependency.target == new DefaultEclipseProjectIdentifier(projectDir)
+        rootDependency.targetProject == eclipseProjectRoot
+        rootDependency.target == eclipseProjectRoot.identifier
 
-        EclipseProjectDependency otherDependency = minimalProject.projectDependencies.find { it.path == 'b' }
+        EclipseProjectDependency otherDependency = eclipseProjectA.projectDependencies.find { it.path == 'b' }
         otherDependency != null
-        otherDependency.targetProject == minimalProject.children[0]
-        otherDependency.target == new DefaultEclipseProjectIdentifier(projectDir.file("a", "b"))
+        otherDependency.targetProject == eclipseProjectB
+        otherDependency.target == eclipseProjectB.identifier
     }
 }

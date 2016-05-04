@@ -17,17 +17,17 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.tooling.internal.protocol.eclipse.DefaultEclipseProjectIdentifier;
-import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.tooling.model.eclipse.EclipseProjectIdentifier;
+import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 
 public class CompatibilityEclipseProjectMapping {
-    private final EclipseProject eclipseProject;
+    private final HierarchicalEclipseProject eclipseProject;
 
-    public CompatibilityEclipseProjectMapping(EclipseProject eclipseProject) {
+    public CompatibilityEclipseProjectMapping(HierarchicalEclipseProject eclipseProject) {
         this.eclipseProject = eclipseProject;
     }
 
-    public EclipseProjectIdentifier getTarget() {
+    public EclipseProjectIdentifier getIdentifier() {
         return new DefaultEclipseProjectIdentifier(eclipseProject.getProjectDirectory());
     }
 }
