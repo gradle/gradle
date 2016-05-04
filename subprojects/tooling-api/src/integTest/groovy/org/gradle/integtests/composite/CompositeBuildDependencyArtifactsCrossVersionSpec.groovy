@@ -38,10 +38,11 @@ import org.gradle.tooling.BuildException
 class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
     def stdErr = new ByteArrayOutputStream()
-    TestFile buildA
-    TestFile buildB
+    ProjectTestFile buildA
+    ProjectTestFile buildB
     MavenModule publishedModuleB
     List builds
+    List arguments = []
     MavenFileRepository mavenRepo
 
     def setup() {
@@ -75,6 +76,25 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
     def "builds single artifact for substituted dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executed ":buildB:jar"
+        assertResolved buildB.file('build/libs/buildB-1.0.jar')
+    }
+
+    @NotYetImplemented
+    def "passes arguments to builds when building substituted dependency"() {
+        given:
+        dependency 'org.test:buildB:1.0'
+        and:
+
+        buildB.buildFile << """
+    assert project.hasProperty("passedProperty")
+"""
+        arguments << "-PpassedProperty"
 
         when:
         resolveArtifacts()
@@ -471,6 +491,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.setStandardError(stdErr)
             buildLauncher.forTasks(build, tasks)
+            buildLauncher.withArguments(arguments)
             buildLauncher.run()
         }
         println stdOut
