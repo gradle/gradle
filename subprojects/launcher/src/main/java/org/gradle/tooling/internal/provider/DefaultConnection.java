@@ -38,18 +38,23 @@ import org.gradle.tooling.internal.provider.connection.ProviderBuildResult;
 import org.gradle.tooling.internal.provider.connection.ProviderConnectionParameters;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.PrintStream;
 
-public class DefaultConnection implements InternalConnection, BuildActionRunner,
+public class DefaultConnection implements ConnectionVersion4, InternalConnection, BuildActionRunner,
     ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection, InternalCompositeAwareConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
+    private static final GradleVersion MIN_CLIENT_VERSION = GradleVersion.version("2.0");
     private ProtocolToModelAdapter adapter;
     private ServiceRegistry services;
     private ProviderConnection connection;
+    private boolean supportedConsumerVersion;
+    private GradleVersion consumerVersion;
 
     /**
      * This is used by consumers 1.0-milestone-3 and later
@@ -69,6 +74,8 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         }
         initializeServices(gradleUserHomeDir);
         connection.configure(providerConnectionParameters);
+        consumerVersion = GradleVersion.version(providerConnectionParameters.getConsumerVersion());
+        supportedConsumerVersion = consumerVersion.compareTo(MIN_CLIENT_VERSION) >= 0;
     }
 
     private void initializeServices(File gradleUserHomeDir) {
@@ -141,19 +148,17 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     @Deprecated
     public <T> BuildResult<T> run(Class<T> type, BuildParameters buildParameters) throws UnsupportedOperationException, IllegalStateException {
-        validateCanRun();
-        ProviderOperationParameters providerParameters = toProviderParameters(buildParameters);
+        ProviderOperationParameters providerParameters = validateAndConvert(buildParameters);
         String modelName = new ModelMapping().getModelNameFromProtocolType(type);
         T result = Cast.uncheckedCast(connection.run(modelName, new DefaultBuildCancellationToken(), providerParameters));
         return new ProviderBuildResult<T>(result);
     }
 
     /**
-     * This is used by consumers 1.6-rc-1 and later
+     * This is used by consumers 1.6-rc-1 to 2.0
      */
     public BuildResult<?> getModel(ModelIdentifier modelIdentifier, BuildParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        validateCanRun();
-        ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
+        ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         Object result = connection.run(modelIdentifier.getName(), new DefaultBuildCancellationToken(), providerParameters);
         return new ProviderBuildResult<Object>(result);
     }
@@ -162,8 +167,7 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      * This is used by consumers 2.1-rc-1 and later
      */
     public BuildResult<?> getModel(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedModelException, InternalUnsupportedBuildArgumentException, IllegalStateException {
-        validateCanRun();
-        ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
+        ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object result = connection.run(modelIdentifier.getName(), buildCancellationToken, providerParameters);
         return new ProviderBuildResult<Object>(result);
@@ -173,19 +177,17 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      * This is used by consumers 2.13-rc-1 and later
      */
     public BuildResult<?> getModels(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedModelException, InternalUnsupportedBuildArgumentException, IllegalStateException {
-        validateCanRun();
-        ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
+        ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object result = connection.buildModels(modelIdentifier.getName(), buildCancellationToken, providerParameters);
         return new ProviderBuildResult<Object>(result);
     }
 
     /**
-     * This is used by consumers 1.8-rc-1 and later.
+     * This is used by consumers 1.8-rc-1 to 2.0
      */
     public <T> BuildResult<T> run(InternalBuildAction<T> action, BuildParameters operationParameters) throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
-        validateCanRun();
-        ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
+        ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         Object results = connection.run(action, new DefaultBuildCancellationToken(), providerParameters);
         return new ProviderBuildResult<T>((T) results);
     }
@@ -195,21 +197,19 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
      */
     public <T> BuildResult<T> run(InternalBuildAction<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
-        validateCanRun();
-        ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
+        ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object results = connection.run(action, buildCancellationToken, providerParameters);
         return new ProviderBuildResult<T>((T) results);
     }
 
     /**
-     * This is used by consumers 2.6-rc1 and later.
+     * This is used by consumers 2.6-rc-1 and later
      */
     public BuildResult<?> runTests(InternalTestExecutionRequest testExecutionRequest, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
         throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, IllegalStateException {
-        validateCanRun();
+        ProviderOperationParameters providerParameters = validateAndConvert(operationParameters);
         ProviderInternalTestExecutionRequest testExecutionRequestVersion2 = adapter.adapt(ProviderInternalTestExecutionRequest.class, testExecutionRequest);
-        ProviderOperationParameters providerParameters = toProviderParameters(operationParameters);
         BuildCancellationToken buildCancellationToken = new InternalCancellationTokenAdapter(cancellationToken);
         Object results = connection.runTests(testExecutionRequestVersion2, buildCancellationToken, providerParameters);
         return new ProviderBuildResult<Object>(results);
@@ -226,7 +226,18 @@ public class DefaultConnection implements InternalConnection, BuildActionRunner,
         return new UnsupportedVersionException("Support for clients using a tooling API version older than 1.2 was removed in Gradle 2.0. You should upgrade your tooling API client to version 1.2 or later.");
     }
 
-    private ProviderOperationParameters toProviderParameters(BuildParameters buildParameters) {
-        return adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
+    private ProviderOperationParameters validateAndConvert(BuildParameters buildParameters) {
+        validateCanRun();
+        ProviderOperationParameters providerOperationParameters = adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
+        if (!supportedConsumerVersion) {
+            String message = String.format("Support for clients using tooling API version %s is deprecated and will be removed in Gradle 3.0. You should upgrade your tooling API client to version %s or later.", consumerVersion.getVersion(), MIN_CLIENT_VERSION.getVersion());
+            DeprecationLogger.nagUserWith(message);
+            if (providerOperationParameters.getStandardOutput() != null) {
+                PrintStream printStream = new PrintStream(providerOperationParameters.getStandardOutput());
+                printStream.println(message);
+                printStream.flush();
+            }
+        }
+        return providerOperationParameters;
     }
 }
