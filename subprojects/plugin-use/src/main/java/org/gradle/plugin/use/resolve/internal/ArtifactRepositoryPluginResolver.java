@@ -59,6 +59,10 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
     }
 
     private boolean exists(PluginRequest request) {
+        // This works because the corresponding BackedByArtifactRepository PluginRepository sets
+        // registers an ArtifactRepository in the DependencyResolutionServices instance which is
+        // exclusively used by this ArtifactRepositoryPluginResolver. If the plugin marker
+        // doesn't exist in that isolated ArtifactRepository, this resolver won't look anywhere else.
         Dependency dependency = resolution.getDependencyHandler().create(getMarkerCoordinates(request));
 
         ConfigurationContainer configurations = resolution.getConfigurationContainer();
