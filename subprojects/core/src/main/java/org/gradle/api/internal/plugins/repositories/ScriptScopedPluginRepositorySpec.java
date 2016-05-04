@@ -18,16 +18,16 @@ package org.gradle.api.internal.plugins.repositories;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
+import org.gradle.api.internal.plugins.dsl.PluginRepositorySpec;
 
 /**
- * Bridges between a global PluginRepositoryHandler and a {@link org.gradle.api.Script}.
+ * Bridges between a global PluginRepositorySpec and a {@link org.gradle.api.Script}.
  */
-public class ScriptScopedPluginRepositoryHandler implements PluginRepositoryHandler {
+public class ScriptScopedPluginRepositorySpec implements PluginRepositorySpec {
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final FileResolver fileResolver;
 
-    public ScriptScopedPluginRepositoryHandler(PluginRepositoryRegistry pluginRepositoryRegistry, FileResolver fileResolver) {
+    public ScriptScopedPluginRepositorySpec(PluginRepositoryRegistry pluginRepositoryRegistry, FileResolver fileResolver) {
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.fileResolver = fileResolver;
     }

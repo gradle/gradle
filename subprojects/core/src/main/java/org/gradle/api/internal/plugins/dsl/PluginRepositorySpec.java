@@ -23,10 +23,14 @@ import org.gradle.api.internal.plugins.repositories.IvyPluginRepository;
 import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
 
 /**
- * Handles the declaration of {@link org.gradle.api.internal.plugins.repositories.PluginRepository}s
+ * Used to declare {@link org.gradle.api.internal.plugins.repositories.PluginRepository}s
+ * <p>
+ * Maven and Ivy repositories added via this interface will also be prepended
+ * to @{code buildscript.repositories}. They will be searched when resolving dependencies
+ * declared in the @{code buildscript.dependencies} block.
  */
 @Incubating
-public interface PluginRepositoryHandler {
+public interface PluginRepositorySpec {
     /**
      * Adds and configures a {@link MavenPluginRepository}.
      *

@@ -16,9 +16,9 @@
 package org.gradle.initialization;
 
 import groovy.lang.Closure;
-import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
+import org.gradle.api.internal.plugins.dsl.PluginRepositorySpec;
 import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry;
-import org.gradle.api.internal.plugins.repositories.ScriptScopedPluginRepositoryHandler;
+import org.gradle.api.internal.plugins.repositories.ScriptScopedPluginRepositorySpec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -27,11 +27,11 @@ import org.gradle.util.ConfigureUtil;
  * processing top-level blocks on the initial pass through a script.
  */
 public abstract class InitialPassSettingsScript extends SettingsScript {
-    public PluginRepositoryHandler getPluginRepositoryHandler() {
+    public PluginRepositorySpec getPluginRepositoryHandler() {
         Instantiator instantiator = __scriptServices.get(Instantiator.class);
         PluginRepositoryRegistry pluginRepositoryRegistry = __scriptServices.get(PluginRepositoryRegistry.class);
         return instantiator.newInstance(
-            ScriptScopedPluginRepositoryHandler.class, pluginRepositoryRegistry, getFileResolver());
+            ScriptScopedPluginRepositorySpec.class, pluginRepositoryRegistry, getFileResolver());
     }
 
     public void pluginRepositories(Closure config) {
