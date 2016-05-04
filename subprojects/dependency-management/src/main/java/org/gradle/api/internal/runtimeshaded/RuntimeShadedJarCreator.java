@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.impldeps;
+package org.gradle.api.internal.runtimeshaded;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -28,7 +28,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.installation.GradleFatJar;
+import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.progress.PercentageProgressFormatter;
@@ -38,26 +38,38 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.RemappingClassAdapter;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
+class RuntimeShadedJarCreator {
 
     private static final int BUFFER_SIZE = 8192;
     private static final String SERVICES_DIR_PREFIX = "META-INF/services/";
     private static final int ADDITIONAL_PROGRESS_STEPS = 2;
-    private static final GradleImplDepsRelocator REMAPPER = new GradleImplDepsRelocator();
+    private static final ImplementationDependencyRelocator REMAPPER = new ImplementationDependencyRelocator();
+
     private final ProgressLoggerFactory progressLoggerFactory;
 
-    public GradleImplDepsRelocatedJarCreator(ProgressLoggerFactory progressLoggerFactory) {
+    public RuntimeShadedJarCreator(ProgressLoggerFactory progressLoggerFactory) {
         this.progressLoggerFactory = progressLoggerFactory;
     }
 
     public void create(final File outputJar, final Iterable<? extends File> files) {
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation(GradleImplDepsRelocatedJarCreator.class);
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(RuntimeShadedJarCreator.class);
         progressLogger.setDescription("Gradle JARs generation");
         progressLogger.setLoggingHeader("Generating JAR file '" + outputJar.getName() + "'");
         progressLogger.started();
@@ -119,7 +131,7 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
         writeServiceFiles(outputStream, services);
         progressFormatter.incrementAndGetProgress();
 
-        writeMarkerFile(outputStream);
+        writeIdentifyingMarkerFile(outputStream);
         progressFormatter.incrementAndGetProgress();
     }
 
@@ -130,8 +142,8 @@ public class GradleImplDepsRelocatedJarCreator implements RelocatedJarCreator {
         }
     }
 
-    private void writeMarkerFile(ZipOutputStream outputStream) throws IOException {
-        writeEntry(outputStream, GradleFatJar.MARKER_FILENAME, new byte[0]);
+    private void writeIdentifyingMarkerFile(ZipOutputStream outputStream) throws IOException {
+        writeEntry(outputStream, GradleRuntimeShadedJarDetector.MARKER_FILENAME, new byte[0]);
     }
 
     private void processDirectory(final ZipOutputStream outputStream, File file, final byte[] buffer, final HashSet<String> seenPaths, final Map<String, List<String>> services) {

@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDepend
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.impldeps.GradleImplDepsProvider
+import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
@@ -38,8 +38,8 @@ import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.internal.impldeps.GradleImplDepsProvider.CACHE_DISPLAY_NAME
-import static org.gradle.api.internal.impldeps.GradleImplDepsProvider.CACHE_KEY
+import static RuntimeShadedJarFactory.CACHE_DISPLAY_NAME
+import static RuntimeShadedJarFactory.CACHE_KEY
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 public class DependencyClassPathNotationConverterTest extends Specification {
@@ -81,7 +81,7 @@ public class DependencyClassPathNotationConverterTest extends Specification {
         instantiator.newInstance(DefaultSelfResolvingDependency.class, _) >> dependency
 
         when:
-        def gradleImplDepsProvider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, GradleVersion.current().version)
+        def gradleImplDepsProvider = new RuntimeShadedJarFactory(cacheRepository, progressLoggerFactory, GradleVersion.current().version)
         def factory = new DependencyClassPathNotationConverter(instantiator, classPathRegistry, fileResolver, gradleImplDepsProvider, new CurrentGradleInstallation(new GradleInstallation(testDirectoryProvider.file("gradle-home"))))
         def out = parse(factory, DependencyFactory.ClassPathNotation.GRADLE_API)
 

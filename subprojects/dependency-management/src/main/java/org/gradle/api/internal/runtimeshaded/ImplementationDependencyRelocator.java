@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.impldeps;
+package org.gradle.api.internal.runtimeshaded;
 
 import org.objectweb.asm.commons.Remapper;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-class GradleImplDepsRelocator extends Remapper {
+class ImplementationDependencyRelocator extends Remapper {
 
     private final Pattern classPattern = Pattern.compile("(\\[*)?L(.+)");
 
@@ -63,7 +63,7 @@ class GradleImplDepsRelocator extends Remapper {
             ) {
             return null;
         } else {
-            return "org/gradle/impldep/".concat(clazz);
+            return "org/gradle/internal/impldep/".concat(clazz);
         }
     }
 

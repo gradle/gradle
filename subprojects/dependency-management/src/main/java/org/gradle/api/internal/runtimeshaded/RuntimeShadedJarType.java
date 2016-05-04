@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.impldeps;
+package org.gradle.api.internal.runtimeshaded;
 
-public enum GradleImplDepsJarType {
-    API("api"), TEST_KIT("test-kit");
+public enum RuntimeShadedJarType {
+
+    API("api"),
+    TEST_KIT("test-kit");
 
     private final String identifier;
 
-    GradleImplDepsJarType(String identifier) {
+    RuntimeShadedJarType(String identifier) {
         this.identifier = identifier;
     }
 

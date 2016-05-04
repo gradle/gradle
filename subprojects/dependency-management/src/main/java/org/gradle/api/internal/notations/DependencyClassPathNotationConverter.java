@@ -23,9 +23,9 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
-import org.gradle.api.internal.impldeps.GradleImplDepsJarType;
-import org.gradle.api.internal.impldeps.GradleImplDepsProvider;
-import org.gradle.api.internal.impldeps.GradleImplDepsRelocatedJar;
+import org.gradle.api.internal.file.collections.SingletonFileSet;
+import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
+import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.reflect.Instantiator;
@@ -47,7 +47,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     private final ClassPathRegistry classPathRegistry;
     private final Instantiator instantiator;
     private final FileResolver fileResolver;
-    private final GradleImplDepsProvider gradleImplDepsProvider;
+    private final RuntimeShadedJarFactory runtimeShadedJarFactory;
     private final CurrentGradleInstallation currentGradleInstallation;
     private final Map<DependencyFactory.ClassPathNotation, SelfResolvingDependency> internCache = Maps.newEnumMap(DependencyFactory.ClassPathNotation.class);
     private final Lock internCacheWriteLock = new ReentrantLock();
@@ -56,12 +56,12 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         Instantiator instantiator,
         ClassPathRegistry classPathRegistry,
         FileResolver fileResolver,
-        GradleImplDepsProvider gradleImplDepsProvider,
+        RuntimeShadedJarFactory runtimeShadedJarFactory,
         CurrentGradleInstallation currentGradleInstallation) {
         this.instantiator = instantiator;
         this.classPathRegistry = classPathRegistry;
         this.fileResolver = fileResolver;
-        this.gradleImplDepsProvider = gradleImplDepsProvider;
+        this.runtimeShadedJarFactory = runtimeShadedJarFactory;
         this.currentGradleInstallation = currentGradleInstallation;
     }
 
@@ -110,7 +110,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         apiClasspath.removeAll(groovyImpl);
         apiClasspath.removeAll(installationBeacon);
 
-        return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "gradleApi()", GradleImplDepsJarType.API)
+        return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "gradleApi()", RuntimeShadedJarType.API)
             .plus(fileResolver.resolveFiles(groovyImpl, installationBeacon));
     }
 
@@ -118,12 +118,12 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         List<File> gradleApi = classPathRegistry.getClassPath(GRADLE_API.name()).getAsFiles();
         testKitClasspath.removeAll(gradleApi);
 
-        return (FileCollectionInternal) relocatedDepsJar(testKitClasspath, "gradleTestKit()", GradleImplDepsJarType.TEST_KIT)
+        return (FileCollectionInternal) relocatedDepsJar(testKitClasspath, "gradleTestKit()", RuntimeShadedJarType.TEST_KIT)
             .plus(gradleApiFileCollection(gradleApi));
     }
 
-    private FileCollectionInternal relocatedDepsJar(Collection<File> classpath, String displayName, GradleImplDepsJarType gradleImplDepsJarType) {
-        File gradleImplDepsJar = gradleImplDepsProvider.getFile(classpath, gradleImplDepsJarType);
-        return new FileCollectionAdapter(new GradleImplDepsRelocatedJar(displayName, gradleImplDepsJar));
+    private FileCollectionInternal relocatedDepsJar(Collection<File> classpath, String displayName, RuntimeShadedJarType runtimeShadedJarType) {
+        File gradleImplDepsJar = runtimeShadedJarFactory.get(runtimeShadedJarType, classpath);
+        return new FileCollectionAdapter(new SingletonFileSet(gradleImplDepsJar, displayName));
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.impldeps
+package org.gradle.api.internal.runtimeshaded
 
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
@@ -28,11 +28,11 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.impldeps.GradleImplDepsProvider.CACHE_DISPLAY_NAME
-import static org.gradle.api.internal.impldeps.GradleImplDepsProvider.CACHE_KEY
+import static RuntimeShadedJarFactory.CACHE_DISPLAY_NAME
+import static RuntimeShadedJarFactory.CACHE_KEY
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
-class GradleImplDepsProviderTest extends Specification {
+class RuntimeShadedJarFactoryTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -45,7 +45,7 @@ class GradleImplDepsProviderTest extends Specification {
 
     def "can close cache"() {
         when:
-        def provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion)
+        def provider = new RuntimeShadedJarFactory(cacheRepository, progressLoggerFactory, gradleVersion)
         provider.close()
 
         then:
@@ -56,33 +56,20 @@ class GradleImplDepsProviderTest extends Specification {
         1 * cache.close()
     }
 
-    def "returns null for null JAR type"() {
-        when:
-        def provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion)
-        provider.getFile(Collections.emptyList(), null) == null
-
-        then:
-        1 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
-        1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
-        1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
-        1 * cacheBuilder.open() >> { cache }
-        0 * cache._
-    }
-
     @Unroll
-    def "creates JAR file on demand for name '#gradleImplDepsJar.identifier'"() {
+    def "creates JAR file on demand for name '#gradleImplDepsJar.identifier'"(RuntimeShadedJarType type) {
         def cacheDir = tmpDir.testDirectory
         def jar = tmpDir.createDir('originalJars').file('mydep-1.2.jar')
-        def jarFile = cacheDir.file("gradle-${gradleImplDepsJar.identifier}-${gradleVersion}.jar")
+        def jarFile = cacheDir.file("gradle-${type.identifier}-${gradleVersion}.jar")
         def cacheBuilder = Mock(CacheBuilder)
         def cache = Mock(PersistentCache)
 
         when:
-        def provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion)
-        def resolvedFile = provider.getFile([jar], gradleImplDepsJar)
+        def provider = new RuntimeShadedJarFactory(cacheRepository, progressLoggerFactory, gradleVersion)
+        def resolvedFile = provider.get(type, [jar])
 
         then:
-        1 * cacheRepository.cache(GradleImplDepsProvider.CACHE_KEY) >> cacheBuilder
+        1 * cacheRepository.cache(RuntimeShadedJarFactory.CACHE_KEY) >> cacheBuilder
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
         1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
@@ -91,7 +78,7 @@ class GradleImplDepsProviderTest extends Specification {
         jarFile == resolvedFile
 
         where:
-        gradleImplDepsJar << GradleImplDepsJarType.values()
+        type << RuntimeShadedJarType.values()
     }
 
     def "reuses existing JAR file if existent"() {
@@ -102,11 +89,11 @@ class GradleImplDepsProviderTest extends Specification {
         def cache = Mock(PersistentCache)
 
         when:
-        def provider = new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion)
-        def resolvedFile = provider.getFile([jar], GradleImplDepsJarType.API)
+        def provider = new RuntimeShadedJarFactory(cacheRepository, progressLoggerFactory, gradleVersion)
+        def resolvedFile = provider.get(RuntimeShadedJarType.API, [jar])
 
         then:
-        1 * cacheRepository.cache(GradleImplDepsProvider.CACHE_KEY) >> cacheBuilder
+        1 * cacheRepository.cache(RuntimeShadedJarFactory.CACHE_KEY) >> cacheBuilder
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
         1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
@@ -116,10 +103,10 @@ class GradleImplDepsProviderTest extends Specification {
 
         when:
         GFileUtils.touch(jarFile)
-        resolvedFile = provider.getFile([jar], GradleImplDepsJarType.API)
+        resolvedFile = provider.get(RuntimeShadedJarType.API, [jar])
 
         then:
-        0 * cacheRepository.cache(GradleImplDepsProvider.CACHE_KEY) >> cacheBuilder
+        0 * cacheRepository.cache(RuntimeShadedJarFactory.CACHE_KEY) >> cacheBuilder
         0 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
         0 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         0 * cacheBuilder.open() >> { cache }

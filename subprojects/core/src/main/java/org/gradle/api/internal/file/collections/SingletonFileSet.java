@@ -14,27 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.impldeps;
-
-import org.gradle.api.internal.file.collections.MinimalFileSet;
+package org.gradle.api.internal.file.collections;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-public class GradleImplDepsRelocatedJar implements MinimalFileSet {
+public class SingletonFileSet implements MinimalFileSet {
 
+    private final File file;
     private final String displayName;
-    private final File outputJar;
 
-    public GradleImplDepsRelocatedJar(String displayName, File outputJar) {
+    public SingletonFileSet(File file, String displayName) {
+        this.file = file;
         this.displayName = displayName;
-        this.outputJar = outputJar;
     }
 
     @Override
     public Set<File> getFiles() {
-        return Collections.singleton(outputJar);
+        return Collections.singleton(file);
     }
 
     @Override

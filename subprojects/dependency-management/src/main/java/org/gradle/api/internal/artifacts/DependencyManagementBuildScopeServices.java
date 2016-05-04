@@ -64,7 +64,7 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
-import org.gradle.api.internal.impldeps.GradleImplDepsProvider;
+import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
@@ -107,7 +107,7 @@ class DependencyManagementBuildScopeServices {
             ClassPathRegistry classPathRegistry,
             CurrentGradleInstallation currentGradleInstallation,
             FileLookup fileLookup,
-            GradleImplDepsProvider gradleImplDepsProvider
+            RuntimeShadedJarFactory runtimeShadedJarFactory
     ) {
         DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
             projectAccessListener, instantiator, startParameter.isBuildProjectDependencies());
@@ -115,14 +115,14 @@ class DependencyManagementBuildScopeServices {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(
-            DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, gradleImplDepsProvider, currentGradleInstallation),
+            DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileLookup, runtimeShadedJarFactory, currentGradleInstallation),
             new ClientModuleNotationParserFactory(instantiator).create(),
             projectDependencyFactory);
     }
 
-    GradleImplDepsProvider createGradleImplDepsProvider(CacheRepository cacheRepository, ProgressLoggerFactory progressLoggerFactory) {
+    RuntimeShadedJarFactory createGradleImplDepsProvider(CacheRepository cacheRepository, ProgressLoggerFactory progressLoggerFactory) {
         String gradleVersion = GradleVersion.current().getVersion();
-        return new GradleImplDepsProvider(cacheRepository, progressLoggerFactory, gradleVersion);
+        return new RuntimeShadedJarFactory(cacheRepository, progressLoggerFactory, gradleVersion);
     }
 
     CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository) {

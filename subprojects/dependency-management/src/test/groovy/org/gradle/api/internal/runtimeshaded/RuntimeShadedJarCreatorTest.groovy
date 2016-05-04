@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.impldeps
+package org.gradle.api.internal.runtimeshaded
 
 import org.gradle.api.Action
 import org.gradle.internal.IoActions
@@ -33,15 +33,15 @@ import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
 @UsesNativeServices
-class GradleImplDepsRelocatedJarCreatorTest extends Specification {
+class RuntimeShadedJarCreatorTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
     def progressLogger = Mock(ProgressLogger)
-    GradleImplDepsRelocatedJarCreator relocatedJarCreator = new GradleImplDepsRelocatedJarCreator(progressLoggerFactory)
-    File outputJar = new File(tmpDir.testDirectory, 'gradle-api.jar')
+    def relocatedJarCreator = new RuntimeShadedJarCreator(progressLoggerFactory)
+    def outputJar = new File(tmpDir.testDirectory, 'gradle-api.jar')
 
     def "creates JAR file for input directory"() {
         given:
@@ -52,7 +52,7 @@ class GradleImplDepsRelocatedJarCreatorTest extends Specification {
         relocatedJarCreator.create(outputJar, [inputFilesDir])
 
         then:
-        1 * progressLoggerFactory.newOperation(GradleImplDepsRelocatedJarCreator) >> progressLogger
+        1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
         1 * progressLogger.setDescription('Gradle JARs generation')
         1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
         1 * progressLogger.started()
@@ -76,7 +76,7 @@ class GradleImplDepsRelocatedJarCreatorTest extends Specification {
         relocatedJarCreator.create(outputJar, [jarFile1, jarFile2])
 
         then:
-        1 * progressLoggerFactory.newOperation(GradleImplDepsRelocatedJarCreator) >> progressLogger
+        1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
         1 * progressLogger.setDescription('Gradle JARs generation')
         1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
         1 * progressLogger.started()
@@ -110,7 +110,7 @@ org.gradle.api.internal.tasks.CompileServices
         relocatedJarCreator.create(outputJar, [jarFile1, jarFile2, jarFile3])
 
         then:
-        1 * progressLoggerFactory.newOperation(GradleImplDepsRelocatedJarCreator) >> progressLogger
+        1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
         1 * progressLogger.setDescription('Gradle JARs generation')
         1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
         1 * progressLogger.started()
@@ -160,7 +160,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         relocatedJarCreator.create(outputJar, [jarFile])
 
         then:
-        1 * progressLoggerFactory.newOperation(GradleImplDepsRelocatedJarCreator) >> progressLogger
+        1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
         1 * progressLogger.setDescription('Gradle JARs generation')
         1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
         1 * progressLogger.started()
@@ -186,8 +186,8 @@ org.gradle.api.internal.tasks.CompileServices"""
             assert jar.getJarEntry('org/apache/xerces/parsers/SAXParser.class')
             assert jar.getJarEntry('org/w3c/dom/Document.class')
             assert jar.getJarEntry('org/xml/sax/XMLReader.class')
-            assert jar.getJarEntry('org/gradle/impldep/org/apache/commons/lang3/StringUtils.class')
-            assert jar.getJarEntry('org/gradle/impldep/com/google/common/collect/Lists.class')
+            assert jar.getJarEntry('org/gradle/internal/impldep/org/apache/commons/lang3/StringUtils.class')
+            assert jar.getJarEntry('org/gradle/internal/impldep/com/google/common/collect/Lists.class')
         }
     }
 

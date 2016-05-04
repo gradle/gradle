@@ -52,7 +52,7 @@ task shadedJar(type: ShadedJar) {
     keepPackages = ["org.gradle.tooling"]
     unshadedPackages = ["org.gradle", "org.slf4j"]
     ignorePackages = ["org.gradle.tooling.provider.model"]
-    shadowPackage = "org.gradle.impldep"
+    shadowPackage = "org.gradle.internal.impldep"
 }
 
 apply from: 'buildship.gradle'
