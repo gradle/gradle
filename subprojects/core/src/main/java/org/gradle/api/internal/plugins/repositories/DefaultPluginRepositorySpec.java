@@ -23,11 +23,11 @@ import org.gradle.api.internal.plugins.dsl.PluginRepositorySpec;
 /**
  * Bridges between a global PluginRepositorySpec and a {@link org.gradle.api.Script}.
  */
-public class ScriptScopedPluginRepositorySpec implements PluginRepositorySpec {
+public class DefaultPluginRepositorySpec implements PluginRepositorySpec {
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final FileResolver fileResolver;
 
-    public ScriptScopedPluginRepositorySpec(PluginRepositoryRegistry pluginRepositoryRegistry, FileResolver fileResolver) {
+    public DefaultPluginRepositorySpec(PluginRepositoryRegistry pluginRepositoryRegistry, FileResolver fileResolver) {
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.fileResolver = fileResolver;
     }
