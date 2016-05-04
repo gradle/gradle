@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.devel.tasks;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ConventionTask;
