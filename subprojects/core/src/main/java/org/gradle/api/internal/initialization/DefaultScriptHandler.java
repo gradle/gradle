@@ -51,6 +51,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         this.classLoaderScope = classLoaderScope;
     }
 
+    @Override
     public void dependencies(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getDependencies());
     }
@@ -68,6 +69,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         return new DefaultClassPath(classpathConfiguration.getFiles());
     }
 
+    @Override
     public DependencyHandler getDependencies() {
         defineConfiguration();
         if (dependencyHandler == null) {
@@ -76,6 +78,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         return dependencyHandler;
     }
 
+    @Override
     public RepositoryHandler getRepositories() {
         if (repositoryHandler == null) {
             repositoryHandler = dependencyResolutionServices.getResolveRepositoryHandler();
@@ -83,10 +86,12 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         return repositoryHandler;
     }
 
+    @Override
     public void repositories(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getRepositories());
     }
 
+    @Override
     public ConfigurationContainer getConfigurations() {
         defineConfiguration();
         return configContainer;
@@ -102,14 +107,17 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
         }
     }
 
+    @Override
     public File getSourceFile() {
         return scriptResource.getFile();
     }
 
+    @Override
     public URI getSourceURI() {
         return scriptResource.getURI();
     }
 
+    @Override
     public ClassLoader getClassLoader() {
         if (!classLoaderScope.isLocked()) {
             LOGGER.debug("Eager creation of script class loader for {}. This may result in performance issues.", scriptResource.getDisplayName());
