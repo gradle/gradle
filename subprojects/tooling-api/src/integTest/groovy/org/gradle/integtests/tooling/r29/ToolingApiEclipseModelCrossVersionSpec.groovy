@@ -164,6 +164,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         ['groovy']                  | ['org.eclipse.jdt.core.javabuilder']
         ['java', 'scala']           | ['org.scala-ide.sdt.core.scalabuilder']
         ['java', 'scala', 'groovy'] | ['org.scala-ide.sdt.core.scalabuilder']
+        ['java', 'ear']             | []
     }
 
     @TargetGradleVersion(">=2.9")

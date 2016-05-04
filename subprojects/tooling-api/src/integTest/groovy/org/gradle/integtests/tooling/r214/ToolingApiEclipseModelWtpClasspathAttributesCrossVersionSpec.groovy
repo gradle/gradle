@@ -226,9 +226,10 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
         buildFile <<
         """apply plugin: 'ear'
            apply plugin: 'java'
+           apply plugin: 'eclipse'
            repositories { $localMaven }
            dependencies { earlib 'org.example:example-api:1.0' }
-           configurations.compile.extendsFrom configurations.earlib
+           eclipse.classpath.plusConfigurations << configurations.earlib
            ear { libDirName = '/custom/lib/dir' }
         """
 
