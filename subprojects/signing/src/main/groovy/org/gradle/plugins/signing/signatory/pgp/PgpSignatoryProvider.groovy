@@ -31,7 +31,7 @@ class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
     private final Map<String, PgpSignatory> signatories = [:]
 
     void configure(SigningExtension settings, Closure closure) {
-        ConfigureUtil.configure(closure, new Dsl(settings.project, signatories, factory))
+        ConfigureUtil.configure(closure, new PgpSignatoryProviderDsl(settings.project, signatories, factory))
     }
 
     PgpSignatory getDefaultSignatory(Project project) {
@@ -47,32 +47,3 @@ class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
     }
 }
 
-class Dsl {
-
-    private final project
-    private final signatories
-    private final factory
-
-    Dsl(Project project, Map<String, PgpSignatory> signatories, PgpSignatoryFactory factory) {
-        this.project = project
-        this.signatories = signatories
-        this.factory = factory
-    }
-
-    def methodMissing(String name, args) {
-        def signatory
-        if (args.size() == 3) {
-            def keyId = args[0].toString()
-            def keyRing = project.file(args[1].toString())
-            def password = args[2].toString()
-
-            signatory = factory.createSignatory(name, keyId, keyRing, password)
-        } else if (args.size() == 0) {
-            signatory = factory.createSignatory(project, name, true)
-        } else {
-            throw new Exception("Invalid args ($name: $args)")
-        }
-
-        signatories[signatory.name] = signatory
-    }
-}
