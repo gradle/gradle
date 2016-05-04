@@ -20,18 +20,13 @@ import org.gradle.api.internal.plugins.repositories.GradlePluginPortal;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
-public class DefaultGradlePluginPortal implements GradlePluginPortal, PluginRepositoryInternal {
+class DefaultGradlePluginPortal implements GradlePluginPortal, PluginRepositoryInternal {
     private PluginResolutionServiceResolver pluginResolutionServiceResolver;
 
-    public DefaultGradlePluginPortal(PluginResolutionServiceResolver pluginResolutionServiceResolver) {
+    DefaultGradlePluginPortal(PluginResolutionServiceResolver pluginResolutionServiceResolver) {
         this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
     }
-/**
-    @Override
-    public String getName() {
-        return "Gradle Plugin Portal";
-    }
-*/
+
     @Override
     public PluginResolver asResolver() {
         return pluginResolutionServiceResolver;

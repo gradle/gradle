@@ -20,14 +20,5 @@ import org.gradle.api.internal.plugins.repositories.PluginRepository;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 public interface PluginRepositoryInternal extends PluginRepository {
-    /**
-     * Returns the name for this repository.
-     *
-     * <p>The name is used in logging output and error reporting to describe the repository.
-     *
-     * @return The name.
-     */
-    //String getName();
-
     PluginResolver asResolver();
 }
