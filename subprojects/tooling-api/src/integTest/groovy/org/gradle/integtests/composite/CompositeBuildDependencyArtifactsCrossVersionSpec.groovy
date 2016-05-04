@@ -85,7 +85,6 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
         assertResolved buildB.file('build/libs/buildB-1.0.jar')
     }
 
-    @NotYetImplemented
     def "passes arguments to builds when building substituted dependency"() {
         given:
         dependency 'org.test:buildB:1.0'

@@ -29,15 +29,15 @@ public class CompositeProjectComponentArtifactMetaData implements ComponentArtif
     private final ProjectComponentIdentifier componentIdentifier;
     private final IvyArtifactName ivyArtifactName;
     private final File artifactFile;
-    private final File projectDirectory;
-    private final Set<String> taskNames;
+    private final File rootDirectory;
+    private final Set<String> tasks;
 
-    public CompositeProjectComponentArtifactMetaData(ProjectComponentIdentifier componentIdentifier, IvyArtifactName ivyArtifactName, File artifactFile, File projectDirectory, Set<String> taskNames) {
+    public CompositeProjectComponentArtifactMetaData(ProjectComponentIdentifier componentIdentifier, IvyArtifactName ivyArtifactName, File artifactFile, File rootDirectory, Set<String> tasks) {
         this.componentIdentifier = componentIdentifier;
         this.ivyArtifactName = ivyArtifactName;
         this.artifactFile = artifactFile;
-        this.projectDirectory = projectDirectory;
-        this.taskNames = taskNames;
+        this.rootDirectory = rootDirectory;
+        this.tasks = tasks;
     }
 
     @Override
@@ -76,12 +76,12 @@ public class CompositeProjectComponentArtifactMetaData implements ComponentArtif
         return artifactFile;
     }
 
-    public File getProjectDirectory() {
-        return projectDirectory;
+    public File getRootDirectory() {
+        return rootDirectory;
     }
 
-    public Set<String> getTaskNames() {
-        return taskNames;
+    public Set<String> getTasks() {
+        return tasks;
     }
 
     @Override

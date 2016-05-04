@@ -75,12 +75,12 @@ public class CompositeContextBuilder implements BuildActionRunner {
         DefaultLocalComponentMetaData originalComponent = (DefaultLocalComponentMetaData) projectComponentRegistry.getProject(originalIdentifier);
 
         ProjectComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(createExternalProjectPath(buildName, project.getPath()));
-        LocalComponentMetaData compositeComponent = createCompositeCopy(buildName, componentIdentifier, originalComponent, project.getProjectDir());
+        LocalComponentMetaData compositeComponent = createCompositeCopy(buildName, componentIdentifier, originalComponent, project.getRootDir());
 
         context.register(compositeComponent.getId().getModule(), componentIdentifier, compositeComponent, project.getProjectDir());
     }
 
-    private LocalComponentMetaData createCompositeCopy(String buildName, ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetaData originalComponentMetadata, File projectDir) {
+    private LocalComponentMetaData createCompositeCopy(String buildName, ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetaData originalComponentMetadata, File buildDir) {
         DefaultLocalComponentMetaData compositeComponentMetadata = new DefaultLocalComponentMetaData(originalComponentMetadata.getId(), componentIdentifier, originalComponentMetadata.getStatus());
 
         for (String configurationName : originalComponentMetadata.getConfigurationNames()) {
@@ -89,12 +89,12 @@ public class CompositeContextBuilder implements BuildActionRunner {
                 originalConfiguration.getDescription(), originalConfiguration.getExtendsFrom(), originalConfiguration.getHierarchy(),
                 originalConfiguration.isVisible(), originalConfiguration.isTransitive(), new DefaultTaskDependency());
 
-            final Set<String> targetTaskNames = determineTargetTaskNames(originalConfiguration);
+            final Set<String> targetTasks = determineTargetTasks(originalConfiguration);
 
             Set<ComponentArtifactMetaData> artifacts = originalConfiguration.getArtifacts();
             for (ComponentArtifactMetaData originalArtifact : artifacts) {
                 File artifactFile = ((LocalComponentArtifactIdentifier) originalArtifact).getFile();
-                CompositeProjectComponentArtifactMetaData artifact = new CompositeProjectComponentArtifactMetaData(componentIdentifier, originalArtifact.getName(), artifactFile, projectDir, targetTaskNames);
+                CompositeProjectComponentArtifactMetaData artifact = new CompositeProjectComponentArtifactMetaData(componentIdentifier, originalArtifact.getName(), artifactFile, buildDir, targetTasks);
                 compositeComponentMetadata.addArtifact(configurationName, artifact);
             }
         }
@@ -123,7 +123,7 @@ public class CompositeContextBuilder implements BuildActionRunner {
         return context;
     }
 
-    private Set<String> determineTargetTaskNames(LocalConfigurationMetaData configuration) {
+    private Set<String> determineTargetTasks(LocalConfigurationMetaData configuration) {
         Set<String> taskNames = Sets.newLinkedHashSet();
         for (ComponentArtifactMetaData artifactMetaData : configuration.getArtifacts()) {
             if (artifactMetaData instanceof Buildable) {
