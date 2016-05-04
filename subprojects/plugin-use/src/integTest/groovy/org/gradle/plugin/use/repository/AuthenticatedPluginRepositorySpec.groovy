@@ -17,7 +17,6 @@
 package org.gradle.plugin.use.repository
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -25,7 +24,6 @@ import spock.lang.Unroll
 
 import static org.gradle.test.fixtures.server.http.HttpServer.AuthScheme.*
 
-@LeaksFileHandles
 class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolutionTest {
     private static final String MAVEN = 'maven'
     private static final String IVY = 'ivy'
@@ -67,6 +65,11 @@ class AuthenticatedPluginRepositorySpec extends AbstractHttpDependencyResolution
               }
           }
         """
+    }
+
+    @Override
+    def setup() {
+        executer.requireIsolatedDaemons()
     }
 
     @Unroll

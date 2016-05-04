@@ -18,14 +18,12 @@ package org.gradle.plugin.use.repository
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-@LeaksFileHandles
 class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyResolutionTest {
     private static final String MAVEN = 'maven'
     private static final String IVY = 'ivy'
@@ -62,6 +60,11 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
           }
         """
         return repoUrl
+    }
+
+    @Override
+    def setup() {
+        executer.requireIsolatedDaemons()
     }
 
     @Unroll
