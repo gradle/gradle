@@ -16,13 +16,15 @@
 
 package org.gradle.api.plugins
 
+import com.google.common.collect.ImmutableList
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
 class BuildSrcPluginTest extends AbstractIntegrationSpec {
 
-    @Issue("GRADLE-2001") // when using the daemon
+    @Issue("GRADLE-2001")
+    // when using the daemon
     @LeaksFileHandles
     def "can use plugin from buildSrc that changes"() {
         given:
@@ -92,4 +94,40 @@ class BuildSrcPluginTest extends AbstractIntegrationSpec {
         then:
         output.contains "hello again"
     }
+
+    def "build src plugin cannot access Gradle implementation dependencies"() {
+        when:
+        requireGradleHome()
+        file("buildSrc/src/main/groovy/pkg/BuildSrcPlugin.groovy") << """
+            package pkg
+            import ${ImmutableList.name}
+            class BuildSrcPlugin {
+
+            }
+        """
+
+        then:
+        fails "t"
+        failure.assertHasDescription("Execution failed for task ':compileGroovy'.")
+    }
+
+    def "use of buildSrc does not expose Gradle runtime dependencies to build script"() {
+        when:
+        requireGradleHome()
+        file("buildSrc/src/main/groovy/pkg/BuildSrcPlugin.groovy") << """
+            package pkg
+            class BuildSrcPlugin {
+
+            }
+        """
+
+        buildFile << """
+            import ${ImmutableList.name}
+        """
+
+        then:
+        fails "t"
+        failure.assertHasDescription("Could not compile build file '$buildFile.canonicalPath'.")
+    }
+
 }
