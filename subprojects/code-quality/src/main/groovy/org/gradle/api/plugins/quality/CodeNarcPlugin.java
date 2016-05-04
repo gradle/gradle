@@ -19,8 +19,10 @@ import com.google.common.util.concurrent.Callables;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.resources.TextResource;
@@ -135,9 +137,18 @@ public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
     }
 
     @Override
-    protected void configureForSourceSet(SourceSet sourceSet, CodeNarc task) {
+    protected void configureForSourceSet(final SourceSet sourceSet, CodeNarc task) {
         task.setDescription("Run CodeNarc analysis for " + sourceSet.getName() + " classes");
-        GroovySourceSet groovySourceSet = new DslObject(sourceSet).getConvention().getPlugin(GroovySourceSet.class);
-        task.setSource(groovySourceSet.getAllGroovy());
+        task.getConventionMapping().map("source", new Callable<SourceDirectorySet>() {
+            @Override
+            public SourceDirectorySet call() throws Exception {
+                Convention sourceSetConvention = new DslObject(sourceSet).getConvention();
+                GroovySourceSet groovySourceSet = sourceSetConvention.findPlugin(GroovySourceSet.class);
+                if (groovySourceSet == null) {
+                    return null;
+                }
+                return groovySourceSet.getAllGroovy();
+            }
+        });
     }
 }
