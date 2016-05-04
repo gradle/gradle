@@ -41,14 +41,15 @@ import java.security.Security;
  */
 public class PgpSignatory extends SignatorySupport {
 
+    {
+        Security.addProvider(new BouncyCastleProvider());
+    }
+
     private final String name;
     private final PGPSecretKey secretKey;
     private final PGPPrivateKey privateKey;
 
     public PgpSignatory(String name, PGPSecretKey secretKey, String password) {
-        // ok to call multiple times, will be ignored
-        Security.addProvider(new BouncyCastleProvider());
-
         this.name = name;
         this.secretKey = secretKey;
         this.privateKey = createPrivateKey(secretKey, password);
