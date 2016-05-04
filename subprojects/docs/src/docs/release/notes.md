@@ -160,9 +160,10 @@ Using the Gradle Tooling API and TestKit on Java 6 is also deprecated, and suppo
 
 The `StartParameter.colorOutput` property has been deprecated and will be removed in Gradle 3.0. You should use the `consoleOutput` property instead.
 
-### Tooling API support for Gradle versions 1.1 and older
+### Tooling API support for older Gradle versions
 
-Using the Gradle tooling API to run Gradle builds for Gradle versions 1.1 and older is now deprecated, and support will be removed in Gradle 3.0.
+- Using the Gradle tooling API to run Gradle builds for Gradle versions 1.1 and older is now deprecated. Support for Gradle versions older than 1.2 will be removed in Gradle 3.0.
+- Using Gradle from a Gradle tooling API version 1.12 and older is now deprecated. Support for Gradle tooling API versions older than 2.0 will be removed in Gradle 3.0. 
 
 ### Tooling API model properties
 
