@@ -15,7 +15,7 @@
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]plugins[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
-              files=".*[/\\]subprojects[/\\]reporting[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
+              files=".*[/\\]subprojects[/\\]reporting[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]diagnostics[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
