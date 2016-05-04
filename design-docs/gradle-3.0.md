@@ -16,6 +16,7 @@ No longer support running Gradle, the wrapper or the Tooling api client on Java 
 - Remove `TestPrecondition.JDK6` and similar.
 - Remove deprecation warning disable from `GradleBuildComparison.createProjectConnection()`
 - Remove deprecation warning disable from `SamplesToolingApiIntegrationTest` and `SamplesCompositeBuildIntegrationTest`
+- Remove special case handling of deprecation message from test fixtures.
 
 ### Test coverage
 
@@ -27,7 +28,7 @@ No longer support running Gradle, the wrapper or the Tooling api client on Java 
     - `GradleRunner`
     - old `gradlew`
     - old `GradleConnector`
-- Warning when running build on Java 6 with entry point running on Java 7+ 
+- Warning when running build on Java 6 with entry point running on Java 7+
     - `gradle`
     - `gradle --daemon`
     - `gradlew`
@@ -37,9 +38,25 @@ No longer support running Gradle, the wrapper or the Tooling api client on Java 
     - old `GradleConnector`
     - old `GradleRunner`
 
+## Change minimum Gradle version supported by the tooling API client to Gradle 1.2
+
+Tooling api client no longer executes builds for Gradle versions older than 1.2. Tooling api client 2.x supports Gradle 1.0-m8 and later.
+
+- Update 'unsupported version' error message to mention 1.2 rather than 1.0-m8.
+- Remove `InternalConnectionBackedConsumerConnection` and `CompatibleIntrospector`.
+- Update documentation for tapi methods added from 1.0-m8 to 1.2, to indicate that these are now supported for all versions.
+- Remove special case handling of deprecation message from test fixtures.
+
+### Test coverage
+
+- Warning when running a build or fetching model for Gradle 1.1 or earlier
+    - `ProjectConnection`
+    - `GradleConnection`
+    - `GradleRunner`
+
 ## Remove Sonar plugins
 
-Deprecate the Sonar plugins
+Remove the Sonar plugins
 
 # Candidates for Gradle 3.0
 
@@ -63,12 +80,11 @@ Building against Java 5 requires that the compiler daemon and test execution inf
 
 - Using TestNG Javadoc annotations. TestNG dropped support for this in 5.12, in early 2010. Supporting these old style annotations means we need to attach the test source files as an input to the `Test` task, which means there's an up-to-date check cost for this.
 - Tooling api clients older than 2.0 (1.5 years old). Gradle 2.x supports tapi clients 1.2 and later. People using tooling older than 2.0 would have to upgrade to a newer version.
-- Tooling api client running builds for Gradle versions older than 1.0 (3.75 years old). Tapi 2.x supports Gradle 1.0-m8 and later.
 - Wrapper support for versions older than 2.0. Wrapper 2.x supports Gradle 0.9.2 and later (5 years) and Gradle 2.x can be run by wrapper 0.9.2 and later.
 - Cached artefact reuse for versions older than 2.0.
 - Execution of task classes compiled against Gradle versions older than 2.0.
 
-## Fix the delegate and parameter for named container configuration closure 
+## Fix the delegate and parameter for named container configuration closure
 
 Currently, a `ConfigureDelegate` instances is made visible to the closure as its parameter (eg `it`) and its delegate. This is not the case for other configuration closures.
 
