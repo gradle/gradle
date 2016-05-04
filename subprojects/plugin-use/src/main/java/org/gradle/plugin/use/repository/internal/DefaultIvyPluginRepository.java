@@ -38,7 +38,7 @@ class DefaultIvyPluginRepository extends AbstractPluginRepository implements Ivy
     }
 
     @Override
-    protected ArtifactRepository createArtifactRepository(RepositoryHandler repositoryHandler) {
+    protected ArtifactRepository internalCreateArtifactRepository(RepositoryHandler repositoryHandler) {
         return repositoryHandler.ivy(new Action<IvyArtifactRepository>() {
             @Override
             public void execute(IvyArtifactRepository ivyArtifactRepository) {

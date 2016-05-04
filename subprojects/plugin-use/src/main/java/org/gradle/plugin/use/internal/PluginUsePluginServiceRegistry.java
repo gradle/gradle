@@ -29,7 +29,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.BasicDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.FileLockManager;
@@ -40,6 +39,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.transport.http.SslContextFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.plugin.use.repository.internal.DefaultPluginRepositoryFactory;
 import org.gradle.plugin.use.repository.internal.DefaultPluginRepositoryRegistry;
 import org.gradle.plugin.use.resolve.service.internal.DeprecationListeningPluginResolutionServiceClient;
 import org.gradle.plugin.use.resolve.service.internal.HttpPluginResolutionServiceClient;
@@ -102,7 +102,7 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new PluginResolverFactory(pluginRegistry, documentationRegistry, pluginResolutionServiceResolver, pluginRepositoryRegistry, injectedClasspathPluginResolver);
         }
 
-        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, PluginRepositoryRegistry pluginRepositoryRegistry) {
+        PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolverFactory, DefaultPluginRepositoryRegistry pluginRepositoryRegistry) {
             return new DefaultPluginRequestApplicator(pluginRegistry, pluginResolverFactory, pluginRepositoryRegistry);
         }
 
@@ -110,15 +110,19 @@ public class PluginUsePluginServiceRegistry implements PluginServiceRegistry {
             return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, injectedPluginClasspath.getClasspath());
         }
 
-        DefaultPluginRepositoryRegistry createPluginRepositoryRegistry(PluginResolutionServiceResolver pluginResolutionServiceResolver, VersionSelectorScheme versionSelectorScheme,
-                                                                      final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver,
-                                                                      final DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator,
-                                                                      final AuthenticationSchemeRegistry authenticationSchemeRegistry) {
+        DefaultPluginRepositoryRegistry createPuginRepositoryRegistry() {
+            return new DefaultPluginRepositoryRegistry();
+        }
+
+        DefaultPluginRepositoryFactory createPluginRepositoryFactory(PluginResolutionServiceResolver pluginResolutionServiceResolver, VersionSelectorScheme versionSelectorScheme,
+                                                                     final DependencyManagementServices dependencyManagementServices, final FileResolver fileResolver,
+                                                                     final DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator,
+                                                                     final AuthenticationSchemeRegistry authenticationSchemeRegistry) {
 
             final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory = makeDependencyResolutionServicesFactory(
                 dependencyManagementServices, fileResolver, dependencyMetaDataProvider);
             return instantiator.newInstance(
-                DefaultPluginRepositoryRegistry.class, pluginResolutionServiceResolver,
+                DefaultPluginRepositoryFactory.class, pluginResolutionServiceResolver,
                 dependencyResolutionServicesFactory, versionSelectorScheme, instantiator,
                 authenticationSchemeRegistry);
         }

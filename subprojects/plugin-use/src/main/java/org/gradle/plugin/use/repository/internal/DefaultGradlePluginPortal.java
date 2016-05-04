@@ -26,12 +26,12 @@ public class DefaultGradlePluginPortal implements GradlePluginPortal, PluginRepo
     public DefaultGradlePluginPortal(PluginResolutionServiceResolver pluginResolutionServiceResolver) {
         this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
     }
-
+/**
     @Override
     public String getName() {
         return "Gradle Plugin Portal";
     }
-
+*/
     @Override
     public PluginResolver asResolver() {
         return pluginResolutionServiceResolver;

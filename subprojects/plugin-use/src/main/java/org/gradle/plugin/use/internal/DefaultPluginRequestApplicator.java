@@ -17,7 +17,6 @@
 package org.gradle.plugin.use.internal;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -35,7 +34,6 @@ import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;
-import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
@@ -43,12 +41,14 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.repository.internal.BackedByArtifactRepository;
+import org.gradle.plugin.use.repository.internal.PluginRepositoryRegistryInternal;
 import org.gradle.plugin.use.resolve.internal.NotNonCorePluginOnClasspathCheckPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Formatter;
 import java.util.LinkedList;
@@ -62,9 +62,9 @@ import static org.gradle.util.CollectionUtils.collect;
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginRegistry pluginRegistry;
     private final PluginResolverFactory pluginResolverFactory;
-    private PluginRepositoryRegistry pluginRepositoryRegistry;
+    private PluginRepositoryRegistryInternal pluginRepositoryRegistry;
 
-    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry) {
+    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistryInternal pluginRepositoryRegistry) {
         this.pluginRegistry = pluginRegistry;
         this.pluginResolverFactory = pluginResolver;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
@@ -94,15 +94,17 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         final Map<Result, PluginImplementation<?>> pluginImplsFromOtherLoaders = Maps.newLinkedHashMap();
 
         if (!results.isEmpty()) {
+            final RepositoryHandler repositories = scriptHandler.getRepositories();
 
-            List<ArtifactRepository> pluginArtifactRepositories = Lists.newArrayList();
-            for (PluginRepository pluginRepository : pluginRepositoryRegistry) {
+            List<ArtifactRepository> pluginArtifactRepositories = new ArrayList<ArtifactRepository>();
+            pluginRepositoryRegistry.lock();
+            for (PluginRepository pluginRepository : pluginRepositoryRegistry.getPluginRepositories()) {
                 if (pluginRepository instanceof BackedByArtifactRepository) {
-                    pluginArtifactRepositories.add(((BackedByArtifactRepository) pluginRepository).getArtifactRepository());
+                    pluginArtifactRepositories.add(((BackedByArtifactRepository) pluginRepository).createArtifactRepository(repositories));
                 }
             }
-
-            final RepositoryHandler repositories = scriptHandler.getRepositories();
+            // The plugin repositories were prepended as they were added, but we want them at the front.
+            repositories.removeAll(pluginArtifactRepositories);
             repositories.addAll(0, pluginArtifactRepositories);
 
             final List<MavenArtifactRepository> mavenRepos = repositories.withType(MavenArtifactRepository.class);

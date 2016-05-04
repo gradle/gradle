@@ -16,35 +16,12 @@
 
 package org.gradle.api.internal.plugins.repositories;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * The {@link PluginRepository} instances used to resolve plugins.
  */
-public interface PluginRepositoryRegistry extends Iterable<PluginRepository> {
-    /**
-     * Adds and configures a {@link MavenPluginRepository}.
-     *
-     * @param action The action to use to configure the repository.
-     * @param scriptFileResolver The {@link FileResolver} in the context of the Script.
-     * @return The added repository.
-     */
-    MavenPluginRepository maven(Action<? super MavenPluginRepository> action, FileResolver scriptFileResolver);
-
-    /**
-     * Adds and configures a {@link IvyPluginRepository}.
-     *
-     * @param action The action to use to configure the repository.
-     * @param scriptFileResolver The {@link FileResolver} in the context of the Script.
-     * @return the added repository.
-     */
-    IvyPluginRepository ivy(Action<? super IvyPluginRepository> action, FileResolver scriptFileResolver);
-
-    /**
-     * Adds the Gradle Plugin Portal (plugins.gradle.org) as a plugin repository.
-     * @return The added repository.
-     * @throws IllegalArgumentException if called more than once.
-     */
-    GradlePluginPortal gradlePluginPortal();
+@HasInternalProtocol
+public interface PluginRepositoryRegistry {
+    void add(PluginRepository pluginRepository);
 }

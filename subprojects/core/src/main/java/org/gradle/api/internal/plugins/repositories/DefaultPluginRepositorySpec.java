@@ -24,26 +24,34 @@ import org.gradle.api.internal.plugins.dsl.PluginRepositorySpec;
  * Bridges between a global PluginRepositorySpec and a {@link org.gradle.api.Script}.
  */
 public class DefaultPluginRepositorySpec implements PluginRepositorySpec {
+    private final PluginRepositoryFactory pluginRepositoryFactory;
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final FileResolver fileResolver;
 
-    public DefaultPluginRepositorySpec(PluginRepositoryRegistry pluginRepositoryRegistry, FileResolver fileResolver) {
+    public DefaultPluginRepositorySpec(PluginRepositoryFactory pluginRepositoryFactory, PluginRepositoryRegistry pluginRepositoryRegistry, FileResolver fileResolver) {
+        this.pluginRepositoryFactory = pluginRepositoryFactory;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.fileResolver = fileResolver;
     }
 
     @Override
     public MavenPluginRepository maven(Action<? super MavenPluginRepository> action) {
-        return pluginRepositoryRegistry.maven(action, fileResolver);
+        MavenPluginRepository repo = pluginRepositoryFactory.maven(action, fileResolver);
+        pluginRepositoryRegistry.add(repo);
+        return repo;
     }
 
     @Override
     public IvyPluginRepository ivy(Action<? super IvyPluginRepository> action) {
-        return pluginRepositoryRegistry.ivy(action, fileResolver);
+        IvyPluginRepository repo = pluginRepositoryFactory.ivy(action, fileResolver);
+        pluginRepositoryRegistry.add(repo);
+        return repo;
     }
 
     @Override
     public GradlePluginPortal gradlePluginPortal() {
-        return pluginRepositoryRegistry.gradlePluginPortal();
+        GradlePluginPortal portal = pluginRepositoryFactory.gradlePluginPortal();
+        pluginRepositoryRegistry.add(portal);
+        return portal;
     }
 }

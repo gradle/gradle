@@ -27,7 +27,7 @@ public interface PluginRepositoryInternal extends PluginRepository {
      *
      * @return The name.
      */
-    String getName();
+    //String getName();
 
     PluginResolver asResolver();
 }

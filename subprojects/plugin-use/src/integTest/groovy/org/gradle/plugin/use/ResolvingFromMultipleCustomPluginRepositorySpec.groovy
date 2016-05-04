@@ -199,6 +199,33 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         repoType << [IVY, MAVEN]
     }
 
+    def "Prefers Plugin Repositories over buildscript ones."() {
+        given:
+        publishPlugins(MAVEN)
+        buildScript """
+          buildscript {
+              repositories {
+                  maven {
+                      url "${repoA.uri}"
+                  }
+              }
+              dependencies {
+                  classpath "org.example:pluginAB:1.0"
+              }
+          }
+          plugins {
+               id "$pluginAB" version "1.0"
+          }
+        """
+
+        when:
+        use(repoB)
+
+        then:
+        succeeds("pluginAB")
+        output.contains("fetched from $repoB.uri")
+    }
+
     @Requires(TestPrecondition.ONLINE)
     def "Can opt-in to plugin portal"() {
         given:

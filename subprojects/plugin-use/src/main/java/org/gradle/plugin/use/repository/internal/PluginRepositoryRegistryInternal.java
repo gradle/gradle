@@ -16,10 +16,12 @@
 
 package org.gradle.plugin.use.repository.internal;
 
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;
+import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry;
 
-public interface BackedByArtifactRepository extends PluginRepository {
-    ArtifactRepository createArtifactRepository(RepositoryHandler repositoryHandler);
+public interface PluginRepositoryRegistryInternal extends PluginRepositoryRegistry {
+    void lock();
+
+    ImmutableList<PluginRepository> getPluginRepositories();
 }

@@ -45,6 +45,7 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.repositories.PluginRepositoryFactory;
 import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry;
 import org.gradle.api.internal.project.DefaultProjectAccessListener;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
@@ -287,7 +288,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(DirectoryFileTreeFactory.class),
             get(DocumentationRegistry.class),
             get(ModelRuleSourceDetector.class),
-            get(PluginRepositoryRegistry.class));
+            get(PluginRepositoryRegistry.class),
+            get(PluginRepositoryFactory.class));
     }
 
     protected SettingsLoader createSettingsLoader(SettingsProcessor settingsProcessor, GradleLauncherFactory gradleLauncherFactory,

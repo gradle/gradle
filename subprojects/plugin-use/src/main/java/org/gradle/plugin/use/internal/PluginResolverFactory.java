@@ -20,9 +20,9 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;
-import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.plugin.use.repository.internal.PluginRepositoryInternal;
+import org.gradle.plugin.use.repository.internal.PluginRepositoryRegistryInternal;
 import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
@@ -38,14 +38,14 @@ class PluginResolverFactory implements Factory<PluginResolver> {
     private final PluginRegistry pluginRegistry;
     private final DocumentationRegistry documentationRegistry;
     private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
-    private final PluginRepositoryRegistry pluginRepositoryRegistry;
+    private final PluginRepositoryRegistryInternal pluginRepositoryRegistry;
     private final InjectedClasspathPluginResolver injectedClasspathPluginResolver;
 
     PluginResolverFactory(
         PluginRegistry pluginRegistry,
         DocumentationRegistry documentationRegistry,
         PluginResolutionServiceResolver pluginResolutionServiceResolver,
-        PluginRepositoryRegistry pluginRepositoryRegistry,
+        PluginRepositoryRegistryInternal pluginRepositoryRegistry,
         InjectedClasspathPluginResolver injectedClasspathPluginResolver
     ) {
         this.pluginRegistry = pluginRegistry;
@@ -86,12 +86,13 @@ class PluginResolverFactory implements Factory<PluginResolver> {
             resolvers.add(injectedClasspathPluginResolver);
         }
 
-        for (PluginRepository pluginRepository : pluginRepositoryRegistry) {
+        pluginRepositoryRegistry.lock();
+        for (PluginRepository pluginRepository : pluginRepositoryRegistry.getPluginRepositories()) {
             PluginResolver resolver = ((PluginRepositoryInternal) pluginRepository).asResolver();
             resolvers.add(resolver);
         }
 
-        if (Iterables.isEmpty(pluginRepositoryRegistry)) {
+        if (Iterables.isEmpty(pluginRepositoryRegistry.getPluginRepositories())) {
             resolvers.add(pluginResolutionServiceResolver);
         }
     }

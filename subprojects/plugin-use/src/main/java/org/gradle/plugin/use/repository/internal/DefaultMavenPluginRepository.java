@@ -39,7 +39,7 @@ class DefaultMavenPluginRepository extends AbstractPluginRepository implements M
     }
 
     @Override
-    protected ArtifactRepository createArtifactRepository(RepositoryHandler repositoryHandler) {
+    protected ArtifactRepository internalCreateArtifactRepository(RepositoryHandler repositoryHandler) {
         return repositoryHandler.maven(new Action<MavenArtifactRepository>() {
             @Override
             public void execute(MavenArtifactRepository mavenArtifactRepository) {

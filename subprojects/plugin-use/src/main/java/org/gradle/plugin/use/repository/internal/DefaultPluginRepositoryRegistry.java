@@ -16,104 +16,62 @@
 
 package org.gradle.plugin.use.repository.internal;
 
-import com.google.common.collect.Iterators;
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.repositories.AuthenticationContainer;
-import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.api.internal.artifacts.repositories.AuthenticationSupporter;
-import org.gradle.api.internal.file.FileResolver;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.plugins.repositories.GradlePluginPortal;
-import org.gradle.api.internal.plugins.repositories.IvyPluginRepository;
-import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
 import org.gradle.api.internal.plugins.repositories.PluginRepository;
-import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry;
-import org.gradle.authentication.Authentication;
-import org.gradle.internal.Factory;
-import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
-import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
-import org.gradle.internal.authentication.DefaultAuthenticationContainer;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DefaultPluginRepositoryRegistry implements PluginRepositoryRegistry {
-    private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
-    private final Factory<DependencyResolutionServices> dependencyResolutionServicesFactory;
-    private final VersionSelectorScheme versionSelectorScheme;
-    private final PluginResolutionServiceResolver pluginResolutionServiceResolver;
-    private final Instantiator instantiator;
+public class DefaultPluginRepositoryRegistry implements PluginRepositoryRegistryInternal {
     private final List<PluginRepository> repositories;
+    private final AtomicBoolean locked;
+    private final AtomicBoolean portalAdded;
 
-    public DefaultPluginRepositoryRegistry(
-        PluginResolutionServiceResolver pluginResolutionServiceResolver,
-        Factory<DependencyResolutionServices> dependencyResolutionServicesFactory,
-        VersionSelectorScheme versionSelectorScheme, Instantiator instantiator,
-        AuthenticationSchemeRegistry authenticationSchemeRegistry) {
-        this.pluginResolutionServiceResolver = pluginResolutionServiceResolver;
-        this.instantiator = instantiator;
-        this.dependencyResolutionServicesFactory = dependencyResolutionServicesFactory;
-        this.versionSelectorScheme = versionSelectorScheme;
+    public DefaultPluginRepositoryRegistry() {
         this.repositories = new ArrayList<PluginRepository>();
-        this.authenticationSchemeRegistry = authenticationSchemeRegistry;
+        locked = new AtomicBoolean(false);
+        portalAdded = new AtomicBoolean(false);
     }
 
     @Override
-    public MavenPluginRepository maven(Action<? super MavenPluginRepository> configurationAction, FileResolver fileResolver) {
-        AuthenticationContainer authenticationContainer = makeAuthenticationContainer(instantiator, authenticationSchemeRegistry);
-        AuthenticationSupportedInternal delegate = new AuthenticationSupporter(instantiator, authenticationContainer);
-        DefaultMavenPluginRepository mavenPluginRepository = instantiator.newInstance(
-            DefaultMavenPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme, delegate);
-        configurationAction.execute(mavenPluginRepository);
-        add(mavenPluginRepository);
-        return mavenPluginRepository;
-    }
-
-    @Override
-    public IvyPluginRepository ivy(Action<? super IvyPluginRepository> configurationAction, FileResolver fileResolver) {
-        AuthenticationContainer authenticationContainer = makeAuthenticationContainer(instantiator, authenticationSchemeRegistry);
-        AuthenticationSupportedInternal delegate = new AuthenticationSupporter(instantiator, authenticationContainer);
-        DefaultIvyPluginRepository ivyPluginRepository = instantiator.newInstance(
-            DefaultIvyPluginRepository.class, fileResolver, dependencyResolutionServicesFactory.create(), versionSelectorScheme, delegate);
-        configurationAction.execute(ivyPluginRepository);
-        add(ivyPluginRepository);
-        return ivyPluginRepository;
-    }
-
-    @Override
-    public GradlePluginPortal gradlePluginPortal() {
-        DefaultGradlePluginPortal gradlePluginPortal = new DefaultGradlePluginPortal(pluginResolutionServiceResolver);
-        for (PluginRepository pluginRepository : repositories) {
-            if (((PluginRepositoryInternal) pluginRepository).getName().equals(gradlePluginPortal.getName())) {
-                throw new IllegalArgumentException("Cannot add Gradle Plugin Portal more than once");
-            }
+    public void add(PluginRepository pluginRepository) {
+        if (pluginRepository instanceof GradlePluginPortal) {
+            addPortal(pluginRepository);
+        } else {
+            addRepository(pluginRepository);
         }
-        repositories.add(gradlePluginPortal);
-        return gradlePluginPortal;
     }
 
     @Override
-    public Iterator<PluginRepository> iterator() {
-        return Iterators.unmodifiableIterator(repositories.iterator());
+    public void lock() {
+        locked.set(true);
     }
 
-    private void add(BackedByArtifactRepository pluginRepository) {
-        pluginRepository.setPosition(repositories.size() + 1);
-        repositories.add(pluginRepository);
-    }
-
-
-    private AuthenticationContainer makeAuthenticationContainer(Instantiator instantiator, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
-        DefaultAuthenticationContainer container = instantiator.newInstance(DefaultAuthenticationContainer.class, instantiator);
-
-        for (Map.Entry<Class<Authentication>, Class<? extends Authentication>> e : authenticationSchemeRegistry.getRegisteredSchemes().entrySet()) {
-            container.registerBinding(e.getKey(), e.getValue());
+    @Override
+    public ImmutableList<PluginRepository> getPluginRepositories() {
+        if (locked.get()) {
+            return ImmutableList.copyOf(repositories);
+        } else {
+            throw new IllegalStateException("Cannot read the PluginRepository list when the Registry is unlocked.");
         }
+    }
 
-        return container;
+    private void addPortal(PluginRepository pluginPortal) {
+        if (!portalAdded.get()) {
+            addRepository(pluginPortal);
+            portalAdded.set(true);
+        } else {
+            throw new IllegalStateException("Cannot add Gradle Plugin Portal more than once.");
+        }
+    }
+
+    private void addRepository(PluginRepository pluginRepository) {
+        if (!locked.get()) {
+            repositories.add(pluginRepository);
+        } else {
+            throw new IllegalStateException("Cannot add a PluginRepository when the Registry is locked.");
+        }
     }
 }

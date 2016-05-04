@@ -31,19 +31,19 @@ import org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 import java.net.URI;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 abstract class AbstractPluginRepository implements AuthenticationSupported, PluginRepositoryInternal, BackedByArtifactRepository {
-    private static final String REPOSITORY_PREFIX = "__pluginRepository";
+    private static final String REPOSITORY_PREFIX = "__pluginRepository__";
     private final FileResolver fileResolver;
     private final DependencyResolutionServices dependencyResolutionServices;
     private final VersionSelectorScheme versionSelectorScheme;
     private final AuthenticationSupportedInternal authenticationSupport;
+    private final AtomicBoolean hasYieldedArtifactRepository;
 
     private String name;
-    private int position;
     private Object url;
     private PluginResolver resolver;
-    private ArtifactRepository artifactRepository;
 
     AbstractPluginRepository(
         String defaultName, FileResolver fileResolver, DependencyResolutionServices dependencyResolutionServices,
@@ -53,21 +53,24 @@ abstract class AbstractPluginRepository implements AuthenticationSupported, Plug
         this.dependencyResolutionServices = dependencyResolutionServices;
         this.versionSelectorScheme = versionSelectorScheme;
         this.name = defaultName;
+        this.hasYieldedArtifactRepository = new AtomicBoolean(false);
     }
-
-    protected abstract ArtifactRepository createArtifactRepository(RepositoryHandler repositoryHandler);
 
     AuthenticationSupportedInternal authenticationSupport() {
         return authenticationSupport;
     }
 
     String getArtifactRepositoryName() {
-        return REPOSITORY_PREFIX + position;
+        return REPOSITORY_PREFIX + name;
     }
 
+    protected abstract ArtifactRepository internalCreateArtifactRepository(RepositoryHandler repositoryHandler);
+
     @Override
-    public String getName() {
-        return name;
+    public ArtifactRepository createArtifactRepository(RepositoryHandler repositoryHandler) {
+        ArtifactRepository repo = internalCreateArtifactRepository(repositoryHandler);
+        hasYieldedArtifactRepository.set(true);
+        return repo;
     }
 
     public URI getUrl() {
@@ -115,33 +118,15 @@ abstract class AbstractPluginRepository implements AuthenticationSupported, Plug
     @Override
     public PluginResolver asResolver() {
         if (resolver == null) {
-            prepareArtifactRepository();
+            createArtifactRepository(dependencyResolutionServices.getResolveRepositoryHandler());
             resolver = new ArtifactRepositoryPluginResolver(name + '(' + url + ')', dependencyResolutionServices, versionSelectorScheme);
         }
         return resolver;
     }
 
-    @Override
-    public void setPosition(int position) {
-        checkMutable();
-        this.position = position;
-    }
-
-    @Override
-    public ArtifactRepository getArtifactRepository() {
-        prepareArtifactRepository();
-        return artifactRepository;
-    }
-
     private void checkMutable() {
-        if (artifactRepository != null) {
+        if (hasYieldedArtifactRepository.get()) {
             throw new IllegalStateException("A plugin repository cannot be modified after it has been used to resolve plugins.");
-        }
-    }
-
-    private void prepareArtifactRepository() {
-        if (artifactRepository == null) {
-            artifactRepository = createArtifactRepository(dependencyResolutionServices.getResolveRepositoryHandler());
         }
     }
 }
