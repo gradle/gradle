@@ -32,7 +32,7 @@ public class TaskDisplayNameCompatibilityMapping implements Action<SourceObjectM
 
     public void execute(SourceObjectMapping mapping) {
         if (GradleTask.class.isAssignableFrom(mapping.getTargetType()) && !supportsTaskDisplayName) {
-            mapping.mixIn(GradleTaskDisplayNameMixin.class);
+            mapping.mixIn(GradleTaskDisplayNameMixIn.class);
         }
     }
 }
