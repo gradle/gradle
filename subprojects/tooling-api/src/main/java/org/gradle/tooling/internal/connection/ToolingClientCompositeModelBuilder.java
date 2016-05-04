@@ -18,9 +18,12 @@ package org.gradle.tooling.internal.connection;
 
 import com.google.common.collect.Lists;
 import org.gradle.internal.composite.GradleParticipantBuild;
-import org.gradle.tooling.*;
+import org.gradle.tooling.BuildActionExecuter;
+import org.gradle.tooling.BuildController;
+import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.ModelBuilder;
+import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.connection.ModelResult;
-import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.BuildInvocationsConverter;
 import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
@@ -28,6 +31,7 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.BuildInvocations;
@@ -67,8 +71,7 @@ public class ToolingClientCompositeModelBuilder<T> {
                 final List<ModelResult<T>> participantResults = buildResultsForParticipant(participantConnector);
                 results.addAll(participantResults);
             } catch (GradleConnectionException e) {
-                String message = String.format("Could not fetch models of type '%s' using client-side composite connection.", modelType.getSimpleName());
-                results.add(new DefaultFailedModelResult<T>(participantConnector.toBuildIdentifier(), new GradleConnectionException(message, e)));
+                results.add(new DefaultFailedModelResult<T>(participantConnector.toBuildIdentifier(), e));
             }
         }
         return results;

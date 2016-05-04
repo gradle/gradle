@@ -152,7 +152,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         then:
         def e = thrown(GradleConnectionException)
         assertFailure(e,
-            "Could not fetch models of type 'EclipseProject'",
+            integratedComposite ? "Could not fetch models of type 'EclipseProject'" : "Could not fetch model of type 'EclipseProject'",
             "single-build' does not exist")
 
         cleanup:

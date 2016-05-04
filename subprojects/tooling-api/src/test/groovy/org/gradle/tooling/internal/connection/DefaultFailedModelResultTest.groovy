@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class DefaultFailedModelResultTest extends Specification {
 
-    def "Failure contains stack trace of caller"() {
+    def "throws failure when model is requested"() {
         given:
         def cause = new GradleConnectionException("Something's wrong")
         def result = new DefaultFailedModelResult(Stub(BuildIdentifier), cause)
@@ -30,8 +30,6 @@ class DefaultFailedModelResultTest extends Specification {
         result.getModel()
         then:
         def failure = thrown(GradleConnectionException)
-        failure.cause == cause
-        failure.message == cause.message
-        failure.stackTrace.find { it.className == "org.gradle.tooling.internal.connection.DefaultFailedModelResultTest"}
+        failure == cause
     }
 }

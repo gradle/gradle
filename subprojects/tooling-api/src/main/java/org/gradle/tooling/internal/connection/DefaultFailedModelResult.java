@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.connection;
 
 import org.gradle.api.Nullable;
 import org.gradle.tooling.GradleConnectionException;
-import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.connection.FailedModelResult;
+import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.ProjectIdentifier;
 
 public class DefaultFailedModelResult<T> implements FailedModelResult<T> {
@@ -41,7 +41,7 @@ public class DefaultFailedModelResult<T> implements FailedModelResult<T> {
 
     @Override
     public T getModel() {
-        throw new GradleConnectionException(failure.getMessage(), failure);
+        throw failure;
     }
 
     @Override

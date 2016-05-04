@@ -48,7 +48,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         then:
         def resultA = findFailureByBuildIdentifier(rootDirA)
         assertFailure(resultA.failure,
-            "Could not fetch models of type 'EclipseProject'",
+            integratedComposite ? "Could not fetch models of type 'EclipseProject'" : "Could not fetch model of type 'EclipseProject'",
             "A problem occurred evaluating root project 'A'.",
             "Failure in A")
 
@@ -56,7 +56,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
 
         def resultC = findFailureByBuildIdentifier(rootDirC)
         assertFailure(resultC.failure,
-            "Could not fetch models of type 'EclipseProject'",
+            integratedComposite ? "Could not fetch models of type 'EclipseProject'" : "Could not fetch model of type 'EclipseProject'",
             "A problem occurred evaluating root project 'C'.",
             "Different failure in C")
     }
@@ -79,7 +79,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpeci
         // when the build cannot be configured, we return only a failure for the root project
         def resultA = findFailureByBuildIdentifier(rootDirA)
         assertFailure(resultA.failure,
-            "Could not fetch models of type 'EclipseProject'",
+            integratedComposite ? "Could not fetch models of type 'EclipseProject'" : "Could not fetch model of type 'EclipseProject'",
             "A problem occurred evaluating project ':ax'.",
             "Failure in A::ax")
         // No models are returned

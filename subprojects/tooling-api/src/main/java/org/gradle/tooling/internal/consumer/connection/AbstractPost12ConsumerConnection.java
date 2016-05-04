@@ -22,12 +22,12 @@ import org.gradle.tooling.internal.protocol.ConfigurableConnection;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 
 /**
- * An adapter for a post Gradle 1.2 provider.
+ * An adapter for a Gradle 1.2 or later provider.
  */
 public abstract class AbstractPost12ConsumerConnection extends AbstractConsumerConnection {
     private final ConfigurableConnection configurableConnection;
 
-    public AbstractPost12ConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData) {
+    protected AbstractPost12ConsumerConnection(ConnectionVersion4 delegate, VersionDetails providerMetaData) {
         super(delegate, providerMetaData);
         configurableConnection = (ConfigurableConnection) delegate;
     }

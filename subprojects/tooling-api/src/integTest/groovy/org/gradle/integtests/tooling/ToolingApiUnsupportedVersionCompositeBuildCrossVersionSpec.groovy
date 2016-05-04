@@ -19,8 +19,8 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.UnsupportedVersionException
+import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
@@ -31,7 +31,7 @@ class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends Composi
         def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])
 
         when:
-        withCompositeConnection(singleBuild) { connection ->
+        withCompositeConnection(singleBuild) { GradleConnection connection ->
             connection.newBuild().run()
         }
 
@@ -47,15 +47,13 @@ class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends Composi
         def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])
 
         when:
-        withCompositeConnection(singleBuild) { connection ->
+        withCompositeConnection(singleBuild) { GradleConnection connection ->
             def models = connection.getModels(EclipseProject)
             models*.model
         }
 
         then:
-        // Should be UnsupportedVersionException, should not be wrapped twice
-        GradleConnectionException e = thrown()
-        e.cause.cause instanceof UnsupportedVersionException
-        e.cause.cause. message == "Support for Gradle version ${targetDist.version.version} was removed in tooling API version 2.0. You should upgrade your Gradle build to use Gradle 1.0-milestone-8 or later."
+        UnsupportedVersionException e = thrown()
+        e.message == "Support for Gradle version ${targetDist.version.version} was removed in tooling API version 2.0. You should upgrade your Gradle build to use Gradle 1.0-milestone-8 or later."
     }
 }

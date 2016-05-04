@@ -82,7 +82,7 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         }
         then:
         def e = thrown(GradleConnectionException)
-        assertFailure(e, "Could not fetch models of type 'EclipseProject'")
+        assertFailure(e, integratedComposite ? "Could not fetch models of type 'EclipseProject'" : "Could not fetch model of type 'EclipseProject'")
     }
 
     def "fails to retrieve model when participant is not a Gradle project"() {
@@ -95,7 +95,7 @@ class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecificati
         then:
         def e = thrown(GradleConnectionException)
         assertFailure(e,
-            "Could not fetch models of type 'EclipseProject'",
+            integratedComposite ? "Could not fetch models of type 'EclipseProject'" : "Could not fetch model of type 'EclipseProject'",
             "project-does-not-exist' does not exist")
     }
 

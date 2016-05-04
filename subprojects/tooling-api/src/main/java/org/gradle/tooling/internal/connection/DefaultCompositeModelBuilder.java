@@ -71,7 +71,13 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
     public ModelResults<T> get() throws GradleConnectionException, IllegalStateException {
         BlockingResultHandler<ModelResults> handler = new BlockingResultHandler<ModelResults>(ModelResults.class);
         get(handler);
-        return handler.getResult();
+        ModelResults<T> result = handler.getResult();
+        for (ModelResult<T> modelResult : result) {
+            if (modelResult.getFailure() != null) {
+                BlockingResultHandler.attachCallerThreadStackTrace(modelResult.getFailure());
+            }
+        }
+        return result;
     }
 
     @Override
