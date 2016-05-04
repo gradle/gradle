@@ -69,6 +69,9 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             buildFile << """
 project(':$projectName') {
     tasks.withType(JavaCompile) {
+        sourceCompatibility = '1.6'
+        targetCompatibility = '1.6'
+
         options.with {
             fork = true
             forkOptions.executable = "${jdks.next()}"
