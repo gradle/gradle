@@ -13,48 +13,73 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ear.descriptor.internal
+package org.gradle.plugins.ear.descriptor.internal;
 
-import org.gradle.plugins.ear.descriptor.EarSecurityRole
+import org.gradle.plugins.ear.descriptor.EarSecurityRole;
 
-import javax.inject.Inject
+import javax.inject.Inject;
 
-class DefaultEarSecurityRole implements EarSecurityRole {
+public class DefaultEarSecurityRole implements EarSecurityRole {
 
-    String description
-    String roleName
+    private String description;
+    private String roleName;
 
     @Inject
     public DefaultEarSecurityRole() {
     }
 
     public DefaultEarSecurityRole(String roleName) {
-
         this.roleName = roleName;
     }
 
     public DefaultEarSecurityRole(String roleName, String description) {
-
         this.roleName = roleName;
         this.description = description;
     }
 
-    int hashCode() {
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    @Override
+    public String getRoleName() {
+        return roleName;
+    }
+
+    @Override
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+
+    @Override
+    public int hashCode() {
         int result;
-        result = (description != null ? description.hashCode() : 0);
+        result = description != null ? description.hashCode() : 0;
         result = 31 * result + (roleName != null ? roleName.hashCode() : 0);
         return result;
     }
 
-    boolean equals(o) {
-        if (this.is(o)) { return true; }
-        if (!(o instanceof DefaultEarSecurityRole)) { return false; }
-
+    @Override
+    public boolean equals(Object o) {
+        if (this==o) {
+            return true;
+        }
+        if (!(o instanceof DefaultEarSecurityRole)) {
+            return false;
+        }
         DefaultEarSecurityRole that = (DefaultEarSecurityRole) o;
-
-        if (description != that.description) { return false; }
-        if (roleName != that.roleName) { return false; }
-
+        if (!description.equals(that.description)) {
+            return false;
+        }
+        if (!roleName.equals(that.roleName)) {
+            return false;
+        }
         return true;
     }
 }

@@ -16,11 +16,14 @@
 
 package org.gradle.plugins.ear
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
+import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
@@ -35,6 +38,7 @@ import javax.inject.Inject
 /**
  * Assembles an EAR archive.
  */
+@CompileStatic
 class Ear extends Jar {
     public static final String EAR_EXTENSION = 'ear'
 
@@ -76,7 +80,7 @@ class Ear extends Jar {
         }
         // create our own metaInf which runs after mainSpec's files
         // this allows us to generate the deployment descriptor after recording all modules it contains
-        def metaInf = mainSpec.addChild().into('META-INF')
+        CopySpecInternal metaInf = (CopySpecInternal) mainSpec.addChild().into('META-INF')
         metaInf.addChild().from {
             MapFileTree descriptorSource = new MapFileTree(temporaryDirFactory, fileSystem)
             final DeploymentDescriptor descriptor = deploymentDescriptor
@@ -100,6 +104,11 @@ class Ear extends Jar {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected FileResolver getFileResolver() {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Configures the deployment descriptor for this EAR archive.
      *
@@ -111,7 +120,7 @@ class Ear extends Jar {
      */
     Ear deploymentDescriptor(Closure configureClosure) {
         if (!deploymentDescriptor) {
-            deploymentDescriptor = instantiator.newInstance(DefaultDeploymentDescriptor, project.fileResolver, getInstantiator()) // implied use of ProjectInternal
+            deploymentDescriptor = instantiator.newInstance(DefaultDeploymentDescriptor, getFileResolver(), getInstantiator())
         }
         ConfigureUtil.configure(configureClosure, deploymentDescriptor)
         this
@@ -121,7 +130,7 @@ class Ear extends Jar {
      * A location for dependency libraries to include in the 'lib' directory of the EAR archive.
      */
     public CopySpec getLib() {
-        return lib.addChild()
+        return ((CopySpecInternal) lib).addChild()
     }
 
     /**
