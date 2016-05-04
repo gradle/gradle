@@ -38,7 +38,14 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,7 +67,11 @@ public abstract class AvailableJavaHomes {
 
     @Nullable
     public static JavaInfo getJdk(final JavaVersion version) {
-        return getAvailableJdk(new Spec<JvmInstallation>() {
+        return Iterables.getFirst(getAvailableJdks(version), null);
+    }
+
+    public static List<JavaInfo> getAvailableJdks(final JavaVersion version) {
+        return getAvailableJdks(new Spec<JvmInstallation>() {
             @Override
             public boolean isSatisfiedBy(JvmInstallation element) {
                 return version.equals(element.getJavaVersion());
@@ -96,6 +107,16 @@ public abstract class AvailableJavaHomes {
                     return Jvm.forHome(input.getJavaHome());
                 }
             }).toList();
+    }
+
+    public static Map<JavaInfo, JavaVersion> getAvailableJdksWithVersion() {
+        Map<JavaInfo, JavaVersion> result = new HashMap<JavaInfo, JavaVersion>();
+        for (JavaVersion javaVersion : JavaVersion.values()) {
+            for (JavaInfo javaInfo : getAvailableJdks(javaVersion)) {
+                result.put(javaInfo, javaVersion);
+            }
+        }
+        return result;
     }
 
     public static JavaInfo getAvailableJdk(final Spec<? super JvmInstallation> filter) {
