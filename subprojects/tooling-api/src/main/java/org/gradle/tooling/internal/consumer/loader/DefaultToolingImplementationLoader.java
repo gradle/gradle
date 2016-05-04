@@ -84,7 +84,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             } else if (connection instanceof InternalConnection) {
                 adaptedConnection = new InternalConnectionBackedConsumerConnection(connection, modelMapping, adapter);
             } else {
-                return new UnsupportedOlderVersionConnection(distribution, connection, adapter);
+                return new UnsupportedOlderVersionConnection(connection, adapter);
             }
             adaptedConnection.configure(connectionParameters);
             if (!adaptedConnection.getVersionDetails().supportsCancellation()) {

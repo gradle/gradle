@@ -31,12 +31,15 @@ import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.idea.BasicIdeaProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.model.internal.Exceptions;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
+
+import java.io.PrintStream;
 
 /**
  * An adapter for a {@link InternalConnection} based provider.
  *
- * <p>Used for providers >= 1.0-milestone-8 and <= 1.1.</p>
+ * <p>Used for providers >= 1.0-milestone-8 and <= 1.1. Will be removed in Gradle 3.0</p>
  */
 public class InternalConnectionBackedConsumerConnection extends AbstractConsumerConnection {
     private final ModelProducer modelProducer;
@@ -51,6 +54,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         if (GradleVersion.version(getVersionDetails().getVersion()).compareTo(GradleVersion.version("1.0")) < 0) {
             modelProducer = new NoCommandLineArgsModelProducer(modelProducer);
         }
+        modelProducer = new DeprecationWarningModelProducer(modelProducer);
         this.modelProducer = modelProducer;
         this.actionRunner = new UnsupportedActionRunner(getVersionDetails().getVersion());
     }
@@ -84,6 +88,26 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
                     || modelType.equals(BasicIdeaProject.class)
                     || modelType.equals(GradleProject.class)
                     || modelType.equals(BuildEnvironment.class);
+        }
+    }
+
+    private class DeprecationWarningModelProducer implements ModelProducer {
+        private final ModelProducer delegate;
+
+        public DeprecationWarningModelProducer(ModelProducer delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
+            String message = "Support for Gradle version " + getVersionDetails().getVersion() + " is deprecated and will be removed in tooling API version 3.0. You should upgrade your Gradle build to use Gradle 1.2 or later.";
+            DeprecationLogger.nagUserWith(message);
+            if (operationParameters.getStandardOutput() != null) {
+                PrintStream printStream = new PrintStream(operationParameters.getStandardOutput());
+                printStream.println(message);
+                printStream.flush();
+            }
+            return delegate.produceModel(type, operationParameters);
         }
     }
 

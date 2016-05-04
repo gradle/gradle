@@ -87,7 +87,7 @@ task noop << {
     }
 
     @ToolingApiVersion("<1.2")
-    @TargetGradleVersion(">=1.12")
+    @TargetGradleVersion(">=2.0")
     def "provider rejects build request from a tooling API older than 1.2"() {
         when:
         def output = new ByteArrayOutputStream()
@@ -104,7 +104,7 @@ task noop << {
     }
 
     @ToolingApiVersion("<1.2")
-    @TargetGradleVersion(">=1.12")
+    @TargetGradleVersion(">=2.0")
     def "provider rejects model request from a tooling API older than 1.2"() {
         when:
         def output = new ByteArrayOutputStream()
