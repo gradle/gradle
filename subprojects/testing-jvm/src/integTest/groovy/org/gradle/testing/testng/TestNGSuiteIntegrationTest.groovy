@@ -58,6 +58,11 @@ public class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
 
     def "methodMissing propagates failures"() {
         buildFile << """
+    apply plugin: 'java'
+    repositories { mavenCentral() }
+    dependencies {
+        testCompile 'org.testng:testng:$version'
+    }
     test {
         useTestNG {
             systemProperty 'name', 'value'
@@ -73,8 +78,11 @@ public class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
                 }
             }
         """
-        expect:
+        when:
         succeeds("test")
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass("FooTest").assertTestsExecuted("foo")
     }
 
     @Issue("GRADLE-3020")
