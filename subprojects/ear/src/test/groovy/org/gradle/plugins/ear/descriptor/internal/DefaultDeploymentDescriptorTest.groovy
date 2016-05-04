@@ -25,6 +25,7 @@ import org.gradle.plugins.ear.descriptor.EarSecurityRole
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -55,18 +56,42 @@ class DefaultDeploymentDescriptorTest extends Specification {
         root.childNodes.length == 0
     }
 
-    def "writes version 1.3 default descriptor"() {
+    @Unroll
+    def "writes version #version default descriptor"() {
         def out = new StringWriter()
-        descriptor.version = '1.3'
+        descriptor.version = version
 
         when:
         descriptor.writeTo(out)
 
         then:
-        out.toString() == toPlatformLineSeparators("""<?xml version="1.0"?>
+        out.toString() == toPlatformLineSeparators(expectedDescriptor)
+
+        where:
+        version | _
+        '1.3'   | _
+        '1.4'   | _
+        '5'     | _
+        '6'     | _
+        expectedDescriptor = defaultDescriptorForVersion(version)
+    }
+
+    private String defaultDescriptorForVersion(version) {
+        switch (version) {
+            case '1.3':
+                return '''<?xml version="1.0"?>
 <!DOCTYPE application PUBLIC "-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN" "http://java.sun.com/dtd/application_1_3.dtd">
 <application version="1.3"/>
-""")
+'''
+            case '1.4':
+                return '''<?xml version="1.0"?>
+<application xmlns="http://java.sun.com/xml/ns/j2ee" xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/application_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.4"/>
+'''
+            default:
+                return """<?xml version="1.0"?>
+<application xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_${version}.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="${version}"/>
+"""
+        }
     }
 
     def "writes customized descriptor"() {
