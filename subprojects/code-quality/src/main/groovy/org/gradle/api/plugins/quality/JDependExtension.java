@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.quality
-
-import groovy.transform.CompileStatic
+package org.gradle.api.plugins.quality;
 
 /**
  * Configuration options for the JDepend plugin.
- * 
+ *
  * @see JDependPlugin
  */
-@CompileStatic
-class JDependExtension extends CodeQualityExtension {
+public class JDependExtension extends CodeQualityExtension {
 }

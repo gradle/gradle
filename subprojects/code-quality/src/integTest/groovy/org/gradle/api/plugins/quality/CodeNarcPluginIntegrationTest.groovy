@@ -37,6 +37,155 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         writeConfigFile()
     }
 
+    def "adds codenarc task for each source set"() {
+        given:
+        buildFile << '''
+            sourceSets {
+                other {
+                    groovy
+                }
+            }
+            def assertTaskConfiguration(taskName, sourceSet) {
+                def task = project.tasks.findByName(taskName)
+                assert task instanceof CodeNarc
+                task.with {
+                    assert description == "Run CodeNarc analysis for ${sourceSet.name} classes"
+                    assert source as List == sourceSet.allGroovy  as List
+                    assert codenarcClasspath == project.configurations.codenarc
+                    assert config.inputFiles.singleFile == project.file("config/codenarc/codenarc.xml")
+                    assert configFile == project.file("config/codenarc/codenarc.xml")
+                    assert maxPriority1Violations == 0
+                    assert maxPriority2Violations == 0
+                    assert maxPriority3Violations == 0
+                    assert reports.enabled*.name == ["html"]
+                    assert reports.html.destination == project.file("build/reports/codenarc/${sourceSet.name}.html")
+                    assert ignoreFailures == false
+                }
+            }
+            task assertTaskForEachSourceSet {
+                doLast {
+                    assertTaskConfiguration('codenarcMain', project.sourceSets.main)
+                    assertTaskConfiguration('codenarcTest', project.sourceSets.test)
+                    assertTaskConfiguration('codenarcOther', project.sourceSets.other)
+                }
+            }
+        '''.stripIndent()
+
+        expect:
+        succeeds 'assertTaskForEachSourceSet'
+    }
+
+    def "adds codenarc tasks from each source sets to check lifecycle task"() {
+        given:
+        buildFile << '''
+            sourceSets {
+                other {
+                    groovy
+                }
+            }
+            task codenarcCustom(type: CodeNarc)
+        '''.stripIndent()
+
+        when:
+        succeeds 'check'
+
+        then:
+        ":codenarcMain" in executedTasks
+        ":codenarcTest" in executedTasks
+        ":codenarcOther" in executedTasks
+        !(":codenarcCustom" in executedTasks)
+    }
+
+    def "can customize per-source-set tasks via extension"() {
+        given:
+        buildFile << '''
+            sourceSets {
+                other {
+                    groovy
+                }
+            }
+            codenarc {
+                configFile = project.file("codenarc-config")
+                maxPriority1Violations = 10
+                maxPriority2Violations = 50
+                maxPriority3Violations = 200
+                reportFormat = "xml"
+                reportsDir = project.file("codenarc-reports")
+                ignoreFailures = true
+            }
+            def hasCustomizedSettings(taskName, sourceSet) {
+                def task = project.tasks.findByName(taskName)
+                assert task instanceof CodeNarc
+                task.with {
+                    assert description == "Run CodeNarc analysis for ${sourceSet.name} classes"
+                    assert source as List == sourceSet.allGroovy as List
+                    assert codenarcClasspath == project.configurations.codenarc
+                    assert config.inputFiles.singleFile == project.file("codenarc-config")
+                    assert configFile == project.file("codenarc-config")
+                    assert maxPriority1Violations == 10
+                    assert maxPriority2Violations == 50
+                    assert maxPriority3Violations == 200
+                    assert reports.enabled*.name == ["xml"]
+                    assert reports.xml.destination == project.file("codenarc-reports/${sourceSet.name}.xml")
+                    assert ignoreFailures == true
+                }
+            }
+            task assertHasCustomizedSettings {
+                doLast {
+                    hasCustomizedSettings('codenarcMain', project.sourceSets.main)
+                    hasCustomizedSettings('codenarcTest', project.sourceSets.test)
+                    hasCustomizedSettings('codenarcOther', project.sourceSets.other)
+                }
+            }
+        '''.stripIndent()
+
+        expect:
+        succeeds 'assertHasCustomizedSettings'
+    }
+
+    def "can customize which tasks are added to check lifecycle task"() {
+        given:
+        buildFile << '''
+            sourceSets {
+                other {
+                    groovy
+                }
+            }
+            task codenarcCustom(type: CodeNarc)
+            codenarc {
+                sourceSets = [project.sourceSets.main]
+            }
+        '''.stripIndent()
+
+        when:
+        succeeds 'check'
+
+        then:
+        ':codenarcMain' in executedTasks
+        !(':codenarcTest' in executedTasks)
+        !(':codenarcOther' in executedTasks)
+        !(':codenarcCustom' in executedTasks)
+    }
+
+    def "can use legacy configFile extension property"() {
+        given:
+        buildFile << '''
+            codenarc {
+                configFile = project.file("codenarc-config")
+            }
+            task assertCodeNarcConfiguration {
+                doLast {
+                    assert project.codenarc.configFile == project.file("codenarc-config") // computed property
+                    assert project.tasks.codenarcMain.configFile == project.file("codenarc-config")
+                    assert project.tasks.codenarcTest.configFile == project.file("codenarc-config")
+                }
+            }
+        '''.stripIndent()
+
+        expect:
+        succeeds 'assertCodeNarcConfiguration'
+    }
+
     def "allows configuring tool dependencies explicitly"() {
         expect: //defaults exist and can be inspected
         succeeds("dependencies", "--configuration", "codenarc")
@@ -64,11 +213,11 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/codenarc/test.html").exists()
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "is incremental"() {
         given:
         goodCode()
-        
+
         expect:
         succeeds("codenarcMain") && ":codenarcMain" in nonSkippedTasks
         succeeds(":codenarcMain") && ":codenarcMain" in skippedTasks
@@ -80,7 +229,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds("codenarcMain") && ":codenarcMain" in nonSkippedTasks
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "can generate multiple reports"() {
         given:
         buildFile << """
@@ -92,7 +241,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
 
         and:
         goodCode()
-        
+
         expect:
         succeeds("check")
         ":codenarcMain" in nonSkippedTasks
@@ -100,7 +249,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         file("build/reports/codenarc/main.xml").exists()
         file("build/reports/codenarc/main.txt").exists()
     }
-    
+
     def "analyze bad code"() {
         badCode()
 
@@ -165,7 +314,7 @@ repositories {
     mavenCentral()
 }
 
-dependencies { 
+dependencies {
     compile localGroovy()
 }
         """
