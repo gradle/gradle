@@ -20,10 +20,10 @@ import org.gradle.tooling.internal.protocol.eclipse.DefaultEclipseProjectIdentif
 import org.gradle.tooling.model.eclipse.EclipseProjectIdentifier;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 
-public class CompatibilityEclipseProjectMapping {
+public class EclipseProjectIdentifierMixin {
     private final HierarchicalEclipseProject eclipseProject;
 
-    public CompatibilityEclipseProjectMapping(HierarchicalEclipseProject eclipseProject) {
+    public EclipseProjectIdentifierMixin(HierarchicalEclipseProject eclipseProject) {
         this.eclipseProject = eclipseProject;
     }
 

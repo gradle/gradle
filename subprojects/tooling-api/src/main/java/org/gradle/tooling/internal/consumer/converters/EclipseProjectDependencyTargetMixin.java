@@ -19,10 +19,10 @@ package org.gradle.tooling.internal.consumer.converters;
 import org.gradle.tooling.internal.protocol.eclipse.DefaultEclipseProjectIdentifier;
 import org.gradle.tooling.model.eclipse.EclipseProjectDependency;
 
-public class CompatibilityEclipseProjectDependencyMapping {
+public class EclipseProjectDependencyTargetMixin {
     private final EclipseProjectDependency eclipseProjectDependency;
 
-    public CompatibilityEclipseProjectDependencyMapping(EclipseProjectDependency eclipseProjectDependency) {
+    public EclipseProjectDependencyTargetMixin(EclipseProjectDependency eclipseProjectDependency) {
         this.eclipseProjectDependency = eclipseProjectDependency;
     }
 

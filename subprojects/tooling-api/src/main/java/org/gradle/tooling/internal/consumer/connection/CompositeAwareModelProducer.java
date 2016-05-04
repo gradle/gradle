@@ -39,7 +39,7 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-public class CompositeAwareModelProducer extends HasCompatibilityMapperAction implements MultiModelProducer {
+public class CompositeAwareModelProducer extends HasCompatibilityMapping implements MultiModelProducer {
     private final ModelProducer delegate;
     private final ProtocolToModelAdapter adapter;
     private final VersionDetails versionDetails;
@@ -78,7 +78,7 @@ public class CompositeAwareModelProducer extends HasCompatibilityMapperAction im
                     GradleConnectionException failure = exceptionTransformer.transform((Throwable) modelValue);
                     models.add(new DefaultFailedModelResult<T>(projectIdentifier, failure));
                 } else {
-                    T modelResult = adapter.adapt(elementType, modelValue, getCompatibilityMapperAction(projectIdentifier));
+                    T modelResult = adapter.adapt(elementType, modelValue, getCompatibilityMapping(projectIdentifier));
                     models.add(new DefaultModelResult<T>(modelResult));
                 }
             }

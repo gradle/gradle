@@ -23,7 +23,7 @@ import org.gradle.tooling.model.gradle.BasicGradleProject;
 
 import java.io.Serializable;
 
-public class GradleProjectIdentifierMapping implements Action<SourceObjectMapping>, Serializable {
+public class GradleProjectIdentifierCompatibilityMapping implements Action<SourceObjectMapping>, Serializable {
 
     @Override
     public void execute(SourceObjectMapping mapping) {

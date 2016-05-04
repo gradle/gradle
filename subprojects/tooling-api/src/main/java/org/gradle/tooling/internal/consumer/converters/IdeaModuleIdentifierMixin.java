@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,17 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
-import org.gradle.tooling.model.GradleTask;
+import org.gradle.tooling.internal.protocol.DefaultIdeaModuleIdentifier;
+import org.gradle.tooling.model.idea.IdeaModule;
 
-public class GradleTaskDisplayNameMixInHandler {
-    private final GradleTask task;
+public class IdeaModuleIdentifierMixin {
+    private final IdeaModule ideaModule;
 
-    public GradleTaskDisplayNameMixInHandler(GradleTask task) {
-        this.task = task;
+    public IdeaModuleIdentifierMixin(IdeaModule ideaModule) {
+        this.ideaModule = ideaModule;
     }
 
-    public String getDisplayName() {
-        return "task '" + task.getPath() + "'";
+    public DefaultIdeaModuleIdentifier getIdentifier() {
+        return new DefaultIdeaModuleIdentifier(ideaModule.getGradleProject().getPath());
     }
 }

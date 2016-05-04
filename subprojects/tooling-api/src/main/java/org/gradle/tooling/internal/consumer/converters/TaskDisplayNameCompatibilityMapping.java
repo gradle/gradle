@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,22 +23,16 @@ import org.gradle.tooling.model.GradleTask;
 
 import java.io.Serializable;
 
-public class TaskPropertyHandlerFactory {
-    public Action<SourceObjectMapping> forVersion(VersionDetails versionDetails) {
-        return new ConsumerMapping(versionDetails);
+public class TaskDisplayNameCompatibilityMapping implements Action<SourceObjectMapping>, Serializable {
+    private final boolean supportsTaskDisplayName;
+
+    public TaskDisplayNameCompatibilityMapping(VersionDetails versionDetails) {
+        supportsTaskDisplayName = versionDetails.supportsTaskDisplayName();
     }
 
-    private static class ConsumerMapping implements Action<SourceObjectMapping>, Serializable {
-        private final boolean supportsTaskDisplayName;
-
-        public ConsumerMapping(VersionDetails versionDetails) {
-            supportsTaskDisplayName = versionDetails.supportsTaskDisplayName();
-        }
-
-        public void execute(SourceObjectMapping mapping) {
-            if (GradleTask.class.isAssignableFrom(mapping.getTargetType()) && !supportsTaskDisplayName) {
-                mapping.mixIn(GradleTaskDisplayNameMixInHandler.class);
-            }
+    public void execute(SourceObjectMapping mapping) {
+        if (GradleTask.class.isAssignableFrom(mapping.getTargetType()) && !supportsTaskDisplayName) {
+            mapping.mixIn(GradleTaskDisplayNameMixin.class);
         }
     }
 }

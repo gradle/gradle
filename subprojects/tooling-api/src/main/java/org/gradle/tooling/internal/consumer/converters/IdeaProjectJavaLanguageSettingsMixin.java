@@ -21,10 +21,10 @@ import org.gradle.tooling.model.idea.IdeaProject;
 
 import java.io.Serializable;
 
-public class CompatibilityIdeaProjectMapping {
+public class IdeaProjectJavaLanguageSettingsMixin {
     private final IdeaProject ideaProject;
 
-    public CompatibilityIdeaProjectMapping(IdeaProject ideaProject) {
+    public IdeaProjectJavaLanguageSettingsMixin(IdeaProject ideaProject) {
         this.ideaProject = ideaProject;
     }
 

@@ -20,10 +20,10 @@ import org.gradle.tooling.internal.protocol.DefaultIdeaModuleIdentifier;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModuleDependency;
 
-public class CompatibilityIdeaModuleDependencyMapping {
+public class IdeaModuleDependencyTargetMixin {
     private final IdeaDependency ideaModuleDependency;
 
-    public CompatibilityIdeaModuleDependencyMapping(IdeaDependency ideaModuleDependency) {
+    public IdeaModuleDependencyTargetMixin(IdeaDependency ideaModuleDependency) {
         this.ideaModuleDependency = ideaModuleDependency;
     }
 

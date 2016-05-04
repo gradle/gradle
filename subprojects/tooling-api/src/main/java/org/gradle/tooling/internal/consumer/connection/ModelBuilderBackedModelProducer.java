@@ -26,7 +26,7 @@ import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
-public class ModelBuilderBackedModelProducer extends HasCompatibilityMapperAction implements ModelProducer {
+public class ModelBuilderBackedModelProducer extends HasCompatibilityMapping implements ModelProducer {
     private final ProtocolToModelAdapter adapter;
     private final VersionDetails versionDetails;
     private final ModelMapping modelMapping;
@@ -51,6 +51,6 @@ public class ModelBuilderBackedModelProducer extends HasCompatibilityMapperActio
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(type, e);
         }
-        return adapter.adapt(type, result.getModel(), getCompatibilityMapperAction(operationParameters));
+        return adapter.adapt(type, result.getModel(), getCompatibilityMapping(operationParameters));
     }
 }

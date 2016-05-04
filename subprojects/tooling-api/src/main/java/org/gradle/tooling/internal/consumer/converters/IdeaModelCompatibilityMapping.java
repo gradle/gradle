@@ -26,11 +26,11 @@ import org.gradle.util.GradleVersion;
 
 import java.io.Serializable;
 
-public class IdeaModelCompatibilityMapper implements Action<SourceObjectMapping>, Serializable {
+public class IdeaModelCompatibilityMapping implements Action<SourceObjectMapping>, Serializable {
 
     private final String version;
 
-    public IdeaModelCompatibilityMapper(VersionDetails versionDetails) {
+    public IdeaModelCompatibilityMapping(VersionDetails versionDetails) {
         version = versionDetails.getVersion();
     }
 
@@ -38,13 +38,13 @@ public class IdeaModelCompatibilityMapper implements Action<SourceObjectMapping>
     public void execute(SourceObjectMapping mapping) {
         Class<?> targetType = mapping.getTargetType();
         if (IdeaProject.class.isAssignableFrom(targetType) && !versionSupportsIdeaJavaSourceSettings()) {
-            mapping.mixIn(CompatibilityIdeaProjectMapping.class);
+            mapping.mixIn(IdeaProjectJavaLanguageSettingsMixin.class);
         }
         if (!versionSupportsIdeaModuleIdentifier()) {
             if (IdeaDependency.class.isAssignableFrom(targetType)) {
-                mapping.mixIn(CompatibilityIdeaModuleDependencyMapping.class);
+                mapping.mixIn(IdeaModuleDependencyTargetMixin.class);
             } else if (IdeaModule.class.isAssignableFrom(targetType)) {
-                mapping.mixIn(CompatibilityIdeaModuleMapping.class);
+                mapping.mixIn(IdeaModuleIdentifierMixin.class);
             }
         }
     }

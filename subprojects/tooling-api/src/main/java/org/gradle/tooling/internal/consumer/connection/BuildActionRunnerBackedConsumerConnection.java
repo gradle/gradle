@@ -81,9 +81,9 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
         private final VersionDetails versionDetails;
         private final ModelMapping modelMapping;
         private final BuildActionRunner buildActionRunner;
-        private final HasCompatibilityMapperAction mapperProvider;
+        private final HasCompatibilityMapping mapperProvider;
 
-        public BuildActionRunnerBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, BuildActionRunner buildActionRunner, HasCompatibilityMapperAction mapperProvider) {
+        public BuildActionRunnerBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, BuildActionRunner buildActionRunner, HasCompatibilityMapping mapperProvider) {
             this.adapter = adapter;
             this.versionDetails = versionDetails;
             this.modelMapping = modelMapping;
@@ -100,7 +100,7 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
             Class<?> protocolType = modelMapping.getProtocolType(type);
             Object model = buildActionRunner.run(protocolType, operationParameters).getModel();
 
-            return adapter.adapt(type, model, mapperProvider.getCompatibilityMapperAction(operationParameters));
+            return adapter.adapt(type, model, mapperProvider.getCompatibilityMapping(operationParameters));
         }
     }
 }

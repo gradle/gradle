@@ -24,7 +24,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompositeMappingAction implements Action<SourceObjectMapping>, Serializable {
+public class CompositeCompatibilityMapping implements Action<SourceObjectMapping>, Serializable {
 
     public static class Builder {
         private final List<Action<SourceObjectMapping>> mappings = new ArrayList<Action<SourceObjectMapping>>();
@@ -34,13 +34,13 @@ public class CompositeMappingAction implements Action<SourceObjectMapping>, Seri
             return this;
         }
 
-        public CompositeMappingAction build() {
+        public CompositeCompatibilityMapping build() {
             for (Action<SourceObjectMapping> mapping : mappings) {
                 if (!(mapping instanceof Serializable)) {
                     throw new IllegalArgumentException(String.format("Source object mapping '%s' must be serializable", mapping));
                 }
             }
-            return new CompositeMappingAction(mappings);
+            return new CompositeCompatibilityMapping(mappings);
         }
     }
 
@@ -50,7 +50,7 @@ public class CompositeMappingAction implements Action<SourceObjectMapping>, Seri
 
     final List<Action<SourceObjectMapping>> mappings;
 
-    private CompositeMappingAction(List<Action<SourceObjectMapping>> mappings) {
+    private CompositeCompatibilityMapping(List<Action<SourceObjectMapping>> mappings) {
         this.mappings = ImmutableList.copyOf(mappings);
     }
 

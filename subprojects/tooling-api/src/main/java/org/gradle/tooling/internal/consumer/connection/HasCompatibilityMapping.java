@@ -24,32 +24,32 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
 
-public class HasCompatibilityMapperAction {
+public class HasCompatibilityMapping {
 
     private final Action<SourceObjectMapping> taskPropertyHandlerMapper;
     private final Action<SourceObjectMapping> ideaProjectCompatibilityMapper;
     private final Action<SourceObjectMapping> eclipseProjectDependencyCompatibilityMapper;
     private final Action<SourceObjectMapping> gradleProjectIdentifierMapper;
 
-    public HasCompatibilityMapperAction(VersionDetails versionDetails) {
-        taskPropertyHandlerMapper = new TaskPropertyHandlerFactory().forVersion(versionDetails);
-        ideaProjectCompatibilityMapper = new IdeaModelCompatibilityMapper(versionDetails);
-        eclipseProjectDependencyCompatibilityMapper = new EclipseModelCompatibilityMapper(versionDetails);
-        gradleProjectIdentifierMapper = new GradleProjectIdentifierMapping();
+    public HasCompatibilityMapping(VersionDetails versionDetails) {
+        taskPropertyHandlerMapper = new TaskDisplayNameCompatibilityMapping(versionDetails);
+        ideaProjectCompatibilityMapper = new IdeaModelCompatibilityMapping(versionDetails);
+        eclipseProjectDependencyCompatibilityMapper = new EclipseModelCompatibilityMapping(versionDetails);
+        gradleProjectIdentifierMapper = new GradleProjectIdentifierCompatibilityMapping();
     }
 
-    public Action<SourceObjectMapping> getCompatibilityMapperAction(ConsumerOperationParameters parameters) {
+    public Action<SourceObjectMapping> getCompatibilityMapping(ConsumerOperationParameters parameters) {
         ProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(parameters.getBuildIdentifier(), ":");
-        return getCompatibilityMapperAction(projectIdentifier);
+        return getCompatibilityMapping(projectIdentifier);
     }
 
-    public Action<SourceObjectMapping> getCompatibilityMapperAction(ProjectIdentifier projectIdentifier) {
+    public Action<SourceObjectMapping> getCompatibilityMapping(ProjectIdentifier projectIdentifier) {
         FixedBuildIdentifierProvider identifierProvider = new FixedBuildIdentifierProvider(projectIdentifier);
-        return getCompatibilityMapperAction(identifierProvider);
+        return getCompatibilityMapping(identifierProvider);
     }
 
-    private Action<SourceObjectMapping> getCompatibilityMapperAction(Action<SourceObjectMapping> requestScopedMapping) {
-        return CompositeMappingAction.builder()
+    private Action<SourceObjectMapping> getCompatibilityMapping(Action<SourceObjectMapping> requestScopedMapping) {
+        return CompositeCompatibilityMapping.builder()
             .add(taskPropertyHandlerMapper)
             .add(ideaProjectCompatibilityMapper)
             .add(eclipseProjectDependencyCompatibilityMapper)

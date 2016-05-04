@@ -152,9 +152,9 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
         private final VersionDetails versionDetails;
         private final ModelMapping modelMapping;
         private final InternalConnection delegate;
-        private final HasCompatibilityMapperAction mapperProvider;
+        private final HasCompatibilityMapping mapperProvider;
 
-        public InternalConnectionBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalConnection delegate, HasCompatibilityMapperAction mapperProvider) {
+        public InternalConnectionBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalConnection delegate, HasCompatibilityMapping mapperProvider) {
             this.adapter = adapter;
             this.versionDetails = versionDetails;
             this.modelMapping = modelMapping;
@@ -168,7 +168,7 @@ public class InternalConnectionBackedConsumerConnection extends AbstractConsumer
                 throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
             }
             Class<?> protocolType = modelMapping.getProtocolType(type);
-            return adapter.adapt(type, delegate.getTheModel(protocolType, operationParameters), mapperProvider.getCompatibilityMapperAction(operationParameters));
+            return adapter.adapt(type, delegate.getTheModel(protocolType, operationParameters), mapperProvider.getCompatibilityMapping(operationParameters));
         }
     }
 }

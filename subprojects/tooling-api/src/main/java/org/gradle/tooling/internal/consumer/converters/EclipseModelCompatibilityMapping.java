@@ -25,11 +25,11 @@ import org.gradle.util.GradleVersion;
 
 import java.io.Serializable;
 
-public class EclipseModelCompatibilityMapper implements Action<SourceObjectMapping>, Serializable {
+public class EclipseModelCompatibilityMapping implements Action<SourceObjectMapping>, Serializable {
 
     private final String version;
 
-    public EclipseModelCompatibilityMapper(VersionDetails versionDetails) {
+    public EclipseModelCompatibilityMapping(VersionDetails versionDetails) {
         version = versionDetails.getVersion();
     }
 
@@ -38,9 +38,9 @@ public class EclipseModelCompatibilityMapper implements Action<SourceObjectMappi
         Class<?> targetType = mapping.getTargetType();
         if (!versionSupportsEclipseProjectIdentifier()) {
             if (EclipseProjectDependency.class.isAssignableFrom(targetType)) {
-                mapping.mixIn(CompatibilityEclipseProjectDependencyMapping.class);
+                mapping.mixIn(EclipseProjectDependencyTargetMixin.class);
             } else if (HierarchicalEclipseProject.class.isAssignableFrom(targetType)) {
-                mapping.mixIn(CompatibilityEclipseProjectMapping.class);
+                mapping.mixIn(EclipseProjectIdentifierMixin.class);
             }
         }
     }
