@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.plugins;
 
+import com.beust.jcommander.internal.Lists;
 import com.beust.jcommander.internal.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -24,6 +25,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.ConventionMapping;
@@ -35,13 +37,14 @@ import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.model.Model;
 import org.gradle.model.RuleSource;
-import org.gradle.model.Validate;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
+import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
 
 import java.io.File;
@@ -70,6 +73,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
     static final String COMPILE_CONFIGURATION = "compile";
     static final String JAR_TASK = "jar";
+    static final String PROCESS_RESOURCES_TASK = "processResources";
     static final String GRADLE_PLUGINS = "gradle-plugins";
     static final String PLUGIN_DESCRIPTOR_PATTERN = "META-INF/" + GRADLE_PLUGINS + "/*.properties";
     static final String CLASSES_PATTERN = "**/*.class";
@@ -78,8 +82,10 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
     static final String DECLARED_PLUGIN_MISSING_MESSAGE = "Could not find plugin descriptor of %s at META-INF/" + GRADLE_PLUGINS + "/%s.properties";
     static final String DECLARATION_MISSING_ID_MESSAGE = "Missing id for %s";
+    static final String DECLARATION_MISSING_IMPLEMENTATION_MESSAGE = "Missing implementationClass for %s";
     static final String EXTENSION_NAME = "gradlePlugin";
     static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
+    static final String GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME = "pluginDescriptors";
 
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
@@ -88,6 +94,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         configureJarTask(project, extension);
         configureTestKit(project, extension);
         configurePublishing(project);
+        configureDescriptorGeneration(project, extension);
         validatePluginDeclarations(project, extension);
     }
 
@@ -160,6 +167,32 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         });
     }
 
+    private void configureDescriptorGeneration(final Project project, final GradlePluginDevelopmentExtension extension) {
+        final GeneratePluginDescriptors generatePluginDescriptors = project.getTasks().create(GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME, GeneratePluginDescriptors.class);
+        generatePluginDescriptors.conventionMapping("declarations", new Callable<List<PluginDeclaration>>() {
+            @Override
+            public List<PluginDeclaration> call() throws Exception {
+                return Lists.newArrayList(extension.getPlugins());
+            }
+        });
+        generatePluginDescriptors.conventionMapping("outputDirectory", new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                return new File(project.getBuildDir(), generatePluginDescriptors.getName());
+            }
+        });
+        Copy processResources = (Copy) project.getTasks().getByName(PROCESS_RESOURCES_TASK);
+        CopySpec copyPluginDescriptors = processResources.getRootSpec().addChild();
+        copyPluginDescriptors.into("META-INF/gradle-plugins");
+        copyPluginDescriptors.from(new Callable<File>() {
+            @Override
+            public File call() throws Exception {
+                return generatePluginDescriptors.getOutputDirectory();
+            }
+        });
+        processResources.dependsOn(generatePluginDescriptors);
+    }
+
     private void validatePluginDeclarations(Project project, final GradlePluginDevelopmentExtension extension) {
         project.afterEvaluate(new Action<Project>() {
             @Override
@@ -167,6 +200,9 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                 for (PluginDeclaration declaration : extension.getPlugins()) {
                     if (declaration.getId() == null) {
                         throw new IllegalArgumentException(String.format(DECLARATION_MISSING_ID_MESSAGE, declaration.getName()));
+                    }
+                    if (declaration.getImplementationClass() == null) {
+                        throw new IllegalArgumentException(String.format(DECLARATION_MISSING_IMPLEMENTATION_MESSAGE, declaration.getName()));
                     }
                 }
             }

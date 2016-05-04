@@ -191,14 +191,12 @@ public class ${implementationClass} implements Plugin<Project> {
     public void apply(Project project) { }
 }
 """
-        file("src/main/resources/META-INF/gradle-plugins/${pluginId}.properties") << """
-implementation-class=com.xxx.${implementationClass}
-"""
         buildFile << """
             gradlePlugin {
                 plugins {
                     ${name} {
                         id = '${pluginId}'
+                        implementationClass = '${implementationClass}'
                     }
                 }
             }

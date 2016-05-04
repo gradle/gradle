@@ -73,16 +73,18 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             gradlePlugin {
                 plugins {
-                    helloPlugin {
-                        id = 'org.example.hello'
+                    otherPlugin {
+                        id = 'other-plugin'
+                        implementationClass = 'com.xxx.OtherPlugin'
                     }
                 }
             }
+            pluginDescriptors.enabled = false
         """
 
         expect:
         succeeds "jar"
-        output.contains(String.format(DECLARED_PLUGIN_MISSING_MESSAGE, "helloPlugin", "org.example.hello"))
+        output.contains(String.format(DECLARED_PLUGIN_MISSING_MESSAGE, "otherPlugin", "other-plugin"))
     }
 
     def "jar issues warning if built jar contains bad descriptor" (String descriptorContents, String warningMessage) {
@@ -156,13 +158,50 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             gradlePlugin {
                 plugins {
-                    helloPlugin
+                    helloPlugin {
+                        implementationClass = 'com.foo.Bar'
+                    }
                 }
             }
         """
         expect:
         fails "jar"
         failureCauseContains(String.format(JavaGradlePluginPlugin.DECLARATION_MISSING_ID_MESSAGE, 'helloPlugin'))
+    }
+
+    def "Fails if plugin declaration has no implementation class"() {
+        given:
+        buildFile()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    helloPlugin {
+                        id = 'hello'
+                    }
+                }
+            }
+        """
+        expect:
+        fails "jar"
+        failureCauseContains(String.format(JavaGradlePluginPlugin.DECLARATION_MISSING_IMPLEMENTATION_MESSAGE, 'helloPlugin'))
+    }
+
+    def "Generates plugin descriptor for declared plugin"() {
+        given:
+        buildFile()
+        goodPlugin()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    testPlugin {
+                        id = 'test-plugin'
+                        implementationClass = 'com.xxx.TestPlugin'
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds "jar"
     }
 
     def buildFile() {

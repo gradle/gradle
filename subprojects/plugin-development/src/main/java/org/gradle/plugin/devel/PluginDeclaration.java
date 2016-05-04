@@ -19,10 +19,11 @@ package org.gradle.plugin.devel;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
+import java.io.Serializable;
+
 
 //TODO version - could be different from main artifact's version
 //TODO description - could be put in the Pom/Ivy file for clarity
-//TODO implementationClass - could auto-generate plugin descriptor file
 /**
  * Describes a Gradle plugin under development.
  *
@@ -30,9 +31,10 @@ import org.gradle.api.Named;
  * @since 2.14
  */
 @Incubating
-public class PluginDeclaration implements Named {
+public class PluginDeclaration implements Named, Serializable {
     private final String name;
     private String id;
+    private String implementationClass;
 
     public PluginDeclaration(String name) {
         this.name = name;
@@ -49,5 +51,13 @@ public class PluginDeclaration implements Named {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getImplementationClass() {
+        return implementationClass;
+    }
+
+    public void setImplementationClass(String implementationClass) {
+        this.implementationClass = implementationClass;
     }
 }
