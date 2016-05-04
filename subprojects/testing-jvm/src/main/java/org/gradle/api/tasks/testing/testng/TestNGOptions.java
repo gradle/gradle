@@ -201,7 +201,7 @@ public class TestNGOptions extends TestFrameworkOptions {
             return suiteXmlBuilder.getMetaClass().invokeMethod(suiteXmlBuilder, name, args);
         }
 
-        throw new MissingMethodException(name, getClass(), new Object[]{args});
+        throw new MissingMethodException(name, getClass(), (Object[])args);
     }
 
     public static String getJDK_ANNOTATIONS() {
