@@ -16,8 +16,8 @@
 
 package org.gradle.plugin.devel.plugins;
 
-import com.beust.jcommander.internal.Lists;
-import com.beust.jcommander.internal.Sets;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
