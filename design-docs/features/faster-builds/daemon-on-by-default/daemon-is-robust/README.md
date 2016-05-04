@@ -105,6 +105,7 @@ We need to check these values after a build has completed (to decide whether a n
 - Detects fast leaks in builds with both a small (200m) and large heap (1024m) and stops daemon.
 - Detects slow leaks in builds with both a small (200m) and large heap (1024m) and stops daemon.
 - For a build that leaks without tripping the thresholds, the daemon is not stopped.
+- User can specify a threshold for gc rate and tenured heap usage
 
 ### Prevent daemon with a Perm Gen leak on <=JDK7 from reaching a point where gc is thrashing
 
@@ -123,6 +124,7 @@ We need to check this value after a build has completed (to decide whether a new
 #### Test coverage
 
 - Detects a perm gen leak in a build and expires the deamon at the end of a build
+- User can specify a threshold for perm gen heap usage
 
 ### Detect when gc is thrashing and premptively stop the daemon
 
