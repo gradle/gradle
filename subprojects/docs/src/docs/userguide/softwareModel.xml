@@ -584,7 +584,7 @@ model {
             <para>In general, a rule closure may contain arbitrary code, mixed with some type specific DSL syntax.</para>
             <section>
                 <title><classname>ModelMap&lt;T></classname> subject</title>
-                <para>A <apilink class="org.gradle.model.ModelMap"/> is basically a map of model elements indexed by some name.
+                <para>A <apilink class="org.gradle.model.ModelMap"/> is basically a map of model elements, indexed by some name.
                     When a <classname>ModelMap</classname> is used as the subject of a DSL rule, the rule closure can use any of the methods defined on the
                     <apilink class="org.gradle.model.ModelMap"/> interface.
                 </para>
@@ -595,19 +595,15 @@ model {
                 <sample id='modelDslModelMapNestedCreate' dir='modelRules/modelDsl' title="Nested DSL creation rule">
                     <sourcefile file='build.gradle' snippet="model-map-nested-create-rule"/>
                 </sample>
-                <para>As before, a nested creation rule defines a name, a public type and an optional closure to initialize the element. The public type is also optional in this context.
-                    If you omit it, the generic type parameter you supplied to the <apilink class="org.gradle.model.ModelMap"/> will be used. It's important to note that the rules of Polymorphism
-                    apply as long as the extending interfaces also have the <apilink class="org.gradle.model.Managed"/> annotation.
-
-                    As with any managed model element, only the elements that are used as inputs for rules required by your build will be created.
-                    If the entire <apilink class="org.gradle.model.ModelMap"/> is an input, all elements will be created.
+                <para>As before, a nested creation rule defines a name and public type for the element, and optionally, a closure containing code to use to initialize the element.
+                    The code is run only when the element is required in the build.
                 </para>
                 <para>Here is an example of a nested configuration rule:</para>
                 <sample id='modelDslModelMapNestedConfig' dir='modelRules/modelDsl' title="Nested DSL configuration rule">
                     <sourcefile file='build.gradle' snippet="model-map-nested-configure-rule"/>
                 </sample>
-                <para>As before, a nested configuration rule specifies the name of the element to configure and a closure to configure the element.
-                    As with creation, only elements used as inputs for rules required by your build will be configured with all elements being configured when the entire <apilink class="org.gradle.model.ModelMap"/> is an input.
+                <para>As before, a nested configuration rule defines the name of the element to configure and a closure containing code to use to configure the element.
+                    The code is run only when the element is required in the build.
                 </para>
                 <para><classname>ModelMap</classname> introduces several other kinds of rules. For example, you can define a rule that targets each of the elements in the map.
                     The code in the rule closure is executed once for each element in the map, when that element is required. Let's run a task that requires
@@ -618,29 +614,6 @@ model {
                     <output args="listPeople"/>
                 </sample>
                 <para>Any method on <apilink class="org.gradle.model.ModelMap"/> that accepts an <apilink class="org.gradle.api.Action"/> as its last parameter can also be used to define a nested rule.</para>
-            </section>
-            <section>
-                <title><classname>ModelSet&lt;T></classname> subject</title>
-                <para>A <apilink class="org.gradle.model.ModelSet"/> is basically an unindexed set of model elements.
-                    When a <classname>ModelSet</classname> is used as the subject of a DSL rule, the rule closure can use any of the methods defined on the
-                    <apilink class="org.gradle.model.ModelSet"/> interface. Since <apilink class="org.gradle.model.ModelSet"/>s are unindexed, use the <literal>create</literal> method to create new elements.
-                </para>
-                <para>Here is an example of creating elements within a <apilink class="org.gradle.model.ModelSet"/>:</para>
-                <sample id='modelDslModelSetNestedCreate' dir='modelRules/modelDsl' title="Nested DSL creation rule">
-                    <sourcefile file='build.gradle' snippet="model-set-create"/>
-                </sample>
-                <para>A nested creation rule in this case has no name, but it does optionally have both a public type for the element
-                    and a closure to initialize the element. Once again, omitting the type assumes the generic type parameter of your
-                    <apilink class="org.gradle.model.ModelSet"/>, and the rules of Polymorphism apply only to those extending interfaces which also have the <apilink class="org.gradle.model.Managed"/> annotation.
-
-                    As with any managed model element, only elements that are used as inputs for rules required by your build will be created.
-                    If the entire <apilink class="org.gradle.model.ModelSet"/> is an input, all elements will be created.
-                </para>
-                <sample id='modelDslModelMapNestedAll' dir='userguide/modelRules/configureElementsOfMap' title="DSL configuration rule for each element in a Set">
-                    <sourcefile file='build.gradle' snippet="create-and-configure"/>
-                    <output args="listPeople"/>
-                </sample>
-                <para>Any method on <apilink class="org.gradle.model.ModelSet"/> that accepts an <apilink class="org.gradle.api.Action"/> as its last parameter can also be used to define a nested rule.</para>
             </section>
             <section>
                 <title><classname>@Managed</classname> type subject</title>
