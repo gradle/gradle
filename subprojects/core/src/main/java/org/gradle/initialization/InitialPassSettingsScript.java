@@ -27,7 +27,7 @@ import org.gradle.util.ConfigureUtil;
  * processing top-level blocks on the initial pass through a script.
  */
 public abstract class InitialPassSettingsScript extends SettingsScript {
-    public PluginRepositorySpec getPluginRepositoryHandler() {
+    private PluginRepositorySpec getPluginRepositorySpec() {
         Instantiator instantiator = __scriptServices.get(Instantiator.class);
         PluginRepositoryRegistry pluginRepositoryRegistry = __scriptServices.get(PluginRepositoryRegistry.class);
         return instantiator.newInstance(
@@ -35,6 +35,6 @@ public abstract class InitialPassSettingsScript extends SettingsScript {
     }
 
     public void pluginRepositories(Closure config) {
-        ConfigureUtil.configure(config, getPluginRepositoryHandler());
+        ConfigureUtil.configure(config, getPluginRepositorySpec());
     }
 }
