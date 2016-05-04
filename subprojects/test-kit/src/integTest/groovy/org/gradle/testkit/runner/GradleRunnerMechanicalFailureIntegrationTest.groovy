@@ -157,9 +157,14 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
         t.cause.cause.class.name == DaemonDisappearedException.name // not the same class because it's coming from the tooling client
 
         and:
-        OutputScrapingExecutionResult.normalize(t.message) == """An error occurred executing build with args 'helloWorld' in directory '$testDirectory.canonicalPath'. Output before error:
+        normalize(t.message) == """An error occurred executing build with args 'helloWorld' in directory '$testDirectory.canonicalPath'. Output before error:
 :helloWorld
 Hello world!
 """
+    }
+
+    private String normalize(String output) {
+        output = output.replaceFirst("Support for Gradle version ${gradleVersion.version} is deprecated and will be removed in tooling API version 3.0. You should upgrade your Gradle build to use Gradle 1.2 or later.\n", "")
+        OutputScrapingExecutionResult.normalize(output)
     }
 }
