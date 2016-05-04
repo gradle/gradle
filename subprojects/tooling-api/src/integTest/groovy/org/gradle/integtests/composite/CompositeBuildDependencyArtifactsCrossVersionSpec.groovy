@@ -38,8 +38,8 @@ import org.gradle.tooling.BuildException
 class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
     def stdErr = new ByteArrayOutputStream()
-    ProjectTestFile buildA
-    ProjectTestFile buildB
+    TestFile buildA
+    TestFile buildB
     MavenModule publishedModuleB
     List builds
     List arguments = []
