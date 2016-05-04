@@ -16,19 +16,22 @@
 
 package org.gradle.integtests.tooling
 
+import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiDeprecatedVersionCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiDeprecatedVersionCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     @ToolingApiVersion("current")
     @TargetGradleVersion(">=1.0-milestone-8 <1.2")
     def "warning is received when building using pre 1.2 provider"() {
-        when:
+        given:
+        def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])
         def stdout = new ByteArrayOutputStream()
-        withConnection { ProjectConnection connection ->
+
+        when:
+        withCompositeConnection(singleBuild) { GradleConnection connection ->
             def build = connection.newBuild()
             build.standardOutput = stdout
             build.run()
@@ -41,10 +44,13 @@ class ToolingApiDeprecatedVersionCrossVersionSpec extends ToolingApiSpecificatio
     @ToolingApiVersion("current")
     @TargetGradleVersion(">=1.0-milestone-8 <1.2")
     def "warning is received when fetching model using pre 1.2 provider"() {
-        when:
+        given:
+        def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])
         def stdout = new ByteArrayOutputStream()
-        withConnection { ProjectConnection connection ->
-            def build = connection.model(EclipseProject)
+
+        when:
+        withCompositeConnection(singleBuild) { GradleConnection connection ->
+            def build = connection.models(EclipseProject)
             build.standardOutput = stdout
             build.get()
         }
