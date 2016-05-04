@@ -42,9 +42,10 @@ No longer support running Gradle, the wrapper or the Tooling api client on Java 
 
 Tooling api client no longer executes builds for Gradle versions older than 1.2. Tooling api client 2.x supports Gradle 1.0-m8 and later.
 
+- Deprecate support in build comparison and `GradleRunner` for versions older than 1.2
 - Update 'unsupported version' error message to mention 1.2 rather than 1.0-m8.
 - Remove `InternalConnectionBackedConsumerConnection` and `CompatibleIntrospector`.
-- Update documentation for tapi methods added from 1.0-m8 to 1.2, to indicate that these are now supported for all versions.
+- Update documentation for tooling api methods added from 1.0-m8 to 1.2, to indicate that these are now supported for all versions.
 - Remove special case handling of deprecation message from test fixtures.
 
 ### Test coverage
@@ -53,6 +54,10 @@ Tooling api client no longer executes builds for Gradle versions older than 1.2.
     - `ProjectConnection`
     - `GradleConnection`
     - `GradleRunner`
+
+## Change minimum tooling API client version supported to Gradle 2.0
+
+- Update 'unsupported version' error message to mention 2.0 rather than 1.2
 
 ## Remove Sonar plugins
 
@@ -79,7 +84,6 @@ Building against Java 5 requires that the compiler daemon and test execution inf
 ## Drop support for old versions of things
 
 - Using TestNG Javadoc annotations. TestNG dropped support for this in 5.12, in early 2010. Supporting these old style annotations means we need to attach the test source files as an input to the `Test` task, which means there's an up-to-date check cost for this.
-- Tooling api clients older than 2.0 (1.5 years old). Gradle 2.x supports tapi clients 1.2 and later. People using tooling older than 2.0 would have to upgrade to a newer version.
 - Wrapper support for versions older than 2.0. Wrapper 2.x supports Gradle 0.9.2 and later (5 years) and Gradle 2.x can be run by wrapper 0.9.2 and later.
 - Cached artefact reuse for versions older than 2.0.
 - Execution of task classes compiled against Gradle versions older than 2.0.
