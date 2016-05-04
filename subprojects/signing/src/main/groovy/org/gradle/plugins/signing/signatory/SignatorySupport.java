@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.internal;
+package org.gradle.plugins.signing.signatory;
 
-import org.gradle.internal.Factory;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
-import java.util.concurrent.Callable;
+/**
+ * Convenience base class for {@link Signatory} implementations.
+ */
+public abstract class SignatorySupport implements Signatory {
 
-import static org.gradle.util.GUtil.uncheckedCall;
-
-public abstract class AbstractFileAccess implements FileAccess {
-    public <T> T readFile(final Callable<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
-        return readFile(new Factory<T>() {
-            public T create() {
-                return uncheckedCall(action);
-            }
-        });
+    @Override
+    public byte[] sign(InputStream toSign) {
+        ByteArrayOutputStream signature = new ByteArrayOutputStream();
+        sign(toSign, signature);
+        return signature.toByteArray();
     }
 }

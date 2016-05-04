@@ -19,6 +19,7 @@ package org.gradle.util;
 import com.google.common.base.Charsets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.LineBufferingOutputStream;
 import org.gradle.internal.io.SkipFirstTextStream;
 import org.gradle.internal.io.WriterTextStream;
@@ -27,6 +28,7 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -385,5 +387,20 @@ public class GUtil {
                 return comparator.compare(o1, o2);
             }
         };
+    }
+
+    /**
+     * Calls the given callable converting any thrown exception to an unchecked exception via {@link UncheckedException#throwAsUncheckedException(Throwable)}
+     *
+     * @param callable The callable to call
+     * @param <T> Callable's return type
+     * @return The value returned by {@link Callable#call()}
+     */
+    public static <T> T uncheckedCall(Callable<T> callable) {
+        try {
+            return callable.call();
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 }

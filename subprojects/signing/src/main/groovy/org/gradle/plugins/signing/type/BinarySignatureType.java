@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.signing.type
+package org.gradle.plugins.signing.type;
 
-class BinarySignatureType extends AbstractSignatureType {
-    
-    String getExtension() {
-        "sig"
+/**
+ * Binary signature type.
+ */
+public class BinarySignatureType extends AbstractSignatureType {
+
+    @Override
+    public String getExtension() {
+        return "sig";
     }
-    
 }

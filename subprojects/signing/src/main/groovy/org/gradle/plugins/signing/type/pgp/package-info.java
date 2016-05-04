@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.cache.internal;
 
-import org.gradle.internal.Factory;
-
-import java.util.concurrent.Callable;
-
-import static org.gradle.util.GUtil.uncheckedCall;
-
-public abstract class AbstractFileAccess implements FileAccess {
-    public <T> T readFile(final Callable<? extends T> action) throws LockTimeoutException, FileIntegrityViolationException {
-        return readFile(new Factory<T>() {
-            public T create() {
-                return uncheckedCall(action);
-            }
-        });
-    }
-}
+/**
+ * PGP signing support.
+ */
+package org.gradle.plugins.signing.type.pgp;

@@ -21,10 +21,11 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskOutputs;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.util.concurrent.Callable;
+
+import static org.gradle.util.GUtil.uncheckedCall;
 
 /**
  * <p>A {@link FileCollectionResolveContext} which is used to determine the builder dependencies of a file collection hierarchy.
@@ -68,12 +69,7 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
             }
         } else if (element instanceof Callable) {
             Callable callable = (Callable) element;
-            Object callableResult;
-            try {
-                callableResult = callable.call();
-            } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+            Object callableResult = uncheckedCall(callable);
             if (callableResult != null) {
                 add(callableResult);
             }

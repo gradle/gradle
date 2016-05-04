@@ -72,19 +72,36 @@ public abstract class IoActions {
     public static <T extends Closeable> void withResource(T resource, Action<? super T> action) {
         try {
             action.execute(resource);
-        } catch(Throwable t) {
-            try {
-                resource.close();
-            } catch (IOException e) {
-                // Ignored
-            }
+        } catch (Throwable t) {
+            closeQuietly(resource);
             throw UncheckedException.throwAsUncheckedException(t);
         }
+        uncheckedClose(resource);
+    }
 
+    /**
+     * Closes the given resource rethrowing any {@link IOException} as a {@link UncheckedIOException}.
+     *
+     * @param resource The resource to be closed
+     */
+    public static void uncheckedClose(Closeable resource) {
         try {
             resource.close();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Closes the given resource silently ignoring any {@link IOException}.
+     *
+     * @param resource The resource to be closed
+     */
+    public static void closeQuietly(Closeable resource) {
+        try {
+            resource.close();
+        } catch (IOException e) {
+            // Ignored
         }
     }
 

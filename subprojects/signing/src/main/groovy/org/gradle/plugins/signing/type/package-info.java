@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.signing.type
 
-import org.gradle.plugins.signing.signatory.Signatory
-
-interface SignatureType {
-
-    String getExtension()
-
-    File fileFor(File toSign)
-    
-    String combinedExtension(File toSign)
-    
-    File sign(Signatory signatory, File toSign)
-    
-    void sign(Signatory signatory, InputStream toSign, OutputStream destination)
-    
-}
+/**
+ * The signing plugin signature types.
+ */
+package org.gradle.plugins.signing.type;
