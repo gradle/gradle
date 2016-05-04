@@ -39,6 +39,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.model.Model;
 import org.gradle.model.RuleSource;
+import org.gradle.model.Validate;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
@@ -76,6 +77,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "A plugin descriptor was found for %s but it was invalid.";
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
     static final String DECLARED_PLUGIN_MISSING_MESSAGE = "Could not find plugin descriptor of %s at META-INF/" + GRADLE_PLUGINS + "/%s.properties";
+    static final String DECLARATION_MISSING_ID_MESSAGE = "Missing id for %s";
     static final String EXTENSION_NAME = "gradlePlugin";
     static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
 
@@ -86,6 +88,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         configureJarTask(project, extension);
         configureTestKit(project, extension);
         configurePublishing(project);
+        validatePluginDeclarations(project, extension);
     }
 
     private void applyDependencies(Project project) {
@@ -157,6 +160,18 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         });
     }
 
+    private void validatePluginDeclarations(Project project, final GradlePluginDevelopmentExtension extension) {
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                for (PluginDeclaration declaration : extension.getPlugins()) {
+                    if (declaration.getId() == null) {
+                        throw new IllegalArgumentException(String.format(DECLARATION_MISSING_ID_MESSAGE, declaration.getName()));
+                    }
+                }
+            }
+        });
+    }
     /**
      * Implements plugin validation tasks to validate that a proper plugin jar is produced.
      */

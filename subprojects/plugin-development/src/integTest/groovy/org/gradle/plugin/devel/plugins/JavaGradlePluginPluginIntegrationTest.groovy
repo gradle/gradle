@@ -150,6 +150,21 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         output.count(INVALID_DESCRIPTOR_WARNING_PREFIX) == 1
     }
 
+    def "Fails if plugin declaration has no id"() {
+        given:
+        buildFile()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    helloPlugin
+                }
+            }
+        """
+        expect:
+        fails "jar"
+        failureCauseContains(String.format(JavaGradlePluginPlugin.DECLARATION_MISSING_ID_MESSAGE, 'helloPlugin'))
+    }
+
     def buildFile() {
         buildFile << """
 apply plugin: 'java-gradle-plugin'
