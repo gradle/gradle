@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,39 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.scala
+package org.gradle.api.plugins.scala;
 
-import com.google.common.annotations.VisibleForTesting
-import groovy.transform.CompileStatic
-import org.codehaus.groovy.runtime.InvokerHelper
-import org.gradle.api.Action
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.file.FileCollection
-import org.gradle.api.file.FileTreeElement
-import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.file.SourceDirectorySetFactory
-import org.gradle.api.internal.tasks.DefaultScalaSourceSet
-import org.gradle.api.internal.tasks.scala.ScalaCompileOptionsInternal
-import org.gradle.api.plugins.Convention
-import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.reporting.ReportingExtension
-import org.gradle.api.specs.Spec
-import org.gradle.api.tasks.ScalaRuntime
-import org.gradle.api.tasks.ScalaSourceSet
-import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.scala.IncrementalCompileOptions
-import org.gradle.api.tasks.scala.ScalaCompile
-import org.gradle.api.tasks.scala.ScalaDoc
-import org.gradle.jvm.tasks.Jar
-import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
+import com.google.common.annotations.VisibleForTesting;
+import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.InvokerHelper;
+import org.gradle.api.Action;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.internal.tasks.DefaultScalaSourceSet;
+import org.gradle.api.internal.tasks.scala.ScalaCompileOptionsInternal;
+import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.JavaBasePlugin;
+import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.ScalaRuntime;
+import org.gradle.api.tasks.ScalaSourceSet;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.scala.IncrementalCompileOptions;
+import org.gradle.api.tasks.scala.ScalaCompile;
+import org.gradle.api.tasks.scala.ScalaDoc;
+import org.gradle.jvm.tasks.Jar;
+import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider;
 
-import javax.inject.Inject
-import java.util.concurrent.Callable
+import javax.inject.Inject;
+import java.io.File;
+import java.util.concurrent.Callable;
 
-@CompileStatic
+/**
+ * <p>A {@link Plugin} which compiles and tests Scala sources.</p>
+ */
 public class ScalaBasePlugin implements Plugin<Project> {
 
     @VisibleForTesting
@@ -121,7 +124,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
         // cannot use convention mapping because the resulting object won't be serializable
         // cannot compute at task execution time because we need association with source set
         project.getGradle().projectsEvaluated(new Closure<Void>(project) {
-            @SuppressWarnings("GroovyUnusedDeclaration")
+            @SuppressWarnings("unused")
             public void doCall() {
                 IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                 if (incrementalOptions.getAnalysisFile() == null) {
@@ -139,7 +142,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
 
     private static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime) {
         project.getTasks().withType(ScalaCompile.class, new Closure<Void>(project) {
-            @SuppressWarnings("GroovyUnusedDeclaration")
+            @SuppressWarnings("unused")
             public void doCall(final ScalaCompile compile) {
                 compile.getConventionMapping().map("scalaClasspath", new Callable<FileCollection>() {
                     @Override
@@ -163,7 +166,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
 
     private static void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {
         project.getTasks().withType(ScalaDoc.class, new Closure<Void>(project) {
-            @SuppressWarnings("GroovyUnusedDeclaration")
+            @SuppressWarnings("unused")
             public void doCall(final ScalaDoc scalaDoc) {
                 scalaDoc.getConventionMapping().map("destinationDir", new Callable<File>() {
                     @Override
@@ -171,21 +174,18 @@ public class ScalaBasePlugin implements Plugin<Project> {
                         File docsDir = project.getConvention().getPlugin(JavaPluginConvention.class).getDocsDir();
                         return project.file(docsDir.getPath() + "/scaladoc");
                     }
-
                 });
                 scalaDoc.getConventionMapping().map("title", new Callable<String>() {
                     @Override
                     public String call() throws Exception {
                         return project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle();
                     }
-
                 });
                 scalaDoc.getConventionMapping().map("scalaClasspath", new Callable<FileCollection>() {
                     @Override
                     public FileCollection call() throws Exception {
                         return scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath());
                     }
-
                 });
             }
         });

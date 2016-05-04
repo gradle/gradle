@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.scala
+package org.gradle.api.tasks.scala;
 
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
-import groovy.transform.CompileStatic
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.project.IsolatedAntBuilder
-import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import groovy.lang.Closure;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 
+import java.io.File;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * Ant-based Scaladoc.
+ */
 @Deprecated
-@CompileStatic
 public class AntScalaDoc {
     private final IsolatedAntBuilder antBuilder;
     private final List<File> bootclasspathFiles;
@@ -49,7 +55,7 @@ public class AntScalaDoc {
                 optionsBuilder.putAll(docOptions.optionMap());
                 ImmutableMap<String, Object> options = optionsBuilder.build();
 
-                return ant.invokeMethod("scaladoc", [options, new Closure<Void>(this) {
+                return ant.invokeMethod("scaladoc", new Object[]{options, new Closure<Void>(this) {
                     public void doCall() {
                         source.addToAntBuilder(ant, "src", FileCollection.AntType.MatchingTask);
                         for (File file : bootclasspathFiles) {
@@ -62,7 +68,7 @@ public class AntScalaDoc {
                             ant.invokeMethod("classpath", Collections.singletonMap("location", file));
                         }
                     }
-                }] as Object[]);
+                }});
             }
         });
     }
