@@ -25,7 +25,7 @@ import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
+import org.gradle.api.plugins.repositories.MavenPluginRepository;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 
 

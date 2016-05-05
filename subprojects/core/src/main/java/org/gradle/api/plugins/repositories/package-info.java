@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins.repositories;
-
 /**
- * The Gradle Plugin Portal, which can be used to resolve plugins.
+ * Types of {@link org.gradle.api.plugins.repositories.PluginRepository}.
  */
-public interface GradlePluginPortal extends PluginRepository {
-}
+package org.gradle.api.plugins.repositories;

@@ -19,7 +19,7 @@ package org.gradle.plugin.use.internal;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.plugins.repositories.PluginRepository;
+import org.gradle.api.plugins.repositories.PluginRepository;
 import org.gradle.internal.Factory;
 import org.gradle.internal.plugins.repositories.PluginRepositoryRegistry;
 import org.gradle.plugin.use.repository.internal.PluginRepositoryInternal;

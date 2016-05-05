@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins.repositories;
-
-import org.gradle.api.Incubating;
-import org.gradle.internal.HasInternalProtocol;
-
 /**
- * Represents a repository from which Gradle plugins can be resolved.
+ * The way {@link org.gradle.api.plugins.repositories.PluginRepository}s are specified.
  */
-@Incubating
-@HasInternalProtocol
-public interface PluginRepository {
-}
+package org.gradle.api.plugins.dsl;

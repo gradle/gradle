@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.plugins.repositories;
+package org.gradle.api.plugins.repositories;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.repositories.AuthenticationSupported;
@@ -22,10 +22,10 @@ import org.gradle.api.artifacts.repositories.AuthenticationSupported;
 import java.net.URI;
 
 /**
- * Represents a Maven repository which contains Gradle plugins.
+ * Represents an Ivy repository which contains Gradle plugins.
  */
 @Incubating
-public interface MavenPluginRepository extends PluginRepository, AuthenticationSupported {
+public interface IvyPluginRepository extends PluginRepository, AuthenticationSupported {
     /**
      * The base URL of this repository. This URL is used to find Gradle plugins.
      *

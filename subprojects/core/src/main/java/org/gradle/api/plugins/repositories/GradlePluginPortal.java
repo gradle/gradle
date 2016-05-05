@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.repository.internal;
+package org.gradle.api.plugins.repositories;
 
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.plugins.repositories.PluginRepository;
-
-public interface BackedByArtifactRepository extends PluginRepository {
-    ArtifactRepository createArtifactRepository(RepositoryHandler repositoryHandler);
+/**
+ * The Gradle Plugin Portal, which can be used to resolve plugins.
+ */
+public interface GradlePluginPortal extends PluginRepository {
 }

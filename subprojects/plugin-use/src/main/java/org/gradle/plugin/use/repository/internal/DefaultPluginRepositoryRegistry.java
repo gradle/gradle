@@ -17,8 +17,8 @@
 package org.gradle.plugin.use.repository.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.internal.plugins.repositories.GradlePluginPortal;
-import org.gradle.api.internal.plugins.repositories.PluginRepository;
+import org.gradle.api.plugins.repositories.GradlePluginPortal;
+import org.gradle.api.plugins.repositories.PluginRepository;
 import org.gradle.internal.plugins.repositories.PluginRepositoryRegistry;
 
 import java.util.ArrayList;

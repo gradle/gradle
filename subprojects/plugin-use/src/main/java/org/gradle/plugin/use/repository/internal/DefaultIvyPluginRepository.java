@@ -25,7 +25,7 @@ import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.plugins.repositories.IvyPluginRepository;
+import org.gradle.api.plugins.repositories.IvyPluginRepository;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 
 class DefaultIvyPluginRepository extends AbstractPluginRepository implements IvyPluginRepository {

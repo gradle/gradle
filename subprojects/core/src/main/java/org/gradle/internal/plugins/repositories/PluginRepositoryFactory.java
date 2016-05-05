@@ -18,9 +18,9 @@ package org.gradle.internal.plugins.repositories;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.plugins.repositories.GradlePluginPortal;
-import org.gradle.api.internal.plugins.repositories.IvyPluginRepository;
-import org.gradle.api.internal.plugins.repositories.MavenPluginRepository;
+import org.gradle.api.plugins.repositories.GradlePluginPortal;
+import org.gradle.api.plugins.repositories.IvyPluginRepository;
+import org.gradle.api.plugins.repositories.MavenPluginRepository;
 
 public interface PluginRepositoryFactory {
     /**

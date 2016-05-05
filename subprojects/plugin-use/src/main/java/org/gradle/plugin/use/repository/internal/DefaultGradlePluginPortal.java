@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.use.repository.internal;
 
-import org.gradle.api.internal.plugins.repositories.GradlePluginPortal;
+import org.gradle.api.plugins.repositories.GradlePluginPortal;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 

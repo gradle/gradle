@@ -17,7 +17,7 @@
 package org.gradle.internal.plugins.repositories;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.internal.plugins.repositories.PluginRepository;
+import org.gradle.api.plugins.repositories.PluginRepository;
 
 public interface PluginRepositoryRegistry {
     void add(PluginRepository pluginRepository);

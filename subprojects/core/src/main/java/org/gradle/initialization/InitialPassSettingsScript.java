@@ -16,7 +16,7 @@
 package org.gradle.initialization;
 
 import groovy.lang.Closure;
-import org.gradle.api.internal.plugins.dsl.PluginRepositorySpec;
+import org.gradle.api.plugins.dsl.PluginRepositorySpec;
 import org.gradle.internal.plugins.repositories.PluginRepositoryFactory;
 import org.gradle.internal.plugins.repositories.PluginRepositoryRegistry;
 import org.gradle.internal.plugins.repositories.DefaultPluginRepositorySpec;
