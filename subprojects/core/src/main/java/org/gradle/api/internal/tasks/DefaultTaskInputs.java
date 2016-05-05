@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks;
 
-import groovy.lang.Closure;
 import groovy.lang.GString;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
@@ -128,9 +127,6 @@ public class DefaultTaskInputs implements TaskInputs {
             if (value instanceof Callable) {
                 Callable callable = (Callable) value;
                 value = uncheckedCall(callable);
-            } else if (value instanceof Closure) {
-                Closure closure = (Closure) value;
-                value = closure.call();
             } else if (value instanceof FileCollection) {
                 FileCollection fileCollection = (FileCollection) value;
                 return fileCollection.getFiles();
@@ -141,7 +137,7 @@ public class DefaultTaskInputs implements TaskInputs {
     }
 
     private static Object avoidGString(Object value) {
-        return (value instanceof GString)? value.toString() : value;
+        return (value instanceof GString) ? value.toString() : value;
     }
 
     public TaskInputs property(final String name, final Object value) {
