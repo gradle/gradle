@@ -52,11 +52,12 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.internal.Factory;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.StandardOutputCapture;
+import org.gradle.internal.logging.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
@@ -323,11 +324,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public Task deleteAllActions() {
         taskMutator.mutate("Task.deleteAllActions()",
-                new Runnable() {
-                    public void run() {
-                        actions.clear();
-                    }
+            new Runnable() {
+                public void run() {
+                    actions.clear();
                 }
+            }
         );
         return this;
     }
@@ -402,7 +403,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public LoggingManagerInternal getLogging() {
         if (loggingManager == null) {
-            loggingManager = services.getFactory(LoggingManagerInternal.class).create();
+            loggingManager = new LoggingManagerInternalCompatibilityBridge(services.getFactory(org.gradle.internal.logging.LoggingManagerInternal.class).create());
         }
         return loggingManager;
     }

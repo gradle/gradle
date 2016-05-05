@@ -17,5 +17,7 @@
 package org.gradle.logging;
 
 @Deprecated
-public interface LoggingManagerInternal {
+public interface LoggingManagerInternal extends org.gradle.internal.logging.LoggingManagerInternal, StandardOutputCapture {
+
+
 }

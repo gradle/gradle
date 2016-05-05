@@ -17,5 +17,5 @@
 package org.gradle.logging;
 
 @Deprecated
-public interface StandardOutputCapture {
+public interface StandardOutputCapture extends org.gradle.internal.logging.StandardOutputCapture {
 }

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests
+
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.plugins.quality.*
@@ -34,8 +35,8 @@ import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.plugins.ear.Ear
 import org.gradle.plugins.signing.Sign
-import org.gradle.util.GradleVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.GradleVersion
 
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
@@ -46,26 +47,26 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
     def "can use task subclass compiled using previous Gradle version"() {
         given:
         def taskClasses = [
-                DefaultTask,
-                SourceTask,
-                ConventionTask,
-                Copy,
-                Sync,
-                Zip,
-                Jar,
-                Tar,
-                War,
-                ScalaCompile,
-                GroovyCompile,
-                CodeNarc,
-                Checkstyle,
-                Ear,
-                FindBugs,
-                Pmd,
-                JDepend,
-                Sign,
-                CreateStartScripts,
-                SonarAnalyze,
+            DefaultTask,
+            SourceTask,
+            ConventionTask,
+            Copy,
+            Sync,
+            Zip,
+            Jar,
+            Tar,
+            War,
+            ScalaCompile,
+            GroovyCompile,
+            CodeNarc,
+            Checkstyle,
+            Ear,
+            FindBugs,
+            Pmd,
+            JDepend,
+            Sign,
+            CreateStartScripts,
+            SonarAnalyze,
         ]
         if (previous.version >= GradleVersion.version("1.1")) {
             // Breaking changes were made to Test between 1.0 and 1.1
@@ -81,7 +82,7 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
             dependencies {
-                ${previous.version < GradleVersion.version("1.4-rc-1") ? "groovy" : "compile" } localGroovy()
+                ${previous.version < GradleVersion.version("1.4-rc-1") ? "groovy" : "compile"} localGroovy()
                 compile gradleApi()
             }
         """
@@ -92,14 +93,14 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
 
             class SomePlugin implements Plugin<Project> {
                 void apply(Project p) { """ <<
-                subclasses.collect { "p.tasks.create('${it.key}', ${it.key})" }.join("\n") << """
+            subclasses.collect { "p.tasks.create('${it.key}', ${it.key})" }.join("\n") << """
                 }
             }
             """ <<
 
-                subclasses.collect {
-                    def className = it.key
-                    """class ${className} extends ${it.value} {
+            subclasses.collect {
+                def className = it.key
+                """class ${className} extends ${it.value} {
     ${className}() {
         // GRADLE-3185
         project.logger.lifecycle('task created')
@@ -107,7 +108,7 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
         super.getServices()
     }
 }"""
-                }.join("\n")
+            }.join("\n")
 
         buildFile << """
 buildscript {
@@ -120,5 +121,46 @@ apply plugin: SomePlugin
         expect:
         version previous withTasks 'assemble' inDirectory(file("producer")) run()
         version current withTasks 'tasks' run()
+    }
+
+    def "task can use all methods declared by Task interface that AbstractTask specialises"() {
+        when:
+        file("producer/build.gradle") << """
+            apply plugin: 'groovy'
+            dependencies {
+                ${previous.version < GradleVersion.version("1.4-rc-1") ? "groovy" : "compile"} localGroovy()
+                compile gradleApi()
+            }
+        """
+
+        file("producer/src/main/java/SubclassTask.java") << """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.*;
+
+            public class SubclassTask extends DefaultTask {
+                @TaskAction
+                public void doGet() {
+                    // Note: not all of these specialise at time of writing, but may do in the future
+                    getTaskDependencies();
+                    getState();
+                    getLogging();
+                    getStandardOutputCapture();
+                    getInputs();
+                    getOutputs();
+                }
+            }
+        """
+
+        buildFile << """
+            buildscript {
+                dependencies { classpath fileTree(dir: "producer/build/libs", include: '*.jar') }
+            }
+
+            task t(type: SubclassTask)
+        """
+
+        then:
+        version previous withTasks 'assemble' inDirectory(file("producer")) run()
+        version current withTasks 't' run()
     }
 }
