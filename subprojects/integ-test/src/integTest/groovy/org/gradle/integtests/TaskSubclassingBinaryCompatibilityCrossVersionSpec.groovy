@@ -124,6 +124,8 @@ apply plugin: SomePlugin
     }
 
     def "task can use all methods declared by Task interface that AbstractTask specialises"() {
+        given:
+
         when:
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
@@ -161,6 +163,6 @@ apply plugin: SomePlugin
 
         then:
         version previous withTasks 'assemble' inDirectory(file("producer")) run()
-        version current withTasks 't' run()
+        version current withTasks 't' requireIsolatedDaemons() run()
     }
 }
