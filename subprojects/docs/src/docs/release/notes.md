@@ -6,6 +6,16 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### More accurate Gradle class visibility during plugin development
+
+In previous versions, Gradle's internal implementation dependencies were visible to plugins at build (i.e. compile and test) but not at runtime.
+This caused problems when plugins depended on libraries that conflicted with Gradle's internal dependencies, such as Google Guava.
+This has been fixed in Gradle 2.14.
+Only classes that are part of Gradle's public API are visible to plugins at build time, which more accurately represents the runtime environment.
+
+This fixes GRADLE-3433 and GRADLE-1715.
+No build script changes are necessary to take advantage of these improvements.
+
 ### Set the character set used for filtering files in CopySpec
 
 By default, file filtering using `CopySpec` uses the default platform character set to read and write filtered files.
@@ -162,28 +172,17 @@ The `setName()` and `setProject()` methods in `AbstractTask` have been deprecate
 
 ### Gradle implementation dependencies are not visible to plugins at development time
 
-Implementing a Gradle plugin requires the declaration of `gradleApi()`
-to the `compile` configuration. The resolved dependency encompasses the
-entire Gradle runtime including Gradle's third party dependencies
-(e.g. Guava). Any third party dependencies declared by the plugin might
-conflict with the ones pulled in by the `gradleApi()` declaration. Gradle
-does not apply conflict resolution. As a result The user will end up with
-two addressable copies of a dependency on the compile classpath and in
- the test runtime classpath.
+Implementing a Gradle plugin requires use of the `gradleApi()` dependency in order to compile against Gradle classes. 
+Previously, this encompassed the entire Gradle runtime including Gradle's third party dependencies (e.g. Guava). 
+If the plugin depended on a library that Gradle also depended on, the behavior was unpredictable as multiple versions of classes could end up on the classpath. 
+This would often manifest as unexpected compile errors or runtime linking errors.
+ 
+Starting with Gradle 2.14, `gradleApi()` no longer exposes Gradle's implementation dependencies.
+As such, the compile and test classes for plugins have changed with this release.
 
-In previous versions of Gradle the dependency `gradleTestKit()`, which
-relies on a Gradle runtime, attempts to address this problem via class
-relocation. The use of `gradleApi()` and `gradleTestKit()` together
-became unreliable as classes of duplicate name but of different content
-were added to the classpath.
-
-With this version of Gradle proper class relocation has been implemented
- across the dependencies `gradleApi()`, `gradleTestKit()` and the published
- Tooling API JAR. Projects using any of those dependencies will not
- conflict anymore with classes from third party dependencies used by
- the Gradle runtime. Classes from third-party libraries provided by
- the Gradle runtime are no longer "visible" at compile and test
- time.
+This is expected to be a transparent and compatible change for all plugin builds.
+While Gradle's implementation dependencies were previously visible at build time, they were not at runtime.
+As such, it was not possible to successfully ship a plugin that relied on access to Gradle's implementation dependencies.
 
 ### Change in plugin id
 
