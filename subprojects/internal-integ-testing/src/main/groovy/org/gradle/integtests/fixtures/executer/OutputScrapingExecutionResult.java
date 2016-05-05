@@ -76,6 +76,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
                     i++;
                 }
+            } else if (line.contains("is deprecated and will be removed in tooling API version 3.0. You should upgrade your Gradle build to use Gradle 1.2 or later.")) {
+                // Assume you are in a cross-version integration test and want to strip this line.
+                i++;
             } else if (line.contains(STARTING_DAEMON_MESSAGE)) {
                 // Assume running using the daemon, ignore
                 i++;
