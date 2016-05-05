@@ -19,7 +19,6 @@ package org.gradle.testkit
 import com.google.common.math.IntMath
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testkit.runner.GradleRunner
-import spock.lang.Ignore
 
 class TestKitDependencyClassVisibilityIntegrationTest extends AbstractIntegrationSpec {
 
