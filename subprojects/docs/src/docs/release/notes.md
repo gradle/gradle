@@ -118,6 +118,10 @@ at a lower priority than the specified priority will be logged at the "info" log
 
 - Placeholder
 
+### Play/IDEA Integration
+
+Projects using the [Play plugin](userguide/play_plugin.html#play_ide) can now generate IDEA metadata when the [IDEA plugin](userguide/idea_plugin.html) is also applied. 
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
