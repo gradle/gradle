@@ -17,6 +17,7 @@
 package org.gradle.play.plugins.ide.internal;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
@@ -38,7 +39,6 @@ import org.gradle.util.CollectionUtils;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -59,9 +59,11 @@ public class PlayIdeaPlugin extends RuleSource {
         conventionMapping.map("sourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
-                return CollectionUtils.inject(new HashSet<File>(), playApplicationBinarySpec.getInputs(), new Action<CollectionUtils.InjectionStep<HashSet<File>, LanguageSourceSet>>() {
+                // TODO: Assets should probably be a source set too
+                Set<File> sourceDirs = Sets.newHashSet(playApplicationBinarySpec.getAssets().getAssetDirs());
+                return CollectionUtils.inject(sourceDirs, playApplicationBinarySpec.getInputs(), new Action<CollectionUtils.InjectionStep<Set<File>, LanguageSourceSet>>() {
                     @Override
-                    public void execute(CollectionUtils.InjectionStep<HashSet<File>, LanguageSourceSet> step) {
+                    public void execute(CollectionUtils.InjectionStep<Set<File>, LanguageSourceSet> step) {
                         step.getTarget().addAll(step.getItem().getSource().getSrcDirs());
                     }
                 });

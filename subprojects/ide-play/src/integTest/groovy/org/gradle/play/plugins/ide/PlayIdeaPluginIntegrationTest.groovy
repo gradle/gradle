@@ -62,7 +62,7 @@ class PlayIdeaPluginIntegrationTest extends PlayIdePluginIntegrationTest {
         succeeds(ideTask)
         then:
         def content = parseIml(moduleFile).content
-        content.assertContainsSourcePaths("conf", "app", "test", "build/src/play/binary/routesScalaSources", "build/src/play/binary/twirlTemplatesScalaSources")
+        content.assertContainsSourcePaths("public", "conf", "app", "test", "build/src/play/binary/routesScalaSources", "build/src/play/binary/twirlTemplatesScalaSources")
         content.assertContainsExcludes("build", ".gradle")
 
     }
