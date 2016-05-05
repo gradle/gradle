@@ -25,10 +25,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRegistry {
+    private final ToolingModelBuilderRegistry parent;
+
     private final List<ToolingModelBuilder> builders = new ArrayList<ToolingModelBuilder>();
 
     public DefaultToolingModelBuilderRegistry() {
+        this.parent = null;
         register(new VoidToolingModelBuilder());
+    }
+
+    public DefaultToolingModelBuilderRegistry(ToolingModelBuilderRegistry parent) {
+        this.parent = parent;
     }
 
     public void register(ToolingModelBuilder builder) {
@@ -47,6 +54,9 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         }
         if (match != null) {
             return match;
+        }
+        if (parent != null) {
+            return parent.getBuilder(modelName);
         }
 
         throw new UnknownModelException(String.format("No builders are available to build a model of type '%s'.", modelName));
