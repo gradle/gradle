@@ -162,7 +162,8 @@ Using the Gradle tooling API to run Gradle builds for Gradle versions 1.1 and ol
 
 ### Tooling API model properties
 
-- `EclipseProjectDependency.targetProject` has been deprecated, use `EclipseProjectDependency.target` instead.
+- `EclipseProjectDependency.getTargetProject()` has been deprecated, use `EclipseProjectDependency.getTarget()` instead.
+- `IdeaModuleDependency.getDependencyModule()` has been deprecated, use `IdeaModuleDependency.getTarget()` instead.
 
 ### Deprecated task methods
 

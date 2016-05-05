@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.ide.idea.model
 
+import org.gradle.api.Incubating
+
 /**
  * Represents an orderEntry of type module in the iml XML.
  */
@@ -29,6 +31,7 @@ class ModuleDependency implements Dependency {
      */
     String scope
 
+    @Incubating
     String gradlePath
 
     boolean exported

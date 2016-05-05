@@ -38,5 +38,6 @@ public interface IdeaModuleDependency extends IdeaDependency {
      *
      * @return dependency module
      */
+    @Deprecated
     IdeaModule getDependencyModule();
 }
