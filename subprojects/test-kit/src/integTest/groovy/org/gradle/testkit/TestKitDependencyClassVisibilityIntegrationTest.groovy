@@ -39,7 +39,6 @@ class TestKitDependencyClassVisibilityIntegrationTest extends AbstractIntegratio
         result.error.contains "package ${GradleRunner.package.name} does not exist"
     }
 
-    @Ignore("requires gradleTestKit() to be multi-process safe - currently classes are not relocated anymore")
     def "gradle implementation dependencies are not visible to gradleTestKit() users"() {
         when:
         buildScript """
