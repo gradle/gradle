@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging;
+package org.gradle.internal.logging.compatbridge;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
 
 import java.io.OutputStream;

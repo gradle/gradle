@@ -52,7 +52,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.internal.Factory;
-import org.gradle.internal.logging.LoggingManagerInternalCompatibilityBridge;
+import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
