@@ -19,6 +19,7 @@ package org.gradle.plugin.use.repository
 import com.google.common.base.Splitter
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.test.fixtures.Repository
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
@@ -26,6 +27,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Shared
 import spock.lang.Unroll
 
+@LeaksFileHandles
 class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependencyResolutionTest {
     public static final String MAVEN = 'maven'
     public static final String IVY = 'ivy'
@@ -79,11 +81,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
                   }.join('\n')}
             }
         """
-    }
-
-    @Override
-    def setup() {
-        executer.requireIsolatedDaemons()
     }
 
     @Unroll
@@ -233,6 +230,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     def "Can opt-in to plugin portal"() {
         given:
         publishPlugins(MAVEN)
+        requireOwnGradleUserHomeDir()
         buildScript """
             plugins {
                 id "org.gradle.hello-world" version "0.2" //exists in the plugin portal
