@@ -35,10 +35,12 @@ public class EclipseWtpSupport {
     private static final String ATTRIBUTE_WTP_NONDEPLOYED = "org.eclipse.jst.component.nondependency";
     private static final String DEFAULT_DEPLOY_DIR_NAME = "/WEB-INF/lib";
 
-    public static final void enhanceProject(Project project, List<DefaultEclipseProjectDependency> projectDependencies, List<DefaultEclipseExternalDependency> externalDependencies) {
-        if (isWebProject(project)) {
-            applyEclipseWtpPlugin(project);
-            defineWtpClasspathAttributes(project, projectDependencies, externalDependencies);
+    public static void applyEclipseWtpPluginOnWebProjects(Project root) {
+        Set<Project> allProjects = root.getAllprojects();
+        for (Project p : allProjects) {
+            if (isWebProject(p)) {
+                p.getPluginManager().apply(EclipseWtpPlugin.class);
+            }
         }
     }
 
@@ -49,27 +51,25 @@ public class EclipseWtpSupport {
             || container.hasPlugin(EclipseWtpPlugin.class);
     }
 
-    private static void applyEclipseWtpPlugin(Project p) {
-        p.getPluginManager().apply(EclipseWtpPlugin.class);
-    }
+    public static final void enhanceProject(Project project, List<DefaultEclipseProjectDependency> projectDependencies, List<DefaultEclipseExternalDependency> externalDependencies) {
+        if (isWebProject(project)) {
+            EclipseWtp eclipseWtp = project.getExtensions().findByType(EclipseModel.class).getWtp();
+            boolean isUtilityProject = !project.getPlugins().hasPlugin(WarPlugin.class) && !project.getPlugins().hasPlugin(EarPlugin.class);
 
-    private static void defineWtpClasspathAttributes(Project project, List<DefaultEclipseProjectDependency> projectDependencies, List<DefaultEclipseExternalDependency> externalDependencies) {
-        EclipseWtp eclipseWtp = project.getExtensions().findByType(EclipseModel.class).getWtp();
-        boolean isUtilityProject = !project.getPlugins().hasPlugin(WarPlugin.class) && !project.getPlugins().hasPlugin(EarPlugin.class);
+            Ear ear = (Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME);
+            String libDirName = ear == null ? DEFAULT_DEPLOY_DIR_NAME : ear.getLibDirName();
 
-        Ear ear = (Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME);
-        String libDirName = ear == null ? DEFAULT_DEPLOY_DIR_NAME : ear.getLibDirName();
+            IdeDependenciesExtractor depsExtractor = new IdeDependenciesExtractor();
 
-        IdeDependenciesExtractor depsExtractor = new IdeDependenciesExtractor();
+            EclipseWtpComponent wtpComponent = eclipseWtp.getComponent();
+            Set<Configuration> rootConfigs = wtpComponent.getRootConfigurations();
+            Set<Configuration> libConfigs = wtpComponent.getLibConfigurations();
+            Set<Configuration> minusConfigs = wtpComponent.getMinusConfigurations();
 
-        EclipseWtpComponent wtpComponent = eclipseWtp.getComponent();
-        Set<Configuration> rootConfigs = wtpComponent.getRootConfigurations();
-        Set<Configuration> libConfigs = wtpComponent.getLibConfigurations();
-        Set<Configuration> minusConfigs = wtpComponent.getMinusConfigurations();
-
-        WtpClasspathAttributeSupport wtpSupport = new WtpClasspathAttributeSupport(depsExtractor, isUtilityProject, libDirName, rootConfigs, libConfigs, minusConfigs);
-        wtpSupport.defineAttributesForProjectDependencies(projectDependencies);
-        wtpSupport.defineAttributesForExternalDependencies(externalDependencies);
+            WtpClasspathAttributeSupport wtpSupport = new WtpClasspathAttributeSupport(depsExtractor, isUtilityProject, libDirName, rootConfigs, libConfigs, minusConfigs);
+            wtpSupport.defineAttributesForProjectDependencies(projectDependencies);
+            wtpSupport.defineAttributesForExternalDependencies(externalDependencies);
+        }
     }
 
     private static class WtpClasspathAttributeSupport {

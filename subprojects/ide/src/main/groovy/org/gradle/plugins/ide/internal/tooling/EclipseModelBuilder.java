@@ -77,6 +77,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         rootGradleProject = gradleProjectBuilder.buildAll(project);
         tasksFactory.collectTasks(root);
         applyEclipsePlugin(root);
+        EclipseWtpSupport.applyEclipseWtpPluginOnWebProjects(root);
         buildHierarchy(root);
         populate(root);
         return result;
