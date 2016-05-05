@@ -44,4 +44,10 @@ class IdeaProjectFixture {
         return compilerConfig.bytecodeTargetLevel
     }
 
+    def getLibraryTable() {
+        return ipr.component.find {
+            it.@name == "libraryTable"
+        }
+    }
+
 }

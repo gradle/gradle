@@ -16,11 +16,12 @@
 
 package org.gradle.play.plugins.ide
 
-import groovy.transform.NotYetImplemented
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
+import org.gradle.plugins.ide.idea.IdeaModuleFixture
 
 import static org.gradle.plugins.ide.idea.IdeaFixtures.parseIml
+import static org.gradle.plugins.ide.idea.IdeaFixtures.parseIpr
 
 class PlayIdeaPluginIntegrationTest extends PlayIdePluginIntegrationTest {
 
@@ -85,8 +86,18 @@ class PlayIdeaPluginIntegrationTest extends PlayIdePluginIntegrationTest {
         succeeds(ideTask)
         then:
         result.output.contains("Validated Scala Version")
-        // TODO: Check that IML contains a scala-library-XXX
-        // TODO: Check that IPR contains a scala-library-XXX
+
+        parseIml(moduleFile).dependencies.dependencies.any {
+            if (it instanceof IdeaModuleFixture.ImlLibrary) {
+                return it.name.startsWith("scala-sdk") && it.level == "project"
+            }
+            false
+        }
+
+        def libraryTable = parseIpr(projectFile).libraryTable
+        def scalaSdk = libraryTable.library.find { it.@name.toString().startsWith("scala-sdk") && it.@type == "Scala" }
+        def scalaClasspath = scalaSdk.properties."compiler-classpath".root."@url"
+        scalaClasspath.size() == 104
     }
 
     def "IDEA metadata contains correct Java version"() {
@@ -110,44 +121,111 @@ class PlayIdeaPluginIntegrationTest extends PlayIdePluginIntegrationTest {
         result.output.contains("Validated Java Version")
     }
 
-    @NotYetImplemented
-    def "IML contains path to generated sources"() {
-        applyIdePlugin()
-
-        when:
-        succeeds(ideTask)
-        then:
-        false
-    }
-
-    @NotYetImplemented
     def "IDEA metadata contains correct dependencies for RUNTIME, COMPILE, TEST"() {
         applyIdePlugin()
-
+        succeeds("assemble") // Need generated directories to exist
         when:
         succeeds(ideTask)
         then:
-        false
+
+        def externalLibs = parseIml(moduleFile).dependencies.libraries
+        def compileDeps = externalLibs.findAll({ it.scope == "COMPILE" }).collect { it.url }
+        compileDeps.any {
+            it.endsWith("build/playBinary/classes")
+        }
+
+        def runtimeDeps = externalLibs.findAll({ it.scope == "RUNTIME" })
+        !runtimeDeps.empty
+
+        def testDeps = externalLibs.findAll({ it.scope == "TEST" })
+        !testDeps.empty
     }
 
-    @NotYetImplemented
     def "when model configuration changes, IDEA metadata can be rebuilt"() {
         applyIdePlugin()
-
+        succeeds(ideTask)
         when:
+        file("other-assets").mkdirs()
+        buildFile << """
+model {
+    components {
+        play {
+            binaries.all {
+                assets.addAssetDir file("other-assets")
+            }
+        }
+    }
+}
+"""
+        and:
         succeeds(ideTask)
         then:
-        false
+        result.assertTaskNotSkipped(":ideaModule")
+        def content = parseIml(moduleFile).content
+        content.assertContainsSourcePaths("other-assets", "public", "conf", "app", "test", "build/src/play/binary/routesScalaSources", "build/src/play/binary/twirlTemplatesScalaSources")
     }
 
-    @NotYetImplemented
     def "IDEA metadata contains custom source set"() {
         applyIdePlugin()
-
+        file("extra/java").mkdirs()
+        buildFile << """
+model {
+    components {
+        play {
+            sources {
+                extraJava(JavaSourceSet) {
+                    source.srcDir "extra/java"
+                }
+            }
+        }
+    }
+}
+"""
         when:
         succeeds(ideTask)
         then:
-        false
+        def content = parseIml(moduleFile).content
+        content.assertContainsSourcePaths("extra/java", "public", "conf", "app", "test", "build/src/play/binary/routesScalaSources", "build/src/play/binary/twirlTemplatesScalaSources")
+    }
+
+    def "can generate IDEA metadata with custom source set"() {
+        applyIdePlugin()
+        when:
+        file("generated-assets").mkdirs()
+        buildFile << """
+class GenerateAssets extends DefaultTask {
+    @OutputDirectory
+    File destinationDir
+
+    @TaskAction
+    void generateAssets() {
+        [ "a", "b", "c" ].each { filename ->
+            File outputFile = new File(destinationDir, filename)
+            outputFile.text = filename
+        }
+    }
+}
+
+model {
+    components {
+        play {
+            binaries.all { binary ->
+                tasks.create("generate\${binary.name.capitalize()}Assets", GenerateAssets) { task ->
+                    destinationDir = project.file("generated-assets")
+                    binary.assets.addAssetDir destinationDir
+                    binary.assets.builtBy task
+                }
+            }
+        }
+    }
+}
+"""
+        and:
+        succeeds(ideTask)
+        then:
+        result.assertTasksExecuted(":compilePlayBinaryPlayRoutes", ":compilePlayBinaryPlayTwirlTemplates", ":generateBinaryAssets", ":ideaProject", ":ideaModule", ":ideaWorkspace", ":idea")
+        def content = parseIml(moduleFile).content
+        content.assertContainsSourcePaths("generated-assets", "public", "conf", "app", "test", "build/src/play/binary/routesScalaSources", "build/src/play/binary/twirlTemplatesScalaSources")
     }
 
     def "IDEA plugin depends on source generation tasks"() {

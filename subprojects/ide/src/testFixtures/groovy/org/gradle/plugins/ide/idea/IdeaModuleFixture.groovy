@@ -87,8 +87,8 @@ class IdeaModuleFixture {
     ImlDependencies getDependencies() {
         new ImlDependencies(iml.component.orderEntry.collect { it ->
             if (it.@type == 'module-library') {
-                def lib = new ImlLibrary()
-                lib.type = 'module-library'
+                def lib = new ImlModuleLibrary()
+                lib.type = it.@type
                 lib.url = it.library.CLASSES.root.@url.text()
                 lib.scope = it.@scope != '' ? it.@scope : 'COMPILE'
                 lib.source = it.library.SOURCES.root.@url*.text()
@@ -96,15 +96,21 @@ class IdeaModuleFixture {
                 return lib
             } else if (it.@type == 'module') {
                 def module = new ImlModule()
-                module.type = 'module'
+                module.type = it.@type
                 module.scope = it.@scope != '' ? it.@scope : 'COMPILE'
                 module.moduleName = it.'@module-name'
                 return module
             } else if (it.@type == 'sourceFolder') {
                 def source = new ImlSource()
-                source.type = 'sourceFolder'
+                source.type = it.@type
                 source.forTests = it.@forTests
                 return source
+            } else if (it.@type == 'library') {
+                def library = new ImlLibrary()
+                library.type = it.@type
+                library.name = it.@name
+                library.level = it.@level
+                return library
             } else {
                 def dep = new ImlDependency()
                 dep.type = it.@type
@@ -121,12 +127,12 @@ class IdeaModuleFixture {
             this.dependencies = dependencies
         }
 
-        List<ImlLibrary> getLibraries() {
-            dependencies.findAll { it.type == 'module-library' }
+        List<ImlModuleLibrary> getLibraries() {
+            dependencies.findAll { it instanceof ImlModuleLibrary }
         }
 
         List<ImlModule> getModules() {
-            dependencies.findAll { it.type == 'module' }
+            dependencies.findAll { it instanceof ImlModule }
         }
 
         void assertHasInheritedJdk() {
@@ -146,7 +152,7 @@ class IdeaModuleFixture {
         }
 
         void assertHasLibrary(String scope, String name) {
-            assert libraries.any { ImlLibrary it ->
+            assert libraries.any { ImlModuleLibrary it ->
                 it.scope == scope && it.url.contains(name)
             }
         }
@@ -166,6 +172,11 @@ class IdeaModuleFixture {
     }
 
     class ImlLibrary extends ImlDependency {
+        String name
+        String level
+    }
+
+    class ImlModuleLibrary extends ImlDependency {
         String scope
         String url
         List<String> javadoc
@@ -173,7 +184,7 @@ class IdeaModuleFixture {
 
         @Override
         public String toString() {
-            return "ImlLibrary{" +
+            return "ImlModuleLibrary{" +
                 "type='" + type + '\'' +
                 ", scope='" + scope + '\'' +
                 ", url='" + url + '\'' +

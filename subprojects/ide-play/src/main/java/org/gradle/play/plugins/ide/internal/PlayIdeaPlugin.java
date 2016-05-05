@@ -106,6 +106,7 @@ public class PlayIdeaPlugin extends RuleSource {
         });
 
         ideaModule.dependsOn(playApplicationBinarySpec.getInputs());
+        ideaModule.dependsOn(playApplicationBinarySpec.getAssets());
     }
 
     private ConventionMapping conventionMappingFor(IdeaModule module) {
