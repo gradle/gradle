@@ -27,13 +27,14 @@ import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.Callable;
+
+import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultFileCollectionResolveContext implements ResolvableFileCollectionResolveContext {
     private final PathToFileResolver fileResolver;
@@ -115,12 +116,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 }
             } else if (element instanceof Callable) {
                 Callable callable = (Callable) element;
-                Object callableResult;
-                try {
-                    callableResult = callable.call();
-                } catch (Exception e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+                Object callableResult = uncheckedCall(callable);
                 if (callableResult != null) {
                     queue.add(0, callableResult);
                 }
