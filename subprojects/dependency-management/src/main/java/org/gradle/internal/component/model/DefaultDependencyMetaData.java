@@ -87,7 +87,8 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
     }
 
     public boolean isForce() {
-        return dependencyDescriptor.isForce();
+        // Force attribute is ignored in published modules: we only consider force attribute on direct dependencies
+        return false;
     }
 
     public String getDynamicConstraintVersion() {
