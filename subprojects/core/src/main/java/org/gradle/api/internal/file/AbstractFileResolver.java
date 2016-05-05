@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file;
 
-import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
 import org.gradle.api.file.FileCollection;
@@ -126,9 +125,7 @@ public abstract class AbstractFileResolver implements FileResolver {
     private Object unpack(Object path) {
         Object current = path;
         while (current != null) {
-            if (current instanceof Closure) {
-                current = ((Closure) current).call();
-            } else if (current instanceof Callable) {
+            if (current instanceof Callable) {
                 current = uncheckedCall((Callable) current);
             } else if (current instanceof Factory) {
                 return ((Factory) current).create();
