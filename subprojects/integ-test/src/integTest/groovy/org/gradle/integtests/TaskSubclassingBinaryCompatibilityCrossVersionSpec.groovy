@@ -42,8 +42,8 @@ import org.gradle.util.GradleVersion
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
 @TargetVersions('1.0+')
+@LeaksFileHandles
 class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
-    @LeaksFileHandles
     def "can use task subclass compiled using previous Gradle version"() {
         given:
         def taskClasses = [
@@ -163,6 +163,6 @@ apply plugin: SomePlugin
 
         then:
         version previous withTasks 'assemble' inDirectory(file("producer")) run()
-        version current withTasks 't' requireIsolatedDaemons() run()
+        version current withTasks 't' run()
     }
 }
