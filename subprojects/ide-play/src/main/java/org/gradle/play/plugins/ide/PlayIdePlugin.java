@@ -17,11 +17,18 @@
 package org.gradle.play.plugins.ide;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.play.plugins.ide.internal.PlayIdeaPlugin;
 
+/**
+ * Plugin for configuring IDE plugins when the project uses the Play Framework component support.
+ *
+ * <p>NOTE: This currently supports configuring the 'idea' plugin only.</p>
+ */
+@Incubating
 public class PlayIdePlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
