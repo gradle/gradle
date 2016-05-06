@@ -50,7 +50,7 @@ class DaemonHealthTrackerTest extends Specification {
     }
 
     def "stops after the build when performance goes down"() {
-        1 * status.isDaemonTired(stats) >> true
+        1 * status.isDaemonTired() >> true
 
         when: tracker.execute(exec)
 
@@ -59,7 +59,7 @@ class DaemonHealthTrackerTest extends Specification {
     }
 
     def "does not stop after the build when performance is acceptable"() {
-        1 * status.isDaemonTired(stats) >> false
+        1 * status.isDaemonTired() >> false
 
         when: tracker.execute(exec)
 

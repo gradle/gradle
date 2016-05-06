@@ -22,7 +22,6 @@ import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
 
 public class MemoryInfo {
-
     private final long totalMemory; //this does not change
 
     public MemoryInfo() {

@@ -40,6 +40,8 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 
 import java.io.File;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Takes care of instantiating and wiring together the services required by the daemon server.
@@ -78,8 +80,12 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new File(get(DaemonDir.class).getVersionedDir(), fileName);
     }
 
-    protected DaemonHealthServices createDaemonHealthServices() {
-        return new DefaultDaemonHealthServices();
+    protected DaemonHealthServices createDaemonHealthServices(ScheduledExecutorService scheduledExecutorService) {
+        return new DefaultDaemonHealthServices(scheduledExecutorService);
+    }
+
+    protected ScheduledExecutorService createScheduledExecutorService() {
+        return Executors.newScheduledThreadPool(1);
     }
 
     protected Daemon createDaemon(BuildExecuter buildActionExecuter) {
@@ -99,7 +105,8 @@ public class DaemonServices extends DefaultServiceRegistry {
                 getDaemonLogFile(),
                 get(DaemonHealthServices.class)
             ),
-            get(ExecutorFactory.class)
+            get(ExecutorFactory.class),
+            get(ScheduledExecutorService.class)
         );
     }
 

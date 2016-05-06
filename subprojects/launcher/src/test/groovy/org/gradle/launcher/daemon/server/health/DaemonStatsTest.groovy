@@ -17,6 +17,8 @@
 package org.gradle.launcher.daemon.server.health
 
 import org.gradle.internal.TimeProvider
+import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor
+import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats
 import org.gradle.util.Clock
 import spock.lang.Specification
 
@@ -27,9 +29,10 @@ class DaemonStatsTest extends Specification {
     def clock = Stub(Clock)
     def time = Stub(TimeProvider)
     def memory = Stub(MemoryInfo)
+    def gcMonitor = Stub(GarbageCollectionMonitor)
 
     def "consumes first build"() {
-        def stats = new DaemonStats(clock, Stub(TimeProvider), memory)
+        def stats = new DaemonStats(clock, Stub(TimeProvider), memory, gcMonitor)
         memory.getCommittedMemory() >> 5000000
         memory.getMaxMemory() >> 10000000
 
@@ -46,10 +49,17 @@ class DaemonStatsTest extends Specification {
         time.getCurrentTime() >>> [1, 1001]
 
         memory.getCollectionTime() >> 25
-        memory.getCommittedMemory() >> 5000000
-        memory.getMaxMemory() >> 10000000
 
-        def stats = new DaemonStats(clock, time, memory)
+        gcMonitor.getTenuredStats() >> {
+            Stub(GarbageCollectionStats) {
+                getUsage() >> 10
+                getMax() >> 1024
+                getRate() >> 1.0
+                getCount() >> 100
+            }
+        }
+
+        def stats = new DaemonStats(clock, time, memory, gcMonitor)
 
         when:
         stats.buildStarted()
@@ -58,7 +68,7 @@ class DaemonStatsTest extends Specification {
         stats.buildFinished()
 
         then:
-        stats.healthInfo == String.format("Starting 2nd build in daemon [uptime: 3 mins, performance: 98%%, memory: 50%% of %.1f MB]", 10.0)
+        stats.healthInfo == "Starting 2nd build in daemon [uptime: 3 mins, performance: 98%, GC rate: 1.00/s, tenured heap usage: 10% of 1.0 kB]"
     }
 
     def "time might go backwards"() {
@@ -71,7 +81,7 @@ class DaemonStatsTest extends Specification {
         memory.getCommittedMemory() >> 5000000
         memory.getMaxMemory() >> 10000000
 
-        def stats = new DaemonStats(clock, time, memory)
+        def stats = new DaemonStats(clock, time, memory, gcMonitor)
 
         when:
         stats.buildStarted()
@@ -87,6 +97,6 @@ class DaemonStatsTest extends Specification {
         stats.buildFinished()
 
         then:
-        stats.healthInfo == String.format("Starting 2nd build in daemon [uptime: %s, performance: 98%%, memory: 50%% of %.1f MB]", Clock.prettyTime(1), 10.0)
+        stats.healthInfo == String.format("Starting 2nd build in daemon [uptime: %s, performance: 98%%, GC rate: 0.00/s, tenured heap usage: 0%% of 0 B]", Clock.prettyTime(1))
     }
 }
