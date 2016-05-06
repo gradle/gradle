@@ -24,7 +24,7 @@ import java.util.Date;
 
 /**
  * This strategy expires the daemon if it's been idle for the longest consecutive period of time.
- * It will not expire a busy daemon.
+ * It will not expire a busy daemon, or the last daemon running.
  *
  */
 public class LruDaemonExpirationStrategy implements DaemonExpirationStrategy {
