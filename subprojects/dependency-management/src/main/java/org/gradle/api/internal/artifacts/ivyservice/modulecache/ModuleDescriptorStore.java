@@ -17,34 +17,42 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 
 public class ModuleDescriptorStore {
 
-    private final IvyXmlModuleDescriptorParser descriptorParser;
     private final PathKeyFileStore metaDataStore;
-    private final IvyModuleDescriptorWriter descriptorWriter;
+    private final ModuleDescriptorSerializer moduleDescriptorSerializer;
 
-    public ModuleDescriptorStore(PathKeyFileStore metaDataStore, IvyModuleDescriptorWriter descriptorWriter, IvyXmlModuleDescriptorParser ivyXmlModuleDescriptorParser) {
+    public ModuleDescriptorStore(PathKeyFileStore metaDataStore, ModuleDescriptorSerializer moduleDescriptorSerializer) {
         this.metaDataStore = metaDataStore;
-        this.descriptorWriter = descriptorWriter;
-        this.descriptorParser = ivyXmlModuleDescriptorParser;
+        this.moduleDescriptorSerializer = moduleDescriptorSerializer;
     }
 
     public ModuleDescriptorState getModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
         String filePath = getFilePath(repository, moduleComponentIdentifier);
         final LocallyAvailableResource resource = metaDataStore.get(filePath);
         if (resource != null) {
-            return parseModuleDescriptorFile(resource.getFile());
+            try {
+                KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(resource.getFile()));
+                try {
+                    return moduleDescriptorSerializer.read(decoder);
+                } finally {
+                    decoder.close();
+                }
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
         return null;
     }
@@ -54,7 +62,9 @@ public class ModuleDescriptorStore {
         return metaDataStore.add(filePath, new Action<File>() {
             public void execute(File moduleDescriptorFile) {
                 try {
-                    descriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
+                    KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(moduleDescriptorFile));
+                    moduleDescriptorSerializer.write(encoder, moduleDescriptor);
+                    encoder.close();
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
@@ -62,12 +72,8 @@ public class ModuleDescriptorStore {
         });
     }
 
-    private ModuleDescriptorState parseModuleDescriptorFile(File moduleDescriptorFile) {
-        DescriptorParseContext parserSettings = new CachedModuleDescriptorParseContext();
-        return descriptorParser.parseMetaData(parserSettings, moduleDescriptorFile, false).getDescriptor();
+    private String getFilePath(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
+        return moduleComponentIdentifier.getGroup() + "/" + moduleComponentIdentifier.getModule() + "/" + moduleComponentIdentifier.getVersion() + "/" + repository.getId() + "/descriptor.bin";
     }
 
-    private String getFilePath(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
-        return moduleComponentIdentifier.getGroup() + "/" + moduleComponentIdentifier.getModule() + "/" + moduleComponentIdentifier.getVersion() + "/" + repository.getId() + "/ivy.xml";
-    }
 }

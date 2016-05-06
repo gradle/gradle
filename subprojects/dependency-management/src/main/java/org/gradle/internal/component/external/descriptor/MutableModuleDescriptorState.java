@@ -24,6 +24,7 @@ import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 public class MutableModuleDescriptorState extends ModuleDescriptorState {
@@ -40,6 +41,14 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
         this.description = description;
     }
 
+    public void setBranch(String branch) {
+        this.branch = branch;
+    }
+
+    public void setPublicationDate(Date publicationDate) {
+        this.publicationDate = publicationDate;
+    }
+
     public void addConfiguration(String name, boolean transitive, boolean visible, Collection<String> extendsFrom) {
         Configuration configuration = new Configuration(name, transitive, visible, extendsFrom);
         configurations.put(name, configuration);
@@ -50,7 +59,11 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
     }
 
     public Dependency addDependency(ModuleVersionSelector requested) {
-        Dependency dependency = new Dependency(requested, requested.getVersion(), false, false, true);
+        return addDependency(requested, requested.getVersion(), false, false, true);
+    }
+
+    public Dependency addDependency(ModuleVersionSelector requested, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive) {
+        Dependency dependency = new Dependency(requested, dynamicConstraintVersion, force, changing, transitive);
         dependencies.add(dependency);
         return dependency;
     }

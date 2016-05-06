@@ -30,7 +30,6 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.CollectionUtils;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -42,12 +41,12 @@ public class ModuleDescriptorState {
     protected final List<ExcludeRule> excludeRules;
     protected final List<Dependency> dependencies;
     private final List<Artifact> artifacts = Lists.newArrayList();
-    protected String description;
-    private final Date publicationDate;
     private final String status;
-    private final String branch;
     private final boolean generated;
     private final Map<NamespaceId, String> extraInfo;
+    protected String description;
+    protected String branch;
+    protected Date publicationDate;
 
     public ModuleDescriptorState(ModuleComponentIdentifier componentIdentifier, String status, boolean generated) {
         this.componentIdentifier = componentIdentifier;
@@ -56,7 +55,7 @@ public class ModuleDescriptorState {
         publicationDate = new Date();
         this.status = status;
         this.generated = generated;
-        extraInfo = Collections.emptyMap();
+        extraInfo = Maps.newHashMap();
         configurations = Maps.newLinkedHashMap();
         excludeRules = Lists.newArrayList();
         dependencies = Lists.newArrayList();

@@ -76,6 +76,10 @@ public class Dependency {
         addConfMapping(from, to);
     }
 
+    public void addDependencyConfiguration(String from, List<String> to) {
+        confMappings.put(from, to);
+    }
+
     void addConfMapping(String from, String to) {
         List<String> mappings = confMappings.get(from);
         if (mappings == null) {
