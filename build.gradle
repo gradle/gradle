@@ -96,6 +96,11 @@ buildTypes {
         tasks "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
     }
 
+    // Used to build (experimental) production distros and smoke test them
+    packageBuildExperimental {
+        tasks "verifyIsProductionBuildEnvironment", "buildDists", "distributions:integTest"
+    }
+
     // Used to build production distros and smoke test them
     promotionBuild {
         tasks "verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives"
