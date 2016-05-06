@@ -17,8 +17,6 @@ package org.gradle.launcher.daemon.server.health
 
 import spock.lang.Specification
 
-import java.lang.management.ManagementFactory
-
 class MemoryInfoTest extends Specification {
     // We can't exercise both paths at once because we have no control here over the JVM we're running on.
     // However, this will be fully exercised since we test across JVMs.
@@ -28,7 +26,12 @@ class MemoryInfoTest extends Specification {
             Class<?> sunClass = ClassLoader.getSystemClassLoader().loadClass("com.sun.management.OperatingSystemMXBean")
             return sunClass != null
         } catch (UnsupportedOperationException e) {
-            return !(ManagementFactory.getOperatingSystemMXBean() instanceof com.sun.management.OperatingSystemMXBean)
+            try {
+                ClassLoader.getSystemClassLoader().loadClass("com.sun.management.OperatingSystemMXBean")
+            } catch (ClassNotFoundException expected) {
+                return true
+            }
+            return false
         }
     }
 
