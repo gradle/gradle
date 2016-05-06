@@ -22,13 +22,14 @@ abstract class PlayIdePluginIntegrationTest extends PlayMultiVersionApplicationI
     abstract String getIdePlugin()
     abstract String getIdeTask()
     abstract List<File> getIdeFiles()
+    abstract String[] getBuildTasks()
 
     def "generates IDE configuration"() {
         applyIdePlugin()
         when:
         succeeds(ideTask)
         then:
-        result.assertTasksExecuted(":compilePlayBinaryPlayRoutes", ":compilePlayBinaryPlayTwirlTemplates", ":ideaProject", ":ideaModule", ":ideaWorkspace", ":idea")
+        result.assertTasksExecuted(buildTasks)
         ideFiles.each {
             file(it).assertExists()
         }
@@ -41,7 +42,9 @@ abstract class PlayIdePluginIntegrationTest extends PlayMultiVersionApplicationI
 
     protected void applyIdePlugin() {
         buildFile << """
+    allprojects {
         apply plugin: "${idePlugin}"
+    }
 """
     }
 }
