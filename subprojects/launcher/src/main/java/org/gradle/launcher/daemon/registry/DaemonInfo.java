@@ -50,7 +50,7 @@ public class DaemonInfo implements Serializable, DaemonInstanceDetails {
         this.context = Preconditions.checkNotNull(context);
         this.password = Preconditions.checkNotNull(password);
         this.timeProvider = Preconditions.checkNotNull(busyClock);
-        this.lastBusy = -1; // Will be overwritten by setIdle if idle.
+        this.lastBusy = -1; // Will be overwritten by setIdle if not idle.
         setIdle(idle);
     }
 
