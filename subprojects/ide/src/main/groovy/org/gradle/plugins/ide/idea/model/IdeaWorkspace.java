@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.ide.idea.model;
 
-package org.gradle.plugins.ide.idea.model
-
-import org.gradle.plugins.ide.api.XmlFileContentMerger
-import org.gradle.util.ConfigureUtil
+import groovy.lang.Closure;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.util.ConfigureUtil;
 
 /**
  * Enables fine-tuning workspace details (*.iws file) of the IDEA plugin.
@@ -33,17 +33,21 @@ import org.gradle.util.ConfigureUtil
  * }
  * </pre>
  */
-class IdeaWorkspace {
+public class IdeaWorkspace {
+
+    private XmlFileContentMerger iws;
 
     /**
      * Enables advanced manipulation of the output XML.
      * <p>
      * For example see docs for {@link IdeaWorkspace}
-     *
-     * @param closure
      */
-    void iws(Closure closure) {
-        ConfigureUtil.configure(closure, getIws())
+    public XmlFileContentMerger getIws() {
+        return iws;
+    }
+
+    public void setIws(XmlFileContentMerger iws) {
+        this.iws = iws;
     }
 
     /**
@@ -51,15 +55,17 @@ class IdeaWorkspace {
      * <p>
      * For example see docs for {@link IdeaWorkspace}
      */
-    XmlFileContentMerger iws
+    public void iws(Closure closure) {
+        ConfigureUtil.configure(closure, getIws());
+    }
 
-    void mergeXmlWorkspace(Workspace xmlWorkspace) {
-        iws.beforeMerged.execute(xmlWorkspace)
+    public void mergeXmlWorkspace(Workspace xmlWorkspace) {
+        iws.getBeforeMerged().execute(xmlWorkspace);
 
         //we don't merge anything in the iws, yet.
         //I kept the logic for the sake of consistency
         // and compatibility with pre M4 ways of configuring IDEA information.
 
-        iws.whenMerged.execute(xmlWorkspace)
+        iws.getWhenMerged().execute(xmlWorkspace);
     }
 }

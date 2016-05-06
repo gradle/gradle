@@ -13,13 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.ide.idea.model;
 
-package org.gradle.plugins.ide.idea.model
+import com.google.common.collect.Sets;
+import groovy.lang.Closure;
+import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.util.ConfigureUtil;
 
-import org.gradle.api.Incubating
-import org.gradle.api.JavaVersion
-import org.gradle.plugins.ide.api.XmlFileContentMerger
-import org.gradle.util.ConfigureUtil
+import java.io.File;
+import java.util.List;
+import java.util.Set;
+
 /**
  * Enables fine-tuning project details (*.ipr file) of the IDEA plugin.
  * <p>
@@ -86,28 +92,92 @@ import org.gradle.util.ConfigureUtil
  *       //closure executed after *.ipr content is loaded from existing file
  *       //and after gradle build information is merged
  *       whenMerged { project ->
-*         //you can tinker with {@link Project}
+ *         //you can tinker with {@link Project}
  *       }
  *     }
  *   }
  * }
  * </pre>
  */
-class IdeaProject {
+public class IdeaProject {
+
+    private final org.gradle.api.Project project;
+    private final XmlFileContentMerger ipr;
+
+    private List<IdeaModule> modules;
+    private String jdkName;
+    private IdeaLanguageLevel languageLevel;
+    private JavaVersion targetBytecodeVersion;
+    private String vcs;
+    private Set<String> wildcards;
+    private File outputFile;
+    private Set<ProjectLibrary> projectLibraries = Sets.newLinkedHashSet();
+    private PathFactory pathFactory;
+
+    public IdeaProject(org.gradle.api.Project project, XmlFileContentMerger ipr) {
+        this.project = project;
+        this.ipr = ipr;
+    }
+
+    /**
+     * An owner of this IDEA project.
+     * <p>
+     * If IdeaProject requires some information from gradle this field should not be used for this purpose.
+     */
+    public final org.gradle.api.Project getProject() {
+        return project;
+    }
+
+    /**
+     * See {@link #ipr(Closure) }
+     */
+    public final XmlFileContentMerger getIpr() {
+        return ipr;
+    }
+
+    /**
+     * Enables advanced configuration like tinkering with the output XML
+     * or affecting the way existing *.ipr content is merged with Gradle build information.
+     * <p>
+     * See the examples in the docs for {@link IdeaProject}
+     */
+    public void ipr(Closure<XmlFileContentMerger> closure) {
+        ConfigureUtil.configure(closure, getIpr());
+    }
+
+    /**
+     * The name of the IDEA project. It is a convenience property that returns the name of the output file (without the file extension).
+     * In IDEA, the project name is driven by the name of the 'ipr' file.
+     */
+    public String getName() {
+        return getOutputFile().getName().replaceFirst("\\.ipr$", "");
+    }
 
     /**
      * A {@link org.gradle.api.dsl.ConventionProperty} that holds modules for the ipr file.
      * <p>
      * See the examples in the docs for {@link IdeaProject}
      */
-    List<IdeaModule> modules
+    public List<IdeaModule> getModules() {
+        return modules;
+    }
+
+    public void setModules(List<IdeaModule> modules) {
+        this.modules = modules;
+    }
 
     /**
      * The java version used for defining the project sdk.
      * <p>
      * See the examples in the docs for {@link IdeaProject}
      */
-    String jdkName
+    public String getJdkName() {
+        return jdkName;
+    }
+
+    public void setJdkName(String jdkName) {
+        this.jdkName = jdkName;
+    }
 
     /**
      * The default Java language Level to use for this project.
@@ -118,7 +188,22 @@ class IdeaProject {
      * <p>
      * When not explicitly set, this is calculated as the maximum language level for the Idea modules of this Idea project.
      */
-    IdeaLanguageLevel languageLevel
+    public IdeaLanguageLevel getLanguageLevel() {
+        return languageLevel;
+    }
+
+    /**
+     * Sets the java language level for the project.
+     * Pass a valid Java version number (e.g. '1.5') or IDEA language level (e.g. 'JDK_1_5').
+     * <p>
+     * See the examples in the docs for {@link IdeaProject}.
+     * <p>
+     * When explicitly set in the build script, this setting overrides any calculated values for Idea project
+     * and Idea module.
+     */
+    public void setLanguageLevel(Object languageLevel) {
+        this.languageLevel = new IdeaLanguageLevel(languageLevel);
+    }
 
     /**
      * The target bytecode version to use for this project.
@@ -130,19 +215,12 @@ class IdeaProject {
      * When {@code languageLevel} is not explicitly set, this is calculated as the maximum target bytecode version for the Idea modules of this Idea project.
      */
     @Incubating
-    JavaVersion targetBytecodeVersion
+    public JavaVersion getTargetBytecodeVersion() {
+        return targetBytecodeVersion;
+    }
 
-    /**
-     * Sets the java language level for the project.
-     * Pass a valid Java version number (e.g. '1.5') or IDEA language level (e.g. 'JDK_1_5').
-     * <p>
-     * See the examples in the docs for {@link IdeaProject}.
-     * <p>
-     * When explicitly set in the build script, this setting overrides any calculated values for Idea project
-     * and Idea module.
-     */
-    void setLanguageLevel(Object languageLevel) {
-        this.languageLevel = new IdeaLanguageLevel(languageLevel)
+    public void setTargetBytecodeVersion(JavaVersion targetBytecodeVersion) {
+        this.targetBytecodeVersion = targetBytecodeVersion;
     }
 
     /**
@@ -153,68 +231,63 @@ class IdeaProject {
      * See the examples in the docs for {@link IdeaProject}.
      */
     @Incubating
-    String vcs
+    public String getVcs() {
+        return vcs;
+    }
+
+    public void setVcs(String vcs) {
+        this.vcs = vcs;
+    }
 
     /**
      * The wildcard resource patterns.
      * <p>
      * See the examples in the docs for {@link IdeaProject}.
      */
-    Set<String> wildcards
+    public Set<String> getWildcards() {
+        return wildcards;
+    }
+
+    public void setWildcards(Set<String> wildcards) {
+        this.wildcards = wildcards;
+    }
 
     /**
      * Output *.ipr
      * <p>
      * See the examples in the docs for {@link IdeaProject}.
      */
-    File outputFile
+    public File getOutputFile() {
+        return outputFile;
+    }
+
+    public void setOutputFile(File outputFile) {
+        this.outputFile = outputFile;
+    }
 
     /**
      * The project-level libraries to be added to the IDEA project.
      */
     @Incubating
-    Set<ProjectLibrary> projectLibraries = [] as LinkedHashSet
-
-    /**
-     * The name of the IDEA project. It is a convenience property that returns the name of the output file (without the file extension).
-     * In IDEA, the project name is driven by the name of the 'ipr' file.
-     */
-    String getName() {
-       getOutputFile().name.replaceFirst(/\.ipr$/, '')
+    public Set<ProjectLibrary> getProjectLibraries() {
+        return projectLibraries;
     }
 
-    /**
-     * Enables advanced configuration like tinkering with the output XML
-     * or affecting the way existing *.ipr content is merged with Gradle build information.
-     * <p>
-     * See the examples in the docs for {@link IdeaProject}
-     */
-    public void ipr(Closure closure) {
-        ConfigureUtil.configure(closure, getIpr())
+    public void setProjectLibraries(Set<ProjectLibrary> projectLibraries) {
+        this.projectLibraries = projectLibraries;
     }
 
-    /**
-     * See {@link #ipr(Closure) }
-     */
-    final XmlFileContentMerger ipr
-
-    PathFactory pathFactory
-
-    /**
-     * An owner of this IDEA project.
-     * <p>
-     * If IdeaProject requires some information from gradle this field should not be used for this purpose.
-     */
-    final org.gradle.api.Project project
-
-    IdeaProject(org.gradle.api.Project project, XmlFileContentMerger ipr) {
-        this.project = project
-        this.ipr = ipr
+    public PathFactory getPathFactory() {
+        return pathFactory;
     }
 
-    void mergeXmlProject(Project xmlProject) {
-        ipr.beforeMerged.execute(xmlProject)
-        xmlProject.configure(getModules(), getJdkName(), getLanguageLevel(), getTargetBytecodeVersion(), getWildcards(), getProjectLibraries(), getVcs())
-        ipr.whenMerged.execute(xmlProject)
+    public void setPathFactory(PathFactory pathFactory) {
+        this.pathFactory = pathFactory;
+    }
+
+    public void mergeXmlProject(Project xmlProject) {
+        ipr.getBeforeMerged().execute(xmlProject);
+        xmlProject.configure(getModules(), getJdkName(), getLanguageLevel(), getTargetBytecodeVersion(), getWildcards(), getProjectLibraries(), getVcs());
+        ipr.getWhenMerged().execute(xmlProject);
     }
 }

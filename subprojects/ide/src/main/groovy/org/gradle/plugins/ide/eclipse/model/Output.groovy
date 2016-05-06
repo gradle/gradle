@@ -15,14 +15,16 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import groovy.transform.CompileStatic
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil
 
 
+@CompileStatic
 class Output implements ClasspathEntry {
     String path
 
     def Output(Node node) {
-        this(node.@path)
+        this((String)node.attribute('path'))
     }
 
     def Output(String path) {

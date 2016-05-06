@@ -15,22 +15,24 @@
  */
 package org.gradle.plugins.ide.eclipse.internal
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
+import org.gradle.plugins.ide.eclipse.GenerateEclipseProject
 import org.gradle.plugins.ide.internal.configurer.DeduplicationTarget
 import org.gradle.plugins.ide.internal.configurer.ProjectDeduper
 
+@CompileStatic
 class EclipseNameDeduper {
 
     void configureRoot(Project rootProject) {
         def eclipseProjects = rootProject.allprojects.findAll { it.plugins.hasPlugin(EclipsePlugin) }
-
-        new ProjectDeduper().dedupe(eclipseProjects, { project ->
+        new ProjectDeduper().dedupe(eclipseProjects, { Project project ->
             new DeduplicationTarget(project: project,
-                moduleName: project.eclipseProject.projectModel.name,
-                updateModuleName: { project.eclipseProject.projectModel.name = it })
+                moduleName: ((GenerateEclipseProject) project.tasks.getByName("eclipseProject")).projectModel.name,
+                updateModuleName: { String moduleName ->
+                    ((GenerateEclipseProject) project.tasks.getByName("eclipseProject")).projectModel.name = moduleName
+                })
         })
     }
-
-
 }

@@ -17,13 +17,15 @@
 package org.gradle.plugins.ide.internal.configurer
 
 import com.google.common.collect.Lists
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
 
+@CompileStatic
 class ProjectDeduper {
 
-    def moduleNameDeduper = new ModuleNameDeduper()
+    ModuleNameDeduper moduleNameDeduper = new ModuleNameDeduper()
 
-    void dedupe(Collection<Project> projects, Closure createDeduplicationTarget) {
+    void dedupe(Collection<Project> projects, Closure<DeduplicationTarget> createDeduplicationTarget) {
         //Deduper acts on first-come first-served basis.
         //Therefore it's better if the inputs are sorted that first items are least wanted to be prefixed
         //Hence I'm sorting by nesting level:

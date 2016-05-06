@@ -15,15 +15,16 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import groovy.transform.CompileStatic
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil
 
-
+@CompileStatic
 class WbDependentModule {
     String deployPath
     String handle
 
-    def WbDependentModule(node) {
-        this(node.@'deploy-path', node.@handle)
+    def WbDependentModule(Node node) {
+        this((String) node.attribute('deploy-path'), (String) node.attribute('handle'))
     }
 
     def WbDependentModule(String deployPath, String handle) {

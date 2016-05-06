@@ -15,8 +15,10 @@
  */
 package org.gradle.plugins.ide.eclipse.model.internal
 
+import groovy.transform.CompileStatic
 import org.gradle.plugins.ide.eclipse.model.FileReference
 
+@CompileStatic
 class FileReferenceFactory {
     private final Map<String, File> variables = [:]
 
@@ -34,8 +36,8 @@ class FileReferenceFactory {
         if (!file) {
             return null
         }
-        def path = null
-        def usedVar = false
+        String path = null
+        boolean usedVar = false
         for (entry in variables.entrySet()) {
             def rootDirPath = entry.value.absolutePath
             def filePath = file.absolutePath
@@ -114,8 +116,8 @@ class FileReferenceFactory {
             if (obj == null || obj.getClass() != getClass()) {
                 return false
             }
-
-            return file.equals(obj.file)
+            FileReference ref = obj as FileReference;
+            return file.equals(ref.file)
         }
 
         public String getJarURL(){

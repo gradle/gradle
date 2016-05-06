@@ -17,6 +17,8 @@
 package org.gradle.plugins.ide.eclipse.model.internal
 
 import com.google.common.base.Equivalence
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.file.DirectoryTree
 import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry
@@ -24,6 +26,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
 import org.gradle.util.CollectionUtils
 
+@CompileStatic
 class SourceFoldersCreator {
     void populateForClasspath(List<ClasspathEntry> entries, EclipseClasspath classpath) {
         def provideRelativePath = { classpath.project.relativePath(it) }
@@ -51,14 +54,14 @@ class SourceFoldersCreator {
      * @return source folders that live outside of the project
      */
     List<SourceFolder> getExternalSourceFolders(Iterable<SourceSet> sourceSets, Closure provideRelativePath) {
-        def sourceFolders = projectRelativeFolders(sourceSets, provideRelativePath)
-        def externalSourceFolders = sourceFolders.findAll { it.path.contains('..') }
+        List<SourceFolder> sourceFolders = projectRelativeFolders(sourceSets, provideRelativePath)
+        List<SourceFolder> externalSourceFolders = sourceFolders.findAll { it.path.contains('..') }
 
         List<SourceFolder> trimmedSourceFolders = trimAndDedup(externalSourceFolders, getRegularSourceFolders(sourceSets, provideRelativePath).collect { it.name })
         trimmedSourceFolders
     }
 
-    private List<SourceFolder> trimAndDedup(ArrayList<SourceFolder> externalSourceFolders, givenSources) {
+    private List<SourceFolder> trimAndDedup(List<SourceFolder> externalSourceFolders, List<String> givenSources) {
         // externals are mapped to linked resources so we just need a name of the resource, without full path
         // non unique folder names are naively deduped by adding parent filename as a prefix till unique
         // since this seems like a rare edge case this simple approach should be enough
@@ -75,16 +78,16 @@ class SourceFoldersCreator {
         trimmedSourceFolders
     }
 
-    private List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Closure provideRelativePath) {
+    private List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Closure<String> provideRelativePath) {
         def entries = []
-        def sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets.collect { it })
+        def sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets.collect { SourceSet ss -> ss })
 
         sortedSourceSets.each { SourceSet sourceSet ->
 
             def sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceSet.allSource.srcDirTrees)
 
             sortedSourceDirs.each { tree ->
-                def dir = tree.dir
+                File dir = tree.dir
                 if (dir.isDirectory()) {
                     def folder = new SourceFolder(provideRelativePath(dir), null)
                     folder.dir = dir
@@ -109,17 +112,18 @@ class SourceFoldersCreator {
             return []
         } else {
             List<String> allIncludes = CollectionUtils.flattenCollections(String.class, includesByType)
-            return CollectionUtils.dedup(allIncludes, Equivalence.equals());
+            return CollectionUtils.dedup(allIncludes, Equivalence.equals() as Equivalence<String>);
         }
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     private List<Set<String>> getFiltersForTreeGroupedByType(SourceSet sourceSet, DirectoryTree directoryTree, String filterOperation) {
         // check for duplicate entries in java and resources
         if (!CollectionUtils.intersection([sourceSet.allJava.srcDirs, sourceSet.resources.srcDirs]).contains(directoryTree.dir)) {
-            return [directoryTree.patterns."${filterOperation}" as List]
+            return [directoryTree.patterns."${filterOperation}" as Set<String>]
         } else {
-            def resourcesFilter = sourceSet.resources.srcDirTrees.find { it.dir == directoryTree.dir }.patterns."${filterOperation}" as Set
-            def sourceFilters = sourceSet.allJava.srcDirTrees.find { it.dir == directoryTree.dir }.patterns."${filterOperation}" as Set
+            Set<String> resourcesFilter = sourceSet.resources.srcDirTrees.find { it.dir == directoryTree.dir }.patterns."${filterOperation}"
+            Set<String> sourceFilters = sourceSet.allJava.srcDirTrees.find { it.dir == directoryTree.dir }.patterns."${filterOperation}"
             return [resourcesFilter, sourceFilters]
         }
     }

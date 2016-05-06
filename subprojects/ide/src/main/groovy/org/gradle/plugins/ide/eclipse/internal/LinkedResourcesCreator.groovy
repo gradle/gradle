@@ -16,14 +16,19 @@
 
 package org.gradle.plugins.ide.eclipse.internal
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.plugins.ide.eclipse.model.Link
 import org.gradle.plugins.ide.eclipse.model.internal.SourceFoldersCreator
 
+@CompileStatic
 class LinkedResourcesCreator {
 
     Set<Link> links(Project project) {
-        def folders = new SourceFoldersCreator().getExternalSourceFolders(project.sourceSets, {project.relativePath(it)} )
+        def folders = new SourceFoldersCreator().getExternalSourceFolders(project.convention.getPlugin(JavaPluginConvention).sourceSets, {
+            project.relativePath(it)
+        })
         folders.collect {
             new Link(it.name, '2', it.absolutePath, null)
         } as Set

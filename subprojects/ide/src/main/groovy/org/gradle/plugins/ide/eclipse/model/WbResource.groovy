@@ -15,15 +15,16 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import groovy.transform.CompileStatic
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil
 
-
+@CompileStatic
 class WbResource {
     String deployPath
     String sourcePath
 
-    def WbResource(node) {
-        this(node.@'deploy-path', node.@'source-path')
+    def WbResource(Node node) {
+        this((String) node.attribute('deploy-path'), (String) node.attribute('source-path'))
     }
 
     def WbResource(String deployPath, String sourcePath) {

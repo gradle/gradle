@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse.model
 
+import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.dsl.ConventionProperty
 import org.gradle.plugins.ide.api.XmlFileContentMerger
@@ -114,6 +115,7 @@ import org.gradle.util.ConfigureUtil
  * }
  * </pre>
  */
+@CompileStatic
 class EclipseWtpComponent {
 
     /**

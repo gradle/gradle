@@ -15,8 +15,10 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import groovy.transform.CompileStatic
 import org.gradle.util.DeprecationLogger
 
+@CompileStatic
 class ProjectDependency extends AbstractClasspathEntry {
 
     private static final String DEPRECATED_DECLAREDCONFIGNAME_FIELD = "ProjectDependency.declaredConfigurationName"

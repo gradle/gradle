@@ -15,12 +15,14 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import groovy.transform.CompileStatic
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 
+@CompileStatic
 class Variable extends AbstractLibrary {
     Variable(Node node, FileReferenceFactory fileReferenceFactory) {
         super(node, fileReferenceFactory)
-        sourcePath = fileReferenceFactory.fromVariablePath(node.@sourcepath)
+        sourcePath = fileReferenceFactory.fromVariablePath((String) node.attribute('sourcepath'))
     }
 
     Variable(FileReference library) {

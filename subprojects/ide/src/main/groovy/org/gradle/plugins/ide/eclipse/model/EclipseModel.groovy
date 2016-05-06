@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import groovy.transform.CompileStatic
 import org.gradle.util.ConfigureUtil
 
 /**
@@ -46,6 +47,7 @@ import org.gradle.util.ConfigureUtil
  *
  * More examples in docs for {@link EclipseProject}, {@link EclipseClasspath}, {@link EclipseWtp}
  */
+@CompileStatic
 class EclipseModel {
 
     /**

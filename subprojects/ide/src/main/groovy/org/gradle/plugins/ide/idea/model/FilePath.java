@@ -13,21 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.ide.idea.model;
 
-package org.gradle.plugins.ide.idea.model
+import java.io.File;
 
 /**
  * A Path that keeps the reference to the File
  */
-class FilePath extends Path {
+public class FilePath extends Path {
+
+    private final File file;
+
+    public FilePath(File file, String url, String canonicalUrl, String relPath) {
+        super(url, canonicalUrl, relPath);
+        this.file = file;
+    }
 
     /**
-     * file
+     * File.
      */
-    final File file
-
-    FilePath(File file, String url, String canonicalUrl, String relPath) {
-        super(url, canonicalUrl, relPath)
-        this.file = file
+    public final File getFile() {
+        return file;
     }
 }

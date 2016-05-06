@@ -15,6 +15,9 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class Container extends AbstractClasspathEntry {
     Container(Node node) {
         super(node)

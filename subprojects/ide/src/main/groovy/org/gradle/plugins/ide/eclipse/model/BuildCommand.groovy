@@ -15,6 +15,9 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class BuildCommand implements Serializable {
     String name
     Map arguments

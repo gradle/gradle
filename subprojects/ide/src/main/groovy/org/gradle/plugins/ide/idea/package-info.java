@@ -13,14 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.eclipse.model.internal
 
-import groovy.transform.CompileStatic
-import org.apache.commons.io.FilenameUtils
-
-@CompileStatic
-class PathUtil {
-  static String normalizePath(String path) {
-        FilenameUtils.separatorsToUnix(path)
-    }
-}
+/**
+ * A {@link org.gradle.api.Plugin} for generating IDEA files.
+ */
+package org.gradle.plugins.ide.idea;

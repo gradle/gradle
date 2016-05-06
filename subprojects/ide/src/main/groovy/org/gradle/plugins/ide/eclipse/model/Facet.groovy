@@ -15,7 +15,9 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import groovy.transform.CompileStatic
 
+@CompileStatic
 class Facet {
 
     /**
@@ -35,7 +37,7 @@ class Facet {
     }
 
     def Facet(Node node) {
-        this(FacetType.valueOf(node.name()), node.@facet, node.@version)
+        this(FacetType.valueOf((String) node.name()), (String) node.attribute('facet'), (String) node.attribute('version'))
     }
 
     def Facet(String name, String version) {

@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.idea
 
+import groovy.transform.CompileStatic
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.gradle.plugins.ide.idea.model.Project
@@ -24,6 +25,7 @@ import org.gradle.plugins.ide.idea.model.Project
  * <p>
  * At this moment nearly all configuration is done via {@link IdeaProject}.
  */
+@CompileStatic
 public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
 
     /**

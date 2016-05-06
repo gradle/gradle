@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import groovy.transform.CompileStatic
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.plugins.ide.api.PropertiesGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt
@@ -25,6 +26,7 @@ import org.gradle.plugins.ide.eclipse.model.Jdt
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseJdt}.
  */
+@CompileStatic
 class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
 
     /**
@@ -35,11 +37,11 @@ class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
     GenerateEclipseJdt() {
         jdt = instantiator.newInstance(EclipseJdt, new PropertiesFileContentMerger(getTransformer()))
     }
-    
+
     protected Jdt create() {
         return new Jdt(getTransformer())
     }
-    
+
     protected void configure(Jdt jdtContent) {
         def jdtModel = getJdt()
         jdtModel.file.beforeMerged.execute(jdtContent)

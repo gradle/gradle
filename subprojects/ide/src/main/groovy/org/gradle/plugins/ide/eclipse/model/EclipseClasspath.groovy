@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.eclipse.model
+
+import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.SourceSet
 import org.gradle.plugins.ide.api.XmlFileContentMerger
@@ -101,6 +103,7 @@ import org.gradle.util.DeprecationLogger
  * }
  * </pre>
  */
+@CompileStatic
 class EclipseClasspath {
     private static final String DEPRECATED_NOEXPORTCONFIGURATION_FIELD = "EclipseClasspath.noExportConfigurations"
 

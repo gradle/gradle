@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.eclipse.model
+
 import org.gradle.api.InvalidUserDataException
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil

@@ -17,17 +17,24 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.WarPlugin;
 import org.gradle.plugins.ear.Ear;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.eclipse.EclipseWtpPlugin;
-import org.gradle.plugins.ide.eclipse.model.*;
+import org.gradle.plugins.ide.eclipse.model.EclipseModel;
+import org.gradle.plugins.ide.eclipse.model.EclipseWtp;
+import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor;
 import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 
 public class EclipseWtpSupport {
 

@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import groovy.transform.CompileStatic
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseProject
@@ -25,6 +26,7 @@ import org.gradle.plugins.ide.eclipse.model.Project
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseProject}.
  */
+@CompileStatic
 class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 
     /**

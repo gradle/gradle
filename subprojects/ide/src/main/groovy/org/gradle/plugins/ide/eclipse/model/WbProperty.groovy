@@ -15,13 +15,15 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import groovy.transform.CompileStatic
 
+@CompileStatic
 class WbProperty {
     String name
     String value
 
-    def WbProperty(node) {
-        this(node.@name, node.@value)
+    def WbProperty(Node node) {
+        this((String) node.attribute('name'), (String) node.attribute('value'))
     }
 
     def WbProperty(String name, String value) {

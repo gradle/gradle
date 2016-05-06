@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse.model
 
+import groovy.transform.CompileStatic
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil
 
@@ -63,6 +64,7 @@ import org.gradle.util.ConfigureUtil
  *
  * </pre>
  */
+@CompileStatic
 class EclipseWtpFacet {
 
     /**

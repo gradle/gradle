@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.ide.idea.model;
 
-package org.gradle.plugins.ide.idea.model
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
 
-import org.gradle.internal.xml.XmlTransformer
-import org.gradle.plugins.ide.api.XmlFileContentMerger
+import java.io.File;
 
 /**
  * Models the generation/parsing/merging capabilities of an IDEA module.
  * <p>
  * For examples, see docs for {@link IdeaModule}.
  */
-class IdeaModuleIml extends XmlFileContentMerger {
+public class IdeaModuleIml extends XmlFileContentMerger {
 
-    IdeaModuleIml(XmlTransformer xmlTransformer, File generateTo) {
-        super(xmlTransformer)
-        this.generateTo = generateTo
+    private File generateTo;
+
+    public IdeaModuleIml(XmlTransformer xmlTransformer, File generateTo) {
+        super(xmlTransformer);
+        this.generateTo = generateTo;
     }
 
     /**
@@ -36,5 +39,11 @@ class IdeaModuleIml extends XmlFileContentMerger {
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    File generateTo
+    public File getGenerateTo() {
+        return generateTo;
+    }
+
+    public void setGenerateTo(File generateTo) {
+        this.generateTo = generateTo;
+    }
 }

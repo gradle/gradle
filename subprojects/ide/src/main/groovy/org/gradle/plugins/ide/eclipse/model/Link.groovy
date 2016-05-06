@@ -15,8 +15,10 @@
  */
 package org.gradle.plugins.ide.eclipse.model
 
+import groovy.transform.CompileStatic
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil
 
+@CompileStatic
 class Link {
     String name
     String type

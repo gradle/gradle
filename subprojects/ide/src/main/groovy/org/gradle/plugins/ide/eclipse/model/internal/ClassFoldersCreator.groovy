@@ -16,22 +16,26 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal
 
+import groovy.transform.CompileStatic
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 import org.gradle.plugins.ide.eclipse.model.Library
 
 /**
  * Eclipse calls them 'class folders' on java build path->libraries tab
  */
+@CompileStatic
 class ClassFoldersCreator {
 
     List<Library> create(EclipseClasspath classpath) {
         List<Library> out = new LinkedList<Library>()
         FileReferenceFactory fileReferenceFactory = classpath.fileReferenceFactory
 
-        classpath.classFolders.each { File folder ->
-            Library library = new Library(fileReferenceFactory.fromFile(folder))
-            library.exported = true
-            out << library
+        if(classpath.classFolders) {
+            classpath.classFolders.each { File folder ->
+                Library library = new Library(fileReferenceFactory.fromFile(folder))
+                library.exported = true
+                out << library
+            }
         }
 
         return out;

@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse.model.internal
 
+import groovy.transform.CompileStatic
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.plugins.ide.eclipse.model.*
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
@@ -24,6 +25,7 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDepende
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency
 import org.gradle.util.DeprecationLogger
 
+@CompileStatic
 class ClasspathFactory {
 
     private final ClasspathEntryBuilder outputCreator = new ClasspathEntryBuilder() {
@@ -53,19 +55,19 @@ class ClasspathFactory {
             dependenciesExtractor.extractRepoFileDependencies(
                     classpath.project.dependencies, classpath.plusConfigurations, classpath.minusConfigurations, classpath.downloadSources, classpath.downloadJavadoc)
             .each { IdeExtendedRepoFileDependency it ->
-                entries << createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration, classpath, it.id)
+                entries << ClasspathFactory.createLibraryEntry(it.file, it.sourceFile, it.javadocFile, it.declaredConfiguration, classpath, it.id)
             }
 
             dependenciesExtractor.extractLocalFileDependencies(classpath.plusConfigurations, classpath.minusConfigurations)
             .each { IdeLocalFileDependency it ->
-                entries << createLibraryEntry(it.file, null, null, it.declaredConfiguration, classpath, null)
+                entries << ClasspathFactory.createLibraryEntry(it.file, null, null, it.declaredConfiguration, classpath, null)
             }
         }
     }
 
-    private final sourceFoldersCreator = new SourceFoldersCreator()
+    private final SourceFoldersCreator sourceFoldersCreator = new SourceFoldersCreator()
     private final IdeDependenciesExtractor dependenciesExtractor = new IdeDependenciesExtractor()
-    private final classFoldersCreator = new ClassFoldersCreator()
+    private final ClassFoldersCreator classFoldersCreator = new ClassFoldersCreator()
 
     List<ClasspathEntry> createEntries(EclipseClasspath classpath) {
         def entries = []
@@ -87,7 +89,7 @@ class ClasspathFactory {
         return dependenciesExtractor.unresolvedExternalDependencies(classpath.plusConfigurations, classpath.minusConfigurations);
     }
 
-    private AbstractLibrary createLibraryEntry(
+    private static AbstractLibrary createLibraryEntry(
             File binary, File source, File javadoc, String declaredConfigurationName, EclipseClasspath classpath,
             ModuleVersionIdentifier id) {
         def referenceFactory = classpath.fileReferenceFactory

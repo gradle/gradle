@@ -19,7 +19,11 @@ package org.gradle.plugins.ide.idea.model.internal;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.*;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
@@ -36,7 +40,15 @@ import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDepen
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class IdeaDependenciesProvider {
 

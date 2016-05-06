@@ -16,12 +16,14 @@
 
 package org.gradle.plugins.ide.internal.configurer
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
 
+@CompileStatic
  class DeduplicationTarget {
      def Project project
      def String moduleName
-     def Closure updateModuleName
+     def Closure<String> updateModuleName
 
      boolean deduplicated = false
 }

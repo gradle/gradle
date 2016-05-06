@@ -13,61 +13,68 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.idea.model
+package org.gradle.plugins.ide.idea.model;
 
 /**
  * Represents a path in a format as used often in ipr and iml files.
  */
-class Path {
+public class Path {
+
+    private final String url;
+    private final String relPath;
+    private final String canonicalUrl;
+
+    public Path(String url) {
+        this(url, url, null);
+    }
+
+    public Path(String url, String canonicalUrl, String relPath) {
+        this.relPath = relPath;
+        this.url = url;
+        this.canonicalUrl = canonicalUrl;
+    }
+
     /**
      * The url of the path. Must not be null.
      */
-    final String url
+    public final String getUrl() {
+        return url;
+    }
 
     /**
      * The relative path of the path. Must not be null.
      */
-    final String relPath
+    public final String getRelPath() {
+        return relPath;
+    }
 
     /**
      * Canonical url.
      */
-    final String canonicalUrl
-
-    Path(String url) {
-        this(url, url, null)
-    }
-
-    Path(String url, String canonicalUrl, String relPath) {
-        this.relPath = relPath
-        this.url = url
-        this.canonicalUrl = canonicalUrl
-    }
-
-    boolean equals(o) {
-        if (this.is(o)) {
-            return true
-        }
-        if (!(o instanceof Path)) {
-            return false
-        }
-
-        Path path = (Path) o;
-
-        if (canonicalUrl != path.canonicalUrl) {
-            return false
-        }
-
-        return true;
-    }
-
-    int hashCode() {
-        return canonicalUrl.hashCode();
+    public final String getCanonicalUrl() {
+        return canonicalUrl;
     }
 
     public String toString() {
-        return "Path{" +
-                "url='" + url + '\'' +
-                '}';
+        return "Path{" + "url='" + url + "\'" + "}";
+    }
+
+
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof Path)) {
+            return false;
+        }
+        Path path = (Path) o;
+        if (!canonicalUrl.equals(path.canonicalUrl)) {
+            return false;
+        }
+        return true;
+    }
+
+    public int hashCode() {
+        return canonicalUrl.hashCode();
     }
 }

@@ -16,12 +16,14 @@
 package org.gradle.plugins.ide.internal.configurer
 
 import com.google.common.collect.Lists
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
 
 /**
  * Able to deduplicate names. Useful for IDE plugins to make sure module names (IDEA) or project names (Eclipse) are unique.
  * <p>
  */
+@CompileStatic
 class ModuleNameDeduper {
 
     void dedupe(Collection<DeduplicationTarget> targets) {
@@ -31,7 +33,7 @@ class ModuleNameDeduper {
         targets.each { target ->
             projectToPrefixMap[target.project] = target.project.parent
         }
-        def originalProjectNames = targets.inject([:]) { acc, value ->
+        Map<String, String> originalProjectNames = (Map<String, String>) targets.inject([:]) { acc, value ->
             acc[value] = value.moduleName
             acc
         }
@@ -42,11 +44,11 @@ class ModuleNameDeduper {
 
         List<String> deduplicatedProjectNames = targets.collect { it.moduleName }
         targets.each { target ->
-            def simplifiedProjectName = removeDuplicateWordsFromPrefix(target.moduleName, originalProjectNames[target])
+            def simplifiedProjectName = removeDuplicateWordsFromPrefix(target.moduleName, originalProjectNames.get(target))
             if (!deduplicatedProjectNames.contains(simplifiedProjectName)) {
                 target.moduleName = simplifiedProjectName
             }
-            target.updateModuleName(target.moduleName)
+            target.updateModuleName.call(target.moduleName)
         }
     }
 
@@ -91,15 +93,15 @@ class ModuleNameDeduper {
             return deduppedProjectName
         }
 
-        def prefix = deduppedProjectName.substring(0, deduppedProjectName.lastIndexOf(originalProjectName))
-        def prefixWordList = Lists.newArrayList(prefix.split("-"))
-        def postfixWordList = Lists.newArrayList(originalProjectName.split("-"))
+        String prefix = deduppedProjectName.substring(0, deduppedProjectName.lastIndexOf(originalProjectName))
+        List<String> prefixWordList = Lists.newArrayList(prefix.split("-"))
+        List<String> postfixWordList = Lists.newArrayList(originalProjectName.split("-"))
         if (postfixWordList.size() > 1) {
             prefixWordList.add(postfixWordList.head())
             postfixWordList = postfixWordList.tail()
         }
 
-        def words = prefixWordList.inject([]) { List words, newWord ->
+        List<String> words = (List<String>) prefixWordList.inject([] as List<String>) { List<String> words, String newWord ->
             if (words.isEmpty() || !words.last().equals(newWord)) {
                 words.add(newWord)
             }
