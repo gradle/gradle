@@ -19,35 +19,29 @@ package org.gradle.launcher.daemon.server.health;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.util.NumberUtil;
-import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor;
-import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
 import org.gradle.util.Clock;
-
-import java.util.concurrent.ScheduledExecutorService;
 
 import static java.lang.String.format;
 
-public class DaemonStats {
+class DaemonStats {
 
     private final Clock totalTime;
     private final TimeProvider timeProvider;
     private final MemoryInfo memory;
-    private final GarbageCollectionMonitor gcMonitor;
 
     private int buildCount;
     private long currentBuildStart;
     private long allBuildsTime;
     private int currentPerformance;
 
-    DaemonStats(ScheduledExecutorService scheduledExecutorService) {
-        this(new Clock(), new TrueTimeProvider(), new MemoryInfo(), new GarbageCollectionMonitor(scheduledExecutorService));
+    DaemonStats() {
+        this(new Clock(), new TrueTimeProvider(), new MemoryInfo());
     }
 
-    public DaemonStats(Clock totalTime, TimeProvider timeProvider, MemoryInfo memory, GarbageCollectionMonitor gcMonitor) {
-        this.totalTime = totalTime;
+    DaemonStats(Clock startTime, TimeProvider timeProvider, MemoryInfo memory) {
+        this.totalTime = startTime;
         this.timeProvider = timeProvider;
         this.memory = memory;
-        this.gcMonitor = gcMonitor;
     }
 
     /**
@@ -90,14 +84,15 @@ public class DaemonStats {
         if (buildCount == 1) {
             return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(memory.getMaxMemory()));
         } else {
-            GarbageCollectionStats tenuredStats = gcMonitor.getTenuredStats();
-            return format("Starting %s build in daemon [uptime: %s, performance: %s%%, GC rate: %.2f/s, tenured heap usage: %s%% of %s]",
-                NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance(), tenuredStats.getRate(), tenuredStats.getUsage(), NumberUtil.formatBytes(tenuredStats.getMax()));
-
+            return format("Starting %s build in daemon [uptime: %s, performance: %s%%, memory: %s%% of %s]",
+                    NumberUtil.ordinal(buildCount), totalTime.getTime(), currentPerformance, getMemoryUsed(), NumberUtil.formatBytes(memory.getMaxMemory()));
         }
     }
 
-    GarbageCollectionMonitor getGcMonitor() {
-        return gcMonitor;
+    /**
+     * 0-100, the percentage of memory used of total memory available to the process
+     */
+    int getMemoryUsed() {
+        return NumberUtil.percentOf(memory.getCommittedMemory(), memory.getMaxMemory());
     }
 }

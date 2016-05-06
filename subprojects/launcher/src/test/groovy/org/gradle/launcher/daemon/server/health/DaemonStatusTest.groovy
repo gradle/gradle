@@ -17,90 +17,60 @@
 package org.gradle.launcher.daemon.server.health
 
 import org.gradle.api.GradleException
-import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor
-import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats
-import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static org.gradle.launcher.daemon.server.health.DaemonStatus.TENURED_RATE_EXPIRE_AT
-import static org.gradle.launcher.daemon.server.health.DaemonStatus.TENURED_USAGE_EXPIRE_AT
+import static org.gradle.launcher.daemon.server.health.DaemonStatus.EXPIRE_AT_PROPERTY
 
 class DaemonStatusTest extends Specification {
 
+    @Subject status = new DaemonStatus()
     def stats = Mock(DaemonStats)
-    @Subject status = new DaemonStatus(stats)
-    def gcMonitor = Mock(GarbageCollectionMonitor)
 
     @Rule SetSystemProperties props = new SetSystemProperties()
 
-    def "validates supplied tenured usage threshold value"() {
-        System.setProperty(TENURED_USAGE_EXPIRE_AT, "foo")
-        _ * stats.getGcMonitor() >> gcMonitor
-        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_CMS
+    def "validates supplied threshold value"() {
+        System.setProperty(EXPIRE_AT_PROPERTY, "foo")
 
         when:
-        status.isDaemonTired()
+        status.isDaemonTired(stats)
 
         then:
         def ex = thrown(GradleException)
-        ex.message == "System property 'org.gradle.daemon.performance.tenured-usage-expire-at' has incorrect value: 'foo'. The value needs to be an integer."
-    }
-
-    def "validates supplied tenured rate threshold value"() {
-        System.setProperty(TENURED_RATE_EXPIRE_AT, "foo")
-        _ * stats.getGcMonitor() >> gcMonitor
-        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_CMS
-
-        when:
-        status.isDaemonTired()
-
-        then:
-        def ex = thrown(GradleException)
-        ex.message == "System property 'org.gradle.daemon.performance.tenured-rate-expire-at' has incorrect value: 'foo'. The value needs to be a double."
+        ex.message == "System property 'org.gradle.daemon.performance.expire-at' has incorrect value: 'foo'. The value needs to be integer."
     }
 
     @Unroll
-    def "knows when daemon is tired (#rateThreshold <= #rate, #usageThreshold <= #used)"() {
-        _ * stats.getGcMonitor() >> gcMonitor
-        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_CMS
-
+    def "knows when daemon is tired"() {
         when:
-        System.setProperty(TENURED_USAGE_EXPIRE_AT, usageThreshold.toString())
-        System.setProperty(TENURED_RATE_EXPIRE_AT, rateThreshold.toString())
-        gcMonitor.getTenuredStats() >> {
-            Stub(GarbageCollectionStats) {
-                getUsage() >> used
-                getRate() >> rate
-            }
-        }
+        System.setProperty(EXPIRE_AT_PROPERTY, threshold.toString())
+        stats.getCurrentPerformance() >> perf
+        stats.getMemoryUsed() >> mem
 
         then:
-        status.isDaemonTired() == tired
+        status.isDaemonTired(stats) == tired
 
         where:
-        rateThreshold | usageThreshold | rate | used | tired
-        1.0           | 90             | 1.1  | 100  | true
-        1.0           | 90             | 1.1  | 91   | true
-        1.0           | 90             | 1.1  | 89   | false
-        1.0           | 90             | 0.9  | 91   | false
-        1.0           | 0              | 1.0  | 0    | false
-        0             | 90             | 0    | 100  | false
-        1.0           | 0              | 1.1  | 100  | false
-        0             | 90             | 1.1  | 100  | false
-        1.0           | 100            | 1.1  | 100  | true
-        1.0           | 75             | 1.1  | 75   | true
-        1.0           | 75             | 1.0  | 100  | true
+        threshold | perf | mem   | tired
+        90        | 89   | 100   | true
+        90        | 90   | 90    | true
+        90        | 91   | 100   | false
+        0         | 0    | 100   | false
+        0         | 1    | 100   | false
+        100       | 100  | 100   | true
+        100       | 100  | 60    | false
+        75        | 80   | 0     | false
     }
 
-    def "can disable daemon performance monitoring"() {
+    def "daemon hygiene is disabled by default"() {
         when:
-        System.setProperty(DaemonStatus.ENABLE_PERFORMANCE_MONITORING, "false")
+        stats.getCurrentPerformance() >> 0
+        stats.getMemoryUsed() >> 100
 
         then:
-        !status.isDaemonTired()
+        !status.isDaemonTired(stats)
     }
 }

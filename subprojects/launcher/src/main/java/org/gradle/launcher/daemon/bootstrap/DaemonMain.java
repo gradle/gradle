@@ -38,12 +38,10 @@ import org.gradle.launcher.daemon.server.AllDaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.AnyDaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.DaemonHealthExpirationStrategy;
 import org.gradle.launcher.daemon.server.DaemonIdleTimeoutExpirationStrategy;
 import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.LowMemoryDaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 import org.gradle.process.internal.streams.EncodedStream;
 
 import java.io.*;
@@ -121,7 +119,7 @@ public class DaemonMain extends EntryPoint {
             Long pid = daemonContext.getPid();
             daemonStarted(pid, daemon.getUid(), daemon.getAddress(), daemonLog);
 
-            daemon.stopOnExpiration(initializeExpirationStrategy(daemonServices, parameters), parameters.getPeriodicCheckIntervalMs());
+            daemon.stopOnExpiration(initializeExpirationStrategy(parameters), parameters.getPeriodicCheckIntervalMs());
         } finally {
             daemon.stop();
         }
@@ -181,10 +179,9 @@ public class DaemonMain extends EntryPoint {
         loggingManager.start();
     }
 
-    private DaemonExpirationStrategy initializeExpirationStrategy(DaemonServices daemonServices, final DaemonServerConfiguration params) {
+    private DaemonExpirationStrategy initializeExpirationStrategy(final DaemonServerConfiguration params) {
         Builder strategies = ImmutableList.<DaemonExpirationStrategy>builder();
         strategies.add(new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout(), TimeUnit.MILLISECONDS));
-        strategies.add(new DaemonHealthExpirationStrategy(daemonServices.get(DaemonHealthServices.class)));
         try {
             strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
                 new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout() / 4, TimeUnit.MILLISECONDS),

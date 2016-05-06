@@ -19,12 +19,10 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.Nullable;
 
 public class DaemonExpirationResult {
-    public static final DaemonExpirationResult DO_NOT_EXPIRE = new DaemonExpirationResult(false, null);
-
     private final boolean expired;
     private final String reason;
 
-    public DaemonExpirationResult(boolean expired, @Nullable String reason) {
+    DaemonExpirationResult(boolean expired, @Nullable String reason) {
         this.expired = expired;
         this.reason = reason;
     }

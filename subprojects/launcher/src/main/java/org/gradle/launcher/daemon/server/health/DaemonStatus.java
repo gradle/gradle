@@ -17,51 +17,23 @@
 package org.gradle.launcher.daemon.server.health;
 
 import org.gradle.api.GradleException;
-import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
-import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 
 import static java.lang.String.format;
 
-public class DaemonStatus {
-    public static final String ENABLE_PERFORMANCE_MONITORING = "org.gradle.daemon.performance.enable-monitoring";
-    public static final String TENURED_USAGE_EXPIRE_AT = "org.gradle.daemon.performance.tenured-usage-expire-at";
-    public static final String TENURED_RATE_EXPIRE_AT = "org.gradle.daemon.performance.tenured-rate-expire-at";
+class DaemonStatus {
 
-    private final DaemonStats stats;
+    public static final String EXPIRE_AT_PROPERTY = "org.gradle.daemon.performance.expire-at";
+    static final int DEFAULT_EXPIRE_AT = 0;
 
-    public DaemonStatus(DaemonStats stats) {
-        this.stats = stats;
+    boolean isDaemonTired(DaemonStats stats) {
+        String expireAt = System.getProperty(EXPIRE_AT_PROPERTY);
+        int threshold = parseValue(expireAt, DEFAULT_EXPIRE_AT);
+        return threshold != 0 //zero means the feature is off
+                && stats.getMemoryUsed() > 85 //the daemon is not tired if the memory is not sufficiently exhausted
+                && stats.getCurrentPerformance() <= threshold; //performance below threshold
     }
 
-    boolean isDaemonTired() {
-        String enabledValue = System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true");
-        Boolean enabled = Boolean.parseBoolean(enabledValue);
-        return enabled && isTenuredSpaceExhausted();
-    }
-
-    public boolean isTenuredSpaceExhausted() {
-        GarbageCollectorMonitoringStrategy strategy = stats.getGcMonitor().getGcStrategy();
-        if (strategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
-            int tenuredUsageThreshold = parseValue(TENURED_USAGE_EXPIRE_AT, strategy.getTenuredUsageThreshold());
-            if (tenuredUsageThreshold == 0) {
-                return false;
-            }
-            double tenuredRateThreshold = parseValue(TENURED_RATE_EXPIRE_AT, strategy.getGcRateThreshold());
-            if (tenuredRateThreshold == 0) {
-                return false;
-            }
-            GarbageCollectionStats gcStats = stats.getGcMonitor().getTenuredStats();
-            if (gcStats.getUsage() >= tenuredUsageThreshold
-                && gcStats.getRate() >= tenuredRateThreshold) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private static int parseValue(String property, int defaultValue) {
-        String expireAt = System.getProperty(property);
-
+    private static int parseValue(String expireAt, int defaultValue) {
         if (expireAt == null) {
             return defaultValue;
         }
@@ -69,23 +41,8 @@ public class DaemonStatus {
             return Integer.parseInt(expireAt);
         } catch (Exception e) {
             throw new GradleException(format(
-                    "System property '%s' has incorrect value: '%s'. The value needs to be an integer.",
-                property, expireAt));
-        }
-    }
-
-    private static double parseValue(String property, double defaultValue) {
-        String expireAt = System.getProperty(property);
-
-        if (expireAt == null) {
-            return defaultValue;
-        }
-        try {
-            return Double.parseDouble(expireAt);
-        } catch (Exception e) {
-            throw new GradleException(format(
-                "System property '%s' has incorrect value: '%s'. The value needs to be a double.",
-                property, expireAt));
+                    "System property '%s' has incorrect value: '%s'. The value needs to be integer.",
+                    EXPIRE_AT_PROPERTY, expireAt));
         }
     }
 }

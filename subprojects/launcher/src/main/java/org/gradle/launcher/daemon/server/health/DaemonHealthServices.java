@@ -29,14 +29,4 @@ public interface DaemonHealthServices {
      * gets the action that tracks daemon's health
      */
     DaemonCommandAction getHealthTrackerAction();
-
-    /**
-     * gets the raw daemon stats
-     */
-    DaemonStats getDaemonStats();
-
-    /**
-     * gets the status of the daemon
-     */
-    DaemonStatus getDaemonStatus();
 }
