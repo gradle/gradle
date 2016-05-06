@@ -372,6 +372,15 @@
             <para>
                 You can add compile, test and runtime dependencies to a Play application through <apilink class="org.gradle.api.artifacts.Configuration">Configurations</apilink> created by the Play plugin.
             </para>
+            <para>
+                If you are coming from SBT, the Play SBT plugin provides short names for common dependencies.  For instance, if your project has a dependency on
+                <literal>ws</literal>, you will need to add a dependency to <literal>com.typesafe.play:play-ws_2.11:2.3.9</literal> where <literal>2.11</literal>
+                is your Scala version and <literal>2.3.9</literal> is your Play framework version.
+            </para>
+            <para>
+                Other dependencies that have short names, such as <literal>jacksons</literal> may actually be multiple dependencies. For those dependencies, you will need to work out the dependency
+                coordinates from a dependency report.
+            </para>
             <itemizedlist>
                 <listitem>
                     <para>
