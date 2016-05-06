@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import groovy.lang.Closure;
 import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
 
@@ -27,26 +26,15 @@ import java.util.ArrayList;
  */
 public class ApplicationPluginConvention {
     private String applicationName;
-
     private String mainClassName;
-
-    private Iterable<String> applicationDefaultJvmArgs = new ArrayList();
-
+    private Iterable<String> applicationDefaultJvmArgs = new ArrayList<String>();
     private CopySpec applicationDistribution;
 
     private final Project project;
 
     public ApplicationPluginConvention(Project project) {
         this.project = project;
-        applicationDistribution = project.copySpec(new Closure<Void>(this, this) {
-            public void doCall(CopySpec it) {
-            }
-
-            public void doCall() {
-                doCall(null);
-            }
-
-        });
+        applicationDistribution = project.copySpec();
     }
 
     /**
@@ -83,11 +71,20 @@ public class ApplicationPluginConvention {
     }
 
     /**
-     * <p>The specification of the contents of the distribution.</p> <p> Use this {@link CopySpec} to include extra files/resource in the application distribution. <pre autoTested=''> apply plugin:
-     * 'application'
+     * <p>The specification of the contents of the distribution.</p>
+     * <p>
+     * Use this {@link org.gradle.api.file.CopySpec} to include extra files/resource in the application distribution.
+     * <pre autoTested=''>
+     * apply plugin: 'application'
      *
-     * applicationDistribution.from("some/dir") { include "*.txt" } </pre> <p> Note that the application plugin pre configures this spec to; include the contents of "{@code src/dist}", copy the
-     * application start scripts into the "{@code bin}" directory, and copy the built jar and its dependencies into the "{@code lib}" directory.
+     * applicationDistribution.from("some/dir") {
+     *   include "*.txt"
+     * }
+     * </pre>
+     * <p>
+     * Note that the application plugin pre configures this spec to; include the contents of "{@code src/dist}",
+     * copy the application start scripts into the "{@code bin}" directory, and copy the built jar and its dependencies
+     * into the "{@code lib}" directory.
      */
     public CopySpec getApplicationDistribution() {
         return applicationDistribution;

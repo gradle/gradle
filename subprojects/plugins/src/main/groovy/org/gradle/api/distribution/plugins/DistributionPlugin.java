@@ -46,11 +46,12 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
      * Name of the main distribution
      */
     public static final String MAIN_DISTRIBUTION_NAME = "main";
-    public static final String DISTRIBUTION_GROUP = "distribution";
-    public static final String TASK_DIST_ZIP_NAME = "distZip";
-    public static final String TASK_DIST_TAR_NAME = "distTar";
-    public static final String TASK_ASSEMBLE_NAME = "assembleDist";
     public static final String TASK_INSTALL_NAME = "installDist";
+
+    private static final String DISTRIBUTION_GROUP = "distribution";
+    private static final String TASK_DIST_ZIP_NAME = "distZip";
+    private static final String TASK_DIST_TAR_NAME = "distTar";
+    private static final String TASK_ASSEMBLE_NAME = "assembleDist";
 
     private final Instantiator instantiator;
     private final FileOperations fileOperations;
@@ -61,6 +62,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
         this.fileOperations = fileOperations;
     }
 
+    @Override
     public void apply(final ProjectInternal project) {
         project.getPluginManager().apply(BasePlugin.class);
         DefaultDistributionContainer distributions = project.getExtensions().create("distributions", DefaultDistributionContainer.class, Distribution.class, instantiator, fileOperations);
@@ -69,7 +71,8 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
         distributions.all(new Action<Distribution>() {
             @Override
             public void execute(final Distribution dist) {
-                ((IConventionAware)dist).getConventionMapping().map("baseName", new Callable<Object>() {
+                ((IConventionAware) dist).getConventionMapping().map("baseName", new Callable<Object>() {
+                    @Override
                     public Object call() throws Exception {
                         return dist.getName().equals(MAIN_DISTRIBUTION_NAME) ? project.getName() : String.format("%s-%s", project.getName(), dist.getName());
                     }
@@ -108,6 +111,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
         archiveTask.setDescription("Bundles the project as a distribution.");
         archiveTask.setGroup(DISTRIBUTION_GROUP);
         archiveTask.getConventionMapping().map("baseName", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 if (distribution.getBaseName() == null || distribution.getBaseName().equals("")) {
                     throw new GradleException("Distribution baseName must not be null or empty! Check your configuration of the distribution plugin.");
@@ -161,6 +165,6 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
         Task assembleTask = project.getTasks().create(taskName);
         assembleTask.setDescription("Assembles the " + distribution.getName() + " distributions");
         assembleTask.setGroup(DISTRIBUTION_GROUP);
-        assembleTask.dependsOn(tasks);
+        assembleTask.dependsOn((Object[]) tasks);
     }
 }

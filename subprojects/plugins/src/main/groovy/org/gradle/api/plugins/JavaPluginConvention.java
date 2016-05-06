@@ -48,7 +48,7 @@ public class JavaPluginConvention {
 
     private String testReportDirName;
 
-    final SourceSetContainer sourceSets;
+    private final SourceSetContainer sourceSets;
 
     private JavaVersion srcCompat;
     private JavaVersion targetCompat;

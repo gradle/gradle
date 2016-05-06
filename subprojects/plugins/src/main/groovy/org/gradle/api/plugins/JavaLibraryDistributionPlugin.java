@@ -32,6 +32,7 @@ import org.gradle.api.tasks.bundling.Jar;
 public class JavaLibraryDistributionPlugin implements Plugin<ProjectInternal> {
     private Project project;
 
+    @Override
     public void apply(final ProjectInternal project) {
         this.project = project;
         project.getPluginManager().apply(JavaPlugin.class);
@@ -41,14 +42,6 @@ public class JavaLibraryDistributionPlugin implements Plugin<ProjectInternal> {
             (DefaultDistributionContainer) project.getExtensions().findByName("distributions");
         CopySpec contentSpec = defaultDistributionContainer.getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME).getContents();
         Jar jar = (Jar) project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME);
-
-//        contents.with {
-//            from(jar)
-//            from(project.file("src/dist"))
-//            into("lib") {
-//                from(project.configurations.runtime)
-//            }
-//        }
 
         CopySpec childSpec = project.copySpec();
         childSpec.from(jar);

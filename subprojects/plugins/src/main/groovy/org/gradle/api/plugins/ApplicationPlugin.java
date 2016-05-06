@@ -45,9 +45,9 @@ public class ApplicationPlugin implements Plugin<Project> {
     public static final String TASK_DIST_TAR_NAME = "distTar";
 
     private Project project;
-
     private ApplicationPluginConvention pluginConvention;
 
+    @Override
     public void apply(final Project project) {
         this.project = project;
         project.getPluginManager().apply(JavaPlugin.class);
@@ -60,6 +60,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         Distribution distribution = ((DistributionContainer) project.getExtensions().getByName("distributions")).getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME);
 
         ((IConventionAware) distribution).getConventionMapping().map("baseName", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return pluginConvention.getApplicationName();
             }
@@ -70,8 +71,7 @@ public class ApplicationPlugin implements Plugin<Project> {
     }
 
     public void configureInstallTasks(Task... installTasks) {
-        for (int i = 0; i < installTasks.length; i++) {
-            Task installTask = installTasks[i];
+        for (Task installTask : installTasks) {
             installTask.doFirst(new Action<Task>() {
                 @Override
                 public void execute(Task task) {
@@ -95,6 +95,7 @@ public class ApplicationPlugin implements Plugin<Project> {
                     Sync sync = (Sync) task;
                     HashMap<String, Object> args = new HashMap<String, Object>();
                     args.put("file", "" + sync.getDestinationDir().getAbsolutePath() + "/bin/" + pluginConvention.getApplicationName());
+                    args.put("perm", "ugo+x");
                     project.getAnt().invokeMethod("chmod", args);
                 }
             });
@@ -115,41 +116,48 @@ public class ApplicationPlugin implements Plugin<Project> {
         JavaPluginConvention javaPluginConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         run.setClasspath(javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath());
         run.getConventionMapping().map("main", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return pluginConvention.getMainClassName();
             }
         });
         run.getConventionMapping().map("jvmArgs", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return pluginConvention.getApplicationDefaultJvmArgs();
             }
         });
     }
 
+    // @Todo: refactor this task configuration to extend a copy task and use replace tokens
     private void addCreateScriptsTask() {
         CreateStartScripts startScripts = project.getTasks().create(TASK_START_SCRIPTS_NAME, CreateStartScripts.class);
         startScripts.setDescription("Creates OS specific scripts to run the project as a JVM application.");
         startScripts.setClasspath(project.getTasks().getAt(JavaPlugin.JAR_TASK_NAME).getOutputs().getFiles().plus(project.getConfigurations().getByName("runtime")));
 
         startScripts.getConventionMapping().map("mainClassName", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return pluginConvention.getMainClassName();
             }
         });
 
         startScripts.getConventionMapping().map("applicationName", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return pluginConvention.getApplicationName();
             }
         });
 
         startScripts.getConventionMapping().map("outputDir", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return new File(project.getBuildDir(), "scripts");
             }
         });
 
         startScripts.getConventionMapping().map("defaultJvmOpts", new Callable<Object>() {
+            @Override
             public Object call() throws Exception {
                 return pluginConvention.getApplicationDefaultJvmArgs();
             }
@@ -200,6 +208,4 @@ public class ApplicationPlugin implements Plugin<Project> {
         distSpec.with(pluginConvention.getApplicationDistribution());
         return distSpec;
     }
-
-
 }
