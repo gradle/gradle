@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.bootstrap;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.io.Files;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
@@ -179,13 +180,19 @@ public class DaemonMain extends EntryPoint {
     }
 
     private DaemonExpirationStrategy initializeExpirationStrategy(final DaemonServerConfiguration params) {
-        DaemonIdleTimeoutExpirationStrategy timeoutStrategy = new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout(), TimeUnit.MILLISECONDS);
-        DaemonExpirationStrategy quickerTimeoutOnLowMemory = new AllDaemonExpirationStrategy(ImmutableList.of(
-            new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout() / 4, TimeUnit.MILLISECONDS),
-            LowMemoryDaemonExpirationStrategy.belowFreePercentage(0.2)
-        ));
-        DaemonRegistryUnavailableExpirationStrategy registryUnavailableStrategy = new DaemonRegistryUnavailableExpirationStrategy();
-        return new AnyDaemonExpirationStrategy(ImmutableList.of(timeoutStrategy, quickerTimeoutOnLowMemory, registryUnavailableStrategy));
+        Builder strategies = ImmutableList.<DaemonExpirationStrategy>builder();
+        strategies.add(new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout(), TimeUnit.MILLISECONDS));
+        try {
+            strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
+                new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout() / 4, TimeUnit.MILLISECONDS),
+                LowMemoryDaemonExpirationStrategy.belowFreePercentage(0.2)
+            )));
+        } catch (UnsupportedOperationException e) {
+            LOGGER.info("This JVM does not support getting free system memory, so daemons will not check for it");
+        }
+
+        strategies.add(new DaemonRegistryUnavailableExpirationStrategy());
+        return new AnyDaemonExpirationStrategy(strategies.build());
     }
 
     private void redirectOutputsAndInput(PrintStream printStream) {
