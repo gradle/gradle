@@ -226,6 +226,16 @@ And as a result might cause different behavior when used as base types. The affe
  - `AbstractSignatureTypeProvider` and `DefaultSignatureTypeProvider`
  - `SignatorySupport`, `PgpKeyId`, `PgpSignatory`, `PgpSignatoryProvider` and `PgpSignatoryFactory`
 
+### Source and target compatibility options are always passed to the Java compiler
+
+If no target/sourceCompatibility option is set on for the Java plugin, then the version of the
+JVM Gradle is running on is used.
+
+Before this version, if the target/sourceCompatibility is the same as the version of the JVM Gradle
+is running on no -source/-target options have been passed to the compiler process.
+
+Beginning from this version the -source/-target options are always passed to the compiler.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
@@ -237,6 +247,7 @@ We would like to thank the following community members for making contributions 
 - [Raymond Navarette](https://github.com/rnavarette) - add classifiers for project dependencies in generated POM files ([GRADLE-3030](https://issues.gradle.org/browse/GRADLE-3030))
 - [Armin Groll](https://github.com/arming9) - Make Gradle source code compile inside Eclipse
 - [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - fix NPE when configuring FileTree's builtBy by map ([GRADLE-3444](https://issues.gradle.org/browse/GRADLE-3444))
+- [Ryan Ernst](https://github.com/rjernst) - always use -source/-target for the forked Java compiler 
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
