@@ -15,6 +15,9 @@
  */
 package org.gradle.launcher.daemon.server;
 
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
+import com.google.common.base.Preconditions;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
@@ -22,26 +25,24 @@ import java.util.concurrent.TimeUnit;
 
 public class DaemonIdleTimeoutExpirationStrategy implements DaemonExpirationStrategy {
     private static final Logger LOG = Logging.getLogger(DaemonIdleTimeoutExpirationStrategy.class);
-    private int idleTimeout;
-    private TimeUnit timeUnit;
+    private Function<?, Long> idleTimeout;
 
     public DaemonIdleTimeoutExpirationStrategy(int idleTimeout, TimeUnit timeUnit) {
-        this.idleTimeout = idleTimeout;
-        this.timeUnit = timeUnit;
+        this(Functions.constant(timeUnit.toMillis(idleTimeout)));
+    }
+
+    public DaemonIdleTimeoutExpirationStrategy(Function<?, Long> timeoutClosure) {
+        this.idleTimeout = Preconditions.checkNotNull(timeoutClosure);
     }
 
     @Override
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
         long idleMillis = daemon.getStateCoordinator().getIdleMillis(System.currentTimeMillis());
-        boolean idleTimeoutExceeded = idleMillis > timeUnit.toMillis(idleTimeout);
+        boolean idleTimeoutExceeded = idleMillis > idleTimeout.apply(null);
         if (idleTimeoutExceeded) {
             LOG.info("Idle timeout: daemon has been idle for {} milliseconds. Expiring.", idleMillis);
             return new DaemonExpirationResult(true, "daemon has been idle for " + idleMillis + " milliseconds");
         }
         return new DaemonExpirationResult(false, null);
-    }
-
-    public long getIdleTimeout() {
-        return idleTimeout;
     }
 }

@@ -15,15 +15,17 @@
  */
 package org.gradle.launcher.daemon.server
 
+import com.google.common.base.Function
 import spock.lang.Specification
 
+import javax.annotation.Nullable
 import java.util.concurrent.TimeUnit
 
 class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
     final Daemon daemon = Mock(Daemon)
     final DaemonStateCoordinator daemonStateCoordinator = Mock(DaemonStateCoordinator)
 
-    def "daemon should expire when it's idle time exceeds idleTimeout"() {
+    def "daemon should expire when its idle time exceeds idleTimeout"() {
         given:
         DaemonIdleTimeoutExpirationStrategy expirationStrategy = new DaemonIdleTimeoutExpirationStrategy(100, TimeUnit.MILLISECONDS)
 
@@ -35,5 +37,32 @@ class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
         DaemonExpirationResult result = expirationStrategy.checkExpiration(daemon)
         result.isExpired()
         result.reason == "daemon has been idle for 101 milliseconds"
+    }
+
+    def "daemon accepts idle timeout closure"() {
+        given:
+        DaemonIdleTimeoutExpirationStrategy expirationStrategy = new DaemonIdleTimeoutExpirationStrategy(new Function<Void, Long>() {
+            private long numTimesCalled = 0;
+
+            @Override
+            Long apply(@Nullable Void input) {
+                return ++numTimesCalled
+            }
+        })
+
+        when:
+        _ * daemon.getStateCoordinator() >> { daemonStateCoordinator }
+        _ * daemonStateCoordinator.getIdleMillis(_) >> { 2L }
+
+        then:
+        DaemonExpirationResult firstResult = expirationStrategy.checkExpiration(daemon)
+        firstResult.isExpired()
+        firstResult.reason == "daemon has been idle for 2 milliseconds"
+
+        DaemonExpirationResult secondResult = expirationStrategy.checkExpiration(daemon)
+        !secondResult.isExpired()
+
+        DaemonExpirationResult thirdResult = expirationStrategy.checkExpiration(daemon)
+        !thirdResult.isExpired()
     }
 }
