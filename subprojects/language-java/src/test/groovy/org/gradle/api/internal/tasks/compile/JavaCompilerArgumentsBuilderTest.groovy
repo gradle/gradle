@@ -42,11 +42,11 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.build() == ["-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
-    def "generates no -source option when current Jvm Version is used"() {
+    def "generates -source option when current Jvm Version is used"() {
         spec.sourceCompatibility = JavaVersion.current().toString();
 
         expect:
-        builder.build() == ["-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
+        builder.build() == ["-source", JavaVersion.current().toString(), "-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     def "generates -source option when compatibility differs from current Jvm version"() {
@@ -56,11 +56,11 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.build() == ["-source", "1.4", "-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
-    def "generates no -target option when current Jvm Version is used"() {
+    def "generates -target option when current Jvm Version is used"() {
         spec.targetCompatibility = JavaVersion.current().toString();
 
         expect:
-        builder.build() == ["-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
+        builder.build() == ["-target", JavaVersion.current().toString(), "-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     def "generates -target option when compatibility differs current Jvm version"() {
