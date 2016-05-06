@@ -119,7 +119,7 @@ project.logger.debug("debug logging");
 
     String normaliseOutput(String output) {
         output = output.replaceFirst("Support for Gradle version ${targetDist.version.version} is deprecated and will be removed in tooling API version 3.0. You should upgrade your Gradle build to use Gradle 1.2 or later.\n", "")
-        output = output.replaceFirst("Support for clients using tooling API version ${GradleVersion.current()} is deprecated and will be removed in Gradle 3.0. You should upgrade your tooling API client to version 2.0 or later.\n", "")
+        output = output.replaceFirst("Support for clients using tooling API version ${GradleVersion.current().version} is deprecated and will be removed in Gradle 3.0. You should upgrade your tooling API client to version 2.0 or later.\n", "")
         return output.replaceFirst("Total time: .+ secs", "Total time: 0 secs")
     }
 
