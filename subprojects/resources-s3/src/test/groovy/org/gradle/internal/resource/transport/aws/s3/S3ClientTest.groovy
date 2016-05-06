@@ -69,6 +69,21 @@ class S3ClientTest extends Specification {
         '/'             | null
     }
 
+    def "should extract directory name from s3 common prefix"() {
+        S3Client s3Client = new S3Client(Mock(AmazonS3Client), s3ConnectionProperties)
+
+        expect:
+        s3Client.extractDirectoryName(commonPrefix) == expected
+
+        where:
+        commonPrefix                | expected
+        '/a/b/directory.with.dot/'  | 'directory.with.dot/'
+        '/directory.with.dot/'      | 'directory.with.dot/'
+        '/directoryWithoutDot/'     | 'directoryWithoutDot/'
+        '/directory.with.dot'       | null
+        '/'                         | null
+    }
+
     def "should resolve resource names from an AWS objectlisting"() {
         setup:
         S3Client s3Client = new S3Client(Mock(AmazonS3Client), s3ConnectionProperties)
@@ -80,11 +95,13 @@ class S3ClientTest extends Specification {
         objectSummary2.getKey() >> '/SNAPSHOT/someOther.jar'
         objectListing.getObjectSummaries() >> [objectSummary, objectSummary2]
 
+        objectListing.getCommonPrefixes() >> ['/SNAPSHOT/', '/SNAPSHOT/1.0.8/']
+
         when:
         def results = s3Client.resolveResourceNames(objectListing)
 
         then:
-        results == ['some.jar', 'someOther.jar']
+        results == ['some.jar', 'someOther.jar', 'SNAPSHOT/', '1.0.8/']
     }
 
     def "should make batch call when more than one object listing exists"() {
