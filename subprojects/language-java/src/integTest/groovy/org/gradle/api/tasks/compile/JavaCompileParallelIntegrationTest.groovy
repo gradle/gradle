@@ -33,7 +33,7 @@ import spock.lang.Issue
 class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 
     static Map<JavaInfo, JavaVersion> availableJdksWithJavac() {
-        AvailableJavaHomes.getAvailableJdksWithVersion().findAll { jdk, version ->
+        AvailableJavaHomes.availableJdksWithVersion.findAll { jdk, version ->
             try {
                 if (jdk.javacExecutable) {
                     return true
