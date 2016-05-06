@@ -20,7 +20,6 @@ import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 public class MemoryInfo {
 
@@ -69,19 +68,7 @@ public class MemoryInfo {
      * @throws UnsupportedOperationException if the JVM doesn't support getting total physical memory.
      */
     public long getTotalPhysicalMemory() {
-        OperatingSystemMXBean bean = ManagementFactory.getOperatingSystemMXBean();
-        Throwable rootCause = null;
-        try {
-            Method getTotalPhysicalMemorySize = bean.getClass().getMethod("getTotalPhysicalMemorySize");
-            return (Long) getTotalPhysicalMemorySize.invoke(bean);
-        } catch (NoSuchMethodException e) {
-            rootCause = e;
-        } catch (IllegalAccessException e) {
-            rootCause = e;
-        } catch (InvocationTargetException e) {
-            rootCause = e;
-        }
-        throw new UnsupportedOperationException("getTotalPhysicalMemory is unsupported on this JVM.", rootCause);
+        return sunBean("getTotalPhysicalMemorySize");
     }
 
     /**
@@ -91,18 +78,31 @@ public class MemoryInfo {
      * @throws UnsupportedOperationException if the JVM doesn't support getting free physical memory.
      */
     public long getFreePhysicalMemory() {
+        return sunBean("getFreePhysicalMemorySize");
+    }
+
+    /**
+     * Reflectively runs an Oracle JVM specific OS method if available.
+     *
+     * @throws UnsupportedOperationException if this method isn't available on this JVM.
+     */
+    private static long sunBean(String methodName) {
         OperatingSystemMXBean bean = ManagementFactory.getOperatingSystemMXBean();
+
         Throwable rootCause = null;
+        ClassLoader beanLoader = ClassLoader.getSystemClassLoader();
         try {
-            Method getFreePhysicalMemorySize = bean.getClass().getMethod("getFreePhysicalMemorySize");
-            return (Long) getFreePhysicalMemorySize.invoke(bean);
-        } catch (NoSuchMethodException e) {
-            rootCause = e;
+            Class<?> osbean = beanLoader.loadClass("com.sun.management.OperatingSystemMXBean");
+            return (Long) osbean.getMethod(methodName).invoke(bean);
         } catch (IllegalAccessException e) {
             rootCause = e;
         } catch (InvocationTargetException e) {
             rootCause = e;
+        } catch (NoSuchMethodException e) {
+            rootCause = e;
+        } catch (ClassNotFoundException e) {
+            rootCause = e;
         }
-        throw new UnsupportedOperationException("getFreePhysicalMemory is unsupported on this JVM.", rootCause);
+        throw new UnsupportedOperationException(methodName + " is unsupported on this JVM.", rootCause);
     }
 }
