@@ -86,8 +86,11 @@ public class GarbageCollectionMonitor {
     }
 
     public enum JVMStrategy {
-        IBM(GarbageCollectorMonitoringStrategy.IBM_GENCON),
-        ORACLE_HOTSPOT(GarbageCollectorMonitoringStrategy.ORACLE_CMS, GarbageCollectorMonitoringStrategy.ORACLE_G1),
+        IBM(GarbageCollectorMonitoringStrategy.IBM_ALL),
+        ORACLE_HOTSPOT(GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS,
+                        GarbageCollectorMonitoringStrategy.ORACLE_SERIAL,
+                        GarbageCollectorMonitoringStrategy.ORACLE_6_CMS,
+                        GarbageCollectorMonitoringStrategy.ORACLE_G1),
         UNSUPPORTED();
 
         final GarbageCollectorMonitoringStrategy[] gcStrategies;
@@ -97,13 +100,13 @@ public class GarbageCollectionMonitor {
         }
 
         static JVMStrategy current() {
-            String vendor = System.getProperty("java.vm.vendor");
+            String vmname = System.getProperty("java.vm.name");
 
-            if (vendor.equals("IBM Corporation")) {
+            if (vmname.equals("IBM J9 VM")) {
                 return IBM;
             }
 
-            if (vendor.equals("Oracle Corporation")) {
+            if (vmname.startsWith("Java HotSpot(TM)")) {
                 return ORACLE_HOTSPOT;
             }
 

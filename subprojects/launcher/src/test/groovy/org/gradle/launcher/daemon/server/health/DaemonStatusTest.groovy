@@ -40,7 +40,7 @@ class DaemonStatusTest extends Specification {
     def "validates supplied tenured usage threshold value"() {
         System.setProperty(TENURED_USAGE_EXPIRE_AT, "foo")
         _ * stats.getGcMonitor() >> gcMonitor
-        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_CMS
+        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
 
         when:
         status.isDaemonTired()
@@ -53,7 +53,7 @@ class DaemonStatusTest extends Specification {
     def "validates supplied tenured rate threshold value"() {
         System.setProperty(TENURED_RATE_EXPIRE_AT, "foo")
         _ * stats.getGcMonitor() >> gcMonitor
-        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_CMS
+        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
 
         when:
         status.isDaemonTired()
@@ -66,7 +66,7 @@ class DaemonStatusTest extends Specification {
     @Unroll
     def "knows when daemon is tired (#rateThreshold <= #rate, #usageThreshold <= #used)"() {
         _ * stats.getGcMonitor() >> gcMonitor
-        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_CMS
+        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
 
         when:
         System.setProperty(TENURED_USAGE_EXPIRE_AT, usageThreshold.toString())

@@ -17,9 +17,11 @@
 package org.gradle.launcher.daemon.server.health.gc;
 
 public enum GarbageCollectorMonitoringStrategy {
-    ORACLE_CMS("PS Old Gen", "PS MarkSweep", 1.5, 80),
+    ORACLE_PARALLEL_CMS("PS Old Gen", "PS MarkSweep", 1.5, 80),
+    ORACLE_6_CMS("CMS Old Gen", "ConcurrentMarkSweep", 1.5, 80),
+    ORACLE_SERIAL("Tenured Gen", "MarkSweepCompact", 1.5, 80),
     ORACLE_G1("G1 Old Gen", "G1 Old Generation", 0.4, 75),
-    IBM_GENCON("Java heap", "MarkSweepCompact", 1.5, 70),
+    IBM_ALL("Java heap", "MarkSweepCompact", 0.8, 70),
     UNKNOWN(null, null, -1, -1);
 
     private final String tenuredPoolName;

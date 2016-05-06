@@ -21,6 +21,7 @@ import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.util.NumberUtil;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
+import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 import org.gradle.util.Clock;
 
 import java.util.concurrent.ScheduledExecutorService;
@@ -90,10 +91,14 @@ public class DaemonStats {
         if (buildCount == 1) {
             return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(memory.getMaxMemory()));
         } else {
-            GarbageCollectionStats tenuredStats = gcMonitor.getTenuredStats();
-            return format("Starting %s build in daemon [uptime: %s, performance: %s%%, GC rate: %.2f/s, tenured heap usage: %s%% of %s]",
-                NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance(), tenuredStats.getRate(), tenuredStats.getUsage(), NumberUtil.formatBytes(tenuredStats.getMax()));
-
+            if (gcMonitor.getGcStrategy() != GarbageCollectorMonitoringStrategy.UNKNOWN) {
+                GarbageCollectionStats tenuredStats = gcMonitor.getTenuredStats();
+                return format("Starting %s build in daemon [uptime: %s, performance: %s%%, GC rate: %.2f/s, tenured heap usage: %s%% of %s]",
+                    NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance(), tenuredStats.getRate(), tenuredStats.getUsage(), NumberUtil.formatBytes(tenuredStats.getMax()));
+            } else {
+                return format("Starting %s build in daemon [uptime: %s, performance: %s%%]",
+                    NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance());
+            }
         }
     }
 
