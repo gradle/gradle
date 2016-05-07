@@ -75,6 +75,7 @@ class DaemonStatusTest extends Specification {
             Stub(GarbageCollectionStats) {
                 getUsage() >> used
                 getRate() >> rate
+                getEventCount() >> 10
             }
         }
 
