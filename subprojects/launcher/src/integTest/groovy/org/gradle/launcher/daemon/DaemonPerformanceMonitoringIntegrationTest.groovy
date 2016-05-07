@@ -79,7 +79,7 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
         setupBuildScript = greedyBuildNoLeak
         maxBuilds = 20
         heapSize = "200m"
-        leakRate = 4250
+        leakRate = 4000
 
         then:
         !daemonIsExpiredEagerly()

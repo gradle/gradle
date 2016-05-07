@@ -51,7 +51,8 @@ public class DaemonStatus {
                 return false;
             }
             GarbageCollectionStats gcStats = stats.getGcMonitor().getTenuredStats();
-            if (gcStats.getUsage() >= tenuredUsageThreshold
+            if (gcStats.getEventCount() >= 5
+                && gcStats.getUsage() >= tenuredUsageThreshold
                 && gcStats.getRate() >= tenuredRateThreshold) {
                 return true;
             }

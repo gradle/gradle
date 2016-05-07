@@ -25,23 +25,13 @@ public class GarbageCollectionStats {
     final private double rate;
     final private long used;
     final private long max;
-    final private long count;
+    final private long eventCount;
 
     public GarbageCollectionStats(Set<GarbageCollectionEvent> events) {
         this.rate = calculateRate(events);
         this.used = calculateAverageUsage(events);
         this.max = calculateMaxSize(events);
-        this.count = determineCount(events);
-    }
-
-    static long determineCount(Set<GarbageCollectionEvent> events) {
-        long lastCount = 0;
-
-        for (GarbageCollectionEvent event : events) {
-            lastCount = event.getCount();
-        }
-
-        return lastCount;
+        this.eventCount = events.size();
     }
 
     static double calculateRate(Set<GarbageCollectionEvent> events) {
@@ -133,7 +123,7 @@ public class GarbageCollectionStats {
         return max;
     }
 
-    public long getCount() {
-        return count;
+    public long getEventCount() {
+        return eventCount;
     }
 }
