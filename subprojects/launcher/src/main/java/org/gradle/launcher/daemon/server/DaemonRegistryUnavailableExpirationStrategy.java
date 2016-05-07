@@ -15,11 +15,16 @@
  */
 package org.gradle.launcher.daemon.server;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.registry.DaemonDir;
+import org.gradle.launcher.daemon.registry.DaemonInfo;
 
 import java.io.File;
+import java.util.List;
 
 public class DaemonRegistryUnavailableExpirationStrategy implements DaemonExpirationStrategy {
     private static final Logger LOG = Logging.getLogger(DaemonRegistryUnavailableExpirationStrategy.class);
@@ -27,10 +32,21 @@ public class DaemonRegistryUnavailableExpirationStrategy implements DaemonExpira
     @Override
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
         try {
-            File daemonRegistryDir = daemon.getDaemonContext().getDaemonRegistryDir();
+            final DaemonContext daemonContext = daemon.getDaemonContext();
+            final File daemonRegistryDir = daemonContext.getDaemonRegistryDir();
             if (!new DaemonDir(daemonRegistryDir).getRegistry().canRead()) {
                 LOG.warn("Daemon registry {} became unreadable. Expiring daemon.", daemonRegistryDir);
                 return new DaemonExpirationResult(true, "daemon registry became unreadable");
+            } else {
+                // Check that given daemon still exists in registry - a daemon registry could be removed and recreated between checks
+                List<Long> allDaemonPids = Lists.transform(daemon.getDaemonRegistry().getAll(), new Function<DaemonInfo, Long>() {
+                    public Long apply(DaemonInfo info) {
+                        return info.getPid();
+                    }
+                });
+                if (!allDaemonPids.contains(daemonContext.getPid())) {
+                    return new DaemonExpirationResult(true, "daemon registry entry unexpectedly lost");
+                }
             }
         } catch (SecurityException se) {
             LOG.warn("Daemon registry became inaccessible. Expiring daemon. Error message is '{}'", se.getMessage());

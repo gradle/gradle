@@ -281,6 +281,30 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
+    def "daemon stops after current build if registry is deleted and recreated"() {
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+        daemonContext {
+            new DaemonDir(executer.daemonBaseDir).registry.delete()
+        }
+        startBuild()
+        waitForBuildToWait(1)
+
+        then:
+        daemonContext(0) {
+            assert(new DaemonDir(executer.daemonBaseDir).registry.exists())
+        }
+        completeBuild(0)
+        completeBuild(1)
+
+        and:
+        idle 1
+    }
+
     def "starting new build recreates registry and succeeds"() {
         def registry
 
