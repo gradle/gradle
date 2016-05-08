@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.plugins.repositories;
+package org.gradle.plugin.repository.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.plugins.repositories.GradlePluginPortal;
-import org.gradle.api.plugins.repositories.IvyPluginRepository;
-import org.gradle.api.plugins.repositories.MavenPluginRepository;
+import org.gradle.plugin.repository.GradlePluginPortal;
+import org.gradle.plugin.repository.IvyPluginRepository;
+import org.gradle.plugin.repository.MavenPluginRepository;
 
 public interface PluginRepositoryFactory {
     /**

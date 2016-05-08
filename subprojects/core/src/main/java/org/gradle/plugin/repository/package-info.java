@@ -15,6 +15,7 @@
  */
 
 /**
- * Types of {@link org.gradle.api.plugins.repositories.PluginRepository}.
+ * Types of {@link org.gradle.plugin.repository.PluginRepository}.
  */
-package org.gradle.api.plugins.repositories;
+@org.gradle.api.Incubating
+package org.gradle.plugin.repository;

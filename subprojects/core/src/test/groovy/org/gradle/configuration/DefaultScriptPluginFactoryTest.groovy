@@ -26,8 +26,8 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshot
 import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter
-import org.gradle.internal.plugins.repositories.PluginRepositoryFactory
-import org.gradle.internal.plugins.repositories.PluginRepositoryRegistry
+import org.gradle.plugin.repository.internal.PluginRepositoryFactory
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectScript
 import org.gradle.groovy.scripts.*

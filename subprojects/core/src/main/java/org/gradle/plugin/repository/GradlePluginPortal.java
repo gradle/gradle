@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
+package org.gradle.plugin.repository;
+
+import org.gradle.api.Incubating;
+
 /**
- * The way {@link org.gradle.api.plugins.repositories.PluginRepository}s are specified.
+ * The Gradle Plugin Portal, which can be used to resolve plugins.
  */
-package org.gradle.api.plugins.dsl;
+@Incubating
+public interface GradlePluginPortal extends PluginRepository {
+}

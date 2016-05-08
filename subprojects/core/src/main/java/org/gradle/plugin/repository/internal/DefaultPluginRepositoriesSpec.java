@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.plugins.repositories;
+package org.gradle.plugin.repository.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.plugins.dsl.PluginRepositorySpec;
-import org.gradle.api.plugins.repositories.GradlePluginPortal;
-import org.gradle.api.plugins.repositories.IvyPluginRepository;
-import org.gradle.api.plugins.repositories.MavenPluginRepository;
+import org.gradle.plugin.repository.GradlePluginPortal;
+import org.gradle.plugin.repository.IvyPluginRepository;
+import org.gradle.plugin.repository.MavenPluginRepository;
+import org.gradle.plugin.repository.PluginRepositoriesSpec;
 
 /**
- * Bridges between a global PluginRepositorySpec and a {@link org.gradle.api.Script}.
+ * Bridges between a global PluginRepositoriesSpec and a {@link org.gradle.api.Script}.
  */
-public class DefaultPluginRepositorySpec implements PluginRepositorySpec {
+public class DefaultPluginRepositoriesSpec implements PluginRepositoriesSpec {
     private final PluginRepositoryFactory pluginRepositoryFactory;
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
     private final FileResolver fileResolver;
 
-    public DefaultPluginRepositorySpec(PluginRepositoryFactory pluginRepositoryFactory, PluginRepositoryRegistry pluginRepositoryRegistry, FileResolver fileResolver) {
+    public DefaultPluginRepositoriesSpec(PluginRepositoryFactory pluginRepositoryFactory, PluginRepositoryRegistry pluginRepositoryRegistry, FileResolver fileResolver) {
         this.pluginRepositoryFactory = pluginRepositoryFactory;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
         this.fileResolver = fileResolver;

@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.dsl;
+package org.gradle.plugin.repository;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.plugins.repositories.GradlePluginPortal;
-import org.gradle.api.plugins.repositories.IvyPluginRepository;
-import org.gradle.api.plugins.repositories.MavenPluginRepository;
 
 /**
- * Used to declare {@link org.gradle.api.plugins.repositories.PluginRepository}s
+ * Used to declare {@link org.gradle.plugin.repository.PluginRepository}s
  * <p>
- * Maven and Ivy repositories added via this interface will also be prepended
- * to @{code buildscript.repositories}. Any artifacts resolved from these repositories
+ * Maven and Ivy repository added via this interface will also be prepended
+ * to {@code buildscript.repository}. Any artifacts resolved from these repository
  * during the resolution of the {@code plugins {}} block will also be added to
- * the @{code buildscript.dependencies.classpath}.
+ * the {@code buildscript.dependencies.classpath}.
  */
 @Incubating
-public interface PluginRepositorySpec {
+public interface PluginRepositoriesSpec {
     /**
      * Adds and configures a {@link MavenPluginRepository}.
      *

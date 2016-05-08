@@ -16,10 +16,10 @@
 package org.gradle.initialization;
 
 import groovy.lang.Closure;
-import org.gradle.api.plugins.dsl.PluginRepositorySpec;
-import org.gradle.internal.plugins.repositories.PluginRepositoryFactory;
-import org.gradle.internal.plugins.repositories.PluginRepositoryRegistry;
-import org.gradle.internal.plugins.repositories.DefaultPluginRepositorySpec;
+import org.gradle.plugin.repository.PluginRepositoriesSpec;
+import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
+import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
@@ -28,12 +28,12 @@ import org.gradle.util.ConfigureUtil;
  * processing top-level blocks on the initial pass through a script.
  */
 public abstract class InitialPassSettingsScript extends SettingsScript {
-    private PluginRepositorySpec getPluginRepositorySpec() {
+    private PluginRepositoriesSpec getPluginRepositorySpec() {
         Instantiator instantiator = __scriptServices.get(Instantiator.class);
         PluginRepositoryFactory pluginRepositoryFactory = __scriptServices.get(PluginRepositoryFactory.class);
         PluginRepositoryRegistry pluginRepositoryRegistry = __scriptServices.get(PluginRepositoryRegistry.class);
         return instantiator.newInstance(
-            DefaultPluginRepositorySpec.class, pluginRepositoryFactory, pluginRepositoryRegistry, getFileResolver());
+            DefaultPluginRepositoriesSpec.class, pluginRepositoryFactory, pluginRepositoryRegistry, getFileResolver());
     }
 
     public void pluginRepositories(Closure config) {

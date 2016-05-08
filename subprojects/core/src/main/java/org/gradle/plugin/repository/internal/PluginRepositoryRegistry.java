@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.repository.internal;
+package org.gradle.plugin.repository.internal;
 
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.plugins.repositories.PluginRepository;
+import com.google.common.collect.ImmutableList;
+import org.gradle.plugin.repository.PluginRepository;
 
-public interface BackedByArtifactRepository extends PluginRepository {
-    ArtifactRepository createArtifactRepository(RepositoryHandler repositoryHandler);
+public interface PluginRepositoryRegistry {
+    void add(PluginRepository pluginRepository);
+
+    void lock();
+
+    ImmutableList<PluginRepository> getPluginRepositories();
 }

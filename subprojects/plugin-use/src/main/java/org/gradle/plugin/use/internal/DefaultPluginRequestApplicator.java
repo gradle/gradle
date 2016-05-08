@@ -33,15 +33,15 @@ import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.plugins.repositories.PluginRepository;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.plugins.repositories.PluginRepositoryRegistry;
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.internal.PluginId;
-import org.gradle.plugin.use.repository.internal.BackedByArtifactRepository;
+import org.gradle.plugin.repository.PluginRepository;
+import org.gradle.plugin.repository.internal.BackedByArtifactRepository;
 import org.gradle.plugin.use.resolve.internal.NotNonCorePluginOnClasspathCheckPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
@@ -103,7 +103,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                     pluginArtifactRepositories.add(((BackedByArtifactRepository) pluginRepository).createArtifactRepository(repositories));
                 }
             }
-            // The plugin repositories were prepended as they were added, but we want them at the front.
+
+            // The plugin repositories were appended as they were added, but we want them at the front.
             repositories.removeAll(pluginArtifactRepositories);
             repositories.addAll(0, pluginArtifactRepositories);
 

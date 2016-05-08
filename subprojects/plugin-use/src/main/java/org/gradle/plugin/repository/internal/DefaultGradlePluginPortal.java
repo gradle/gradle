@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.repository.internal;
+package org.gradle.plugin.repository.internal;
 
-import org.gradle.api.plugins.repositories.GradlePluginPortal;
+import org.gradle.plugin.repository.GradlePluginPortal;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 

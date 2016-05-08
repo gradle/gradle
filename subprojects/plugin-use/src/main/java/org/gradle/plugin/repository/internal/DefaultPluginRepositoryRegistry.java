@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.repository.internal;
+package org.gradle.plugin.repository.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.plugins.repositories.GradlePluginPortal;
-import org.gradle.api.plugins.repositories.PluginRepository;
-import org.gradle.internal.plugins.repositories.PluginRepositoryRegistry;
+import org.gradle.plugin.repository.GradlePluginPortal;
+import org.gradle.plugin.repository.PluginRepository;
 
 import java.util.ArrayList;
 import java.util.List;

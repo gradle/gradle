@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.repository.internal;
+package org.gradle.plugin.repository.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;

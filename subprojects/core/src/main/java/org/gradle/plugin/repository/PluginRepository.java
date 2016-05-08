@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.repositories;
+package org.gradle.plugin.repository;
 
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;

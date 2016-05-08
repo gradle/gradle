@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.repository.internal;
+package org.gradle.plugin.repository.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
@@ -22,16 +22,15 @@ import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.repositories.AuthenticationSupporter;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.plugins.repositories.GradlePluginPortal;
-import org.gradle.api.plugins.repositories.IvyPluginRepository;
-import org.gradle.api.plugins.repositories.MavenPluginRepository;
-import org.gradle.internal.plugins.repositories.PluginRepositoryFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Factory;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationContainer;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.plugin.repository.GradlePluginPortal;
+import org.gradle.plugin.repository.IvyPluginRepository;
+import org.gradle.plugin.repository.MavenPluginRepository;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
 import java.util.Map;

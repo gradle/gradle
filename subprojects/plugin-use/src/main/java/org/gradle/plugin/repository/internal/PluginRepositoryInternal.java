@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.repository.internal;
+package org.gradle.plugin.repository.internal;
 
-import org.gradle.api.plugins.repositories.PluginRepository;
+import org.gradle.plugin.repository.PluginRepository;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 
 public interface PluginRepositoryInternal extends PluginRepository {
