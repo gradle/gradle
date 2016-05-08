@@ -29,12 +29,24 @@ version = '1.0.0-SNAPSHOT'
 
 dependencies {
     compileOnly 'org.gradle:gradle-core:2.14+'
-    compileOnly 'org.slf4j:slf4j-api:1.7.10'
+    compile 'org.slf4j:slf4j-api:1.7.10'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     compile "org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion"
 }
 
+
+// --- classpath.properties --------------------------------------------
+File generatedResourcesDir = file("$buildDir/generate-resources/main")
+task generateClasspathManifest(type: codegen.GenerateClasspathManifest) {
+    outputDirectory = generatedResourcesDir
+}
+sourceSets {
+    main.output.dir generatedResourcesDir, builtBy: generateClasspathManifest
+}
+
+
+// --- Configure publications ------------------------------------------
 publishing {
     publications {
         mavenJava(MavenPublication) {
