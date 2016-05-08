@@ -7,7 +7,6 @@ import java.lang.reflect.WildcardType
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KParameter
-import kotlin.reflect.KType
 import kotlin.reflect.declaredMemberFunctions
 import kotlin.reflect.jvm.javaMethod
 import kotlin.reflect.jvm.javaType
@@ -25,10 +24,17 @@ fun isExtensible(fn: KFunction<*>) =
     !fn.isGeneric() && fn.parameters.isNotEmpty() && isExtensibleParameterType(fn.parameters.last().type.javaType)
 
 data class ExtensibleFunction(val function: KFunction<*>) {
-    val receiver: Type = function.parameters[0].type.javaType
-    val parameters: List<KParameter> = function.parameters.subList(1, function.parameters.size)
+    val receiver: Type =
+        function.parameters[0].type.javaType
+    val parameters: List<ExtensibleFunctionParameter> =
+        function.parameters.asSequence().drop(1).map(::ExtensibleFunctionParameter).toList()
     val name: String
         get() = function.name
+}
+
+data class ExtensibleFunctionParameter(val definition: KParameter) {
+    val name = definition.name ?: "arg${definition.index}"
+    val type = definition.type.javaType
 }
 
 fun extensionCodeFor(fn: ExtensibleFunction): String =
@@ -40,8 +46,8 @@ fun extensionDeclarationFor(fn: ExtensibleFunction): String =
 fun extensionBodyFor(fn: ExtensibleFunction): String =
     "this.${fn.name}(${fn.parameters.joinToString { argumentStringFor(it) }})"
 
-fun parameterStringFor(parameter: KParameter): String {
-    val type = parameter.type.javaType
+fun parameterStringFor(parameter: ExtensibleFunctionParameter): String {
+    val type = parameter.type
     if (type is ParameterizedType) {
         when (type.rawType) {
             Action::class.java ->
@@ -62,11 +68,11 @@ fun typeStringFor(type: Type): String =
         else -> throw NotImplementedError("typeStringFor(${type.javaClass}) => $type")
     }
 
-fun argumentStringFor(parameter: KParameter): String =
-    if (isExtensibleParameterType(parameter.type.javaType)) {
-        "${parameter.type.qualifiedName} { ${parameter.name!!}(it) }"
+fun argumentStringFor(parameter: ExtensibleFunctionParameter): String =
+    if (isExtensibleParameterType(parameter.type)) {
+        "${parameter.type.qualifiedName} { ${parameter.name}(it) }"
     } else {
-        parameter.name!!
+        parameter.name
     }
 
 fun <T> KFunction<T>.isGeneric() =
@@ -81,18 +87,12 @@ fun isExtensibleParameterType(type: Type) =
 val <T : Any> KClass<T>.packageName: String
     get() = this.java.`package`.name
 
-val KType.qualifiedName: String
-    get() = this.javaType.qualifiedName
-
 val Type.qualifiedName: String
     get() = when (this) {
         is ParameterizedType -> this.rawType.qualifiedName
         is Class<*> -> this.name
         else -> throw NotImplementedError("${this.javaClass}")
     }
-
-val KType.simpleName: String
-    get() = this.javaType.simpleName
 
 val Type.simpleName: String
     get() = when (this) {
