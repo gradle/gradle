@@ -11,7 +11,7 @@ class ApiExtensionsTest {
     fun `#extensionFunctionsOf should find methods with a last parameter of type Action{T} skipping generic functions`() {
         assertEquals(
             listOf(IProject::withAction),
-            extensibleFunctionsOf(IProject::class).map { it.function })
+            extensibleFunctionsOf(IProject::class).map { it.definition })
     }
 
     @Test

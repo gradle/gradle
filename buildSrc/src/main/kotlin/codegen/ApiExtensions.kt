@@ -23,13 +23,13 @@ fun extensibleFunctionsOf(type: KClass<*>): List<ExtensibleFunction> =
 fun isExtensible(fn: KFunction<*>) =
     !fn.isGeneric() && fn.parameters.isNotEmpty() && isExtensibleParameterType(fn.parameters.last().type.javaType)
 
-data class ExtensibleFunction(val function: KFunction<*>) {
+data class ExtensibleFunction(val definition: KFunction<*>) {
     val receiver: Type =
-        function.parameters[0].type.javaType
+        definition.parameters[0].type.javaType
     val parameters: List<ExtensibleFunctionParameter> =
-        function.parameters.asSequence().drop(1).map(::ExtensibleFunctionParameter).toList()
+        definition.parameters.asSequence().drop(1).map(::ExtensibleFunctionParameter).toList()
     val name: String
-        get() = function.name
+        get() = definition.name
 }
 
 data class ExtensibleFunctionParameter(val definition: KParameter) {
