@@ -162,8 +162,17 @@ The `StartParameter.colorOutput` property has been deprecated and will be remove
 
 ### Tooling API support for older Gradle versions
 
-- Using the Gradle tooling API to run Gradle builds for Gradle versions 1.1 and older is now deprecated. Support for Gradle versions older than 1.2 will be removed in Gradle 3.0.
-- Using Gradle from a Gradle tooling API version 1.12 and older is now deprecated. Support for Gradle tooling API versions older than 2.0 will be removed in Gradle 3.0. 
+Using the Gradle tooling API to run Gradle builds for Gradle versions 1.1 and older is now deprecated. Support for Gradle versions older than 1.2 will be removed in Gradle 3.0.
+
+Using Gradle from a Gradle tooling API version 1.12 and older is now deprecated. Support for Gradle tooling API versions older than 2.0 will be removed in Gradle 3.0. 
+
+### TestKit support for older Gradle versions
+
+Using the Gradle TestKit to run Gradle build for Gradle versions 1.1 and older is now deprecated. Support for Gradle versions older than 1.2 will be removed in Gradle 3.0.
+
+### Build comparison plugin support for older Gradle versions
+
+Using the Gradle build comparison plugin to compare builds for Gradle versions 1.1 and older is now deprecated. Support for Gradle versions older than 1.2 will be removed in Gradle 3.0.
 
 ### Tooling API model properties
 
