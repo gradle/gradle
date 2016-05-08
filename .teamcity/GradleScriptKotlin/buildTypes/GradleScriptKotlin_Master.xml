@@ -19,7 +19,7 @@
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="--refresh-dependencies  -Partifactory_user=%gradle.artifactory.user% -Partifactory_password=%gradle.artifactory.password%" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="--refresh-dependencies  -Partifactory_user=%gradle.artifactory.user% -Partifactory_password=%gradle.artifactory.password% -Dartifactory_user=%gradle.artifactory.user% -Dartifactory_password=%gradle.artifactory.password%" />
           <param name="ui.gradleRunner.gradle.tasks.names" value="clean build" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
