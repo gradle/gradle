@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.integtests.tooling.r18.NullAction
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.util.GradleVersion
@@ -78,6 +79,21 @@ class ToolingApiDeprecatedVersionCrossVersionSpec extends ToolingApiSpecificatio
             def build = connection.model(EclipseProject)
             build.standardOutput = stdout
             build.get()
+        }
+
+        then:
+        stdout.toString().contains("Support for clients using tooling API version ${GradleVersion.current().version} is deprecated and will be removed in Gradle 3.0. You should upgrade your tooling API client to version 2.0 or later.")
+    }
+
+    @ToolingApiVersion(">=1.2 <2.0")
+    @TargetGradleVersion(">=2.14")
+    def "warning is received when running a build action using pre 2.0 client"() {
+        when:
+        def stdout = new ByteArrayOutputStream()
+        withConnection { ProjectConnection connection ->
+            def build = connection.action(new NullAction())
+            build.standardOutput = stdout
+            build.run()
         }
 
         then:

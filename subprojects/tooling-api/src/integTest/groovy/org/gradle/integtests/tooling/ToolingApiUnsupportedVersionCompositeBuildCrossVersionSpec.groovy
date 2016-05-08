@@ -26,7 +26,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
     @ToolingApiVersion("current")
     @TargetGradleVersion("<1.0-milestone-8")
-    def "build fails for pre 1.0m8 providers"() {
+    def "build execution fails for pre 1.0m8 providers"() {
         given:
         def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])
 
@@ -42,7 +42,7 @@ class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends Composi
 
     @ToolingApiVersion("current")
     @TargetGradleVersion("<1.0-milestone-8")
-    def "model retrieving fails for pre 1.0m8 providers"() {
+    def "model retrieval fails for pre 1.0m8 providers"() {
         given:
         def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])
 

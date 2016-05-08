@@ -36,7 +36,7 @@ task noop << {
 
     @ToolingApiVersion("current")
     @TargetGradleVersion("<1.0-milestone-8")
-    def "build fails for pre 1.0m8 providers"() {
+    def "build execution fails for pre 1.0m8 providers"() {
         when:
         withConnection { ProjectConnection connection ->
             connection.newBuild().run()
@@ -49,7 +49,7 @@ task noop << {
 
     @ToolingApiVersion("current")
     @TargetGradleVersion("<1.0-milestone-8")
-    def "model retrieving fails for pre 1.0m8 providers"() {
+    def "model retrieval fails for pre 1.0m8 providers"() {
         when:
         withConnection { ProjectConnection connection ->
             connection.model(EclipseProject).get()
@@ -62,7 +62,7 @@ task noop << {
 
     @ToolingApiVersion("current")
     @TargetGradleVersion("<1.0-milestone-8")
-    def "build action fails for pre 1.0m8 providers"() {
+    def "build action execution fails for pre 1.0m8 providers"() {
         when:
         withConnection { ProjectConnection connection ->
             connection.action(new NullAction()).run()
