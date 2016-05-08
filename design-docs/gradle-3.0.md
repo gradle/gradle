@@ -59,6 +59,12 @@ Tooling api client no longer executes builds for Gradle versions older than 1.2.
 
 - Update 'unsupported version' error message to mention 2.0 rather than 1.2
 
+### Test coverage
+
+- Warning when running a build, a build action or fetching model using tapi 1.12 or earlier
+    - `ProjectConnection`
+    - `GradleConnection`
+
 ## Remove Sonar plugins
 
 Remove the Sonar plugins
@@ -87,6 +93,11 @@ Building against Java 5 requires that the compiler daemon and test execution inf
 - Wrapper support for versions older than 2.0. Wrapper 2.x supports Gradle 0.9.2 and later (5 years) and Gradle 2.x can be run by wrapper 0.9.2 and later.
 - Cached artefact reuse for versions older than 2.0.
 - Execution of task classes compiled against Gradle versions older than 2.0.
+- Cross version tests no longer test against anything earlier than 1.0
+- Local artifact reuse no longer considers candidates from the artifact caches for Gradle versions earlier than 1.0
+- Wrapper does not support downloading versions earlier than 1.0
+- Remove old unused types that are baked into the bytecode of tasks compiled against older versions (eg `ConventionValue`). Fail with a reasonable
+error message for these task types.
 
 ## Fix the delegate and parameter for named container configuration closure
 
@@ -113,14 +124,6 @@ The current defaults for the outputs of tasks of type `Test` conflict with each 
 * Remove `org.gradle.api.tasks.bundling.Jar`, replaced by `org.gradle.jvm.tasks.Jar`.
 * Move defaults for output directory and other attributes from the base plugin to an implicitly applied plugin, so that they are applied to all instances.
 * Use `${task.name}.${task.extension}` as the default archive name, so that the default does not conflict with the default for any other archive task.
-
-## Drop support for Gradle versions older than 1.0
-
-* Cross version tests no longer test against anything earlier than 1.0
-* Local artifact reuse no longer considers candidates from the artifact caches for Gradle versions earlier than 1.0
-* Wrapper does not support downloading versions earlier than 1.0
-* Remove old unused types that are baked into the bytecode of tasks compiled against older versions (eg `ConventionValue`). Fail with a reasonable
-error message for these task types.
 
 ## Remove Ant <depend> based incremental compilation backend
 
