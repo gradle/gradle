@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<KotlinScriptDefinitions>
+    <script>
+        <name>Kotlin build script</name>
+        <files>.*\.kts</files>
+        <classpath>
+            <path>${project-root}/build/classes/main</path>
+            <path>${kotlin-runtime}</path>
+            <path>${jdk}</path>
+        </classpath>
+        <parameters>
+            <scriptParam>
+                <name>_project_hidden_</name>
+                <type>org.gradle.project.Project</type>
+            </scriptParam>
+        </parameters>
+        <supertypes>
+            <type>org.gradle.script.lang.kotlin.KotlinBuildScript</type>
+        </supertypes>
+        <superclassParameters>
+            <scriptParamToSuperclassParam>
+                <scriptParamName>_project_hidden_</scriptParamName>
+                <superclassParamType>org.gradle.project.Project</superclassParamType>
+            </scriptParamToSuperclassParam>
+        </superclassParameters>
+    </script>
+</KotlinScriptDefinitions>

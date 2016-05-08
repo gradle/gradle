@@ -7,3 +7,6 @@ build
 
 # vim
 *.sw?
+
+# generated code
+/gradle.ktscfg.xml

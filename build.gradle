@@ -46,6 +46,25 @@ sourceSets {
 }
 
 
+// -- Script config ----------------------------------------------------
+configurations {
+    kts
+}
+dependencies {
+    kts gradleApi()
+}
+task generateKotlinScriptConfig(type: codegen.GenerateKotlinScriptConfig) {
+    template = file("gradle.ktscfg.xml.template")
+    outputFile = file("gradle.ktscfg.xml")
+    classpath = configurations.kts
+}
+
+task prepare {
+    description "Ensures a decent IDE experience."
+    dependsOn generateKotlinScriptConfig, compileKotlin
+}
+
+
 // --- Configure publications ------------------------------------------
 publishing {
     publications {
