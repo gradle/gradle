@@ -9,4 +9,5 @@ build
 *.sw?
 
 # generated code
+/src/generated
 /gradle.ktscfg.xml

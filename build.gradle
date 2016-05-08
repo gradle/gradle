@@ -36,6 +36,17 @@ dependencies {
 }
 
 
+// --- Enable automatic generation of API extensions -------------------
+File apiExtensionsOutputDir = file("src/generated/kotlin")
+task generateApiExtensions(type: codegen.GenerateApiExtensions) {
+    outputDirectory = apiExtensionsOutputDir
+}
+sourceSets {
+    main.kotlin.srcDirs += apiExtensionsOutputDir
+}
+compileKotlin.dependsOn generateApiExtensions
+
+
 // --- classpath.properties --------------------------------------------
 File generatedResourcesDir = file("$buildDir/generate-resources/main")
 task generateClasspathManifest(type: codegen.GenerateClasspathManifest) {
