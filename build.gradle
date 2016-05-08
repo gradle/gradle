@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlinVersion = '1.0.3-dev-409'
+    ext.kotlinVersion = '1.1.0-dev-218'
     repositories {
         maven {
             url 'https://repo.gradle.org/gradle/fram'
@@ -17,7 +17,7 @@ buildscript {
 
 wrapper.gradleVersion = '2.13'
 
-ext.kotlinVersion = '1.0.3-dev-409'
+ext.kotlinVersion = '1.1.0-dev-218'
 
 apply plugin: 'kotlin'
 
