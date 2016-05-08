@@ -199,11 +199,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     protected ClassPathRegistry createClassPathRegistry() {
+        ModuleRegistry moduleRegistry = get(ModuleRegistry.class);
         return new DefaultClassPathRegistry(
-            new DefaultClassPathProvider(get(ModuleRegistry.class)),
-            new DependencyClassPathProvider(get(ModuleRegistry.class),
-                get(PluginModuleRegistry.class))
-        );
+            new DefaultClassPathProvider(moduleRegistry),
+            new DependencyClassPathProvider(moduleRegistry, get(PluginModuleRegistry.class)));
     }
 
     protected IsolatedAntBuilder createIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory, ModuleRegistry moduleRegistry) {
