@@ -23,7 +23,11 @@ import org.gradle.internal.HasInternalProtocol;
  * Represents a repository from which Gradle plugins can be resolved.
  * <p>
  * This type of repository will only be consulted when resolving plugins
- * applied using the {@code plugins {}} syntax.
+ * applied using the <code>plugins {}</code> syntax. However, any
+ * plugin implementation jars and their dependencies found in these
+ * repositories will also be added to the
+ * {@code buildscript.dependencies.classpath} for use elsewhere in your
+ * build scripts.
  */
 @Incubating
 @HasInternalProtocol

@@ -20,12 +20,13 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
- * Used to declare {@link org.gradle.plugin.repository.PluginRepository}s
+ * Used to declare {@link org.gradle.plugin.repository.PluginRepository} instances.
  * <p>
- * Maven and Ivy repository added via this interface will also be prepended
- * to {@code buildscript.repository}. Any artifacts resolved from these repository
- * during the resolution of the {@code plugins {}} block will also be added to
- * the {@code buildscript.dependencies.classpath}.
+ * Plugin repositories added via this interface will used to resolve plugins specified
+ * in the <code>plugins {}</code> block. Any artifacts resolved from these repositories
+ * during the resolution of the <code>plugins {}</code> block will also be added to
+ * the {@code buildscript.dependencies.classpath} for use elsewhere in your build
+ * scripts.
  */
 @Incubating
 public interface PluginRepositoriesSpec {
@@ -38,7 +39,7 @@ public interface PluginRepositoriesSpec {
     MavenPluginRepository maven(Action<? super MavenPluginRepository> action);
 
     /**
-     * Adds and configures a {@link IvyPluginRepository}.
+     * Adds and configures an {@link IvyPluginRepository}.
      *
      * @param action The action to use to configure the repository.
      * @return the added repository.
