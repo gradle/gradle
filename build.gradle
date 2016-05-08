@@ -17,8 +17,6 @@ buildscript {
 
 wrapper.gradleVersion = '2.13'
 
-ext.kotlinVersion = '1.1.0-dev-218'
-
 apply plugin: 'kotlin'
 
 apply plugin: 'maven-publish'
