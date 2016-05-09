@@ -298,10 +298,10 @@ If necessary, convenience properties have been added to [`Jar`](dsl/org.gradle.a
 In order to fall back to the old behaviour you can do the following:
 
     jar {
-        # JAR metadata
+        // JAR metadata
         metadataCharset = Charset.defaultCharset().name()
         manifest {
-            # Manifest content
+            // Manifest content
             contentCharset = Charset.defaultCharset().name()
         }
     }
