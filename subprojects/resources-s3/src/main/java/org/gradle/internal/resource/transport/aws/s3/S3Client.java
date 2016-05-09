@@ -41,8 +41,8 @@ import java.util.regex.Pattern;
 
 public class S3Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
-    private static final Pattern FILENAME_PATTERN = Pattern.compile("[^\\/]+\\.*$");
-    private static final Pattern DIRNAME_PATTERN = Pattern.compile("([^\\/]+)[\\/]$");
+    private static final Pattern FILENAME_PATTERN = Pattern.compile("[^/]+\\.*$");
+    private static final Pattern DIRNAME_PATTERN = Pattern.compile("[^/]+/$");
 
     private AmazonS3Client amazonS3Client;
     private final S3ConnectionProperties s3ConnectionProperties;
@@ -187,7 +187,7 @@ public class S3Client {
         Matcher matcher = DIRNAME_PATTERN.matcher(key);
         if (matcher.find()) {
             // Add a "/" to differentiate directories from files
-            return matcher.group(1) + "/";
+            return matcher.group(0);
         }
         return null;
     }
