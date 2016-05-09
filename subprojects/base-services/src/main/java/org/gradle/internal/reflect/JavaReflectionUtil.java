@@ -28,9 +28,19 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class JavaReflectionUtil {
+    private static final WeakHashMap<Class<?>, ConcurrentMap<String, Boolean>> PROPERTY_CACHE = new WeakHashMap<Class<?>, ConcurrentMap<String, Boolean>>();
+
     /**
      * Locates the readable properties of the given type. Searches only public properties.
      */
@@ -271,12 +281,26 @@ public class JavaReflectionUtil {
     // Not hasProperty() because that's awkward with Groovy objects implementing it
     public static boolean propertyExists(Object target, String propertyName) {
         Class<?> targetType = target.getClass();
+        ConcurrentMap<String, Boolean> cached;
+        synchronized (PROPERTY_CACHE) {
+            cached = PROPERTY_CACHE.get(targetType);
+            if (cached == null) {
+                cached = new ConcurrentHashMap<String, Boolean>();
+                PROPERTY_CACHE.put(targetType, cached);
+            }
+        }
+        Boolean res = cached.get(propertyName);
+        if (res != null) {
+            return res;
+        }
         Method getterMethod = findGetterMethod(target.getClass(), propertyName);
         if (getterMethod == null) {
             if (findField(targetType, propertyName) == null) {
+                cached.putIfAbsent(propertyName, false);
                 return false;
             }
         }
+        cached.putIfAbsent(propertyName, true);
         return true;
     }
 

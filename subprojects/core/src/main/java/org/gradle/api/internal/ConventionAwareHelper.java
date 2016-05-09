@@ -48,7 +48,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
         this._convention = convention;
     }
 
-    private static interface Value<T> {
+    private interface Value<T> {
         T getValue(Convention convention, IConventionAware conventionAwareObject);
     }
 
