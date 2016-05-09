@@ -101,6 +101,10 @@ class PersistentDaemonRegistryTest extends Specification {
         registry.all.empty
     }
 
+    def "safely clears stop events"() {
+
+    }
+
     DaemonContext daemonContext() {
         new DaemonContextBuilder([maybeGetPid: {null}] as ProcessEnvironment).with {
             daemonRegistryDir = tmp.createDir("daemons")

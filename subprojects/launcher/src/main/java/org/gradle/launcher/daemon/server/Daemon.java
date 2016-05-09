@@ -181,6 +181,8 @@ public class Daemon implements Stoppable {
             // Stop periodic checks
             scheduledExecutorService.shutdown();
 
+
+
             // Stop the pipeline:
             // 1. mark daemon as stopped, so that any incoming requests will be rejected with 'daemon unavailable'
             // 2. remove presence from registry
@@ -247,9 +249,14 @@ public class Daemon implements Stoppable {
                 if (expirationCheck.isImmediate()) {
                     LOGGER.lifecycle("Daemon stopping immediately because " + expirationCheck.getReason());
                     daemon.getStateCoordinator().requestForcefulStop(expirationCheck.getReason());
+                    daemon.registryUpdater.onExpire(expirationCheck.getReason());
                 } else {
                     LOGGER.lifecycle("Daemon stopping because " + expirationCheck.getReason());
                     daemon.getStateCoordinator().requestStop();
+                    if (expirationCheck.isTerminated()) {
+                        // REVIEWME: Preferable to use getter for registryUpdater here?
+                        daemon.registryUpdater.onExpire(expirationCheck.getReason());
+                    }
                 }
             }
         }

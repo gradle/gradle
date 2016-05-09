@@ -17,17 +17,16 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.daemon.DaemonContextParser
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
-import org.gradle.integtests.fixtures.daemon.DaemonContextParser
 import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import spock.lang.IgnoreIf
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
-
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
  *
@@ -110,6 +109,18 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     void waitForBuildToWait(buildNum = 0) {
         run {
             poll(20) { assert builds[buildNum].standardOutput.contains("waiting for stop file"); }
+        }
+    }
+
+    void waitForDaemonExpiration(buildNum = 0) {
+        run {
+            poll(20) { assert builds[buildNum].standardOutput.contains("Daemon expiration criteria met") }
+        }
+    }
+
+    void waitForStartupMessageToContain(buildNum = 0, String expected) {
+        run {
+            poll(20) { assert builds[buildNum].standardOutput.contains(expected) }
         }
     }
 
@@ -241,6 +252,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         busy 2
+        waitForStartupMessageToContain(1, '1 is busy')
     }
 
     def "sending stop to idle daemons causes them to terminate immediately"() {
@@ -261,6 +273,33 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         stopped()
+    }
+
+    def "daemon start message contains stop reasons"() {
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+        daemonContext {
+            new DaemonDir(executer.daemonBaseDir).registry.delete()
+        }
+
+        then:
+        waitForDaemonExpiration()
+
+        then:
+        completeBuild()
+
+        then:
+        stopped()
+
+        when:
+        startBuild()
+
+        then:
+        waitForStartupMessageToContain(1, '1 was stopped because daemon registry became unreadable')
     }
 
     def "daemon stops after current build if registry is deleted"() {
@@ -383,6 +422,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         when:
         startBuild(null, "UTF-8")
+        waitForStartupMessageToContain(1, '1 is incompatible')
         waitForBuildToWait()
 
         then:

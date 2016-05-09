@@ -31,8 +31,8 @@ public class LruDaemonExpirationStrategy implements DaemonExpirationStrategy {
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
         DaemonRegistry registry = daemon.getDaemonRegistry();
         return registry.getAll().size() > 1 && isOldest(daemon.getDaemonContext(), registry)
-            ? new DaemonExpirationResult(true, "This is the least recently used daemon")
-            : new DaemonExpirationResult(false, null);
+            ? new DaemonExpirationResult(true, false, false, "This is the least recently used daemon")
+            : DaemonExpirationResult.DO_NOT_EXPIRE;
     }
 
     // Daemons are compared by PID; the assumption is that two will never have an identical PID.

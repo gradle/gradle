@@ -24,9 +24,9 @@ import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.OnDemandFileAccess;
 import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
-import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.DefaultSerializer;
+import org.gradle.launcher.daemon.context.DaemonContext;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -154,6 +154,54 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                     return oldValue;
                 }
             });
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void storeStopEvent(final DaemonStopEvent stopEvent) {
+        lock.lock();
+        LOGGER.debug("Storing daemon stop event with timestamp {}", stopEvent.getTimestamp().getTime());
+        try {
+            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
+                public DaemonRegistryContent update(DaemonRegistryContent content) {
+                    if (content == null) { // registry doesn't exist yet
+                        content = new DaemonRegistryContent();
+                    }
+                    content.addStopEvent(stopEvent);
+                    return content;
+                }
+            });
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public List<DaemonStopEvent> getStopEvents() {
+        lock.lock();
+        LOGGER.debug("Getting daemon stop events");
+        try {
+            DaemonRegistryContent content = cache.get();
+            if (content == null) { // no daemon process has started yet
+                return new LinkedList<DaemonStopEvent>();
+            }
+            return content.getStopEvents();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void clearStopEvents() {
+        lock.lock();
+        LOGGER.info("Clearing daemon stop events");
+        try {
+            DaemonRegistryContent content = cache.get();
+            if (content != null) { // no daemon process has started yet
+                content.clearStopEvents();
+            }
         } finally {
             lock.unlock();
         }

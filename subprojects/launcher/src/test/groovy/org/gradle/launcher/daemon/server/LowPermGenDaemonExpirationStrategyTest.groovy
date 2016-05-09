@@ -39,7 +39,7 @@ class LowPermGenDaemonExpirationStrategyTest extends Specification {
         and:
         result.expired
         !result.immediate
-        result.reason == "JVM perm gen space is exhausted"
+        result.reason == "JVM perm gen space exhausted"
     }
 
     def "daemon is not expired when tenured space is fine" () {

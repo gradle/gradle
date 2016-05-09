@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.registry;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.remote.Address;
@@ -35,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * the endpoint disappearing or becoming busy between asking for idle daemons and trying to connect.
  */
 public class EmbeddedDaemonRegistry implements DaemonRegistry {
+    private final List<DaemonStopEvent> stopEvents = Lists.newCopyOnWriteArrayList();
     private final Map<Address, DaemonInfo> daemonInfos = new ConcurrentHashMap<Address, DaemonInfo>();
     private final Spec<DaemonInfo> allSpec = new Spec<DaemonInfo>() {
         public boolean isSatisfiedBy(DaemonInfo entry) {
@@ -68,10 +70,12 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
         return daemonInfosOfEntriesMatching(busySpec);
     }
 
+    @Override
     public void store(DaemonInfo info) {
         daemonInfos.put(info.getAddress(), info);
     }
 
+    @Override
     public void remove(Address address) {
         daemonInfos.remove(address);
     }
@@ -86,6 +90,21 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
         synchronized (daemonInfos) {
             daemonInfos.get(address).setIdle(true);
         }
+    }
+
+    @Override
+    public void storeStopEvent(DaemonStopEvent stopEvent) {
+        stopEvents.add(stopEvent);
+    }
+
+    @Override
+    public List<DaemonStopEvent> getStopEvents() {
+        return stopEvents;
+    }
+
+    @Override
+    public void clearStopEvents() {
+        stopEvents.clear();
     }
 
     private List<DaemonInfo> daemonInfosOfEntriesMatching(Spec<DaemonInfo> spec) {

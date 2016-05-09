@@ -15,6 +15,9 @@
  */
 package org.gradle.launcher.daemon.server;
 
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+
 import java.util.List;
 
 /**
@@ -28,13 +31,21 @@ public class AnyDaemonExpirationStrategy implements DaemonExpirationStrategy {
     }
 
     @Override
-    public DaemonExpirationResult checkExpiration(Daemon daemon) {
+    public DaemonExpirationResult checkExpiration(final Daemon daemon) {
+        DaemonExpirationResult expirationResult;
+        boolean expired = false;
+        boolean terminated = false;
+        List<String> reasons = Lists.newArrayList();
+
         for (DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
-            DaemonExpirationResult expirationResult = expirationStrategy.checkExpiration(daemon);
+            expirationResult = expirationStrategy.checkExpiration(daemon);
             if (expirationResult.isExpired()) {
-                return expirationResult;
+                expired = true;
+                terminated = terminated || expirationResult.isTerminated();
+                reasons.add(expirationResult.getReason());
             }
         }
-        return new DaemonExpirationResult(false, null);
+
+        return new DaemonExpirationResult(expired, terminated, Joiner.on(" and ").skipNulls().join(reasons));
     }
 }

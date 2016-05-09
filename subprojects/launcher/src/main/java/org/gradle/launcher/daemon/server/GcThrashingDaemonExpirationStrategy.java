@@ -28,7 +28,7 @@ public class GcThrashingDaemonExpirationStrategy implements DaemonExpirationStra
     @Override
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
         if (healthServices.getDaemonStatus().isThrashing()) {
-            return new DaemonExpirationResult(true, true, "garbage collector is starting to thrash");
+            return new DaemonExpirationResult(true, true, true, "garbage collector is starting to thrash");
         } else {
             return DaemonExpirationResult.DO_NOT_EXPIRE;
         }

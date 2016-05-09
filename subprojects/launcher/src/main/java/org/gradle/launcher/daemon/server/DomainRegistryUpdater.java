@@ -24,6 +24,9 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.registry.DaemonStopEvent;
+
+import java.util.Date;
 
 class DomainRegistryUpdater implements Stoppable {
 
@@ -63,6 +66,12 @@ class DomainRegistryUpdater implements Stoppable {
         LOGGER.debug("Advertised daemon context: {}", daemonContext);
         this.connectorAddress = connectorAddress;
         daemonRegistry.store(new DaemonInfo(connectorAddress, daemonContext, token, false));
+    }
+
+    public void onExpire(String reason) {
+        LOGGER.debug("Storing daemon stop event: {}", reason);
+        // TODO(ew): Switch to TimeProvider here
+        daemonRegistry.storeStopEvent(new DaemonStopEvent(new Date(System.currentTimeMillis()), reason));
     }
 
     public void stop() {

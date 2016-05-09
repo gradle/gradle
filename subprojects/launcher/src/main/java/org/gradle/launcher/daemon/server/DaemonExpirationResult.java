@@ -19,20 +19,26 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.Nullable;
 
 public class DaemonExpirationResult {
-    public static final DaemonExpirationResult DO_NOT_EXPIRE = new DaemonExpirationResult(false, false, null);
-
+    public static final DaemonExpirationResult DO_NOT_EXPIRE = new DaemonExpirationResult(false, false, false, null);
     private final boolean expired;
     private final boolean immediate;
     private final String reason;
+    // REVIEWME: Consider a broader concept of priority here
+    private final boolean terminated;
 
-    public DaemonExpirationResult(boolean expired, boolean immediate, @Nullable String reason) {
+    public DaemonExpirationResult(boolean expired, boolean immediate, boolean terminated, @Nullable String reason) {
         this.expired = expired;
         this.immediate = immediate;
+        this.terminated = terminated;
         this.reason = reason;
     }
 
+    public DaemonExpirationResult(boolean expired, boolean terminated, @Nullable String reason) {
+        this(expired, false, terminated, reason);
+    }
+
     public DaemonExpirationResult(boolean expired, @Nullable String reason) {
-        this(expired, false, reason);
+        this(expired, false, false, reason);
     }
 
     public boolean isExpired() {
@@ -45,5 +51,9 @@ public class DaemonExpirationResult {
 
     public boolean isImmediate() {
         return immediate;
+    }
+
+    public boolean isTerminated() {
+        return terminated;
     }
 }

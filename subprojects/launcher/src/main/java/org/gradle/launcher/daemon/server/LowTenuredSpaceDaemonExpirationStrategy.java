@@ -28,7 +28,7 @@ public class LowTenuredSpaceDaemonExpirationStrategy implements DaemonExpiration
     @Override
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
         if (healthServices.getDaemonStatus().isTenuredSpaceExhausted()) {
-            return new DaemonExpirationResult(true, "JVM tenured space is exhausted");
+            return new DaemonExpirationResult(true, true, "JVM tenured space is exhausted");
         } else {
             return DaemonExpirationResult.DO_NOT_EXPIRE;
         }

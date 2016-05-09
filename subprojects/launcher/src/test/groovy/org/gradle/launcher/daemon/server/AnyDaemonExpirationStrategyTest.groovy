@@ -33,12 +33,13 @@ class AnyDaemonExpirationStrategyTest extends Specification {
         AnyDaemonExpirationStrategy agg = new AnyDaemonExpirationStrategy(ImmutableList.of(c1, c2))
 
         when:
-        1 * c1.checkExpiration(_) >> { new DaemonExpirationResult(true, "r1") }
-        0 * c2.checkExpiration(_)
+        1 * c1.checkExpiration(_) >> { new DaemonExpirationResult(true, true, "r1") }
+        1 * c2.checkExpiration(_) >> { DaemonExpirationResult.DO_NOT_EXPIRE }
 
         then:
         DaemonExpirationResult result = agg.checkExpiration(mockDaemon)
         result.expired
+        result.terminated
         result.reason == "r1"
     }
 
@@ -47,13 +48,14 @@ class AnyDaemonExpirationStrategyTest extends Specification {
         AnyDaemonExpirationStrategy agg = new AnyDaemonExpirationStrategy(ImmutableList.of(c1, c2))
 
         when:
-        1 * c1.checkExpiration(_) >> { new DaemonExpirationResult(false, null) }
-        1 * c2.checkExpiration(_) >> { new DaemonExpirationResult(false, null) }
+        1 * c1.checkExpiration(_) >> { DaemonExpirationResult.DO_NOT_EXPIRE }
+        1 * c2.checkExpiration(_) >> { DaemonExpirationResult.DO_NOT_EXPIRE }
 
         then:
         DaemonExpirationResult result = agg.checkExpiration(mockDaemon)
         !result.expired
-        result.reason == null
+        !result.terminated
+        result.reason == ""
     }
 
     def "doesn't expire if no strategies are passed"() {
@@ -65,6 +67,7 @@ class AnyDaemonExpirationStrategyTest extends Specification {
         then:
         DaemonExpirationResult result = agg.checkExpiration(mockDaemon)
         !result.expired
-        result.reason == null
+        !result.terminated
+        result.reason == ""
     }
 }

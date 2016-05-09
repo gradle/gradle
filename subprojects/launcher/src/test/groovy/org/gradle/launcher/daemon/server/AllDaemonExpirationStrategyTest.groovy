@@ -33,8 +33,8 @@ class AllDaemonExpirationStrategyTest extends Specification {
         AllDaemonExpirationStrategy agg = new AllDaemonExpirationStrategy(ImmutableList.of(c1, c2))
 
         when:
-        1 * c1.checkExpiration(_) >> { new DaemonExpirationResult(true, "r1") }
-        1 * c2.checkExpiration(_) >> { new DaemonExpirationResult(true, "r2") }
+        1 * c1.checkExpiration(_) >> { new DaemonExpirationResult(true, true, "r1") }
+        1 * c2.checkExpiration(_) >> { new DaemonExpirationResult(true, true, "r2") }
 
         then:
         DaemonExpirationResult result = agg.checkExpiration(mockDaemon)
@@ -47,7 +47,7 @@ class AllDaemonExpirationStrategyTest extends Specification {
         AllDaemonExpirationStrategy agg = new AllDaemonExpirationStrategy(ImmutableList.of(c1, c2))
 
         when:
-        1 * c1.checkExpiration(_) >> { new DaemonExpirationResult(false, "r1") }
+        1 * c1.checkExpiration(_) >> { new DaemonExpirationResult(false, false, "r1") }
         0 * c2.checkExpiration(_)
 
         then:
@@ -73,8 +73,8 @@ class AllDaemonExpirationStrategyTest extends Specification {
         AllDaemonExpirationStrategy agg = new AllDaemonExpirationStrategy(ImmutableList.of(c1, c2))
 
         when:
-        1 * c1.checkExpiration(_) >> { new DaemonExpirationResult(true, null) }
-        1 * c2.checkExpiration(_) >> { new DaemonExpirationResult(true, "r2") }
+        1 * c1.checkExpiration(_) >> { new DaemonExpirationResult(true, true, null) }
+        1 * c2.checkExpiration(_) >> { new DaemonExpirationResult(true, true, "r2") }
 
         then:
         DaemonExpirationResult result = agg.checkExpiration(mockDaemon)

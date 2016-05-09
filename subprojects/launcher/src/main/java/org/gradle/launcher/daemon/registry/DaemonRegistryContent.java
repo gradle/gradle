@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.registry;
 import org.gradle.internal.remote.Address;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.Map;
 public class DaemonRegistryContent implements Serializable {
 
     private Map<Address, DaemonInfo> infosMap = new HashMap<Address, DaemonInfo>();
+    private List<DaemonStopEvent> stopEvents = new ArrayList<DaemonStopEvent>();
 
     /**
      * returns all statuses. May be empty.
@@ -47,6 +49,27 @@ public class DaemonRegistryContent implements Serializable {
      */
     public void removeInfo(Address address) {
         infosMap.remove(address);
+    }
+
+    /**
+     * Returns all stop events. May be empty.
+     */
+    public List<DaemonStopEvent> getStopEvents() {
+        return stopEvents;
+    }
+
+    /**
+     * Add stop event to our collection
+     */
+    public void addStopEvent(DaemonStopEvent stopEvent) {
+        stopEvents.add(stopEvent);
+    }
+
+    /**
+     * Removes all stop events.
+     */
+    public void clearStopEvents() {
+        stopEvents.clear();
     }
 
     /**

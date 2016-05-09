@@ -63,9 +63,9 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
         long freeMem = memoryInfo.getFreePhysicalMemory();
         if (freeMem < minFreeMemoryBytes) {
-            return new DaemonExpirationResult(true, "Free system memory (" + Long.toString(freeMem) + " bytes) is below threshold of " + Long.toString(minFreeMemoryBytes) + " bytes");
+            return new DaemonExpirationResult(true, true, "Free system memory (" + Long.toString(freeMem) + " bytes) is below threshold of " + Long.toString(minFreeMemoryBytes) + " bytes");
         } else {
-            return new DaemonExpirationResult(false, null);
+            return DaemonExpirationResult.DO_NOT_EXPIRE;
         }
     }
 }

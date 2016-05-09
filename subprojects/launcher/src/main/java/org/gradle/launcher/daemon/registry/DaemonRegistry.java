@@ -38,6 +38,10 @@ public interface DaemonRegistry {
     void markBusy(Address address);
     void markIdle(Address address);
 
+    void storeStopEvent(DaemonStopEvent stopEvent);
+    List<DaemonStopEvent> getStopEvents();
+    void clearStopEvents();
+
     static class EmptyRegistryException extends RuntimeException {
         public EmptyRegistryException(String message) {
             super(message);

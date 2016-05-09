@@ -32,8 +32,9 @@ public class AllDaemonExpirationStrategy implements DaemonExpirationStrategy {
 
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
         // If no expiration strategies exist, the daemon will not expire.
-        DaemonExpirationResult expirationResult = new DaemonExpirationResult(false, null);
+        DaemonExpirationResult expirationResult = DaemonExpirationResult.DO_NOT_EXPIRE;
         List<String> reasons = Lists.newArrayList();
+        boolean shouldNotifyUser = true;
 
         for (DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
             // If any of the child strategies don't expire the daemon, the daemon will not expire.
@@ -41,8 +42,9 @@ public class AllDaemonExpirationStrategy implements DaemonExpirationStrategy {
             expirationResult = expirationStrategy.checkExpiration(daemon);
 
             if (!expirationResult.isExpired()) {
-                return new DaemonExpirationResult(false, null);
+                return DaemonExpirationResult.DO_NOT_EXPIRE;
             } else {
+                shouldNotifyUser = shouldNotifyUser & expirationResult.isTerminated();
                 reasons.add(expirationResult.getReason());
             }
         }
@@ -50,7 +52,7 @@ public class AllDaemonExpirationStrategy implements DaemonExpirationStrategy {
         if (!expirationResult.isExpired()) {
             return expirationResult;
         } else {
-            return new DaemonExpirationResult(true, Joiner.on(" and ").skipNulls().join(reasons));
+            return new DaemonExpirationResult(true, shouldNotifyUser, Joiner.on(" and ").skipNulls().join(reasons));
         }
     }
 }
