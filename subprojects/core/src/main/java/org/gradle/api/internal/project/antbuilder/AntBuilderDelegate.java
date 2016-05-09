@@ -34,11 +34,12 @@ import java.util.Set;
 
 public class AntBuilderDelegate extends BuilderSupport {
 
-    @SuppressWarnings("WeakerAccess") @VisibleForTesting
-    final DynamicObject builder;
+    private final Object originalBuilder;
+    private final DynamicObject builder;
     private final ClassLoader antlibClassLoader;
 
     public AntBuilderDelegate(Object builder, ClassLoader antlibClassLoader) {
+        this.originalBuilder = builder;
         this.builder = DynamicObjectUtil.asDynamicObject(builder);
         this.antlibClassLoader = antlibClassLoader;
     }
@@ -120,5 +121,10 @@ public class AntBuilderDelegate extends BuilderSupport {
 
     protected Object postNodeCompletion(Object parent, Object node) {
         return builder.invokeMethod("postNodeCompletion", parent, node);
+    }
+
+    @VisibleForTesting
+    Object getBuilder() {
+        return originalBuilder;
     }
 }
