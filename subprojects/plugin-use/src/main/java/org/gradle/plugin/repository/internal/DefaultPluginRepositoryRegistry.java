@@ -17,6 +17,7 @@
 package org.gradle.plugin.repository.internal;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.http.annotation.ThreadSafe;
 import org.gradle.plugin.repository.GradlePluginPortal;
 import org.gradle.plugin.repository.PluginRepository;
 
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@ThreadSafe
 public class DefaultPluginRepositoryRegistry implements PluginRepositoryRegistry {
     private final List<PluginRepository> repositories;
     private final AtomicBoolean locked;
@@ -59,9 +61,8 @@ public class DefaultPluginRepositoryRegistry implements PluginRepositoryRegistry
     }
 
     private void addPortal(PluginRepository pluginPortal) {
-        if (!portalAdded.get()) {
+        if (portalAdded.compareAndSet(false, true)) {
             addRepository(pluginPortal);
-            portalAdded.set(true);
         } else {
             throw new IllegalStateException("Cannot add Gradle Plugin Portal more than once.");
         }
