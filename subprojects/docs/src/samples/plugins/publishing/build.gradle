@@ -22,17 +22,6 @@ gradlePlugin {
 }
 
 publishing {
-  publications {
-    mavenPlugins(MavenPublication) {
-      from components.java
-    }
-    ivyPlugins(IvyPublication) {
-      from components.java
-    }
-  }
-}
-
-publishing {
   repositories {
     maven {
       url "../maven-repo"
