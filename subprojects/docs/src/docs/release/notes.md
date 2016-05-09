@@ -38,18 +38,19 @@ And then use the `plugins {}` block to specify the plugins you want applied to y
         id 'java'                               // Resolved from the Gradle Distribution.
         id 'org.public.plugin' version '1.2.3'  // Resolved from the Gradle Plugin Portal.
         id 'com.mycompany.secret' version '1.0' // Resolved from your private maven repository.
-        id 'com.partner.silly' version '2.0'    // Resolved from your partner's ivy repository.
+        id 'com.partner.helpful' version '2.0'  // Resolved from your partner's ivy repository.
     }
 
 The repositories are consulted in the order in which they were specifed in the `pluginRepositories {}` block.
 
-To be able to resolve a plugin's implementation jar from just the specification of its `id` and `version` in an ivy or maven repository, we
-require that a special *Plugin Marker* artifact also be published to the repository. This artifact has the coordinates `pluginId:pluginId:version`
-and will be automatically published if you use the `maven-publish` or `ivy-publish` plugins in combination with the `java-gradle-plugin` plugin
-when publishing your plugin to your custom repository. For example:
+To be able to resolve a plugin's implementation jar from just the specification of its `id` and `version` in an ivy or maven
+repository, we require that a special [Plugin Marker Artifact](userguide/plugins.html#sec:plugin_markers) also be published to
+the repository. This artifact has the coordinates `pluginId:pluginId.gradle.plugin:version` and will be automatically published
+if you use the [maven-publish](userguide/publishing_maven.html) or [ivy-publish](userguide/publishing_ivy.html) plugins in
+combination with the [java-gradle-plugin](userguide/javaGradle_plugin.html) plugin when publishing your plugin to your custom
+repository. For example:
 
     version = 1.0
-    name = "secretPlugin"
     group = "com.mycompany"
 
     plugins {
@@ -74,8 +75,9 @@ when publishing your plugin to your custom repository. For example:
         }
     }
 
-When you run `./gradlew publish` your plugin `com.mycompany:secretPlugin:1.0` and the *Plugin Marker* `com.mycopmany.secret:com.mycompany.secret:1.0`
-will both published to your maven repository for use in your companies Gradle projects.
+When you run `./gradlew publish` your plugin `com.mycompany:secretPlugin:1.0` and the *Plugin Marker Artifact*
+`com.mycopmany.secret:com.mycompany.secret.gradle.plugin:1.0` will both published to your maven repository for use in your company's
+Gradle projects.
 
 ### Set the character set used for filtering files in CopySpec
 
