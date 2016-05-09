@@ -10,7 +10,7 @@ dependencies {
     compile libraries.slf4j_api
     compile libraries.jna
     compile libraries.nativePlatform
-    compile module('org.fusesource.jansi:jansi:1.2.1') {
+    compile module('org.fusesource.jansi:jansi:1.13') {
         dependency libraries.jna
     }
     compile libraries.guava
