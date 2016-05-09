@@ -232,6 +232,45 @@ plugins {
             </para>
         </section>
     </section>
+    <section id="sec:custom_plugin_repositories">
+        <title>Custom Plugin Repositories</title>
+        <note>
+            <para>
+                The <code>pluginRepositories {}</code> DSL is currently <link linkend="feature_lifecycle">incubating</link>.
+                Please be aware that the DSL and other configuration may change in later Gradle versions.
+            </para>
+        </note>
+        <para>
+            By default, the <code>plugins {}</code> DSL resolves plugins from the public <ulink url="https://plugins.gradle.org">Gradle Plugin Portal.</ulink>
+            Many build authors would also like to resolve plugins from private Maven or Ivy repositories because the plugins contain proprietary implementation
+            details, or just to have more control over the exact details of what plugins are applied to their builds.
+        </para>
+        <para>
+            To specify custom plugin repositories, add a <code>pluginRepositories {}</code> block to te <code>settings.gradle</code> file:
+        </para>
+        <programlisting>
+pluginRepositories {
+    maven {
+        url "http://my-custom-plugins.org/m2"
+    }
+    gradlePluginPortal()
+}
+        </programlisting>
+        <para>
+            This tells Gradle to first look in the Maven repository at <literal>http://my-custom-plugins.org/m2</literal> when resolving plugins and then to
+            check the Gradle Plugin Portal if the plugins are not found in the Maven repository. If you don't want the Gradle Plugin Portal to be searched,
+            omit the <code>gradlePluginPortal()</code> line.
+        </para>
+        <para>
+            The <code>pluginRepositories {}</code> block may only appear in the <code>settings.gradle</code> file, and must be the first block in the file.
+            The custom plugin repositories must contain plugin marker artifacts in addition to the artifacts which actually implement the plugin logic.
+            For more information on publishing plugins to custom repositories read <xref linkend="custom_plugins" />.
+        </para>
+        <para>
+            See <apilink class="org.gradle.plugin.repository.PluginRepositoriesSpec" /> for complete documentation for using the
+            <code>pluginRepositories {}</code> block.
+        </para>
+    </section>
     <section>
         <title>Finding community plugins</title>
         <para>

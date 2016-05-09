@@ -19,8 +19,7 @@ package org.gradle.plugin.repository;
 import org.gradle.api.Incubating;
 
 /**
- * The <a href="https://plugins.gradle.org>Gradle Plugin Portal</a>, which can be used
- * to resolve plugins.
+ * The Gradle Plugin Portal which can be used to resolve plugins.
  */
 @Incubating
 public interface GradlePluginPortal extends PluginRepository {
