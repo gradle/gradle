@@ -94,6 +94,7 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
                 throw new UnsupportedOperationException();
             }
         }
+
         void resource(URI location);
 
         void metadata(URI location);
@@ -101,6 +102,8 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
         void list(URI parent);
 
         void upload(URI destination);
+
+        void reset();
     }
 
     private static class NoOpStats implements ExternalResourceAccessStats {
@@ -121,6 +124,10 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
 
         @Override
         public void upload(URI destination) {
+        }
+
+        @Override
+        public void reset() {
         }
 
         @Override
@@ -153,6 +160,14 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
         @Override
         public void upload(URI destination) {
             uploadCount.incrementAndGet();
+        }
+
+        @Override
+        public synchronized void reset() {
+            resourceCount.set(0);
+            metadataCount.set(0);
+            listCount.set(0);
+            uploadCount.set(0);
         }
 
         @Override
@@ -203,6 +218,15 @@ public class DefaultExternalResourceConnector implements ExternalResourceConnect
         public void upload(URI destination) {
             record(uploads, destination);
             super.upload(destination);
+        }
+
+        @Override
+        public synchronized void reset() {
+            super.reset();
+            resources.clear();
+            metadata.clear();
+            lists.clear();
+            uploads.clear();
         }
 
         @Override

@@ -49,7 +49,9 @@ gradle.buildFinished {
     new File(buildDir, "totalMemoryUsed.txt").text = heap.used
 
     if (System.getProperty('gradle.externalresources.recordstats')) {
-        println Class.forName('org.gradle.internal.resource.transfer.DefaultExternalResourceConnector').statistics
+        def statistics = Class.forName('org.gradle.internal.resource.transfer.DefaultExternalResourceConnector').statistics
+        println statistics
+        statistics.reset()
     }
 }
 
