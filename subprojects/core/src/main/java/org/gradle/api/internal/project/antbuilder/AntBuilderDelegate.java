@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import groovy.util.BuilderSupport;
@@ -123,8 +122,7 @@ public class AntBuilderDelegate extends BuilderSupport {
         return builder.invokeMethod("postNodeCompletion", parent, node);
     }
 
-    @VisibleForTesting
-    Object getBuilder() {
+    public Object getBuilder() {
         return originalBuilder;
     }
 }
