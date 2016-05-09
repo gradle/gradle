@@ -57,5 +57,22 @@
         <para>
             Any failed validations will result in a warning message.
         </para>
+        <para>
+            If you want to take advantage of some automatic generation features, also enumerate each plugin in the <code>gradlePlugin
+            {}</code> script block:
+        </para>
+        <sample id="gradlePluginBlock" dir="javaGradlePlugin" title="Using the gradlePlugin {} block.">
+            <sourcefile file="build.gradle" snippet="gradle-plugin-block" />
+        </sample>
+        <para>
+            The <code>gradlePlugin {}</code> block defines the plugins being built by the project including the <code>id</code> and
+            <code>implementationClass</code> of the plugin. From this data about the plugins being developed, Gradle
+            can automatically:
+        </para>
+        <itemizedlist>
+            <listitem>Generate the plugin descriptor in the <literal>jar</literal> file's <literal>META-INF</literal> directory.</listitem>
+            <listitem>Work the the <link linkend="publishing_maven">Maven</link> or <link linkend="publishing_ivy">Ivy</link> publishing
+                plugins to publish a Plugin Marker artifact for each plugin.</listitem>
+        </itemizedlist>
     </section>
 </chapter>
