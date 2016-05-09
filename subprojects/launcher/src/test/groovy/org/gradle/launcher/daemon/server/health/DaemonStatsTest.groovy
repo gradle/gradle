@@ -68,7 +68,7 @@ class DaemonStatsTest extends Specification {
         stats.buildFinished()
 
         then:
-        stats.healthInfo == "Starting 2nd build in daemon [uptime: 3 mins, performance: 98%, GC rate: 1.00/s, tenured heap usage: 10% of 1.0 kB]"
+        stats.healthInfo == String.format("Starting 2nd build in daemon [uptime: 3 mins, performance: 98%%, GC rate: %.2f/s, tenured heap usage: 10%% of %.1f kB]", 1.0, 1.0)
     }
 
     def "time might go backwards"() {
@@ -97,6 +97,6 @@ class DaemonStatsTest extends Specification {
         stats.buildFinished()
 
         then:
-        stats.healthInfo == String.format("Starting 2nd build in daemon [uptime: %s, performance: 98%%, GC rate: 0.00/s, tenured heap usage: 0%% of 0 B]", Clock.prettyTime(1))
+        stats.healthInfo == String.format("Starting 2nd build in daemon [uptime: %s, performance: 98%%, GC rate: %.2f/s, tenured heap usage: 0%% of 0 B]", Clock.prettyTime(1), 0.0)
     }
 }
