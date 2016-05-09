@@ -18,7 +18,7 @@ package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.FileResolver;
 
-public class DefaultExecActionFactory implements ExecActionFactory, ExecHandleFactory {
+public class DefaultExecActionFactory implements ExecActionFactory, ExecHandleFactory, JavaExecHandleFactory {
     private final FileResolver fileResolver;
 
     public DefaultExecActionFactory(FileResolver fileResolver) {

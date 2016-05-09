@@ -16,6 +16,6 @@
 
 package org.gradle.process.internal;
 
-public interface ExecHandleFactory {
-    ExecHandleBuilder newExec();
+public interface JavaExecHandleFactory {
+    JavaExecHandleBuilder newJavaExec();
 }

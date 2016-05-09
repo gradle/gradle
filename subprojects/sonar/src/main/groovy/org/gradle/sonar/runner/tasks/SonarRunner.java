@@ -27,8 +27,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
-import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.sonar.runner.SonarRunnerExtension;
 import org.gradle.util.GUtil;
 
@@ -126,7 +126,7 @@ public class SonarRunner extends DefaultTask {
     }
 
     @Inject
-    protected ExecHandleFactory getExecHandleFactory() {
+    protected JavaExecHandleFactory getExecHandleFactory() {
         throw new UnsupportedOperationException();
     }
 
