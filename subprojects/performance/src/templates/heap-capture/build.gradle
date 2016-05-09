@@ -47,6 +47,10 @@ gradle.buildFinished {
     logger.lifecycle "nonHeap: \${format(nonHeap.used)} (initial \${format(nonHeap.init)}, committed \${format(nonHeap.committed)}, max \${format(nonHeap.max)}"
     buildDir.mkdirs()
     new File(buildDir, "totalMemoryUsed.txt").text = heap.used
+
+    if (System.getProperty('gradle.externalresources.recordstats')) {
+        println Class.forName('org.gradle.internal.resource.transfer.DefaultExternalResourceConnector').statistics
+    }
 }
 
 def format(def value) {
