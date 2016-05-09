@@ -61,7 +61,7 @@ public class Snarl implements Announcer {
                 // Snarl is not running
                 throw new AnnouncerUnavailableException("Snarl is not running on host " + String.valueOf(host) + ".", e);
             }
-            with(socket, new Action<Closeable>() {
+            with((Closeable)socket, new Action<Closeable>() {
                 @Override
                 public void execute(Closeable closeable) {
                     final OutputStream outputStream;
