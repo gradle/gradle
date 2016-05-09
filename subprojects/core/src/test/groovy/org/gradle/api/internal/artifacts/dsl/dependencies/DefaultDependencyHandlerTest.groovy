@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory
+import org.gradle.api.internal.project.ProjectInternal
 import spock.lang.Specification
 
 class DefaultDependencyHandlerTest extends Specification {
@@ -171,6 +172,22 @@ class DefaultDependencyHandlerTest extends Specification {
 
         and:
         1 * dependencyFactory.createProjectDependencyFromMap(projectFinder, [:]) >> projectDependency
+    }
+
+    void "creates a project dependency from string"() {
+        ProjectDependency projectDependency = Mock()
+        ProjectInternal project = Mock()
+
+        when:
+        def result = dependencyHandler.project(':path')
+
+        then:
+        result == projectDependency
+
+        and:
+        1 * projectFinder.getProject(':path') >> project
+        1 * dependencyFactory.createDependency(project) >> projectDependency
+        0 * _
     }
 
     void "attaches configuration from same project to target configuration"() {

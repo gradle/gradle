@@ -93,6 +93,10 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
         return dependencyFactory.createProjectDependencyFromMap(projectFinder, notation);
     }
 
+    public Dependency project(String path) {
+        return dependencyFactory.createDependency(projectFinder.getProject(path));
+    }
+
     public Dependency module(Object notation, Closure configureClosure) {
         return dependencyFactory.createModule(notation, configureClosure);
     }

@@ -312,6 +312,14 @@ public interface DependencyHandler {
     Dependency project(Map<String, ?> notation);
 
     /**
+     * Creates a dependency on a project.
+     *
+     * @param path The project path
+     * @return The dependency.
+     */
+    Dependency project(String path);
+
+    /**
      * Creates a dependency on the API of the current version of Gradle.
      *
      * @return The dependency.
