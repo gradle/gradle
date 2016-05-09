@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="2.0">
-  <info organisation="org.gradle.sample" module="sample-plugins" revision="1.0.0" status="integration" publication="20160509182802"/>
+  <info organisation="org.gradle.sample" module="sample-plugins" revision="1.0.0" status="integration" publication="20160509184243"/>
   <configurations>
     <conf name="default" visibility="public" extends="runtime"/>
     <conf name="runtime" visibility="public"/>

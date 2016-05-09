@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ivy-module version="2.0">
-  <info module="org.gradle.sample.goodbye.gradle.plugin" organisation="org.gradle.sample.goodbye" publication="20160509182801" revision="1.0.0" status="integration"/>
+  <info module="org.gradle.sample.goodbye.gradle.plugin" organisation="org.gradle.sample.goodbye" publication="20160509184242" revision="1.0.0" status="integration"/>
   <configurations/>
   <publications/>
   <dependencies>
