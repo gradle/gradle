@@ -387,6 +387,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     }
 
     boolean isBusy() {
-        return state == State.Running && currentCommandExecution != null;
+        return (state == State.Running || state == State.StopRequested) && currentCommandExecution != null;
     }
 }
