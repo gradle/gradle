@@ -21,10 +21,6 @@ task<Copy>("initConfig") {
 //        }
     }
 
-    from("src/main/config") {
-        it.exclude("**/*.properties", "**/*.xml")
-    }
-
     from("src/main/languages") {
         it.rename("EN_US_(.*)", "$1")
     }
