@@ -85,7 +85,7 @@ class ToolingApiDeprecatedVersionCrossVersionSpec extends ToolingApiSpecificatio
         stdout.toString().contains("Support for clients using tooling API version ${GradleVersion.current().version} is deprecated and will be removed in Gradle 3.0. You should upgrade your tooling API client to version 2.0 or later.")
     }
 
-    @ToolingApiVersion(">=1.2 <2.0")
+    @ToolingApiVersion(">=1.8 <2.0")
     @TargetGradleVersion(">=2.14")
     def "warning is received when running a build action using pre 2.0 client"() {
         when:
