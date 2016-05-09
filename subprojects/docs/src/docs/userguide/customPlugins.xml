@@ -77,7 +77,7 @@
             note that the <apilink class="org.gradle.api.Plugin"/> class is a generic type. This example has it receiving the
             <apilink class="org.gradle.api.Project"/> type as a type parameter. It's possible to write unusual custom
             plugins that take different type parameters, but this will be unlikely (until someone figures out more
-            creative things to do here). 
+            creative things to do here).
         </para>
     </section>
 
@@ -88,7 +88,7 @@
              that helps keep track of all the settings and properties being passed to plugins. You can capture user input by telling
              the extension container about your plugin. To capture input, simply add a Java Bean compliant class into the extension container's list of
              extensions. Groovy is a good language choice for a plugin because plain old Groovy objects contain all the getter and setter methods
-             that a Java Bean requires. 
+             that a Java Bean requires.
         </para>
 
         <para>Let's add a simple extension object to the project. Here we add a <literal>greeting</literal> extension object to the
@@ -134,12 +134,12 @@
         <para>
             In this example, we configure the <literal>greet</literal> task <literal>destination</literal> property as a closure, which is evaluated with
             the <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/> method to turn the return value of the closure into a file object
-            at the last minute. You will notice that in the example above we specify the <literal>greetingFile</literal> property value after we have 
-            configured to use it for the task. This kind of lazy evaluation is a key benefit of accepting any value when setting a file property, then 
+            at the last minute. You will notice that in the example above we specify the <literal>greetingFile</literal> property value after we have
+            configured to use it for the task. This kind of lazy evaluation is a key benefit of accepting any value when setting a file property, then
             resolving that value when reading the property.
         </para>
     </section>
-    
+
     <section>
         <title>A standalone project</title>
         <para>Now we will move our plugin to a standalone project, so we can publish it and share it with others.
@@ -159,7 +159,7 @@
 
         <sample id="customPluginStandalone" dir="customPlugin/plugin" title="Wiring for a custom plugin">
             <sourcefile file="src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties"/>
-        </sample>	
+        </sample>
 
         <para>
             Notice that the properties filename matches the plugin id and is placed in the resources folder, and
@@ -255,6 +255,12 @@
             <sample id="useJavaGradlePluginPlugin" dir="javaGradlePlugin" title="Using the Java Gradle Plugin Development plugin">
                 <sourcefile file="build.gradle" snippet="use-java-gradle-plugin-plugin"/>
             </sample>
+            <para>
+                When publishing plugins to custom plugin repositories using the <link linkend="publishing_ivy">ivy</link> or
+                <link linkend="publishing_maven">maven</link> publish plugins, the <link linkend="javaGradle_plugin">Java Gradle
+                Plugin development plugin</link> will also generate plugin marker artifacts named based on the plugin id which
+                depend on the plugin's implementation artifact.
+            </para>
         </section>
     </section>
 
@@ -270,8 +276,8 @@
         <para>
             The <apilink class="org.gradle.api.Project" method="container(java.lang.Class)"/> methods create instances of <apilink class="org.gradle.api.NamedDomainObjectContainer"/>, that have many useful methods for managing and configuring the objects. In order
             to use a type with any of the <literal>project.container</literal> methods, it MUST expose a property named “<literal>name</literal>”
-            as the unique, and constant, name for the object. The <literal>project.container(Class)</literal> variant of the container method creates 
-            new instances by attempting to invoke the constructor of the class that takes a single string argument, which is the desired name of the object. 
+            as the unique, and constant, name for the object. The <literal>project.container(Class)</literal> variant of the container method creates
+            new instances by attempting to invoke the constructor of the class that takes a single string argument, which is the desired name of the object.
             See the above link for <literal>project.container</literal> method variants that allow custom instantiation strategies.
         </para>
     </section>

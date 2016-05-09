@@ -15,5 +15,16 @@
  */
 
 // START SNIPPET use-java-gradle-plugin-plugin
-apply plugin: 'java-gradle-plugin'
+plugins {
+    id "java-gradle-plugin"
+}
+
+gradlePlugin {
+    plugins {
+        samplePlugin {
+            id = "org.example.sample-plugin"
+            implementationClass = "SamplePlugin"
+        }
+    }
+}
 // END SNIPPET use-java-gradle-plugin-plugin
