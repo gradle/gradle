@@ -35,6 +35,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 class MavenPluginPublishingRules extends RuleSource {
+    public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
+
     @Mutate
     public void addPluginPublications(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment, ServiceRegistry services) {
         if (!pluginDevelopment.isAutomatedPublishing()) {
@@ -64,7 +66,7 @@ class MavenPluginPublishingRules extends RuleSource {
     private void createMavenMarkerPublication(PluginDeclaration declaration, final PluginArtifactCoordinates coordinates, PublicationContainer publications) {
         String pluginId = declaration.getId();
         MavenPublication publication = publications.create(declaration.getName() + "PluginMarkerMaven", MavenPublication.class);
-        publication.setArtifactId(pluginId);
+        publication.setArtifactId(pluginId + PLUGIN_MARKER_SUFFIX);
         publication.setGroupId(pluginId);
         publication.getPom().withXml(new Action<XmlProvider>() {
             @Override

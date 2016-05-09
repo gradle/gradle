@@ -37,6 +37,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 class IvyPluginPublishingRules extends RuleSource {
+    public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
 
     @Mutate
     public void addPluginPublications(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment, ServiceRegistry services) {
@@ -68,7 +69,7 @@ class IvyPluginPublishingRules extends RuleSource {
         String pluginId = declaration.getId();
         IvyPublication publication = publications.create(declaration.getName() + "PluginMarkerIvy", IvyPublication.class);
         publication.setOrganisation(pluginId);
-        publication.setModule(pluginId);
+        publication.setModule(pluginId + PLUGIN_MARKER_SUFFIX);
         publication.descriptor(new Action<IvyModuleDescriptorSpec>() {
             @Override
             public void execute(IvyModuleDescriptorSpec descriptor) {

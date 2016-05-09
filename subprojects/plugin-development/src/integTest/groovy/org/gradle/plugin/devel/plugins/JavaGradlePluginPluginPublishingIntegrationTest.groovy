@@ -18,6 +18,8 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
+import static org.gradle.plugin.devel.plugins.MavenPluginPublishingRules.PLUGIN_MARKER_SUFFIX;
+
 class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -47,10 +49,10 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
 
         then:
         ivyRepo.module('com.example', 'plugins', '1.0').assertNotPublished()
-        ivyRepo.module('com.example.foo', 'com.example.foo', '1.0').assertNotPublished()
+        ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertNotPublished()
 
         mavenRepo.module('com.example', 'plugins', '1.0').assertNotPublished()
-        mavenRepo.module('com.example.foo', 'com.example.foo', '1.0').assertNotPublished()
+        mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertNotPublished()
     }
 
     def "Publishes main plugin artifact to Ivy"() {
@@ -89,8 +91,8 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         succeeds 'publish'
 
         then:
-        def fooMarker = ivyRepo.module('com.example.foo', 'com.example.foo', '1.0')
-        def barMarker = ivyRepo.module('com.example.bar', 'com.example.bar', '1.0')
+        def fooMarker = ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0')
+        def barMarker = ivyRepo.module('com.example.bar', 'com.example.bar' + PLUGIN_MARKER_SUFFIX, '1.0')
         [fooMarker, barMarker].each { marker ->
             marker.assertPublished()
             assert marker.parsedIvy.dependencies['com.example:plugins:1.0']
@@ -107,8 +109,8 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         succeeds 'publish'
 
         then:
-        def fooMarker = mavenRepo.module('com.example.foo', 'com.example.foo', '1.0')
-        def barMarker = mavenRepo.module('com.example.bar', 'com.example.bar', '1.0')
+        def fooMarker = mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0')
+        def barMarker = mavenRepo.module('com.example.bar', 'com.example.bar' + PLUGIN_MARKER_SUFFIX, '1.0')
         [fooMarker, barMarker].each { marker ->
             marker.assertPublished()
             assert marker.parsedPom.scopes['runtime'].expectDependency('com.example:plugins:1.0')
@@ -127,10 +129,10 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         then:
 
         mavenRepo.module('com.example', 'plugins', '1.0').assertPublished()
-        mavenRepo.module('com.example.foo', 'com.example.foo', '1.0').assertPublished()
+        mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
 
         ivyRepo.module('com.example', 'plugins', '1.0').assertPublished()
-        ivyRepo.module('com.example.foo', 'com.example.foo', '1.0').assertPublished()
+        ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
     }
 
     def "Can handle unspecified version"() {
@@ -148,10 +150,10 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
 
         then:
         mavenRepo.module('com.example', 'plugins', 'unspecified').assertPublished()
-        mavenRepo.module('com.example.foo', 'com.example.foo', 'unspecified').assertPublished()
+        mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, 'unspecified').assertPublished()
 
         ivyRepo.module('com.example', 'plugins', 'unspecified').assertPublished()
-        ivyRepo.module('com.example.foo', 'com.example.foo', 'unspecified').assertPublished()
+        ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, 'unspecified').assertPublished()
     }
 
     def publishToMaven() {
