@@ -16,10 +16,10 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
-import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
 import java.util.ArrayList;
@@ -29,7 +29,10 @@ import static java.util.Arrays.asList;
 import static org.apache.commons.collections.CollectionUtils.containsAny;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
-    private static final JvmVersionDetector JVM_VERSION_DETECTOR = new JvmVersionDetector(new DefaultExecActionFactory(new IdentityFileResolver()));
+    private static final JvmVersionDetector JVM_VERSION_DETECTOR = ServiceRegistryBuilder.builder()
+        .provider(new GlobalScopeServices(true))
+        .build()
+        .get(JvmVersionDetector.class);
 
     public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);

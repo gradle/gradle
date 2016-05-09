@@ -20,16 +20,11 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
-import org.gradle.process.internal.ExecHandleFactory;
 
 /**
  * Global services shared by all Gradle daemon clients in a given process.
  */
 public class DaemonClientGlobalServices {
-    JvmVersionDetector createJvmVersionDetector(ExecHandleFactory execHandleFactory) {
-        return new JvmVersionDetector(execHandleFactory);
-    }
-
     JvmVersionValidator createJvmVersionValidator(JvmVersionDetector jvmVersionDetector) {
         return new JvmVersionValidator(jvmVersionDetector);
     }

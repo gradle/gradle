@@ -31,6 +31,7 @@ dependencies {
     publishCompile project(":resources")
 
     compile project(":processServices")
+    compile project(":jvmServices")
     compile project(":modelCore")
     compile project(":modelGroovy")
     compile libraries.asm
