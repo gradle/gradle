@@ -1,3 +1,7 @@
+/**
+ * Logging infrastructure.
+ */
+
 dependencies {
     compile libraries.groovy
     compile libraries.slf4j_api
