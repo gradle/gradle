@@ -30,6 +30,7 @@ dependencies {
     publishCompile project(":logging")
     publishCompile project(":resources")
 
+    compile project(":process")
     compile project(":modelCore")
     compile project(":modelGroovy")
     compile libraries.asm
