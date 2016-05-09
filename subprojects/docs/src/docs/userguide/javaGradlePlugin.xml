@@ -71,7 +71,7 @@
         <itemizedlist>
             <listitem>Generate the plugin descriptor in the <literal>jar</literal> file's <literal>META-INF</literal> directory.</listitem>
             <listitem>Configure the <link linkend="publishing_maven">Maven</link> or <link linkend="publishing_ivy">Ivy</link> publishing
-                plugins to publish a Plugin Marker artifact for each plugin.</listitem>
+                plugins to publish a <link linkend="sec:plugin_markers">Plugin Marker Artifact</link> for each plugin.</listitem>
         </itemizedlist>
     </section>
 </chapter>
