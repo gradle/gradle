@@ -13,6 +13,7 @@
     <build-runners>
       <runner id="RUNNER_552" name="Build" type="gradle-runner">
         <parameters>
+          <param name="jvmArgs" value="-XX:MaxPermSize=128M" />
           <param name="teamcity.coverage.emma.include.source" value="true" />
           <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
