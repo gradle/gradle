@@ -17,11 +17,12 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
 import spock.lang.Specification
 
 class JvmVersionDetectorTest extends Specification {
-    def detector = new JvmVersionDetector()
+    def detector = new JvmVersionDetector(TestFiles.execHandleFactory())
 
     def "can determine version of current jvm"() {
         expect:

@@ -16,8 +16,10 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.launcher.daemon.client.JvmVersionDetector;
+import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
 import java.util.ArrayList;
@@ -27,6 +29,7 @@ import static java.util.Arrays.asList;
 import static org.apache.commons.collections.CollectionUtils.containsAny;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
+    private static final JvmVersionDetector JVM_VERSION_DETECTOR = new JvmVersionDetector(new DefaultExecActionFactory(new IdentityFileResolver()));
 
     public DaemonGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         super(distribution, testDirectoryProvider);
@@ -64,7 +67,7 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         // Add JVM heap settings only for shared daemons
         List<String> buildJvmOpts = new ArrayList<String>(super.getImplicitBuildJvmArgs());
 
-        if (new JvmVersionDetector().getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_9) < 0) {
+        if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_9) < 0) {
             buildJvmOpts.add("-XX:MaxPermSize=320m");
         }
 

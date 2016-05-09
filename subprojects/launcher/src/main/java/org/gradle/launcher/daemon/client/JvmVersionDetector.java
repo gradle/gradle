@@ -22,8 +22,14 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.process.internal.ExecHandleFactory;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -34,8 +40,10 @@ import java.util.regex.Pattern;
  */
 public class JvmVersionDetector {
     private final Map<JavaInfo, JavaVersion> cachedResults = new HashMap<JavaInfo, JavaVersion>();
+    private final ExecHandleFactory execHandleFactory;
 
-    public JvmVersionDetector() {
+    public JvmVersionDetector(ExecHandleFactory execHandleFactory) {
+        this.execHandleFactory = execHandleFactory;
         cachedResults.put(Jvm.current(), JavaVersion.current());
     }
 
@@ -47,7 +55,7 @@ public class JvmVersionDetector {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        ExecHandleBuilder builder = new ExecHandleBuilder();
+        ExecHandleBuilder builder = execHandleFactory.newExec();
         builder.setWorkingDir(new File(".").getAbsolutePath());
         builder.setCommandLine(jvm.getJavaExecutable(), "-version");
         builder.setStandardOutput(new ByteArrayOutputStream());
