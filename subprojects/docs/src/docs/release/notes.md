@@ -179,6 +179,27 @@ Using the Gradle build comparison plugin to compare builds for Gradle versions 1
 - `EclipseProjectDependency.getTargetProject()` has been deprecated, use `EclipseProjectDependency.getTarget()` instead.
 - `IdeaModuleDependency.getDependencyModule()` has been deprecated, use `IdeaModuleDependency.getTarget()` instead.
 
+### TestNG Javadoc annotations
+
+Support for using TestNG Javadoc annotations is deprecated and will be removed in Gradle 3.0. 
+Support for Javadoc annotations was removed from TestNG 5.12, in early 2010. You will be able to use these old versions of TestNG from Gradle 3.0, however you will need to use JDK annotations.
+
+As a result of this deprecation, the following methods are also deprecated and will be removed in Gradle 3.0:
+
+- `Test.getTestSrcDirs()`
+- `Test.setTestSrcDirs()`
+- `TestNGOptions.getAnnotations()`
+- `TestNGOptions.setAnnotationsOnSourceCompatibility()`
+- `TestNGOptions.jdkAnnotations()`
+- `TestNGOptions.javadocAnnotations()`
+- `TestNGOptions.getJDK_ANNOTATIONS()`
+- `TestNGOptions.getJAVADOC_ANNOTATIONS()`
+- `TestNGOptions.getJavadocAnnotations()`
+- `TestNGOptions.isJavadocAnnotations()`
+- `TestNGOptions.setJavadocAnnotations()`
+- `TestNGOptions.getTestResources()`
+- `TestNGOptions.setTestResources()`
+
 ### Deprecated task methods
 
 The `setName()` and `setProject()` methods in `AbstractTask` have been deprecated and will be removed in Gradle 3.0.

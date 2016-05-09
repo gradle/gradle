@@ -120,6 +120,11 @@ public class SingleMessageLogger {
                 methodName, getDeprecationMessage()));
     }
 
+    public static void nagUserOfDiscontinuedMethod(String methodName, String advice) {
+        nagUserWith(String.format("The %s method %s. %s",
+                methodName, getDeprecationMessage(), advice));
+    }
+
     public static void nagUserOfDiscontinuedProperty(String propertyName, String advice) {
         nagUserWith(String.format("The %s property %s. %s",
                 propertyName, getDeprecationMessage(), advice));

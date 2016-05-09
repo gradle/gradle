@@ -67,6 +67,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -1005,13 +1006,19 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Returns the directories containing the test source.
+     *
+     * @deprecated Support for TestNG Javadoc annotations will be removed in Gradle 3.0
      */
     @InputFiles
+    @Deprecated
     public List<File> getTestSrcDirs() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("Test.testSrcDirs", "Support for TestNG Javadoc annotations will be removed in Gradle 3.0.");
         return testSrcDirs;
     }
 
+    @Deprecated
     public void setTestSrcDirs(List<File> testSrcDir) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("Test.testSrcDirs", "Support for TestNG Javadoc annotations will be removed in Gradle 3.0.");
         this.testSrcDirs = testSrcDir;
     }
 

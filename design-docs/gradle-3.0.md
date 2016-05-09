@@ -69,7 +69,16 @@ Tooling api client no longer executes builds for Gradle versions older than 1.2.
 
 Remove the Sonar plugins
 
-# Candidates for Gradle 3.0
+## Remove support for TestNG source annotations
+
+TestNG dropped support for this in 5.12, in early 2010. Supporting these old style annotations means we need to attach the test source files as an input to the `Test` task, which means there's an up-to-date check cost for this.
+
+- `Test.testSourceDirs`
+- Methods on `TestNGOptions`
+- Remove reflective code from `TestNGTestClassProcessor` and properties from `TestNGSpec`
+- Remove test coverage and samples
+
+# Candidates for Gradle 3.0 and later
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
@@ -89,7 +98,6 @@ Building against Java 5 requires that the compiler daemon and test execution inf
 
 ## Drop support for old versions of things
 
-- Using TestNG Javadoc annotations. TestNG dropped support for this in 5.12, in early 2010. Supporting these old style annotations means we need to attach the test source files as an input to the `Test` task, which means there's an up-to-date check cost for this.
 - Wrapper support for versions older than 2.0. Wrapper 2.x supports Gradle 0.9.2 and later (5 years) and Gradle 2.x can be run by wrapper 0.9.2 and later.
 - Cached artefact reuse for versions older than 2.0.
 - Execution of task classes compiled against Gradle versions older than 2.0.

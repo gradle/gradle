@@ -27,6 +27,7 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -77,7 +78,9 @@ public class TestNGOptions extends TestFrameworkOptions {
 
     private final File projectDir;
 
+    @Deprecated
     public String getAnnotations() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("TestNGOptions.annotations", "Support for TestNG Javadoc annotations will be removed in Gradle 3.0.");
         return javadocAnnotations ? JAVADOC_ANNOTATIONS : JDK_ANNOTATIONS;
     }
 
@@ -85,13 +88,13 @@ public class TestNGOptions extends TestFrameworkOptions {
         this.projectDir = projectDir;
     }
 
+    @Deprecated
     public void setAnnotationsOnSourceCompatibility(JavaVersion sourceCompatibilityProp) {
         if (sourceCompatibilityProp.compareTo(JavaVersion.VERSION_1_5) >= 0) {
             jdkAnnotations();
         } else {
             javadocAnnotations();
         }
-
     }
 
     public MarkupBuilder suiteXmlBuilder() {
@@ -158,12 +161,16 @@ public class TestNGOptions extends TestFrameworkOptions {
         return suites;
     }
 
+    @Deprecated
     public TestNGOptions jdkAnnotations() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TestNGOptions.jdkAnnotations()", "Support for TestNG Javadoc annotations will be removed in Gradle 3.0.");
         javadocAnnotations = false;
         return this;
     }
 
+    @Deprecated
     public TestNGOptions javadocAnnotations() {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TestNGOptions.javadocAnnotations()", "Support for TestNG Javadoc annotations will be removed in Gradle 3.0.");
         javadocAnnotations = true;
         return this;
     }
@@ -204,11 +211,15 @@ public class TestNGOptions extends TestFrameworkOptions {
         throw new MissingMethodException(name, getClass(), (Object[])args);
     }
 
+    @Deprecated
     public static String getJDK_ANNOTATIONS() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("TestNGOptions.JDK_ANNOTATIONS", "Support for TestNG Javadoc annotations will be removed in Gradle 3.0.");
         return JDK_ANNOTATIONS;
     }
 
+    @Deprecated
     public static String getJAVADOC_ANNOTATIONS() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("TestNGOptions.JAVADOC_ANNOTATIONS", "Support for TestNG Javadoc annotations will be removed in Gradle 3.0.");
         return JAVADOC_ANNOTATIONS;
     }
 
@@ -233,26 +244,36 @@ public class TestNGOptions extends TestFrameworkOptions {
      *
      * Defaults to JDK annotations if you're using the JDK 5 jar and to Javadoc annotations if you're using the JDK 1.4 jar.
      */
+    @Deprecated
     public boolean getJavadocAnnotations() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("TestNGOptions.javadocAnnotations", "Support for TestNG Javadoc annotations will be removed in Gradle 3.0.");
         return javadocAnnotations;
     }
 
+    @Deprecated
     public boolean isJavadocAnnotations() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("TestNGOptions.javadocAnnotations", "Support for TestNG Javadoc annotations will be removed in Gradle 3.0.");
         return javadocAnnotations;
     }
 
+    @Deprecated
     public void setJavadocAnnotations(boolean javadocAnnotations) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("TestNGOptions.javadocAnnotations", "Support for TestNG Javadoc annotations will be removed in Gradle 3.0.");
         this.javadocAnnotations = javadocAnnotations;
     }
 
     /**
      * List of all directories containing Test sources. Should be set if annotations is 'Javadoc'.
      */
+    @Deprecated
     public List getTestResources() {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("TestNGOptions.testResources", "Support for TestNG Javadoc annotations will be removed in Gradle 3.0.");
         return testResources;
     }
 
+    @Deprecated
     public void setTestResources(List testResources) {
+        DeprecationLogger.nagUserOfDiscontinuedProperty("TestNGOptions.testResources", "Support for TestNG Javadoc annotations will be removed in Gradle 3.0.");
         this.testResources = testResources;
     }
 
