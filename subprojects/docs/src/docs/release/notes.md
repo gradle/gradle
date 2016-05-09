@@ -16,6 +16,67 @@ Only classes that are part of Gradle's public API are visible to plugins at buil
 This fixes GRADLE-3433 and GRADLE-1715.
 No build script changes are necessary to take advantage of these improvements.
 
+### Plugins can more easily be published to and resolved from custom repositories
+
+When writing plugins for private use by your organization, you can now take advantage of the simplified syntax of the `plugins {}` block and 
+new `pluginRepositories {}` block when specifying the plugins to be applied to your build. For example, in your `settings.gradle` file you
+can specify:
+
+    pluginRepositories {
+        maven {
+            url 'https://private.mycompany.com/m2'
+        }
+        gradlePluginPortal()
+        ivy {
+            url 'https://repo.partner.com/m2'
+        }
+    }
+    
+And then use the `plugins {}` block to specify the plugins you want applied to your build projects.
+
+    plugins {
+        id 'java'                               // Resolved from the Gradle Distribution.
+        id 'org.public.plugin' version '1.2.3'  // Resolved from the Gradle Plugin Portal.
+        id 'com.mycompany.secret' version '1.0' // Resolved from your private maven repository.
+        id 'com.partner.silly' version '2.0'    // Resolved from your partner's ivy repository.
+    }
+
+The repositories are consulted in the order in which they were specifed in the `pluginRepositories {}` block.
+
+To be able to resolve a plugin's implementation jar from just the specification of its `id` and `version` in an ivy or maven repository, we
+require that a special *Plugin Marker* artifact also be published to the repository. This artifact has the coordinates `pluginId:pluginId:version`
+and will be automatically published if you use the `maven-publish` or `ivy-publish` plugins in combination with the `java-gradle-plugin` plugin
+when publishing your plugin to your custom repository. For example:
+
+    version = 1.0
+    name = "secretPlugin"
+    group = "com.mycompany"
+
+    plugins {
+        id 'java-gradle-plugin'
+        id 'maven-publish'
+    }
+    
+    gradlePlugin {
+        plugins {
+            secret {
+                id = 'com.mycompany.secret'
+                implementationClass = 'org.mycompany.plugins.TopSecretPlugin'
+            }
+        }
+    }
+    
+    publishing {
+        repositories {
+            maven {
+                url 'https://private.mycompany.com/m2'
+            }
+        }
+    }
+
+When you run `./gradlew publish` your plugin `com.mycompany:secretPlugin:1.0` and the *Plugin Marker* `com.mycopmany.secret:com.mycompany.secret:1.0`
+will both published to your maven repository for use in your companies Gradle projects.
+
 ### Set the character set used for filtering files in CopySpec
 
 By default, file filtering using `CopySpec` uses the default platform character set to read and write filtered files.
