@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.launcher.daemon.client.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 

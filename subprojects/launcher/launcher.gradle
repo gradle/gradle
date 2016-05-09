@@ -6,6 +6,7 @@ configurations {
 
 dependencies {
     compile project(':baseServices')
+    compile project(':jvmServices')
     compile project(':core')
     compile project(':cli')
     compile project(':ui')

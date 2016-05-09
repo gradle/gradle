@@ -1,0 +1,12 @@
+/**
+ * JVM invocation and inspection abstractions.
+ */
+
+dependencies {
+    compile project(":processServices")
+
+    testCompile libraries.groovy
+}
+
+useTestFixtures()
+useClassycle()

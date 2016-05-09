@@ -3,7 +3,6 @@
  */
 
 dependencies {
-    compile libraries.slf4j_api
     compile project(':baseServices')
 
     testCompile libraries.groovy
