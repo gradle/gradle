@@ -18,6 +18,7 @@ package org.gradle.api.artifacts.dsl;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 
@@ -312,12 +313,12 @@ public interface DependencyHandler {
     Dependency project(Map<String, ?> notation);
 
     /**
-     * Creates a dependency on a project.
+     * Returns the project instance for the specified path.
      *
      * @param path The project path
-     * @return The dependency.
+     * @return A project at the corresponding path.
      */
-    Dependency project(String path);
+    Project project(String path);
 
     /**
      * Creates a dependency on the API of the current version of Gradle.

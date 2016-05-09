@@ -174,19 +174,17 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createProjectDependencyFromMap(projectFinder, [:]) >> projectDependency
     }
 
-    void "creates a project dependency from string"() {
-        ProjectDependency projectDependency = Mock()
+    void "returns a project dependency from string"() {
         ProjectInternal project = Mock()
 
         when:
         def result = dependencyHandler.project(':path')
 
         then:
-        result == projectDependency
+        result == project
 
         and:
         1 * projectFinder.getProject(':path') >> project
-        1 * dependencyFactory.createDependency(project) >> projectDependency
         0 * _
     }
 
