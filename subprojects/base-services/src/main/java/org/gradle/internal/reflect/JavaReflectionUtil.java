@@ -80,10 +80,8 @@ public class JavaReflectionUtil {
      * @throws NoSuchPropertyException
      */
     public static <T, F> PropertyAccessor<T, F> readableField(Class<T> target, Class<F> fieldType, String fieldName) throws NoSuchPropertyException {
-        Field field;
-        try {
-            field = target.getField(fieldName);
-        } catch (java.lang.NoSuchFieldException e) {
+        Field field = findField(target, fieldName);
+        if (field == null) {
             throw new NoSuchPropertyException(String.format("Could not find field '%s' on class %s.", fieldName, target.getSimpleName()));
         }
 
@@ -102,21 +100,17 @@ public class JavaReflectionUtil {
     }
 
     private static Method findGetterMethod(Class<?> target, String property) {
-        try {
-            Method getterMethod = target.getMethod(toMethodName("get", property));
-            if (isGetter(getterMethod)) {
-                return getterMethod;
+        Method[] methods = target.getMethods();
+        String getter = toMethodName("get", property);
+        String iser = toMethodName("is", property);
+        for (Method method : methods) {
+            String methodName = method.getName();
+            if (getter.equals(methodName) && isGetter(method)) {
+                return method;
             }
-        } catch (java.lang.NoSuchMethodException e) {
-            // Ignore
-        }
-        try {
-            Method getterMethod = target.getMethod(toMethodName("is", property));
-            if (isBooleanGetter(getterMethod)) {
-                return getterMethod;
+            if (iser.equals(methodName) && isBooleanGetter(method)) {
+                return method;
             }
-        } catch (java.lang.NoSuchMethodException e2) {
-            // Ignore
         }
         return null;
     }
@@ -171,13 +165,21 @@ public class JavaReflectionUtil {
      * @throws NoSuchPropertyException when the given property does not exist.
      */
     public static PropertyMutator writeableField(Class<?> target, String fieldName) throws NoSuchPropertyException {
-        Field field;
-        try {
-            field = target.getField(fieldName);
+        Field field = findField(target, fieldName);
+        if (field != null) {
             return new FieldBackedPropertyMutator(fieldName, field);
-        } catch (java.lang.NoSuchFieldException e) {
-            throw new NoSuchPropertyException(String.format("Could not find writeable field '%s' on class %s.", fieldName, target.getSimpleName()));
         }
+        throw new NoSuchPropertyException(String.format("Could not find writeable field '%s' on class %s.", fieldName, target.getSimpleName()));
+    }
+
+    private static Field findField(Class<?> target, String fieldName) {
+        Field[] fields = target.getFields();
+        for (Field field : fields) {
+            if (fieldName.equals(field.getName())) {
+                return field;
+            }
+        }
+        return null;
     }
 
     private static String toMethodName(String prefix, String propertyName) {
@@ -271,17 +273,11 @@ public class JavaReflectionUtil {
         Class<?> targetType = target.getClass();
         Method getterMethod = findGetterMethod(target.getClass(), propertyName);
         if (getterMethod == null) {
-            try {
-                targetType.getField(propertyName);
-                return true;
-            } catch (NoSuchFieldException ignore) {
-                // ignore
+            if (findField(targetType, propertyName) == null) {
+                return false;
             }
-        } else {
-            return true;
         }
-
-        return false;
+        return true;
     }
 
     private static class MultiMap<K, V> extends HashMap<K, List<V>> {
