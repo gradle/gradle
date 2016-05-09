@@ -13,10 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.announce.internal
 
-import org.gradle.api.plugins.announce.Announcer
+package org.gradle.api.plugins.announce;
 
-interface AnnouncerFactory {
-    Announcer createAnnouncer(String type)
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+
+/**
+ * This plugin allows to send announce messages to Twitter.
+ */
+public class AnnouncePlugin implements Plugin<Project> {
+    public void apply(Project project) {
+        project.getExtensions().create("announce", AnnouncePluginExtension.class, project);
+    }
+
 }

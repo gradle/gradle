@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.announce
+package org.gradle.api.plugins.announce.internal;
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.plugins.announce.Announcer;
 
-/**
- * This plugin allows to send announce messages to Twitter.
- */
-class AnnouncePlugin implements Plugin<Project> {
-    void apply(Project project) {
-        project.extensions.create("announce", AnnouncePluginExtension.class, project)
+public class UnknownAnnouncer implements Announcer {
+    public void send(String title, String message) {
+        throw new InvalidUserDataException("unknown announcer type");
     }
-}
 
+}

@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.announce.internal;
+package org.gradle.api.plugins.announce.internal
 
-
+import org.gradle.api.Action
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.plugins.announce.Announcer
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.process.ExecSpec
 
 /**
  * This class wraps the Ubuntu Notify Send functionality.
@@ -38,14 +39,17 @@ class NotifySend implements Announcer {
         if (exe == null) {
             throw new AnnouncerUnavailableException("Could not find 'notify-send' in the path.")
         }
-        processOperations.exec {
-            executable exe
-            def icon = iconProvider.getIcon(32, 32)
-            if (icon) {
-                args '-i', icon.absolutePath
+        processOperations.exec(new Action<ExecSpec>() {
+            @Override
+            void execute(ExecSpec execSpec) {
+                execSpec.executable exe
+                def icon = iconProvider.getIcon(32, 32)
+                if (icon != null) {
+                    execSpec.args '-i', icon.absolutePath
+                }
+                execSpec.args '--hint=int:transient:1'
+                execSpec.args title, message
             }
-            args '--hint=int:transient:1'
-            args title, message
-        }
+        });
     }
 }
