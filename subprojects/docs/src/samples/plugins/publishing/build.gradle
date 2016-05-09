@@ -1,0 +1,45 @@
+// START SNIPPET complete-plugin-publishing
+plugins {
+  id 'java-gradle-plugin'
+  id 'maven-publish'
+  id 'ivy-publish'
+}
+
+group 'org.gradle.sample'
+version '1.0.0'
+
+gradlePlugin {
+  plugins {
+    hello {
+      id = "org.gradle.sample.hello"
+      implementationClass = "org.gradle.sample.hello.HelloPlugin"
+    }
+    goodbye {
+      id = "org.gradle.sample.goodbye"
+      implementationClass = "org.gradle.sample.goodbye.GoodbyePlugin"
+    }
+  }
+}
+
+publishing {
+  publications {
+    mavenPlugins(MavenPublication) {
+      from components.java
+    }
+    ivyPlugins(IvyPublication) {
+      from components.java
+    }
+  }
+}
+
+publishing {
+  repositories {
+    maven {
+      url "../maven-repo"
+    }
+    ivy {
+      url "../ivy-repo"
+    }
+  }
+}
+// END SNIPPET complete-plugin-publishing
