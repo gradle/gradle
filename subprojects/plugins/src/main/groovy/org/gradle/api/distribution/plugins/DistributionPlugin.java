@@ -31,7 +31,9 @@ import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.Zip;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -79,8 +81,18 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
                 });
 
                 dist.getContents().from("src/" + dist.getName() + "/dist");
-                Task zipTask = addZipTask(project, dist);
-                Task tarTask = addTarTask(project, dist);
+                Task zipTask = DeprecationLogger.whileDisabled(new Factory<Task>() {
+                    @Override
+                    public Task create() {
+                        return addZipTask(project, dist);
+                    }
+                });
+                Task tarTask = DeprecationLogger.whileDisabled(new Factory<Task>() {
+                    @Override
+                    public Task create() {
+                        return addTarTask(project, dist);
+                    }
+                });
                 addAssembleTask(project, dist, zipTask, tarTask);
                 addInstallTask(project, dist);
             }
@@ -89,6 +101,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
     }
 
     public Task addZipTask(Project project, Distribution distribution) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("addZipTask");
         String taskName = TASK_DIST_ZIP_NAME;
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.getName())) {
             taskName = distribution.getName() + "DistZip";
@@ -98,6 +111,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
     }
 
     public Task addTarTask(Project project, Distribution distribution) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("addTarTask");
         String taskName = TASK_DIST_TAR_NAME;
         if (!MAIN_DISTRIBUTION_NAME.equals(distribution.getName())) {
             taskName = distribution.getName() + "DistTar";
@@ -120,7 +134,7 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
             }
         });
 
-       Callable<String> baseDir = new Callable<String>() {
+        Callable<String> baseDir = new Callable<String>() {
             @Override
             public String call() throws Exception {
                 // For backwards compatibility, we need to simulate the exact behaviour of the previously uses Groovy minus operator

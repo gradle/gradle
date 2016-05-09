@@ -66,11 +66,17 @@ public class ApplicationPlugin implements Plugin<Project> {
             }
         });
         configureDistSpec(distribution.getContents());
-        Task installAppTask = addInstallAppTask(distribution);
-        configureInstallTasks(installAppTask, project.getTasks().getAt(DistributionPlugin.TASK_INSTALL_NAME));
+        final Task installAppTask = addInstallAppTask(distribution);
+        DeprecationLogger.whileDisabled(new Runnable() {
+            @Override
+            public void run() {
+                configureInstallTasks(installAppTask, project.getTasks().getAt(DistributionPlugin.TASK_INSTALL_NAME));
+            }
+        });
     }
 
     public void configureInstallTasks(Task... installTasks) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("configureInstallTasks");
         for (Task installTask : installTasks) {
             installTask.doFirst(new Action<Task>() {
                 @Override
