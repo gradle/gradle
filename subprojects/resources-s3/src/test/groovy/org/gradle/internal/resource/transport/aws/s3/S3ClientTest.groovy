@@ -84,7 +84,7 @@ class S3ClientTest extends Specification {
         '/'                         | null
     }
 
-    def "should resolve resource names from an AWS objectlisting"() {
+    def "should resolve all resource names from an AWS objectlisting"() {
         setup:
         S3Client s3Client = new S3Client(Mock(AmazonS3Client), s3ConnectionProperties)
         ObjectListing objectListing = Mock()
@@ -98,8 +98,17 @@ class S3ClientTest extends Specification {
         objectListing.getCommonPrefixes() >> ['/SNAPSHOT/', '/SNAPSHOT/1.0.8/']
 
         when:
-        def results = s3Client.resolveResourceNames(objectListing)
+        def results = s3Client.resolveDirectoryResourceNames(objectListing)
+        then:
+        results == ['SNAPSHOT/', '1.0.8/']
 
+        when:
+        results = s3Client.resolveFileResourceNames(objectListing)
+        then:
+        results == ['some.jar', 'someOther.jar']
+
+        when:
+        results = s3Client.resolveResourceNames(objectListing)
         then:
         results == ['some.jar', 'someOther.jar', 'SNAPSHOT/', '1.0.8/']
     }

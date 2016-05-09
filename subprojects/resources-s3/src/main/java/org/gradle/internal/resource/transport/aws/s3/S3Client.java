@@ -145,6 +145,15 @@ public class S3Client {
 
     private List<String> resolveResourceNames(ObjectListing objectListing) {
         List<String> results = new ArrayList<String>();
+
+        results.addAll(resolveFileResourceNames(objectListing));
+        results.addAll(resolveDirectoryResourceNames(objectListing));
+
+        return results;
+    }
+
+    private List<String> resolveFileResourceNames(ObjectListing objectListing) {
+        List<String> results = new ArrayList<String>();
         List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
         if (null != objectSummaries) {
             for (S3ObjectSummary objectSummary : objectSummaries) {
@@ -154,9 +163,13 @@ public class S3Client {
                     results.add(fileName);
                 }
             }
-
         }
 
+        return results;
+    }
+
+    private List<String> resolveDirectoryResourceNames(ObjectListing objectListing) {
+        List<String> results = new ArrayList<String>();
         List<String> commonPrefixes = objectListing.getCommonPrefixes();
         if(null != commonPrefixes) {
             for(String prefix : commonPrefixes) {
