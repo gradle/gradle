@@ -243,7 +243,6 @@ public class ThingTest {
 
             task otherTests(type: Test) {
                 binResultsDir file("bin")
-                testSrcDirs = sourceSets.otherTest.java.srcDirs as List
                 testClassesDir = sourceSets.otherTest.output.classesDir
                 classpath = sourceSets.otherTest.runtimeClasspath
             }
