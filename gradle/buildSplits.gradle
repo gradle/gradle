@@ -19,7 +19,7 @@ def buckets = [
         ":ivy", ":platformBase", ":jacoco", ":announce", ":internalIntegTesting",
         ":diagnostics", ":jetty", ":cli", ":reporting", ":toolingApiBuilders", ":openApi"],
 
-    "2": [":toolingApi", ":core", ":logging", ":process", ":codeQuality", ":distributions",
+    "2": [":toolingApi", ":core", ":logging", ":processServices", ":codeQuality", ":distributions",
         ":pluginUse",  ":buildInit", ":languageGroovy", ":internalTesting",
         ":languageJvm", ":performance", ":publish", ":resources", ":baseServicesGroovy", ":resourcesHttp",
         ":pluginDevelopment", ":osgi"],
