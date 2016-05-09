@@ -16,7 +16,6 @@
 package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
-import org.gradle.api.Project;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
@@ -27,39 +26,40 @@ import java.util.Map;
 
 public abstract class ProjectScript extends DefaultScript {
     public void apply(Closure closure) {
-        ((Project) getScriptTarget()).apply(closure);
+        getScriptTarget().apply(closure);
     }
 
     @SuppressWarnings("unchecked")
     public void apply(Map options) {
-        ((Project) getScriptTarget()).apply(options);
-    }
-
-    public Project getProject() {
-        return (Project) getScriptTarget();
+        getScriptTarget().apply(options);
     }
 
     public ScriptHandler getBuildscript() {
-        return ((Project) getScriptTarget()).getBuildscript();
+        return getScriptTarget().getBuildscript();
     }
 
     public void buildscript(Closure configureClosure) {
-        ((Project) getScriptTarget()).buildscript(configureClosure);
+        getScriptTarget().buildscript(configureClosure);
     }
 
     public StandardOutputCapture getStandardOutputCapture() {
-        return ((ProjectInternal) getScriptTarget()).getStandardOutputCapture();
+        return getScriptTarget().getStandardOutputCapture();
     }
 
     public LoggingManager getLogging() {
-        return ((Project) getScriptTarget()).getLogging();
+        return getScriptTarget().getLogging();
     }
 
     public Logger getLogger() {
-        return ((Project) getScriptTarget()).getLogger();
+        return getScriptTarget().getLogger();
     }
 
     public String toString() {
         return getScriptTarget().toString();
+    }
+
+    @Override
+    public ProjectInternal getScriptTarget() {
+        return (ProjectInternal) super.getScriptTarget();
     }
 }
