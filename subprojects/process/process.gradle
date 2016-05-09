@@ -1,5 +1,5 @@
 /**
- * Process execution infrastructure.
+ * Process execution abstractions.
  */
 
 dependencies {
@@ -10,4 +10,4 @@ dependencies {
 }
 
 useTestFixtures()
-useClassycle()
+//useClassycle()

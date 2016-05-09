@@ -19,38 +19,36 @@ package org.gradle.process.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.process.ExecSpec;
 import org.gradle.util.GUtil;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ExecHandleBuilder extends AbstractExecHandleBuilder implements ExecSpec {
+public class DefaultExecHandleBuilder extends AbstractExecHandleBuilder implements ExecHandleBuilder {
     private final List<Object> arguments = new ArrayList<Object>();
 
-    public ExecHandleBuilder() {
+    public DefaultExecHandleBuilder() {
         super(new IdentityFileResolver());
     }
 
-    public ExecHandleBuilder(PathToFileResolver fileResolver) {
+    public DefaultExecHandleBuilder(PathToFileResolver fileResolver) {
         super(fileResolver);
     }
 
-    public ExecHandleBuilder executable(Object executable) {
+    public DefaultExecHandleBuilder executable(Object executable) {
         super.executable(executable);
         return this;
     }
 
-    public ExecHandleBuilder commandLine(Object... arguments) {
+    public DefaultExecHandleBuilder commandLine(Object... arguments) {
         commandLine(Arrays.asList(arguments));
         return this;
     }
 
-    public ExecHandleBuilder commandLine(Iterable<?> args) {
+    public DefaultExecHandleBuilder commandLine(Iterable<?> args) {
         List<Object> argsList = Lists.newArrayList(args);
         executable(argsList.get(0));
         setArgs(argsList.subList(1, argsList.size()));
@@ -65,7 +63,7 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
         commandLine(args);
     }
 
-    public ExecHandleBuilder args(Object... args) {
+    public DefaultExecHandleBuilder args(Object... args) {
         if (args == null) {
             throw new IllegalArgumentException("args == null!");
         }
@@ -73,12 +71,12 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
         return this;
     }
 
-    public ExecHandleBuilder args(Iterable<?> args) {
+    public DefaultExecHandleBuilder args(Iterable<?> args) {
         GUtil.addToCollection(arguments, args);
         return this;
     }
 
-    public ExecHandleBuilder setArgs(Iterable<?> arguments) {
+    public DefaultExecHandleBuilder setArgs(Iterable<?> arguments) {
         this.arguments.clear();
         GUtil.addToCollection(this.arguments, arguments);
         return this;
@@ -98,49 +96,44 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
     }
 
     @Override
-    public ExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
+    public DefaultExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
         super.setIgnoreExitValue(ignoreExitValue);
         return this;
     }
 
     @Override
-    public ExecHandleBuilder workingDir(Object dir) {
+    public DefaultExecHandleBuilder workingDir(Object dir) {
         super.workingDir(dir);
         return this;
     }
 
     @Override
-    public ExecHandleBuilder setDisplayName(String displayName) {
+    public DefaultExecHandleBuilder setDisplayName(String displayName) {
         super.setDisplayName(displayName);
         return this;
     }
 
-    public ExecHandleBuilder noStandardInput() {
-        setStandardInput(new ByteArrayInputStream(new byte[0]));
-        return this;
-    }
-
-    public ExecHandleBuilder redirectErrorStream() {
+    public DefaultExecHandleBuilder redirectErrorStream() {
         super.redirectErrorStream();
         return this;
     }
 
-    public ExecHandleBuilder setStandardOutput(OutputStream outputStream) {
+    public DefaultExecHandleBuilder setStandardOutput(OutputStream outputStream) {
         super.setStandardOutput(outputStream);
         return this;
     }
 
-    public ExecHandleBuilder setStandardInput(InputStream inputStream) {
+    public DefaultExecHandleBuilder setStandardInput(InputStream inputStream) {
         super.setStandardInput(inputStream);
         return this;
     }
 
-    public ExecHandleBuilder listener(ExecHandleListener listener) {
+    public DefaultExecHandleBuilder listener(ExecHandleListener listener) {
         super.listener(listener);
         return this;
     }
 
-    public ExecHandleBuilder setTimeout(int timeoutMillis) {
+    public DefaultExecHandleBuilder setTimeout(int timeoutMillis) {
         super.setTimeout(timeoutMillis);
         return this;
     }

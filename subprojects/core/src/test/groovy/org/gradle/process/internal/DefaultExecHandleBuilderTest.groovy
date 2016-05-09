@@ -21,8 +21,8 @@ import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 @UsesNativeServices
-class ExecHandleBuilderTest extends Specification {
-    private final ExecHandleBuilder builder = new ExecHandleBuilder(TestFiles.resolver())
+class DefaultExecHandleBuilderTest extends Specification {
+    private final DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.resolver())
 
     def handlesCommandLineWithNoArgs() {
         when:
@@ -32,7 +32,7 @@ class ExecHandleBuilderTest extends Specification {
         builder.executable == 'command'
         builder.args == []
     }
-    
+
     def convertsArgsToString() {
         when:
         builder.args(['1', 2, "${3}"])

@@ -37,7 +37,7 @@ public class DefaultExecActionFactory implements ExecActionFactory, ExecHandleFa
 
     @Override
     public ExecHandleBuilder newExec() {
-        return new ExecHandleBuilder(fileResolver);
+        return new DefaultExecHandleBuilder(fileResolver);
     }
 
     @Override
