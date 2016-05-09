@@ -39,16 +39,36 @@ import java.util.regex.Pattern;
  * Probes a JVM installation to determine the Java version it provides.
  */
 public class JvmVersionDetector {
-    private final Map<JavaInfo, JavaVersion> cachedResults = new HashMap<JavaInfo, JavaVersion>();
+    private final Map<JavaInfo, JavaVersion> javaHomeResults = new HashMap<JavaInfo, JavaVersion>();
+    private final Map<String, JavaVersion> javaCmdResults = new HashMap<String, JavaVersion>();
     private final ExecHandleFactory execHandleFactory;
 
     public JvmVersionDetector(ExecHandleFactory execHandleFactory) {
         this.execHandleFactory = execHandleFactory;
-        cachedResults.put(Jvm.current(), JavaVersion.current());
+        javaHomeResults.put(Jvm.current(), JavaVersion.current());
+        javaCmdResults.put(Jvm.current().getJavaExecutable().getPath(), JavaVersion.current());
     }
 
+    /**
+     * Probes the Java version for the given JVM installation.
+     */
     public JavaVersion getJavaVersion(JavaInfo jvm) {
-        JavaVersion version = cachedResults.get(jvm);
+        JavaVersion version = javaHomeResults.get(jvm);
+        if (version != null) {
+            return version;
+        }
+
+        version = getJavaVersion(jvm.getJavaExecutable().getPath());
+        javaHomeResults.put(jvm, version);
+
+        return version;
+    }
+
+    /**
+     * Probes the Java version for the given `java` command.
+     */
+    public JavaVersion getJavaVersion(String javaCommand) {
+        JavaVersion version = javaCmdResults.get(javaCommand);
         if (version != null) {
             return version;
         }
@@ -57,13 +77,13 @@ public class JvmVersionDetector {
 
         ExecHandleBuilder builder = execHandleFactory.newExec();
         builder.setWorkingDir(new File(".").getAbsolutePath());
-        builder.setCommandLine(jvm.getJavaExecutable(), "-version");
+        builder.setCommandLine(javaCommand, "-version");
         builder.setStandardOutput(new ByteArrayOutputStream());
         builder.setErrorOutput(outputStream);
         builder.build().start().waitForFinish().assertNormalExitValue();
 
-        version = parseJavaVersionCommandOutput(jvm.getJavaExecutable().getPath(), new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
-        cachedResults.put(jvm, version);
+        version = parseJavaVersionCommandOutput(javaCommand, new BufferedReader(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray()))));
+        javaCmdResults.put(javaCommand, version);
         return version;
     }
 

@@ -29,6 +29,11 @@ class JvmVersionDetectorTest extends Specification {
         detector.getJavaVersion(Jvm.current()) == JavaVersion.current()
     }
 
+    def "can determine version of java command for current jvm"() {
+        expect:
+        detector.getJavaVersion(Jvm.current().getJavaExecutable().path) == JavaVersion.current()
+    }
+
     def "can parse version number"() {
         expect:
         detector.parseJavaVersionCommandOutput("/usr/bin/java", new BufferedReader(new StringReader(output))) == JavaVersion.toVersion(version)

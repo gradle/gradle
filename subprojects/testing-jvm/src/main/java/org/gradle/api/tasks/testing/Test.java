@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.file.*;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -55,6 +56,7 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -571,6 +573,11 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         if (testExecuter == null) {
             testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry());
+        }
+
+        JavaVersion javaVersion = getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());
+        if (!javaVersion.isJava6Compatible()) {
+            DeprecationLogger.nagUserOfDeprecated("Support for test execution using Java 5 or earlier");
         }
 
         try {
