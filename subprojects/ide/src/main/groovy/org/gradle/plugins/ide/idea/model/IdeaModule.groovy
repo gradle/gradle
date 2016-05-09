@@ -293,7 +293,7 @@ class IdeaModule {
     JavaVersion targetBytecodeVersion
 
     /**
-     * TODO:
+     * The Scala version used by this module.
      */
     @Incubating
     ScalaPlatform scalaPlatform
