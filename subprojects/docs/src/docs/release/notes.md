@@ -6,6 +6,17 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
+### Faster Gradle
+
+TBD
+
+### Deprecation of support for Java 6
+
+Java 6 reached end of life in February 2013. Support for this version of Java is becoming more difficult as libraries and tools move to Java 7 and later, and as a result
+Gradle 2.14 will be the last version of Gradle to run on Java 6. Support for running Gradle on Java 6 will be removed in Gradle 3.0.
+
+Please note, however, that while it won't be possible to run Gradle itself on Java 6, it will be possible to build software using Java 6, by configuring your build to compile and test using Java 6. 
+
 ### More accurate Gradle class visibility during plugin development
 
 In previous versions, Gradle's internal implementation dependencies were visible to plugins at build (i.e. compile and test) but not at runtime.
@@ -218,6 +229,10 @@ Running Gradle using Java 6 is now deprecated, and support will be removed in Gr
 It will continue to be possible to build JVM based projects for Java 6 using Gradle 3.0, by running Gradle using Java 7 and configuring your build to use Java 6 to compile, test and run your code.
 
 Using the Gradle Tooling API and TestKit on Java 6 is also deprecated, and support will be removed in Gradle 3.0.
+
+### `Test` task support for running tests on Java 5
+
+Support for using Java 5 with the `Test` task type is now deprecated and support will be removed in Gradle 3.0.
 
 ### `StartParameter.colorOutput` property
 
