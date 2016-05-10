@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.junit.runner.RunWith
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -278,6 +279,7 @@ project(':b') {
      * - Without fluid dependencies, the artifacts are included in the resolution result, but the tasks to build them are not executed
      * - With fluid dependencies, the changed artifacts are _not_ included in the resolution result, nor are the tasks.
      */
+    @Ignore
     public void "set of resolved project artifacts can be changed after task graph is resolved"() {
         given:
         def fluidDependencies = Boolean.getBoolean(FluidDependenciesResolveRunner.ASSUME_FLUID_DEPENDENCIES)
@@ -614,11 +616,10 @@ project('c') {
 """
 
         when:
-        executer.expectDeprecationWarning()
-        succeeds("impl:check")
+        fails("impl:check")
 
         then:
-        output.contains "Changed dependencies of configuration ':api:conf' after it has been included in dependency resolution"
+        failure.assertHasCause "Cannot change dependencies of configuration ':api:conf' after it has been included in dependency resolution"
     }
 
     @Issue("GRADLE-3330")
