@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.Map;
 
 public class GarbageCollectionCheck implements Runnable {
-    private final Map<String, SlidingWindow<GarbageCollectionEvent>> events;
-    private final List<String> memoryPools;
-    private final String garbageCollector;
+    final Map<String, SlidingWindow<GarbageCollectionEvent>> events;
+    final List<String> memoryPools;
+    final String garbageCollector;
 
     public GarbageCollectionCheck(Map<String, SlidingWindow<GarbageCollectionEvent>> events, List<String> memoryPools, String garbageCollector) {
         this.events = events;
