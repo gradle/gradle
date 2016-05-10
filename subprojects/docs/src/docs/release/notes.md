@@ -201,6 +201,18 @@ at a lower priority than the specified priority will be logged at the "info" log
 
 Projects using the [Play plugin](userguide/play_plugin.html#play_ide) can now generate IDEA metadata when the [IDEA plugin](userguide/idea_plugin.html) is also applied. 
 
+### Daemon is more robust and uses less resources
+
+The Gradle daemon now actively monitors garbage collection and identifies when a memory leak might be starting to exhaust heap space.  When a 
+condition is identified where the daemon is running out of heap space and that garbage collection is running more and more frequently, Gradle
+will trigger the daemon to restart after the current build finishes.  This monitoring is enabled by default, but can be disabled by setting the 
+`org.gradle.daemon.performance.enable-monitoring` system property to `false`.
+
+In addition to this, Gradle now attempts to limit the system resources that are consumed by the daemon by shutting down daemons that
+are no longer in use.  In previous versions of Gradle, daemons used a fixed timeout that caused a daemon to stop after a certain period of inactivity.
+In 2.14, this timeout is sensitive to system memory pressure, such that when memory pressure is high, idle daemons will expire more quickly
+and free up system resources faster.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
