@@ -30,3 +30,18 @@ No specific hotspot was discovered either in `lotDependencies` or the external `
 noting that while honest profiler sometimes shows the ivy descriptor files parsing as being an issue, it is far from
 being the 20% time shown by previous profiling sessions: it's only a fraction of total dependency time, and optimizing
 this is less likely to dramatically change the performance of dependency resolution.
+
+### Cost of declaring dependencies
+
+The following profiling results are based on an experiment to use _static Groovy scripts_ to create:
+
+- 2500 projects applying the Java plugin
+- each project declaring 50 dependencies
+
+And calling `help`. The results show that:
+
+- 14.6% of build time is spent in registering the dependencies, that is to say executing the `dependencies` block.
+- time spent in `dependencies` block is equally dominated by parsing the dependency notation (6.85%) and adding the dependencies to the container (4.8%)
+- 54% of build time is spent in applying the Java plugin, and 21% just in creating the source sets plus 8% in creating the `Test` tasks
+
+
