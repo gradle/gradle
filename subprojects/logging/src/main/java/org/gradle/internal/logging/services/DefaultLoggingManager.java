@@ -17,17 +17,15 @@
 package org.gradle.internal.logging.services;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.LoggingOutputInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.source.LoggingSystem;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
-import org.gradle.util.SingleMessageLogger;
 
 import java.io.Closeable;
 import java.io.OutputStream;
@@ -97,12 +95,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
     public void close() {
         stop();
-    }
-
-    @Override
-    public LoggingManager setLevel(LogLevel logLevel) {
-        SingleMessageLogger.nagUserOfDeprecated("LoggingManager.setLevel(LogLevel)", "If you are using this method to expose Ant logging messages, please use AntBuilder.setLifecycleLogLevel() instead");
-        return setLevelInternal(logLevel);
     }
 
     @Override

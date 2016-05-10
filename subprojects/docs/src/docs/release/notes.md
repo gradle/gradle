@@ -52,6 +52,8 @@ The legacy Sonar plugin has been removed from the distribution. It is superceded
 * Removed `DistributionPlugin.addZipTask()` and `addTarTask()`.
 * The `installApp` task is no longer created by the `application` plugin (use `installDist` instead).
 * Removed `Groovydoc.overview` (use `overviewText` instead).
+* Removed `LoggingManager.setLevel()`. It is now not possible to change the log level during the execution of a task.
+  If you were using this method to expose Ant logging messages, please use `AntBuilder.setLifecycleLogLevel()` instead.
 
 ## External contributions
 

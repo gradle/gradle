@@ -129,24 +129,6 @@ public class DefaultLoggingManagerTest extends Specification {
         1 * loggingSystem.restore(snapshot)
     }
 
-    public void "can start and stop with log level set using public method"() {
-        loggingManager.setLevel(LogLevel.DEBUG)
-
-        final LoggingSystem.Snapshot snapshot = Mock(LoggingSystem.Snapshot.class)
-
-        when:
-        loggingManager.start()
-
-        then:
-        1 * loggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG) >> snapshot
-
-        when:
-        loggingManager.stop()
-
-        then:
-        1 * loggingSystem.restore(snapshot)
-    }
-
     public void "can start and stop with log level not set"() {
         final LoggingSystem.Snapshot snapshot = Mock(LoggingSystem.Snapshot.class);
 
@@ -202,28 +184,6 @@ public class DefaultLoggingManagerTest extends Specification {
 
         when:
         loggingManager.setLevelInternal(LogLevel.LIFECYCLE)
-
-        then:
-        1 * loggingSystem.on(LogLevel.LIFECYCLE, LogLevel.LIFECYCLE) >> Mock(LoggingSystem.Snapshot.class)
-
-        when:
-        loggingManager.stop()
-
-        then:
-        1 * loggingSystem.restore(snapshot)
-    }
-
-    def "can change log level using public method while started"() {
-        final LoggingSystem.Snapshot snapshot = Mock(LoggingSystem.Snapshot.class)
-
-        when:
-        loggingManager.start()
-
-        then:
-        1 * loggingSystem.snapshot() >> snapshot
-
-        when:
-        loggingManager.setLevel(LogLevel.LIFECYCLE)
 
         then:
         1 * loggingSystem.on(LogLevel.LIFECYCLE, LogLevel.LIFECYCLE) >> Mock(LoggingSystem.Snapshot.class)

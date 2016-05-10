@@ -17,7 +17,6 @@
 package org.gradle.internal.logging.compatbridge;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -81,12 +80,6 @@ public class LoggingManagerInternalCompatibilityBridge implements org.gradle.log
     @Override
     public LogLevel getLevel() {
         return delegate.getLevel();
-    }
-
-    @Override
-    @Deprecated
-    public LoggingManager setLevel(LogLevel logLevel) {
-        return delegate.setLevel(logLevel);
     }
 
     @Override
