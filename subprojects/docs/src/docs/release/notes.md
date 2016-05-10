@@ -47,6 +47,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 * Removed `--no-color` command-line option (use `--console=plain` instead).
 * Removed `Zip.encoding` (use `Zip.metadataCharset` instead).
 * Removed `DistributionPlugin.addZipTask()` and `addTarTask()`.
+* The `installApp` task is no longer created by the `application` plugin (use `installDist` instead).
 
 ## External contributions
 

@@ -16,7 +16,9 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
@@ -24,12 +26,9 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.application.CreateStartScripts;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.concurrent.Callable;
 
 /**
@@ -40,7 +39,6 @@ public class ApplicationPlugin implements Plugin<Project> {
     public static final String APPLICATION_GROUP = APPLICATION_PLUGIN_NAME;
     public static final String TASK_RUN_NAME = "run";
     public static final String TASK_START_SCRIPTS_NAME = "startScripts";
-    public static final String TASK_INSTALL_NAME = "installApp";
     public static final String TASK_DIST_ZIP_NAME = "distZip";
     public static final String TASK_DIST_TAR_NAME = "distTar";
 
@@ -66,46 +64,6 @@ public class ApplicationPlugin implements Plugin<Project> {
             }
         });
         configureDistSpec(distribution.getContents());
-        final Task installAppTask = addInstallAppTask(distribution);
-        DeprecationLogger.whileDisabled(new Runnable() {
-            @Override
-            public void run() {
-                configureInstallTasks(installAppTask, project.getTasks().getAt(DistributionPlugin.TASK_INSTALL_NAME));
-            }
-        });
-    }
-
-    public void configureInstallTasks(Task... installTasks) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("configureInstallTasks");
-        for (Task installTask : installTasks) {
-            installTask.doFirst(new Action<Task>() {
-                @Override
-                public void execute(Task task) {
-                    Sync sync = (Sync) task;
-                    if (sync.getDestinationDir().isDirectory()) {
-                        if (!new File(sync.getDestinationDir(), "lib").isDirectory() || !new File(sync.getDestinationDir(), "bin").isDirectory()) {
-                            throw new GradleException("The specified installation directory \'"
-                                + sync.getDestinationDir()
-                                + "\' is neither empty nor does it contain an installation for \'"
-                                + pluginConvention.getApplicationName()
-                                + "\'.\n"
-                                + "If you really want to install to this directory, delete it and run the install task again.\n"
-                                + "Alternatively, choose a different installation directory.");
-                        }
-                    }
-                }
-            });
-            installTask.doLast(new Action<Task>() {
-                @Override
-                public void execute(Task task) {
-                    Sync sync = (Sync) task;
-                    HashMap<String, Object> args = new HashMap<String, Object>();
-                    args.put("file", "" + sync.getDestinationDir().getAbsolutePath() + "/bin/" + pluginConvention.getApplicationName());
-                    args.put("perm", "ugo+x");
-                    project.getAnt().invokeMethod("chmod", args);
-                }
-            });
-        }
     }
 
     private void addPluginConvention() {
@@ -168,26 +126,6 @@ public class ApplicationPlugin implements Plugin<Project> {
                 return pluginConvention.getApplicationDefaultJvmArgs();
             }
         });
-    }
-
-    private Task addInstallAppTask(Distribution distribution) {
-        Sync installTask = project.getTasks().create(TASK_INSTALL_NAME, Sync.class);
-        installTask.setDescription("Installs the project as a JVM application along with libs and OS specific scripts.");
-        installTask.setGroup(APPLICATION_GROUP);
-        installTask.with(distribution.getContents());
-        installTask.into(new Callable<File>() {
-            @Override
-            public File call() throws Exception {
-                return project.file(String.valueOf(project.getBuildDir()) + "/install/" + pluginConvention.getApplicationName());
-            }
-        });
-        installTask.doFirst(new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                DeprecationLogger.nagUserOfReplacedTask(ApplicationPlugin.TASK_INSTALL_NAME, DistributionPlugin.TASK_INSTALL_NAME);
-            }
-        });
-        return installTask;
     }
 
     private CopySpec configureDistSpec(CopySpec distSpec) {
