@@ -308,14 +308,6 @@
         <variablelist>
             <varlistentry>
                 <term>
-                    <option>--no-color</option>
-                </term>
-                <listitem>
-                    <para>Do not use color in the console output. This option has been replaced by the <option>--console plain</option> option.</para>
-                </listitem>
-            </varlistentry>
-            <varlistentry>
-                <term>
                     <option>--parallel-threads</option>
                 </term>
                 <listitem>

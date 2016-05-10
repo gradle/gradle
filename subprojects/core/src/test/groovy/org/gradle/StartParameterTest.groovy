@@ -17,6 +17,7 @@
 package org.gradle
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.internal.DefaultTaskExecutionRequest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
@@ -43,7 +44,7 @@ class StartParameterTest extends Specification {
         parameter.gradleUserHomeDir = new File('b')
         parameter.initScripts = [new File('init script'), new File("/path/to/another init script")]
         parameter.logLevel = LogLevel.WARN
-        parameter.colorOutput = false
+        parameter.consoleOutput = ConsoleOutput.Auto
         parameter.continueOnFailure = true
         parameter.rerunTasks = true
         parameter.refreshDependencies = true
@@ -100,7 +101,7 @@ class StartParameterTest extends Specification {
         parameter.settingsFile == null
 
         parameter.logLevel == LogLevel.LIFECYCLE
-        parameter.colorOutput
+        parameter.consoleOutput == ConsoleOutput.Auto
         parameter.taskNames.empty
         parameter.taskRequests.empty
         parameter.excludedTaskNames.empty
@@ -257,7 +258,7 @@ class StartParameterTest extends Specification {
         // Copied properties
         parameter.gradleUserHomeDir = new File("home")
         parameter.logLevel = LogLevel.DEBUG
-        parameter.colorOutput = false
+        parameter.consoleOutput = ConsoleOutput.Plain
         parameter.configureOnDemand = true
         parameter.systemPropertiesArgs.put("testprop", "foo")
 
@@ -284,7 +285,7 @@ class StartParameterTest extends Specification {
         newParameter.configureOnDemand == parameter.configureOnDemand
         newParameter.gradleUserHomeDir == parameter.gradleUserHomeDir
         newParameter.logLevel == parameter.logLevel
-        newParameter.colorOutput == parameter.colorOutput
+        newParameter.consoleOutput == parameter.consoleOutput
         newParameter.continueOnFailure == parameter.continueOnFailure
         newParameter.refreshDependencies == parameter.refreshDependencies
         newParameter.rerunTasks == parameter.rerunTasks

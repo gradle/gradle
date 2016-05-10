@@ -242,9 +242,8 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
 
     @Test
     public void withNoColor() {
-        expectedColorOutput = false;
         expectedConsoleOutput = ConsoleOutput.Plain;
-        checkConversion("--no-color");
+        checkConversion("--console", "plain");
     }
 
     @Test

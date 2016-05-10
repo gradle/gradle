@@ -38,7 +38,6 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
     public static final String INFO_LONG = "info";
     public static final String QUIET = "q";
     public static final String QUIET_LONG = "quiet";
-    public static final String NO_COLOR = "no-color";
     public static final String CONSOLE = "console";
     public static final String FULL_STACKTRACE = "S";
     public static final String FULL_STACKTRACE_LONG = "full-stacktrace";
@@ -68,16 +67,12 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
             }
         }
 
-        if (commandLine.hasOption(NO_COLOR)) {
-            loggingConfiguration.setConsoleOutput(ConsoleOutput.Plain);
-        }
-
         if (commandLine.hasOption(CONSOLE)) {
             String value = commandLine.option(CONSOLE).getValue();
             String consoleValue = StringUtils.capitalize(value.toLowerCase());
             try {
-                ConsoleOutput colorOutput = ConsoleOutput.valueOf(consoleValue);
-                loggingConfiguration.setConsoleOutput(colorOutput);
+                ConsoleOutput consoleOutput = ConsoleOutput.valueOf(consoleValue);
+                loggingConfiguration.setConsoleOutput(consoleOutput);
             } catch (IllegalArgumentException e) {
                 throw new CommandLineArgumentException(String.format("Unrecognized value '%s' for %s.", value, CONSOLE));
             }
@@ -92,9 +87,7 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         parser.option(INFO, INFO_LONG).hasDescription("Set log level to info.");
         parser.allowOneOf(DEBUG, QUIET, INFO);
 
-        parser.option(NO_COLOR).deprecated("use --console=plain instead").hasDescription("Do not use color in the console output.");
         parser.option(CONSOLE).hasArgument().hasDescription("Specifies which type of console output to generate. Values are 'plain', 'auto' (default) or 'rich'.");
-        parser.allowOneOf(NO_COLOR, CONSOLE);
 
         parser.option(STACKTRACE, STACKTRACE_LONG).hasDescription("Print out the stacktrace for all exceptions.");
         parser.option(FULL_STACKTRACE, FULL_STACKTRACE_LONG).hasDescription("Print out the full (very verbose) stacktrace for all exceptions.");

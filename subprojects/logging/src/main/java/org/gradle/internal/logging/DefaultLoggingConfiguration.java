@@ -49,16 +49,6 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
     }
 
     @Override
-    public boolean isColorOutput() {
-        return consoleOutput != ConsoleOutput.Plain;
-    }
-
-    @Override
-    public void setColorOutput(boolean colorOutput) {
-        this.consoleOutput = colorOutput ? ConsoleOutput.Auto : ConsoleOutput.Plain;
-    }
-
-    @Override
     @Incubating
     public ConsoleOutput getConsoleOutput() {
         return consoleOutput;
@@ -66,8 +56,8 @@ public class DefaultLoggingConfiguration implements Serializable, LoggingConfigu
 
     @Override
     @Incubating
-    public void setConsoleOutput(ConsoleOutput colorOutput) {
-        this.consoleOutput = colorOutput;
+    public void setConsoleOutput(ConsoleOutput consoleOutput) {
+        this.consoleOutput = consoleOutput;
     }
 
     @Override

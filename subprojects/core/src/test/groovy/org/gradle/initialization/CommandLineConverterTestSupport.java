@@ -44,7 +44,6 @@ public class CommandLineConverterTestSupport {
     protected boolean expectedDryRun;
     protected ShowStacktrace expectedShowStackTrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     protected LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
-    protected boolean expectedColorOutput = true;
     protected ConsoleOutput expectedConsoleOutput = ConsoleOutput.Auto;
     protected StartParameter actualStartParameter;
     protected boolean expectedProfile;
@@ -82,7 +81,6 @@ public class CommandLineConverterTestSupport {
         assertEquals(expectedSystemProperties, startParameter.getSystemPropertiesArgs());
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
         assertEquals(expectedLogLevel, startParameter.getLogLevel());
-        assertEquals(expectedColorOutput, startParameter.isColorOutput());
         assertEquals(expectedConsoleOutput, startParameter.getConsoleOutput());
         assertEquals(expectedDryRun, startParameter.isDryRun());
         assertEquals(expectedShowStackTrace, startParameter.getShowStacktrace());

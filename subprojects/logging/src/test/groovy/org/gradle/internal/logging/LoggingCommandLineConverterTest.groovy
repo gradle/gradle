@@ -55,14 +55,7 @@ class LoggingCommandLineConverterTest extends Specification {
         checkConversion(['--quiet'])
     }
 
-    def convertsNoColor() {
-        expectedConfig.colorOutput = false
-
-        expect:
-        checkConversion(['--no-color'])
-    }
-
-    def convertsColor() {
+    def convertsConsole() {
         expectedConfig.consoleOutput = consoleOutput
 
         expect:
@@ -76,7 +69,7 @@ class LoggingCommandLineConverterTest extends Specification {
         "--console=rich"  | ConsoleOutput.Rich
     }
 
-    def reportsUnknownColorOption() {
+    def reportsUnknownConsoleOption() {
         when:
         converter.convert(["--console", "unknown"], new DefaultLoggingConfiguration())
 
