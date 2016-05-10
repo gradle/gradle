@@ -16,6 +16,7 @@
 
 package org.gradle.script.lang.kotlin
 
+import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.ScriptPluginFactoryProvider
 
@@ -25,7 +26,7 @@ class KotlinScriptPluginFactoryProvider : ScriptPluginFactoryProvider {
 
     override fun getFor(fileName: String, serviceRegistry: ServiceRegistry): ScriptPluginFactory? =
         when {
-            fileName.endsWith(".kts") -> KotlinScriptPluginFactory
+            fileName.endsWith(".kts") -> KotlinScriptPluginFactory(serviceRegistry.get(ClassPathRegistry::class.java))
             else -> null
         }
 }
