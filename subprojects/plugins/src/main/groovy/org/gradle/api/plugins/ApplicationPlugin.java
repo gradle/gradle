@@ -16,6 +16,8 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -26,10 +28,14 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.application.CreateStartScripts;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.concurrent.Callable;
+
+import static org.gradle.api.distribution.plugins.DistributionPlugin.TASK_INSTALL_NAME;
 
 /**
  * <p>A {@link Plugin} which runs a project as a Java Application.</p>
@@ -64,6 +70,37 @@ public class ApplicationPlugin implements Plugin<Project> {
             }
         });
         configureDistSpec(distribution.getContents());
+        configureInstallTask(project.getTasks().getAt(TASK_INSTALL_NAME));
+    }
+
+    private void configureInstallTask(Task installTask) {
+        installTask.doFirst(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                Sync sync = (Sync) task;
+                if (sync.getDestinationDir().isDirectory()) {
+                    if (!new File(sync.getDestinationDir(), "lib").isDirectory() || !new File(sync.getDestinationDir(), "bin").isDirectory()) {
+                        throw new GradleException("The specified installation directory \'"
+                            + sync.getDestinationDir()
+                            + "\' is neither empty nor does it contain an installation for \'"
+                            + pluginConvention.getApplicationName()
+                            + "\'.\n"
+                            + "If you really want to install to this directory, delete it and run the install task again.\n"
+                            + "Alternatively, choose a different installation directory.");
+                    }
+                }
+            }
+        });
+        installTask.doLast(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                Sync sync = (Sync) task;
+                HashMap<String, Object> args = new HashMap<String, Object>();
+                args.put("file", "" + sync.getDestinationDir().getAbsolutePath() + "/bin/" + pluginConvention.getApplicationName());
+                args.put("perm", "ugo+x");
+                project.getAnt().invokeMethod("chmod", args);
+            }
+        });
     }
 
     private void addPluginConvention() {
