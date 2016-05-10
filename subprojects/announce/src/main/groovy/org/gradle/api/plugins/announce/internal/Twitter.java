@@ -16,8 +16,8 @@
 
 package org.gradle.api.plugins.announce.internal;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
-import org.codehaus.groovy.runtime.EncodingGroovyMethods;
 import org.gradle.api.plugins.announce.Announcer;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
@@ -51,7 +51,7 @@ public class Twitter implements Announcer {
             connection.setDoOutput(true);
             connection.setUseCaches(false);
 
-            String credentials = EncodingGroovyMethods.encodeBase64((username + ":" + password).getBytes("UTF-8")).toString().trim();
+            String credentials = Base64.encodeBase64((username + ":" + password).getBytes("UTF-8")).toString().trim();
             connection.setRequestProperty("Authorization", "Basic " + credentials);
             final OutputStream outputStream = connection.getOutputStream();
             IOUtils.write("status=" + URLEncoder.encode(message, "UTF-8"), outputStream);
