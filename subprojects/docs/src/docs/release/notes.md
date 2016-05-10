@@ -36,9 +36,9 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
-<!--
-### Example breaking change
--->
+### Changes to previously deprecated APIs
+
+* The `AbstractTask` methods `setName()` and `setProject()` are removed.
 
 ## External contributions
 
