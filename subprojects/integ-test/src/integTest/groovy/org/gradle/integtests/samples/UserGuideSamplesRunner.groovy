@@ -241,10 +241,6 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
 
-        def sonarSamples = samplesByDir.values().findAll { it.subDir.startsWith("sonar") }
-        assert sonarSamples
-        sonarSamples*.allowDeprecation = true
-
         Map<String, SampleRun> samplesById = new TreeMap<String, SampleRun>()
 
         // Remove duplicates for a given directory.

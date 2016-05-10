@@ -60,9 +60,6 @@ ext {
         into('lib') {
             from rootProject.configurations.runtime
             into('plugins') {
-                into('sonar') {
-                    from rootProject.configurations.sonar - rootProject.configurations.runtime
-                }
                 from rootProject.configurations.gradlePlugins - rootProject.configurations.runtime
             }
         }

@@ -1,3 +1,0 @@
-description = "Sonar Test Skipped Project"
-
-sonarRunner.skipProject = true

@@ -35,6 +35,9 @@ The following are the newly deprecated items in this Gradle release. If you have
 -->
 
 ## Potential breaking changes
+### Sonar plugin has been removed
+
+The legacy Sonar plugin has been removed from the distribution. It is superceded by the official plugin from SonarQube (http://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle).
 
 ### Changes to previously deprecated APIs
 

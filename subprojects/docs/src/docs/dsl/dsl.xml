@@ -431,12 +431,6 @@
                 <td>org.gradle.plugins.signing.Sign</td>
             </tr>
             <tr>
-                <td>org.gradle.api.plugins.sonar.SonarAnalyze</td>
-            </tr>
-            <tr>
-                <td>org.gradle.sonar.runner.tasks.SonarRunner</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.tasks.Sync</td>
             </tr>
             <tr>

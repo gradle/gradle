@@ -146,7 +146,7 @@ ext {
     publicGroovyProjects = groovyProjects - internalProjects
     pluginProjects = [
         'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
-        'ide', 'announce', 'scala', 'sonar', 'signing', 'ear', 'javascript', 'buildComparison',
+        'ide', 'announce', 'scala', 'signing', 'ear', 'javascript', 'buildComparison',
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
@@ -213,9 +213,6 @@ subprojects {
 }
 
 configurations {
-    sonar {
-        visible = false
-    }
     runtime {
         visible = false
     }
@@ -232,7 +229,6 @@ dependencies {
     runtime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")
-    sonar libraries.logback_classic
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')

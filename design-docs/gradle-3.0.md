@@ -67,7 +67,7 @@ Tooling api client no longer executes builds for Gradle versions older than 1.2.
 
 ## Remove Sonar plugins
 
-Remove the Sonar plugins
+~~Remove the Sonar plugins~~ done
 
 ## Remove support for TestNG source annotations
 

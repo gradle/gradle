@@ -9,7 +9,6 @@ dependencies {
     integTestCompile project(':codeQuality')
     integTestCompile project(':signing')
     integTestCompile project(':ide')
-    integTestCompile project(':sonar')
     integTestCompile libraries.ant
     integTestCompile libraries.jsoup
 

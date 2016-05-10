@@ -125,7 +125,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-antlr-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-announce-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-jetty-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-sonar-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-maven-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-osgi-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-signing-${version}.jar"))

@@ -62,7 +62,6 @@ task java9Test(type: Test) {
         "DefaultModelSchemaStoreTest",
         "DefaultJavaToolChainTest",
         "ModelRuleExtractorTest",
-        "SonarPluginTest",
         "FunctionalReleaseNotesTest",
         "StaticReleaseNotesTest",
         "AssemblerPluginTest",

@@ -18,7 +18,6 @@ package org.gradle.integtests
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.plugins.quality.*
-import org.gradle.api.plugins.sonar.SonarAnalyze
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.Sync
@@ -65,8 +64,7 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             Pmd,
             JDepend,
             Sign,
-            CreateStartScripts,
-            SonarAnalyze,
+            CreateStartScripts
         ]
         if (previous.version >= GradleVersion.version("1.1")) {
             // Breaking changes were made to Test between 1.0 and 1.1

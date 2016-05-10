@@ -361,7 +361,6 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/process/**'
     include 'org/gradle/testfixtures/**'
     include 'org/gradle/testing/jacoco/**'
-    include 'org/gradle/sonar/runner/**'
     include 'org/gradle/tooling/**'
     include 'org/gradle/model/**'
     include 'org/gradle/testkit/**'
