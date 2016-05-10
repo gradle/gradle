@@ -20,10 +20,11 @@ import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
-import org.gradle.api.internal.file.copy.*;
+import org.gradle.api.internal.file.copy.CopyAction;
+import org.gradle.api.internal.file.copy.DefaultZipCompressor;
+import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.util.DeprecationLogger;
 
 import java.nio.charset.Charset;
 
@@ -135,32 +136,6 @@ public class Zip extends AbstractArchiveTask {
             throw new InvalidUserDataException(String.format("Charset for metadataCharset '%s' is not supported by your JVM", metadataCharset));
         }
         this.metadataCharset = metadataCharset;
-    }
-
-    /**
-     * The character set used to encode ZIP metadata like file names.
-     * Defaults to the platform's default character set.
-     *
-     * @return null if using the platform's default character set for ZIP metadata
-     * @deprecated Use {@link #getMetadataCharset()} instead
-     */
-    @Deprecated
-    public String getEncoding() {
-        DeprecationLogger.nagUserOfReplacedProperty("Zip.encoding", "metadataCharset");
-        return getMetadataCharset();
-    }
-
-    /**
-     * The character set used to encode ZIP metadata like file names.
-     * Defaults to the platform's default character set.
-     *
-     * @param encoding the character set used to encode ZIP metadata like file names
-     * @deprecated Use {@link #setMetadataCharset(String)} instead
-     */
-    @Deprecated
-    public void setEncoding(String encoding) {
-        DeprecationLogger.nagUserOfReplacedProperty("Zip.encoding", "metadataCharset");
-        setMetadataCharset(encoding);
     }
 
     /**

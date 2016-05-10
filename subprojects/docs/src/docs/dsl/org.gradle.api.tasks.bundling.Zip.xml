@@ -9,7 +9,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>encoding</td>
+                <td>metadataCharset</td>
                 <td>Platform default encoding</td>
             </tr>
             <tr>
