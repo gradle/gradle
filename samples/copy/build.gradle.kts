@@ -30,3 +30,7 @@ task<Copy>("initConfig") {
     includeEmptyDirs = false
     with(dataContent)
 }
+
+task<Delete>("clean") {
+    delete(buildDir)
+}
