@@ -48,6 +48,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 * Removed `Zip.encoding` (use `Zip.metadataCharset` instead).
 * Removed `DistributionPlugin.addZipTask()` and `addTarTask()`.
 * The `installApp` task is no longer created by the `application` plugin (use `installDist` instead).
+* Removed `Groovydoc.overview` (use `overviewText` instead).
 
 ## External contributions
 
