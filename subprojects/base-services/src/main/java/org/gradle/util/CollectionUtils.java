@@ -626,7 +626,7 @@ public abstract class CollectionUtils {
         return list.isEmpty() ? null : list;
     }
 
-    public static <T> List<T> dedup(Iterable<T> source, final Equivalence<T> equivalence) {
+    public static <T> List<T> dedup(Iterable<T> source, final Equivalence<? super T> equivalence) {
         Iterable<Equivalence.Wrapper<T>> wrappers = Iterables.transform(source, new Function<T, Equivalence.Wrapper<T>>() {
             public Equivalence.Wrapper<T> apply(@Nullable T input) {
                 return equivalence.wrap(input);
