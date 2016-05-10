@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.announce.internal.jdk6;
 
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.plugins.announce.internal.AnnouncerUnavailableException;
 import org.gradle.api.plugins.announce.internal.Growl;
 import org.gradle.api.plugins.announce.internal.IconProvider;
@@ -29,10 +28,6 @@ import java.io.File;
 
 public class AppleScriptBackedGrowlAnnouncer extends Growl {
 
-    private String escape(String value) {
-        return value.replace("\\", "\\\\").replace("\r", "\\r");
-    }
-
     private final IconProvider iconProvider;
     private ScriptEngine engine;
 
@@ -43,29 +38,35 @@ public class AppleScriptBackedGrowlAnnouncer extends Growl {
         if (engine == null) {
             engine = mgr.getEngineByName("AppleScriptEngine");
         }
-
         if (engine == null) {
             throw new AnnouncerUnavailableException("AppleScript engine not available on used JVM");
         }
-
     }
 
+    @Override
     public void send(String title, String message) {
-        String isRunning = "\ntell application \"System Events\"\n" + "set isRunning to count of (every process whose bundle identifier is \"com.Growl.GrowlHelperApp\") > 0\n" + "end tell\n" + "return isRunning\n";
-        Object value;
+        String isRunning = "\ntell application \"System Events\"\n"
+            + "set isRunning to count of (every process whose bundle identifier is \"com.Growl.GrowlHelperApp\") > 0\n"
+            + "end tell\n" + "return isRunning\n";
         try {
-            value = engine.eval(isRunning);
+            Object value = engine.eval(isRunning);
+            if (value.equals(0)) {
+                throw new AnnouncerUnavailableException("Growl is not running.");
+            }
             final File icon = iconProvider.getIcon(48, 48);
-            String iconDef = DefaultGroovyMethods.asBoolean(icon) ? "image from location ((POSIX file \"" + icon.getAbsolutePath() + "\") as string) as alias" : "";
+            String iconDef = icon != null ? "image from location ((POSIX file \"" + icon.getAbsolutePath() + "\") as string) as alias" : "";
             String script = "\ntell application id \"com.Growl.GrowlHelperApp\"\n"
                 + "register as application \"Gradle\" all notifications {\"Build Notification\"} default notifications {\"Build Notification\"}\n"
-                + "notify with name \"Build Notification\" title \"" + escape(title) + "\" description \"" + escape(message) + "\" application name \"Gradle\"" + iconDef + "\n" + "end tell\n";
+                + "notify with name \"Build Notification\" title \"" + escape(title) + "\" description \"" + escape(message)
+                + "\" application name \"Gradle\"" + iconDef
+                + "\nend tell\n";
             engine.eval(script);
         } catch (ScriptException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        if (value.equals(0)) {
-            throw new AnnouncerUnavailableException("Growl is not running.");
-        }
+    }
+
+    private static String escape(String value) {
+        return value.replace("\\", "\\\\").replace("\r", "\\r");
     }
 }

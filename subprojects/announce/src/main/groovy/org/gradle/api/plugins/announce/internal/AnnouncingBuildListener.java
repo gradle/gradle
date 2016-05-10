@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.announce.internal;
 
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Task;
@@ -38,19 +37,18 @@ public class AnnouncingBuildListener extends BuildAdapter implements TaskExecuti
 
     public void beforeExecute(Task task) {
         taskCount++;
-        if (DefaultGroovyMethods.asBoolean(lastFailed)) {
+        if (lastFailed != null) {
             announcer.send(String.valueOf(lastFailed) + " failed", getTaskFailureCountMessage());
             lastFailed = null;
         }
-
     }
 
+    @Override
     public void afterExecute(Task task, TaskState state) {
-        if (DefaultGroovyMethods.asBoolean(state.getFailure())) {
+        if (state.getFailure() != null) {
             lastFailed = task;
-            DefaultGroovyMethods.leftShift(failed, task);
+            failed.add(task);
         }
-
     }
 
     @Override
@@ -61,39 +59,33 @@ public class AnnouncingBuildListener extends BuildAdapter implements TaskExecuti
             } else {
                 announcer.send("Build failed", getTaskFailureMessage() + "\n" + getTaskCountMessage());
             }
-
         } else {
             announcer.send("Build successful", getTaskCountMessage());
         }
-
     }
 
     private String getTaskFailureCountMessage() {
         if (failed.size() == 1) {
             return "1 task failed";
         }
-
-        return String.valueOf(failed.size()) + " tasks failed";
+        return failed.size() + " tasks failed";
     }
 
     private String getTaskFailureMessage() {
         if (failed.size() == 1) {
-            return String.valueOf(failed.get(0)) + " failed";
+            return failed.get(0) + " failed";
         } else {
-            return String.valueOf(failed.size()) + " tasks failed";
+            return failed.size() + " tasks failed";
         }
-
     }
 
     private String getTaskCountMessage() {
         if (taskCount == 0) {
             return "No tasks executed";
         }
-
         if (taskCount == 1) {
             return "1 task executed";
         }
-
-        return String.valueOf(taskCount) + " tasks executed";
+        return taskCount + " tasks executed";
     }
 }

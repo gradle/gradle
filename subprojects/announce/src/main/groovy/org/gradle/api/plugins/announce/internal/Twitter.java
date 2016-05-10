@@ -18,12 +18,12 @@ package org.gradle.api.plugins.announce.internal;
 
 import org.apache.commons.io.IOUtils;
 import org.codehaus.groovy.runtime.EncodingGroovyMethods;
-import org.codehaus.groovy.runtime.IOGroovyMethods;
 import org.gradle.api.plugins.announce.Announcer;
 import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -53,11 +53,13 @@ public class Twitter implements Announcer {
 
             String credentials = EncodingGroovyMethods.encodeBase64((username + ":" + password).getBytes("UTF-8")).toString().trim();
             connection.setRequestProperty("Authorization", "Basic " + credentials);
-            IOUtils.write("status=" + URLEncoder.encode(message, "UTF-8"), connection.getOutputStream());
+            final OutputStream outputStream = connection.getOutputStream();
+            IOUtils.write("status=" + URLEncoder.encode(message, "UTF-8"), outputStream);
+            IOUtils.closeQuietly(outputStream);
 
             logger.info("Successfully tweeted \'" + message + "\' using account \'" + username + "\'");
             if (logger.isDebugEnabled()) {
-                logger.debug(IOGroovyMethods.getText(connection.getInputStream(), "UTF-8"));
+                logger.debug(IOUtils.toString(connection.getInputStream(), "UTF-8"));
             }
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);

@@ -28,6 +28,7 @@ public class IgnoreUnavailableAnnouncer implements Announcer {
         this.announcer = announcer;
     }
 
+    @Override
     public void send(String title, String message) {
         try {
             announcer.send(title, message);

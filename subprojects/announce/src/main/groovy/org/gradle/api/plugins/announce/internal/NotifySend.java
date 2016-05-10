@@ -13,43 +13,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.plugins.announce.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.ProcessOperations;
+import org.gradle.api.plugins.announce.Announcer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.ExecSpec;
 
 import java.io.File;
 
-public class GrowlNotifyBackedAnnouncer extends Growl {
-    private final ProcessOperations processOperations;
+/**
+ * This class wraps the Ubuntu Notify Send functionality.
+ */
+public class NotifySend implements Announcer {
     private final IconProvider iconProvider;
+    private final ProcessOperations processOperations;
 
-    public GrowlNotifyBackedAnnouncer(ProcessOperations processOperations, IconProvider iconProvider) {
+    public NotifySend(ProcessOperations processOperations, IconProvider iconProvider) {
         this.processOperations = processOperations;
         this.iconProvider = iconProvider;
     }
 
-    @Override
     public void send(final String title, final String message) {
-        final File exe = OperatingSystem.current().findInPath("growlnotify");
+        final File exe = OperatingSystem.current().findInPath("notify-send");
         if (exe == null) {
-            throw new AnnouncerUnavailableException("Could not find 'growlnotify' in path.");
+            throw new AnnouncerUnavailableException("Could not find 'notify-send' in the path.");
         }
 
         processOperations.exec(new Action<ExecSpec>() {
             @Override
             public void execute(ExecSpec execSpec) {
                 execSpec.executable(exe);
-                execSpec.args("-m", message);
-                File icon = iconProvider.getIcon(48, 48);
+                File icon = iconProvider.getIcon(32, 32);
                 if (icon != null) {
-                    execSpec.args("--image", icon.getAbsolutePath());
+                    execSpec.args("-i", icon.getAbsolutePath());
                 }
-                execSpec.args("-t", title);
+                execSpec.args("--hint=int:transient:1");
+                execSpec.args(title, message);
             }
+
         });
     }
 }

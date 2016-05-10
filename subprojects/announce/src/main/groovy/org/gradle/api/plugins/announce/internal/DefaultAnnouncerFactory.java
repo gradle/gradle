@@ -16,8 +16,6 @@
 
 package org.gradle.api.plugins.announce.internal;
 
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
-import org.codehaus.groovy.runtime.StringGroovyMethods;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.plugins.announce.AnnouncePluginExtension;
 import org.gradle.api.plugins.announce.Announcer;
@@ -25,6 +23,11 @@ import org.gradle.api.plugins.announce.internal.jdk6.AppleScriptBackedGrowlAnnou
 import org.gradle.internal.os.OperatingSystem;
 
 public class DefaultAnnouncerFactory implements AnnouncerFactory {
+
+    private final AnnouncePluginExtension announcePluginConvention;
+    private final IconProvider iconProvider;
+    private final ProcessOperations processOperations;
+
     public DefaultAnnouncerFactory(AnnouncePluginExtension announcePluginConvention, ProcessOperations processOperations, IconProvider iconProvider) {
         this.announcePluginConvention = announcePluginConvention;
         this.iconProvider = iconProvider;
@@ -33,11 +36,11 @@ public class DefaultAnnouncerFactory implements AnnouncerFactory {
 
     public Announcer createAnnouncer(String type) {
         Announcer announcer = createActualAnnouncer(type);
-        return DefaultGroovyMethods.asBoolean(announcer) ? new IgnoreUnavailableAnnouncer(announcer) : new UnknownAnnouncer();
+        return announcer != null ? new IgnoreUnavailableAnnouncer(announcer) : new UnknownAnnouncer();
     }
 
     private Announcer createActualAnnouncer(String type) {
-        if (StringGroovyMethods.isCase("local", type)) {
+        if ("local".equals(type)) {
             if (OperatingSystem.current().isWindows()) {
                 return createActualAnnouncer("snarl");
             } else if (OperatingSystem.current().isMacOsX()) {
@@ -45,33 +48,26 @@ public class DefaultAnnouncerFactory implements AnnouncerFactory {
             } else {
                 return createActualAnnouncer("notify-send");
             }
-
-        } else if (StringGroovyMethods.isCase("twitter", type)) {
+        } else if ("twitter".equals(type)) {
             String username = announcePluginConvention.getUsername();
             String password = announcePluginConvention.getPassword();
             return new Twitter(username, password);
-        } else if (StringGroovyMethods.isCase("notify-send", type)) {
+        } else if ("notify-send".equals(type)) {
             return new NotifySend(processOperations, iconProvider);
-        } else if (StringGroovyMethods.isCase("snarl", type)) {
+        } else if ("snarl".equals(type)) {
             return new Snarl(iconProvider);
-        } else if (StringGroovyMethods.isCase("growl", type)) {
+        } else if ("growl".equals(type)) {
             if (!java.awt.GraphicsEnvironment.isHeadless()) {
                 try {
                     return new AppleScriptBackedGrowlAnnouncer(iconProvider);
                 } catch (AnnouncerUnavailableException e) {
                     // Ignore and fall back to growl notify
                 }
-
             }
-
             return new GrowlNotifyBackedAnnouncer(processOperations, iconProvider);
         } else {
             return null;
         }
     }
-
-    private final AnnouncePluginExtension announcePluginConvention;
-    private final IconProvider iconProvider;
-    private final ProcessOperations processOperations;
 }
 

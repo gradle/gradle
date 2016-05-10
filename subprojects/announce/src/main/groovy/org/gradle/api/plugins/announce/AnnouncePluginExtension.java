@@ -72,7 +72,6 @@ public class AnnouncePluginExtension {
         } catch (Exception e) {
             logger.warn("Failed to send message \'" + msg + "\' to \'" + type + "\'", e);
         }
-
     }
 
     /**
@@ -114,7 +113,6 @@ public class AnnouncePluginExtension {
             if (local == null) {
                 local = extension.getAnnouncerFactory().createAnnouncer("local");
             }
-
             local.send(title, message);
         }
 

@@ -21,18 +21,18 @@ import org.gradle.internal.installation.GradleInstallation;
 import java.io.File;
 
 public class DefaultIconProvider implements IconProvider {
+    private final GradleInstallation gradleInstallation;
+
     public DefaultIconProvider(GradleInstallation gradleInstallation) {
         this.gradleInstallation = gradleInstallation;
     }
 
+    @Override
     public File getIcon(final int width, final int height) {
         if (gradleInstallation == null) {
             return null;
         }
-
-        File candidate = new File(gradleInstallation.getGradleHome(), "media/gradle-icon-" + String.valueOf(width) + "x" + String.valueOf(height) + ".png");
+        File candidate = new File(gradleInstallation.getGradleHome(), "media/gradle-icon-" + width + "x" + height + ".png");
         return candidate.isFile() ? candidate : null;
     }
-
-    private final GradleInstallation gradleInstallation;
 }

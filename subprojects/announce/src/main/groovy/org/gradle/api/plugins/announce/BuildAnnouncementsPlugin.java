@@ -30,5 +30,4 @@ public class BuildAnnouncementsPlugin implements Plugin<Project> {
         AnnouncingBuildListener listener = new AnnouncingBuildListener(extension.getLocal());
         project.getGradle().addBuildListener(listener);
     }
-
 }

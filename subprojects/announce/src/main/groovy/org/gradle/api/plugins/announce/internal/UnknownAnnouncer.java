@@ -20,8 +20,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.plugins.announce.Announcer;
 
 public class UnknownAnnouncer implements Announcer {
+    @Override
     public void send(String title, String message) {
         throw new InvalidUserDataException("unknown announcer type");
     }
-
 }

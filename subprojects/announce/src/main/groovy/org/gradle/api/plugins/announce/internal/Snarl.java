@@ -16,11 +16,11 @@
 
 package org.gradle.api.plugins.announce.internal;
 
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.plugins.announce.Announcer;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.CollectionUtils;
 
 import java.io.Closeable;
 import java.io.File;
@@ -44,6 +44,7 @@ public class Snarl implements Announcer {
         this.iconProvider = iconProvider;
     }
 
+    @Override
     public void send(String title, String message) {
         try {
             send(InetAddress.getByName(null), title, message);
@@ -52,7 +53,7 @@ public class Snarl implements Announcer {
         }
     }
 
-    public void send(InetAddress host, final String title, final String message) {
+    private void send(InetAddress host, final String title, final String message) {
         Socket socket;
         try {
             try {
@@ -68,8 +69,9 @@ public class Snarl implements Announcer {
                     try {
                         outputStream = ((Socket) closeable).getOutputStream();
                         with(new PrintWriter(outputStream, true), new Action<Closeable>() {
+                            @Override
                             public void execute(Closeable closeable) {
-                                DefaultGroovyMethods.println(closeable, formatMessage(title, message));
+                                ((PrintWriter)closeable).println(formatMessage(title, message));
                             }
                         });
                     } catch (IOException e) {
@@ -84,11 +86,18 @@ public class Snarl implements Announcer {
 
     private String formatMessage(String title, String message) {
         final File icon = iconProvider.getIcon(32, 32);
-        List<String> properties = Arrays.asList(formatProperty("action", "notification"), formatProperty("app", "Gradle Snarl Notifier"), formatProperty("class", "alert"), formatProperty("title", title), formatProperty("text", message), formatProperty("icon", icon == null ? null : icon.getAbsolutePath()), formatProperty("timeout", "10"));
-        return HEAD + DefaultGroovyMethods.join(properties, "") + "\r\n";
+        List<String> properties = Arrays.asList(
+                            formatProperty("action", "notification"),
+                            formatProperty("app", "Gradle Snarl Notifier"),
+                            formatProperty("class", "alert"),
+                            formatProperty("title", title),
+                            formatProperty("text", message),
+                            formatProperty("icon", icon == null ? null : icon.getAbsolutePath()),
+                            formatProperty("timeout", "10"));
+        return HEAD + CollectionUtils.join("", properties) + "\r\n";
     }
 
-    private String formatProperty(String name, String value) {
+    private static String formatProperty(String name, String value) {
         if (value != null && !value.isEmpty()) {
             return "#?" + name + "=" + value;
         } else {
@@ -97,7 +106,7 @@ public class Snarl implements Announcer {
 
     }
 
-    private void with(Closeable closable, Action<Closeable> action) throws IOException {
+    private static void with(Closeable closable, Action<Closeable> action) throws IOException {
         try {
             action.execute(closable);
         } finally {
