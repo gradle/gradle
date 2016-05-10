@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Unroll
 
@@ -227,6 +228,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Requires(TestPrecondition.ONLINE)
+    @Ignore("Temporarily disabled until Gradle 3.0 becomes a supported version number on the plugin portal")
     def "Can opt-in to plugin portal"() {
         given:
         publishPlugins(MAVEN)
