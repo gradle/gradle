@@ -36,17 +36,14 @@ inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> U
 }
 */
 
-fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: T.() -> Unit) =
-    tasks.create(name, type.java, configuration)
-
-fun Project.task(name: String, configuration: Task.() -> Unit) =
-    createTask(name, DefaultTask::class, configuration)
+inline fun <reified T : Task> Project.task(name: String, noinline configuration: T.() -> Unit) =
+    task(name, T::class, configuration)
 
 fun <T : Task> Project.task(name: String, type: KClass<T>, configuration: T.() -> Unit) =
     createTask(name, type, configuration)
 
-@JvmName("typedTask")
-inline fun <reified T : Task> Project.task(name: String, noinline configuration: T.() -> Unit) =
-    task(name, T::class, configuration)
+fun Project.task(name: String, configuration: Task.() -> Unit) =
+    createTask(name, DefaultTask::class, configuration)
 
-
+fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: T.() -> Unit) =
+    tasks.create(name, type.java, configuration)
