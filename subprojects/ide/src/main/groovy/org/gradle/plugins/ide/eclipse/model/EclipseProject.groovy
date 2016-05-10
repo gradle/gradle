@@ -18,8 +18,6 @@ package org.gradle.plugins.ide.eclipse.model
 import org.gradle.api.InvalidUserDataException
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil
-import org.gradle.util.DeprecationLogger
-
 /**
  * Enables fine-tuning project details (.project file) of the Eclipse plugin
  * <p>
@@ -272,8 +270,7 @@ class EclipseProject {
         }
 
         void setName(String name){
-            DeprecationLogger.nagUserOfDeprecated("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook")
-            this.delegate.setName(name)
+            throw new InvalidUserDataException("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook is not allowed.")
         }
     }
 }

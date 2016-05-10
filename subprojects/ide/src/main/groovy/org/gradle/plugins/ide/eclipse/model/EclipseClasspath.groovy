@@ -23,8 +23,6 @@ import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory
 import org.gradle.plugins.ide.internal.resolver.UnresolvedDependenciesLogger
 import org.gradle.util.ConfigureUtil
-import org.gradle.util.DeprecationLogger
-
 /**
  * The build path settings for the generated Eclipse project. Used by the
  * {@link org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath} task to generate an Eclipse .classpath file.
@@ -105,9 +103,6 @@ import org.gradle.util.DeprecationLogger
  */
 @CompileStatic
 class EclipseClasspath {
-    private static final String DEPRECATED_NOEXPORTCONFIGURATION_FIELD = "EclipseClasspath.noExportConfigurations"
-
-
     /**
      * The source sets to be added.
      * <p>
@@ -229,13 +224,4 @@ class EclipseClasspath {
         return referenceFactory
     }
 
-    Collection<Configuration> getNoExportConfigurations() {
-        DeprecationLogger.nagUserOfDeprecated(DEPRECATED_NOEXPORTCONFIGURATION_FIELD)
-        return noExportConfigurations
-    }
-
-    void setNoExportConfigurations(Collection<Configuration> noExportConfigurations) {
-        DeprecationLogger.nagUserOfDeprecated(DEPRECATED_NOEXPORTCONFIGURATION_FIELD)
-        this.noExportConfigurations = noExportConfigurations
-    }
 }
