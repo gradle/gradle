@@ -28,11 +28,6 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         "all"
     }
 
-    @Override
-    int getLibJarsCount() {
-        162
-    }
-
     def allZipContents() {
         given:
         TestFile contentsDir = unpackDistribution()

@@ -25,11 +25,6 @@ class BinDistributionIntegrationSpec extends DistributionIntegrationSpec {
         "bin"
     }
 
-    @Override
-    int getLibJarsCount() {
-        162
-    }
-
     def binZipContents() {
         given:
         TestFile contentsDir = unpackDistribution()
