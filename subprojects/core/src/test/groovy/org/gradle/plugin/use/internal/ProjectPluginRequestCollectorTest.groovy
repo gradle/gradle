@@ -16,25 +16,26 @@
 
 package org.gradle.plugin.use.internal
 
+import org.gradle.api.Project
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.internal.exceptions.LocationAwareException
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.plugin.internal.PluginId
 import org.gradle.plugin.use.PluginDependenciesSpec
 import spock.lang.Specification
 
-class PluginRequestCollectorTest extends Specification {
+class ProjectPluginRequestCollectorTest extends Specification {
 
     final scriptSource = new StringScriptSource("d", "c")
-    static final int LINE_NUMBER = 10
 
     List<PluginRequest> plugins(@DelegatesTo(PluginDependenciesSpec) Closure<?> closure) {
-        new PluginRequestCollector(scriptSource).with {
-            createSpec(LINE_NUMBER).with(closure)
-            getRequests()
+        new ProjectPluginRequestCollector(scriptSource, Stub(Project), Stub(Instantiator)).with {
+            with(closure)
+            getRequests().collect { it.request }
         }
     }
 
     List<PluginRequest> requests(Map<String, String> requests) {
-        requests.collect { new DefaultPluginRequest(it.key, it.value, LINE_NUMBER, scriptSource) }
+        requests.collect { new DefaultPluginRequest(PluginId.of(it.key), it.value, scriptSource.getDisplayName()) }
     }
 
     def "can use spec dsl to build one request"() {
@@ -62,18 +63,6 @@ class PluginRequestCollectorTest extends Specification {
             id "foo" version "1.0"
             id "bar" version "2.0"
         }
-    }
-
-    def "prevents duplicate ids"() {
-        when:
-        plugins {
-            id "foo" version "1.0"
-            id "foo" version "1.0"
-        }
-
-        then:
-        def e = thrown(LocationAwareException)
-        e.cause instanceof InvalidPluginRequestException
     }
 
 }

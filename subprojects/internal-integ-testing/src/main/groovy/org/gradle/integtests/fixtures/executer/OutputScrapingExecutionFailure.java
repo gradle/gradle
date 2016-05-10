@@ -32,7 +32,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
     private static final Pattern FAILURE_PATTERN = Pattern.compile("(?m)FAILURE: .+$");
     private static final Pattern CAUSE_PATTERN = Pattern.compile("(?m)(^\\s*> )");
     private static final Pattern DESCRIPTION_PATTERN = Pattern.compile("(?ms)^\\* What went wrong:$(.+?)^\\* Try:$");
-    private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+)'.+') line: (\\d+)$");
+    private static final Pattern LOCATION_PATTERN = Pattern.compile("(?ms)^\\* Where:((.+)'.+')( line: (\\d+))?.*^\\* What went wrong:$");
     private static final Pattern RESOLUTION_PATTERN = Pattern.compile("(?ms)^\\* Try:$(.+?)^\\* Exception is:$");
     private final String description;
     private final String lineNumber;
@@ -54,7 +54,7 @@ public class OutputScrapingExecutionFailure extends OutputScrapingExecutionResul
         matcher = LOCATION_PATTERN.matcher(error);
         if (matcher.find()) {
             fileName = matcher.group(1).trim();
-            lineNumber = matcher.group(3);
+            lineNumber = matcher.group(4);
         } else {
             fileName = "";
             lineNumber = "";

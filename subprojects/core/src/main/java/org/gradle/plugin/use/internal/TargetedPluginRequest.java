@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,23 @@
 
 package org.gradle.plugin.use.internal;
 
-import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.plugins.PluginAware;
 
-import java.util.List;
+public class TargetedPluginRequest {
 
-// Implementation is provided by 'plugin-use' module
-public interface PluginRequestApplicator {
-    void applyPlugins(List<TargetedPluginRequest> requests, ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope);
+    private final PluginAware target;
+    private final PluginRequest request;
+
+    public TargetedPluginRequest(PluginAware target, PluginRequest request) {
+        this.target = target;
+        this.request = request;
+    }
+
+    public PluginAware getTarget() {
+        return target;
+    }
+
+    public PluginRequest getRequest() {
+        return request;
+    }
 }

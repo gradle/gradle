@@ -239,7 +239,6 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         failure.assertThatDescription(startsWith("Could not apply requested plugin [id: 'org.myplugin', version: '1.0'] as it does not provide a plugin with id 'org.myplugin'"))
-        failure.assertHasLineNumber(2)
     }
 
     def "failure due to plugin class is unloadable"() {
@@ -261,7 +260,6 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         and:
         failure.assertHasDescription("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
         failure.assertHasCause("Could not create plugin of type 'OtherPlugin'.")
-        failure.assertHasLineNumber(2)
     }
 
     def "failure due to plugin apply throwing"() {
@@ -283,7 +281,6 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         and:
         failure.assertHasDescription("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
         failure.assertHasCause("throwing plugin")
-        failure.assertHasLineNumber(2)
     }
 
     def expectPluginQuery() {

@@ -22,14 +22,11 @@ import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.Factory;
-import org.gradle.plugin.use.internal.PluginRequests;
-import org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataExtractor;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class InitialPassStatementTransformer implements StatementTransformer, Factory<PluginRequests> {
+public class InitialPassStatementTransformer implements StatementTransformer {
 
     public static final String PLUGINS = "plugins";
     public static final String PLUGIN_REPOS = "pluginRepositories";
@@ -37,7 +34,6 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
     private final ScriptTarget scriptTarget;
     private final List<String> scriptBlockNames;
     private final DocumentationRegistry documentationRegistry;
-    private final PluginUseScriptBlockMetadataExtractor pluginBlockMetadataExtractor;
 
     private boolean seenNonClasspathStatement;
     private boolean seenPluginsBlock;
@@ -48,7 +44,6 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
         this.scriptTarget = scriptTarget;
         this.scriptBlockNames = Arrays.asList(scriptTarget.getClasspathBlockName(), PLUGINS, PLUGIN_REPOS);
         this.documentationRegistry = documentationRegistry;
-        this.pluginBlockMetadataExtractor = new PluginUseScriptBlockMetadataExtractor(scriptSource, documentationRegistry);
     }
 
     public Statement transform(SourceUnit sourceUnit, Statement statement) {
@@ -61,27 +56,22 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
                 String failMessage = null;
 
                 if (!scriptTarget.getSupportsPluginsBlock()) {
-                    failMessage = pluginBlockMetadataExtractor.formatErrorMessage("Only Project build scripts can contain plugins {} blocks");
-                } else {
-                    seenPluginsBlock = true;
-                    if (seenNonClasspathStatement) {
-                        failMessage = String.format(
-                            pluginBlockMetadataExtractor.formatErrorMessage("only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),
-                            scriptTarget.getClasspathBlockName(), PLUGINS, PLUGINS
-                        );
-                    } else {
-                        pluginBlockMetadataExtractor.extract(sourceUnit, scriptBlock);
-                    }
+                    failMessage = makePluginsError("Only Project build scripts can contain plugins {} blocks");
+                } else if (seenNonClasspathStatement) {
+                    failMessage = String.format(
+                        makePluginsError("only %s {} and other %s {} script blocks are allowed before %s {} blocks, no other statements are allowed"),
+                        scriptTarget.getClasspathBlockName(), PLUGINS, PLUGINS
+                    );
                 }
 
+                seenPluginsBlock = true;
                 if (failMessage != null) {
                     sourceUnit.getErrorCollector().addError(
                         new SyntaxException(failMessage, statement.getLineNumber(), statement.getColumnNumber()),
                         sourceUnit
                     );
                 }
-
-                return null;
+                return statement;
             } else if (scriptBlock.getName().equals(PLUGIN_REPOS)) {
                 String failureMessage = null;
                 if (!scriptTarget.getSupportsPluginRepositoriesBlock()) {
@@ -100,7 +90,7 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
             } else {
                 if (seenPluginsBlock) {
                     String message = String.format(
-                            pluginBlockMetadataExtractor.formatErrorMessage("all %s {} blocks must appear before any %s {} blocks in the script"),
+                            makePluginsError("all %s {} blocks must appear before any %s {} blocks in the script"),
                             scriptTarget.getClasspathBlockName(), PLUGINS
                     );
                     sourceUnit.getErrorCollector().addError(
@@ -121,9 +111,8 @@ public class InitialPassStatementTransformer implements StatementTransformer, Fa
             documentationRegistry.getDocumentationFor("plugins", "sec:plugin_repositories"));
     }
 
-    @Override
-    public PluginRequests create() {
-        return pluginBlockMetadataExtractor.getRequests();
+    private String makePluginsError(String failureMessage) {
+        return String.format("%s%n%nSee %s for information on the plugins {} block%n%n", failureMessage, documentationRegistry.getDocumentationFor("plugins", "sec:plugins_block"));
     }
 
 }

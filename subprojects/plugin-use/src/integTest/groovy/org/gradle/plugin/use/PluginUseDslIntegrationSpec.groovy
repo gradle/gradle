@@ -21,7 +21,6 @@ import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 import static org.gradle.plugin.internal.PluginId.*
-import static org.gradle.plugin.use.internal.PluginUseScriptBlockMetadataExtractor.*
 import static org.hamcrest.Matchers.containsString
 
 class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
@@ -177,40 +176,47 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber lineNumber
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertThatCause(containsString(msg))
-        includesLinkToUserguide()
 
         where:
         lineNumber | code                                   | msg
-        2          | "a"                                    | BASE_MESSAGE
-        2          | "def a = null"                         | BASE_MESSAGE
-        2          | "def a = id('foo')"                    | BASE_MESSAGE
-        2          | "delegate.id('a')"                     | BASE_MESSAGE
-        2          | "id()"                                 | INVALID_ARGUMENT_LIST
-        2          | "id(1)"                                | INVALID_ARGUMENT_LIST
-        2          | "id(System.getProperty('foo'))"        | INVALID_ARGUMENT_LIST
-        2          | "id('a' + 'b')"                        | INVALID_ARGUMENT_LIST
-        2          | "id(\"\${'foo'}\")"                    | INVALID_ARGUMENT_LIST
-        2          | "version('foo')"                       | BASE_MESSAGE
-        2          | "id('foo').version(1)"                 | INVALID_ARGUMENT_LIST
-        2          | "id 'foo' version 1"                   | INVALID_ARGUMENT_LIST
-        2          | "id 'foo' bah '1'"                     | VERSION_MESSAGE
-        2          | "foo 'foo' version '1'"                | BASE_MESSAGE
-        3          | "id('foo')\nfoo 'bar'"                 | BASE_MESSAGE
-        2          | "if (true) id 'foo'"                   | BASE_MESSAGE
-        2          | "id 'foo';version 'bar'"               | BASE_MESSAGE
-        2          | "id('foo').\"\${'version'}\" 'bar'"    | BASE_MESSAGE
+
+        2          | "id(1)"                                | "id"
+        2          | "version('foo')"                       | "version"
+        2          | "id('foo').version(1)"                 | "argument types: (java.lang.Integer)"
+        2          | "id 'foo' version 1"                   | "argument types: (java.lang.Integer)"
+        2          | "id 'foo' bah '1'"                     | "bah()"
+        2          | "foo 'foo' version '1'"                | "foo"
+        3          | "id('foo')\nfoo 'bar'"                 | "foo"
+        2          | "id 'foo';version 'bar'"               | "version"
+        2          | "file('foo')" /* script api */         | "file"
+        2          | "getVersion()" /* script target api */ | "getVersion"
+    }
+
+    @Unroll
+    def "illegal user data in plugins block - #code"() {
+        when:
+        buildScript("""plugins {\n$code\n}""")
+
+        then:
+        fails "help"
+        failure.assertHasLineNumber lineNumber
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertThatCause(containsString(msg))
+
+        where:
+        lineNumber | code                                   | msg
+        2          | "id()"                                 | ID_EMPTY
+        2          | "id(System.getProperty('foo'))"        | ID_EMPTY
         2          | "id ' '"                               | invalidPluginIdCharMessage(' ' as char)
         2          | "id '\$'"                              | invalidPluginIdCharMessage('$' as char)
-        2          | "id ''"                                | INVALID_ARGUMENT_LIST
-        2          | "id 'foo' version ''"                  | INVALID_ARGUMENT_LIST
-        2          | "id null"                              | INVALID_ARGUMENT_LIST
-        2          | "id 'foo' version null"                | INVALID_ARGUMENT_LIST
+        2          | "id ''"                                | ID_EMPTY
+        2          | "id null"                              | ID_EMPTY
+        2          | "id 'foo' version ''"                  | "version cannot be null or empty"
+        2          | "id 'foo' version null"                | "version cannot be null or empty"
         2          | "id '.foo'"                            | ID_SEPARATOR_ON_START_OR_END
         2          | "id 'foo.'"                            | ID_SEPARATOR_ON_START_OR_END
         2          | "id '.'"                               | ID_SEPARATOR_ON_START_OR_END
         2          | "id 'foo..bar'"                        | DOUBLE_SEPARATOR
-        2          | "file('foo')" /* script api */         | BASE_MESSAGE
-        2          | "getVersion()" /* script target api */ | BASE_MESSAGE
     }
 
     @Unroll
@@ -233,6 +239,18 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
                 "id('java')\nid('noop')",
                 "id('noop').version('bar');id('java')",
                 "id('noop').version('bar')\nid('java')",
+                "id('noop').\"\${'version'}\" 'bar'",
+                "id(\"\${'noop'}\")",
+                """
+                    subprojects {
+                        id 'noop'
+                    }
+                """,
+                """
+                    allprojects {
+                        id 'noop'
+                    }
+                """
         ]
     }
 }

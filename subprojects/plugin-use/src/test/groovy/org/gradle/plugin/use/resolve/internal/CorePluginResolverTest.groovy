@@ -18,9 +18,8 @@ package org.gradle.plugin.use.resolve.internal
 
 import org.gradle.api.Plugin
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.plugins.PluginImplementation
-import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.plugin.internal.PluginId
 import org.gradle.plugin.use.internal.DefaultPluginRequest
 import org.gradle.plugin.use.internal.InvalidPluginRequestException
@@ -42,7 +41,7 @@ class CorePluginResolverTest extends Specification {
     def resolver = new CorePluginResolver(docRegistry, pluginRegistry)
 
     PluginRequest request(String id, String version = null) {
-        new DefaultPluginRequest(id, version, 1, new StringScriptSource("test", "test"))
+        new DefaultPluginRequest(PluginId.of(id), version, "test")
     }
 
     def "non core plugins are ignored"() {

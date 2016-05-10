@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.plugin.use.internal;
+package org.gradle.configuration;
 
-import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.ScriptHandlerInternal;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.groovy.scripts.BasicScript;
 
-import java.util.List;
+public class InitialPassProjectScriptTarget extends ProjectScriptTarget {
+    public InitialPassProjectScriptTarget(ProjectInternal target) {
+        super(target);
+    }
 
-// Implementation is provided by 'plugin-use' module
-public interface PluginRequestApplicator {
-    void applyPlugins(List<TargetedPluginRequest> requests, ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope);
+    @Override
+    public Class<? extends BasicScript> getScriptClass() {
+        return InitialPassProjectScript.class;
+    }
 }
