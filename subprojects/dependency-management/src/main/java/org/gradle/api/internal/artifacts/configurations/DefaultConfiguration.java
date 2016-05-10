@@ -630,7 +630,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             // exclude rules or parent configurations (values that will affect the resolved graph).
             if (type != MutationType.STRATEGY) {
                 String extraMessage = insideBeforeResolve ? " Use 'defaultDependencies' instead of 'beforeResolve' to specify default dependencies for a configuration." : "";
-                throw new InvalidUserDataException((String.format("Cannot change %s of %s after it has been included in dependency resolution.%s", type, getDisplayName(), extraMessage)));
+                throw new InvalidUserDataException(String.format("Cannot change %s of %s after it has been included in dependency resolution.%s", type, getDisplayName(), extraMessage));
             }
         }
 
