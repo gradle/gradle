@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 
@@ -92,10 +91,6 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
 
     public Dependency project(Map<String, ?> notation) {
         return dependencyFactory.createProjectDependencyFromMap(projectFinder, notation);
-    }
-
-    public ProjectInternal project(String path) {
-        return projectFinder.getProject(path);
     }
 
     public Dependency module(Object notation, Closure configureClosure) {
