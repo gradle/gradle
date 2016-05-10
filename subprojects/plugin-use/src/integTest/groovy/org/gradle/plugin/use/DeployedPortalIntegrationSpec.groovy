@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 //These tests depend on https://plugins.gradle.org
 @Requires(TestPrecondition.ONLINE)
@@ -34,7 +33,6 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         requireOwnGradleUserHomeDir()
     }
 
-    @Ignore("Temporarily disabled until Gradle 3.0 becomes a supported version number on the plugin portal")
     def "can resolve a plugin from portal"() {
         when:
         buildScript """
@@ -50,7 +48,6 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         output.contains("Hello World!")
     }
 
-    @Ignore("Temporarily disabled until Gradle 3.0 becomes a supported version number on the plugin portal")
     def "resolving a non-existing plugin results in an informative error message"() {
         when:
         buildScript """
