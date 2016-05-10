@@ -16,8 +16,8 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import com.beust.jcommander.internal.Maps;
 import com.google.common.base.Throwables;
+import com.google.common.collect.Maps;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 
 import java.io.File;

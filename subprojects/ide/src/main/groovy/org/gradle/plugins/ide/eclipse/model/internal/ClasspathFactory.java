@@ -69,7 +69,7 @@ public class ClasspathFactory {
         @Override
         public void update(List<ClasspathEntry> entries, EclipseClasspath classpath) {
             Collection<IdeExtendedRepoFileDependency> repoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(
-                classpath.getProject().getDependencies(), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), classpath.getDownloadSources(), classpath.getDownloadJavadoc());
+                classpath.getProject().getDependencies(), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), classpath.isDownloadSources(), classpath.isDownloadJavadoc());
             for (IdeExtendedRepoFileDependency dependency : repoFileDependencies) {
                 entries.add(ClasspathFactory.createLibraryEntry(dependency.getFile(), dependency.getSourceFile(), dependency.getJavadocFile(), dependency.getDeclaredConfiguration(), classpath, dependency.getId()));
             }
@@ -91,7 +91,7 @@ public class ClasspathFactory {
         sourceFoldersCreator.populateForClasspath(entries, classpath);
         containersCreator.update(entries, classpath);
 
-        if (classpath.getProjectDependenciesOnly()) {
+        if (classpath.isProjectDependenciesOnly()) {
             projectDependenciesCreator.update(entries, classpath);
         } else {
             projectDependenciesCreator.update(entries, classpath);

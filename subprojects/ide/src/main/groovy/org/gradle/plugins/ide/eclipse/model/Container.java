@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.eclipse.model
+package org.gradle.plugins.ide.eclipse.model;
 
-import groovy.transform.CompileStatic
+import groovy.util.Node;
 
 /**
- * For now, we only need the Project. However this class will contain more domain objects soon.
+ * A container classpath entry.
  */
-@Deprecated
-@CompileStatic
-class EclipseDomainModel {
-    Project project
-    Classpath classpath
+public class Container extends AbstractClasspathEntry {
+
+    public Container(Node node) {
+        super(node);
+    }
+
+    public Container(String path) {
+        super(path);
+    }
+
+    public String getKind() {
+        return "con";
+    }
+
+    @Override
+    public String toString() {
+        return "Container" + super.toString();
+    }
 }

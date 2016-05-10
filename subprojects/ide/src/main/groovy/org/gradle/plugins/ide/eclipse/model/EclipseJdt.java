@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.eclipse.model
+package org.gradle.plugins.ide.eclipse.model;
 
-import org.gradle.api.Incubating
-import org.gradle.api.JavaVersion
-import org.gradle.plugins.ide.api.PropertiesFileContentMerger
-import org.gradle.util.ConfigureUtil
+import groovy.lang.Closure;
+import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
+import org.gradle.plugins.ide.api.PropertiesFileContentMerger;
+import org.gradle.util.ConfigureUtil;
 
 /**
  * Enables fine-tuning jdt details of the Eclipse plugin
@@ -56,17 +57,34 @@ import org.gradle.util.ConfigureUtil
  * }
  * </pre>
  */
-class EclipseJdt {
+public class EclipseJdt {
+
+    private JavaVersion sourceCompatibility = JavaVersion.current();
+
+    private JavaVersion targetCompatibility = JavaVersion.current();
+
+    private String javaRuntimeName;
+
+    private final PropertiesFileContentMerger file;
+
+    public EclipseJdt(PropertiesFileContentMerger file) {
+        this.file = file;
+    }
 
     /**
      * The source Java language level.
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
-    JavaVersion sourceCompatibility = JavaVersion.current()
+    public JavaVersion getSourceCompatibility() {
+        return sourceCompatibility;
+    }
 
-    void setSourceCompatibility(Object sourceCompatibility) {
-        this.sourceCompatibility = JavaVersion.toVersion(sourceCompatibility) ?: sourceCompatibility
+    public void setSourceCompatibility(Object sourceCompatibility) {
+        JavaVersion version = JavaVersion.toVersion(sourceCompatibility);
+        if (version != null) {
+            this.sourceCompatibility = version;
+        }
     }
 
     /**
@@ -74,10 +92,15 @@ class EclipseJdt {
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
-    JavaVersion targetCompatibility = JavaVersion.current()
+    public JavaVersion getTargetCompatibility() {
+        return targetCompatibility;
+    }
 
-    void setTargetCompatibility(Object targetCompatibility) {
-        this.targetCompatibility = JavaVersion.toVersion(targetCompatibility)  ?: targetCompatibility
+    public void setTargetCompatibility(Object targetCompatibility) {
+        JavaVersion version = JavaVersion.toVersion(targetCompatibility);
+        if (version != null) {
+            this.targetCompatibility = version;
+        }
     }
 
     /**
@@ -86,7 +109,20 @@ class EclipseJdt {
      * For example see docs for {@link EclipseJdt}
      */
     @Incubating
-    String javaRuntimeName
+    public String getJavaRuntimeName() {
+        return javaRuntimeName;
+    }
+
+    public void setJavaRuntimeName(String javaRuntimeName) {
+        this.javaRuntimeName = javaRuntimeName;
+    }
+
+    /**
+     * See {@link #file(Closure) }
+     */
+    public PropertiesFileContentMerger getFile() {
+        return file;
+    }
 
     /**
      * Enables advanced configuration like affecting the way existing jdt file content
@@ -98,16 +134,7 @@ class EclipseJdt {
      * <p>
      * For example see docs for {@link EclipseJdt}
      */
-    void file(Closure closure) {
-        ConfigureUtil.configure(closure, file)
-    }
-
-    /**
-     * See {@link #file(Closure) }
-     */
-    final PropertiesFileContentMerger file
-
-    EclipseJdt(PropertiesFileContentMerger file) {
-        this.file = file
+    public void file(Closure closure) {
+        ConfigureUtil.configure(closure, file);
     }
 }

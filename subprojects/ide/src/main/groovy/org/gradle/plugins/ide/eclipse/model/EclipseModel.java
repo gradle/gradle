@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.eclipse.model
 
-import groovy.transform.CompileStatic
-import org.gradle.util.ConfigureUtil
+package org.gradle.plugins.ide.eclipse.model;
+
+import groovy.lang.Closure;
+import org.gradle.util.ConfigureUtil;
+
+import java.io.File;
+import java.util.Map;
 
 /**
  * DSL-friendly model of the Eclipse project information.
@@ -47,36 +51,67 @@ import org.gradle.util.ConfigureUtil
  *
  * More examples in docs for {@link EclipseProject}, {@link EclipseClasspath}, {@link EclipseWtp}
  */
-@CompileStatic
-class EclipseModel {
+public class EclipseModel {
+
+    private EclipseProject project;
+
+    private EclipseClasspath classpath;
+
+    private EclipseJdt jdt;
+
+    private EclipseWtp wtp;
 
     /**
      * Configures eclipse project information
      * <p>
      * For examples see docs for {@link EclipseProject}
      */
-    EclipseProject project
+    public EclipseProject getProject() {
+        return project;
+    }
+
+    public void setProject(EclipseProject project) {
+        this.project = project;
+    }
 
     /**
      * Configures eclipse classpath information
      * <p>
      * For examples see docs for {@link EclipseClasspath}
      */
-    EclipseClasspath classpath
+    public EclipseClasspath getClasspath() {
+        return classpath;
+    }
+
+    public void setClasspath(EclipseClasspath classpath) {
+        this.classpath = classpath;
+    }
 
     /**
      * Configures eclipse java compatibility information (jdt)
      * <p>
      * For examples see docs for {@link EclipseProject}
      */
-    EclipseJdt jdt
+    public EclipseJdt getJdt() {
+        return jdt;
+    }
+
+    public void setJdt(EclipseJdt jdt) {
+        this.jdt = jdt;
+    }
 
     /**
      * Configures eclipse wtp information
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
-    EclipseWtp wtp
+    public EclipseWtp getWtp() {
+        return wtp;
+    }
+
+    public void setWtp(EclipseWtp wtp) {
+        this.wtp = wtp;
+    }
 
     /**
      * Configures eclipse project information
@@ -85,8 +120,8 @@ class EclipseModel {
      *
      * @param closure
      */
-    void project(Closure closure) {
-        ConfigureUtil.configure(closure, project)
+    public void project(Closure closure) {
+        ConfigureUtil.configure(closure, project);
     }
 
     /**
@@ -96,8 +131,8 @@ class EclipseModel {
      *
      * @param closure
      */
-    void classpath(Closure closure) {
-        ConfigureUtil.configure(closure, classpath)
+    public void classpath(Closure closure) {
+        ConfigureUtil.configure(closure, classpath);
     }
 
     /**
@@ -107,8 +142,8 @@ class EclipseModel {
      *
      * @param closure
      */
-    void wtp(Closure closure) {
-        ConfigureUtil.configure(closure, wtp)
+    public void wtp(Closure closure) {
+        ConfigureUtil.configure(closure, wtp);
     }
 
     /**
@@ -118,8 +153,8 @@ class EclipseModel {
      *
      * @param closure
      */
-    void jdt(Closure closure) {
-        ConfigureUtil.configure(closure, jdt)
+    public void jdt(Closure closure) {
+        ConfigureUtil.configure(closure, jdt);
     }
 
     /**
@@ -132,11 +167,11 @@ class EclipseModel {
      *
      * @param pathVariables A map with String->File pairs.
      */
-    void pathVariables(Map<String, File> pathVariables) {
-        assert pathVariables != null
-        classpath.pathVariables.putAll pathVariables
-        if (wtp && wtp.component) {
-            wtp.component.pathVariables.putAll pathVariables
+    public void pathVariables(Map<String, File> pathVariables) {
+        assert pathVariables != null;
+        classpath.getPathVariables().putAll(pathVariables);
+        if (wtp != null && wtp.getComponent() != null) {
+            wtp.getComponent().getPathVariables().putAll(pathVariables);
         }
     }
 }
