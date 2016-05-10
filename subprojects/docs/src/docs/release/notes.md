@@ -189,13 +189,9 @@ This causes any Ant messages logged at the specified priority to be logged at th
 higher priority will also be logged at lifecycle level (or above if it is already mapped to a higher logging level).  Messages logged
 at a lower priority than the specified priority will be logged at the "info" logging level or below.
 
-### Dependency substitution in composite build defined via `GradleConnection`
-
-- Placeholder
-
 ### Identifier properties for IDE Tooling API models
 
-- Placeholder
+New identifier properties on `EclipseProject` and `IdeaModule` make it easier to find the IDE model corresponding to a project dependency. Use [`EclipseProject.getIdentifier()`](javadoc/org/gradle/tooling/model/eclipse/HierarchicalEclipseProject.html#getIdentifier--) and [`EclipseProjectDependency.getTarget()`](javadoc/org/gradle/tooling/model/eclipse/EclipseProjectDependency.html#getTarget--) for Eclipse models, and [`IdeaModule.getIdentifier()`](javadoc/org/gradle/tooling/model/idea/IdeaModule.html#getIdentifier--) and [`IdeaModuleDependency.getTarget()`](javadoc/org/gradle/tooling/model/idea/IdeaModuleDependency.html#getTarget--) for IDEA models.
 
 ### Play/IDEA Integration
 
