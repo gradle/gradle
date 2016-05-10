@@ -361,6 +361,7 @@ We would like to thank the following community members for making contributions 
 - [Armin Groll](https://github.com/arming9) - Make Gradle source code compile inside Eclipse
 - [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - fix NPE when configuring FileTree's builtBy by map ([GRADLE-3444](https://issues.gradle.org/browse/GRADLE-3444))
 - [Ryan Ernst](https://github.com/rjernst) - always use -source/-target for the forked Java compiler 
+- [Quinten Krijger](https://github.com/Krijger) - Fix description of leftShift task in error message 
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
