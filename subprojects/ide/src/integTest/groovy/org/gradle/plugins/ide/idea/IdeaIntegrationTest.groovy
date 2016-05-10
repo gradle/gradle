@@ -35,7 +35,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
-    void mergesImlCorrectly() {
+    void mergesMetadataFilesCorrectly() {
         def buildFile = file("master/build.gradle")
         buildFile << """
 apply plugin: 'java'
@@ -44,13 +44,16 @@ apply plugin: 'idea'
 
         //given
         executer.usingBuildScript(buildFile).withTasks('idea').run()
-        def fileContent = getFile([:], 'master/master.iml').text
+        def projectContent = getFile([:], 'master/master.ipr').text
+        def moduleContent = getFile([:], 'master/master.iml').text
 
         executer.usingBuildScript(buildFile).withTasks('idea').run()
-        def contentAfterMerge = getFile([:], 'master/master.iml').text
+        def projectContentAfterMerge = getFile([:], 'master/master.ipr').text
+        def moduleContentAfterMerge = getFile([:], 'master/master.iml').text
 
         //then
-        assert fileContent == contentAfterMerge
+        assert projectContent == projectContentAfterMerge
+        assert moduleContent == moduleContentAfterMerge
     }
 
     @Test

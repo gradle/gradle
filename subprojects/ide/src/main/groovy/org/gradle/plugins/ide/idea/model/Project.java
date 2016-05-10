@@ -215,10 +215,12 @@ public class Project extends XmlPersistableConfigurationObject {
 
     private void storeWildcards() {
         Node compilerConfigNode = findCompilerConfiguration();
-        Node wildcardsNode = findOrCreateFirstChildNamed(compilerConfigNode, "wildcardResourcePatterns");
+        Node existingNode = findOrCreateFirstChildNamed(compilerConfigNode, "wildcardResourcePatterns");
+        Node wildcardsNode = new Node(null, "wildcardResourcePatterns");
         for (String wildcard : wildcards) {
             wildcardsNode.appendNode("entry", ImmutableMap.of("name", wildcard));
         }
+        existingNode.replaceNode(wildcardsNode);
     }
 
     private void storeJdk() {
