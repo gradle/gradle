@@ -27,10 +27,10 @@ import org.gradle.api.tasks.scala.ScalaForkOptions;
 import java.util.List;
 
 /**
- * Options for Scala platform compilation, excluding any options for compilation with Ant.
+ * Options for Scala platform compilation.
  */
 @Incubating
-public class BaseScalaCompileOptions extends AbstractOptions {
+public class ScalaCompileOptions extends AbstractOptions {
 
     private static final long serialVersionUID = 0;
 
@@ -194,8 +194,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
     }
 
     /**
-     * Options for running the Scala compiler in a separate process. These options only take effect
-     * if {@code fork} is set to {@code true}.
+     * Options for running the Scala compiler in a separate process.
      */
     public ScalaForkOptions getForkOptions() {
         return forkOptions;

@@ -17,13 +17,13 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
-import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
+import org.gradle.language.scala.tasks.ScalaCompileOptions;
 
 import java.io.File;
 import java.util.Map;
 
 public interface ScalaCompileSpec extends JvmLanguageCompileSpec {
-    BaseScalaCompileOptions getScalaCompileOptions();
+    ScalaCompileOptions getScalaCompileOptions();
 
     Map<File, File> getAnalysisMap();
 

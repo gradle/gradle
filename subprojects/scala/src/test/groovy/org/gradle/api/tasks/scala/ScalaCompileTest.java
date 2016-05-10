@@ -24,7 +24,7 @@ import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
 import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
+import org.gradle.language.scala.tasks.ScalaCompileOptions;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.BaseMatcher;
@@ -122,7 +122,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
         }});
         compile.setClasspath(classpath);
         compile.setZincClasspath(zincClasspath);
-        BaseScalaCompileOptions options = compile.getScalaCompileOptions();
+        ScalaCompileOptions options = compile.getScalaCompileOptions();
         options.getIncrementalOptions().setAnalysisFile(new File("analysisFile"));
     }
 

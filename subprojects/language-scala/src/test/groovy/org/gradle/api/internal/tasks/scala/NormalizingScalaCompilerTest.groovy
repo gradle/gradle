@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.language.base.internal.compile.Compiler
-import org.gradle.language.scala.tasks.BaseScalaCompileOptions
+import org.gradle.language.scala.tasks.ScalaCompileOptions
 import spock.lang.Specification
 
 class NormalizingScalaCompilerTest extends Specification {
@@ -34,7 +34,7 @@ class NormalizingScalaCompilerTest extends Specification {
         spec.classpath = files("Dep1.jar", "Dep2.jar")
         spec.zincClasspath = files("zinc.jar", "zinc-dep.jar")
         spec.compileOptions = new CompileOptions()
-        spec.scalaCompileOptions = new BaseScalaCompileOptions()
+        spec.scalaCompileOptions = new ScalaCompileOptions()
     }
 
     def "delegates to target compiler after resolving source and classpaths"() {

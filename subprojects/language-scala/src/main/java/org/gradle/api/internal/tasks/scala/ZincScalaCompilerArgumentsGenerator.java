@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.scala;
 
 import com.google.common.collect.Lists;
-import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
+import org.gradle.language.scala.tasks.ScalaCompileOptions;
 
 import java.util.List;
 
@@ -25,7 +25,7 @@ public class ZincScalaCompilerArgumentsGenerator {
     public List<String> generate(ScalaCompileSpec spec) {
         List<String> result = Lists.newArrayList();
 
-        BaseScalaCompileOptions options = spec.getScalaCompileOptions();
+        ScalaCompileOptions options = spec.getScalaCompileOptions();
         addFlag("-deprecation", options.isDeprecation(), result);
         addFlag("-unchecked", options.isUnchecked(), result);
         addConcatenatedOption("-g:", options.getDebugLevel(), result);
