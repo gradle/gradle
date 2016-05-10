@@ -43,6 +43,10 @@ import static org.gradle.api.internal.artifacts.configurations.MutationValidator
 
 public class DefaultComponentSelectionRules implements ComponentSelectionRulesInternal {
     private static final String INVALID_SPEC_ERROR = "Could not add a component selection rule for module '%s'.";
+    private static final NotationParser<Object, ModuleIdentifier> MODULE_IDENTIFIER_NOTATION_PARSER = NotationParserBuilder
+        .toType(ModuleIdentifier.class)
+        .converter(new ModuleIdentifierNotationConverter())
+        .toComposite();
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private final Set<SpecRuleAction<? super ComponentSelection>> rules = Sets.newLinkedHashSet();
@@ -67,10 +71,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     private static NotationParser<Object, ModuleIdentifier> createModuleIdentifierNotationParser() {
-        return NotationParserBuilder
-                .toType(ModuleIdentifier.class)
-                .converter(new ModuleIdentifierNotationConverter())
-                .toComposite();
+        return MODULE_IDENTIFIER_NOTATION_PARSER;
     }
 
     private static RuleActionAdapter<ComponentSelection> createAdapter() {
