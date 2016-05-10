@@ -30,6 +30,7 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
  */
 public class AnnouncePluginExtension {
 
+
     private final Logger logger = Logging.getLogger(getClass());
     private final LocalAnnouncer onDemandLocalAnnouncer;
     private final Project project;
@@ -105,6 +106,9 @@ public class AnnouncePluginExtension {
     }
 
     private static class LocalAnnouncer implements Announcer {
+        private AnnouncePluginExtension extension;
+        private Announcer local;
+
         public LocalAnnouncer(AnnouncePluginExtension extension) {
             this.extension = extension;
         }
@@ -131,8 +135,5 @@ public class AnnouncePluginExtension {
         public void setLocal(Announcer local) {
             this.local = local;
         }
-
-        private AnnouncePluginExtension extension;
-        private Announcer local;
     }
 }

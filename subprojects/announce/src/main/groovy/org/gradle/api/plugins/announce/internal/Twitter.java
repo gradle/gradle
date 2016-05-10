@@ -23,6 +23,7 @@ import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -42,6 +43,7 @@ public class Twitter implements Announcer {
         this.password = password;
     }
 
+    @Override
     public void send(String title, final String message) {
         HttpURLConnection connection = null;
         try {
@@ -59,7 +61,9 @@ public class Twitter implements Announcer {
 
             logger.info("Successfully tweeted \'" + message + "\' using account \'" + username + "\'");
             if (logger.isDebugEnabled()) {
-                logger.debug(IOUtils.toString(connection.getInputStream(), "UTF-8"));
+                final InputStream inputStream = connection.getInputStream();
+                logger.debug(IOUtils.toString(inputStream, "UTF-8"));
+                IOUtils.closeQuietly(inputStream);
             }
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);

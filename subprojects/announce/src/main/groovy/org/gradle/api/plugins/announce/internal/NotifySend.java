@@ -35,6 +35,7 @@ public class NotifySend implements Announcer {
         this.iconProvider = iconProvider;
     }
 
+    @Override
     public void send(final String title, final String message) {
         final File exe = OperatingSystem.current().findInPath("notify-send");
         if (exe == null) {

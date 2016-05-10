@@ -16,13 +16,12 @@
 
 package org.gradle.api.plugins.announce.internal;
 
-import org.gradle.api.Action;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.plugins.announce.Announcer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.CollectionUtils;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -54,7 +53,7 @@ public class Snarl implements Announcer {
     }
 
     private void send(InetAddress host, final String title, final String message) {
-        Socket socket;
+        Socket socket = null;
         try {
             try {
                 socket = new Socket(host, 9887);
@@ -62,38 +61,33 @@ public class Snarl implements Announcer {
                 // Snarl is not running
                 throw new AnnouncerUnavailableException("Snarl is not running on host " + String.valueOf(host) + ".", e);
             }
-            with((Closeable)socket, new Action<Closeable>() {
-                @Override
-                public void execute(Closeable closeable) {
-                    final OutputStream outputStream;
-                    try {
-                        outputStream = ((Socket) closeable).getOutputStream();
-                        with(new PrintWriter(outputStream, true), new Action<Closeable>() {
-                            @Override
-                            public void execute(Closeable closeable) {
-                                ((PrintWriter)closeable).println(formatMessage(title, message));
-                            }
-                        });
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                }
-            });
-        }catch(IOException ioException){
+            PrintWriter printWriter = null;
+            try {
+                final OutputStream outputStream = socket.getOutputStream();
+                printWriter = new PrintWriter(outputStream, true);
+                printWriter.println(formatMessage(title, message));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            } finally {
+                IOUtils.closeQuietly(printWriter);
+            }
+        } catch (IOException ioException) {
             throw new UncheckedIOException(ioException);
+        } finally {
+            IOUtils.closeQuietly(socket);
         }
     }
 
     private String formatMessage(String title, String message) {
         final File icon = iconProvider.getIcon(32, 32);
         List<String> properties = Arrays.asList(
-                            formatProperty("action", "notification"),
-                            formatProperty("app", "Gradle Snarl Notifier"),
-                            formatProperty("class", "alert"),
-                            formatProperty("title", title),
-                            formatProperty("text", message),
-                            formatProperty("icon", icon == null ? null : icon.getAbsolutePath()),
-                            formatProperty("timeout", "10"));
+            formatProperty("action", "notification"),
+            formatProperty("app", "Gradle Snarl Notifier"),
+            formatProperty("class", "alert"),
+            formatProperty("title", title),
+            formatProperty("text", message),
+            formatProperty("icon", icon == null ? null : icon.getAbsolutePath()),
+            formatProperty("timeout", "10"));
         return HEAD + CollectionUtils.join("", properties) + "\r\n";
     }
 
@@ -102,15 +96,6 @@ public class Snarl implements Announcer {
             return "#?" + name + "=" + value;
         } else {
             return "";
-        }
-
-    }
-
-    private static void with(Closeable closable, Action<Closeable> action) throws IOException {
-        try {
-            action.execute(closable);
-        } finally {
-            closable.close();
         }
     }
 }
