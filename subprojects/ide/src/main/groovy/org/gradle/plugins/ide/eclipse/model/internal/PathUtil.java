@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.eclipse.model.internal
 
-import groovy.transform.CompileStatic
-import org.apache.commons.io.FilenameUtils
+package org.gradle.plugins.ide.eclipse.model.internal;
 
-@CompileStatic
-class PathUtil {
-  static String normalizePath(String path) {
-        FilenameUtils.separatorsToUnix(path)
+import org.apache.commons.io.FilenameUtils;
+
+public class PathUtil {
+    public static String normalizePath(String path) {
+        return FilenameUtils.separatorsToUnix(path);
     }
 }
