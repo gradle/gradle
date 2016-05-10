@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.notations;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.internal.artifacts.dsl.ParsedModuleStringNotation;
@@ -26,9 +25,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationConvertResult;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.TypeConversionException;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class DependencyStringNotationConverter<T extends ExternalDependency> implements NotationConverter<String, T> {
     private final Instantiator instantiator;
@@ -48,26 +44,24 @@ public class DependencyStringNotationConverter<T extends ExternalDependency> imp
         result.converted(createDependencyFromString(notation));
     }
 
-    public static final Pattern EXTENSION_SPLITTER = Pattern.compile("^(.+)\\@([^:]+$)");
-
     private T createDependencyFromString(String notation) {
 
         ParsedModuleStringNotation parsedNotation = splitModuleFromExtension(notation);
         T moduleDependency = instantiator.newInstance(wantedType,
-                parsedNotation.getGroup(), parsedNotation.getName(), parsedNotation.getVersion());
+            parsedNotation.getGroup(), parsedNotation.getName(), parsedNotation.getVersion());
         ModuleFactoryHelper.addExplicitArtifactsIfDefined(moduleDependency, parsedNotation.getArtifactType(), parsedNotation.getClassifier());
 
         return moduleDependency;
     }
 
     private ParsedModuleStringNotation splitModuleFromExtension(String notation) {
-        Matcher matcher = EXTENSION_SPLITTER.matcher(notation);
-        boolean hasArtifactType = matcher.matches();
-        if (hasArtifactType && !ClientModule.class.isAssignableFrom(wantedType)) {
-            if (matcher.groupCount() != 2) {
-                throw new InvalidUserDataException("The dependency notation " + notation + " is invalid");
-            }
-            return new ParsedModuleStringNotation(matcher.group(1), matcher.group(2));
+        int idx = notation.lastIndexOf('@');
+        if (idx == -1 || ClientModule.class.isAssignableFrom(wantedType)) {
+            return new ParsedModuleStringNotation(notation, null);
+        }
+        int versionIndx = notation.lastIndexOf(':');
+        if (versionIndx<idx) {
+            return new ParsedModuleStringNotation(notation.substring(0, idx), notation.substring(idx + 1));
         }
         return new ParsedModuleStringNotation(notation, null);
     }
