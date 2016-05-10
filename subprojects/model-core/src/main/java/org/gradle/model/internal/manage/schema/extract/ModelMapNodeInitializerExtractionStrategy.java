@@ -54,7 +54,7 @@ public class ModelMapNodeInitializerExtractionStrategy extends CollectionNodeIni
         public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
             return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
                 .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor,
-                    ModelMapModelProjection.managed(schema.getElementType(), ChildNodeInitializerStrategyAccessors.fromPrivateData())
+                    ModelMapModelProjection.managed(schema.getType(), schema.getElementType(), ChildNodeInitializerStrategyAccessors.fromPrivateData())
                 ))
                 .put(ModelActionRole.Create, DirectNodeInputUsingModelAction.of(subject, descriptor,
                     ModelReference.of(NodeInitializerRegistry.class),

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
-    def "provides display name and toString() for collection"() {
+    def "provides basic meta-data for set"() {
         when:
         buildScript '''
             @Managed
@@ -47,6 +47,42 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
                 }
               }
             }
+        '''
+
+        then:
+        succeeds "printPeople"
+
+        and:
+        output.contains "name: people"
+        output.contains "display-name: ModelSet<Person> 'people'"
+        output.contains "to-string: ModelSet<Person> 'people'"
+    }
+
+    def "can view as ModelElement"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Person {
+            }
+
+            class Rules extends RuleSource {
+              @Model
+              void people(ModelSet<Person> people) {
+              }
+
+              @Mutate
+              void tasks(ModelMap<Task> tasks, @Path("people") ModelElement people) {
+                tasks.create("printPeople") {
+                  doLast {
+                    println "name: $people.name"
+                    println "display-name: $people.displayName"
+                    println "to-string: ${people.toString()}"
+                  }
+                }
+              }
+            }
+
+            apply type: Rules
         '''
 
         then:

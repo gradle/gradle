@@ -52,6 +52,35 @@ class FunctionalSourceSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains("to-string: FunctionalSourceSet 'fss'")
     }
 
+    def "can view a functional source set as a ModelElement"() {
+        buildScript """
+        apply plugin: 'language-base'
+
+        class Rules extends RuleSource {
+            @Model
+            void fss(FunctionalSourceSet sources) {
+            }
+
+            @Mutate void printTask(ModelMap<Task> tasks, @Path("fss") ModelElement sources) {
+                tasks.create("printTask") {
+                    doLast {
+                        println "name: " + sources.name
+                        println "display-name: " + sources.displayName
+                        println "to-string: " + sources.toString()
+                    }
+                }
+            }
+        }
+        apply plugin: Rules
+        """
+
+        expect:
+        succeeds "printTask"
+        output.contains("name: fss")
+        output.contains("display-name: FunctionalSourceSet 'fss'")
+        output.contains("to-string: FunctionalSourceSet 'fss'")
+    }
+
     def "can create a top level functional source set via the model dsl"() {
         buildFile << """
         apply plugin: 'language-base'

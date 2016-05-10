@@ -99,14 +99,14 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
         class Rules extends RuleSource {
             @Finalize
             void mutateInternal(ModelMap<SampleLibrarySpecInternal> sampleLibs) {
-                sampleLibs.each { sampleLib ->
+                sampleLibs.all { sampleLib ->
                     sampleLib.internalData = "internal"
                 }
             }
 
             @Finalize
             void mutateComponentSpecInternal(ModelMap<VariantComponentSpec> sampleLibs) {
-                sampleLibs.each { sampleLib ->
+                sampleLibs.all { sampleLib ->
                     sampleLib.binaries {
                         sampleBin(JarBinarySpec)
                     }
@@ -115,7 +115,7 @@ class CustomComponentInternalViewsIntegrationTest extends AbstractIntegrationSpe
 
             @Finalize
             void mutatePublic(ModelMap<SampleLibrarySpec> sampleLibs) {
-                sampleLibs.each { sampleLib ->
+                sampleLibs.all { sampleLib ->
                     sampleLib.publicData = "public"
                 }
                 sampleLibs.withType(BareInternalView).all { sampleLib ->

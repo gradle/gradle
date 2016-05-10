@@ -83,20 +83,20 @@ class Rules extends RuleSource {
     @Defaults
     void verifyAsContainer(ComponentSpecContainer c) {
         assert c.toString() == "ComponentSpecContainer 'components'"
-        assert c.withType(CustomComponent).toString() == "ModelMap<CustomComponent> 'components'"
+        assert c.withType(CustomComponent).toString() == "ComponentSpecContainer 'components'"
         assert !(c.withType(CustomComponent) instanceof ComponentSpecContainer)
     }
 
     @Defaults
     void verifyAsModelMap(@Path("components") ModelMap<ComponentSpec> c) {
-        assert c.toString() == "ModelMap<ComponentSpec> 'components'"
-        assert c.withType(CustomComponent).toString() == "ModelMap<CustomComponent> 'components'"
+        assert c.toString() == "ComponentSpecContainer 'components'"
+        assert c.withType(CustomComponent).toString() == "ComponentSpecContainer 'components'"
         assert !(c instanceof ComponentSpecContainer)
     }
 
     @Defaults
     void verifyAsSpecializedModelMap(@Path("components") ModelMap<CustomComponent> c) {
-        assert c.toString() == "ModelMap<CustomComponent> 'components'"
+        assert c.toString() == "ComponentSpecContainer 'components'"
         assert !(c instanceof ComponentSpecContainer)
     }
 }

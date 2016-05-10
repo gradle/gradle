@@ -23,7 +23,7 @@ import org.gradle.platform.base.ComponentSpec
 import spock.lang.Issue
 
 class ModelMapIntegrationTest extends AbstractIntegrationSpec {
-    def "provides display name and toString() for map"() {
+    def "provides basic meta-data for map"() {
         when:
         buildScript '''
             @Managed
@@ -50,6 +50,41 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
                 }
               }
             }
+        '''
+
+        then:
+        succeeds "print"
+
+        and:
+        output.contains "name: things"
+        output.contains "display-name: ModelMap<Thing> 'things'"
+        output.contains "to-string: ModelMap<Thing> 'things'"
+    }
+
+    def "can view as ModelElement"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Thing {
+            }
+
+            class Rules extends RuleSource {
+              @Model
+              void things(ModelMap<Thing> things) {
+              }
+              @Mutate
+              void tasks(ModelMap<Task> tasks, @Path("things") ModelElement things) {
+                tasks.create("print") {
+                  doLast {
+                    println "name: $things.name"
+                    println "display-name: $things.displayName"
+                    println "to-string: ${things.toString()}"
+                  }
+                }
+              }
+            }
+
+            apply type: Rules
         '''
 
         then:
