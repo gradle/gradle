@@ -150,6 +150,11 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     }
 
     @Override
+    public String getName() {
+        return modelNode.getPath().getName();
+    }
+
+    @Override
     public MutableModelNode getBackingNode() {
         return modelNode;
     }
@@ -389,7 +394,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     }
 
     @Override
-    public String toString() {
+    public String getDisplayName() {
         return description;
     }
 

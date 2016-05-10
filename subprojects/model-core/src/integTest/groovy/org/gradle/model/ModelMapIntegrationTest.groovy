@@ -23,6 +23,44 @@ import org.gradle.platform.base.ComponentSpec
 import spock.lang.Issue
 
 class ModelMapIntegrationTest extends AbstractIntegrationSpec {
+    def "provides display name and toString() for map"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Thing {
+            }
+
+            class Rules extends RuleSource {
+              @Model
+              void things(ModelMap<Thing> things) {
+              }
+            }
+
+            apply type: Rules
+
+            model {
+              tasks {
+                create("print") {
+                  doLast {
+                    def things = $.things
+                    println "name: $things.name"
+                    println "display-name: $things.displayName"
+                    println "to-string: ${things.toString()}"
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "print"
+
+        and:
+        output.contains "name: things"
+        output.contains "display-name: ModelMap<Thing> 'things'"
+        output.contains "to-string: ModelMap<Thing> 'things'"
+    }
+
     def "cannot add unregistered type to specialized model map"() {
         buildFile << """
         @Managed interface SampleComponent extends ComponentSpec {}

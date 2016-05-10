@@ -31,6 +31,11 @@ import static org.gradle.internal.Cast.uncheckedCast;
 // TODO - mix in Groovy support using bytecode decoration instead
 // TODO - validate closure parameters to check they are within bounds
 public abstract class ModelMapGroovyView<I> extends GroovyObjectSupport implements ModelMap<I> {
+    @Override
+    public String toString() {
+        return getDisplayName();
+    }
+
     public void create(String name, Closure<? super I> configAction) {
         create(name, new ClosureBackedAction<I>(configAction));
     }
@@ -67,8 +72,7 @@ public abstract class ModelMapGroovyView<I> extends GroovyObjectSupport implemen
         afterEach(type, new ClosureBackedAction<S>(configAction));
     }
 
-    @Override
-    public Object getProperty(String property) {
+    public Object propertyMissing(String property) {
         I element = get(property);
         if (element == null) {
             throw new MissingPropertyException(property, ModelMap.class);

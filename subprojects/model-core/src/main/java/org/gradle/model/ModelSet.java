@@ -33,7 +33,7 @@ import java.util.Set;
  * @param <T> the type of model object
  */
 @Incubating
-public interface ModelSet<T> extends Set<T> {
+public interface ModelSet<T> extends Set<T>, ModelElement {
 
     /**
      * Declares a new set element, configured by the given action.

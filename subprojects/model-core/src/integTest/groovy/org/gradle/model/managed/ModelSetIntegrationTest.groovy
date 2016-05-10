@@ -20,6 +20,44 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
+    def "provides display name and toString() for collection"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Person {
+            }
+
+            class Rules extends RuleSource {
+              @Model
+              void people(ModelSet<Person> people) {
+              }
+            }
+
+            apply type: Rules
+
+            model {
+              tasks {
+                create("printPeople") {
+                  doLast {
+                    def people = $.people
+                    println "name: $people.name"
+                    println "display-name: $people.displayName"
+                    println "to-string: ${people.toString()}"
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "printPeople"
+
+        and:
+        output.contains "name: people"
+        output.contains "display-name: ModelSet<Person> 'people'"
+        output.contains "to-string: ModelSet<Person> 'people'"
+    }
+
     def "rule can create a managed collection of interface backed managed model elements"() {
         when:
         buildScript '''
@@ -64,7 +102,6 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
                   doLast {
                     def people = $.people
                     def names = people*.name.sort().join(", ")
-                    println "people: ${people.toString()}"
                     println "names: $names"
                   }
                 }
@@ -76,7 +113,6 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printPeople"
 
         and:
-        output.contains "people: org.gradle.model.ModelSet<Person> 'people'"
         output.contains 'names: p0, p1, p2, p3, p4'
     }
 
@@ -119,7 +155,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'people: p1, p2'
     }
 
-    def "rule can create a map of various supported types"() {
+    def "rule can create a set of various supported types"() {
         when:
         buildScript '''
             @Managed
