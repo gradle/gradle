@@ -2,7 +2,8 @@ package codegen
 
 import com.intellij.util.xmlb.XmlSerializer
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
@@ -16,6 +17,7 @@ import org.jetbrains.kotlin.script.loadScriptConfigs
 import java.io.File
 import java.io.StringWriter
 import java.nio.charset.Charset
+import javax.inject.Inject
 
 open class GenerateKotlinScriptConfig : DefaultTask() {
 
@@ -25,21 +27,40 @@ open class GenerateKotlinScriptConfig : DefaultTask() {
     @OutputFile
     var outputFile: File? = null
 
-    @Input
-    var classpath: FileCollection? = null
+    @get:Input
+    val classPath: List<String> by lazy { computeClassPath() }
+
+    open val classPathRegistry: ClassPathRegistry
+        @Inject get() = throw NotImplementedError()
 
     @TaskAction
     fun generate() {
         outputFile!!.writeText(
-            toXml(loadScriptConfigs(template!!).apply { augmentClasspathsOf(this) }),
+            toXml(loadScriptConfigs(template!!).apply { augmentClassPathsOf(this) }),
             Charset.forName("utf-8"))
     }
 
-    private fun augmentClasspathsOf(scriptConfigs: List<KotlinScriptConfig>) {
-        val classpathElements = classpath!!.map { it.absolutePath }
+    private fun augmentClassPathsOf(scriptConfigs: List<KotlinScriptConfig>) {
         scriptConfigs.forEach {
-            it.classpath.addAll(classpathElements)
+            it.classpath.addAll(classPath)
         }
+    }
+
+    private fun computeClassPath() =
+        gradleApi()
+            .asFiles
+            .filter { includeInClassPath(it.name) }
+            .map { it.absolutePath }
+            .sorted()
+
+    private fun gradleApi() =
+        classPathRegistry.getClassPath(DependencyFactory.ClassPathNotation.GRADLE_API.name)
+
+    private fun includeInClassPath(name: String): Boolean {
+        return name.startsWith("kotlin-stdlib-")
+            || name.startsWith("kotlin-reflect-")
+            || name.startsWith("ant-")
+            || name.startsWith("gradle-")
     }
 }
 

@@ -4,7 +4,6 @@
         <name>Kotlin build script</name>
         <files>.*\.kts</files>
         <classpath>
-            <path>${project-root}/build/classes/main</path>
             <path>${kotlin-runtime}</path>
             <path>${jdk}</path>
         </classpath>
