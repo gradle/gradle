@@ -8,7 +8,12 @@ Add-->
 
 ### Faster Gradle
 
-TBD
+Gradle 2.14 includes significant improvements in configuration time, resulting in up to 50% faster startup, as measured on the Gradle build itself. In particular:
+
+- dynamic property and method lookup has been optimized, resulting in faster evaluation of projects
+- fixed cost task creation has been significantly reduced
+- services and dependency injection infrastructure has been optimized, resulting in faster plugin applications
+- memory usage has been improved, lowering memory pressure and resulting in less GC overhead
 
 ### Deprecation of support for Java 6
 
