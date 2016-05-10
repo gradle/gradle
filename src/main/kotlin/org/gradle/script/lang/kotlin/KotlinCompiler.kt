@@ -64,7 +64,6 @@ private fun compilerConfigFor(sourceFiles: List<File>, scriptDef: KotlinScriptDe
     CompilerConfiguration().apply {
         addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
         addJvmClasspathRoots(PathUtil.getJdkClassesRoots())
-        addJvmClasspathRoots(scriptDef.getScriptDependenciesClasspath().map(::File)) // TODO: remove after next Kotlin drop
         add(CommonConfigurationKeys.SCRIPT_DEFINITIONS_KEY, scriptDef)
         put(JVMConfigurationKeys.MODULE_NAME, "buildscript")
         put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
