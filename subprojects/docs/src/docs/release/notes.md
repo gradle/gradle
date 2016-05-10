@@ -44,6 +44,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 * Changing configurations after task dependencies have been resolved now throws an error.
 * Declaring custom `check`, `clean`, `build` or `assemble` tasks is not allowed anymore when using the lifecycle plugin.
 * Configuring the Eclipse project name during `beforeMerged` or `whenMerged` is not allowed anymore.
+* Removed `--no-color` command-line option (use `--console=plain` instead).
 
 ## External contributions
 
