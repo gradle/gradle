@@ -79,11 +79,11 @@ private fun messageCollectorFor(log: Logger): MessageCollector =
             else "$message ($location)"
 
         when (severity) {
-            in CompilerMessageSeverity.ERRORS -> log.info("Error: " + msg())
+            in CompilerMessageSeverity.ERRORS -> log.error("Error: " + msg())
+            CompilerMessageSeverity.ERROR -> log.error(msg())
+            CompilerMessageSeverity.WARNING -> log.info("Warning: " + msg())
             CompilerMessageSeverity.LOGGING -> log.info(msg())
             CompilerMessageSeverity.INFO -> log.info(msg())
-            CompilerMessageSeverity.WARNING -> log.info("Warning: " + msg())
-            CompilerMessageSeverity.ERROR -> log.info(msg())
             else -> {
             }
         }
