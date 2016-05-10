@@ -39,6 +39,9 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Changes to previously deprecated APIs
 
 * The `AbstractTask` methods `setName()` and `setProject()` are removed.
+* The `plus(Iterable<FileCollection>)` and `#minus(Iterable<FileCollection>)` methods have been removed from `FileCollection`.
+* Changing configurations after they have been resolved now throws an error.
+* Changing configurations after task dependencies have been resolved now throws an error.
 
 ## External contributions
 
