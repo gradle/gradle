@@ -16,12 +16,17 @@
 
 package org.gradle.language.base.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Delete;
 import org.gradle.language.base.internal.plugins.CleanRule;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.HashSet;
@@ -40,7 +45,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
     public static final String BUILD_GROUP = "build";
     public static final String VERIFICATION_GROUP = "verification";
 
-    private static final String CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG = "Defining custom '%s' task when using the standard Gradle lifecycle plugins";
+    private static final String CUSTOM_LIFECYCLE_TASK_ERROR_MSG = "Declaring custom '%s' task when using the standard Gradle lifecycle plugins is not allowed.";
     private final Set<String> placeholders = new HashSet<String>();
 
     @Override
@@ -120,7 +125,7 @@ public class LifecycleBasePlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(Task task) {
                 if (placeholders.contains(task.getName()) && !task.getExtensions().getExtraProperties().has("placeholder")) {
-                    DeprecationLogger.nagUserOfDeprecated(String.format(CUSTOM_LIFECYCLE_TASK_DEPRECATION_MSG, task.getName()));
+                    throw new InvalidUserDataException(String.format(CUSTOM_LIFECYCLE_TASK_ERROR_MSG, task.getName()));
                 }
             }
         });

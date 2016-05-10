@@ -42,6 +42,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 * The `plus(Iterable<FileCollection>)` and `#minus(Iterable<FileCollection>)` methods have been removed from `FileCollection`.
 * Changing configurations after they have been resolved now throws an error.
 * Changing configurations after task dependencies have been resolved now throws an error.
+* Declaring custom `check`, `clean`, `build` or `assemble` tasks is not allowed anymore when using the lifecycle plugin.
 
 ## External contributions
 
