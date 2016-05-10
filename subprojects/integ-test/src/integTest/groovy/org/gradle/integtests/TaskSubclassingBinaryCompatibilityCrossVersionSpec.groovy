@@ -55,7 +55,6 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             Jar,
             Tar,
             War,
-            ScalaCompile,
             GroovyCompile,
             CodeNarc,
             Checkstyle,
@@ -73,6 +72,10 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
         if (previous.version >= GradleVersion.version("2.0")) {
             // Breaking changes were made to JavaCompile prior to 2.0
             taskClasses << JavaCompile
+        }
+        if (previous.version >= GradleVersion.version("3.0")) {
+            // Breaking changes were made to ScalaCompile prior to 3.0
+            taskClasses << ScalaCompile
         }
 
         Map<String, String> subclasses = taskClasses.collectEntries { ["custom" + it.simpleName, it.name] }
