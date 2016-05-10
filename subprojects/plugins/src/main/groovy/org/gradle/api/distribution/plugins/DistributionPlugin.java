@@ -17,7 +17,12 @@
 package org.gradle.api.distribution.plugins;
 
 import org.codehaus.groovy.runtime.StringGroovyMethods;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.internal.DefaultDistributionContainer;
 import org.gradle.api.file.CopySpec;
@@ -31,9 +36,7 @@ import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.Zip;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -81,43 +84,15 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
                 });
 
                 dist.getContents().from("src/" + dist.getName() + "/dist");
-                Task zipTask = DeprecationLogger.whileDisabled(new Factory<Task>() {
-                    @Override
-                    public Task create() {
-                        return addZipTask(project, dist);
-                    }
-                });
-                Task tarTask = DeprecationLogger.whileDisabled(new Factory<Task>() {
-                    @Override
-                    public Task create() {
-                        return addTarTask(project, dist);
-                    }
-                });
+                String zipTaskName = MAIN_DISTRIBUTION_NAME.equals(dist.getName()) ? TASK_DIST_ZIP_NAME : dist.getName() + "DistZip";
+                Task zipTask = configureArchiveTask(project, zipTaskName, dist, Zip.class);
+                String tarTaskName = MAIN_DISTRIBUTION_NAME.equals(dist.getName()) ? TASK_DIST_TAR_NAME : dist.getName() + "DistTar";
+                Task tarTask = configureArchiveTask(project, tarTaskName, dist, Tar.class);
                 addAssembleTask(project, dist, zipTask, tarTask);
                 addInstallTask(project, dist);
             }
         });
         distributions.create(MAIN_DISTRIBUTION_NAME);
-    }
-
-    public Task addZipTask(Project project, Distribution distribution) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("addZipTask");
-        String taskName = TASK_DIST_ZIP_NAME;
-        if (!MAIN_DISTRIBUTION_NAME.equals(distribution.getName())) {
-            taskName = distribution.getName() + "DistZip";
-        }
-
-        return configureArchiveTask(project, taskName, distribution, Zip.class);
-    }
-
-    public Task addTarTask(Project project, Distribution distribution) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("addTarTask");
-        String taskName = TASK_DIST_TAR_NAME;
-        if (!MAIN_DISTRIBUTION_NAME.equals(distribution.getName())) {
-            taskName = distribution.getName() + "DistTar";
-        }
-
-        return configureArchiveTask(project, taskName, distribution, Tar.class);
     }
 
     private <T extends AbstractArchiveTask> Task configureArchiveTask(Project project, String taskName, final Distribution distribution, Class<T> type) {

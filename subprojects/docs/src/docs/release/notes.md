@@ -46,6 +46,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 * Configuring the Eclipse project name during `beforeMerged` or `whenMerged` is not allowed anymore.
 * Removed `--no-color` command-line option (use `--console=plain` instead).
 * Removed `Zip.encoding` (use `Zip.metadataCharset` instead).
+* Removed `DistributionPlugin.addZipTask()` and `addTarTask()`.
 
 ## External contributions
 
