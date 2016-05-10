@@ -17,15 +17,16 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
-import org.gradle.api.internal.tasks.scala.*;
+import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
+import org.gradle.api.internal.tasks.scala.ScalaCompilerFactory;
+import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
+import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 
 import javax.inject.Inject;
 
@@ -41,13 +42,13 @@ public class ScalaCompile extends AbstractScalaCompile {
 
     @Inject
     public ScalaCompile() {
-        super(new ScalaCompileOptionsInternal());
+        super(new BaseScalaCompileOptions());
     }
 
     @Nested
     @Override
-    public ScalaCompileOptions getScalaCompileOptions() {
-        return (ScalaCompileOptions) super.getScalaCompileOptions();
+    public BaseScalaCompileOptions getScalaCompileOptions() {
+        return super.getScalaCompileOptions();
     }
 
     /**
@@ -85,24 +86,17 @@ public class ScalaCompile extends AbstractScalaCompile {
         assertScalaClasspathIsNonEmpty();
         if (compiler == null) {
             ProjectInternal projectInternal = (ProjectInternal) getProject();
-            IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
             CompilerDaemonFactory compilerDaemonFactory = getServices().get(CompilerDaemonManager.class);
-            JavaCompilerFactory javaCompilerFactory = getServices().get(JavaCompilerFactory.class);
-            ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(projectInternal.getRootProject().getProjectDir(), antBuilder, javaCompilerFactory, compilerDaemonFactory, getScalaClasspath(), getZincClasspath(), getProject().getGradle().getGradleUserHomeDir());
+            ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(
+                projectInternal.getRootProject().getProjectDir(), compilerDaemonFactory, getScalaClasspath(),
+                getZincClasspath(), getProject().getGradle().getGradleUserHomeDir());
             compiler = scalaCompilerFactory.newCompiler(spec);
-            if (((ScalaCompileOptionsInternal) getScalaCompileOptions()).internalIsUseAnt()) {
-                compiler = new CleaningScalaCompiler(compiler, getOutputs());
-            }
         }
         return compiler;
     }
 
     @Override
     protected void configureIncrementalCompilation(ScalaCompileSpec spec) {
-        if (((ScalaCompileOptionsInternal) getScalaCompileOptions()).internalIsUseAnt()) {
-            // Don't use incremental compilation with ant-backed compiler
-            return;
-        }
         super.configureIncrementalCompilation(spec);
     }
 

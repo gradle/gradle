@@ -25,12 +25,7 @@ abstract class BasicScalaCompilerIntegrationTest extends MultiVersionIntegration
     def setup() {
         args("-i", "-PscalaVersion=$version")
         buildFile << buildScript()
-        buildFile <<
-"""
-DeprecationLogger.whileDisabled {
-    ${compilerConfiguration()}
-}
-"""
+
         // We've deprecated some getters that are used by all scala compiler calls.
         executer.expectDeprecationWarning()
     }
@@ -157,8 +152,6 @@ dependencies {
 }
 """
     }
-
-    abstract String compilerConfiguration()
 
     abstract String logStatement()
 
