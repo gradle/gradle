@@ -485,7 +485,7 @@ foo configured
 
         then:
         failure.assertHasCause("Exception thrown while executing model rule: MyPlugin#addTasks(ModelMap<Task>) > create(foo)")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelMap<org.gradle.api.Task>' given to rule 'MyPlugin#addTasks(ModelMap<Task>)'")
+        failure.assertHasCause("Attempt to modify a closed view of model element 'tasks' of type 'ModelMap<Task>' given to rule MyPlugin#addTasks(ModelMap<Task>)")
     }
 
     def "failure during task instantiation is reasonably reported"() {
