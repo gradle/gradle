@@ -72,7 +72,14 @@ public abstract class ModelMapGroovyView<I> extends GroovyObjectSupport implemen
         afterEach(type, new ClosureBackedAction<S>(configAction));
     }
 
-    public Object propertyMissing(String property) {
+    @Override
+    public Object getProperty(String property) {
+        if (property.equals("name")) {
+            return getName();
+        }
+        if (property.equals("displayName")) {
+            return getDisplayName();
+        }
         I element = get(property);
         if (element == null) {
             throw new MissingPropertyException(property, ModelMap.class);
