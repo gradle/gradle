@@ -271,7 +271,44 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "rule cannot mutate read only view even using iterator on #type"() {
+    def "cannot mutate #type subject of a validation rule"() {
+        when:
+        buildScript """
+
+        @Managed
+        interface Container {
+            $type<String> getItems()
+        }
+
+        class Rules extends RuleSource {
+            @Model
+            void container(Container c) {}
+
+            @Validate
+            void addItems(Container c) {
+                c.items.add 'foo'
+            }
+
+            @Mutate
+            void tryToMutate(ModelMap<Task> map, Container c) {
+            }
+        }
+
+        apply plugin: Rules
+        """
+
+        then:
+        fails 'tasks'
+
+        and:
+        failure.assertHasCause "Attempt to modify a read only view of model element 'container.items' of type '$type<String>' given to rule Rules#addItems(Container)"
+
+        where:
+        type << MANAGED_SCALAR_COLLECTION_TYPES
+    }
+
+    @Unroll
+    def "rule cannot mutate rule input even using iterator on #type"() {
         when:
         buildScript """
 
