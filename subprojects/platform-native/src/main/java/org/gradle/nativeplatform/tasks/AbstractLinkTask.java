@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 @Incubating
-abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
+public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
 
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
