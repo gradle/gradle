@@ -29,8 +29,6 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
  * <p>The extension used by the AnnouncePlugin.</p>
  */
 public class AnnouncePluginExtension {
-
-
     private final Logger logger = Logging.getLogger(getClass());
     private final LocalAnnouncer onDemandLocalAnnouncer;
     private final Project project;

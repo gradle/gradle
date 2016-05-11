@@ -53,7 +53,7 @@ public class Twitter implements Announcer {
             connection.setDoOutput(true);
             connection.setUseCaches(false);
 
-            String credentials = Base64.encodeBase64((username + ":" + password).getBytes("UTF-8")).toString().trim();
+            String credentials = Base64.encodeBase64String((username + ":" + password).getBytes("UTF-8")).trim();
             connection.setRequestProperty("Authorization", "Basic " + credentials);
             final OutputStream outputStream = connection.getOutputStream();
             IOUtils.write("status=" + URLEncoder.encode(message, "UTF-8"), outputStream);

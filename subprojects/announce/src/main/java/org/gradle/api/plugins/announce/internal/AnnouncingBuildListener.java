@@ -35,10 +35,11 @@ public class AnnouncingBuildListener extends BuildAdapter implements TaskExecuti
         this.announcer = announcer;
     }
 
+    @Override
     public void beforeExecute(Task task) {
         taskCount++;
         if (lastFailed != null) {
-            announcer.send(String.valueOf(lastFailed) + " failed", getTaskFailureCountMessage());
+            announcer.send(lastFailed + " failed", getTaskFailureCountMessage());
             lastFailed = null;
         }
     }
