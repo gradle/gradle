@@ -369,8 +369,10 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             root.setSystemId("http://java.sun.com/dtd/application_1_3.dtd");
         } else if (version.equals("1.4")) {
             root.attributes().put("xsi:schemaLocation", "http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/application_1_4.xsd");
-        } else if (version.equals("5") || version.equals("6") || version.equals("7")) {
+        } else if (version.equals("5") || version.equals("6")) {
             root.attributes().put("xsi:schemaLocation", "http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_" + version + ".xsd");
+        } else if (version.equals("7")) {
+            root.attributes().put("xsi:schemaLocation", "http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_" + version + ".xsd");
         }
         if (applicationName != null) {
             new Node(root, nodeNameFor("application-name"), applicationName);
@@ -421,8 +423,12 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
             return name;
         } else if ("1.4".equals(version)) {
             return new QName("http://java.sun.com/xml/ns/j2ee", name);
-        } else {
+        } else if ("5".equals(version) || "6".equals(version)) {
             return new QName("http://java.sun.com/xml/ns/javaee", name);
+        } else if ("7".equals(version)) {
+            return new QName("http://xmlns.jcp.org/xml/ns/javaee", name);
+        } else {
+            return new QName(name);
         }
     }
 

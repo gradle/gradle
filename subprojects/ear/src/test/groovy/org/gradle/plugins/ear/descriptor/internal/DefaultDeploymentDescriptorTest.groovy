@@ -104,10 +104,21 @@ class DefaultDeploymentDescriptorTest extends Specification {
                 return attributesPermutations('<?xml version="1.0"?>\n<application ##ATTRIBUTES##/>\n', attributes).collect { String descriptor ->
                     toPlatformLineSeparators(descriptor)
                 }
-            default:
+            case '5':
+            case '6':
                 def attributes = [
                     'xmlns="http://java.sun.com/xml/ns/javaee"',
                     "xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_${version}.xsd\"",
+                    'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+                    "version=\"${version}\""
+                ]
+                return attributesPermutations('<?xml version="1.0"?>\n<application ##ATTRIBUTES##/>\n', attributes).collect { String descriptor ->
+                    toPlatformLineSeparators(descriptor)
+                }
+            default:
+                def attributes = [
+                    'xmlns="http://xmlns.jcp.org/xml/ns/javaee"',
+                    "xsi:schemaLocation=\"http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_${version}.xsd\"",
                     'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
                     "version=\"${version}\""
                 ]
