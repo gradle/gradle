@@ -35,6 +35,7 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ModelElementProjection;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 import org.gradle.model.internal.type.ModelType;
@@ -122,7 +123,8 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
                     public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
                         return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
                             .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor,
-                                UnmanagedModelProjection.of(type)
+                                UnmanagedModelProjection.of(type),
+                                new ModelElementProjection(type)
                             ))
                             .put(ModelActionRole.Create, DirectNodeNoInputsModelAction.of(subject, descriptor, new Action<MutableModelNode>() {
                                 @Override

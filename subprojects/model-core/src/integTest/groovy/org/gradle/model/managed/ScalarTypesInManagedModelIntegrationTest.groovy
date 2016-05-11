@@ -58,6 +58,49 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    def "can view property with scalar type as ModelElement"() {
+        given:
+        buildScript '''
+            @Managed
+            interface PrimitiveTypes {
+                int getIntProp()
+                void setIntProp(int value)
+
+                Long getLongProp()
+                void setLongProp(Long value)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void types(PrimitiveTypes primitiveTypes) {
+                }
+
+                @Mutate
+                void addCheckTask(ModelMap<Task> tasks, @Path("types.intProp") ModelElement intProp, @Path("types.longProp") ModelElement longProp) {
+                    tasks.create("check") {
+                        doLast {
+                            println "intProp: $intProp"
+                            println "intProp.name: $intProp.name"
+                            println "intProp.displayName: $intProp.displayName"
+                            println "longProp: $longProp"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        when:
+        run "check"
+
+        then:
+        output.contains("intProp: int 'types.intProp'")
+        output.contains("intProp.name: intProp")
+        output.contains("intProp.displayName: int 'types.intProp'")
+        output.contains("longProp: Long 'types.longProp'")
+    }
+
     def "mismatched types error in managed type are propagated to the user"() {
         when:
         buildScript '''

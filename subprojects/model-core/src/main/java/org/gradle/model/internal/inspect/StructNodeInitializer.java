@@ -123,16 +123,12 @@ public class StructNodeInitializer<T> implements NodeInitializer {
 
         ModelPath childPath = modelNode.getPath().child(property.getName());
         if (propertySchema instanceof ManagedImplSchema) {
-            if (!property.isWritable()) {
+            if (!property.isWritable() || propertySchema instanceof ScalarCollectionSchema) {
                 ModelRegistrations.Builder builder = managedRegistrationBuilder(childPath, property, nodeInitializerRegistry, publicType);
                 addLink(modelNode, builder, property.isInternal());
             } else {
-                if (propertySchema instanceof ScalarCollectionSchema) {
-                    ModelRegistrations.Builder builder = managedRegistrationBuilder(childPath, property, nodeInitializerRegistry, publicType);
-                    addLink(modelNode, builder, property.isInternal());
-                } else {
-                    modelNode.addReference(property.getName(), propertyType, null, modelNode.getDescriptor());
-                }
+                // A nullable reference
+                modelNode.addReference(property.getName(), propertyType, null, modelNode.getDescriptor());
             }
         } else {
             ModelRegistrations.Builder registrationBuilder;

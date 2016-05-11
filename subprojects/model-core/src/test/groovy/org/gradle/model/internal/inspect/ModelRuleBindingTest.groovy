@@ -18,7 +18,6 @@ package org.gradle.model.internal.inspect
 
 import org.gradle.model.*
 import org.gradle.model.internal.core.TypeCompatibilityModelProjectionSupport
-import org.gradle.model.internal.core.UnmanagedModelProjection
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
 import org.gradle.model.internal.fixture.ProjectRegistrySpec

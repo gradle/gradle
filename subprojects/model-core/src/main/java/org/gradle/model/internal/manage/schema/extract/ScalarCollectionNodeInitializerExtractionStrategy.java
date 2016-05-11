@@ -19,15 +19,27 @@ package org.gradle.model.internal.manage.schema.extract;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelViewState;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.NodeInitializerContext;
+import org.gradle.model.internal.core.TypeCompatibilityModelProjectionSupport;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ModelElementProjection;
 import org.gradle.model.internal.inspect.ProjectionOnlyNodeInitializer;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
 
 public class ScalarCollectionNodeInitializerExtractionStrategy extends CollectionNodeInitializerExtractionSupport {
     public final static List<ModelType<?>> TYPES = ImmutableList.<ModelType<?>>of(
@@ -45,11 +57,13 @@ public class ScalarCollectionNodeInitializerExtractionStrategy extends Collectio
             boolean writable = !propertyContext.isPresent() || propertyContext.get().isWritable();
             if (schema.getType().getRawClass() == List.class) {
                 return new ProjectionOnlyNodeInitializer(
-                    ScalarCollectionModelProjection.forList(schema.getElementType(), !writable)
+                    ScalarCollectionModelProjection.forList(schema.getElementType(), !writable),
+                    new ModelElementProjection(schema.getType())
                 );
             } else {
                 return new ProjectionOnlyNodeInitializer(
-                    ScalarCollectionModelProjection.forSet(schema.getElementType(), !writable)
+                    ScalarCollectionModelProjection.forSet(schema.getElementType(), !writable),
+                    new ModelElementProjection(schema.getType())
                 );
             }
         }
