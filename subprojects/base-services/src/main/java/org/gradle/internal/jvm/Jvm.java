@@ -43,6 +43,12 @@ public class Jvm implements JavaInfo {
     private final JavaVersion javaVersion;
     private static final AtomicReference<Jvm> CURRENT = new AtomicReference<Jvm>();
 
+    // Cached resolved executables
+    private File javaExecutable;
+    private File javacExecutable;
+    private File javadocExecutable;
+    private File toolsJar;
+
     public static Jvm current() {
         Jvm jvm = CURRENT.get();
         if (jvm == null) {
@@ -164,21 +170,33 @@ public class Jvm implements JavaInfo {
      * {@inheritDoc}
      */
     public File getJavaExecutable() throws JavaHomeException {
-        return findExecutable("java");
+        if (javaExecutable != null) {
+            return javaExecutable;
+        }
+        javaExecutable = findExecutable("java");
+        return javaExecutable;
     }
 
     /**
      * {@inheritDoc}
      */
     public File getJavacExecutable() throws JavaHomeException {
-        return findExecutable("javac");
+        if (javacExecutable != null) {
+            return javacExecutable;
+        }
+        javacExecutable = findExecutable("javac");
+        return javacExecutable;
     }
 
     /**
      * {@inheritDoc}
      */
     public File getJavadocExecutable() throws JavaHomeException {
-        return findExecutable("javadoc");
+        if (javadocExecutable != null) {
+            return javadocExecutable;
+        }
+        javadocExecutable = findExecutable("javadoc");
+        return javadocExecutable;
     }
 
     /**
@@ -229,7 +247,11 @@ public class Jvm implements JavaInfo {
      * {@inheritDoc}
      */
     public File getToolsJar() {
-        return findToolsJar(javaBase);
+        if (toolsJar != null) {
+            return toolsJar;
+        }
+        toolsJar = findToolsJar(javaBase);
+        return toolsJar;
     }
 
     /**
