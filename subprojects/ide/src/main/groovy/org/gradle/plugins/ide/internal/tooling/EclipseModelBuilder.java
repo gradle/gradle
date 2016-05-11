@@ -72,6 +72,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         compositeProjectMapper = new CompositeProjectDirectoryMapper(services);
     }
 
+    @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject")
             || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
@@ -90,6 +91,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         }
     }
 
+    @Override
     public DefaultEclipseProject buildAll(String modelName, Project project) {
         boolean includeTasks = modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject");
         tasksFactory = new TasksFactory(includeTasks);

@@ -61,7 +61,7 @@ public class IdeaDependenciesProvider {
      * Applied in order: if a dependency is found in all listed configurations it is provided as
      * a dependency in given scope(s).
      */
-    Map<GeneratedIdeaScope, List<IdeaScopeMappingRule>> scopeMappings = new EnumMap<GeneratedIdeaScope, List<IdeaScopeMappingRule>>(GeneratedIdeaScope.class);
+    private Map<GeneratedIdeaScope, List<IdeaScopeMappingRule>> scopeMappings = new EnumMap<GeneratedIdeaScope, List<IdeaScopeMappingRule>>(GeneratedIdeaScope.class);
 
     public IdeaDependenciesProvider() {
         this(new IdeDependenciesExtractor());
@@ -130,10 +130,10 @@ public class IdeaDependenciesProvider {
                 }
             }
             List<Configuration> plusConfigurations = plusMinusConfigurations.containsKey("plus")
-                ? Lists.<Configuration>newArrayList(plusMinusConfigurations.get("plus"))
+                ? Lists.newArrayList(plusMinusConfigurations.get("plus"))
                 : Lists.<Configuration>newArrayList();
             List<Configuration> minusConfigurations = plusMinusConfigurations.containsKey("minus")
-                ? Lists.<Configuration>newArrayList(plusMinusConfigurations.get("minus"))
+                ? Lists.newArrayList(plusMinusConfigurations.get("minus"))
                 : Lists.<Configuration>newArrayList();
             for (IdeaScopeMappingRule scopeMappingRule : scopeMappings.get(scope)) {
                 for(Configuration configuration: ideaModule.getProject().getConfigurations()) {
@@ -297,7 +297,7 @@ public class IdeaDependenciesProvider {
     }
 
     /** Looks for dependencies contained in all configurations to remove them from multimap and return as result. */
-    List<IdeDependencyKey<?, Dependency>> extractDependencies(Multimap<IdeDependencyKey<?, Dependency>, String> dependenciesToConfigs,
+    private List<IdeDependencyKey<?, Dependency>> extractDependencies(Multimap<IdeDependencyKey<?, Dependency>, String> dependenciesToConfigs,
                             Collection<String> configurations, Collection<String> minusConfigurations) {
         List<IdeDependencyKey<?, Dependency>> deps = new ArrayList<IdeDependencyKey<?, Dependency>>();
         List<IdeDependencyKey<?, Dependency>> minusDeps = new ArrayList<IdeDependencyKey<?, Dependency>>();

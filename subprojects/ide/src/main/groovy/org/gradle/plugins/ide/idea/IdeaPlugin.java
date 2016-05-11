@@ -365,6 +365,7 @@ public class IdeaPlugin extends IdePlugin {
     private void hookDeduplicationToTheRoot(Project project) {
         if (isRoot(project)) {
             project.getGradle().projectsEvaluated(new Closure(this, this) {
+                @SuppressWarnings("unused")
                 public void doCall() {
                     makeSureModuleNamesAreUnique();
                 }

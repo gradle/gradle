@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
@@ -129,7 +130,7 @@ public class ModuleLibrary implements Dependency {
             sourcesNode.appendNode("root", ImmutableMap.of("url", path.getUrl()));
         }
         for (JarDirectory jarDirectory : jarDirectories) {
-            ImmutableMap<String, String> jarDirectoryAttributes = ImmutableMap.of("url", jarDirectory.getPath().getUrl(), "recursive", String.valueOf(jarDirectory.getRecursive()));
+            ImmutableMap<String, String> jarDirectoryAttributes = ImmutableMap.of("url", jarDirectory.getPath().getUrl(), "recursive", String.valueOf(jarDirectory.isRecursive()));
             libraryNode.appendNode("jarDirectory", jarDirectoryAttributes);
         }
     }
@@ -154,22 +155,11 @@ public class ModuleLibrary implements Dependency {
             return false;
         }
         ModuleLibrary that = (ModuleLibrary) o;
-        if (!classes.equals(that.classes)) {
-            return false;
-        }
-        if (!jarDirectories.equals(that.jarDirectories)) {
-            return false;
-        }
-        if (!javadoc.equals(that.javadoc)) {
-            return false;
-        }
-        if (!scopeEquals(scope, that.scope)) {
-            return false;
-        }
-        if (!sources.equals(that.sources)) {
-            return false;
-        }
-        return true;
+        return Objects.equal(classes, that.classes)
+            && Objects.equal(jarDirectories, that.jarDirectories)
+            && Objects.equal(javadoc, that.javadoc)
+            && scopeEquals(scope, that.scope)
+            && Objects.equal(sources, that.sources);
     }
 
     private boolean scopeEquals(String lhs, String rhs) {
@@ -182,6 +172,7 @@ public class ModuleLibrary implements Dependency {
         }
     }
 
+    @Override
     public int hashCode() {
         int result;
         result = classes.hashCode();
@@ -196,9 +187,14 @@ public class ModuleLibrary implements Dependency {
         return scope != null && !scope.equals("COMPILE") ? scope.hashCode() : 0;
     }
 
+    @Override
     public String toString() {
-        return "ModuleLibrary{" + "classes=" + classes + ", jarDirectories=" + jarDirectories + ", javadoc=" + javadoc + ", sources=" + sources + ", scope='" + scope + "\'" + "}";
+        return "ModuleLibrary{"
+            + "classes=" + classes
+            + ", jarDirectories=" + jarDirectories
+            + ", javadoc=" + javadoc
+            + ", sources=" + sources
+            + ", scope='" + scope
+            + "\'" + "}";
     }
-
-
 }

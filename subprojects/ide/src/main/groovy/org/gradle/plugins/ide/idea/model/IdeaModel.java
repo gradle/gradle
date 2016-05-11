@@ -112,6 +112,4 @@ public class IdeaModel {
         assert pathVariables != null;
         module.getPathVariables().putAll(pathVariables);
     }
-
-
 }

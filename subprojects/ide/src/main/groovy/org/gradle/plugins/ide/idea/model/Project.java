@@ -225,7 +225,7 @@ public class Project extends XmlPersistableConfigurationObject {
 
     private void storeJdk() {
         Node projectRoot = findProjectRootManager();
-        projectRoot.attributes().put("assert-keyword", jdk.getAssertKeyword());
+        projectRoot.attributes().put("assert-keyword", jdk.isAssertKeyword());
         projectRoot.attributes().put("assert-jdk-15", jdk.getJdk15());
         projectRoot.attributes().put("languageLevel", jdk.getLanguageLevel());
         projectRoot.attributes().put("project-jdk-name", jdk.getProjectJdkName());
@@ -282,6 +282,7 @@ public class Project extends XmlPersistableConfigurationObject {
 
     private Node findOrCreateModules() {
         Node moduleManager = findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "ProjectModuleManager");
+        assert moduleManager != null;
         Node modules = findFirstChildNamed(moduleManager, "modules");
         if (modules == null) {
             modules = moduleManager.appendNode("modules");

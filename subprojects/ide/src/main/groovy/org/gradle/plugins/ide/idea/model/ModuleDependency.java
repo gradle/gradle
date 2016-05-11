@@ -79,6 +79,7 @@ public class ModuleDependency implements Dependency {
         this.exported = exported;
     }
 
+    @Override
     public void addToNode(Node parentNode) {
         ImmutableMap attributes = ImmutableMap.builder()
             .put("type", "module")

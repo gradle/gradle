@@ -21,11 +21,12 @@ import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.util.XmlParser;
 import org.gradle.api.Nullable;
+import org.gradle.internal.Cast;
 import org.gradle.internal.xml.XmlTransformer;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -76,7 +77,7 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
     }
 
     protected static List<Node> getChildren(@Nullable Node root, String name) {
-        return root == null ? Arrays.<Node>asList() : (List<Node>) root.get(name);
+        return root == null ? Collections.<Node>emptyList() : Cast.<List<Node>>uncheckedCast(root.get(name));
     }
 
     @Nullable

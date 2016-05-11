@@ -28,10 +28,13 @@ import java.util.List;
  * Builds the GradleProject that contains the project hierarchy and task information
  */
 public class BuildEnvironmentBuilder implements ToolingModelBuilder {
+
+    @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.build.BuildEnvironment");
     }
 
+    @Override
     public Object buildAll(String modelName, Project target) {
         File gradleUserHomeDir = target.getGradle().getGradleUserHomeDir();
         String gradleVersion = target.getGradle().getGradleVersion();

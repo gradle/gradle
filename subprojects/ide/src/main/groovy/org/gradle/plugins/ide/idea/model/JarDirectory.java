@@ -16,6 +16,8 @@
 package org.gradle.plugins.ide.idea.model;
 
 
+import com.google.common.base.Objects;
+
 /**
  * Represents a jar directory element of an idea module library.
  */
@@ -43,10 +45,6 @@ public class JarDirectory {
         this.path = path;
     }
 
-    public boolean getRecursive() {
-        return recursive;
-    }
-
     public boolean isRecursive() {
         return recursive;
     }
@@ -55,10 +53,12 @@ public class JarDirectory {
         this.recursive = recursive;
     }
 
+    @Override
     public String toString() {
         return "JarDirectory{" + "path=" + path + ", recursive=" + recursive + "}";
     }
 
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -67,15 +67,11 @@ public class JarDirectory {
             return false;
         }
         JarDirectory that = (JarDirectory) o;
-        if (!recursive == that.recursive) {
-            return false;
-        }
-        if (!path.equals(that.path)) {
-            return false;
-        }
-        return true;
+        return recursive == that.recursive
+            && Objects.equal(path, that.path);
     }
 
+    @Override
     public int hashCode() {
         int result;
         result = path.hashCode();

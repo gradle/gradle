@@ -21,13 +21,16 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 
 /**
  * Single entry module library
  */
 public class SingleEntryModuleLibrary extends ModuleLibrary {
+
+    private ModuleVersionIdentifier moduleVersion;
+
     /**
      * Creates single entry module library
      *
@@ -37,7 +40,7 @@ public class SingleEntryModuleLibrary extends ModuleLibrary {
      * @param scope scope
      */
     public SingleEntryModuleLibrary(FilePath library, Set<FilePath> javadoc, Set<FilePath> source, String scope) {
-        super(Arrays.asList(library), javadoc, source, Lists.<JarDirectory>newArrayList(), scope);
+        super(Collections.singletonList(library), javadoc, source, Lists.<JarDirectory>newArrayList(), scope);
     }
 
     /**
@@ -50,9 +53,9 @@ public class SingleEntryModuleLibrary extends ModuleLibrary {
      */
     public SingleEntryModuleLibrary(FilePath library, @Nullable FilePath javadoc, @Nullable FilePath source, String scope) {
         super(
-            Arrays.asList(library),
-            javadoc !=null ? Arrays.asList(javadoc) : Lists.<Path>newArrayList(),
-            source !=null ? Arrays.asList(source) : Lists.<Path>newArrayList(),
+            Collections.singletonList(library),
+            javadoc != null ? Collections.singletonList(javadoc) : Lists.<Path>newArrayList(),
+            source != null ? Collections.singletonList(source) : Lists.<Path>newArrayList(),
             Sets.<JarDirectory>newLinkedHashSet(),
             scope
         );
@@ -66,6 +69,18 @@ public class SingleEntryModuleLibrary extends ModuleLibrary {
      */
     public SingleEntryModuleLibrary(FilePath library, String scope) {
         this(library, Sets.<FilePath>newLinkedHashSet(), Sets.<FilePath>newLinkedHashSet(), scope);
+    }
+
+    /**
+     * Module version of the library, if any.
+     */
+    @Nullable
+    public ModuleVersionIdentifier getModuleVersion() {
+        return moduleVersion;
+    }
+
+    public void setModuleVersion(@Nullable ModuleVersionIdentifier moduleVersion) {
+        this.moduleVersion = moduleVersion;
     }
 
     /**
@@ -84,7 +99,6 @@ public class SingleEntryModuleLibrary extends ModuleLibrary {
         } else {
             return null;
         }
-
     }
 
     /**
@@ -96,20 +110,5 @@ public class SingleEntryModuleLibrary extends ModuleLibrary {
         } else {
             return null;
         }
-
     }
-
-    public ModuleVersionIdentifier getModuleVersion() {
-        return moduleVersion;
-    }
-
-    public void setModuleVersion(ModuleVersionIdentifier moduleVersion) {
-        this.moduleVersion = moduleVersion;
-    }
-
-    /**
-     * Module version of the library, if any.
-     */
-    @Nullable
-    private ModuleVersionIdentifier moduleVersion;
 }

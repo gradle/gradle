@@ -66,10 +66,12 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         compositeProjectMapper = new CompositeProjectDirectoryMapper(services);
     }
 
+    @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.idea.IdeaProject");
     }
 
+    @Override
     public DefaultIdeaProject buildAll(String modelName, Project project) {
         Project root = project.getRootProject();
         applyIdeaPlugin(root);

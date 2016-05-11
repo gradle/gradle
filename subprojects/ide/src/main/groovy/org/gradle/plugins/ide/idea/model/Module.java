@@ -249,7 +249,7 @@ public class Module extends XmlPersistableConfigurationObject {
     }
 
     private boolean readInheritOutputDirsFromXml() {
-        return inheritOutputDirs = "true".equals(findNewModuleRootManager().attribute("inherit-compiler-output"));
+        return inheritOutputDirs = "true".equals(getNewModuleRootManager().attribute("inherit-compiler-output"));
     }
 
     private Path readOutputDirsFromXml() {
@@ -298,31 +298,32 @@ public class Module extends XmlPersistableConfigurationObject {
         assert jdkName != null;
         List<Node> orderEntries = findOrderEntries();
         Node moduleJdk = findFirstWithAttributeValue(orderEntries, "type", "jdk");
+        Node moduleRootManager = getNewModuleRootManager();
         if (!jdkName.equals(INHERITED)) {
             Node inheritedJdk = findFirstWithAttributeValue(orderEntries, "type", "inheritedJdk");
             if (inheritedJdk != null) {
                 inheritedJdk.parent().remove(inheritedJdk);
             }
             if (moduleJdk != null) {
-                findNewModuleRootManager().remove(moduleJdk);
+                moduleRootManager.remove(moduleJdk);
             }
-            findNewModuleRootManager().appendNode("orderEntry", ImmutableMap.builder().put("type", "jdk").put("jdkName", jdkName).put("jdkType", "JavaSDK").build());
+            moduleRootManager.appendNode("orderEntry", ImmutableMap.of("type", "jdk", "jdkName", jdkName, "jdkType", "JavaSDK"));
         } else if (findFirstWithAttributeValue(orderEntries, "type", "inheritedJdk") == null) {
             if (moduleJdk != null) {
-                findNewModuleRootManager().remove(moduleJdk);
+                moduleRootManager.remove(moduleJdk);
             }
-            findNewModuleRootManager().appendNode("orderEntry", ImmutableMap.of("type", "inheritedJdk"));
+            moduleRootManager.appendNode("orderEntry", ImmutableMap.of("type", "inheritedJdk"));
         }
     }
 
     private void setContentURL() {
         if (contentPath != null) {
-            findContent().attributes().put("url", contentPath.getUrl());
+            getContentNode().attributes().put("url", contentPath.getUrl());
         }
     }
 
     private void removeSourceAndExcludeFolderFromXml() {
-        Node content = findContent();
+        Node content = getContentNode();
         for (Node sourceFolder : findSourceFolder()) {
             content.remove(sourceFolder);
         }
@@ -332,7 +333,7 @@ public class Module extends XmlPersistableConfigurationObject {
     }
 
     private void addSourceAndExcludeFolderToXml() {
-        Node content = findContent();
+        Node content = getContentNode();
         for (Path path : sourceFolders) {
             ImmutableMap.Builder attributes = ImmutableMap.builder()
                 .put("url", path.getUrl())
@@ -357,12 +358,12 @@ public class Module extends XmlPersistableConfigurationObject {
     }
 
     private void writeInheritOutputDirsToXml() {
-        findNewModuleRootManager().attributes().put("inherit-compiler-output", inheritOutputDirs);
+        getNewModuleRootManager().attributes().put("inherit-compiler-output", inheritOutputDirs);
     }
 
     private void writeSourceLanguageLevel() {
         if (languageLevel != null) {
-            findNewModuleRootManager().attributes().put("LANGUAGE_LEVEL", languageLevel);
+            getNewModuleRootManager().attributes().put("LANGUAGE_LEVEL", languageLevel);
         }
     }
 
@@ -376,7 +377,7 @@ public class Module extends XmlPersistableConfigurationObject {
     }
 
     private void removeDependenciesFromXml() {
-        Node moduleRoot = findNewModuleRootManager();
+        Node moduleRoot = getNewModuleRootManager();
         for (Node orderEntry : findOrderEntries()) {
             if (isDependencyOrderEntry(orderEntry)) {
                 moduleRoot.remove(orderEntry);
@@ -389,15 +390,16 @@ public class Module extends XmlPersistableConfigurationObject {
     }
 
     private void addDependenciesToXml() {
-        Node moduleRoot = findNewModuleRootManager();
+        Node moduleRoot = getNewModuleRootManager();
         for (Dependency dependency : dependencies) {
             dependency.addToNode(moduleRoot);
         }
     }
 
-    @Nullable
-    private Node findNewModuleRootManager() {
-        return findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "NewModuleRootManager");
+    private Node getNewModuleRootManager() {
+        Node newModuleRootManager = findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "NewModuleRootManager");
+        assert newModuleRootManager != null;
+        return newModuleRootManager;
     }
 
     private Node findOrCreateOutputDir() {
@@ -405,7 +407,7 @@ public class Module extends XmlPersistableConfigurationObject {
         if (outputDirNode != null) {
             return outputDirNode;
         }
-        return findNewModuleRootManager().appendNode("output");
+        return getNewModuleRootManager().appendNode("output");
     }
 
     private Node findOrCreateTestOutputDir() {
@@ -413,34 +415,35 @@ public class Module extends XmlPersistableConfigurationObject {
         if (testOutputDirNode != null) {
             return testOutputDirNode;
         }
-        return findNewModuleRootManager().appendNode("output-test");
+        return getNewModuleRootManager().appendNode("output-test");
     }
 
-    @Nullable
-    private Node findContent() {
-        return findFirstChildNamed(findNewModuleRootManager(), "content");
+    private Node getContentNode() {
+        Node contentNode = findFirstChildNamed(getNewModuleRootManager(), "content");
+        assert contentNode != null;
+        return contentNode;
     }
 
     private List<Node> findSourceFolder() {
-        return getChildren(findContent(), "sourceFolder");
+        return getChildren(getContentNode(), "sourceFolder");
     }
 
     private List<Node> findExcludeFolder() {
-        return getChildren(findContent(), "excludeFolder");
+        return getChildren(getContentNode(), "excludeFolder");
     }
 
     @Nullable
     private Node findOutputDir() {
-        return findFirstChildNamed(findNewModuleRootManager(), "output");
+        return findFirstChildNamed(getNewModuleRootManager(), "output");
     }
 
     @Nullable
     private Node findTestOutputDir() {
-        return findFirstChildNamed(findNewModuleRootManager(), "output-test");
+        return findFirstChildNamed(getNewModuleRootManager(), "output-test");
     }
 
     private List<Node> findOrderEntries() {
-        return getChildren(findNewModuleRootManager(), "orderEntry");
+        return getChildren(getNewModuleRootManager(), "orderEntry");
     }
 
     @Override

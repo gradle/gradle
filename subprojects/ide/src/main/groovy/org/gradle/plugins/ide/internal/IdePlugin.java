@@ -27,12 +27,13 @@ public abstract class IdePlugin implements Plugin<Project> {
     private Task cleanTask;
     protected Project project;
 
+    @Override
     public void apply(Project target) {
         project = target;
-        String lifecyleTaskName = getLifecycleTaskName();
-        lifecycleTask = target.task(lifecyleTaskName);
+        String lifecycleTaskName = getLifecycleTaskName();
+        lifecycleTask = target.task(lifecycleTaskName);
         lifecycleTask.setGroup("IDE");
-        cleanTask = target.task(cleanName(lifecyleTaskName));
+        cleanTask = target.task(cleanName(lifecycleTaskName));
         cleanTask.setGroup("IDE");
         onApply(target);
     }

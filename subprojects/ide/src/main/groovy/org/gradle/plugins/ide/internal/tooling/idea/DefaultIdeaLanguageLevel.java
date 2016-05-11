@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
+import com.google.common.base.Objects;
 import org.gradle.tooling.model.idea.IdeaLanguageLevel;
 
 import java.io.Serializable;
@@ -67,12 +68,7 @@ public class DefaultIdeaLanguageLevel implements IdeaLanguageLevel, Serializable
         }
 
         DefaultIdeaLanguageLevel that = (DefaultIdeaLanguageLevel) o;
-
-        if (level != null ? !level.equals(that.level) : that.level != null) {
-            return false;
-        }
-
-        return true;
+        return Objects.equal(level, that.level);
     }
 
     @Override

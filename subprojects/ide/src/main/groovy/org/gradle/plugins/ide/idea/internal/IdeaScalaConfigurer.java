@@ -66,6 +66,7 @@ public class IdeaScalaConfigurer {
 
     public void configure() {
         rootProject.getGradle().projectsEvaluated(new Closure(this, this) {
+            @SuppressWarnings("unused")
             public void doCall() {
                 VersionNumber ideaTargetVersion = findIdeaTargetVersion();
                 final boolean useScalaSdk = ideaTargetVersion == null || IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED.compareTo(ideaTargetVersion) <= 0;
