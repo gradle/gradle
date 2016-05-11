@@ -21,7 +21,7 @@ import org.gradle.api.Plugin
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     private static final int CONCURRENT_BUILDS_PROJECT_COUNT = 5
-    private static final int CONCURRENT_TASKS_PROJECT_COUNT = 10
+    private static final int CONCURRENT_TASKS_PROJECT_COUNT = 5
 
     def setup() {
         requireOwnGradleUserHomeDir()
@@ -81,7 +81,6 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
         setupSettingsFile(CONCURRENT_TASKS_PROJECT_COUNT)
 
         when:
-        executer.withBuildJvmOpts('-Xmx2048m')
         executeBuildInParallel('resolveDependencies')
 
         then:
