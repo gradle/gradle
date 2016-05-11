@@ -354,6 +354,25 @@ is running on no -source/-target options have been passed to the compiler proces
 
 Beginning from this version the -source/-target options are always passed to the compiler.
 
+### Experimental software model changes
+
+- Subject of `@Validate` rules is immutable, and in the case of `ModelMap` and `ModelSet` types, readable.
+- `components { }`, `binaries { }`, `testSuites { }` no longer allow elements to be accessed, except as a model reference.
+
+For example:
+
+    components {
+        main.targetPlatform "x86"
+    }
+    
+Should be changed to:
+
+    components {
+        main {
+            targetPlatform "x86"
+        }
+    }
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
