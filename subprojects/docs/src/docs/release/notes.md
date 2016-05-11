@@ -39,6 +39,18 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 The legacy Sonar plugin has been removed from the distribution. It is superceded by the official plugin from SonarQube (http://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle).
 
+### Ant-Based Scala Compiler has been removed
+
+The deprecated Ant-Based Scala Compiler has been removed from Gradle
+3.0. The Zinc Scala Compiler is now used exclusively. If your scala
+build begins failing with this release of Gradle, be sure to remove
+references to the following deprecated configuration properties:
+
+1. `daemonServer`
+1. `fork`
+1. `useAnt`
+1. `useCompileDaemon`
+
 ### Changes to previously deprecated APIs
 
 * The `AbstractTask` methods `setName()` and `setProject()` are removed.
@@ -54,6 +66,7 @@ The legacy Sonar plugin has been removed from the distribution. It is superceded
 * Removed `Groovydoc.overview` (use `overviewText` instead).
 * Removed `LoggingManager.setLevel()`. It is now not possible to change the log level during the execution of a task.
   If you were using this method to expose Ant logging messages, please use `AntBuilder.setLifecycleLogLevel()` instead.
+* Removed `AntScalaCompiler` in favor of `ZincScalaCompiler`.
 
 ## External contributions
 
