@@ -326,7 +326,8 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> ex
         ex.cause instanceof ModelRuleBindingException
         normaliseLineSeparators(ex.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
 This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)"""
+  - $itemClass.name (or assignment compatible type thereof)
+  - ${ModelElement.name} (or assignment compatible type thereof)"""
     }
 
     def "named(String, Action) fails when named element requested in chain filtered collection with incompatible type"() {
@@ -339,7 +340,8 @@ This element was created by testrule > create(item) and can be mutated as the fo
         ex.cause.cause instanceof ModelRuleBindingException
         normaliseLineSeparators(ex.cause.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
 This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)"""
+  - $itemClass.name (or assignment compatible type thereof)
+  - ${ModelElement.name} (or assignment compatible type thereof)"""
     }
 
     static class NamedRules extends RuleSource {}
@@ -354,7 +356,8 @@ This element was created by testrule > create(item) and can be mutated as the fo
         ex.cause.cause instanceof ModelRuleBindingException
         normaliseLineSeparators(ex.cause.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
 This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)"""
+  - $itemClass.name (or assignment compatible type thereof)
+  - ${ModelElement.name} (or assignment compatible type thereof)"""
     }
 
     def "named(String, DeferredModelAction) fails when named element requested in filtered collection with incompatible type"() {
@@ -366,7 +369,8 @@ This element was created by testrule > create(item) and can be mutated as the fo
         ex.cause instanceof ModelRuleBindingException
         normaliseLineSeparators(ex.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
 This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)"""
+  - $itemClass.name (or assignment compatible type thereof)
+  - ${ModelElement.name} (or assignment compatible type thereof)"""
     }
 
     def "named(String, DeferredModelAction) fails when named element requested in chain filtered collection with incompatible type"() {
@@ -379,7 +383,8 @@ This element was created by testrule > create(item) and can be mutated as the fo
         ex.cause.cause instanceof ModelRuleBindingException
         normaliseLineSeparators(ex.cause.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
 This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)"""
+  - $itemClass.name (or assignment compatible type thereof)
+  - ${ModelElement.name} (or assignment compatible type thereof)"""
     }
 
     def "withType(Class, Action) respects chained filtering"() {

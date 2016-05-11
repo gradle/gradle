@@ -99,6 +99,7 @@ public class UnmanagedModelCreationRuleExtractor extends AbstractModelCreationRu
             registration.action(ModelActionRole.Create,
                     context.contextualize(new UnmanagedElementCreationAction<R>(descriptor, subjectReference, inputs, modelType)));
             registration.withProjection(new UnmanagedModelProjection<R>(modelType));
+            registration.withProjection(new ModelElementProjection(modelType));
         }
     }
 }

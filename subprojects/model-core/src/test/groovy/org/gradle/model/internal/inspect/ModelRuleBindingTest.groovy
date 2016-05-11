@@ -17,6 +17,7 @@
 package org.gradle.model.internal.inspect
 
 import org.gradle.model.*
+import org.gradle.model.internal.core.TypeCompatibilityModelProjectionSupport
 import org.gradle.model.internal.core.UnmanagedModelProjection
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor
@@ -51,7 +52,6 @@ class ModelRuleBindingTest extends ProjectRegistrySpec {
         }
     }
 
-
     def "error message produced when unpathed reference matches more than one item"() {
         when:
         modelRegistry.getRoot().applyToSelf(AmbiguousBindingsInOneSource)
@@ -75,16 +75,6 @@ class ModelRuleBindingTest extends ProjectRegistrySpec {
 
         MethodModelRuleDescriptor.of(WeaklyTypeReferencingMethod.of(declaringType, ModelType.of(method.returnType), method))
     }
-
-
-    private WeaklyTypeReferencingMethod weakMethod(Class type, String name) {
-        def declaringType = ModelType.of(type)
-        Stub(WeaklyTypeReferencingMethod) {
-            getDeclaringType() >> declaringType
-            getName() >> name
-        }
-    }
-
 
     static class ProvidesStringOne extends RuleSource {
         @Model
@@ -157,7 +147,10 @@ class ModelRuleBindingTest extends ProjectRegistrySpec {
             Integer.name,
             "parameter 1",
             true,
-            [UnmanagedModelProjection.description(ModelType.of(String))]
+            [
+                TypeCompatibilityModelProjectionSupport.description(ModelType.of(String)),
+                TypeCompatibilityModelProjectionSupport.description(ModelType.of(ModelElement))
+            ]
         ).asString()
 
         cause.message == message
@@ -192,7 +185,10 @@ class ModelRuleBindingTest extends ProjectRegistrySpec {
             Integer.name,
             "parameter 2",
             false,
-            [UnmanagedModelProjection.description(ModelType.of(String))]
+            [
+                TypeCompatibilityModelProjectionSupport.description(ModelType.of(String)),
+                TypeCompatibilityModelProjectionSupport.description(ModelType.of(ModelElement))
+            ]
         ).asString()
 
         cause.message == message

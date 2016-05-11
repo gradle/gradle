@@ -60,6 +60,7 @@ public class StructNodeInitializer<T> implements NodeInitializer {
                         for (StructSchema<?> viewSchema : bindings.getDeclaredViewSchemas()) {
                             addProjection(modelNode, viewSchema, proxyFactory, typeConverter);
                         }
+                        modelNode.addProjection(new ModelElementProjection(bindings.getPublicSchema().getType()));
                     }
                 }
             ))
@@ -141,6 +142,7 @@ public class StructNodeInitializer<T> implements NodeInitializer {
                 registrationBuilder = ModelRegistrations.of(childPath);
             }
             registrationBuilder.withProjection(new UnmanagedModelProjection<P>(propertyType));
+            registrationBuilder.withProjection(new ModelElementProjection(propertyType));
             addLink(modelNode, registrationBuilder, property.isInternal());
         }
     }
