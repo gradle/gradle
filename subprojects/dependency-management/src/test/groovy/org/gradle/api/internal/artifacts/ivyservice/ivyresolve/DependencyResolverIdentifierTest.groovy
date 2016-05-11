@@ -16,9 +16,15 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
+import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern
 import spock.lang.Specification
 
+import java.lang.reflect.Field
+
 public class DependencyResolverIdentifierTest extends Specification {
+    private final static Field IVY = ExternalResourceResolver.getDeclaredField('ivyPatterns')
+    private final static Field ARTIFACT = ExternalResourceResolver.getDeclaredField('artifactPatterns')
+
     def "dependency resolvers of type ExternalResourceResolver are differentiated by their patterns"() {
         given:
         ExternalResourceResolver resolver1 = Mock()
@@ -26,14 +32,14 @@ public class DependencyResolverIdentifierTest extends Specification {
         ExternalResourceResolver resolver2 = Mock()
         ExternalResourceResolver resolver2a = Mock()
 
-        resolver1.ivyPatterns >> ['ivy1', 'ivy2']
-        resolver1.artifactPatterns >> ['artifact1', 'artifact2']
-        resolver1a.ivyPatterns >> ['ivy1', 'ivy2']
-        resolver1a.artifactPatterns >> ['artifact1', 'artifact2']
-        resolver2.ivyPatterns >> ['ivy1', 'different']
-        resolver2.artifactPatterns >> ['artifact1', 'artifact2']
-        resolver2a.ivyPatterns >> ['ivy1', 'ivy2']
-        resolver2a.artifactPatterns >> ['artifact1', 'different']
+        patterns(resolver1, IVY, ['ivy1', 'ivy2'])
+        patterns(resolver1, ARTIFACT, ['artifact1', 'artifact2'])
+        patterns(resolver1a, IVY, ['ivy1', 'ivy2'])
+        patterns(resolver1a, ARTIFACT, ['artifact1', 'artifact2'])
+        patterns(resolver2, IVY, ['ivy1', 'different'])
+        patterns(resolver2, ARTIFACT, ['artifact1', 'artifact2'])
+        patterns(resolver2a, IVY, ['ivy1', 'ivy2'])
+        patterns(resolver2a, ARTIFACT, ['artifact1', 'different'])
 
         expect:
         id(resolver1) == id(resolver1a)
@@ -47,17 +53,24 @@ public class DependencyResolverIdentifierTest extends Specification {
         ExternalResourceResolver resolver1 = Mock()
         ExternalResourceResolver resolver2 = Mock()
 
-        resolver1.ivyPatterns >> ['ivy1']
-        resolver1.artifactPatterns >> ['artifact1']
-        resolver2.ivyPatterns >> ['ivy1']
-        resolver2.artifactPatterns >> ['artifact1']
+        patterns(resolver1, IVY, ['ivy1'])
+        patterns(resolver1, ARTIFACT, ['artifact1'])
+        patterns(resolver2, IVY, ['ivy1'])
+        patterns(resolver2, ARTIFACT,['artifact1'])
         resolver2.m2compatible >> true
 
         expect:
         id(resolver1) != id(resolver2)
     }
 
+    def patterns(ExternalResourceResolver resolver, Field field, List<String> patterns) {
+        field.accessible = true
+        field.set(resolver, patterns.collect { p -> Mock(ResourcePattern) {
+            getPattern() >> p
+        }})
+    }
+
     def id(ExternalResourceResolver resolver) {
-        return DependencyResolverIdentifier.forExternalResourceResolver(resolver)
+        ExternalResourceResolver.generateId(resolver)
     }
 }

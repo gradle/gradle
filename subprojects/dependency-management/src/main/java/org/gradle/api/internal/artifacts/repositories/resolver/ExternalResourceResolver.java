@@ -27,20 +27,42 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyResolverIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.external.model.*;
-import org.gradle.internal.component.model.*;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
+import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentUsage;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.DefaultModuleDescriptorArtifactMetaData;
+import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.ModuleDescriptorArtifactMetaData;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resolve.ArtifactResolveException;
-import org.gradle.internal.resolve.result.*;
-import org.gradle.internal.resource.local.*;
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
+import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
+import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
+import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
+import org.gradle.internal.resource.local.ByteArrayLocalResource;
+import org.gradle.internal.resource.local.FileLocalResource;
+import org.gradle.internal.resource.local.FileStore;
+import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
 import org.gradle.internal.resource.transport.ExternalResourceRepository;
 import org.gradle.util.CollectionUtils;
@@ -51,7 +73,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 public abstract class ExternalResourceResolver implements ModuleVersionPublisher, ConfiguredModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
@@ -86,7 +112,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     public String getId() {
-        return DependencyResolverIdentifier.forExternalResourceResolver(this);
+        return generateId(this);
     }
 
     public String getName() {
@@ -114,7 +140,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     private void doListModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
-        ModuleIdentifier module  = new DefaultModuleIdentifier(dependency.getRequested().getGroup(), dependency.getRequested().getName());
+        ModuleIdentifier module = new DefaultModuleIdentifier(dependency.getRequested().getGroup(), dependency.getRequested().getName());
         Set<String> versions = new LinkedHashSet<String>();
         VersionPatternVisitor visitor = versionLister.newVisitor(module, versions, result);
 
@@ -208,7 +234,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
         if (errors.size() > 0) {
             throw new MetaDataParseException(String.format("inconsistent module metadata found. Descriptor: %s Errors: %s",
-                    metadata.getId(), Joiner.on(SystemProperties.getInstance().getLineSeparator()).join(errors)));
+                metadata.getId(), Joiner.on(SystemProperties.getInstance().getLineSeparator()).join(errors)));
         }
     }
 
@@ -360,7 +386,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         }
 
         public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
-             resolveConfigurationArtifacts((ModuleComponentResolveMetaData) component, componentUsage, result);
+            resolveConfigurationArtifacts((ModuleComponentResolveMetaData) component, componentUsage, result);
         }
 
         protected abstract void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ComponentUsage usage, BuildableArtifactSetResolveResult result);
@@ -424,7 +450,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         private void checkArtifactsResolved(ComponentResolveMetaData component, Object context, BuildableArtifactSetResolveResult result) {
             if (!result.hasResult()) {
                 result.failed(new ArtifactResolveException(component.getComponentId(),
-                        String.format("Cannot locate %s for '%s' in repository '%s'", context, component, name)));
+                    String.format("Cannot locate %s for '%s' in repository '%s'", context, component, name)));
             }
         }
 
@@ -434,6 +460,29 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
         public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
             ExternalResourceResolver.this.resolveArtifact(artifact, moduleSource, result);
+        }
+    }
+
+    private static String generateId(ExternalResourceResolver resolver) {
+        StringBuilder sb = new StringBuilder(resolver.getClass().getName());
+        sb.append("::");
+        joinPatterns(sb, resolver.ivyPatterns);
+        sb.append("::");
+        joinPatterns(sb, resolver.artifactPatterns);
+        if (resolver.isM2compatible()) {
+            sb.append("::m2compatible");
+        }
+        return HashUtil.createHash(sb.toString(), "MD5").asHexString();
+    }
+
+    private static void joinPatterns(StringBuilder sb, List<ResourcePattern> resourcePatterns) {
+        int len = resourcePatterns.size();
+        for (int i = 0; i < len; i++) {
+            ResourcePattern ivyPattern = resourcePatterns.get(i);
+            sb.append(ivyPattern.getPattern());
+            if (i < len - 1) {
+                sb.append(",");
+            }
         }
     }
 }
