@@ -34,7 +34,7 @@ No build script changes are necessary to take advantage of these improvements.
 
 ### Plugins can more easily be published to and resolved from custom repositories
 
-When writing plugins for private use by your organization, you can now take advantage of the simplified syntax of the `plugins {}` block and 
+When writing plugins for private use by your organization, you can now take advantage of the simplified syntax of the `plugins {}` block and
 new `pluginRepositories {}` block when specifying the plugins to be applied to your build. For example, in your `settings.gradle` file you
 can specify:
 
@@ -47,7 +47,7 @@ can specify:
             url 'https://repo.partner.com/m2'
         }
     }
-    
+
 And then use the `plugins {}` block to specify the plugins you want applied to your build projects.
 
     plugins {
@@ -60,20 +60,18 @@ And then use the `plugins {}` block to specify the plugins you want applied to y
 The repositories are consulted in the order in which they were specifed in the `pluginRepositories {}` block.
 
 To be able to resolve a plugin's implementation jar from just the specification of its `id` and `version` in an ivy or maven
-repository, we require that a special [Plugin Marker Artifact](userguide/plugins.html#sec:plugin_markers) also be published to
-the repository. This artifact has the coordinates `pluginId:pluginId.gradle.plugin:version` and will be automatically published
-if you use the [maven-publish](userguide/publishing_maven.html) or [ivy-publish](userguide/publishing_ivy.html) plugins in
-combination with the [java-gradle-plugin](userguide/javaGradle_plugin.html) plugin when publishing your plugin to your custom
-repository. For example:
-
-    version = 1.0
-    group = "com.mycompany"
+repository, we require that a special [Plugin Marker Artifact](userguide/plugins.html#sec:plugin_markers) is published to
+the repository. This is automated when combining the [maven-publish](userguide/publishing_maven.html) or [ivy-publish](userguide/publishing_ivy.html) plugins
+with the [java-gradle-plugin](userguide/javaGradle_plugin.html) plugin. For example:
 
     plugins {
         id 'java-gradle-plugin'
         id 'maven-publish'
     }
-    
+
+    version = 1.0
+    group = "com.mycompany"
+
     gradlePlugin {
         plugins {
             secret {
@@ -82,7 +80,7 @@ repository. For example:
             }
         }
     }
-    
+
     publishing {
         repositories {
             maven {
@@ -92,8 +90,7 @@ repository. For example:
     }
 
 When you run `./gradlew publish` your plugin `com.mycompany:secretPlugin:1.0` and the *Plugin Marker Artifact*
-`com.mycopmany.secret:com.mycompany.secret.gradle.plugin:1.0` will both published to your maven repository for use in your company's
-Gradle projects.
+`com.mycopmany.secret:com.mycompany.secret.gradle.plugin:1.0` will both published to your maven repository.
 
 ### Set the character set used for filtering files in CopySpec
 
