@@ -74,6 +74,7 @@ class DefaultDeploymentDescriptorTest extends Specification {
         '1.4'   | _
         '5'     | _
         '6'     | _
+        '7'     | _
         acceptableDescriptors = defaultDescriptorForVersion(version)
     }
 
