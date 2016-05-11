@@ -335,13 +335,14 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     @Nullable
     @Override
     public T get(String name) {
-        viewState.assertCanReadChild(name);
-
         // TODO - lock this down
         MutableModelNode link = modelNode.getLink(name);
         if (link == null) {
             return null;
         }
+
+        viewState.assertCanReadChild(name);
+
         link.ensureUsable();
         if (!elementFilter.apply(link)) {
             return null;

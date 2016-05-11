@@ -21,8 +21,7 @@ import groovy.lang.Closure;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.typeconversion.TypeConverter;
-import org.gradle.model.ModelViewClosedException;
-import org.gradle.model.ReadOnlyModelViewException;
+import org.gradle.model.internal.core.DefaultModelViewState;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.MutableModelNode;
@@ -32,7 +31,11 @@ import org.gradle.model.internal.manage.binding.StructBindings;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.instance.ModelElementState;
-import org.gradle.model.internal.manage.schema.*;
+import org.gradle.model.internal.manage.schema.ManagedImplSchema;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ScalarCollectionSchema;
+import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.manage.schema.extract.ScalarCollectionModelView;
 import org.gradle.model.internal.type.ModelType;
 
@@ -64,9 +67,8 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
     @Override
     protected ModelView<M> toView(final MutableModelNode modelNode, final ModelRuleDescriptor ruleDescriptor, final boolean writable) {
+        final DefaultModelViewState state = new DefaultModelViewState(modelNode.getPath(), getType(), ruleDescriptor, writable, true);
         return new ModelView<M>() {
-
-            private boolean closed;
             private final Map<String, Object> propertyViews = new HashMap<String, Object>();
 
             @Override
@@ -83,7 +85,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
             }
 
             public void close() {
-                closed = true;
+                state.close();
             }
 
             class State implements ModelElementState {
@@ -117,6 +119,8 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
                 @Override
                 public Object get(String name) {
+                    state.assertCanReadChildren();
+
                     if (propertyViews.containsKey(name)) {
                         return propertyViews.get(name);
                     }
@@ -138,7 +142,7 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
                     ModelView<? extends T> modelView;
                     if (writable) {
                         modelView = propertyNode.asMutable(propertyType, ruleDescriptor);
-                        if (closed) {
+                        if (state.isClosed()) {
                             modelView.close();
                         }
                     } else {
@@ -149,17 +153,13 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
                 @Override
                 public void apply(String name, Closure<?> action) {
+                    state.assertCanMutate();
                     ClosureBackedAction.execute(get(name), action);
                 }
 
                 @Override
                 public void set(String name, Object value) {
-                    if (closed) {
-                        throw new ModelViewClosedException(getPath(), getType(), ruleDescriptor);
-                    }
-                    if (!writable) {
-                        throw new ReadOnlyModelViewException(getPath(), getType(), ruleDescriptor);
-                    }
+                    state.assertCanMutate();
 
                     ModelProperty<?> property = schema.getProperty(name);
 

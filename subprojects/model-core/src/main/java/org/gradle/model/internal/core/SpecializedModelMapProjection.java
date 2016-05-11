@@ -21,7 +21,6 @@ import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
-import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.type.ModelType;
 
 import java.util.Collections;
@@ -30,8 +29,6 @@ import java.util.Collections;
  * Should be used along with {@code PolymorphicModelMapProjection}.
  */
 public class SpecializedModelMapProjection<P, E> implements ModelProjection {
-    private static final ModelType<ManagedInstance> MANAGED_INSTANCE_TYPE = ModelType.of(ManagedInstance.class);
-
     private final ModelType<P> publicType;
     private final ModelType<E> elementType;
 
@@ -72,7 +69,7 @@ public class SpecializedModelMapProjection<P, E> implements ModelProjection {
 
     private ModelView<P> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean mutable) {
         ChildNodeInitializerStrategy<? super E> creatorStrategy = creatorStrategyAccessor.getStrategy(modelNode);
-        DefaultModelViewState state = new DefaultModelViewState(modelNode.getPath(), publicType, ruleDescriptor, mutable, true);
+        DefaultModelViewState state = new DefaultModelViewState(modelNode.getPath(), publicType, ruleDescriptor, mutable, !mutable);
         P instance = DirectInstantiator.instantiate(viewImpl, publicType, elementType, ruleDescriptor, modelNode, state, creatorStrategy);
         return InstanceModelView.of(modelNode.getPath(), publicType, instance, state.closer());
     }

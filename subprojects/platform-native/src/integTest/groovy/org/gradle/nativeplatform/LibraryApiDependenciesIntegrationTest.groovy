@@ -80,7 +80,7 @@ model {
 
         where:
         notationName | notation
-        "direct"     | "comp.helloApi.api"
+        "direct"     | "\$('components.helloApi').api"
         "map"        | "library: 'helloApi', linkage: 'api'"
     }
 

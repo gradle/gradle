@@ -117,7 +117,7 @@ model {
 apply plugin: "cpp"
 
 model {
-    components { comp ->
+    components {
         hello(NativeLibrarySpec) {
             binaries.all {
                 cppCompiler.define 'ENABLE_GREETING'
@@ -125,7 +125,7 @@ model {
         }
         main(NativeExecutableSpec) {
             binaries.all {
-                lib comp.hello.static
+                lib \$('components.hello').static
             }
         }
     }
@@ -178,26 +178,24 @@ model {
         main(NativeExecutableSpec)
     }
     tasks { t ->
-        $.components.main.binaries { binaries ->
-            binaries.values().each { binary ->
-                def preLinkTask = binary.tasks.taskName("preLink")
-                t.create(preLinkTask) {
-                    dependsOn binary.tasks.withType(CppCompile)
-                    doLast {
-                        println "Pre Link"
-                    }
+        $.components.main.binaries.each { binary ->
+            def preLinkTask = binary.tasks.taskName("preLink")
+            t.create(preLinkTask) {
+                dependsOn binary.tasks.withType(CppCompile)
+                doLast {
+                    println "Pre Link"
                 }
-                binary.tasks.link.dependsOn preLinkTask
-
-                def postLinkTask = binary.tasks.taskName("postLink")
-                t.create(postLinkTask) {
-                    dependsOn binary.tasks.link
-                    doLast {
-                        println "Post Link"
-                    }
-                }
-                binary.tasks.build.dependsOn postLinkTask
             }
+            binary.tasks.link.dependsOn preLinkTask
+
+            def postLinkTask = binary.tasks.taskName("postLink")
+            t.create(postLinkTask) {
+                dependsOn binary.tasks.link
+                doLast {
+                    println "Post Link"
+                }
+            }
+            binary.tasks.build.dependsOn postLinkTask
         }
     }
 }

@@ -83,4 +83,8 @@ public class DefaultModelViewState implements ModelViewState {
     public boolean isCanMutate() {
         return mutable && !closed;
     }
+
+    public boolean isClosed() {
+        return closed;
+    }
 }
