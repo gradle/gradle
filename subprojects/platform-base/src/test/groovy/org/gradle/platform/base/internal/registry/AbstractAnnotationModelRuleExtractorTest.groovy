@@ -84,6 +84,11 @@ public abstract class AbstractAnnotationModelRuleExtractorTest extends ProjectRe
                     getInstance() >> { Stub(type.concreteClass) }
                 }
             }
+            asImmutable(_, _) >> { ModelType type, ModelRuleDescriptor ruleDescriptor ->
+                return Stub(ModelView) {
+                    getInstance() >> { Stub(type.concreteClass) }
+                }
+            }
         }
         def registry = Stub(ModelRegistry) {
             configure(_, _) >> { ModelActionRole role, ModelAction action ->

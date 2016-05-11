@@ -606,7 +606,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
             def (type, value) = propertyDef
             def propName = type.primitive ? "primitive${type.name.capitalize()}${i++}" : "boxed${type.simpleName}${i++}"
             fails "check${propName.capitalize()}"
-            failure.assertHasCause(/Attempt to mutate closed view of model of type 'ManagedType' given to rule 'PluginRules#addCheckTask(ModelMap<Task>, ManagedType)'/)
+            failure.assertHasCause(/Attempt to modify a read only view of model element 'createModel' of type 'ManagedType' given to rule PluginRules#addCheckTask(ModelMap<Task>, ManagedType)/)
         }
 
     }
@@ -754,7 +754,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         fails 'check'
 
         then: "mutation is not allowed"
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'java.util.Set<java.lang.String>' given to rule 'RulePlugin#checkUser(ModelMap<Task>, User)'")
+        failure.assertHasCause("Attempt to modify a read only view of model element 'user.groups' of type 'Set<String>' given to rule RulePlugin#checkUser(ModelMap<Task>, User)")
     }
 
 }

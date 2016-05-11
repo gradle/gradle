@@ -233,7 +233,7 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "rule cannot mutate a managed type with a #type of scalar property when not the subject of the rule"() {
+    def "rule cannot mutate a managed type with a #type of scalar property when a rule input"() {
         when:
         buildScript """
 
@@ -244,7 +244,7 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
 
         class Rules extends RuleSource {
             @Model
-            void createContainer(Container c) {}
+            void container(Container c) {}
 
             @Mutate
             void addItems(Container c) {
@@ -264,14 +264,14 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
         fails 'tasks'
 
         and:
-        failure.assertHasCause "Attempt to mutate closed view of model of type 'java.util.$type<java.lang.String>' given to rule 'Rules#tryToMutate(ModelMap<Task>, Container)'"
+        failure.assertHasCause "Attempt to modify a read only view of model element 'container.items' of type '$type<String>' given to rule Rules#tryToMutate(ModelMap<Task>, Container)"
 
         where:
         type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
     @Unroll
-    def "rule cannot mutate closed view even using iterator on #type"() {
+    def "rule cannot mutate read only view even using iterator on #type"() {
         when:
         buildScript """
 
@@ -282,7 +282,7 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
 
         class Rules extends RuleSource {
             @Model
-            void createContainer(Container c) {}
+            void container(Container c) {}
 
             @Mutate
             void addItems(Container c) {
@@ -304,7 +304,7 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
         fails 'tasks'
 
         and:
-        failure.assertHasCause "Attempt to mutate closed view of model of type 'java.util.$type<java.lang.String>' given to rule 'Rules#tryToMutate(ModelMap<Task>, Container)'"
+        failure.assertHasCause "Attempt to modify a read only view of model element 'container.items' of type '$type<String>' given to rule Rules#tryToMutate(ModelMap<Task>, Container)"
 
         where:
         type << MANAGED_SCALAR_COLLECTION_TYPES

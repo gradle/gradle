@@ -22,6 +22,7 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Cast;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.ModelViewClosedException;
+import org.gradle.model.ReadOnlyModelViewException;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.MutableModelNode;
@@ -153,8 +154,11 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
 
                 @Override
                 public void set(String name, Object value) {
-                    if (!writable || closed) {
-                        throw new ModelViewClosedException(getType(), ruleDescriptor);
+                    if (closed) {
+                        throw new ModelViewClosedException(getPath(), getType(), ruleDescriptor);
+                    }
+                    if (!writable) {
+                        throw new ReadOnlyModelViewException(getPath(), getType(), ruleDescriptor);
                     }
 
                     ModelProperty<?> property = schema.getProperty(name);

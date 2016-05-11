@@ -17,7 +17,7 @@
 package org.gradle.model.internal.manage.projection
 
 import org.gradle.api.internal.ClosureBackedAction
-import org.gradle.model.ModelViewClosedException
+import org.gradle.model.ReadOnlyModelViewException
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRegistrations
@@ -138,7 +138,7 @@ abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>>
         list.add 'baz'
 
         then:
-        thrown(ModelViewClosedException)
+        thrown(ReadOnlyModelViewException)
     }
 
     def "cannot add a different type than the declared one"() {
@@ -244,7 +244,7 @@ abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>>
         it.remove()
 
         then:
-        thrown(ModelViewClosedException)
+        thrown(ReadOnlyModelViewException)
     }
 
     def "can convert to array"() {

@@ -332,6 +332,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     def "reasonable error message when trying to create unknown type in ModelMap"() {
         buildFile << """
             @Managed interface Thing {}
+            interface UnknownThing {}
 
             class Rules extends RuleSource {
                 @Model
@@ -348,6 +349,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "model"
-        failureHasCause "Attempt to read property 'UnknownThing' from a write only view of model element 'things' given to rule 'things { ... } @ build.gradle line 11, column 17"
+        failureHasCause "Exception thrown while executing model rule: things { ... } @ build.gradle line 12, column 17"
+        failureHasCause "Cannot create 'things.thing' with type 'UnknownThing' as this is not a subtype of 'Thing'."
     }
 }

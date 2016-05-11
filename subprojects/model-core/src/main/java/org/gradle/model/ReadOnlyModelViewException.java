@@ -23,24 +23,21 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
 /**
- * Thrown when an attempt is made to read the value of a model element that is not readable at the time.
+ * Thrown when an attempt is made to change the value of a model element that is not writable at the time.
  */
 @Incubating
-public class WriteOnlyModelViewException extends GradleException {
-
-    public WriteOnlyModelViewException(String property, ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
-        super(createMessage(property, path, type, ruleDescriptor));
+public class ReadOnlyModelViewException extends GradleException {
+    public ReadOnlyModelViewException(String message) {
+        super(message);
     }
 
-    private static String createMessage(String property, ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
+    public ReadOnlyModelViewException(ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
+        super(createMessage("read only", path, type, ruleDescriptor));
+    }
+
+    protected static String createMessage(String viewType, ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
         StringBuilder result = new StringBuilder();
-        result.append("Attempt to read");
-        if (property != null) {
-            result.append(" property '");
-            result.append(property);
-            result.append("'");
-        }
-        result.append(" from a write only view of model element '");
+        result.append("Attempt to modify a ").append(viewType).append(" view of model element '");
         result.append(path);
         result.append("'");
         if (!type.equals(ModelType.UNTYPED)) {

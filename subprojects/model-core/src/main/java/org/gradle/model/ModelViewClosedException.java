@@ -16,8 +16,8 @@
 
 package org.gradle.model;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
+import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
@@ -28,12 +28,8 @@ import org.gradle.model.internal.type.ModelType;
  * Such as when an anonymous inner class or closure “closes over” the subject.
  */
 @Incubating
-public class ModelViewClosedException extends GradleException {
-
-    public ModelViewClosedException(ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
-        super(String.format(
-                "Attempt to mutate closed view of model of type '%s' given to rule '%s'", type, ruleDescriptor
-        ));
+public class ModelViewClosedException extends ReadOnlyModelViewException {
+    public ModelViewClosedException(ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
+        super(createMessage("closed", path, type, ruleDescriptor));
     }
-
 }

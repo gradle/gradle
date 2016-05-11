@@ -744,7 +744,7 @@ This element was created by testrule > create(item) and can be mutated as the fo
         realizeAsModelMap().create("foo")
 
         then:
-        thrown ModelViewClosedException
+        thrown ReadOnlyModelViewException
     }
 
     def "is managed instance"() {

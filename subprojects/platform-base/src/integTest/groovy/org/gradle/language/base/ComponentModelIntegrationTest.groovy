@@ -478,7 +478,7 @@ afterEach CustomComponent 'newComponent'"""
         when:
         fails "tasks"
         then:
-        failureHasCause "Attempt to mutate closed view of model of type '$fullQualified' given to rule 'ComponentSpecContainerRules#addComponentTasks(TaskContainer, $projectionType)'"
+        failureHasCause "Attempt to modify a read only view of model element 'components' of type '$projectionType' given to rule ComponentSpecContainerRules#addComponentTasks(TaskContainer, $projectionType)"
 
         where:
         projectionType              | fullQualified
