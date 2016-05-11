@@ -35,32 +35,28 @@ public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentRe
     private final boolean relocated;
     private String snapshotTimestamp;
 
+    public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
+        this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, artifacts), "jar", false);
+    }
+
     public DefaultMavenModuleResolveMetaData(ModuleDescriptor moduleDescriptor, String packaging, boolean relocated) {
-        super(moduleDescriptor);
-        this.packaging = packaging;
-        this.relocated = relocated;
+        this(DefaultModuleComponentIdentifier.newId(moduleDescriptor.getModuleRevisionId()), moduleDescriptor, packaging, relocated);
     }
 
     public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentId, ModuleDescriptor descriptor, String packaging, boolean relocated) {
-        super(DefaultModuleVersionIdentifier.newId(componentId), descriptor, componentId);
-        this.packaging = packaging;
-        this.relocated = relocated;
+        this(componentId, DefaultModuleVersionIdentifier.newId(componentId), descriptor, packaging, relocated);
     }
 
-    private DefaultMavenModuleResolveMetaData(ModuleVersionIdentifier id, ModuleDescriptor descriptor, ModuleComponentIdentifier componentId, String packaging, boolean relocated) {
-        super(id, descriptor, componentId);
+    private DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentId, ModuleVersionIdentifier id, ModuleDescriptor descriptor, String packaging, boolean relocated) {
+        super(componentId, id, descriptor);
         this.packaging = packaging;
         this.relocated = relocated;
-    }
-
-    public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
-        this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, artifacts), "jar", false);
     }
 
     @Override
     public DefaultMavenModuleResolveMetaData copy() {
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
-        DefaultMavenModuleResolveMetaData copy = new DefaultMavenModuleResolveMetaData(getId(), getDescriptor(), getComponentId(), packaging, relocated);
+        DefaultMavenModuleResolveMetaData copy = new DefaultMavenModuleResolveMetaData(getComponentId(), getId(), getDescriptor(), packaging, relocated);
         copyTo(copy);
         copy.snapshotTimestamp = snapshotTimestamp;
         return copy;

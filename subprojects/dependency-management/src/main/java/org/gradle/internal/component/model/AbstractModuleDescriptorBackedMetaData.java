@@ -23,17 +23,23 @@ import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
 import org.gradle.util.CollectionUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractModuleDescriptorBackedMetaData implements ComponentResolveMetaData {
 
     private ModuleVersionIdentifier moduleVersionIdentifier;
     private final ModuleDescriptor moduleDescriptor;
-    private ComponentIdentifier componentIdentifier;
+    private ModuleComponentIdentifier componentIdentifier;
     private ModuleSource moduleSource;
     private boolean changing;
     private String status;
@@ -41,10 +47,10 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
     private List<DependencyMetaData> dependencies;
     private Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>();
 
-    public AbstractModuleDescriptorBackedMetaData(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ComponentIdentifier componentIdentifier) {
+    public AbstractModuleDescriptorBackedMetaData(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor) {
+        this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = moduleVersionIdentifier;
         this.moduleDescriptor = moduleDescriptor;
-        this.componentIdentifier = componentIdentifier;
         status = moduleDescriptor.getStatus();
     }
 
@@ -105,7 +111,7 @@ public abstract class AbstractModuleDescriptorBackedMetaData implements Componen
         return componentIdentifier;
     }
 
-    public void setComponentId(ComponentIdentifier componentIdentifier) {
+    public void setComponentId(ModuleComponentIdentifier componentIdentifier) {
         this.componentIdentifier = componentIdentifier;
     }
 

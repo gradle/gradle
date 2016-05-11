@@ -91,7 +91,7 @@ class MetadataProviderTest extends Specification {
 
     def "can provide Ivy descriptor" () {
         given:
-        def metaData = new DefaultIvyModuleResolveMetaData(Stub(ModuleDescriptor) {
+        def metaData = new DefaultIvyModuleResolveMetaData(id, Stub(ModuleDescriptor) {
             getStatus() >> "test"
         })
         resolveState.resolve() >> {

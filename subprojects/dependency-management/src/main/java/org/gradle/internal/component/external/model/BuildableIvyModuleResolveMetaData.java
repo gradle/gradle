@@ -31,7 +31,7 @@ public class BuildableIvyModuleResolveMetaData extends DefaultIvyModuleResolveMe
     private final DefaultModuleDescriptor module;
 
     public BuildableIvyModuleResolveMetaData(DefaultModuleDescriptor module) {
-        super(module);
+        super(DefaultModuleComponentIdentifier.newId(module.getModuleRevisionId()), module);
         this.module = module;
     }
 

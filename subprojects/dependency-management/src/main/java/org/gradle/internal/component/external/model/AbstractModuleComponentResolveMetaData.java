@@ -34,20 +34,8 @@ import java.util.Set;
 abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDescriptorBackedMetaData implements MutableModuleComponentResolveMetaData {
     private Multimap<String, ModuleComponentArtifactMetaData> artifactsByConfig;
 
-    public AbstractModuleComponentResolveMetaData(ModuleDescriptor moduleDescriptor) {
-        this(moduleVersionIdentifier(moduleDescriptor), moduleDescriptor, moduleComponentIdentifier(moduleDescriptor));
-    }
-    
-    private static ModuleVersionIdentifier moduleVersionIdentifier(ModuleDescriptor descriptor) {
-        return DefaultModuleVersionIdentifier.newId(descriptor.getModuleRevisionId());
-    }
-
-    private static ModuleComponentIdentifier moduleComponentIdentifier(ModuleDescriptor descriptor) {
-        return DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier(descriptor));
-    }
-
-    public AbstractModuleComponentResolveMetaData(ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
-        super(moduleVersionIdentifier, moduleDescriptor, componentIdentifier);
+    public AbstractModuleComponentResolveMetaData(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor) {
+        super(componentIdentifier, moduleVersionIdentifier, moduleDescriptor);
     }
 
     protected void copyTo(AbstractModuleComponentResolveMetaData copy) {

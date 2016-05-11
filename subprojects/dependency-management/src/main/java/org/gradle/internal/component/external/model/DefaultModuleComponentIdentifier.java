@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.component.external.model;
 
+import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
@@ -97,6 +98,10 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
 
     public static ModuleComponentIdentifier newId(ModuleVersionIdentifier moduleVersionIdentifier) {
         return new DefaultModuleComponentIdentifier(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion());
+    }
+
+    public static ModuleComponentIdentifier newId(ModuleRevisionId ivyModuleRevisionId) {
+        return new DefaultModuleComponentIdentifier(ivyModuleRevisionId.getOrganisation(), ivyModuleRevisionId.getName(), ivyModuleRevisionId.getRevision());
     }
 }
 
