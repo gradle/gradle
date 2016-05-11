@@ -31,9 +31,11 @@ import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.plugin.devel.PluginDeclaration
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class JavaGradlePluginPluginTest extends Specification {
     final ResettableOutputEventListener outputEventListener = new ResettableOutputEventListener()
 
