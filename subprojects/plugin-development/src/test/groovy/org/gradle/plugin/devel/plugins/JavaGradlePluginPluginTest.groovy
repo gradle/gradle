@@ -29,12 +29,16 @@ import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.plugin.devel.PluginDeclaration
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
 class JavaGradlePluginPluginTest extends Specification {
     final ResettableOutputEventListener outputEventListener = new ResettableOutputEventListener()
+
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     @Rule
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
@@ -44,7 +48,7 @@ class JavaGradlePluginPluginTest extends Specification {
     final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.split('%')[0]
     final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.split('%')[0]
 
-    def project = TestUtil.builder().withName("plugin").build()
+    def project = TestUtil.builder().withProjectDir(temporaryFolder.testDirectory).withName("plugin").build()
 
     def "PluginDescriptorCollectorAction correctly identifies plugin descriptor file"(String contents, String expectedPluginImpl, boolean expectedEmpty) {
         setup:
