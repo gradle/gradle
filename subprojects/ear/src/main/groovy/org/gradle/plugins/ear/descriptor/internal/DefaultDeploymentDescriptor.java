@@ -24,6 +24,7 @@ import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.internal.DomNode;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.reflect.Instantiator;
@@ -59,7 +60,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     private String fileName = "application.xml";
     private String version = "6";
     private String applicationName;
-    private boolean initializeInOrder;
+    private Boolean initializeInOrder = Boolean.FALSE;
     private String description;
     private String displayName;
     private String libraryDirectory;
@@ -206,7 +207,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     }
 
     @Override
-    public DeploymentDescriptor securityRole(Action<EarSecurityRole> action) {
+    public DeploymentDescriptor securityRole(Action<? super EarSecurityRole> action) {
         EarSecurityRole role = instantiator.newInstance(DefaultEarSecurityRole.class);
         action.execute(role);
         securityRoles.add(role);
@@ -264,7 +265,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
         try {
             Node appNode = createParser().parse(reader);
             version = (String) appNode.attribute("version");
-            for (final Node child : (List<Node>) appNode.children()) {
+            for (final Node child : Cast.<List<Node>>uncheckedCast(appNode.children())) {
                 String childLocalName = localNameOf(child);
                 if (childLocalName.equals("application-name")) {
 
@@ -289,7 +290,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
                 } else if (childLocalName.equals("module")) {
 
                     EarModule module = null;
-                    for (Node moduleNode : (List<Node>) child.children()) {
+                    for (Node moduleNode : Cast.<List<Node>>uncheckedCast(child.children())) {
                         String moduleNodeLocalName = localNameOf(moduleNode);
                         if (moduleNodeLocalName.equals("web")) {
                             String webUri = childNodeNamed(moduleNode, "web-uri").text();
@@ -333,7 +334,7 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
     }
 
     private static Node childNodeNamed(Node root, String name) {
-        for (Node child : (List<Node>) root.children()) {
+        for (Node child : Cast.<List<Node>>uncheckedCast(root.children())) {
             if (localNameOf(child).equals(name)) {
                 return child;
             }

@@ -33,15 +33,9 @@ public class EarPluginConvention {
     private final FileResolver fileResolver;
     private final Instantiator instantiator;
 
+    private DeploymentDescriptor deploymentDescriptor;
     private String appDirName;
     private String libDirName;
-    private DeploymentDescriptor deploymentDescriptor;
-
-    @Inject
-    public EarPluginConvention(Instantiator instantiator) {
-        this.fileResolver = null;
-        this.instantiator = instantiator;
-    }
 
     @Inject
     public EarPluginConvention(FileResolver fileResolver, Instantiator instantiator) {

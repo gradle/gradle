@@ -152,7 +152,7 @@ public interface DeploymentDescriptor {
      * @param action an action to configure the security role
      * @return this.
      */
-    DeploymentDescriptor securityRole(Action<EarSecurityRole> action);
+    DeploymentDescriptor securityRole(Action<? super EarSecurityRole> action);
 
     /**
      * Mapping of module paths to module types. Non-null by default. For example, to specify that a module is a java
