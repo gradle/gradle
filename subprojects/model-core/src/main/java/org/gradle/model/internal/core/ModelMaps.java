@@ -53,16 +53,9 @@ public class ModelMaps {
 
     public static <T> ModelMap<T> toView(MutableModelNode mapNode, ModelType<T> elementModelType) {
         mapNode.ensureUsable();
-        if (mapNode.isMutable()) {
-            return mapNode.asMutable(
-                    ModelTypes.modelMap(elementModelType),
-                    RuleContext.get()
-            ).getInstance();
-        } else {
-            return mapNode.asImmutable(
-                    ModelTypes.modelMap(elementModelType),
-                    RuleContext.get()
-            ).getInstance();
-        }
+        return mapNode.asMutable(
+                ModelTypes.modelMap(elementModelType),
+                RuleContext.get()
+        ).getInstance();
     }
 }

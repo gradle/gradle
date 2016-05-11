@@ -43,7 +43,7 @@ public abstract class AbstractMethodRuleAction<T> implements MethodRuleAction {
 
     @Override
     public void execute(ModelRuleInvoker<?> invoker, MutableModelNode modelNode, List<ModelView<?>> inputs) {
-        ModelView<? extends T> subjectView = modelNode.isMutable() ? modelNode.asMutable(getSubject().getType(), descriptor) : modelNode.asImmutable(getSubject().getType(), descriptor);
+        ModelView<? extends T> subjectView = modelNode.asMutable(getSubject().getType(), descriptor);
         try {
             execute(invoker, subjectView.getInstance(), inputs);
         } finally {
