@@ -10,6 +10,69 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Improvements since Gradle 2.0
+
+- Performance improvements, faster builds and reduced memory usage
+    - Configuration time, incremental build, incremental native compilation, build script compilation, test execution
+- Gradle plugin portal
+    - Publishing plugin
+    - Maven and Ivy plugin repositories
+- Dependency management
+    - Compile-only dependencies for Java projects
+    - Improved component meta-data rules
+    - Component selection rules
+    - Component replacement rules
+    - Dependency substitution rules
+    - Support for S3 repositories
+    - Configurable HTTP authentication, including preemptive HTTP authentication
+    - Artifact query API access to ivy.xml and pom.xml
+    - Depend on a particular Maven snapshot
+- Daemon
+    - Health monitoring
+    - System memory pressure aware expiration
+- Continuous build
+- Incremental Java compile
+- Tooling API
+    - Composite builds
+    - Rich test, task and build progress events
+    - Run test classes or methods
+    - Cancellation
+    - Color output
+    - Eclipse builders and natures, Java source and runtime version, build JDK
+- IDE
+    - Improved Eclipse WTP integration, Scala integration
+    - Java source and runtime version
+- TestKit
+- publish plugins
+    - Publish to SFTP and S3 repositories
+    - Maven dependency exclusions, dependency classifiers
+    - Ivy extra attributes, dependency exclusions
+- Groovy annotation processing
+- Build environment report
+- Code quality and application plugins
+    - Various improvements
+- Native
+    - Parallel compilation
+    - Cross compilation
+    - Precompiled headers
+    - Google test support
+- Community
+    - More frequent releases
+    - More pull requests
+- Play support
+- Text resources
+- Software model    
+    - Dependency management for JVM libraries, target platform aware
+        - inter-project, intra-project and external libraries 
+    - JVM library API definition, compile avoidance
+    - JUnit support
+    - Components report, model report
+    - Validation and defaults rules, apply rules to all subjects with type
+    - More managed model features
+    - Better extension by plugins
+    - Model DSL
+    
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
