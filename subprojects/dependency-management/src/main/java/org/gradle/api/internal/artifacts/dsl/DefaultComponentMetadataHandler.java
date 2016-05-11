@@ -40,13 +40,21 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ComponentMetadataProcessor {
-    private final Instantiator instantiator;
+    private static final String ADAPTER_NAME = ComponentMetadataHandler.class.getSimpleName();
+    private static final List<Class<?>> VALIDATOR_PARAM_LIST = Collections.<Class<?>>singletonList(IvyModuleDescriptor.class);
 
+    private static final NotationParser<Object, ModuleIdentifier> MODULE_IDENTIFIER_NOTATION_PARSER = NotationParserBuilder
+        .toType(ModuleIdentifier.class)
+        .converter(new ModuleIdentifierNotationConverter())
+        .toComposite();
     private static final String INVALID_SPEC_ERROR = "Could not add a component metadata rule for module '%s'.";
+
+    private final Instantiator instantiator;
     private final Set<SpecRuleAction<? super ComponentMetadataDetails>> rules = Sets.newLinkedHashSet();
     private final RuleActionAdapter<ComponentMetadataDetails> ruleActionAdapter;
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
@@ -62,17 +70,12 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     private static RuleActionAdapter<ComponentMetadataDetails> createAdapter() {
-        List<Class<?>> parameterTypes = Lists.newArrayList();
-        parameterTypes.add(IvyModuleDescriptor.class);
-        RuleActionValidator<ComponentMetadataDetails> ruleActionValidator = new DefaultRuleActionValidator<ComponentMetadataDetails>(parameterTypes);
-        return new DefaultRuleActionAdapter<ComponentMetadataDetails>(ruleActionValidator, ComponentMetadataHandler.class.getSimpleName());
+        RuleActionValidator<ComponentMetadataDetails> ruleActionValidator = new DefaultRuleActionValidator<ComponentMetadataDetails>(VALIDATOR_PARAM_LIST);
+        return new DefaultRuleActionAdapter<ComponentMetadataDetails>(ruleActionValidator, ADAPTER_NAME);
     }
 
     private static NotationParser<Object, ModuleIdentifier> createModuleIdentifierNotationParser() {
-        return NotationParserBuilder
-                .toType(ModuleIdentifier.class)
-                .converter(new ModuleIdentifierNotationConverter())
-                .toComposite();
+        return MODULE_IDENTIFIER_NOTATION_PARSER;
     }
 
     private ComponentMetadataHandler addRule(SpecRuleAction<? super ComponentMetadataDetails> ruleAction) {
