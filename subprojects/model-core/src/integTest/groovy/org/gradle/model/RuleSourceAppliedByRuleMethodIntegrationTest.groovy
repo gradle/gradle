@@ -588,4 +588,70 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
       - strings.some.inner.path String (parameter 3) [*]
 ''')
     }
+
+    def "cannot mutate implicit input of RuleSource method"() {
+        buildFile << '''
+            @Managed
+            interface SomeThings {
+                Thing getThingA()
+            }
+
+            @Managed
+            interface Thing {
+                String getName()
+                void setName(String name)
+            }
+
+            class MyPlugin extends RuleSource {
+                @Model
+                void things(SomeThings t) {
+                }
+
+                @Model
+                void calculated(Thing t) {
+                }
+
+                @Rules
+                void rules(CalculateName rules, Thing t, SomeThings others) {
+                    rules.thing = others.thingA
+                }
+            }
+
+            abstract class CalculateName extends RuleSource {
+                @RuleInput
+                abstract Thing getThing()
+                abstract void setThing(Thing t)
+
+                @Mutate
+                void broken(Thing t) {
+                    println "check"
+                    assert thing.name == 'thing a'
+                    thing.name = 'broken'
+                }
+            }
+
+            apply plugin: MyPlugin
+
+            model {
+                things.thingA {
+                    name = 'thing a'
+                }
+                tasks {
+                    show(Task) {
+                        doLast {
+                            println $.calculated
+                        }
+                    }
+                }
+            }
+        '''
+
+        when:
+        fails 'show'
+
+        then:
+        failure.assertHasCause("Exception thrown while executing model rule: CalculateName#broken(Thing)")
+        failure.assertHasCause("Attempt to modify a read only view of model element 'things.thingA' of type 'Thing' given to rule CalculateName#broken(Thing)")
+    }
+
 }

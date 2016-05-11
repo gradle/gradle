@@ -592,6 +592,38 @@ configure p3
         failure.assertHasCause("Attempt to modify a read only view of model element 'people' of type 'ModelSet<Person>' given to rule RulePlugin#tryToMutateInputModelSet(ModelMap<Task>, ModelSet<Person>)")
     }
 
+    def "mutating a managed set that is the subject of a validation rule is not allowed"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Person {
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void people(ModelSet<Person> people) {}
+
+                @Validate
+                void check(ModelSet<Person> people) {
+                    people.create { }
+                }
+
+                @Mutate
+                void tryToMutateInputModelSet(ModelMap<Task> tasks, ModelSet<Person> people) {
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#check(ModelSet<Person>)")
+        failure.assertHasCause("Attempt to modify a read only view of model element 'people' of type 'ModelSet<Person>' given to rule RulePlugin#check(ModelSet<Person>)")
+    }
+
     def "mutating a managed set outside of a creation rule is not allowed"() {
         when:
         buildScript '''
