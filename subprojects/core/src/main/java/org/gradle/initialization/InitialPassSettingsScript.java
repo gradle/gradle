@@ -16,12 +16,12 @@
 package org.gradle.initialization;
 
 import groovy.lang.Closure;
+import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
+import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
-import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.ConfigureUtil;
 
 /**
  * Endows a {@link SettingsScript} with methods which can only be used when
@@ -37,6 +37,6 @@ public abstract class InitialPassSettingsScript extends SettingsScript {
     }
 
     public void pluginRepositories(Closure config) {
-        ConfigureUtil.configure(config, getPluginRepositorySpec());
+        new ClosureBackedAction<PluginRepositoriesSpec>(config, Closure.DELEGATE_ONLY, false).execute(getPluginRepositorySpec());
     }
 }
