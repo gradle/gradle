@@ -42,6 +42,9 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+/**
+ * Base task for linking a native binary from object files and libraries.
+ */
 @Incubating
 public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
 
