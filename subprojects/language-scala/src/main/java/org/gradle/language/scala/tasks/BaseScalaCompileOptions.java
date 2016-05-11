@@ -30,7 +30,7 @@ import java.util.List;
  * Options for Scala platform compilation.
  */
 @Incubating
-public class ScalaCompileOptions extends AbstractOptions {
+public class BaseScalaCompileOptions extends AbstractOptions {
 
     private static final long serialVersionUID = 0;
 

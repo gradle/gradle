@@ -37,7 +37,7 @@ public class PlatformScalaCompile extends AbstractScalaCompile {
 
     @Inject
     public PlatformScalaCompile() {
-        super(new ScalaCompileOptions());
+        super(new BaseScalaCompileOptions());
     }
 
     public ScalaPlatform getPlatform() {

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.scala
 
-import org.gradle.language.scala.tasks.ScalaCompileOptions
+import org.gradle.language.scala.tasks.BaseScalaCompileOptions
 import spock.lang.Specification
 
 class ZincScalaCompilerArgumentsGeneratorTest extends Specification {
@@ -24,7 +24,7 @@ class ZincScalaCompilerArgumentsGeneratorTest extends Specification {
     def spec = new DefaultScalaJavaJointCompileSpec()
 
     def setup() {
-        spec.setScalaCompileOptions(new ScalaCompileOptions())
+        spec.setScalaCompileOptions(new BaseScalaCompileOptions())
     }
 
     def "default options"() {

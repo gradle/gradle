@@ -45,10 +45,10 @@ import java.util.Set;
 @Incubating
 public abstract class AbstractScalaCompile extends AbstractCompile {
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
-    private final ScalaCompileOptions scalaCompileOptions;
+    private final BaseScalaCompileOptions scalaCompileOptions;
     private final CompileOptions compileOptions = new CompileOptions();
 
-    protected AbstractScalaCompile(ScalaCompileOptions scalaCompileOptions) {
+    protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
         this.scalaCompileOptions = scalaCompileOptions;
     }
 
@@ -56,7 +56,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
      * Returns the Scala compilation options.
      */
     @Nested
-    public ScalaCompileOptions getScalaCompileOptions() {
+    public BaseScalaCompileOptions getScalaCompileOptions() {
         return scalaCompileOptions;
     }
 

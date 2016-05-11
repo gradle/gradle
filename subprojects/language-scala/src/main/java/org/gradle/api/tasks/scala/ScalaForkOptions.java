@@ -35,7 +35,7 @@ package org.gradle.api.tasks.scala;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 
 /**
- * Fork options for Scala compilation. Only take effect if {@code ScalaCompileOptions.fork}
+ * Fork options for Scala compilation. Only take effect if {@code BaseScalaCompileOptions.fork}
  * is {@code true}.
  */
 public class ScalaForkOptions extends BaseForkOptions {

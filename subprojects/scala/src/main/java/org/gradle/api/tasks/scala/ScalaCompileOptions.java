@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.scala;
+package org.gradle.api.tasks.scala;
 
-import org.gradle.api.internal.tasks.compile.JvmLanguageCompileSpec;
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 
-import java.io.File;
-import java.util.Map;
-
-public interface ScalaCompileSpec extends JvmLanguageCompileSpec {
-    BaseScalaCompileOptions getScalaCompileOptions();
-
-    Map<File, File> getAnalysisMap();
-
-    void setAnalysisMap(Map<File, File> analysisMap);
+/**
+ * Options for Scala Compilation.
+ */
+public class ScalaCompileOptions extends BaseScalaCompileOptions {
 }

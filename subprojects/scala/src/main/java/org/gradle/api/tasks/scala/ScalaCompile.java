@@ -26,7 +26,6 @@ import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
-import org.gradle.language.scala.tasks.ScalaCompileOptions;
 
 import javax.inject.Inject;
 
@@ -48,7 +47,7 @@ public class ScalaCompile extends AbstractScalaCompile {
     @Nested
     @Override
     public ScalaCompileOptions getScalaCompileOptions() {
-        return super.getScalaCompileOptions();
+        return (ScalaCompileOptions) super.getScalaCompileOptions();
     }
 
     /**
