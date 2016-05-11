@@ -16,15 +16,21 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
+import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.internal.component.model.DefaultDependencyMetaData;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultProjectDependencyMetaData extends DefaultDependencyMetaData {
     private final String projectPath;
 
-    public DefaultProjectDependencyMetaData(DependencyDescriptor dependencyDescriptor, String projectPath) {
-        super(dependencyDescriptor);
+    public DefaultProjectDependencyMetaData(String projectPath, ModuleVersionSelector requested, Map<String, List<String>> confs, Set<DependencyArtifactDescriptor> dependencyArtifacts, Set<ExcludeRule> excludeRules, String dynamicConstraintVersion, boolean changing, boolean transitive) {
+        super(requested, confs, dependencyArtifacts, excludeRules, dynamicConstraintVersion, changing, transitive);
         this.projectPath = projectPath;
     }
 

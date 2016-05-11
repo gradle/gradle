@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model
 import org.apache.ivy.core.module.descriptor.*
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.model.DependencyMetaData
 import spock.lang.Specification
@@ -27,7 +28,7 @@ abstract class AbstractModuleComponentResolveMetaDataTest extends Specification 
     def id = Stub(ModuleVersionIdentifier)
     def componentId = Stub(ModuleComponentIdentifier)
     def moduleDescriptor = Mock(ModuleDescriptor)
-    def metaData
+    AbstractModuleComponentResolveMetaData metaData
 
     def setup() {
         metaData = createMetaData(id, moduleDescriptor, componentId)
@@ -61,7 +62,7 @@ abstract class AbstractModuleComponentResolveMetaDataTest extends Specification 
 
     def "builds and caches the dependency meta-data from the module descriptor"() {
         def dependency1 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
-        def dependency2 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
+        def dependency2 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "another", "1.2"), false)
 
         given:
         moduleDescriptor.dependencies >> ([dependency1, dependency2] as DependencyDescriptor[])
@@ -71,8 +72,8 @@ abstract class AbstractModuleComponentResolveMetaDataTest extends Specification 
 
         then:
         deps.size() == 2
-        deps[0].descriptor == dependency1
-        deps[1].descriptor == dependency2
+        deps[0].requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.2")
+        deps[1].requested == DefaultModuleVersionSelector.newSelector("org", "another", "1.2")
 
         when:
         def deps2 = metaData.dependencies
@@ -112,15 +113,15 @@ abstract class AbstractModuleComponentResolveMetaDataTest extends Specification 
     def "builds and caches dependencies for a configuration"() {
         def config = Stub(Configuration)
         def parent = Stub(Configuration)
-        def dependency1 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
+        def dependency1 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.1"), false)
         dependency1.addDependencyConfiguration("conf", "a")
         def dependency2 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
         dependency2.addDependencyConfiguration("*", "b")
-        def dependency3 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
+        def dependency3 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.3"), false)
         dependency3.addDependencyConfiguration("super", "c")
-        def dependency4 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
+        def dependency4 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.4"), false)
         dependency4.addDependencyConfiguration("other", "d")
-        def dependency5 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
+        def dependency5 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.5"), false)
         dependency5.addDependencyConfiguration("%", "e")
 
         given:
@@ -133,7 +134,7 @@ abstract class AbstractModuleComponentResolveMetaDataTest extends Specification 
         def dependencies = metaData.getConfiguration("conf").dependencies
 
         then:
-        dependencies*.descriptor == [dependency1, dependency2, dependency3, dependency5]
+        dependencies*.requested*.version == ["1.1", "1.2", "1.3", "1.5"]
 
         and:
         metaData.getConfiguration("conf").dependencies.is(dependencies)

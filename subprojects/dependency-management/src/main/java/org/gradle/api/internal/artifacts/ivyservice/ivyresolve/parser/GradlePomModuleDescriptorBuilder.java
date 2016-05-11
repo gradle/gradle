@@ -249,6 +249,7 @@ public class GradlePomModuleDescriptorBuilder {
             // here we have to assume a type and ext for the artifact, so this is a limitation
             // compared to how m2 behave with classifiers
             String optionalizedScope = dep.isOptional() ? "optional" : scope;
+            depArtifact.addConfiguration(optionalizedScope);
             dd.addDependencyArtifact(optionalizedScope, depArtifact);
         }
 
@@ -263,12 +264,14 @@ public class GradlePomModuleDescriptorBuilder {
         for (Object anExcluded : excluded) {
             ModuleId excludedModule = (ModuleId) anExcluded;
             String[] confs = dd.getModuleConfigurations();
+            DefaultExcludeRule rule = new DefaultExcludeRule(new ArtifactId(
+                excludedModule, PatternMatcher.ANY_EXPRESSION,
+                PatternMatcher.ANY_EXPRESSION,
+                PatternMatcher.ANY_EXPRESSION),
+                ExactPatternMatcher.INSTANCE, null);
             for (String conf : confs) {
-                dd.addExcludeRule(conf, new DefaultExcludeRule(new ArtifactId(
-                        excludedModule, PatternMatcher.ANY_EXPRESSION,
-                        PatternMatcher.ANY_EXPRESSION,
-                        PatternMatcher.ANY_EXPRESSION),
-                        ExactPatternMatcher.INSTANCE, null));
+                rule.addConfiguration(conf);
+                dd.addExcludeRule(conf, rule);
             }
         }
 

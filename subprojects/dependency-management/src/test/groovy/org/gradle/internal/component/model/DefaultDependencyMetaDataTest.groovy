@@ -46,7 +46,6 @@ class DefaultDependencyMetaDataTest extends Specification {
         def metaData = new DefaultDependencyMetaData(id)
 
         expect:
-        metaData.descriptor.dependencyRevisionId == IvyUtil.createModuleRevisionId("org", "module", "1.1")
         metaData.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.1")
     }
 
@@ -55,7 +54,6 @@ class DefaultDependencyMetaDataTest extends Specification {
         def metaData = new DefaultDependencyMetaData(id)
 
         expect:
-        metaData.descriptor.dependencyRevisionId == IvyUtil.createModuleRevisionId("org", "module", "1.1")
         metaData.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.1")
     }
 
@@ -70,7 +68,6 @@ class DefaultDependencyMetaDataTest extends Specification {
 
         then:
         copy.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.3+")
-        copy.descriptor.dependencyRevisionId == IvyUtil.createModuleRevisionId("org", "module", "1.3+")
     }
 
     def "returns this if new requested version is the same as current requested version"() {
@@ -86,12 +83,15 @@ class DefaultDependencyMetaDataTest extends Specification {
         def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false, false)
         def metaData = new DefaultDependencyMetaData(descriptor)
 
+        expect:
+        !metaData.changing
+
         when:
         def copy = metaData.withChanging()
 
         then:
-        copy.descriptor.dependencyRevisionId == requestedModuleId
-        copy.descriptor.changing
+        copy.requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.2+")
+        copy.changing
     }
 
     def "returns this when changing is already true"() {
@@ -127,34 +127,35 @@ class DefaultDependencyMetaDataTest extends Specification {
 
     def "uses artifacts defined by dependency descriptor for specified source and target configurations "() {
         def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false, false)
-        def metaData = new DefaultDependencyMetaData(descriptor)
         def fromConfiguration = Stub(ConfigurationMetaData)
         def targetComponent = Stub(ComponentResolveMetaData)
         def toConfiguration = Stub(ConfigurationMetaData)
         def artifact1 = Stub(ComponentArtifactMetaData)
-        def artifact2 = Stub(ComponentArtifactMetaData)
+        def artifact3 = Stub(ComponentArtifactMetaData)
 
         given:
         fromConfiguration.hierarchy >> (['config', 'super'] as LinkedHashSet)
         toConfiguration.component >> targetComponent
-        descriptor.addDependencyArtifact("config", new DefaultDependencyArtifactDescriptor(descriptor, "art1", "type", "ext", null, [:]))
-        descriptor.addDependencyArtifact("other", new DefaultDependencyArtifactDescriptor(descriptor, "art2", "type", "ext", null, [:]))
-        descriptor.addDependencyArtifact("super", new DefaultDependencyArtifactDescriptor(descriptor, "art3", "type", "ext", null, [:]))
+        addArtifact(descriptor, "config", "art1")
+        addArtifact(descriptor, "other", "art2")
+        addArtifact(descriptor, "super", "art3")
+
+        def metaData = new DefaultDependencyMetaData(descriptor)
         toConfiguration.artifact({it.name == 'art1'}) >> artifact1
-        toConfiguration.artifact({it.name == 'art3'}) >> artifact2
+        toConfiguration.artifact({it.name == 'art3'}) >> artifact3
 
         expect:
-        metaData.getArtifacts(fromConfiguration, toConfiguration) == [artifact1, artifact2] as Set
+        metaData.getArtifacts(fromConfiguration, toConfiguration) == [artifact1, artifact3] as Set
     }
 
     def "uses artifacts defined by dependency descriptor"() {
         def descriptor = new DefaultDependencyDescriptor(requestedModuleId, false, false)
-        def metaData = new DefaultDependencyMetaData(descriptor)
 
         given:
-        descriptor.addDependencyArtifact("config", new DefaultDependencyArtifactDescriptor(descriptor, "art1", "type", "ext", null, [:]))
-        descriptor.addDependencyArtifact("other", new DefaultDependencyArtifactDescriptor(descriptor, "art2", "type", "ext", null, [:]))
-        descriptor.addDependencyArtifact("super", new DefaultDependencyArtifactDescriptor(descriptor, "art3", "type", "ext", null, [:]))
+        addArtifact(descriptor, "config", "art1")
+        addArtifact(descriptor, "other", "art2")
+        addArtifact(descriptor, "super", "art3")
+        def metaData = new DefaultDependencyMetaData(descriptor)
 
         expect:
         metaData.artifacts.size() == 3
@@ -162,6 +163,12 @@ class DefaultDependencyMetaDataTest extends Specification {
         artifacts[0].name == 'art1'
         artifacts[1].name == 'art2'
         artifacts[2].name == 'art3'
+    }
+
+    private static addArtifact(DefaultDependencyDescriptor descriptor, String config, String name) {
+        def artifactDescriptor = new DefaultDependencyArtifactDescriptor(descriptor, name, "type", "ext", null, [:])
+        artifactDescriptor.addConfiguration(config)
+        descriptor.addDependencyArtifact(config, artifactDescriptor)
     }
 
     def "returns a module component selector if descriptor indicates a default dependency"() {
