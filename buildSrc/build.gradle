@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlinVersion = '1.1.0-dev-218'
+    ext.kotlinVersion = '1.1.0-dev-372'
 
     ext.ciProperty = { p ->
         project.hasProperty(p) ? project.property(p) : System.properties[p]

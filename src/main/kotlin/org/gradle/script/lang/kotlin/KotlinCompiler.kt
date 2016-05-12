@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.addKotlinSourceRoots
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
+import org.jetbrains.kotlin.script.KotlinScriptExtraImport
 import org.jetbrains.kotlin.utils.PathUtil
 
 import org.slf4j.Logger
@@ -44,7 +45,7 @@ fun compileKotlinScript(scriptFile: File, scriptDef: KotlinScriptDefinition, cla
     val messageCollector = messageCollectorFor(log)
     val rootDisposable = newDisposable()
     try {
-        val configuration = compilerConfigFor(listOf(scriptFile), scriptDef, messageCollector)
+        val configuration = compilerConfigFor(scriptFile, scriptDef, null, messageCollector)
         val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable)
         return compileScript(classLoader, environment)
             ?: throw IllegalStateException("Internal error: unable to compile script, see log for details")
@@ -60,10 +61,14 @@ fun compileKotlinScript(scriptFile: File, scriptDef: KotlinScriptDefinition, cla
     }
 }
 
-private fun compilerConfigFor(sourceFiles: List<File>, scriptDef: KotlinScriptDefinition, messageCollector: MessageCollector) =
+private fun compilerConfigFor(sourceFile: File, scriptDef: KotlinScriptDefinition,
+                              extraImport: KotlinScriptExtraImport?, messageCollector: MessageCollector) =
     CompilerConfiguration().apply {
-        addKotlinSourceRoots(sourceFiles.map { it.canonicalPath })
+        addKotlinSourceRoots(listOf(sourceFile.canonicalPath))
         addJvmClasspathRoots(PathUtil.getJdkClassesRoots())
+        extraImport?.let {
+            put(CommonConfigurationKeys.SCRIPTS_EXTRA_IMPORTS_KEY, sourceFile.absolutePath, extraImport)
+        }
         add(CommonConfigurationKeys.SCRIPT_DEFINITIONS_KEY, scriptDef)
         put(JVMConfigurationKeys.MODULE_NAME, "buildscript")
         put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
