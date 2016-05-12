@@ -23,10 +23,8 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.Encoder;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 public class FileTreeElementHasher {
     private static final byte HASH_PATH_SEPARATOR = (byte) '/';
@@ -34,7 +32,7 @@ public class FileTreeElementHasher {
     private static final byte HASH_RECORD_SEPARATOR = (byte) '\n';
 
     public static final int calculateHashForFileMetadata(Collection<? extends FileTreeElement> allFileTreeElements) {
-        Collection<FileTreeElement> sortedFileTreeElement = sortForHashing(allFileTreeElements);
+        FileTreeElement[] sortedFileTreeElement = sortForHashing(allFileTreeElements);
 
         BufferedStreamingHasher hasher = new BufferedStreamingHasher();
         Encoder encoder = hasher.getEncoder();
@@ -63,7 +61,7 @@ public class FileTreeElementHasher {
     }
 
     public static final int calculateHashForFilePaths(Collection<? extends FileTreeElement> allFileTreeElements) {
-        Collection<FileTreeElement> sortedFileTreeElement = sortForHashing(allFileTreeElements);
+        FileTreeElement[] sortedFileTreeElement = sortForHashing(allFileTreeElements);
 
         BufferedStreamingHasher hasher = new BufferedStreamingHasher();
         Encoder encoder = hasher.getEncoder();
@@ -82,9 +80,9 @@ public class FileTreeElementHasher {
 
     }
 
-    private static Collection<FileTreeElement> sortForHashing(Collection<? extends FileTreeElement> allFileTreeElements) {
-        List<FileTreeElement> sortedFileTreeElement = new ArrayList<FileTreeElement>(allFileTreeElements);
-        Collections.sort(sortedFileTreeElement, FileTreeElementComparator.INSTANCE);
+    private static FileTreeElement[] sortForHashing(Collection<? extends FileTreeElement> allFileTreeElements) {
+        FileTreeElement[] sortedFileTreeElement = allFileTreeElements.toArray(new FileTreeElement[0]);
+        Arrays.sort(sortedFileTreeElement, FileTreeElementComparator.INSTANCE);
         return sortedFileTreeElement;
     }
 }
