@@ -37,10 +37,8 @@ import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,8 +46,8 @@ import java.util.Set;
 public class DefaultDependencyMetaData implements DependencyMetaData {
     private final ModuleVersionSelector requested;
     private final Map<String, List<String>> confs;
-    private final Set<DependencyArtifactDescriptor> dependencyArtifacts;
-    private final Set<ExcludeRule> excludeRules;
+    private final Map<IvyArtifactName, Set<String>> dependencyArtifacts;
+    private final Map<ExcludeRule, Set<String>> excludeRules;
 
     private final boolean changing;
     private final boolean transitive;
@@ -68,8 +66,16 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
             confs.put(config, mappings);
         }
 
-        dependencyArtifacts = Sets.newLinkedHashSet(Arrays.asList(dependencyDescriptor.getAllDependencyArtifacts()));
-        excludeRules = Sets.newLinkedHashSet(Arrays.asList(dependencyDescriptor.getAllExcludeRules()));
+        dependencyArtifacts = Maps.newLinkedHashMap();
+        for (DependencyArtifactDescriptor dependencyArtifactDescriptor : dependencyDescriptor.getAllDependencyArtifacts()) {
+            IvyArtifactName ivyArtifactName = DefaultIvyArtifactName.forIvyArtifact(dependencyArtifactDescriptor);
+            dependencyArtifacts.put(ivyArtifactName, Sets.newHashSet(dependencyArtifactDescriptor.getConfigurations()));
+        }
+
+        excludeRules = Maps.newLinkedHashMap();
+        for (ExcludeRule excludeRule : dependencyDescriptor.getAllExcludeRules()) {
+            excludeRules.put(excludeRule, Sets.newHashSet(excludeRule.getConfigurations()));
+        }
     }
 
     private Map<String, List<String>> readConfigMappings(DependencyDescriptor dependencyDescriptor) {
@@ -88,8 +94,8 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         this(
             new DefaultModuleVersionSelector(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion()),
             Collections.<String, List<String>>emptyMap(),
-            Collections.<DependencyArtifactDescriptor>emptySet(),
-            Collections.<ExcludeRule>emptySet(),
+            Collections.<IvyArtifactName, Set<String>>emptyMap(),
+            Collections.<ExcludeRule, Set<String>>emptyMap(),
             moduleVersionIdentifier.getVersion(),
             false,
             true
@@ -100,15 +106,17 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         this(
             new DefaultModuleVersionSelector(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion()),
             Collections.<String, List<String>>emptyMap(),
-            Collections.<DependencyArtifactDescriptor>emptySet(),
-            Collections.<ExcludeRule>emptySet(),
+            Collections.<IvyArtifactName, Set<String>>emptyMap(),
+            Collections.<ExcludeRule, Set<String>>emptyMap(),
             componentIdentifier.getVersion(),
             false,
             true
         );
     }
 
-    public DefaultDependencyMetaData(ModuleVersionSelector requested, Map<String, List<String>> confs, Set<DependencyArtifactDescriptor> dependencyArtifacts, Set<ExcludeRule> excludeRules, String dynamicConstraintVersion, boolean changing, boolean transitive) {
+    public DefaultDependencyMetaData(ModuleVersionSelector requested, Map<String, List<String>> confs,
+                                     Map<IvyArtifactName, Set<String>> dependencyArtifacts, Map<ExcludeRule, Set<String>> excludeRules,
+                                     String dynamicConstraintVersion, boolean changing, boolean transitive) {
         this.requested = requested;
         this.confs = confs;
         this.dependencyArtifacts = dependencyArtifacts;
@@ -178,8 +186,10 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
 
     public ExcludeRule[] getExcludeRules(Collection<String> configurations) {
         Set<ExcludeRule> rules = Sets.newLinkedHashSet();
-        for (ExcludeRule excludeRule : excludeRules) {
-            if (include(excludeRule.getConfigurations(), configurations)) {
+        for (Map.Entry<ExcludeRule, Set<String>> entry : excludeRules.entrySet()) {
+            ExcludeRule excludeRule = entry.getKey();
+            Set<String> ruleConfigurations = entry.getValue();
+            if (include(ruleConfigurations, configurations)) {
                 rules.add(excludeRule);
             }
         }
@@ -211,9 +221,10 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         Set<String> includedConfigurations = fromConfiguration.getHierarchy();
         Set<ComponentArtifactMetaData> artifacts = Sets.newLinkedHashSet();
 
-        for (DependencyArtifactDescriptor artifactDescriptor : dependencyArtifacts) {
-            if (include(artifactDescriptor.getConfigurations(), includedConfigurations)) {
-                IvyArtifactName ivyArtifactName = DefaultIvyArtifactName.forIvyArtifact(artifactDescriptor);
+        for (Map.Entry<IvyArtifactName, Set<String>> entry : dependencyArtifacts.entrySet()) {
+            IvyArtifactName ivyArtifactName = entry.getKey();
+            Set<String> artifactConfigurations = entry.getValue();
+            if (include(artifactConfigurations, includedConfigurations)) {
                 ComponentArtifactMetaData artifact = toConfiguration.artifact(ivyArtifactName);
                 artifacts.add(artifact);
             }
@@ -221,7 +232,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return artifacts;
     }
 
-    private boolean include(String[] configurations, Collection<String> acceptedConfigurations) {
+    private boolean include(Iterable<String> configurations, Collection<String> acceptedConfigurations) {
         for (String configuration : configurations) {
             if (configuration.equals("*")) {
                 return true;
@@ -234,12 +245,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
     }
 
     public Set<IvyArtifactName> getArtifacts() {
-        return CollectionUtils.collect(dependencyArtifacts, new LinkedHashSet<IvyArtifactName>(dependencyArtifacts.size()), new Transformer<IvyArtifactName, DependencyArtifactDescriptor>() {
-            @Override
-            public IvyArtifactName transform(DependencyArtifactDescriptor dependencyArtifactDescriptor) {
-                return DefaultIvyArtifactName.forIvyArtifact(dependencyArtifactDescriptor);
-            }
-        });
+        return dependencyArtifacts.keySet();
     }
 
     public DependencyMetaData withRequestedVersion(String requestedVersion) {
