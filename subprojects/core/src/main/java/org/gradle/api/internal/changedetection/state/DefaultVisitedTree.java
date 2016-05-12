@@ -17,31 +17,50 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.builder.CompareToBuilder;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.file.FileTreeElementHasher;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 class DefaultVisitedTree implements VisitedTree {
+    private final String absolutePath;
+    private final PatternSet patternSet;
     private final boolean shareable;
     private final long nextId;
     private final List<FileTreeElement> entries;
     private final Collection<File> missingFiles;
     private TreeSnapshot treeSnapshot;
+    private Integer preCheckHash;
 
-    public DefaultVisitedTree(List<FileTreeElement> entries, boolean shareable, long nextId, Collection<File> missingFiles) {
+    public DefaultVisitedTree(String absolutePath, PatternSet patternSet, List<FileTreeElement> entries, boolean shareable, long nextId, Collection<File> missingFiles) {
+        this.absolutePath = absolutePath;
+        this.patternSet = patternSet;
         this.shareable = shareable;
         this.nextId = nextId;
         this.entries = entries;
         this.missingFiles = missingFiles;
     }
+
+    @Override
+    public String getAbsolutePath() {
+        return absolutePath;
+    }
+
+    @Override
+    public PatternSet getPatternSet() {
+        return patternSet;
+    }
+
 
     @Override
     public Collection<FileTreeElement> getEntries() {
@@ -61,12 +80,21 @@ class DefaultVisitedTree implements VisitedTree {
     }
 
     @Override
+    public synchronized int calculatePreCheckHash() {
+        if (preCheckHash == null) {
+            preCheckHash = FileTreeElementHasher.calculateHashForFileMetadata(entries);
+        }
+        return preCheckHash;
+    }
+
+    @Override
     public synchronized TreeSnapshot maybeCreateSnapshot(final FileSnapshotter fileSnapshotter, final StringInterner stringInterner) {
         if (treeSnapshot == null) {
             treeSnapshot = createTreeSnapshot(fileSnapshotter, stringInterner);
         }
         return treeSnapshot;
     }
+
 
     private TreeSnapshot createTreeSnapshot(final FileSnapshotter fileSnapshotter, final StringInterner stringInterner) {
         final Collection<FileSnapshotWithKey> fileSnapshots = CollectionUtils.collect(getEntries(), new Transformer<FileSnapshotWithKey, FileTreeElement>() {
@@ -133,6 +161,29 @@ class DefaultVisitedTree implements VisitedTree {
                 storeEntryAction.execute(assignedId);
             }
             return assignedId;
+        }
+    }
+
+    static class VisitedTreeComparator implements Comparator<VisitedTree> {
+        public static final VisitedTreeComparator INSTANCE = new VisitedTreeComparator();
+
+        private VisitedTreeComparator() {
+
+        }
+
+        @Override
+        public int compare(VisitedTree o1, VisitedTree o2) {
+            CompareToBuilder compareToBuilder = new CompareToBuilder();
+            compareToBuilder.append(o1.getAbsolutePath(), o2.getAbsolutePath());
+            if (compareToBuilder.toComparison() != 0) {
+                return compareToBuilder.toComparison();
+            }
+            compareToBuilder.append(o1.getPatternSet() != null ? o1.getPatternSet().hashCode() : 0, o2.getPatternSet() != null ? o2.getPatternSet().hashCode() : 0);
+            if (compareToBuilder.toComparison() != 0) {
+                return compareToBuilder.toComparison();
+            }
+            compareToBuilder.append(o1.hashCode(), o2.hashCode());
+            return compareToBuilder.toComparison();
         }
     }
 }

@@ -16,18 +16,20 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
+import com.google.common.hash.Hasher;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.FileTreeElementHasher;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import static org.gradle.api.internal.file.FileTreeElementHasher.createHasher;
 
 abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapshotter {
     protected final FileSnapshotter snapshotter;
@@ -51,11 +53,20 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
     }
 
     private Integer calculatePreCheckHash(Collection<VisitedTree> visitedTrees) {
-        Collection<FileTreeElement> fileTreeElements = new ArrayList<FileTreeElement>();
+        Hasher hasher = createHasher();
+        List<VisitedTree> sortedTrees = new ArrayList<VisitedTree>();
+        Collections.sort(sortedTrees, DefaultVisitedTree.VisitedTreeComparator.INSTANCE);
         for (VisitedTree tree : visitedTrees) {
-            fileTreeElements.addAll(tree.getEntries());
+            if (tree.getAbsolutePath() != null) {
+                hasher.putString(tree.getAbsolutePath(), Charsets.UTF_8);
+            }
+            if (tree.getPatternSet() != null) {
+                hasher.putInt(tree.getPatternSet().hashCode());
+            }
+            hasher.putInt(tree.getEntries().size());
+            hasher.putInt(tree.calculatePreCheckHash());
         }
-        return FileTreeElementHasher.calculateHashForFileMetadata(fileTreeElements);
+        return hasher.hash().asInt();
     }
 
     public FileCollectionSnapshot snapshot(final FileCollectionSnapshot.PreCheck preCheck) {

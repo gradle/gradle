@@ -24,8 +24,11 @@ import java.util.Collection;
 import java.util.List;
 
 public interface VisitedTree {
+    String getAbsolutePath();
+    PatternSet getPatternSet();
     Collection<FileTreeElement> getEntries();
     TreeSnapshot maybeCreateSnapshot(FileSnapshotter fileSnapshotter, StringInterner stringInterner);
     boolean isShareable();
     List<FileTreeElement> filter(PatternSet patternSet);
+    int calculatePreCheckHash();
 }
