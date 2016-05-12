@@ -17,7 +17,17 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.base.Joiner;
-import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.Configuration;
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ExcludeRule;
+import org.apache.ivy.core.module.descriptor.ExtendsDescriptor;
+import org.apache.ivy.core.module.descriptor.IncludeRule;
+import org.apache.ivy.core.module.descriptor.License;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.util.extendable.ExtendableItem;
 import org.gradle.api.Transformer;
@@ -27,6 +37,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultIvyModuleArtifactPublishMetaData;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
+import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.util.CollectionUtils;
@@ -37,7 +48,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     public static final String IVY_DATE_PATTERN = "yyyyMMddHHmmss";
@@ -90,6 +108,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.attribute("version", "2.0");
 
         Map<String, String> namespaces = md.getExtraAttributesNamespaces();
+        namespaces.put(IvyModulePublishMetaData.IVY_MAVEN_NAMESPACE_PREFIX, IvyModulePublishMetaData.IVY_MAVEN_NAMESPACE);
         for (Map.Entry<String, String> entry : namespaces.entrySet()) {
             writer.attribute("xmlns:" + entry.getKey(), entry.getValue());
         }

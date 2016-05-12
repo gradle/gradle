@@ -40,7 +40,6 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
     public DefaultIvyModulePublishMetaData(ModuleVersionIdentifier id, String status) {
         this.id = id;
         moduleDescriptor = new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(id), status, null);
-        moduleDescriptor.addExtraAttributeNamespace(IVY_MAVEN_NAMESPACE_PREFIX, IVY_MAVEN_NAMESPACE);
     }
 
     public DefaultIvyModulePublishMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor) {
