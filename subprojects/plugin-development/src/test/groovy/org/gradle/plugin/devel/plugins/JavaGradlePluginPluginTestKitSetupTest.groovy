@@ -39,7 +39,7 @@ class JavaGradlePluginPluginTestKitSetupTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    Project project = TestUtil.builder().withProjectDir(temporaryFolder.testDirectory).build()
+    Project project = TestUtil.createRootProject(temporaryFolder.testDirectory)
 
     def setup() {
         project.plugins.apply(JavaPlugin)

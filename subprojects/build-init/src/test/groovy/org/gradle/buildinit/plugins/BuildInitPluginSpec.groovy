@@ -16,15 +16,20 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.api.internal.file.TemporaryFileProvider
-import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.wrapper.Wrapper
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class BuildInitPluginSpec extends Specification {
-    def project = TestUtil.createRootProject()
+
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
+    def project = TestUtil.createRootProject(temporaryFolder.testDirectory)
 
     def "applies plugin"() {
         when:
@@ -38,11 +43,10 @@ class BuildInitPluginSpec extends Specification {
 
     def "no wrapper task configured if build file already exists"() {
         setup:
-        TemporaryFileProvider temporaryFileProvider = new TmpDirTemporaryFileProvider();
-        File projectDir = temporaryFileProvider.createTemporaryDirectory("gradle", "projectDir");
+        File projectDir = temporaryFolder.createDir("gradle", "projectDir");
         def buildFile = new File(projectDir, "build.gradle") << '// an empty build'
         buildFile << '// an empty build'
-        project = TestUtil.builder().withProjectDir(projectDir).build()
+        project = ProjectBuilder.builder().withProjectDir(projectDir).build()
         when:
         project.pluginManager.apply(BuildInitPlugin)
 

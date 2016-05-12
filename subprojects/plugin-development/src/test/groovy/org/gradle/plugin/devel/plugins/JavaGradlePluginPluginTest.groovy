@@ -50,7 +50,7 @@ class JavaGradlePluginPluginTest extends Specification {
     final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.split('%')[0]
     final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.split('%')[0]
 
-    def project = TestUtil.builder().withProjectDir(temporaryFolder.testDirectory).withName("plugin").build()
+    def project = TestUtil.createRootProject(temporaryFolder.testDirectory)
 
     def "PluginDescriptorCollectorAction correctly identifies plugin descriptor file"(String contents, String expectedPluginImpl, boolean expectedEmpty) {
         setup:
