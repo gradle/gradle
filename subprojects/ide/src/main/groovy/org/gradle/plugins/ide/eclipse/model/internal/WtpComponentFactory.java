@@ -30,6 +30,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule;
+import org.gradle.plugins.ide.eclipse.model.WbModuleEntry;
 import org.gradle.plugins.ide.eclipse.model.WbResource;
 import org.gradle.plugins.ide.eclipse.model.WtpComponent;
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor;
@@ -44,7 +45,7 @@ import java.util.Set;
 
 public class WtpComponentFactory {
     public void configure(final EclipseWtpComponent wtp, WtpComponent component) {
-        List<Object> entries = Lists.newArrayList();
+        List<WbModuleEntry> entries = Lists.newArrayList();
         entries.addAll(getEntriesFromSourceDirs(wtp));
         for (WbResource element : wtp.getResources()) {
             if (wtp.getProject().file(element.getSourcePath()).isDirectory()) {

@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.ide.eclipse.model;
 
-package org.gradle.plugins.ide.eclipse.model
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import groovy.lang.Closure;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.util.ConfigureUtil;
 
-import groovy.transform.CompileStatic
-import org.gradle.plugins.ide.api.XmlFileContentMerger
-import org.gradle.util.ConfigureUtil
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Enables fine-tuning wtp facet details of the Eclipse plugin
@@ -64,25 +69,21 @@ import org.gradle.util.ConfigureUtil
  *
  * </pre>
  */
-@CompileStatic
-class EclipseWtpFacet {
+
+public class EclipseWtpFacet {
+
+    private final XmlFileContentMerger file;
+    private List<Facet> facets = Lists.newArrayList();
+
+    public EclipseWtpFacet(XmlFileContentMerger file) {
+        this.file = file;
+    }
 
     /**
-     * The facets to be added as elements.
-     * <p>
-     * For examples see docs for {@link EclipseWtpFacet}
+     * See {@link #file(Closure) }
      */
-    List<Facet> facets = []
-
-    /**
-     * Adds a facet.
-     * <p>
-     * For examples see docs for {@link EclipseWtpFacet}
-     *
-     * @param args A map that must contain a 'name' and 'version' key with corresponding values.
-     */
-    void facet(Map<String, ?> args) {
-        facets = getFacets() + ConfigureUtil.configureByMap(args, new Facet())
+    public XmlFileContentMerger getFile() {
+        return file;
     }
 
     /**
@@ -94,24 +95,40 @@ class EclipseWtpFacet {
      *
      * For example see docs for {@link EclipseWtpFacet}
      */
-    void file(Closure closure) {
-        ConfigureUtil.configure(closure, file)
+    public void file(Closure closure) {
+        ConfigureUtil.configure(closure, file);
     }
 
     /**
-     * See {@link #file(Closure) }
+     * The facets to be added as elements.
+     * <p>
+     * For examples see docs for {@link EclipseWtpFacet}
      */
-    final XmlFileContentMerger file
-
-    //********
-
-    EclipseWtpFacet(XmlFileContentMerger file) {
-        this.file = file
+    public List<Facet> getFacets() {
+        return facets;
     }
 
-    void mergeXmlFacet(WtpFacet xmlFacet) {
-        file.beforeMerged.execute(xmlFacet)
-        xmlFacet.configure(getFacets())
-        file.whenMerged.execute(xmlFacet)
+    public void setFacets(List<Facet> facets) {
+        this.facets = facets;
+    }
+
+    /**
+     * Adds a facet.
+     * <p>
+     * For examples see docs for {@link EclipseWtpFacet}
+     *
+     * @param args A map that must contain a 'name' and 'version' key with corresponding values.
+     */
+    public void facet(Map<String, ?> args) {
+        facets = Lists.newArrayList(Iterables.concat(
+            getFacets(),
+            Collections.singleton(ConfigureUtil.configureByMap(args, new Facet()))
+        ));
+    }
+
+    public void mergeXmlFacet(WtpFacet xmlFacet) {
+        file.getBeforeMerged().execute(xmlFacet);
+        xmlFacet.configure(getFacets());
+        file.getWhenMerged().execute(xmlFacet);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
@@ -24,20 +23,21 @@ import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
 import java.util.Map;
 
 /**
- * A wtp descriptor resource entry.
+ * A wtp descriptor dependent module entry.
  */
-public class WbResource implements WbModuleEntry {
-    private String deployPath;
-    private String sourcePath;
+public class WbDependentModule implements WbModuleEntry {
 
-    public WbResource(Node node) {
-        this((String) node.attribute("deploy-path"), (String) node.attribute("source-path"));
+    private String deployPath;
+    private String handle;
+
+    public WbDependentModule(Node node) {
+        this((String) node.attribute("deploy-path"), (String) node.attribute("handle"));
     }
 
-    public WbResource(String deployPath, String sourcePath) {
-        assert deployPath != null && sourcePath != null;
+    public WbDependentModule(String deployPath, String handle) {
+        assert deployPath != null && handle != null;
         this.deployPath = PathUtil.normalizePath(deployPath);
-        this.sourcePath = PathUtil.normalizePath(sourcePath);
+        this.handle = handle;
     }
 
     public String getDeployPath() {
@@ -48,20 +48,21 @@ public class WbResource implements WbModuleEntry {
         this.deployPath = deployPath;
     }
 
-    public String getSourcePath() {
-        return sourcePath;
+    public String getHandle() {
+        return handle;
     }
 
-    public void setSourcePath(String sourcePath) {
-        this.sourcePath = sourcePath;
+    public void setHandle(String handle) {
+        this.handle = handle;
     }
 
     @Override
-    public void appendNode(Node node) {
-        Map attributes = Maps.newHashMap();
+    public void appendNode(Node parentNode) {
+        Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(2);
         attributes.put("deploy-path", deployPath);
-        attributes.put("source-path", sourcePath);
-        node.appendNode("wb-resource", attributes);
+        attributes.put("handle", handle);
+        Node node = parentNode.appendNode("dependent-module", attributes);
+        node.appendNode("dependency-type").setValue("uses");
     }
 
     @Override
@@ -69,20 +70,26 @@ public class WbResource implements WbModuleEntry {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!getClass().equals(o.getClass())) {
             return false;
         }
-        WbResource that = (WbResource) o;
-        return Objects.equal(deployPath, that.deployPath) && Objects.equal(sourcePath, that.sourcePath);
+        WbDependentModule that = (WbDependentModule) o;
+        return Objects.equal(deployPath, that.deployPath) && Objects.equal(handle, that.handle);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(deployPath, sourcePath);
+        int result;
+        result = deployPath.hashCode();
+        result = 31 * result + handle.hashCode();
+        return result;
     }
 
     @Override
     public String toString() {
-        return "WbResource{deployPath='" + deployPath + "', sourcePath='" + sourcePath + "'}";
+        return "WbDependentModule{"
+            + "deployPath='" + deployPath + "\'"
+            + ", handle='" + handle + "\'"
+            + "}";
     }
 }

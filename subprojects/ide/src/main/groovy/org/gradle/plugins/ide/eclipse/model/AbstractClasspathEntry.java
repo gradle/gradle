@@ -106,7 +106,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         return (String) entryAttributes.get(NATIVE_LIBRARY_ATTRIBUTE);
     }
 
-    public final void setNativeLibraryLocation(String location) {
+    public void setNativeLibraryLocation(String location) {
         entryAttributes.put(NATIVE_LIBRARY_ATTRIBUTE, location);
     }
 

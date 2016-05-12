@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * A wtp descriptor property entry.
  */
-public class WbProperty {
+public class WbProperty implements WbModuleEntry {
     private String name;
     private String value;
 
@@ -55,6 +55,7 @@ public class WbProperty {
         this.value = value;
     }
 
+    @Override
     public void appendNode(Node node) {
         Map attributes = Maps.newHashMap();
         attributes.put("name", name);
