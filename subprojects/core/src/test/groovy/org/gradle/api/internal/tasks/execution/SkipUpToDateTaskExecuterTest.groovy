@@ -23,7 +23,6 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
-import org.gradle.api.internal.changedetection.state.CachingTreeVisitor
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -38,10 +37,9 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
     def repository = Mock(TaskArtifactStateRepository)
     def taskArtifactState = Mock(TaskArtifactState)
     def executionHistory = Mock(TaskExecutionHistory)
-    def treeVisitor = Mock(CachingTreeVisitor)
     Action<Task> action = Mock(Action)
 
-    def executer = new SkipUpToDateTaskExecuter(repository, treeVisitor, delegate)
+    def executer = new SkipUpToDateTaskExecuter(repository, delegate)
 
     def skipsTaskWhenOutputsAreUpToDate() {
         when:
@@ -69,7 +67,6 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         1 * task.outputs >> outputs
         1 * outputs.setHistory(executionHistory)
         1 * taskContext.setTaskArtifactState(taskArtifactState)
-        1 * treeVisitor.clearCache()
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -98,7 +95,6 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         1 * task.outputs >> outputs
         1 * outputs.setHistory(executionHistory)
         1 * taskContext.setTaskArtifactState(taskArtifactState)
-        1 * treeVisitor.clearCache()
 
         then:
         1 * delegate.execute(task, taskState, taskContext)

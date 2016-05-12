@@ -56,7 +56,7 @@ class CachingTreeVisitorTest extends Specification {
         fileDetails2.is(fileDetails)
     }
 
-    def "should not cache list of file details when there is a pattern or filter"() {
+    def "should cache list of file details when there is a pattern or filter"() {
         given:
         createSampleFiles()
         def fileTrees = resolveAsFileTrees(includePattern, includeFilter)
@@ -68,15 +68,16 @@ class CachingTreeVisitorTest extends Specification {
         fileDetails.size() == 6
         fileDetails.count { it.isDirectory() } == 3
         fileDetails.count { !it.isDirectory() } == 3
-        treeVisitor.cachedTrees.size() == 0
+        treeVisitor.cachedTrees.size() == 1
 
         when:
-        def fileDetails2 = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true).entries
+        fileDetails = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true).entries
 
         then:
-        !fileDetails2.is(fileDetails)
-        fileDetails2.collect { it.file } as Set == fileDetails.collect { it.file } as Set
-        treeVisitor.cachedTrees.size() == 0
+        fileDetails.size() == 6
+        fileDetails.count { it.isDirectory() } == 3
+        fileDetails.count { !it.isDirectory() } == 3
+        treeVisitor.cachedTrees.size() == 1
 
         where:
         includePattern | includeFilter
@@ -84,6 +85,55 @@ class CachingTreeVisitorTest extends Specification {
         null           | "**/*.txt"
         "**/*.txt"     | "**/*.txt"
     }
+
+    def "should reuse and filter previous cached list of file details when there is a pattern or filter"() {
+        given:
+        createSampleFiles()
+        def fileTrees = resolveAsFileTrees()
+
+        when:
+        def fileDetails = treeVisitor.visitTreeForSnapshotting(fileTrees[0], true).entries
+
+        then:
+        fileDetails.size() == 8
+        fileDetails.count { it.isDirectory() } == 3
+        fileDetails.count { !it.isDirectory() } == 5
+        treeVisitor.cachedTrees.size() == 1
+
+        when:
+        def fileTreesFiltered = resolveAsFileTrees(includePattern, includeFilter)
+        fileDetails = treeVisitor.visitTreeForSnapshotting(fileTreesFiltered[0], true).entries
+
+        then:
+        fileDetails.size() == 6
+        fileDetails.count { it.isDirectory() } == 3
+        fileDetails.count { !it.isDirectory() } == 3
+        treeVisitor.cachedTrees.size() == 1
+        with(treeVisitor.cachedTrees.getIfPresent(testDir.getTestDirectory().absolutePath)) {
+            assert noPatternTree != null
+            assert treesPerPattern.size() == 1
+        }
+
+        when:
+        fileDetails = treeVisitor.visitTreeForSnapshotting(fileTreesFiltered[0], true).entries
+
+        then:
+        fileDetails.size() == 6
+        fileDetails.count { it.isDirectory() } == 3
+        fileDetails.count { !it.isDirectory() } == 3
+        treeVisitor.cachedTrees.size() == 1
+        with(treeVisitor.cachedTrees.getIfPresent(testDir.getTestDirectory().absolutePath)) {
+            assert noPatternTree != null
+            assert treesPerPattern.size() == 1
+        }
+
+        where:
+        includePattern | includeFilter
+        "**/*.txt"     | null
+        null           | "**/*.txt"
+        "**/*.txt"     | "**/*.txt"
+    }
+
 
     def "should not use cached when allowReuse == false but should still add it to cache"() {
         given:

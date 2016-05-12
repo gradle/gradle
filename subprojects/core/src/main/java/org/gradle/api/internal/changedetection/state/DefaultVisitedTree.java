@@ -21,28 +21,43 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
 class DefaultVisitedTree implements VisitedTree {
-    private final ImmutableList<FileTreeElement> entries;
     private final boolean shareable;
     private final long nextId;
+    private final List<FileTreeElement> entries;
     private final Collection<File> missingFiles;
     private TreeSnapshot treeSnapshot;
 
-    public DefaultVisitedTree(ImmutableList<FileTreeElement> entries, boolean shareable, long nextId, Collection<File> missingFiles) {
-        this.entries = entries;
+    public DefaultVisitedTree(List<FileTreeElement> entries, boolean shareable, long nextId, Collection<File> missingFiles) {
         this.shareable = shareable;
         this.nextId = nextId;
+        this.entries = entries;
         this.missingFiles = missingFiles;
     }
 
     @Override
     public Collection<FileTreeElement> getEntries() {
         return entries;
+    }
+
+    @Override
+    public List<FileTreeElement> filter(PatternSet patternSet) {
+        ImmutableList.Builder<FileTreeElement> filtered = ImmutableList.builder();
+        final Spec<FileTreeElement> spec = patternSet.getAsSpec();
+        for (FileTreeElement element : entries) {
+            if (spec.isSatisfiedBy(element)) {
+                filtered.add(element);
+            }
+        }
+        return filtered.build();
     }
 
     @Override
@@ -54,7 +69,7 @@ class DefaultVisitedTree implements VisitedTree {
     }
 
     private TreeSnapshot createTreeSnapshot(final FileSnapshotter fileSnapshotter, final StringInterner stringInterner) {
-        final Collection<FileSnapshotWithKey> fileSnapshots = CollectionUtils.collect(entries, new Transformer<FileSnapshotWithKey, FileTreeElement>() {
+        final Collection<FileSnapshotWithKey> fileSnapshots = CollectionUtils.collect(getEntries(), new Transformer<FileSnapshotWithKey, FileTreeElement>() {
             @Override
             public FileSnapshotWithKey transform(FileTreeElement fileTreeElement) {
                 String absolutePath = getInternedAbsolutePath(fileTreeElement.getFile(), stringInterner);

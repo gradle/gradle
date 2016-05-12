@@ -28,18 +28,27 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.UncheckedException;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReentrantLock;
 
 // Visits a FileTreeInternal for snapshotting, caches some directory scans
 public class CachingTreeVisitor {
     private final static Logger LOG = Logging.getLogger(CachingTreeVisitor.class);
     public static final int VISITED_TREES_CACHE_MAX_SIZE = 500;
-    private final Cache<String, VisitedTree> cachedTrees;
+    private final Cache<String, VisitedTreeCacheEntry> cachedTrees;
     private final AtomicLong nextId = new AtomicLong(System.currentTimeMillis());
+    private HashSet<String> cacheableFilePaths;
 
     public CachingTreeVisitor() {
         HeapProportionalCacheSizer cacheSizer = new HeapProportionalCacheSizer();
@@ -49,21 +58,49 @@ public class CachingTreeVisitor {
     public VisitedTree visitTreeForSnapshotting(FileTreeInternal fileTree, boolean allowReuse) {
         if (isDirectoryFileTree(fileTree)) {
             DirectoryFileTree directoryFileTree = DirectoryFileTree.class.cast(((FileTreeAdapter) fileTree).getTree());
-            if (isEligibleForCaching(directoryFileTree)) {
-                final String absolutePath = directoryFileTree.getDir().getAbsolutePath();
-                VisitedTree cachedTree = allowReuse ? cachedTrees.getIfPresent(absolutePath) : null;
-                if (cachedTree != null) {
-                    recordCacheHit(directoryFileTree);
-                    return cachedTree;
-                } else {
-                    recordCacheMiss(directoryFileTree, allowReuse);
-                    cachedTree = doVisitTree(fileTree, true);
-                    cachedTrees.put(absolutePath, cachedTree);
-                    return cachedTree;
+            final String absolutePath = directoryFileTree.getDir().getAbsolutePath();
+            if (isCacheablePath(absolutePath)) {
+                VisitedTreeCacheEntry cacheEntry = findOrCreateCacheEntry(absolutePath);
+                cacheEntry.lock();
+                try {
+                    VisitedTree cachedTree = null;
+                    if (cacheEntry != null) {
+                        if (allowReuse) {
+                            cachedTree = cacheEntry.get(directoryFileTree.getPatternSet());
+                        } else {
+                            cacheEntry.clear();
+                        }
+                    }
+                    if (cachedTree != null) {
+                        recordCacheHit(directoryFileTree);
+                        return cachedTree;
+                    } else {
+                        recordCacheMiss(directoryFileTree, allowReuse);
+                        cachedTree = doVisitTree(fileTree, true);
+                        cacheEntry.put(directoryFileTree.getPatternSet(), cachedTree);
+                        return cachedTree;
+                    }
+                } finally {
+                    cacheEntry.unlock();
                 }
             }
         }
         return doVisitTree(fileTree, false);
+    }
+
+    private VisitedTreeCacheEntry findOrCreateCacheEntry(String treePath) {
+        VisitedTreeCacheEntry cacheEntry;
+        try {
+            cacheEntry = cachedTrees.get(treePath, new Callable<VisitedTreeCacheEntry>() {
+                @Override
+                public VisitedTreeCacheEntry call() {
+                    return new VisitedTreeCacheEntry(nextId);
+                }
+            });
+        } catch (ExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+        return cacheEntry;
     }
 
     public VisitedTree createJoinedTree(List<VisitedTree> trees, Collection<File> missingFiles) {
@@ -100,8 +137,8 @@ public class CachingTreeVisitor {
         }
     }
 
-    private boolean isEligibleForCaching(DirectoryFileTree directoryFileTree) {
-        return directoryFileTree.getPatterns().isEmpty();
+    private boolean isCacheablePath(String absolutePath) {
+        return cacheableFilePaths == null || cacheableFilePaths.contains(absolutePath);
     }
 
     private boolean isDirectoryFileTree(FileTreeInternal fileTree) {
@@ -126,6 +163,72 @@ public class CachingTreeVisitor {
 
     public void clearCache() {
         cachedTrees.invalidateAll();
+        cacheableFilePaths = null;
     }
 
+    public void updateCacheableFilePaths(Collection<String> cacheableFilePaths) {
+        this.cacheableFilePaths = new HashSet<String>(cacheableFilePaths);
+    }
+
+    public void invalidateFilePaths(Iterable<String> filePaths) {
+        cachedTrees.invalidateAll(filePaths);
+    }
+
+    private static class VisitedTreeCacheEntry {
+        private final ReentrantLock lock = new ReentrantLock();
+        private final AtomicLong nextId;
+        Map<PatternSet, VisitedTree> treesPerPattern;
+        VisitedTree noPatternTree;
+
+        public VisitedTreeCacheEntry(AtomicLong nextId) {
+            this.nextId = nextId;
+        }
+
+        public VisitedTree get(PatternSet patternSet) {
+            if (patternSet == null || patternSet.isEmpty()) {
+                return noPatternTree;
+            } else if (treesPerPattern != null) {
+                VisitedTree cachedTree = treesPerPattern.get(patternSet);
+                if (cachedTree == null && noPatternTree != null) {
+                    cachedTree = filterTree(noPatternTree, patternSet, nextId);
+                }
+                return cachedTree;
+            } else {
+                return null;
+            }
+        }
+
+        private VisitedTree filterTree(VisitedTree noPatternTree, PatternSet patternSet, AtomicLong nextId) {
+            final List<FileTreeElement> filteredEntries = noPatternTree.filter(patternSet);
+            if (filteredEntries.size() != noPatternTree.getEntries().size()) {
+                return new DefaultVisitedTree(filteredEntries, true, nextId.incrementAndGet(), null);
+            } else {
+                return noPatternTree;
+            }
+        }
+
+        public void put(PatternSet patternSet, VisitedTree visitedTree) {
+            if (patternSet == null || patternSet.isEmpty()) {
+                noPatternTree = visitedTree;
+            } else {
+                if (treesPerPattern == null) {
+                    treesPerPattern = new HashMap<PatternSet, VisitedTree>();
+                }
+                treesPerPattern.put(patternSet, visitedTree);
+            }
+        }
+
+        public void clear() {
+            noPatternTree = null;
+            treesPerPattern = null;
+        }
+
+        public void lock() {
+            lock.lock();
+        }
+
+        public void unlock() {
+            lock.unlock();
+        }
+    }
 }
