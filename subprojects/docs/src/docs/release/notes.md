@@ -1,42 +1,64 @@
+The Gradle team is pleased to announce Gradle 2.14-RC1.
+
+The team is always working to improve the overall performance of Gradle, and this release does not disappoint. Gradle's configuration time has dropped considerably through the application of some careful optimisations. The Gradle build itself has seen a **50% reduction in configuration time**. You'll see the biggest impact on multi-project builds and Android builds amongst others, but everyone will benefit to some degree. This is reason enough to upgrade.
+
+In other news, the Gradle daemon has become self-aware. Not in the AI sense, sadly, but you will find the daemon to be much more **robust and resource-efficient** now because it monitors its memory usage. It's much less likely that you will need to manually kill daemons, which means you can more reliably **use the daemon on your continuous integration servers**.
+
+There are several other quality-of-life improvements for various users, including **IntelliJ IDEA support for Play framework projects**, and a fix that makes authoring plugins easier. In addition, our Eclipse users should note that the composite build support coming in Buildship 2.0 will require Gradle 2.14 as a minimum version.
+
+Finally, it's time to start preparing for the departure of an old friend. Gradle 2.14 sees the **deprecation of Java 6**. It has been with us a long time now, reaching its official End of Life in 2013. You will still be able to use Java 6 with Gradle 2.14, but you won't be able to run Gradle 3 on it.
+
+Enjoy the new version and let us know what you think!
+
+
 ## New and noteworthy
 
-Here are the new features introduced in this Gradle release.
+Here are the new features introduced in this Gradle release that impact all Gradle users.
 
 <!--
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-### Faster Gradle
+### Faster Gradle builds
 
-Gradle 2.14 includes significant improvements in configuration time, resulting in up to 50% faster startup, as measured on the Gradle build itself. In particular:
+Gradle 2.14 brings significant improvements in configuration time. The Gradle build itself has seen a 50% reduction in its startup time. You should see similar improvements for complex builds or those with lots of subprojects. But even small projects will still a noticeable improvement.
 
-- dynamic property and method lookup has been optimized, resulting in faster evaluation of projects
-- fixed cost task creation has been significantly reduced
-- services and dependency injection infrastructure has been optimized, resulting in faster plugin applications
-- memory usage has been improved, lowering memory pressure and resulting in less GC overhead
+If you're interested in how this was done, here are some of the optimisations that were implemented:
 
-### Deprecation of support for Java 6
+- Reduced the time taken to create tasks
+- Made the services and dependency injection infrastructure more efficient, so that applying plugins takes less time
+- Improved memory usage, resulting in less garbage collection
+- More efficient dynamic property and method lookup
 
-Java 6 reached end of life in February 2013. Support for this version of Java is becoming more difficult as libraries and tools move to Java 7 and later, and as a result
-Gradle 2.14 will be the last version of Gradle to run on Java 6. Support for running Gradle on Java 6 will be removed in Gradle 3.0.
+### More robust and memory-efficient Daemon
 
-Please note, however, that while it won't be possible to run Gradle itself on Java 6, it will be possible to build software using Java 6, by configuring your build to compile and test using Java 6. 
+The Gradle daemon now actively monitors garbage collection to identify when it's using too much memory. When this happens, Gradle will restart the daemon as soon as the current build finishes.
 
-### More accurate Gradle class visibility during plugin development
+The monitoring is enabled by default, but you can disable it by configuring this project property:
 
-In previous versions, Gradle's internal implementation dependencies were visible to plugins at build (i.e. compile and test) but not at runtime.
-This caused problems when plugins depended on libraries that conflicted with Gradle's internal dependencies, such as Google Guava.
-This has been fixed in Gradle 2.14.
-Only classes that are part of Gradle's public API are visible to plugins at build time, which more accurately represents the runtime environment.
+    org.gradle.daemon.performance.enable-monitoring=false
 
-This fixes GRADLE-3433 and GRADLE-1715.
-No build script changes are necessary to take advantage of these improvements.
+If you want to disable daemon monitoring for all projects, add this setting to _«USER_HOME»/.gradle/gradle.properties_. Otherwise, just add it to a _gradle.properties_ file in the root of a project.
 
-### Plugins can more easily be published to and resolved from custom repositories
+In addition to this self-monitoring feature, Gradle now attempts to limit its overall consumption of system resources by shutting down daemons that are no longer in use. Gradle previously stopped daemons after a fixed period of inactivity. In 2.14, idle daemons will expire more quickly when memory pressure is high, thus freeing up system resources faster than before.
 
-When writing plugins for private use by your organization, you can now take advantage of the simplified syntax of the `plugins {}` block and
-new `pluginRepositories {}` block when specifying the plugins to be applied to your build. For example, in your `settings.gradle` file you
-can specify:
+These changes mean that it's much more convenient to run the daemon on continuous integration servers now, since you won't have to monitor the daemons as frequently yourself.
+
+### Deprecation of Java 6 support 
+
+Java 6 reached end of life in February 2013 and support for this version is becoming more difficult as libraries and tools move to Java 7 and later. As a result, Gradle 2.14 will be the last version of Gradle that will run on Java 6, with Gradle 3.0 requiring Java 7 at a minimum.
+
+Please note that while it won't be possible to run Gradle itself on Java 6, your builds will still be able to target Java 6 as a runtime platform with the appropriate `sourceCompatibility` and `targetCompatibility` settings.
+
+### Play/IDEA Integration
+
+If you're using the [Play plugin](userguide/play_plugin.html#play_ide) along with IntelliJ IDEA, you'll be glad to learn that you no longer have to manually configure your projects in the IDE. Instead, you can now apply the [IDEA plugin](userguide/idea_plugin.html), run the `idea` task, and load the resulting project file into the IDE. Much easier!
+
+### Easier publication and consumption of plugins to and from custom repositories
+
+Gradle 2.1 first introduced the `plugins {}` block for specifying the plugins that your build uses, but this only worked for plugins that were published to the Gradle plugin portal. With the release of 2.14, you can now specify custom repositories via the new `pluginRepositories {}` block. This means that you can now take advantage of the `plugins {}` syntax for your organization's private plugins.
+
+To enable this feature, you add the new syntax to the project's _settings.gradle_ file, like so:
 
     pluginRepositories {
         maven {
@@ -48,21 +70,23 @@ can specify:
         }
     }
 
-And then use the `plugins {}` block to specify the plugins you want applied to your build projects.
+The `plugins {}` block looks the same as before, it's just that the plugins can be resolved from different repositories:
 
     plugins {
         id 'java'                               // Resolved from the Gradle Distribution.
         id 'org.public.plugin' version '1.2.3'  // Resolved from the Gradle Plugin Portal.
-        id 'com.mycompany.secret' version '1.0' // Resolved from your private maven repository.
-        id 'com.partner.helpful' version '2.0'  // Resolved from your partner's ivy repository.
+        id 'com.mycompany.secret' version '1.0' // Resolved from your private Maven repository.
+        id 'com.partner.helpful' version '2.0'  // Resolved from your partner's Ivy repository.
     }
 
 The repositories are consulted in the order in which they were specifed in the `pluginRepositories {}` block.
 
-To be able to resolve a plugin's implementation jar from just the specification of its `id` and `version` in an ivy or maven
-repository, we require that a special [Plugin Marker Artifact](userguide/plugins.html#sec:plugin_markers) is published to
-the repository. This is automated when combining the [maven-publish](userguide/publishing_maven.html) or [ivy-publish](userguide/publishing_ivy.html) plugins
-with the [java-gradle-plugin](userguide/javaGradle_plugin.html) plugin. For example:
+**Note** The new plugin repository definitions **do not work** for the `apply plugin: <name>` syntax. By extension, that also means they don't work with the `allprojects {}`/`subprojects {}` feature. 
+
+For this feature to work with your own plugins, you will need to publish them alongside a special [Plugin Marker Artifact](userguide/plugins.html#sec:plugin_markers). Don't worry, this step happens automatically when you use either the [_maven-publish_](userguide/publishing_maven.html) or [_ivy-publish_](userguide/publishing_ivy.html) plugins
+with the [_java-gradle-plugin_](userguide/javaGradle_plugin.html) plugin.
+
+To demonstrate how easy it is to publish a plugin with the new marker artifact, here's an example plugin build:
 
     plugins {
         id 'java-gradle-plugin'
@@ -90,14 +114,13 @@ with the [java-gradle-plugin](userguide/javaGradle_plugin.html) plugin. For exam
     }
 
 When you run `./gradlew publish` your plugin `com.mycompany:secretPlugin:1.0` and the *Plugin Marker Artifact*
-`com.mycopmany.secret:com.mycompany.secret.gradle.plugin:1.0` will both published to your maven repository.
+`com.mycopmany.secret:com.mycompany.secret.gradle.plugin:1.0` will both be published to your custom Maven repository.
 
-### Set the character set used for filtering files in CopySpec
+### Configuration of character encoding when filtering files in a CopySpec
 
-By default, file filtering using `CopySpec` uses the default platform character set to read and write filtered files.
-This can cause problems if, for example, the files are encoded using `UTF-8` but the default platform character set is another one.
+By default, any file filtering performed by a `CopySpec` uses the default platform character encoding to read and write the filtered files. This can cause problems if the files are encoded with something else, such as _UTF-8_.
 
-You can now define the character set to use when reading and writing filtered files per `CopySpec`, e.g.:
+You can now control this behavior by specifying the character encoding to use during the filtering process on a per-`CopySpec` basis:
 
     task filter(type: Copy) {
         from 'some/place'
@@ -106,20 +129,20 @@ You can now define the character set to use when reading and writing filtered fi
         filteringCharset = 'UTF-8'
     }
 
-See the “[Filtering files](userguide/working_with_files.html#sec:filtering_files)” section of the “Working with files” chapter in the user guide for more information and examples of using this new feature.
+See the “[Filtering files](userguide/working_with_files.html#sec:filtering_files)” section of the “Working with files” chapter in the user guide for more information and examples of how to use this new feature.
 
-This was contributed by [Jean-Baptiste Nizet](https://github.com/jnizet).
+We're grateful to [Jean-Baptiste Nizet](https://github.com/jnizet) for his contribution of this feature.
 
-### Generated POM files now include classifiers and all artifacts for project dependencies
+### Support for inter-project dependency classifiers 
 
-When publishing from a multi-project build to a Maven repository using the `maven` plugin, Gradle needs to map project dependencies to `<dependency>` declarations in the generated POM file. Previously, Gradle was ignoring the classifier attribute on any project artifacts, and would simply create a single `<dependency>` entry in the POM for any project dependency. This meant that the published POM for a project didn't contain the necessary dependencies to allow that project to be properly resolved from a Maven repository.
+When you're publishing artifacts via the `maven` plugin, Gradle has to map inter-project dependencies to `<dependency>` declarations in the generated POM file. This normally works fine, but Gradle was previously ignoring the classifier attribute on any project artifacts, which resulted in a single `<dependency>` entry in the POM for those inter-project dependencies. This meant that the published POM was incorrect and the project could not be properly resolved from a Maven repository.
 
-The mapping of project dependencies into POM file dependencies has been improved, and Gradle will now produce correct POM files for the following cases:
+The mapping of inter-project dependencies into POM dependency declarations has been improved in 2.14. Gradle will now produce correct POM files for the following cases`:
 
- - When the depended-on project configuration produces a single artifact with a classifier: this classifier will be included in the POM `<dependency>` entry.
- - The depended-on project configuration produces multiple artifacts: a `<dependency>` entry will be created for each artifact, with the appropriate classifier attribute for each.
+- The depended-on project configuration produces a single artifact with a classifier. In this case, the `classifier` will be included in the `<dependency>` entry.
+- The depended-on project configuration produces multiple artifacts. In this case, a `<dependency>` entry with the appropriate `classifier` attribute will be created for each artifact.
 
-As an example, given the following project definitions in Gradle:
+As an example, consider the following Gradle project definitions:
 
     project(':project1') {
         dependencies {
@@ -143,7 +166,7 @@ As an example, given the following project definitions in Gradle:
         }
     }
 
-The generated POM file for `project1` will include these dependency entries:
+The generated POM file for `project1` will now include these dependency entries:
 
     ...
     <dependencies>
@@ -164,47 +187,46 @@ The generated POM file for `project1` will include these dependency entries:
     </dependencies>
     ...
 
-Previously, only a single `<dependency>` entry would have been generated for 'project2', omitting the 'classifier' attribute altogether.
+Prior to 2.14, the POM would only contain a single `<dependency>` entry for 'project2', omitting the 'classifier' attribute altogether.
 
 Many thanks to [Raymond Navarette](https://github.com/rnavarette) for contributing this feature.
 
 ### Better control over Ant message logging
 
-In previous versions of Gradle, the mapping of Ant message priorities to Gradle logging levels was fixed and the default "lifecycle"
-log level was set in between the Ant "warn" and "info" priorities.  This meant that to show output from Ant tasks logged at the common "info"
-priority, the Gradle logging level had to be set to a higher verbosity, potentially exposing unwanted output.  Similarly, to suppress
-unwanted messages from Ant tasks, the Gradle logging level would need to be set to a lower verbosity, potentially suppressing other
-desirable output.
+In previous versions of Gradle, the mapping of Ant message priorities to Gradle logging levels was fixed and the default _LIFECYCLE_ log level was set to between Ant's "warn" and "info" priorities. This meant that to show output from Ant tasks logged at the common "info" priority, the Gradle logging level had to be set to _INFO_ or _DEBUG_, potentially exposing unwanted output. Similarly, to suppress unwanted messages from Ant tasks, the Gradle logging level would need to be set to a lower verbosity, potentially suppressing other desirable output.
 
-You can now control the level of Ant logging by changing the message priority that maps to the Gradle lifecycle logging level:
+You can now control the level of Ant logging by changing the message priority that maps to the Gradle LIFECYCLE logging level, like so:
 
     ant {
         lifecycleLogLevel = "INFO"
     }
 
-This causes any Ant messages logged at the specified priority to be logged at the lifecycle logging level.  Any messages logged at a
-higher priority will also be logged at lifecycle level (or above if it is already mapped to a higher logging level).  Messages logged
-at a lower priority than the specified priority will be logged at the "info" logging level or below.
+This causes any Ant messages logged at the specified priority - "info" in this case - to be logged at the LIFECYCLE logging level. Any messages logged at a higher priority will also be logged at LIFECYCLE level (or above if it is already mapped to a higher logging level). Messages logged at a lower priority than the specified priority will be logged at INFO level or below.
 
-### Identifier properties for IDE Tooling API models
+## New for plugin authors
 
-New identifier properties on `EclipseProject` and `IdeaModule` make it easier to find the IDE model corresponding to a project dependency. Use [`EclipseProject.getIdentifier()`](javadoc/org/gradle/tooling/model/eclipse/HierarchicalEclipseProject.html#getIdentifier--) and [`EclipseProjectDependency.getTarget()`](javadoc/org/gradle/tooling/model/eclipse/EclipseProjectDependency.html#getTarget--) for Eclipse models, and [`IdeaModule.getIdentifier()`](javadoc/org/gradle/tooling/model/idea/IdeaModule.html#getIdentifier--) and [`IdeaModuleDependency.getTarget()`](javadoc/org/gradle/tooling/model/idea/IdeaModuleDependency.html#getTarget--) for IDEA models.
+There is only one change that directly impacts plugin authors, but it's an important one.
 
-### Play/IDEA Integration
+### Better isolation of internal Gradle classes with `gradleApi()`
 
-Projects using the [Play plugin](userguide/play_plugin.html#play_ide) can now generate IDEA metadata when the [IDEA plugin](userguide/idea_plugin.html) is also applied. 
+In previous versions, Gradle's internal implementation dependencies were visible to plugins at build (i.e. compile and test) but not at runtime.
+This caused problems when plugins depended on libraries that conflicted with Gradle's internal dependencies, such as Google Guava.
 
-### Daemon is more robust and uses less resources
+This has been fixed in Gradle 2.14.
+Only classes that are part of Gradle's public API are now visible to plugins at build time, which more accurately represents the runtime environment for the plugins.
 
-The Gradle daemon now actively monitors garbage collection and identifies when a memory leak might be starting to exhaust heap space.  When a 
-condition is identified where the daemon is running out of heap space and that garbage collection is running more and more frequently, Gradle
-will trigger the daemon to restart after the current build finishes.  This monitoring is enabled by default, but can be disabled by setting the 
-`org.gradle.daemon.performance.enable-monitoring` system property to `false`.
+This change fixes both GRADLE-3433 and GRADLE-1715.
+In addition, it requires no changes to your build scripts.
 
-In addition to this, Gradle now attempts to limit the system resources that are consumed by the daemon by shutting down daemons that
-are no longer in use.  In previous versions of Gradle, daemons used a fixed timeout that caused a daemon to stop after a certain period of inactivity.
-In 2.14, this timeout is sensitive to system memory pressure, such that when memory pressure is high, idle daemons will expire more quickly
-and free up system resources faster.
+## New for tooling API consumers
+
+There is just one minor change the the Tooling API, related to composite build support.
+
+### New identifier properties for IDE Tooling API models
+
+New identifier properties on `EclipseProject` and `IdeaModule` make it easier to find the IDE model corresponding to a project dependency. Tools should now use [`EclipseProject.getIdentifier()`](javadoc/org/gradle/tooling/model/eclipse/HierarchicalEclipseProject.html#getIdentifier--) and [`EclipseProjectDependency.getTarget()`](javadoc/org/gradle/tooling/model/eclipse/EclipseProjectDependency.html#getTarget--) for Eclipse models, and [`IdeaModule.getIdentifier()`](javadoc/org/gradle/tooling/model/idea/IdeaModule.html#getIdentifier--) and [`IdeaModuleDependency.getTarget()`](javadoc/org/gradle/tooling/model/idea/IdeaModuleDependency.html#getTarget--) for IDEA models.
+
+As mentioned in the deprecation notes, these properties supersede `EclipseProjectDependency.getTargetProject()` and  `IdeaModuleDependency.getDependencyModule()`.
 
 ## Promoted features
 
