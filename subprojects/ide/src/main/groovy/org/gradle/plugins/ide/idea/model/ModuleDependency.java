@@ -67,6 +67,7 @@ public class ModuleDependency implements Dependency {
         return gradlePath;
     }
 
+    @Incubating
     public void setGradlePath(String gradlePath) {
         this.gradlePath = gradlePath;
     }

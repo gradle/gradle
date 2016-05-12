@@ -219,6 +219,7 @@ public class IdeaProject {
         return targetBytecodeVersion;
     }
 
+    @Incubating
     public void setTargetBytecodeVersion(JavaVersion targetBytecodeVersion) {
         this.targetBytecodeVersion = targetBytecodeVersion;
     }
@@ -235,6 +236,7 @@ public class IdeaProject {
         return vcs;
     }
 
+    @Incubating
     public void setVcs(String vcs) {
         this.vcs = vcs;
     }
@@ -273,6 +275,7 @@ public class IdeaProject {
         return projectLibraries;
     }
 
+    @Incubating
     public void setProjectLibraries(Set<ProjectLibrary> projectLibraries) {
         this.projectLibraries = projectLibraries;
     }

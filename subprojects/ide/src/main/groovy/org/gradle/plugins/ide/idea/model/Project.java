@@ -98,6 +98,7 @@ public class Project extends XmlPersistableConfigurationObject {
         return vcs;
     }
 
+    @Incubating
     public void setVcs(String vcs) {
         this.vcs = vcs;
     }
@@ -110,6 +111,7 @@ public class Project extends XmlPersistableConfigurationObject {
         return projectLibraries;
     }
 
+    @Incubating
     public void setProjectLibraries(Set<ProjectLibrary> projectLibraries) {
         this.projectLibraries = projectLibraries;
     }

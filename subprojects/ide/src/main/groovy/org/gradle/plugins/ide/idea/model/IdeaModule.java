@@ -229,6 +229,7 @@ public class IdeaModule {
         return generatedSourceDirs;
     }
 
+    @Incubating
     public void setGeneratedSourceDirs(Set<File> generatedSourceDirs) {
         this.generatedSourceDirs = generatedSourceDirs;
     }
@@ -405,6 +406,7 @@ public class IdeaModule {
         return languageLevel;
     }
 
+    @Incubating
     public void setLanguageLevel(IdeaLanguageLevel languageLevel) {
         this.languageLevel = languageLevel;
     }
@@ -420,6 +422,7 @@ public class IdeaModule {
         return targetBytecodeVersion;
     }
 
+    @Incubating
     public void setTargetBytecodeVersion(JavaVersion targetBytecodeVersion) {
         this.targetBytecodeVersion = targetBytecodeVersion;
     }
@@ -432,6 +435,7 @@ public class IdeaModule {
         return scalaPlatform;
     }
 
+    @Incubating
     public void setScalaPlatform(ScalaPlatform scalaPlatform) {
         this.scalaPlatform = scalaPlatform;
     }
