@@ -22,8 +22,12 @@ import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.util.extendable.ExtendableItem;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.model.DefaultIvyModuleArtifactPublishMetaData;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.util.CollectionUtils;
 
@@ -50,21 +54,22 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
 
     @Override
     public void write(ModuleDescriptor md, File output) {
-        doWrite(md, CollectionUtils.toList(md.getAllArtifacts()), output);
-    }
-
-    @Override
-    public void write(ModuleDescriptor md, Collection<IvyModuleArtifactPublishMetaData> artifacts, File output) {
-        List<Artifact> ivyArtifacts = CollectionUtils.collect(artifacts, new Transformer<Artifact, IvyModuleArtifactPublishMetaData>() {
+        final ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(md.getModuleRevisionId());
+        List<IvyModuleArtifactPublishMetaData> ivyArtifacts = CollectionUtils.collect(CollectionUtils.toList(md.getAllArtifacts()), new Transformer<IvyModuleArtifactPublishMetaData, Artifact>() {
             @Override
-            public Artifact transform(IvyModuleArtifactPublishMetaData ivyModuleArtifactPublishMetaData) {
-                return ivyModuleArtifactPublishMetaData.toIvyArtifact();
+            public IvyModuleArtifactPublishMetaData transform(Artifact artifact) {
+                return new DefaultIvyModuleArtifactPublishMetaData(componentIdentifier, artifact);
             }
         });
         doWrite(md, ivyArtifacts, output);
     }
 
-    private void doWrite(ModuleDescriptor md, Collection<Artifact> artifacts, File output) {
+    @Override
+    public void write(ModuleDescriptor md, Collection<IvyModuleArtifactPublishMetaData> artifacts, File output) {
+        doWrite(md, artifacts, output);
+    }
+
+    private void doWrite(ModuleDescriptor md, Collection<IvyModuleArtifactPublishMetaData> artifacts, File output) {
         try {
             output.getParentFile().mkdirs();
             OutputStream outputStream = new FileOutputStream(output);
@@ -80,7 +85,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
     }
 
-    private void writeTo(ModuleDescriptor md, Collection<Artifact> artifacts, SimpleXmlWriter writer) throws IOException {
+    private void writeTo(ModuleDescriptor md, Collection<IvyModuleArtifactPublishMetaData> artifacts, SimpleXmlWriter writer) throws IOException {
         writer.startElement("ivy-module");
         writer.attribute("version", "2.0");
 
@@ -285,15 +290,18 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
     }
 
-    private static void printPublications(Collection<Artifact> artifacts, SimpleXmlWriter writer) throws IOException {
+    private static void printPublications(Collection<IvyModuleArtifactPublishMetaData> artifacts, SimpleXmlWriter writer) throws IOException {
         writer.startElement("publications");
-        for (Artifact artifact : artifacts) {
+        for (IvyModuleArtifactPublishMetaData artifactMetadata : artifacts) {
+            IvyArtifactName artifact = artifactMetadata.getArtifactName();
             writer.startElement("artifact");
             writer.attribute("name", artifact.getName());
             writer.attribute("type", artifact.getType());
-            writer.attribute("ext", artifact.getExt());
-            writer.attribute("conf", getConfs(artifact));
-            printExtraAttributes(artifact, writer);
+            writer.attribute("ext", artifact.getExtension());
+            writer.attribute("conf", Joiner.on(",").join(artifactMetadata.getConfigurations()));
+            if (artifact.getClassifier() != null) {
+                printExtraAttributes(Collections.singletonMap("m:classifier", artifact.getClassifier()), writer);
+            }
             writer.endElement();
         }
         writer.endElement();

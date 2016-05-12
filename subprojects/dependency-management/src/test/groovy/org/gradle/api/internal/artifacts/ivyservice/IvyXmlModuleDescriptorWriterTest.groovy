@@ -75,9 +75,10 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         1 * md.resolvedPublicationDate >> date("20120817120000")
         1 * md.status >> "integration"
         1 * resolvedModuleRevisionId.revision >> "1.0"
-        1 * md.moduleRevisionId >> moduleRevisionId;
-        1 * moduleRevisionId.organisation >> "org.test"
-        1 * moduleRevisionId.name >> "projectA"
+        _ * md.moduleRevisionId >> moduleRevisionId;
+        _ * moduleRevisionId.organisation >> "org.test"
+        _ * moduleRevisionId.name >> "projectA"
+        _ * moduleRevisionId.revision >> "1.0"
         1 * md.configurations >> [mockConfiguration("archives"), mockConfiguration("compile"), mockConfiguration("runtime", ["compile"])]
         1 * md.allExcludeRules >> []
         1 * md.allArtifacts >> [mockArtifact()]
@@ -132,6 +133,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         1 * artifact.ext >> "jar"
         1 * artifact.type >> "jar"
         1 * artifact.configurations >> ["archives", "runtime"]
+        1 * artifact.extraAttributes >> [:]
         artifact
     }
 
