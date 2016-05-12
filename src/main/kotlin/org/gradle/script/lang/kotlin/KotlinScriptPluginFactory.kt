@@ -75,8 +75,10 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
         val PROTO_SCRIPT_CONFIG = KotlinScriptConfig(
             name = "Kotlin build script",
             supertypes = arrayListOf(KotlinBuildScript::class.qualifiedName!!),
-            parameters = arrayListOf(KotlinScriptParameterConfig("_project_hidden_", Project::class.qualifiedName!!)),
-            superclassParamsMapping = arrayListOf(KotlinScriptSuperclassParameterConfig("_project_hidden_", Project::class.qualifiedName!!)))
+            parameters = arrayListOf(
+                KotlinScriptParameterConfig("_project_hidden_", Project::class.qualifiedName!!)),
+            superclassParamsMapping = arrayListOf(
+                KotlinScriptSuperclassParameterConfig("_project_hidden_", Project::class.qualifiedName!!)))
 
         fun scriptDefinitionFor(classPath: List<File>): KotlinConfigurableScriptDefinition {
             LOGGER.info("Kotlin compilation classpath: {}", classPath)
