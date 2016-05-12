@@ -16,16 +16,17 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.Hasher;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.FileTreeElementHasher;
-import org.gradle.api.internal.file.StringHasher;
+import org.gradle.api.internal.file.BufferedStreamingHasher;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
+import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -225,17 +226,19 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         private Integer calculatePreCheckHash() {
-            Hasher hasher = FileTreeElementHasher.createHasher();
-            StringHasher stringHasher = new StringHasher(hasher);
-            hasher.putInt(delegate.getHash());
-
-            SortedMap<String, Boolean> sortedRoots = new TreeMap<String, Boolean>(roots);
-            for (Map.Entry<String, Boolean> entry : sortedRoots.entrySet()) {
-                stringHasher.hashString(entry.getKey());
-                hasher.putBoolean(entry.getValue());
+            BufferedStreamingHasher hasher = new BufferedStreamingHasher();
+            Encoder encoder = hasher.getEncoder();
+            try {
+                encoder.writeInt(delegate.getHash());
+                SortedMap<String, Boolean> sortedRoots = new TreeMap<String, Boolean>(roots);
+                for (Map.Entry<String, Boolean> entry : sortedRoots.entrySet()) {
+                    encoder.writeString(entry.getKey());
+                    encoder.writeBoolean(entry.getValue());
+                }
+                return hasher.checksum();
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
-
-            return hasher.hash().asInt();
         }
 
         @Override

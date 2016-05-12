@@ -16,38 +16,39 @@
 
 package org.gradle.api.internal.file;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.Hasher;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
-public class StringHasher {
-    private final Writer writer;
+public class BufferedStreamingHasher {
+    private final KryoBackedEncoder encoder;
+    private final Checksum checksum;
 
-    public StringHasher(final Hasher hasher) {
-        this.writer = new OutputStreamWriter(new OutputStream() {
+    public BufferedStreamingHasher() {
+        this.checksum = new CRC32();
+        this.encoder = new KryoBackedEncoder(new OutputStream() {
             @Override
             public void write(int b) throws IOException {
-                hasher.putByte((byte) b);
+                checksum.update(b);
             }
 
             @Override
-            public void write(byte[] bytes, int off, int len) throws IOException {
-                hasher.putBytes(bytes, off, len);
+            public void write(byte[] b, int off, int len) throws IOException {
+                checksum.update(b, off, len);
             }
-        }, Charsets.UTF_8);
+        });
     }
 
-    public void hashString(String string) {
-        try {
-            writer.write(string);
-            writer.flush();
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+    public int checksum() {
+        encoder.flush();
+        return (int) checksum.getValue();
+    }
+
+    public Encoder getEncoder() {
+        return encoder;
     }
 }
