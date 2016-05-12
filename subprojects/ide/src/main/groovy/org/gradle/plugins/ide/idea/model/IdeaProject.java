@@ -124,14 +124,14 @@ public class IdeaProject {
      * <p>
      * If IdeaProject requires some information from gradle this field should not be used for this purpose.
      */
-    public final org.gradle.api.Project getProject() {
+    public org.gradle.api.Project getProject() {
         return project;
     }
 
     /**
      * See {@link #ipr(Closure) }
      */
-    public final XmlFileContentMerger getIpr() {
+    public XmlFileContentMerger getIpr() {
         return ipr;
     }
 

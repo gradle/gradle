@@ -439,7 +439,7 @@ public class IdeaModule {
     /**
      * See {@link #iml(Closure)}
      */
-    public final IdeaModuleIml getIml() {
+    public IdeaModuleIml getIml() {
         return iml;
     }
 
@@ -449,7 +449,7 @@ public class IdeaModule {
      * If IdeaModule requires some information from gradle this field should not be used for this purpose.
      * IdeaModule instances should be configured with all necessary information by the plugin or user.
      */
-    public final Project getProject() {
+    public Project getProject() {
         return project;
     }
 

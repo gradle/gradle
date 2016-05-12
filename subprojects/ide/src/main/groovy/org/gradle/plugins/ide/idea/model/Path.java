@@ -39,21 +39,21 @@ public class Path {
     /**
      * The url of the path. Must not be null.
      */
-    public final String getUrl() {
+    public String getUrl() {
         return url;
     }
 
     /**
      * The relative path of the path. Must not be null.
      */
-    public final String getRelPath() {
+    public String getRelPath() {
         return relPath;
     }
 
     /**
      * Canonical url.
      */
-    public final String getCanonicalUrl() {
+    public String getCanonicalUrl() {
         return canonicalUrl;
     }
 

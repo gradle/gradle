@@ -32,7 +32,7 @@ public class FilePath extends Path {
     /**
      * File.
      */
-    public final File getFile() {
+    public File getFile() {
         return file;
     }
 }
