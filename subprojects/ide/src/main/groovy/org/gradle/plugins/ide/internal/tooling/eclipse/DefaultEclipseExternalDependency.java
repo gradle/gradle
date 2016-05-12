@@ -42,14 +42,17 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
         this.moduleVersion = (identifier == null)? null : new DefaultGradleModuleVersion(identifier);
     }
 
+    @Override
     public File getFile() {
         return file;
     }
 
+    @Override
     public File getJavadoc() {
         return javadoc;
     }
 
+    @Override
     public File getSource() {
         return source;
     }
