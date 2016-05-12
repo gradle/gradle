@@ -15,18 +15,29 @@
  */
 
 package org.gradle.internal.component.external.model
+
+import org.apache.ivy.core.module.descriptor.Artifact
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+import org.apache.ivy.core.module.descriptor.ExcludeRule
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.model.DependencyMetaData
+import spock.lang.Ignore
 
+// TODO:DAZ Re-enable this when the de-ivy-fication is complete
+@Ignore
 class DefaultIvyModuleResolveMetaDataTest extends AbstractModuleComponentResolveMetaDataTest {
 
     @Override
     AbstractModuleComponentResolveMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
         moduleDescriptor.getModuleRevisionId() >> IvyUtil.createModuleRevisionId(id)
+        moduleDescriptor.getConfigurationsNames() >> new String[0]
+        moduleDescriptor.getAllArtifacts() >> new Artifact[0]
+        moduleDescriptor.getDependencies() >> new DependencyDescriptor[0]
+        moduleDescriptor.getAllExcludeRules() >> new ExcludeRule[0]
         return new DefaultIvyModuleResolveMetaData(componentIdentifier, moduleDescriptor)
     }
 
