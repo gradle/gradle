@@ -93,8 +93,14 @@ public class DaemonStats {
         } else {
             if (gcMonitor.getGcStrategy() != GarbageCollectorMonitoringStrategy.UNKNOWN) {
                 GarbageCollectionStats tenuredStats = gcMonitor.getTenuredStats();
-                return format("Starting %s build in daemon [uptime: %s, performance: %s%%, GC rate: %.2f/s, tenured heap usage: %s%% of %s]",
-                    NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance(), tenuredStats.getRate(), tenuredStats.getUsage(), NumberUtil.formatBytes(tenuredStats.getMax()));
+                GarbageCollectionStats permgenStats = gcMonitor.getPermGenStats();
+                if (permgenStats.getEventCount() > 0) {
+                    return format("Starting %s build in daemon [uptime: %s, performance: %s%%, GC rate: %.2f/s, tenured heap usage: %s%% of %s, perm gen usage: %s%% of %s]",
+                        NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance(), tenuredStats.getRate(), tenuredStats.getUsage(), NumberUtil.formatBytes(tenuredStats.getMax()), permgenStats.getUsage(), NumberUtil.formatBytes(permgenStats.getMax()));
+                } else {
+                    return format("Starting %s build in daemon [uptime: %s, performance: %s%%, GC rate: %.2f/s, tenured heap usage: %s%% of %s]",
+                        NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance(), tenuredStats.getRate(), tenuredStats.getUsage(), NumberUtil.formatBytes(tenuredStats.getMax()));
+                }
             } else {
                 return format("Starting %s build in daemon [uptime: %s, performance: %s%%]",
                     NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance());

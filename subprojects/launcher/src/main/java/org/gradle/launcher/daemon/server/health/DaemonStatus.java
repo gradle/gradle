@@ -30,6 +30,7 @@ public class DaemonStatus {
     public static final String ENABLE_PERFORMANCE_MONITORING = "org.gradle.daemon.performance.enable-monitoring";
     public static final String TENURED_USAGE_EXPIRE_AT = "org.gradle.daemon.performance.tenured-usage-expire-at";
     public static final String TENURED_RATE_EXPIRE_AT = "org.gradle.daemon.performance.tenured-rate-expire-at";
+    public static final String PERMGEN_USAGE_EXPIRE_AT = "org.gradle.daemon.performance.permgen-usage-expire-at";
 
     private final DaemonStats stats;
 
@@ -40,7 +41,7 @@ public class DaemonStatus {
     boolean isDaemonUnhealthy() {
         String enabledValue = System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true");
         Boolean enabled = Boolean.parseBoolean(enabledValue);
-        return enabled && isTenuredSpaceExhausted();
+        return enabled && (isTenuredSpaceExhausted() || isPermGenSpaceExhausted());
     }
 
     public boolean isTenuredSpaceExhausted() {
@@ -59,6 +60,23 @@ public class DaemonStatus {
             if (gcStats.getEventCount() >= 5
                 && gcStats.getUsage() >= tenuredUsageThreshold
                 && gcStats.getRate() >= tenuredRateThreshold) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isPermGenSpaceExhausted() {
+        GarbageCollectorMonitoringStrategy strategy = stats.getGcMonitor().getGcStrategy();
+        if (strategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
+            int permgenUsageThreshold = parseValue(PERMGEN_USAGE_EXPIRE_AT, strategy.getPermGenUsageThreshold());
+            if (permgenUsageThreshold == 0) {
+                return false;
+            }
+
+            GarbageCollectionStats gcStats = stats.getGcMonitor().getPermGenStats();
+            if (gcStats.getEventCount() >= 5
+                && gcStats.getUsage() >= permgenUsageThreshold) {
                 return true;
             }
         }

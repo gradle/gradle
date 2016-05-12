@@ -26,6 +26,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import static org.gradle.launcher.daemon.server.health.DaemonStatus.PERMGEN_USAGE_EXPIRE_AT
 import static org.gradle.launcher.daemon.server.health.DaemonStatus.TENURED_RATE_EXPIRE_AT
 import static org.gradle.launcher.daemon.server.health.DaemonStatus.TENURED_USAGE_EXPIRE_AT
 
@@ -64,7 +65,7 @@ class DaemonStatusTest extends Specification {
     }
 
     @Unroll
-    def "knows when daemon is tired (#rateThreshold <= #rate, #usageThreshold <= #used)"() {
+    def "knows when tenured space is exhausted (#rateThreshold <= #rate, #usageThreshold <= #used)"() {
         _ * stats.getGcMonitor() >> gcMonitor
         _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
 
@@ -77,6 +78,9 @@ class DaemonStatusTest extends Specification {
                 getRate() >> rate
                 getEventCount() >> 10
             }
+        }
+        gcMonitor.getPermGenStats() >> {
+            Stub(GarbageCollectionStats)
         }
 
         then:
@@ -95,6 +99,36 @@ class DaemonStatusTest extends Specification {
         1.0           | 100            | 1.1  | 100  | true
         1.0           | 75             | 1.1  | 75   | true
         1.0           | 75             | 1.0  | 100  | true
+    }
+
+    @Unroll
+    def "knows when perm gen space is exhausted (#usageThreshold <= #used)"() {
+        _ * stats.getGcMonitor() >> gcMonitor
+        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
+
+        when:
+        System.setProperty(PERMGEN_USAGE_EXPIRE_AT, usageThreshold.toString())
+        gcMonitor.getTenuredStats() >> {
+            Stub(GarbageCollectionStats)
+        }
+        gcMonitor.getPermGenStats() >> {
+            Stub(GarbageCollectionStats) {
+                getUsage() >> used
+                getEventCount() >> 10
+            }
+        }
+
+        then:
+        status.isDaemonUnhealthy() == tired
+
+        where:
+        usageThreshold | used | tired
+        90             | 100  | true
+        90             | 91   | true
+        0              | 0    | false
+        0              | 100  | false
+        100            | 100  | true
+        75             | 75   | true
     }
 
     def "can disable daemon performance monitoring"() {

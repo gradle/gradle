@@ -21,6 +21,8 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.server.health.DaemonStatus
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 import spock.lang.Unroll
 
@@ -115,6 +117,18 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemon.log.contains("Daemon stopping because JVM tenured space is exhausted")
     }
 
+    @Requires([TestPrecondition.JDK7_OR_EARLIER, TestPrecondition.NOT_JDK_IBM])
+    def "when build leaks permgen space daemon is expired"() {
+        when:
+        setupBuildScript = permGenLeak
+        maxBuilds = 20
+        heapSize = "200m"
+        leakRate = 3500
+
+        then:
+        daemonIsExpiredEagerly()
+    }
+
     private boolean daemonIsExpiredEagerly() {
         def dataFile = file("stats")
         setupBuildScript()
@@ -198,6 +212,46 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
                     sleep(750)
                 }
             }
+        """
+    }
+
+    private final Closure permGenLeak = {
+        leakRate.times {
+            file("buildSrc/src/main/java/Generated${it}.java") << """
+                public class Generated${it} { }
+            """
+        }
+        buildFile << """
+            import java.net.URLClassLoader
+
+            class State {
+                static int x
+                static map = [:]
+            }
+            State.x++
+
+            //simulate normal collectible objects
+            4000.times {
+                State.map.put(it, "foo" * 3000)
+            }
+
+            //simulate normal perm gen usage
+            5.times {
+                ClassLoader classLoader1 = new URLClassLoader(buildscript.classLoader.URLs)
+                ${leakRate}.times {
+                    classLoader1.loadClass("Generated\${it}")
+                }
+                State.map.put("CL${it}", classLoader1)
+            }
+
+            //simulate the leak
+            ClassLoader classLoader2 = new URLClassLoader(buildscript.classLoader.URLs)
+            ${leakRate}.times {
+                classLoader2.loadClass("Generated\${it}")
+            }
+            State.map.put(UUID.randomUUID(), classLoader2)
+
+            println "Build: " + State.x
         """
     }
 }

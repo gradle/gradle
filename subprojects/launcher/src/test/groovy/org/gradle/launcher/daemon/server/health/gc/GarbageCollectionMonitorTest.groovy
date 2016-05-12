@@ -33,8 +33,9 @@ class GarbageCollectionMonitorTest extends Specification {
         1 * scheduledExecutorService.scheduleAtFixedRate(_, _, _, _) >> { args ->
             GarbageCollectionCheck check = args[0] as GarbageCollectionCheck
             assert check.garbageCollector == strategy.garbageCollectorName
-            assert check.memoryPools == [ strategy.tenuredPoolName ]
+            assert check.memoryPools == [ strategy.tenuredPoolName, strategy.permGenPoolName ]
             assert check.events.containsKey(strategy.tenuredPoolName)
+            assert check.events.containsKey(strategy.permGenPoolName)
         }
 
         where:

@@ -43,6 +43,7 @@ import org.gradle.launcher.daemon.server.DaemonIdleTimeoutExpirationStrategy;
 import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy;
 import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.LowMemoryDaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.LowPermGenDaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 import org.gradle.process.internal.streams.EncodedStream;
 
@@ -185,6 +186,7 @@ public class DaemonMain extends EntryPoint {
         Builder strategies = ImmutableList.<DaemonExpirationStrategy>builder();
         strategies.add(new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout(), TimeUnit.MILLISECONDS));
         strategies.add(new LowTenuredSpaceDaemonExpirationStrategy(daemonServices.get(DaemonHealthServices.class)));
+        strategies.add(new LowPermGenDaemonExpirationStrategy(daemonServices.get(DaemonHealthServices.class)));
         try {
             strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
                 new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout() / 4, TimeUnit.MILLISECONDS),

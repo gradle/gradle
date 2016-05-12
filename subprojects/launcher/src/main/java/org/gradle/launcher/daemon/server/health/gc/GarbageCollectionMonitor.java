@@ -46,8 +46,11 @@ public class GarbageCollectionMonitor {
         this.gcStrategy = gcStrategy;
 
         if (gcStrategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
-            events = ImmutableMap.<String, SlidingWindow<GarbageCollectionEvent>>of(gcStrategy.getTenuredPoolName(), new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW));
-            pollForValues(gcStrategy.getGarbageCollectorName(), ImmutableList.of(gcStrategy.getTenuredPoolName()));
+            events = ImmutableMap.<String, SlidingWindow<GarbageCollectionEvent>>of(
+                gcStrategy.getTenuredPoolName(), new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW),
+                gcStrategy.getPermGenPoolName(), new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW)
+            );
+            pollForValues(gcStrategy.getGarbageCollectorName(), ImmutableList.of(gcStrategy.getTenuredPoolName(), gcStrategy.getPermGenPoolName()));
         } else {
             events = ImmutableMap.<String, SlidingWindow<GarbageCollectionEvent>>builder().build();
         }
@@ -83,6 +86,10 @@ public class GarbageCollectionMonitor {
 
     public GarbageCollectionStats getTenuredStats() {
         return new GarbageCollectionStats(events.get(gcStrategy.getTenuredPoolName()).snapshot());
+    }
+
+    public GarbageCollectionStats getPermGenStats() {
+        return new GarbageCollectionStats(events.get(gcStrategy.getPermGenPoolName()).snapshot());
     }
 
     public GarbageCollectorMonitoringStrategy getGcStrategy() {
