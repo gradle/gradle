@@ -186,7 +186,6 @@ public class S3Client {
     private String extractDirectoryName(String key) {
         Matcher matcher = DIRNAME_PATTERN.matcher(key);
         if (matcher.find()) {
-            // Add a "/" to differentiate directories from files
             return matcher.group(0);
         }
         return null;
