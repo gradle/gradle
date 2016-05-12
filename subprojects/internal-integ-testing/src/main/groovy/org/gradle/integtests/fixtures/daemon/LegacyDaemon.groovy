@@ -55,6 +55,11 @@ Current state is ${lastLogState}.""")
     }
 
     @Override
+    void changeTokenVisibleToClient() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
     int getPort() {
         throw new UnsupportedOperationException()
     }

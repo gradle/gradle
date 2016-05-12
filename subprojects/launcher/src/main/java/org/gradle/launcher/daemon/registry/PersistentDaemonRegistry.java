@@ -160,7 +160,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     public void store(final DaemonInfo info) {
         final Address address = info.getAddress();
         final DaemonContext daemonContext = info.getContext();
-        final String password = info.getPassword();
+        final byte[] token = info.getToken();
         final boolean idle = info.isIdle();
 
         lock.lock();
@@ -172,7 +172,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                         //it means the registry didn't exist yet
                         oldValue = new DaemonRegistryContent();
                     }
-                    DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, password, idle);
+                    DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, token, idle);
                     oldValue.setStatus(address, daemonInfo);
                     return oldValue;
                 }

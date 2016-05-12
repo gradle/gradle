@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.launcher.daemon.context.DaemonContext
+import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.integtests.fixtures.daemon.AbstractDaemonFixture.State
 
@@ -27,6 +28,12 @@ class DaemonRegistryStateProbe implements DaemonStateProbe {
     DaemonRegistryStateProbe(DaemonRegistry registry, DaemonContext context) {
         this.context = context
         this.registry = registry
+    }
+
+    void resetToken() {
+        def daemonInfo = registry.all.find { it.context.pid == context.pid }
+        registry.remove(daemonInfo.address)
+        registry.store(new DaemonInfo(daemonInfo.address, daemonInfo.context, "password".bytes, daemonInfo.idle))
     }
 
     @Override

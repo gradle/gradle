@@ -96,7 +96,6 @@ public class DaemonServices extends DefaultServiceRegistry {
             ),
             get(DaemonRegistry.class),
             get(DaemonContext.class),
-            "password",
             new DefaultDaemonCommandExecuter(
                 buildActionExecuter,
                 this,

@@ -70,7 +70,7 @@ public class DaemonStopClient {
             }
             try {
                 LOGGER.debug("Requesting daemon {} stop when idle", daemon);
-                stopDispatcher.dispatch(connection, new StopWhenIdle(idGenerator.generateId()));
+                stopDispatcher.dispatch(connection, new StopWhenIdle(idGenerator.generateId(), connection.getDaemon().getToken()));
                 LOGGER.lifecycle("Gradle daemon stopped.");
             } finally {
                 connection.stop();
@@ -100,7 +100,7 @@ public class DaemonStopClient {
             try {
                 if (stopped.add(connection.getDaemon().getUid())) {
                     LOGGER.debug("Requesting daemon {} stop now", connection.getDaemon());
-                    stopDispatcher.dispatch(connection, new Stop(idGenerator.generateId()));
+                    stopDispatcher.dispatch(connection, new Stop(idGenerator.generateId(), connection.getDaemon().getToken()));
                     LOGGER.lifecycle("Gradle daemon stopped.");
                 }
             } finally {

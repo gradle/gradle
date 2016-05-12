@@ -70,11 +70,15 @@ public class DefaultDaemonConnector implements DaemonConnector {
 
     public DaemonClientConnection maybeConnect(DaemonInstanceDetails daemon) {
         try {
-            return connectToDaemon(daemon, new CleanupOnStaleAddress(daemon, true));
+            for (DaemonInfo daemonInfo : daemonRegistry.getAll()) {
+                if (daemonInfo.getUid().equals(daemon.getUid())) {
+                    return connectToDaemon(daemonInfo, new CleanupOnStaleAddress(daemonInfo, true));
+                }
+            }
         } catch (ConnectException e) {
             LOGGER.debug("Cannot connect to daemon {} due to {}. Ignoring.", daemon, e);
-            return null;
         }
+        return null;
     }
 
     public DaemonClientConnection connect(ExplainingSpec<DaemonContext> constraint) {
@@ -143,7 +147,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return null;
     }
 
-    private DaemonClientConnection connectToDaemon(DaemonInstanceDetails daemon, DaemonClientConnection.StaleAddressDetector staleAddressDetector) throws ConnectException {
+    private DaemonClientConnection connectToDaemon(DaemonInfo daemon, DaemonClientConnection.StaleAddressDetector staleAddressDetector) throws ConnectException {
         RemoteConnection<Message> connection;
         try {
             connection = connector.connect(daemon.getAddress()).create(Serializers.stateful(DaemonMessageSerializer.create()));
@@ -155,10 +159,10 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     private class CleanupOnStaleAddress implements DaemonClientConnection.StaleAddressDetector {
-        private final DaemonInstanceDetails daemon;
+        private final DaemonInfo daemon;
         private final boolean exposeAsStale;
 
-        public CleanupOnStaleAddress(DaemonInstanceDetails daemon, boolean exposeAsStale) {
+        public CleanupOnStaleAddress(DaemonInfo daemon, boolean exposeAsStale) {
             this.daemon = daemon;
             this.exposeAsStale = exposeAsStale;
         }

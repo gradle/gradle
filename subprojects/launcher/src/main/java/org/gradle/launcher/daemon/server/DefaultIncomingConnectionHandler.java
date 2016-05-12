@@ -22,6 +22,8 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.remote.internal.Connection;
+import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Command;
@@ -30,9 +32,8 @@ import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
-import org.gradle.internal.remote.internal.Connection;
-import org.gradle.internal.remote.internal.RemoteConnection;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +44,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultIncomingConnectionHandler implements IncomingConnectionHandler, Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DefaultIncomingConnectionHandler.class);
     private final StoppableExecutor workers;
+    private final byte[] token;
     private final DaemonContext daemonContext;
     private final DaemonCommandExecuter commandExecuter;
     private final DaemonStateControl daemonStateControl;
@@ -51,12 +53,13 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
     private final Condition condition = lock.newCondition();
     private final Set<Connection<?>> inProgress = new HashSet<Connection<?>>();
 
-    public DefaultIncomingConnectionHandler(DaemonCommandExecuter commandExecuter, DaemonContext daemonContext, DaemonStateControl daemonStateControl, ExecutorFactory executorFactory) {
+    public DefaultIncomingConnectionHandler(DaemonCommandExecuter commandExecuter, DaemonContext daemonContext, DaemonStateControl daemonStateControl, ExecutorFactory executorFactory, byte[] token) {
         this.commandExecuter = commandExecuter;
         this.daemonContext = daemonContext;
         this.daemonStateControl = daemonStateControl;
         this.executorFactory = executorFactory;
         workers = executorFactory.create("Daemon");
+        this.token = token;
     }
 
     public void handle(final RemoteConnection<Message> connection) {
@@ -151,6 +154,9 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
         private void handleCommand(Command command, DaemonConnection daemonConnection) {
             LOGGER.debug("{}{} with connection: {}.", DaemonMessages.STARTED_EXECUTING_COMMAND, command, connection);
             try {
+                if (!Arrays.equals(command.getToken(), token)) {
+                    throw new BadlyFormedRequestException(String.format("Unexpected authentication token in command %s received from %s", command, connection));
+                }
                 commandExecuter.executeCommand(daemonConnection, command, daemonContext, daemonStateControl);
             } catch (Throwable e) {
                 LOGGER.warn(String.format("Unable to execute command %s from %s. Dispatching the failure to the daemon client", command, connection), e);

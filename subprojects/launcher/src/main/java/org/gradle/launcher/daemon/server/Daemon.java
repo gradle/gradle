@@ -26,6 +26,7 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 
+import java.security.SecureRandom;
 import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -48,7 +49,6 @@ public class Daemon implements Stoppable {
     private final DaemonCommandExecuter commandExecuter;
     private final ScheduledExecutorService scheduledExecutorService;
     private final ExecutorFactory executorFactory;
-    private final String password;
 
     private DaemonStateCoordinator stateCoordinator;
 
@@ -64,11 +64,10 @@ public class Daemon implements Stoppable {
      * @param connector The provider of server connections for this daemon
      * @param daemonRegistry The registry that this daemon should advertise itself in
      */
-    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, String password, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory, ScheduledExecutorService scheduledExecutorService) {
+    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory, ScheduledExecutorService scheduledExecutorService) {
         this.connector = connector;
         this.daemonRegistry = daemonRegistry;
         this.daemonContext = daemonContext;
-        this.password = password;
         this.commandExecuter = commandExecuter;
         this.executorFactory = executorFactory;
         this.scheduledExecutorService = scheduledExecutorService;
@@ -103,7 +102,12 @@ public class Daemon implements Stoppable {
                 throw new IllegalStateException("cannot start daemon as it is already running");
             }
 
-            registryUpdater = new DomainRegistryUpdater(daemonRegistry, daemonContext, password);
+            // Generate an authentication token, which must be provided by the client in any requests it makes
+            SecureRandom secureRandom = new SecureRandom();
+            byte[] token = new byte[16];
+            secureRandom.nextBytes(token);
+
+            registryUpdater = new DomainRegistryUpdater(daemonRegistry, daemonContext, token);
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
@@ -134,7 +138,7 @@ public class Daemon implements Stoppable {
             // 4. advertise presence in registry
 
             stateCoordinator = new DaemonStateCoordinator(executorFactory, onStartCommand, onFinishCommand);
-            connectionHandler = new DefaultIncomingConnectionHandler(commandExecuter, daemonContext, stateCoordinator, executorFactory);
+            connectionHandler = new DefaultIncomingConnectionHandler(commandExecuter, daemonContext, stateCoordinator, executorFactory, token);
             Runnable connectionErrorHandler = new Runnable() {
                 @Override
                 public void run() {

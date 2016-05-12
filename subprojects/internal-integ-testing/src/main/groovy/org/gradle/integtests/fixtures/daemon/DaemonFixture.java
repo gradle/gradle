@@ -40,6 +40,11 @@ public interface DaemonFixture {
     void kill();
 
     /**
+     * Changes the authentication token for this daemon in the registry, so that client will see a different token to that expected by this daemon
+     */
+    void changeTokenVisibleToClient();
+
+    /**
      * Asserts that this daemon becomes idle within a short timeout. Blocks until this has happened.
      */
     void becomesIdle();

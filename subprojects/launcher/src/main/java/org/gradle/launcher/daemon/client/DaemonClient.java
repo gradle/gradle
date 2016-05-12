@@ -114,7 +114,6 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
      */
     public Object execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters parameters, ServiceRegistry contextServices) {
         Object buildId = idGenerator.generateId();
-        Build build = new Build(buildId, action, requestContext.getClient(), requestContext.getBuildTimeClock().getStartTime(), parameters);
         List<DaemonInitialConnectException> accumulatedExceptions = Lists.newArrayList();
 
         int saneNumberOfAttempts = 100; //is it sane enough?
@@ -122,6 +121,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             final DaemonClientConnection connection = connector.connect(compatibilitySpec);
             try {
+                Build build = new Build(buildId, connection.getDaemon().getToken(), action, requestContext.getClient(), requestContext.getBuildTimeClock().getStartTime(), parameters);
                 return executeBuild(build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
             } catch (DaemonInitialConnectException e) {
                 // this exception means that we want to try again.
@@ -133,8 +133,8 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         }
 
         throw new NoUsableDaemonFoundException("Unable to find a usable idle daemon. I have connected to "
-                + saneNumberOfAttempts + " different daemons but I could not use any of them to run build: " + build
-                + ".  BuildActionParameters were " + parameters + ".", accumulatedExceptions);
+                + saneNumberOfAttempts + " different daemons but I could not use any of them to run the build. BuildActionParameters were "
+                + parameters + ".", accumulatedExceptions);
     }
 
     protected Object executeBuild(Build build, DaemonClientConnection connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) throws DaemonInitialConnectException {
@@ -184,7 +184,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
 
     private Object monitorBuild(Build build, DaemonDiagnostics diagnostics, Connection<Message> connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) {
         DaemonClientInputForwarder inputForwarder = new DaemonClientInputForwarder(buildStandardInput, connection, executorFactory);
-        DaemonCancelForwarder cancelForwarder = new DaemonCancelForwarder(connection, cancellationToken, idGenerator);
+        DaemonCancelForwarder cancelForwarder = new DaemonCancelForwarder(connection, cancellationToken);
         try {
             cancelForwarder.start();
             inputForwarder.start();

@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.protocol;
 
-public class StopWhenIdle extends Command {
-    public StopWhenIdle(Object identifier, byte[] token) {
-        super(identifier, token);
-    }
+package org.gradle.launcher.daemon.context;
+
+import org.gradle.internal.remote.Address;
+
+public interface DaemonConnectDetails extends DaemonInstanceDetails {
+    Address getAddress();
+
+    byte[] getToken();
 }

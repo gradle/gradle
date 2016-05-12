@@ -56,7 +56,7 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
         DaemonDir daemonDir = new DaemonDir(daemonDir)
         DaemonRegistry registry = new EmbeddedDaemonRegistry()
         daemonDir.getRegistry().createNewFile()
-        registry.store(new DaemonInfo(address, daemonContext, "password", true))
+        registry.store(new DaemonInfo(address, daemonContext, "password".bytes, true))
         DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy()
 
         when:

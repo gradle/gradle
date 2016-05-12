@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.protocol;
 
-public class StopWhenIdle extends Command {
-    public StopWhenIdle(Object identifier, byte[] token) {
-        super(identifier, token);
+package org.gradle.launcher.daemon.server;
+
+public class BadlyFormedRequestException extends RuntimeException {
+    public BadlyFormedRequestException(String message) {
+        super(message);
     }
 }

@@ -16,15 +16,11 @@
 
 package org.gradle.launcher.daemon.context;
 
-import org.gradle.internal.remote.Address;
-
 /**
- * Some basic meta-data required to identify and connect to a daemon.
+ * Some basic meta-data required to identify a daemon.
  */
 public interface DaemonInstanceDetails {
     String getUid();
-
-    Address getAddress();
 
     Long getPid();
 }

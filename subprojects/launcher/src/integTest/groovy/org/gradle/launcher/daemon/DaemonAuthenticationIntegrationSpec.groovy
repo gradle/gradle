@@ -13,10 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.protocol;
 
-public class StopWhenIdle extends Command {
-    public StopWhenIdle(Object identifier, byte[] token) {
-        super(identifier, token);
+package org.gradle.launcher.daemon
+
+import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+
+class DaemonAuthenticationIntegrationSpec extends DaemonIntegrationSpec {
+    def "daemon discards build request that does not contain correct authentication token"() {
+        when:
+        buildSucceeds()
+
+        then:
+        //there should be one idle daemon
+        def daemon = daemons.daemon
+        daemon.assertIdle()
+
+        when:
+        daemon.changeTokenVisibleToClient()
+
+        then:
+        fails()
+        failure.assertHasDescription("Unexpected authentication token in command")
     }
 }

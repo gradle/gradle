@@ -15,11 +15,23 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
+/**
+ * Represents the initial message sent to the daemon, requesting that the daemon do some work.
+ */
 public class Command extends Message {
     private final Object identifier;
+    private final byte[] token;
 
-    public Command(Object identifier) {
+    public Command(Object identifier, byte[] token) {
         this.identifier = identifier;
+        this.token = token;
+    }
+
+    /**
+     * Returns the authentication token for this command.
+     */
+    public byte[] getToken() {
+        return token;
     }
 
     /**
