@@ -133,7 +133,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
 
     public PatternSet intersect() {
         if(isEmpty()) {
-            return new PatternSet();
+            return new PatternSet(this.patternSpecFactory);
         } else {
             return new IntersectionPatternSet(this);
         }
