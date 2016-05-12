@@ -29,9 +29,5 @@ public interface ModelAdapter {
     @Nullable
     <T> ModelView<? extends T> asMutable(ModelType<T> type, MutableModelNode node, ModelRuleDescriptor ruleDescriptor);
 
-    @Override
-        // must implement logical equality
-    boolean equals(Object other);
-
     Optional<String> getValueDescription(MutableModelNode mutableModelNode);
 }

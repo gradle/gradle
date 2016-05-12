@@ -198,21 +198,11 @@ public class ManagedModelProjection<M> extends TypeCompatibilityModelProjectionS
     }
 
     @Override
-    public boolean equals(Object o) {
-        return this == o || !(o == null || getClass() != o.getClass()) && super.equals(o);
-    }
-
-    @Override
     public Optional<String> getValueDescription(MutableModelNode modelNode) {
         Object instance = modelNode.asImmutable(ModelType.untyped(), null).getInstance();
         if (instance == null || hasDefaultToString(instance)) {
             return Optional.absent();
         }
         return Optional.of(toStringValueDescription(instance));
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
     }
 }

@@ -75,30 +75,6 @@ public class SpecializedModelMapProjection<P, E> implements ModelProjection {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        SpecializedModelMapProjection<?, ?> that = (SpecializedModelMapProjection<?, ?>) o;
-        return publicType.equals(that.publicType) && viewImpl.equals(that.viewImpl);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + publicType.hashCode();
-        result = 31 * result + viewImpl.hashCode();
-        return result;
-    }
-
-    @Override
     public <T> boolean canBeViewedAs(ModelType<T> targetType) {
         return targetType.isAssignableFrom(publicType);
     }

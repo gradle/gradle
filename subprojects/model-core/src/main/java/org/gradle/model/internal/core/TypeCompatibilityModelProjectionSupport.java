@@ -89,24 +89,6 @@ public abstract class TypeCompatibilityModelProjectionSupport<M> implements Mode
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        TypeCompatibilityModelProjectionSupport<?> that = (TypeCompatibilityModelProjectionSupport<?>) o;
-        return type.equals(that.type);
-    }
-
-    @Override
-    public int hashCode() {
-        return type.hashCode();
-    }
-
-    @Override
     public String toString() {
         return getClass().getSimpleName() + "[" + type + "]";
     }

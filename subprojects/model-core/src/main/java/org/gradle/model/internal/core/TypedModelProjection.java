@@ -42,29 +42,4 @@ public class TypedModelProjection<M> extends TypeCompatibilityModelProjectionSup
     protected ModelView<M> toView(MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
         return viewFactory.toView(modelNode, ruleDescriptor, writable);
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        //noinspection EqualsBetweenInconvertibleTypes
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        TypedModelProjection<?> that = (TypedModelProjection<?>) o;
-        return viewFactory.equals(that.viewFactory);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + viewFactory.hashCode();
-        return result;
-    }
 }

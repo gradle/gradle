@@ -144,25 +144,6 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        ModelMapModelProjection<?> that = (ModelMapModelProjection<?>) o;
-
-        return baseItemModelType.equals(that.baseItemModelType);
-    }
-
-    @Override
-    public int hashCode() {
-        return baseItemModelType.hashCode();
-    }
-
-    @Override
     public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
         return Optional.absent();
     }
