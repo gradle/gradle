@@ -18,10 +18,10 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 
-public class DaemonHealthExpirationStrategy implements DaemonExpirationStrategy {
-    final DaemonHealthServices healthServices;
+public class LowTenuredSpaceDaemonExpirationStrategy implements DaemonExpirationStrategy {
+    private final DaemonHealthServices healthServices;
 
-    public DaemonHealthExpirationStrategy(DaemonHealthServices healthServices) {
+    public LowTenuredSpaceDaemonExpirationStrategy(DaemonHealthServices healthServices) {
         this.healthServices = healthServices;
     }
 

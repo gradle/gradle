@@ -43,7 +43,7 @@ class DaemonStatusTest extends Specification {
         _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
 
         when:
-        status.isDaemonTired()
+        status.isDaemonUnhealthy()
 
         then:
         def ex = thrown(GradleException)
@@ -56,7 +56,7 @@ class DaemonStatusTest extends Specification {
         _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
 
         when:
-        status.isDaemonTired()
+        status.isDaemonUnhealthy()
 
         then:
         def ex = thrown(GradleException)
@@ -80,7 +80,7 @@ class DaemonStatusTest extends Specification {
         }
 
         then:
-        status.isDaemonTired() == tired
+        status.isDaemonUnhealthy() == tired
 
         where:
         rateThreshold | usageThreshold | rate | used | tired
@@ -102,6 +102,6 @@ class DaemonStatusTest extends Specification {
         System.setProperty(DaemonStatus.ENABLE_PERFORMANCE_MONITORING, "false")
 
         then:
-        !status.isDaemonTired()
+        !status.isDaemonUnhealthy()
     }
 }

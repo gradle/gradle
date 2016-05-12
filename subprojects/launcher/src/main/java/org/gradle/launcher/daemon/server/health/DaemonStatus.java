@@ -33,7 +33,7 @@ public class DaemonStatus {
         this.stats = stats;
     }
 
-    boolean isDaemonTired() {
+    boolean isDaemonUnhealthy() {
         String enabledValue = System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true");
         Boolean enabled = Boolean.parseBoolean(enabledValue);
         return enabled && isTenuredSpaceExhausted();

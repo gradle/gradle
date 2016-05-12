@@ -38,7 +38,7 @@ import org.gradle.launcher.daemon.server.AllDaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.AnyDaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.DaemonHealthExpirationStrategy;
+import org.gradle.launcher.daemon.server.LowTenuredSpaceDaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.DaemonIdleTimeoutExpirationStrategy;
 import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy;
 import org.gradle.launcher.daemon.server.DaemonServices;
@@ -184,7 +184,7 @@ public class DaemonMain extends EntryPoint {
     private DaemonExpirationStrategy initializeExpirationStrategy(DaemonServices daemonServices, final DaemonServerConfiguration params) {
         Builder strategies = ImmutableList.<DaemonExpirationStrategy>builder();
         strategies.add(new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout(), TimeUnit.MILLISECONDS));
-        strategies.add(new DaemonHealthExpirationStrategy(daemonServices.get(DaemonHealthServices.class)));
+        strategies.add(new LowTenuredSpaceDaemonExpirationStrategy(daemonServices.get(DaemonHealthServices.class)));
         try {
             strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
                 new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout() / 4, TimeUnit.MILLISECONDS),
