@@ -36,13 +36,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class S3Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
-    private static final Pattern FILENAME_PATTERN = Pattern.compile("[^/]+\\.*$");
-    private static final Pattern DIRNAME_PATTERN = Pattern.compile("[^/]+/$");
 
     private AmazonS3Client amazonS3Client;
     private final S3ConnectionProperties s3ConnectionProperties;
@@ -134,70 +130,13 @@ public class S3Client {
                 .withMaxKeys(1000)
                 .withDelimiter("/");
         ObjectListing objectListing = amazonS3Client.listObjects(listObjectsRequest);
-        results.addAll(resolveResourceNames(objectListing));
+        results.addAll(S3ResourceResolver.resolveResourceNames(objectListing));
 
         while (objectListing.isTruncated()) {
             objectListing = amazonS3Client.listNextBatchOfObjects(objectListing);
-            results.addAll(resolveResourceNames(objectListing));
+            results.addAll(S3ResourceResolver.resolveResourceNames(objectListing));
         }
         return results;
-    }
-
-    private List<String> resolveResourceNames(ObjectListing objectListing) {
-        List<String> results = new ArrayList<String>();
-
-        results.addAll(resolveFileResourceNames(objectListing));
-        results.addAll(resolveDirectoryResourceNames(objectListing));
-
-        return results;
-    }
-
-    private List<String> resolveFileResourceNames(ObjectListing objectListing) {
-        List<String> results = new ArrayList<String>();
-        List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
-        if (null != objectSummaries) {
-            for (S3ObjectSummary objectSummary : objectSummaries) {
-                String key = objectSummary.getKey();
-                String fileName = extractResourceName(key);
-                if (null != fileName) {
-                    results.add(fileName);
-                }
-            }
-        }
-
-        return results;
-    }
-
-    private List<String> resolveDirectoryResourceNames(ObjectListing objectListing) {
-        List<String> results = new ArrayList<String>();
-        List<String> commonPrefixes = objectListing.getCommonPrefixes();
-        if(null != commonPrefixes) {
-            for(String prefix : commonPrefixes) {
-                String dirName = extractDirectoryName(prefix);
-                if(null != dirName) {
-                    results.add(dirName);
-                }
-            }
-        }
-
-        return results;
-    }
-
-    private String extractDirectoryName(String key) {
-        Matcher matcher = DIRNAME_PATTERN.matcher(key);
-        if (matcher.find()) {
-            return matcher.group(0);
-        }
-        return null;
-    }
-
-    private String extractResourceName(String key) {
-        Matcher matcher = FILENAME_PATTERN.matcher(key);
-        if (matcher.find()) {
-            String group = matcher.group(0);
-            return group.contains(".") ? group : null;
-        }
-        return null;
     }
 
     private S3Object doGetS3Object(URI uri, boolean isLightWeight) {
