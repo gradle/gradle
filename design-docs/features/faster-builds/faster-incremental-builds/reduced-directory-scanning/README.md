@@ -207,6 +207,20 @@ have been executed.
   2. Only those input file collections that are inputs for several tasks should be kept in cache until all
 tasks using the inputs have executed.
 
+#### Storing output and input snapshots isn't yet shared in all cases
+
+The problem is that the output doesn't have a filtering pattern and 
+the input usually does. There is a solution in place to refer to the 
+snapshot directly when the filtered result is the same as the
+unfiltered. However this usually doesn't happen since the unfiltered
+result would also contain the directories and the filtered wouldn't.
+
+### Improvement: Improve pre-check hash calculation performance
+
+The pre-check hash calculation should calculate the pre-check hash for
+each tree snapshot and combine the result of the tree snapshot hashes.
+The result of the tree snapshot hashes can be cached and shared.
+
 ### Improvement: Add caching for visiting configurations
 
 Configurations can be considered immutable after they have been resolved. File visiting of configurations should be cached
@@ -226,7 +240,8 @@ The story implements cache invalidation strategy that makes it possible to reuse
 
 ### Incremental build reuses directory scanning results for task inputs
 
-The story adds reusing of directory scanning results for calls to `TaskInputs.getFiles()` or `TaskInputs.getSourceFiles()`.
+The story adds reusing of directory scanning results for input file collections used in task inputs.
+Currently the directories are scanned again when the files are listed in task execution.
 
 ### Improvement: minimize File.isDirectory, File.lastModified and File.length calls for resolved artifacts
 
