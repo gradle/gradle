@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor
+
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
@@ -66,10 +66,7 @@ class ProjectDependencyResolverTest extends Specification {
 
     def "doesn't try to resolve non-project dependency"() {
         def result = Mock(BuildableComponentIdResolveResult)
-        def dependencyDescriptor = Stub(DependencyDescriptor)
-        def dependencyMetaData = Stub(DependencyMetaData) {
-            getDescriptor() >> dependencyDescriptor
-        }
+        def dependencyMetaData = Stub(DependencyMetaData)
 
         when:
         resolver.resolve(dependencyMetaData, result)

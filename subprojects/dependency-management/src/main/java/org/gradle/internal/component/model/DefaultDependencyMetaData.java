@@ -213,10 +213,6 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return dynamicConstraintVersion;
     }
 
-    public DependencyDescriptor getDescriptor() {
-        throw new UnsupportedOperationException();
-    }
-
     public Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration) {
         Set<String> includedConfigurations = fromConfiguration.getHierarchy();
         Set<ComponentArtifactMetaData> artifacts = Sets.newLinkedHashSet();
