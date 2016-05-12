@@ -9,7 +9,7 @@ For all non-trivial changes that modify the behavior or public API:
 - [ ] Before submitting a pull request, I started a discussion on the
 [Gradle developer list](https://groups.google.com/forum/#!forum/gradle-dev)
 or can reference a [JIRA issue](https://issues.gradle.org/secure/Dashboard.jspa).
-- [ ] I considered writing a design document. A design document can be
+- [ ] I wrote a design document. A design document can be
 brief but explains the use case or problem you are trying to solve,
 touches on the planned implementation approach as well as the test cases
 that verify the behavior. Optimally, design documents should be submitted
