@@ -98,6 +98,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 -->
 
 ## Potential breaking changes
+
 ### Sonar plugin has been removed
 
 The legacy Sonar plugin has been removed from the distribution. It is superceded by the official plugin from SonarQube (http://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle).
@@ -130,6 +131,7 @@ references to the following deprecated configuration properties:
 * Removed `LoggingManager.setLevel()`. It is now not possible to change the log level during the execution of a task.
   If you were using this method to expose Ant logging messages, please use `AntBuilder.setLifecycleLogLevel()` instead.
 * Removed `AntScalaCompiler` in favor of `ZincScalaCompiler`.
+* Removed `EclipseClasspath.noExportConfigurations` property.
 
 ## External contributions
 
