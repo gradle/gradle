@@ -100,6 +100,7 @@ public class DefaultIdeaModule implements Serializable, GradleProjectIdentity {
         return this;
     }
 
+    @Override
     public String getPath() {
         return gradleProject.getPath();
     }

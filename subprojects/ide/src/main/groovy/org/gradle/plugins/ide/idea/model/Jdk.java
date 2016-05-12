@@ -49,10 +49,6 @@ public class Jdk {
         this.projectJdkName = projectJdkName;
     }
 
-    public boolean getAssertKeyword() {
-        return assertKeyword;
-    }
-
     public boolean isAssertKeyword() {
         return assertKeyword;
     }
@@ -89,6 +85,7 @@ public class Jdk {
         this.projectJdkName = projectJdkName;
     }
 
+    @Override
     public String toString() {
         return "Jdk{"
             + "assertKeyword=" + assertKeyword
@@ -98,6 +95,7 @@ public class Jdk {
             + "\'" + "}";
     }
 
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -112,15 +110,11 @@ public class Jdk {
         if (jdk15 != jdk.jdk15) {
             return false;
         }
-        if (!Objects.equal(languageLevel, jdk.languageLevel)) {
-            return false;
-        }
-        if (!Objects.equal(projectJdkName, jdk.projectJdkName)) {
-            return false;
-        }
-        return true;
+        return Objects.equal(languageLevel, jdk.languageLevel)
+            && Objects.equal(projectJdkName, jdk.projectJdkName);
     }
 
+    @Override
     public int hashCode() {
         int result = 0;
         result = 31 * result + (assertKeyword ? 1 : 0);

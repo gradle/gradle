@@ -1,0 +1,12 @@
+/**
+ * Process execution abstractions.
+ */
+
+dependencies {
+    compile project(':baseServices')
+
+    testCompile libraries.groovy
+}
+
+useTestFixtures()
+//useClassycle()

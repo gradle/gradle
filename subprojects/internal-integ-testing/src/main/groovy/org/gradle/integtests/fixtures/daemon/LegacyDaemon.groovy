@@ -50,6 +50,16 @@ Current state is ${lastLogState}.""")
     }
 
     @Override
+    String getLog() {
+        return logFileProbe.log
+    }
+
+    @Override
+    void changeTokenVisibleToClient() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
     int getPort() {
         throw new UnsupportedOperationException()
     }

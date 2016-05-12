@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.file
 
+import org.gradle.api.JavaVersion
 import org.objectweb.asm.*
 
 class ClassFile {
@@ -61,6 +62,10 @@ class ClassFile {
         } finally {
             inputStream.close()
         }
+    }
+
+    JavaVersion getJavaVersion() {
+        return JavaVersion.forClassVersion(classFileVersion)
     }
 
     boolean getDebugIncludesSourceFile() {

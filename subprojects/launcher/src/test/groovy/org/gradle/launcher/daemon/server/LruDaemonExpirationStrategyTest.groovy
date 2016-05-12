@@ -78,7 +78,7 @@ class LruDaemonExpirationStrategyTest extends Specification {
         DaemonContext context = Mock(DaemonContext) {
             _ * getPid() >> { id }
         }
-        DaemonInfo info = new DaemonInfo(daemonAddress, context, "password", false, new MockTimeProvider(lastIdleTime))
+        DaemonInfo info = new DaemonInfo(daemonAddress, context, "password".bytes, false, new MockTimeProvider(lastIdleTime))
         info.setIdle(idle)
         registry.store(info)
         return info

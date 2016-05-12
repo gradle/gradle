@@ -16,11 +16,11 @@
 
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
+import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 
 /**
  * Notified when a daemon is started.
  */
 public interface DaemonStartListener {
-    void daemonStarted(DaemonInstanceDetails daemonInfo);
+    void daemonStarted(DaemonConnectDetails daemonInfo);
 }

@@ -22,17 +22,16 @@ import org.gradle.model.internal.core.*;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 public class ProjectionOnlyNodeInitializer implements NodeInitializer {
+    private final ModelProjection[] projections;
 
-    private final ModelProjection projection;
-
-    public ProjectionOnlyNodeInitializer(ModelProjection projection) {
-        this.projection = projection;
+    public ProjectionOnlyNodeInitializer(ModelProjection... projections) {
+        this.projections = projections;
     }
 
     @Override
     public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
         return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
-            .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor, projection))
+            .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor, projections))
             .build();
     }
 }

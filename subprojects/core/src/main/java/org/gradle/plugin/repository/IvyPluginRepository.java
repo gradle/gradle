@@ -36,7 +36,7 @@ public interface IvyPluginRepository extends PluginRepository, AuthenticationSup
     /**
      * Sets the base URL of this repository. This URL is used to find Gradle plugins.
      *
-     * <p>The provided value is evaluated as per {@link org.gradle.api.Project#uri(Object)}. This
+     * <p>The provided value is evaluated relative to the build's directory. This
      * means, for example, you can pass in a {@code File} object, or a relative path to be
      * evaluated relative to the directory of the {@code settings.gradle} file in which this
      * repository is declared.

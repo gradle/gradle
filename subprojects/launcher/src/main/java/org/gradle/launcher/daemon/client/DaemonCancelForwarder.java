@@ -20,9 +20,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.id.IdGenerator;
-import org.gradle.launcher.daemon.protocol.Cancel;
 import org.gradle.internal.dispatch.Dispatch;
+import org.gradle.launcher.daemon.protocol.Cancel;
 
 public class DaemonCancelForwarder implements Stoppable {
     private static final Logger LOGGER = Logging.getLogger(DaemonCancelForwarder.class);
@@ -30,12 +29,12 @@ public class DaemonCancelForwarder implements Stoppable {
     private final Runnable cancellationCallback;
     private final BuildCancellationToken cancellationToken;
 
-    public DaemonCancelForwarder(final Dispatch<? super Cancel> dispatch, BuildCancellationToken cancellationToken, final IdGenerator<?> idGenerator) {
+    public DaemonCancelForwarder(final Dispatch<? super Cancel> dispatch, BuildCancellationToken cancellationToken) {
         this.cancellationToken = cancellationToken;
         cancellationCallback = new Runnable() {
             public void run() {
                 LOGGER.info("Request daemon to cancel build...");
-                dispatch.dispatch(new Cancel(idGenerator.generateId()));
+                dispatch.dispatch(new Cancel());
             }
         };
     }

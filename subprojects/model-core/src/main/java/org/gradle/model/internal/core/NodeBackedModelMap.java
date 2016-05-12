@@ -18,7 +18,12 @@ package org.gradle.model.internal.core;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -30,11 +35,16 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.inspect.ModelElementProjection;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 import org.gradle.model.internal.type.ModelType;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.model.internal.core.NodeInitializerContext.forExtensibleType;
@@ -64,31 +74,20 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     private final ModelType<T> elementType;
     private final ModelRuleDescriptor sourceDescriptor;
     private final MutableModelNode modelNode;
-    private final String description;
     private final ModelViewState viewState;
     private final ChildNodeInitializerStrategy<? super T> creatorStrategy;
     private final ElementFilter elementFilter;
+    private final ModelType<?> publicType;
 
-    @SuppressWarnings("unused")
-    // Called via Instantiator
-    public NodeBackedModelMap(String description, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
+    // Note: used by generated subtypes
+    public NodeBackedModelMap(ModelType<?> publicType, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
                               ModelViewState viewState, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
-        this(description, elementType, sourceDescriptor, modelNode, viewState, NO_PARENT, creatorStrategy);
+        this(publicType, elementType, sourceDescriptor, modelNode, viewState, NO_PARENT, creatorStrategy);
     }
 
-    public NodeBackedModelMap(ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
-                              ModelViewState viewState, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
-        this(derivedDescription(modelNode, elementType), elementType, sourceDescriptor, modelNode, viewState, NO_PARENT, creatorStrategy);
-    }
-
-    private NodeBackedModelMap(ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
+    private NodeBackedModelMap(ModelType<?> publicType, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
                                ModelViewState viewState, ElementFilter parentFilter, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
-        this(derivedDescription(modelNode, elementType), elementType, sourceDescriptor, modelNode, viewState, parentFilter, creatorStrategy);
-    }
-
-    private NodeBackedModelMap(String description, ModelType<T> elementType, ModelRuleDescriptor sourceDescriptor, MutableModelNode modelNode,
-                               ModelViewState viewState, ElementFilter parentFilter, ChildNodeInitializerStrategy<? super T> creatorStrategy) {
-        this.description = description;
+        this.publicType = publicType;
         this.viewState = viewState;
         this.creatorStrategy = creatorStrategy;
         this.elementType = elementType;
@@ -124,7 +123,8 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
                     public Multimap<ModelActionRole, ModelAction> getActions(ModelReference<?> subject, ModelRuleDescriptor descriptor) {
                         return ImmutableSetMultimap.<ModelActionRole, ModelAction>builder()
                             .put(ModelActionRole.Discover, AddProjectionsAction.of(subject, descriptor,
-                                UnmanagedModelProjection.of(type)
+                                UnmanagedModelProjection.of(type),
+                                new ModelElementProjection(type)
                             ))
                             .put(ModelActionRole.Create, DirectNodeNoInputsModelAction.of(subject, descriptor, new Action<MutableModelNode>() {
                                 @Override
@@ -147,6 +147,11 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
             new ModelType.Parameter<I>() {
             }, type
         ).build();
+    }
+
+    @Override
+    public String getName() {
+        return modelNode.getPath().getName();
     }
 
     @Override
@@ -330,13 +335,14 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     @Nullable
     @Override
     public T get(String name) {
-        viewState.assertCanReadChild(name);
-
         // TODO - lock this down
         MutableModelNode link = modelNode.getLink(name);
         if (link == null) {
             return null;
         }
+
+        viewState.assertCanReadChild(name);
+
         link.ensureUsable();
         if (!elementFilter.apply(link)) {
             return null;
@@ -389,12 +395,8 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
     }
 
     @Override
-    public String toString() {
-        return description;
-    }
-
-    private static String derivedDescription(ModelNode modelNode, ModelType<?> elementType) {
-        return ModelMap.class.getSimpleName() + '<' + elementType.getDisplayName() + "> '" + modelNode.getPath() + "'";
+    public String getDisplayName() {
+        return publicType.getDisplayName() + " '" + modelNode.getPath() + "'";
     }
 
     @Override
@@ -446,7 +448,7 @@ public class NodeBackedModelMap<T> extends ModelMapGroovyView<T> implements Mana
         }
 
         ChildNodeInitializerStrategy<S> creatorStrategy1 = uncheckedCast(this.creatorStrategy);
-        return new NodeBackedModelMap<S>(type, sourceDescriptor, modelNode, viewState, elementFilter, creatorStrategy1);
+        return new NodeBackedModelMap<S>(publicType, type, sourceDescriptor, modelNode, viewState, elementFilter, creatorStrategy1);
     }
 
     @Override

@@ -19,6 +19,7 @@ package org.gradle.model.internal.core;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.model.ModelViewClosedException;
+import org.gradle.model.ReadOnlyModelViewException;
 import org.gradle.model.WriteOnlyModelViewException;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
@@ -56,8 +57,11 @@ public class DefaultModelViewState implements ModelViewState {
 
     @Override
     public void assertCanMutate() {
-        if (!mutable || closed) {
-            throw new ModelViewClosedException(type, ruleDescriptor);
+        if (closed) {
+            throw new ModelViewClosedException(path, type, ruleDescriptor);
+        }
+        if (!mutable) {
+            throw new ReadOnlyModelViewException(path, type, ruleDescriptor);
         }
     }
 
@@ -78,5 +82,9 @@ public class DefaultModelViewState implements ModelViewState {
     @Override
     public boolean isCanMutate() {
         return mutable && !closed;
+    }
+
+    public boolean isClosed() {
+        return closed;
     }
 }

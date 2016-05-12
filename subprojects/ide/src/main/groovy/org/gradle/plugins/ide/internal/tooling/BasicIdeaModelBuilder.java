@@ -27,10 +27,12 @@ public class BasicIdeaModelBuilder implements ToolingModelBuilder {
         this.ideaModelBuilder = ideaModelBuilder;
     }
 
+    @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.idea.BasicIdeaProject");
     }
 
+    @Override
     public DefaultIdeaProject buildAll(String modelName, Project project) {
         return ideaModelBuilder
                 .setOfflineDependencyResolution(true)

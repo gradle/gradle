@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 
 public class JvmVersionValidator {

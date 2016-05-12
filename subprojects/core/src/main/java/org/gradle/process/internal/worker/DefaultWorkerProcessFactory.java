@@ -23,7 +23,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.remote.MessagingServer;
-import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 
 import java.io.File;
@@ -33,12 +33,12 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private final MessagingServer server;
     private final IdGenerator<?> idGenerator;
     private final File gradleUserHomeDir;
-    private final ExecHandleFactory execHandleFactory;
+    private final JavaExecHandleFactory execHandleFactory;
     private final ApplicationClassesInSystemClassLoaderWorkerFactory workerFactory;
     private int connectTimeoutSeconds = 120;
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<?> idGenerator,
-                                       File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, ExecHandleFactory execHandleFactory) {
+                                       File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
         this.idGenerator = idGenerator;

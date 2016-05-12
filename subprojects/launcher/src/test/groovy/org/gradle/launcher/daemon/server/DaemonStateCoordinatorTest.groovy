@@ -328,6 +328,30 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         0 * _._
     }
 
+    def "multiple stop requests are handled cleanly"() {
+        Runnable command = Mock()
+
+        when:
+        coordinator.runCommand(command, "some command")
+
+        then:
+        1 * command.run() >> {
+            assert coordinator.busy
+            coordinator.requestStop()
+            assert coordinator.busy
+            coordinator.requestStop()
+            assert coordinator.busy
+            coordinator.requestStop()
+            assert coordinator.busy
+        }
+
+        and:
+        coordinator.stopped
+
+        and:
+        1 * onStartCommand.run()
+    }
+
     def "requestStop stops when command fails"() {
         Runnable command = Mock()
         RuntimeException failure = new RuntimeException()

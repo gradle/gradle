@@ -18,7 +18,7 @@ package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.FileResolver;
 
-public class DefaultExecActionFactory implements ExecActionFactory, ExecHandleFactory {
+public class DefaultExecActionFactory implements ExecActionFactory, ExecHandleFactory, JavaExecHandleFactory {
     private final FileResolver fileResolver;
 
     public DefaultExecActionFactory(FileResolver fileResolver) {
@@ -37,7 +37,7 @@ public class DefaultExecActionFactory implements ExecActionFactory, ExecHandleFa
 
     @Override
     public ExecHandleBuilder newExec() {
-        return new ExecHandleBuilder(fileResolver);
+        return new DefaultExecHandleBuilder(fileResolver);
     }
 
     @Override

@@ -60,6 +60,7 @@ import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -80,6 +81,7 @@ import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.extract.*;
 import org.gradle.process.internal.DefaultExecActionFactory;
+import org.gradle.process.internal.ExecHandleFactory;
 
 import java.util.List;
 
@@ -149,6 +151,10 @@ public class GlobalScopeServices {
 
     PluginModuleRegistry createPluginModuleRegistry(ModuleRegistry moduleRegistry) {
         return new DefaultPluginModuleRegistry(moduleRegistry);
+    }
+
+    JvmVersionDetector createJvmVersionDetector(ExecHandleFactory execHandleFactory) {
+        return new JvmVersionDetector(execHandleFactory);
     }
 
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager) {

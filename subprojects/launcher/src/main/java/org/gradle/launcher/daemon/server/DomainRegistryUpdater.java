@@ -19,11 +19,11 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.remote.Address;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.internal.remote.Address;
 
 class DomainRegistryUpdater implements Stoppable {
 
@@ -31,13 +31,13 @@ class DomainRegistryUpdater implements Stoppable {
 
     private final DaemonRegistry daemonRegistry;
     private final DaemonContext daemonContext;
-    private final String password;
+    private final byte[] token;
     private Address connectorAddress;
 
-    public DomainRegistryUpdater(DaemonRegistry daemonRegistry, DaemonContext daemonContext, String password) {
+    public DomainRegistryUpdater(DaemonRegistry daemonRegistry, DaemonContext daemonContext, byte[] token) {
         this.daemonRegistry = daemonRegistry;
         this.daemonContext = daemonContext;
-        this.password = password;
+        this.token = token;
     }
 
     public void onStartActivity() {
@@ -62,7 +62,7 @@ class DomainRegistryUpdater implements Stoppable {
         LOGGER.info("{}{}", DaemonMessages.ADVERTISING_DAEMON, connectorAddress);
         LOGGER.debug("Advertised daemon context: {}", daemonContext);
         this.connectorAddress = connectorAddress;
-        daemonRegistry.store(new DaemonInfo(connectorAddress, daemonContext, password, false));
+        daemonRegistry.store(new DaemonInfo(connectorAddress, daemonContext, token, false));
     }
 
     public void stop() {

@@ -20,6 +20,7 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.server.health.DaemonStatus
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Ignore
 import spock.lang.Unroll
 
@@ -85,6 +86,29 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
         !daemonIsExpiredEagerly()
     }
 
+    def "when leak occurs while daemon is idle daemon is still expired"() {
+        heapSize = "200m"
+        leakRate = 1000
+
+        when:
+        leaksWhenIdle()
+        executer.withArguments("-Dorg.gradle.daemon.healthcheckinterval=2000")
+        executer.withBuildJvmOpts("-D${DaemonStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
+        executer.noExtraLogging()
+        run()
+
+        then:
+        daemons.daemon.assertIdle()
+
+        and:
+        String logText = daemons.daemon.log
+        ConcurrentTestUtil.poll(20) {
+            println daemons.daemon.log - logText
+            logText = daemons.daemon.log
+            daemons.daemon.assertStopped()
+        }
+    }
+
     private boolean daemonIsExpiredEagerly() {
         def dataFile = file("stats")
         setupBuildScript()
@@ -140,6 +164,33 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
             //simulate normal collectible objects
             5000.times {
                 map.put(it, "foo" * ${leakRate})
+            }
+        """
+    }
+
+    private final Closure leaksWhenIdle = {
+        buildFile << """
+            class State {
+                static int x
+                static map = [:]
+            }
+            State.x++
+
+            new Thread().start {
+                while (true) {
+                    logger.warn "leaking some heap"
+
+                    //simulate normal collectible objects
+                    5000.times {
+                        State.map.put(it, "foo" * ${leakRate})
+                    }
+
+                    //simulate the leak
+                    1000.times {
+                        State.map.put(UUID.randomUUID(), "foo" * ${leakRate})
+                    }
+                    sleep(500)
+                }
             }
         """
     }

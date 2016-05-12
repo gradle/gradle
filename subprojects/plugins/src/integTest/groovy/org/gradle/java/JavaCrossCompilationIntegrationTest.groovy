@@ -21,13 +21,18 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.internal.jvm.JavaInfo
+import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.TextUtil
 import org.junit.Assume
 
-@TargetVersions(["1.5", "1.6", "1.7", "1.8"])
+@TargetVersions(["1.6", "1.7", "1.8"])
 class JavaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
-    def JavaInfo getTarget() {
-        return AvailableJavaHomes.getJdk(JavaVersion.toVersion(version))
+    JavaVersion getJavaVersion() {
+        JavaVersion.toVersion(version)
+    }
+
+    JavaInfo getTarget() {
+        return AvailableJavaHomes.getJdk(javaVersion)
     }
 
     def setup() {
@@ -53,6 +58,10 @@ tasks.withType(Javadoc) {
 tasks.withType(Test) {
     executable = "$java"
 }
+tasks.withType(JavaExec) {
+    executable = "$java"
+}
+
 """
 
         file("src/main/java/Thing.java") << """
@@ -81,6 +90,8 @@ public class ThingTest {
 
         expect:
         succeeds 'test'
+        new ClassFile(file("build/classes/main/Thing.class")).javaVersion == javaVersion
+        new ClassFile(file("build/classes/test/ThingTest.class")).javaVersion == javaVersion
     }
 
     def "can compile source and run TestNG tests using target Java version"() {
@@ -102,6 +113,28 @@ public class ThingTest {
 
         expect:
         succeeds 'test'
+    }
+
+    def "can build and run application using target Java version"() {
+        given:
+        buildFile << """
+apply plugin: 'application'
+mainClassName = 'Main'
+"""
+
+        file("src/main/java/Main.java") << """
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("java home: " + System.getProperty("java.home"));
+        System.out.println("java version: " + System.getProperty("java.version"));
+    }
+}
+"""
+
+        expect:
+        succeeds 'run'
+        output.contains("java home: ${target.javaHome}")
+        output.contains("java version: ${version}")
     }
 
     def "can generate Javadocs using target Java version"() {

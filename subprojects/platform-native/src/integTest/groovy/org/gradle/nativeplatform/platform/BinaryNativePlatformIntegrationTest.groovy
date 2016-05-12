@@ -91,7 +91,7 @@ model {
         }
     }
     components {
-        main.targetPlatform "x86"
+        main { targetPlatform "x86" }
     }
 }
 """
@@ -285,7 +285,7 @@ model {
         }
     }
     components {
-        main.targetPlatform "$currentOs"
+        main { targetPlatform "$currentOs" }
     }
     binaries {
         all {
@@ -322,7 +322,7 @@ model {
         }
     }
     components {
-        main.targetPlatform 'unavailable'
+        main { targetPlatform 'unavailable' }
     }
 }
 """
@@ -352,7 +352,7 @@ model {
         main
     }
     components {
-        main.targetPlatform "unknown"
+        main { targetPlatform "unknown" }
     }
 }
 """

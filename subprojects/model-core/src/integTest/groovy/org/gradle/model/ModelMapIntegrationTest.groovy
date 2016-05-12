@@ -23,6 +23,79 @@ import org.gradle.platform.base.ComponentSpec
 import spock.lang.Issue
 
 class ModelMapIntegrationTest extends AbstractIntegrationSpec {
+    def "provides basic meta-data for map"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Thing {
+            }
+
+            class Rules extends RuleSource {
+              @Model
+              void things(ModelMap<Thing> things) {
+              }
+            }
+
+            apply type: Rules
+
+            model {
+              tasks {
+                create("print") {
+                  doLast {
+                    def things = $.things
+                    println "name: $things.name"
+                    println "display-name: $things.displayName"
+                    println "to-string: ${things.toString()}"
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "print"
+
+        and:
+        output.contains "name: things"
+        output.contains "display-name: ModelMap<Thing> 'things'"
+        output.contains "to-string: ModelMap<Thing> 'things'"
+    }
+
+    def "can view as ModelElement"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Thing {
+            }
+
+            class Rules extends RuleSource {
+              @Model
+              void things(ModelMap<Thing> things) {
+              }
+              @Mutate
+              void tasks(ModelMap<Task> tasks, @Path("things") ModelElement things) {
+                tasks.create("print") {
+                  doLast {
+                    println "name: $things.name"
+                    println "display-name: $things.displayName"
+                    println "to-string: ${things.toString()}"
+                  }
+                }
+              }
+            }
+
+            apply type: Rules
+        '''
+
+        then:
+        succeeds "print"
+
+        and:
+        output.contains "name: things"
+        output.contains "display-name: ModelMap<Thing> 'things'"
+        output.contains "to-string: ModelMap<Thing> 'things'"
+    }
+
     def "cannot add unregistered type to specialized model map"() {
         buildFile << """
         @Managed interface SampleComponent extends ComponentSpec {}
@@ -259,6 +332,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     def "reasonable error message when trying to create unknown type in ModelMap"() {
         buildFile << """
             @Managed interface Thing {}
+            interface UnknownThing {}
 
             class Rules extends RuleSource {
                 @Model
@@ -275,6 +349,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "model"
-        failureHasCause "Attempt to read property 'UnknownThing' from a write only view of model element 'things' given to rule 'things { ... } @ build.gradle line 11, column 17"
+        failureHasCause "Exception thrown while executing model rule: things { ... } @ build.gradle line 12, column 17"
+        failureHasCause "Cannot create 'things.thing' with type 'UnknownThing' as this is not a subtype of 'Thing'."
     }
 }

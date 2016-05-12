@@ -243,18 +243,18 @@ plugins {
         <para>
             By default, the <code>plugins {}</code> DSL resolves plugins from the public <ulink url="https://plugins.gradle.org">Gradle Plugin Portal.</ulink>
             Many build authors would also like to resolve plugins from private Maven or Ivy repositories because the plugins contain proprietary implementation
-            details, or just to have more control over the exact details of what plugins are applied to their builds.
+            details, or just to have more control over what plugins are available to their builds.
         </para>
         <para>
-            To specify custom plugin repositories, add a <code>pluginRepositories {}</code> block to te <code>settings.gradle</code> file:
+            To specify custom plugin repositories, add a <code>pluginRepositories {}</code> block to the <code>settings.gradle</code> file:
         </para>
         <sample id="customPluginRepositories" dir="plugins/consuming" title="Using plugins from custom plugin repositories.">
             <sourcefile file="settings.gradle" snippet="custom-plugin-repositories" />
         </sample>
         <para>
-            This tells Gradle to first look in the Maven repository at <literal>../maven-repo</literal> when resolving plugins and then to
+            This tells Gradle to first look in the Maven repository at <literal>maven-repo</literal> when resolving plugins and then to
             check the Gradle Plugin Portal if the plugins are not found in the Maven repository. If you don't want the Gradle Plugin Portal to be searched,
-            omit the <code>gradlePluginPortal()</code> line. Finally, the Ivy repository at <literal>../ivy-repo</literal> will be checked.
+            omit the <code>gradlePluginPortal()</code> line. Finally, the Ivy repository at <literal>ivy-repo</literal> will be checked.
         </para>
         <para>
             The <code>pluginRepositories {}</code> block may only appear in the <code>settings.gradle</code> file, and must be the first block in the file.
@@ -270,9 +270,10 @@ plugins {
         <title>Plugin Marker Artifacts</title>
         <para>
             Since the <code>plugins {}</code> DSL block only allows for declaring plugins by their globally unique plugin <literal>id</literal> and
-            <literal>version</literal> properties, we need to provide a way for normal Maven or Ivy plugin resolution to find the plugin implementation
-            artifact which holds the logic of a plugin. Gradle will look for a <emphasis>Plugin Marker Artifact</emphasis> which is simply an artifact
-            in that repository which has a single dependency on the artifact which holds the implementation of the plugin logic.
+            <literal>version</literal> properties, Gradle needs a way to look up the coordinates of the plugin implementation artifact. To do so,
+            Gradle will look for a Plugin Marker Artifact with the coordinates <literal>plugin.id:plugin.id.gradle.plugin:plugin.version</literal>.
+            This marker needs to have a dependency on the actual plugin implementation. Publishing these markers is automated by the
+            <link linkend="javaGradle_plugin">java-gradle-plugin</link>.
         </para>
         <para>
             For example, the following complete sample from the <literal>sample-plugins</literal> project shows how to publish a

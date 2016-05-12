@@ -75,6 +75,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         protected void execute(ModelRuleInvoker<?> invoker, final T binary, List<ModelView<?>> inputs) {
             NamedEntityInstantiator<Task> taskFactory = Cast.uncheckedCast(ModelViews.getInstance(inputs.get(0), TASK_FACTORY));
             ModelMap<Task> cast = DomainObjectCollectionBackedModelMap.wrap(
+                    "tasks",
                     Task.class,
                     binary.getTasks(),
                     taskFactory,

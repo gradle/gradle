@@ -266,7 +266,7 @@ A managed collection can not contain 'java.io.InputStream's""")
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#people(ModelMap<Person>)")
-        failure.assertHasCause("Attempt to read from a write only view of model element 'people' of type 'ModelMap<Person>' given to rule 'RulePlugin#people(ModelMap<Person>)'")
+        failure.assertHasCause("Attempt to read from a write only view of model element 'people' of type 'ModelMap<Person>' given to rule RulePlugin#people(ModelMap<Person>)")
     }
 
     def "cannot mutate when used as an input"() {
@@ -292,11 +292,46 @@ A managed collection can not contain 'java.io.InputStream's""")
         '''
 
         then:
-        fails "tasks"
+        fails()
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#mutate(ModelMap<Task>, ModelMap<Person>)")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelMap<Person>' given to rule 'RulePlugin#mutate(ModelMap<Task>, ModelMap<Person>)'")
+        failure.assertHasCause("Attempt to modify a read only view of model element 'people' of type 'ModelMap<Person>' given to rule RulePlugin#mutate(ModelMap<Task>, ModelMap<Person>)")
+    }
+
+    def "cannot mutate when used as subject of validate rule"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Person extends Named {
+              String getValue()
+              void setValue(String string)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void people(ModelMap<Person> people) {
+                }
+
+                @Validate
+                void check(ModelMap<Person> people) {
+                    people.create("another")
+                }
+
+                @Mutate
+                void mutate(ModelMap<Task> tasks, ModelMap<Person> people) {
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails()
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#check(ModelMap<Person>)")
+        failure.assertHasCause("Attempt to modify a read only view of model element 'people' of type 'ModelMap<Person>' given to rule RulePlugin#check(ModelMap<Person>)")
     }
 
     def "can read children of map when used as input"() {
@@ -368,6 +403,43 @@ parent
     :gc1
 """.trim()
         )
+    }
+
+    def "can read children of map when used as subject of validate rule"() {
+        given:
+        buildScript '''
+            @Managed
+            interface Person extends Named {
+              String getValue()
+              void setValue(String string)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void people(ModelMap<Person> people) {
+                    people.create("a")
+                }
+
+                @Validate
+                void check(ModelMap<Person> people) {
+                    println "size: " + people.size()
+                    println people.a
+                    println people.keySet()
+                }
+
+                @Mutate
+                void mutate(ModelMap<Task> tasks, ModelMap<Person> people) {
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        when:
+        run()
+
+        then:
+        output.contains("size: 1")
     }
 
     def "name is not populated when entity is not named"() {

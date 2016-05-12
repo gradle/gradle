@@ -15,9 +15,5 @@
  */
 package org.gradle.launcher.daemon.protocol;
 
-public class Cancel extends Command {
-
-    public Cancel(Object identifier) {
-        super(identifier);
-    }
+public class Cancel extends Message {
 }

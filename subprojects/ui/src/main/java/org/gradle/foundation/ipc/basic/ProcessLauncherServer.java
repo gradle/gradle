@@ -20,6 +20,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.foundation.common.ObserverLord;
 import org.gradle.process.ExecResult;
+import org.gradle.process.internal.DefaultExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 
@@ -92,7 +93,7 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
 
                     executionInfo = protocol.getExecutionInfo(getPort());
 
-                    ExecHandleBuilder builder = new ExecHandleBuilder();
+                    ExecHandleBuilder builder = new DefaultExecHandleBuilder();
                     builder.workingDir(executionInfo.getWorkingDirectory());
                     builder.commandLine((Object[]) executionInfo.getCommandLineArguments());
                     builder.environment(executionInfo.getEnvironmentVariables());

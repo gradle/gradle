@@ -137,12 +137,12 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> ex
 
         then:
         with(realizeAsModelMap()) {
-            assert withType(specialItemClass).size() == 1
+            assert withType(this.specialItemClass).size() == 1
             assert withType(Special).size() == 1
-            assert withType(itemClass).size() == 2
+            assert withType(this.itemClass).size() == 2
             assert withType(String).size() == 0
 
-            assert !withType(specialItemClass).isEmpty()
+            assert !withType(this.specialItemClass).isEmpty()
             assert withType(String).isEmpty()
         }
     }
@@ -169,16 +169,16 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> ex
 
         then:
         with(realizeAsModelMap()) {
-            withType(specialItemClass).containsKey("b")
+            withType(this.specialItemClass).containsKey("b")
             withType(Object).containsKey("a")
-            withType(itemClass).containsKey("a")
-            !withType(specialItemClass).containsKey("a")
+            withType(this.itemClass).containsKey("a")
+            !withType(this.specialItemClass).containsKey("a")
             !withType(Special).containsKey("a")
             !withType(String).containsKey("a")
 
             withType(Object).containsKey("b")
-            withType(itemClass).containsKey("b")
-            withType(specialItemClass).containsKey("b")
+            withType(this.itemClass).containsKey("b")
+            withType(this.specialItemClass).containsKey("b")
             withType(Special).containsKey("b")
             !withType(String).containsKey("b")
         }
@@ -205,8 +205,8 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> ex
         then:
         with(realizeAsModelMap()) {
             assert withType(Special).keySet() as List == ["b"]
-            assert withType(itemClass).keySet() as List == ["a", "b"]
-            assert withType(specialItemClass).keySet() as List == ["b"]
+            assert withType(this.itemClass).keySet() as List == ["a", "b"]
+            assert withType(this.specialItemClass).keySet() as List == ["b"]
             assert withType(Special).keySet() as List == ["b"]
             assert withType(String).keySet().isEmpty()
         }
@@ -235,8 +235,8 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> ex
             it.keySet() as List == ["item", "specialItem"]
             it.size() == 2
             !it.isEmpty()
-            itemClass.isInstance it.get("item")
-            specialItemClass.isInstance it.get("specialItem")
+            this.itemClass.isInstance it.get("item")
+            this.specialItemClass.isInstance it.get("specialItem")
         }
 
         with (map.withType(specialItemClass).withType(Named)) {
@@ -245,7 +245,7 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> ex
             it.size() == 1
             !it.isEmpty()
             it.get("item") == null
-            specialItemClass.isInstance it.get("specialItem")
+            this.specialItemClass.isInstance it.get("specialItem")
         }
 
         with (map.withType(specialItemClass).withType(itemClass)) {
@@ -254,7 +254,7 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> ex
             it.size() == 1
             !it.isEmpty()
             it.get("item") == null
-            specialItemClass.isInstance it.get("specialItem")
+            this.specialItemClass.isInstance it.get("specialItem")
         }
 
         with (map.withType(String).withType(itemClass)) {
@@ -326,7 +326,8 @@ abstract class NodeBackedModelMapSpec<T extends Named, S extends T & Special> ex
         ex.cause instanceof ModelRuleBindingException
         normaliseLineSeparators(ex.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
 This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)"""
+  - $itemClass.name (or assignment compatible type thereof)
+  - ${ModelElement.name} (or assignment compatible type thereof)"""
     }
 
     def "named(String, Action) fails when named element requested in chain filtered collection with incompatible type"() {
@@ -339,7 +340,8 @@ This element was created by testrule > create(item) and can be mutated as the fo
         ex.cause.cause instanceof ModelRuleBindingException
         normaliseLineSeparators(ex.cause.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
 This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)"""
+  - $itemClass.name (or assignment compatible type thereof)
+  - ${ModelElement.name} (or assignment compatible type thereof)"""
     }
 
     static class NamedRules extends RuleSource {}
@@ -354,7 +356,8 @@ This element was created by testrule > create(item) and can be mutated as the fo
         ex.cause.cause instanceof ModelRuleBindingException
         normaliseLineSeparators(ex.cause.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
 This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)"""
+  - $itemClass.name (or assignment compatible type thereof)
+  - ${ModelElement.name} (or assignment compatible type thereof)"""
     }
 
     def "named(String, DeferredModelAction) fails when named element requested in filtered collection with incompatible type"() {
@@ -366,7 +369,8 @@ This element was created by testrule > create(item) and can be mutated as the fo
         ex.cause instanceof ModelRuleBindingException
         normaliseLineSeparators(ex.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
 This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)"""
+  - $itemClass.name (or assignment compatible type thereof)
+  - ${ModelElement.name} (or assignment compatible type thereof)"""
     }
 
     def "named(String, DeferredModelAction) fails when named element requested in chain filtered collection with incompatible type"() {
@@ -379,7 +383,8 @@ This element was created by testrule > create(item) and can be mutated as the fo
         ex.cause.cause instanceof ModelRuleBindingException
         normaliseLineSeparators(ex.cause.cause.message) == """Model reference to element 'map.item' with type $specialItemClass.name is invalid due to incompatible types.
 This element was created by testrule > create(item) and can be mutated as the following types:
-  - $itemClass.name (or assignment compatible type thereof)"""
+  - $itemClass.name (or assignment compatible type thereof)
+  - ${ModelElement.name} (or assignment compatible type thereof)"""
     }
 
     def "withType(Class, Action) respects chained filtering"() {
@@ -739,7 +744,7 @@ This element was created by testrule > create(item) and can be mutated as the fo
         realizeAsModelMap().create("foo")
 
         then:
-        thrown ModelViewClosedException
+        thrown ReadOnlyModelViewException
     }
 
     def "is managed instance"() {

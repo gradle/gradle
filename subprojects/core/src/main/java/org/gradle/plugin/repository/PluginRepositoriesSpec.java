@@ -23,10 +23,7 @@ import org.gradle.api.Incubating;
  * Used to declare {@link org.gradle.plugin.repository.PluginRepository} instances.
  * <p>
  * Plugin repositories added via this interface will used to resolve plugins specified
- * in the <code>plugins {}</code> block. Any artifacts resolved from these repositories
- * during the resolution of the <code>plugins {}</code> block will also be added to
- * the {@code buildscript.dependencies.classpath} for use elsewhere in your build
- * scripts.
+ * in the <code>plugins {}</code> block.
  */
 @Incubating
 public interface PluginRepositoriesSpec {

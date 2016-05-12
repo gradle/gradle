@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.client
 
 import org.gradle.internal.id.IdGenerator
-import org.gradle.launcher.daemon.context.DaemonInstanceDetails
+import org.gradle.launcher.daemon.context.DaemonConnectDetails
 import org.gradle.launcher.daemon.protocol.Finished
 import org.gradle.launcher.daemon.protocol.Stop
 import org.gradle.launcher.daemon.protocol.StopWhenIdle
@@ -30,14 +30,15 @@ class DaemonStopClientTest extends ConcurrentSpecification {
     final def client = new DaemonStopClient(connector, idGenerator)
 
     def "requests daemons stop gracefully"() {
-        def daemon1 = Stub(DaemonInstanceDetails)
-        def daemon2 = Stub(DaemonInstanceDetails)
+        def daemon1 = Stub(DaemonConnectDetails)
+        def daemon2 = Stub(DaemonConnectDetails)
 
         when:
         client.gracefulStop([daemon1, daemon2])
 
         then:
         1 * connector.maybeConnect(daemon1) >>> connection
+        _ * connection.daemon >> daemon1
         1 * connection.dispatch({it instanceof StopWhenIdle})
         1 * connection.receive() >> new Success(null)
         1 * connection.dispatch({it instanceof Finished})
@@ -45,6 +46,7 @@ class DaemonStopClientTest extends ConcurrentSpecification {
 
         and:
         1 * connector.maybeConnect(daemon2) >>> connection
+        _ * connection.daemon >> daemon2
         1 * connection.dispatch({it instanceof StopWhenIdle})
         1 * connection.receive() >> new Success(null)
         1 * connection.dispatch({it instanceof Finished})
@@ -110,8 +112,8 @@ class DaemonStopClientTest extends ConcurrentSpecification {
         0 * _
     }
 
-    private DaemonInstanceDetails daemon(String id) {
-        Stub(DaemonInstanceDetails) {
+    private DaemonConnectDetails daemon(String id) {
+        Stub(DaemonConnectDetails) {
             getUid() >> id
         }
     }

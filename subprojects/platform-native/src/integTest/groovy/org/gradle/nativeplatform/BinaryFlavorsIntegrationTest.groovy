@@ -79,9 +79,9 @@ model {
         }
     }
     components {
-        main.targetFlavors "french"
-        hello.targetFlavors "french"
-        greetings.targetFlavors "french"
+        main { targetFlavors "french" }
+        hello { targetFlavors "french" }
+        greetings { targetFlavors "french" }
     }
 }
 """
@@ -165,7 +165,7 @@ model {
         buildFile << """
 model {
     components {
-        main.targetFlavors "unknown"
+        main { targetFlavors "unknown" }
     }
 }
 """

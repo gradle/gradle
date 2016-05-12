@@ -121,4 +121,47 @@ class ManagedTypeWithUnmanagedPropertiesIntegrationTest extends AbstractIntegrat
         output.contains("fromPlugin: foo")
         output.contains("fromScript: foo")
     }
+
+    def "can view unmanaged property as ModelElement"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Platform {
+                @Unmanaged
+                OperatingSystem getOperatingSystem()
+                void setOperatingSystem(OperatingSystem os)
+            }
+
+            class OperatingSystem {
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void platform(Platform platform) {
+                    platform.operatingSystem = new OperatingSystem()
+                }
+
+                @Mutate
+                void addTask(ModelMap<Task> tasks, @Path("platform.operatingSystem") ModelElement os) {
+                  tasks.create("fromPlugin") {
+                    doLast {
+                        println "os: $os"
+                        println "name: $os.name"
+                        println "display-name: $os.displayName"
+                    }
+                  }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "fromPlugin"
+
+        and:
+        output.contains("os: OperatingSystem 'platform.operatingSystem'")
+        output.contains("name: operatingSystem")
+        output.contains("display-name: OperatingSystem 'platform.operatingSystem'")
+    }
 }

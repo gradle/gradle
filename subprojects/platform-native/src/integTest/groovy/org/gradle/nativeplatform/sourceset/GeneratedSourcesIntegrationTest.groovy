@@ -111,7 +111,7 @@ model {
         }
         main(NativeExecutableSpec) {
             sources {
-                c.lib comp.headersOnly.sources.c
+                c.lib \$.components.headersOnly.sources.c
             }
         }
     }

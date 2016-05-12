@@ -14,19 +14,17 @@ model {
         }
     }
     tasks { t ->
-        $("components.main").binaries { binaries ->
-            binaries.values().each { binary ->
-                def stripTask = binary.tasks.taskName("strip")
-                t.create(stripTask) {
-                    dependsOn binary.tasks.link
-                    doFirst {
-                        if (binary.toolChain in Gcc) {
-                            ["strip", binary.tasks.link.outputFile].execute()
-                        }
+        $.components.main.binaries.each { binary ->
+            def stripTask = binary.tasks.taskName("strip")
+            t.create(stripTask) {
+                dependsOn binary.tasks.link
+                doFirst {
+                    if (binary.toolChain in Gcc) {
+                        ["strip", binary.tasks.link.outputFile].execute()
                     }
                 }
-                binary.tasks.build.dependsOn stripTask
             }
+            binary.tasks.build.dependsOn stripTask
         }
     }
 }

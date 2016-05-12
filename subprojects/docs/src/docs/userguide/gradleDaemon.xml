@@ -239,6 +239,11 @@
                 This is a particularly poignant problem when using Microsoft Windows as it is less forgiving of programs that fail to close files after reading or writing.
             </para>
             <para>
+                Gradle actively monitors heap usage and attempts to detect when a leak is starting to exhaust the available heap space in the daemon.  When it detects a
+                problem with heap space, the Gradle daemon will finish the currently running build and restart the daemon on the next build.  This monitoring
+                is enabled by default, but can be disabled by setting the <literal>org.gradle.daemon.performance.enable-monitoring</literal> system property to false.
+            </para>
+            <para>
                 If it is suspected that the Daemon process has become unstable, it can simply be killed.
                 Recall that the <literal>--no-daemon</literal> switch can be specified for a build to prevent use of the Daemon.
                 This can be useful to diagnose whether or not the Daemon is actually the culprit of a problem.

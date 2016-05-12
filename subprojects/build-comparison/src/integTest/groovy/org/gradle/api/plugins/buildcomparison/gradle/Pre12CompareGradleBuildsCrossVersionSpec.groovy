@@ -23,9 +23,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
-import spock.lang.Ignore
 
-@Ignore
 @TargetVersions(["1.0", "1.1"])
 class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSpec {
 
@@ -143,7 +141,7 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
     }
 
     protected GradleExecuter currentExecuter() {
-        current.executer(temporaryFolder).requireGradleHome().withTasks("compareGradleBuilds")
+        current.executer(temporaryFolder).requireGradleHome().withStackTraceChecksDisabled().withTasks("compareGradleBuilds")
     }
 
     BuildComparisonHtmlReportFixture report(path = "build/reports/compareGradleBuilds/index.html") {

@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
+import com.google.common.base.Objects;
+
 /**
  * Represents a path in a format as used often in ipr and iml files.
  */
@@ -55,11 +57,13 @@ public class Path {
         return canonicalUrl;
     }
 
+    @Override
     public String toString() {
         return "Path{" + "url='" + url + "\'" + "}";
     }
 
 
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -68,12 +72,10 @@ public class Path {
             return false;
         }
         Path path = (Path) o;
-        if (!canonicalUrl.equals(path.canonicalUrl)) {
-            return false;
-        }
-        return true;
+        return Objects.equal(canonicalUrl, path.canonicalUrl);
     }
 
+    @Override
     public int hashCode() {
         return canonicalUrl.hashCode();
     }

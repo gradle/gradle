@@ -82,6 +82,7 @@ public class DefaultIdeaContentRoot implements Serializable {
         return this;
     }
 
+    @Override
     public String toString() {
         return "IdeaContentRoot{"
                 + "rootDirectory=" + rootDirectory

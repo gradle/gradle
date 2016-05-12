@@ -41,6 +41,7 @@ class TestProgressLoggingIntegrationTest extends AbstractIntegrationSpec {
         succeeds("test")
 
         then:
+        events.statusLogged("0 tests completed")
         events.statusLogged("1 test completed")
         (2..10).each { count ->
             assert events.statusLogged("${count} tests completed")
@@ -54,6 +55,7 @@ class TestProgressLoggingIntegrationTest extends AbstractIntegrationSpec {
         fails("test")
 
         then:
+        events.statusLogged("0 tests completed")
         events.statusLogged("1 test completed, 1 failed")
         (2..10).each { count ->
             assert events.statusLogged("${count} tests completed, ${count} failed")
@@ -67,6 +69,7 @@ class TestProgressLoggingIntegrationTest extends AbstractIntegrationSpec {
         succeeds("test")
 
         then:
+        events.statusLogged("0 tests completed")
         events.statusLogged("1 test completed, 1 skipped")
         (2..10).each { count ->
             assert events.statusLogged("${count} tests completed, ${count} skipped")
@@ -82,7 +85,7 @@ class TestProgressLoggingIntegrationTest extends AbstractIntegrationSpec {
         fails("test")
 
         then:
-        (1..10).each { count ->
+        (0..10).each { count ->
             assert events.statusMatches("${count} tests? completed(,.*)*")
         }
 
@@ -94,6 +97,25 @@ class TestProgressLoggingIntegrationTest extends AbstractIntegrationSpec {
         and:
         (1..2).each { count ->
             assert events.statusMatches("\\d+ tests? completed,( \\d failed,)? ${count} skipped")
+        }
+    }
+
+    def "captures test progress logging events when tests are run in parallel" () {
+        withGoodTestClasses(4)
+        buildFile << """
+            test {
+                maxParallelForks = 4
+            }
+        """
+
+        when:
+        succeeds("test")
+
+        then:
+        events.statusLogged("0 tests completed")
+        events.statusLogged("1 test completed")
+        (2..4).each { count ->
+            assert events.statusLogged("${count} tests completed")
         }
     }
 

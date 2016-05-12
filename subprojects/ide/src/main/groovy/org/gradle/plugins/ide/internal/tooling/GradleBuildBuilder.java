@@ -25,10 +25,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class GradleBuildBuilder implements ToolingModelBuilder {
+
+    @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.gradle.GradleBuild");
     }
 
+    @Override
     public DefaultGradleBuild buildAll(String modelName, Project target) {
         Map<Project, BasicGradleProject> convertedProjects = new LinkedHashMap<Project, BasicGradleProject>();
         BasicGradleProject rootProject = convert(target.getRootProject(), convertedProjects);

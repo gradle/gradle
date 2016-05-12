@@ -37,10 +37,12 @@ import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport
  */
 public class GradleProjectBuilder implements ProjectToolingModelBuilder {
 
+    @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.GradleProject");
     }
 
+    @Override
     public Object buildAll(String modelName, Project project) {
         return buildHierarchy(project.getRootProject());
     }

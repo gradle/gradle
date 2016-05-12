@@ -38,6 +38,21 @@ No longer support running Gradle, the wrapper or the Tooling api client on Java 
     - old `GradleConnector`
     - old `GradleRunner`
 
+## Change minimum version for building and testing Java source to Java 6
+
+Change cross-compilation and test execution to require Java 6 or later.
+Building against Java 5 requires that the compiler daemon and test execution infrastructure still support Java 5.
+
+- Add samples and documentation to show how to compile, test and run using a different Java version.
+- Clean up `DefaultClassLoaderFactory`.
+- Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`.
+- Replace usages of `guava-jdk5`.
+
+### Test coverage
+
+- Warning when running tests on Java 5.
+- Can cross-compile and test for Java 6 with no warning
+
 ## Change minimum Gradle version supported by the tooling API client to Gradle 1.2
 
 Tooling api client no longer executes builds for Gradle versions older than 1.2. Tooling api client 2.x supports Gradle 1.0-m8 and later.
@@ -81,20 +96,6 @@ TestNG dropped support for this in 5.12, in early 2010. Supporting these old sty
 # Candidates for Gradle 3.0 and later
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
-
-## Change minimum version for building and testing Java source to Java 6
-
-Change cross-compilation and test execution to require Java 6 or later.
-Building against Java 5 requires that the compiler daemon and test execution infrastructure still support Java 5.
-
-- Clean up `DefaultClassLoaderFactory`.
-- Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`.
-- Replace usages of `guava-jdk5`.
-
-### Test coverage
-
-- Warning when running tests on Java 5.
-- Can cross-compile and test for Java 6 with no warning
 
 ## Drop support for old versions of things
 
@@ -163,6 +164,10 @@ Currently required for in-process Ant-based compilation on Java 5. Dropping supp
     * `MavenPom.dependencies`.
 * Remove `MavenDeployer.addProtocolProviderJars()`.
 * Change `PublishFilter` so that it accepts a `PublishArtifact` instead of an `Artifact`.
+
+## Decouple file and resource APIs from project and task APIs
+
+Currently the file and resource APIs reference the `Task` type (via dependencies on the `Buildable` type), and the `Task` type reference the file and resource APIs (via project factory methods). This means that the file and resource APIs cannot be used in a context where tasks do not make sense, and prevents separating these two API and their implementation into separate pieces.
 
 ## Copy tasks
 

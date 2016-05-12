@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
+import com.google.common.base.Objects;
 import org.gradle.api.JavaVersion;
 
 /**
@@ -29,7 +30,7 @@ public class IdeaLanguageLevel {
     }
 
     public IdeaLanguageLevel(Object version) {
-        if (version instanceof String && version != null && ((String) version).startsWith("JDK_")) {
+        if (version != null && version instanceof String && ((String) version).startsWith("JDK_")) {
             level = (String) version;
             return;
 
@@ -37,6 +38,7 @@ public class IdeaLanguageLevel {
         level = JavaVersion.toVersion(version).name().replaceFirst("VERSION", "JDK");
     }
 
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -45,12 +47,10 @@ public class IdeaLanguageLevel {
             return false;
         }
         IdeaLanguageLevel that = (IdeaLanguageLevel) o;
-        if (!level.equals(that.level)) {
-            return false;
-        }
-        return true;
+        return Objects.equal(level, that.level);
     }
 
+    @Override
     public int hashCode() {
         return level != null ? level.hashCode() : 0;
     }

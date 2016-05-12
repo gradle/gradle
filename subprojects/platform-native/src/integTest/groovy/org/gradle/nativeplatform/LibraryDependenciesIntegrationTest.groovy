@@ -123,7 +123,7 @@ model {
 
         where:
         notationName | notation
-        "direct"     | "comp.hello"
+        "direct"     | "\$.components.hello"
         "map"        | "library: 'hello'"
     }
 
@@ -137,7 +137,7 @@ model {
         and:
         buildFile << """
 model {
-    components { comp ->
+    components {
         hello(NativeLibrarySpec)
         main(NativeExecutableSpec) {
             binaries.all { binary ->
@@ -156,7 +156,7 @@ model {
 
         where:
         notationName | notation
-        "direct"     | "comp.hello"
+        "direct"     | "\$.components.hello"
         "map"        | "library: 'hello'"
     }
 

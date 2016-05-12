@@ -18,12 +18,14 @@ package org.gradle.launcher.cli;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -36,6 +38,7 @@ import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.exec.*;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.process.internal.DefaultExecActionFactory;
 
 import java.lang.management.ManagementFactory;
 import java.util.UUID;
@@ -55,7 +58,7 @@ class BuildActionsFactory implements CommandLineAction {
 
     public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
         Parameters parameters = parametersConverter.convert(commandLine, new Parameters());
-        parameters.getDaemonParameters().applyDefaultsFor(new JvmVersionDetector().getJavaVersion(parameters.getDaemonParameters().getEffectiveJvm()));
+        parameters.getDaemonParameters().applyDefaultsFor(new JvmVersionDetector(new DefaultExecActionFactory(new IdentityFileResolver())).getJavaVersion(parameters.getDaemonParameters().getEffectiveJvm()));
 
         if (parameters.getDaemonParameters().isStop()) {
             return stopAllDaemons(parameters.getDaemonParameters(), loggingServices);

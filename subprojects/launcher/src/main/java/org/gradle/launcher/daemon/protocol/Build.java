@@ -27,8 +27,8 @@ public class Build extends Command {
     private final long startTime;
     private final BuildActionParameters parameters;
 
-    public Build(Object identifier, BuildAction action, BuildClientMetaData buildClientMetaData, long startTime, BuildActionParameters parameters) {
-        super(identifier);
+    public Build(Object identifier, byte[] token, BuildAction action, BuildClientMetaData buildClientMetaData, long startTime, BuildActionParameters parameters) {
+        super(identifier, token);
         this.action = action;
         this.buildClientMetaData = buildClientMetaData;
         this.startTime = startTime;

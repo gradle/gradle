@@ -23,6 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -143,6 +144,91 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         run "mainExecutable"
         then:
         skipped compileTask
+    }
+
+    // This one fails because we do not include src/other/directory as a discovered input and
+    // treat the compile task as out of date.  Since we also use macros for #includes, the compile
+    // task must recompile that source every time.
+    @Ignore
+    def "does not recompile when included header has the same name as a directory"() {
+        given:
+        buildFile << """
+model {
+    components {
+        main {
+            sources.all {
+                exportedHeaders {
+                    srcDirs = [ "src/other", "src/main/headers" ]
+                }
+            }
+        }
+    }
+}
+"""
+        // This is a directory named 'directory'
+        file("src/other/directory").mkdirs()
+        // This is a header named 'directory'
+        file("src/main/headers/directory") << '#pragma message("including directory named header")'
+        file("src/main/headers/macro.h") << '#pragma message("including macro header")'
+
+        sourceFile << """
+            #include "directory"
+            #define MACRO "macro.h"
+            #include MACRO
+"""
+
+        and:
+        outputs.snapshot { run "mainExecutable" }
+
+        when:
+        run "mainExecutable"
+        then:
+        skipped compileTask
+    }
+
+    // This one works currently because we do not include src/other/directory as a discovered input and
+    // the compile task is out of date so the change in type "seems" to work. 
+    @Ignore
+    def "recompiles when included header has the same name as a directory and the directory becomes a file"() {
+        given:
+        buildFile << """
+model {
+    components {
+        main {
+            sources.all {
+                exportedHeaders {
+                    srcDirs = [ "src/other", "src/main/headers" ]
+                }
+            }
+        }
+    }
+}
+"""
+        // directory header starts out as a directory
+        def directoryHeader = file("src/other/directory")
+        directoryHeader.mkdirs()
+        // this is the a header file named 'directory'
+        file("src/main/headers/directory") << '#pragma message("including directory named header")'
+
+        sourceFile << """
+            #include "directory"
+"""
+
+        and:
+        outputs.snapshot { run "mainExecutable" }
+
+        when:
+        directoryHeader.deleteDir()
+        directoryHeader << '#pragma message("NEW directory named header")'
+        and:
+        executer.withArgument("--info")
+        run "mainExecutable"
+        then:
+        executedAndNotSkipped compileTask
+        and:
+        outputs.recompiledFile sourceFile
+        result.assertOutputContains("NEW directory named header")
+
     }
 
     def "source is always recompiled if it includes header via macro"() {

@@ -208,6 +208,36 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
         includesLinkToUserguide()
     }
 
+    def "Cannot access Settings API in pluginRepositories block"() {
+        given:
+        settingsFile << """
+            pluginRepositories {
+                include 'foo'
+            }
+        """
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasLineNumber(3)
+        failure.assertThatCause(containsString("Could not find method include()"))
+    }
+
+    def "Cannot access SettingsScript API in pluginRepositories block"() {
+        given:
+        settingsFile << """
+            pluginRepositories {
+                file('bar')
+            }
+        """
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasLineNumber(3)
+        failure.assertThatCause(containsString("Could not find method file()"))
+    }
+
     void includesLinkToUserguide() {
         failure.assertThatCause(containsString("https://docs.gradle.org/${GradleVersion.current().getVersion()}/userguide/plugins.html#sec:plugin_repositories"))
     }

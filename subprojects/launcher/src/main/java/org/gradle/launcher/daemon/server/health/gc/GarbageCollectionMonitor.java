@@ -38,8 +38,12 @@ public class GarbageCollectionMonitor {
     final ScheduledExecutorService pollingExecutor;
 
     public GarbageCollectionMonitor(ScheduledExecutorService pollingExecutor) {
+        this(determineGcStrategy(), pollingExecutor);
+    }
+
+    public GarbageCollectionMonitor(GarbageCollectorMonitoringStrategy gcStrategy, ScheduledExecutorService pollingExecutor) {
         this.pollingExecutor = pollingExecutor;
-        this.gcStrategy = determineGcStrategy();
+        this.gcStrategy = gcStrategy;
 
         if (gcStrategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
             events = ImmutableMap.<String, SlidingWindow<GarbageCollectionEvent>>of(gcStrategy.getTenuredPoolName(), new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW));

@@ -17,7 +17,6 @@
 package org.gradle.test.fixtures.archive
 
 import org.apache.tools.zip.ZipFile
-import org.gradle.api.JavaVersion
 import org.gradle.test.fixtures.file.ClassFile
 
 import java.util.jar.JarEntry
@@ -76,6 +75,6 @@ class JarTestFixture extends ZipTestFixture {
             throw new Exception("Could not find a class entry for: " + file)
         }
         ClassFile classFile = new ClassFile(jarFile.getInputStream(classEntry))
-        return JavaVersion.forClassVersion(classFile.classFileVersion)
+        return classFile.javaVersion
     }
 }

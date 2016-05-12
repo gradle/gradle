@@ -83,20 +83,20 @@ class Rules extends RuleSource {
     @Defaults
     void verifyAsContainer(ComponentSpecContainer c) {
         assert c.toString() == "ComponentSpecContainer 'components'"
-        assert c.withType(CustomComponent).toString() == "ModelMap<CustomComponent> 'components'"
+        assert c.withType(CustomComponent).toString() == "ComponentSpecContainer 'components'"
         assert !(c.withType(CustomComponent) instanceof ComponentSpecContainer)
     }
 
     @Defaults
     void verifyAsModelMap(@Path("components") ModelMap<ComponentSpec> c) {
-        assert c.toString() == "ModelMap<ComponentSpec> 'components'"
-        assert c.withType(CustomComponent).toString() == "ModelMap<CustomComponent> 'components'"
+        assert c.toString() == "ComponentSpecContainer 'components'"
+        assert c.withType(CustomComponent).toString() == "ComponentSpecContainer 'components'"
         assert !(c instanceof ComponentSpecContainer)
     }
 
     @Defaults
     void verifyAsSpecializedModelMap(@Path("components") ModelMap<CustomComponent> c) {
-        assert c.toString() == "ModelMap<CustomComponent> 'components'"
+        assert c.toString() == "ComponentSpecContainer 'components'"
         assert !(c instanceof ComponentSpecContainer)
     }
 }
@@ -478,7 +478,7 @@ afterEach CustomComponent 'newComponent'"""
         when:
         fails "tasks"
         then:
-        failureHasCause "Attempt to mutate closed view of model of type '$fullQualified' given to rule 'ComponentSpecContainerRules#addComponentTasks(TaskContainer, $projectionType)'"
+        failureHasCause "Attempt to modify a read only view of model element 'components' of type '$projectionType' given to rule ComponentSpecContainerRules#addComponentTasks(TaskContainer, $projectionType)"
 
         where:
         projectionType              | fullQualified

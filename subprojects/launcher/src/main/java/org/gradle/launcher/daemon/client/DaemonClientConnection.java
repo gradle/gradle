@@ -18,11 +18,11 @@ package org.gradle.launcher.daemon.client;
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
-import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.internal.remote.internal.Connection;
 import org.gradle.internal.remote.internal.MessageIOException;
 import org.gradle.internal.remote.internal.RemoteConnection;
+import org.gradle.launcher.daemon.context.DaemonConnectDetails;
+import org.gradle.launcher.daemon.protocol.Message;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -35,18 +35,18 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DaemonClientConnection implements Connection<Message> {
     private final static Logger LOG = Logging.getLogger(DaemonClientConnection.class);
     private final RemoteConnection<Message> connection;
-    private final DaemonInstanceDetails daemon;
+    private final DaemonConnectDetails daemon;
     private final StaleAddressDetector staleAddressDetector;
     private boolean hasReceived;
     private final Lock dispatchLock = new ReentrantLock();
 
-    public DaemonClientConnection(RemoteConnection<Message> connection, DaemonInstanceDetails daemon, StaleAddressDetector staleAddressDetector) {
+    public DaemonClientConnection(RemoteConnection<Message> connection, DaemonConnectDetails daemon, StaleAddressDetector staleAddressDetector) {
         this.connection = connection;
         this.daemon = daemon;
         this.staleAddressDetector = staleAddressDetector;
     }
 
-    public DaemonInstanceDetails getDaemon() {
+    public DaemonConnectDetails getDaemon() {
         return daemon;
     }
 

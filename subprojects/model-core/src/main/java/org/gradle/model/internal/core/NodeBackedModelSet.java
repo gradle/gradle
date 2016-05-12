@@ -35,18 +35,18 @@ import static org.gradle.model.internal.core.NodePredicate.allLinks;
 
 public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
 
-    private final String toString;
     private final ModelType<T> elementType;
     private final ModelRuleDescriptor descriptor;
     private final MutableModelNode modelNode;
     private final ModelViewState state;
     private final ChildNodeInitializerStrategy<T> creatorStrategy;
     private final ModelReference<T> elementTypeReference;
+    private final ModelType<?> publicType;
 
     private Collection<T> elements;
 
-    public NodeBackedModelSet(String toString, ModelType<T> elementType, ModelRuleDescriptor descriptor, MutableModelNode modelNode, ModelViewState state, ChildNodeInitializerStrategy<T> creatorStrategy) {
-        this.toString = toString;
+    public NodeBackedModelSet(ModelType<?> publicType, ModelType<T> elementType, ModelRuleDescriptor descriptor, MutableModelNode modelNode, ModelViewState state, ChildNodeInitializerStrategy<T> creatorStrategy) {
+        this.publicType = publicType;
         this.elementType = elementType;
         this.elementTypeReference = ModelReference.of(elementType);
         this.descriptor = descriptor;
@@ -66,8 +66,18 @@ public class NodeBackedModelSet<T> implements ModelSet<T>, ManagedInstance {
     }
 
     @Override
+    public String getName() {
+        return modelNode.getPath().getName();
+    }
+
+    @Override
+    public String getDisplayName() {
+        return publicType.getDisplayName() + " '" + modelNode.getPath() + "'";
+    }
+
+    @Override
     public String toString() {
-        return toString;
+        return getDisplayName();
     }
 
     @Override

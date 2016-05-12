@@ -38,8 +38,8 @@ class EmbeddedDaemonRegistrySpec extends Specification {
 
     def "lifecycle"() {
         given:
-        store(new DaemonInfo(address(10), context, "password", true))
-        store(new DaemonInfo(address(20), context, "password", true))
+        store(new DaemonInfo(address(10), context, "password".bytes, true))
+        store(new DaemonInfo(address(20), context, "password".bytes, true))
 
         expect:
         all.size() == 2

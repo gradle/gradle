@@ -22,8 +22,8 @@ import org.gradle.api.internal.specs.ExplainingSpecs;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.launcher.daemon.protocol.StopWhenIdle;
@@ -62,15 +62,15 @@ public class DaemonStopClient {
     /**
      * Requests that the given daemons stop when idle. Does not block and returns before the daemons have all stopped.
      */
-    public void gracefulStop(Collection<DaemonInstanceDetails> daemons) {
-        for (DaemonInstanceDetails daemon : daemons) {
+    public void gracefulStop(Collection<DaemonConnectDetails> daemons) {
+        for (DaemonConnectDetails daemon : daemons) {
             DaemonClientConnection connection = connector.maybeConnect(daemon);
             if (connection == null) {
                 continue;
             }
             try {
                 LOGGER.debug("Requesting daemon {} stop when idle", daemon);
-                stopDispatcher.dispatch(connection, new StopWhenIdle(idGenerator.generateId()));
+                stopDispatcher.dispatch(connection, new StopWhenIdle(idGenerator.generateId(), connection.getDaemon().getToken()));
                 LOGGER.lifecycle("Gradle daemon stopped.");
             } finally {
                 connection.stop();
@@ -100,7 +100,7 @@ public class DaemonStopClient {
             try {
                 if (stopped.add(connection.getDaemon().getUid())) {
                     LOGGER.debug("Requesting daemon {} stop now", connection.getDaemon());
-                    stopDispatcher.dispatch(connection, new Stop(idGenerator.generateId()));
+                    stopDispatcher.dispatch(connection, new Stop(idGenerator.generateId(), connection.getDaemon().getToken()));
                     LOGGER.lifecycle("Gradle daemon stopped.");
                 }
             } finally {

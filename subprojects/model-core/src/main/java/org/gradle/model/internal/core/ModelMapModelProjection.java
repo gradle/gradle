@@ -37,22 +37,24 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     private static final ModelType<ManagedInstance> MANAGED_INSTANCE_TYPE = ModelType.of(ManagedInstance.class);
 
     public static <T> ModelProjection unmanaged(ModelType<T> itemType, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
-        return new ModelMapModelProjection<T>(itemType, false, creatorStrategyAccessor);
+        return new ModelMapModelProjection<T>(ModelTypes.modelMap(itemType), itemType, false, creatorStrategyAccessor);
     }
 
     public static <T> ModelProjection unmanaged(Class<T> itemType, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
         return unmanaged(ModelType.of(itemType), creatorStrategyAccessor);
     }
 
-    public static <T> ModelProjection managed(ModelType<T> itemType, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
-        return new ModelMapModelProjection<T>(itemType, true, creatorStrategyAccessor);
+    public static <T> ModelProjection managed(ModelType<?> publicType, ModelType<T> itemType, ChildNodeInitializerStrategyAccessor<? super T> creatorStrategyAccessor) {
+        return new ModelMapModelProjection<T>(publicType, itemType, true, creatorStrategyAccessor);
     }
 
-    protected final ModelType<I> baseItemModelType;
+    private final ModelType<?> publicType;
+    private final ModelType<I> baseItemModelType;
     private final ChildNodeInitializerStrategyAccessor<? super I> creatorStrategyAccessor;
     private final boolean managed;
 
-    private ModelMapModelProjection(ModelType<I> baseItemModelType, boolean managed, ChildNodeInitializerStrategyAccessor<? super I> creatorStrategyAccessor) {
+    private ModelMapModelProjection(ModelType<?> publicType, ModelType<I> baseItemModelType, boolean managed, ChildNodeInitializerStrategyAccessor<? super I> creatorStrategyAccessor) {
+        this.publicType = publicType;
         this.baseItemModelType = baseItemModelType;
         this.managed = managed;
         this.creatorStrategyAccessor = creatorStrategyAccessor;
@@ -125,7 +127,7 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     private <T, S extends I> ModelView<ModelMap<S>> toView(ModelType<T> targetType, ModelRuleDescriptor sourceDescriptor, MutableModelNode node, ModelType<S> itemType, boolean mutable, boolean canReadChildren) {
         ChildNodeInitializerStrategy<? super I> creatorStrategy = creatorStrategyAccessor.getStrategy(node);
         DefaultModelViewState state = new DefaultModelViewState(node.getPath(), targetType, sourceDescriptor, mutable, canReadChildren);
-        NodeBackedModelMap<I> builder = new NodeBackedModelMap<I>(baseItemModelType, sourceDescriptor, node, state, creatorStrategy);
+        NodeBackedModelMap<I> builder = new NodeBackedModelMap<I>(publicType, baseItemModelType, sourceDescriptor, node, state, creatorStrategy);
 
         return InstanceModelView.of(
             node.getPath(),
@@ -139,25 +141,6 @@ public class ModelMapModelProjection<I> implements ModelProjection {
     public Iterable<String> getTypeDescriptions(MutableModelNode node) {
         final Collection<? extends Class<?>> creatableTypes = getCreatableTypes();
         return Collections.singleton(getContainerTypeDescription(ModelMap.class, creatableTypes));
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        ModelMapModelProjection<?> that = (ModelMapModelProjection<?>) o;
-
-        return baseItemModelType.equals(that.baseItemModelType);
-    }
-
-    @Override
-    public int hashCode() {
-        return baseItemModelType.hashCode();
     }
 
     @Override
