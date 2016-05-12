@@ -133,7 +133,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         daemon.assertIdle()
 
         when:
-        def socket = new Socket(InetAddress.getLoopbackAddress(), daemon.port)
+        def socket = new Socket(InetAddress.getByName(null), daemon.port)
         socket.outputStream.write("GET / HTTP/1.0\n\n".getBytes())
         socket.outputStream.flush()
 
