@@ -66,7 +66,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         if (this == o) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (!(o instanceof PatternSet)) {
             return false;
         }
 
@@ -176,6 +176,30 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         @Override
         public boolean isEmpty() {
             return other.isEmpty() && super.isEmpty();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            if (!super.equals(o)) {
+                return false;
+            }
+
+            IntersectionPatternSet that = (IntersectionPatternSet) o;
+
+            return other != null ? other.equals(that.other) : that.other == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + (other != null ? other.hashCode() : 0);
+            return result;
         }
     }
 

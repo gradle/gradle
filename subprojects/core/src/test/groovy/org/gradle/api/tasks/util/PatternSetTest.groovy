@@ -250,6 +250,20 @@ class PatternSetTest extends AbstractTestForPatternSet {
         excluded file('132')
     }
 
+    @Test
+    void testIntersectPatternSetEqualsAndHashCode() {
+        PatternSet basePatternSet = new PatternSet()
+        basePatternSet.include '*a*'
+        basePatternSet.exclude '*b*'
+
+        patternSet = basePatternSet.intersect()
+        patternSet.include '*a*'
+        patternSet.exclude '*b*'
+
+        assert patternSet.hashCode() != basePatternSet.hashCode()
+        assert !patternSet.equals(basePatternSet)
+    }
+
     @Issue("GRADLE-2566")
     @Test
     void canUseGStringsAsIncludes() {

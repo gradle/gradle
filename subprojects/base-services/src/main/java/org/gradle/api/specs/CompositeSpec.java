@@ -54,7 +54,7 @@ public abstract class CompositeSpec<T> implements Spec<T> {
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CompositeSpec)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
 
