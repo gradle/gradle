@@ -27,11 +27,13 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.junit.Assert.assertTrue
 
+@UsesNativeServices
 class AbstractTaskTest extends Specification {
 
     @Rule

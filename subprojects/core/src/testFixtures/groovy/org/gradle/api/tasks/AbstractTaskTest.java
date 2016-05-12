@@ -41,6 +41,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestUtil;
+import org.gradle.util.UsesNativeServices;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
@@ -54,6 +55,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.*;
 
+@UsesNativeServices
 public abstract class AbstractTaskTest {
     public static final String TEST_TASK_NAME = "testTask";
     @Rule
@@ -67,7 +69,7 @@ public abstract class AbstractTaskTest {
 
     protected Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry, new DependencyInjectingInstantiator.ConstructorCache());
 
-    private AbstractProject project = TestUtil.createRootProject();
+    private AbstractProject project = TestUtil.createRootProject(tmpDir.getTestDirectory());
 
     public abstract AbstractTask getTask();
 
@@ -110,7 +112,7 @@ public abstract class AbstractTaskTest {
 
     @Test
     public void testPath() {
-        DefaultProject rootProject = TestUtil.createRootProject();
+        DefaultProject rootProject = TestUtil.createRootProject(tmpDir.getTestDirectory());
         DefaultProject childProject = TestUtil.createChildProject(rootProject, "child");
         childProject.getProjectDir().mkdirs();
         DefaultProject childchildProject = TestUtil.createChildProject(childProject, "childchild");

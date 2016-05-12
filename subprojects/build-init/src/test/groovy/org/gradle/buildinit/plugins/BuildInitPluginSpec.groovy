@@ -19,11 +19,12 @@ package org.gradle.buildinit.plugins
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.wrapper.Wrapper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class BuildInitPluginSpec extends Specification {
 
     @Rule
@@ -46,7 +47,7 @@ class BuildInitPluginSpec extends Specification {
         File projectDir = temporaryFolder.createDir("gradle", "projectDir");
         def buildFile = new File(projectDir, "build.gradle") << '// an empty build'
         buildFile << '// an empty build'
-        project = ProjectBuilder.builder().withProjectDir(projectDir).build()
+        project = TestUtil.createRootProject(projectDir)
         when:
         project.pluginManager.apply(BuildInitPlugin)
 
