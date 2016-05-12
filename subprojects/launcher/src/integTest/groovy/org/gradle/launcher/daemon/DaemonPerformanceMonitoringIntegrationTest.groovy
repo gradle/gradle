@@ -87,6 +87,9 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
     }
 
     def "when leak occurs while daemon is idle daemon is still expired"() {
+        // This is so the idle timeout expiration strategy doesn't kick in
+        // before the gc monitoring expires the daemon
+        executer.withDaemonIdleTimeoutSecs(300)
         heapSize = "200m"
         leakRate = 1000
 
