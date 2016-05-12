@@ -86,6 +86,6 @@ public class ThingTest {
 
         expect:
         succeeds 'test'
-        output.contains("Support for test execution using Java 5 or earlier has been deprecated and is scheduled to be removed in Gradle 3.0")
+        output.contains("Support for test execution using Java 5 or earlier has been deprecated and is scheduled to be removed in Gradle ")
     }
 }
