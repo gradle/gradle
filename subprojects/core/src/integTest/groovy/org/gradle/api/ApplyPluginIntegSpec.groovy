@@ -85,6 +85,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
     @Issue("GRADLE-3068")
     def "can use gradleApi in test"() {
         requireGradleHome()
+        requireOwnGradleUserHomeDir()
 
         given:
         file("src/test/groovy/org/acme/ProjectBuilderTest.groovy") << """
