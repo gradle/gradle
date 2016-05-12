@@ -1,3 +1,0 @@
-apply plugin: 'application'
-
-mainClassName = 'samples.HelloWorld'

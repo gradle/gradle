@@ -26,15 +26,13 @@ fun Project.applyPlugin(pluginClass: KClass<out Plugin<Project>>) = pluginManage
 
 inline fun <reified T : Plugin<Project>> Project.apply() = applyPlugin(T::class)
 
-/* TODO: adapt these extensions
-inline fun <reified T : Any> Project.configure(extensionType: KClass<T>, noinline configuration: T.() -> Unit) {
-    configure(extensionType.java, configuration)
+inline fun <reified T : Any> Project.configure(configuration: T.() -> Unit) {
+    configure(T::class, configuration)
 }
 
-inline fun <reified T : Any> Project.configure(noinline configuration: T.() -> Unit) {
-    configure(T::class.java, configuration)
+inline fun <T : Any> Project.configure(extensionType: KClass<T>, configuration: T.() -> Unit) {
+    configuration(convention.getByType(extensionType.java))
 }
-*/
 
 inline fun <reified T : Task> Project.task(name: String, noinline configuration: T.() -> Unit) =
     task(name, T::class, configuration)

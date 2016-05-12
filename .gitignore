@@ -10,4 +10,4 @@ build
 
 # generated code
 /src/generated
-/gradle.ktscfg.xml
+gradle.ktscfg.xml
