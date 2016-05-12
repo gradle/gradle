@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.MDArtifact;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -27,11 +28,10 @@ import java.util.Set;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Arrays.asList;
 
-public class BuildableIvyModuleResolveMetaData extends DefaultIvyModuleResolveMetaData {
+public class IvyModuleResolveMetaDataBuilder {
     private final DefaultModuleDescriptor module;
 
-    public BuildableIvyModuleResolveMetaData(DefaultModuleDescriptor module) {
-        super(DefaultModuleComponentIdentifier.newId(module.getModuleRevisionId()), module);
+    public IvyModuleResolveMetaDataBuilder(DefaultModuleDescriptor module) {
         this.module = module;
     }
 
@@ -72,5 +72,10 @@ public class BuildableIvyModuleResolveMetaData extends DefaultIvyModuleResolveMe
                 target.addArtifact(c, artifact);
             }
         }
+    }
+
+    public DefaultIvyModuleResolveMetaData build() {
+        ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(module.getModuleRevisionId());
+        return new DefaultIvyModuleResolveMetaData(id, module);
     }
 }

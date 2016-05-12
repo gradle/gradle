@@ -38,7 +38,7 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
-import org.gradle.internal.component.external.model.BuildableIvyModuleResolveMetaData;
+import org.gradle.internal.component.external.model.IvyModuleResolveMetaDataBuilder;
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -88,20 +88,17 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
     protected DefaultIvyModuleResolveMetaData doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
         Parser parser = createParser(parseContext, resource, populateProperties(), resolverStrategy);
-        return doParseDescriptorWithProvidedParser(parser, validate);
-    }
-
-    protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, Map<String, String> properties, ResolverStrategy resolverStrategy) throws MalformedURLException {
-        return new Parser(parseContext, resource, resource.getLocalResource().getFile().toURI().toURL(), properties, resolverStrategy);
-    }
-
-    private DefaultIvyModuleResolveMetaData doParseDescriptorWithProvidedParser(Parser parser, boolean validate) throws ParseException {
         parser.setValidate(validate);
         parser.parse();
+
         DefaultModuleDescriptor moduleDescriptor = parser.getModuleDescriptor();
         postProcess(moduleDescriptor);
 
         return parser.getMetaData();
+    }
+
+    protected Parser createParser(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, Map<String, String> properties, ResolverStrategy resolverStrategy) throws MalformedURLException {
+        return new Parser(parseContext, resource, resource.getLocalResource().getFile().toURI().toURL(), properties, resolverStrategy);
     }
 
     protected void postProcess(DefaultModuleDescriptor moduleDescriptor) {
@@ -146,7 +143,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         private final List<String> errors = new ArrayList<String>();
 
         private final DefaultModuleDescriptor md;
-        protected BuildableIvyModuleResolveMetaData metaData;
+        protected IvyModuleResolveMetaDataBuilder metaData;
 
         protected AbstractParser(ExternalResource resource) {
             this.res = resource; // used for log and date only
@@ -402,7 +399,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         }
 
         public DefaultIvyModuleResolveMetaData getMetaData() {
-            return metaData;
+            return metaData.build();
         }
 
         private void replaceConfigurationWildcards(ModuleDescriptor md) {
@@ -1128,7 +1125,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             } else if ("dependencies".equals(qName) && state == State.DEPS) {
                 state = State.NONE;
             } else if (state == State.INFO && "info".equals(qName)) {
-                metaData = new BuildableIvyModuleResolveMetaData(getMd());
+                metaData = new IvyModuleResolveMetaDataBuilder(getMd());
                 state = State.NONE;
             } else if (state == State.DESCRIPTION && "description".equals(qName)) {
                 getMd().setDescription(buffer == null ? "" : buffer.toString().trim());
