@@ -28,6 +28,7 @@ import java.util.Set;
 
 public class DefaultIvyModuleResolveMetaData extends AbstractModuleComponentResolveMetaData implements IvyModuleResolveMetaData {
     private final Map<NamespaceId, String> extraInfo;
+    private final String branch;
 
     public DefaultIvyModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
         this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, artifacts));
@@ -40,6 +41,7 @@ public class DefaultIvyModuleResolveMetaData extends AbstractModuleComponentReso
     private DefaultIvyModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier identifier, ModuleDescriptor moduleDescriptor) {
         super(componentIdentifier, identifier, moduleDescriptor);
         this.extraInfo = moduleDescriptor.getExtraInfo();
+        this.branch = moduleDescriptor.getModuleRevisionId().getBranch();
     }
 
     @Override
@@ -51,7 +53,7 @@ public class DefaultIvyModuleResolveMetaData extends AbstractModuleComponentReso
     }
 
     public String getBranch() {
-        return getDescriptor().getModuleRevisionId().getBranch();
+        return branch;
     }
 
     public Map<NamespaceId, String> getExtraInfo() {

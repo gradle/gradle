@@ -15,17 +15,18 @@
  */
 
 package org.gradle.internal.component.external.model
-
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.model.DependencyMetaData
 
 class DefaultIvyModuleResolveMetaDataTest extends AbstractModuleComponentResolveMetaDataTest {
 
     @Override
     AbstractModuleComponentResolveMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
+        moduleDescriptor.getModuleRevisionId() >> IvyUtil.createModuleRevisionId(id)
         return new DefaultIvyModuleResolveMetaData(componentIdentifier, moduleDescriptor)
     }
 
@@ -53,10 +54,14 @@ class DefaultIvyModuleResolveMetaDataTest extends AbstractModuleComponentResolve
 
     def "getBranch returns branch from moduleDescriptor" () {
         setup:
-        _ * moduleDescriptor.getModuleRevisionId() >> ModuleRevisionId.newInstance('orgId', 'moduleId', expectedBranch, 'version')
+        def moduleRevisionId = ModuleRevisionId.newInstance('orgId', 'moduleId', expectedBranch, 'version')
+        def descriptor = Stub(ModuleDescriptor) {
+            getModuleRevisionId() >> moduleRevisionId
+        }
+        def metaDataWithBranch = new DefaultIvyModuleResolveMetaData(componentId, descriptor)
 
         expect:
-        metaData.branch == expectedBranch
+        metaDataWithBranch.branch == expectedBranch
 
         where:
         expectedBranch | _
