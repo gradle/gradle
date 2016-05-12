@@ -21,7 +21,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -529,8 +528,8 @@ public class IdeaModule {
         Set<Path> generatedSourceFolders = pathsOf(existing(getGeneratedSourceDirs()));
         Set<Path> testSourceFolders = pathsOf(existing(getTestSourceDirs()));
         Set<Path> excludeFolders = pathsOf(getExcludeDirs());
-        Path outputDir = DefaultGroovyMethods.asBoolean(getOutputDir()) ? getPathFactory().path(getOutputDir()) : null;
-        Path testOutputDir = DefaultGroovyMethods.asBoolean(getTestOutputDir()) ? getPathFactory().path(getTestOutputDir()) : null;
+        Path outputDir = getOutputDir() != null ? getPathFactory().path(getOutputDir()) : null;
+        Path testOutputDir = getTestOutputDir() != null ? getPathFactory().path(getTestOutputDir()) : null;
         Set<Dependency> dependencies = resolveDependencies();
         String level = getLanguageLevel() != null ? getLanguageLevel().getLevel() : null;
 

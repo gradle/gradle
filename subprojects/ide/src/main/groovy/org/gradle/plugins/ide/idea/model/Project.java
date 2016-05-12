@@ -232,7 +232,7 @@ public class Project extends XmlPersistableConfigurationObject {
     private void storeJdk() {
         Node projectRoot = findProjectRootManager();
         projectRoot.attributes().put("assert-keyword", jdk.isAssertKeyword());
-        projectRoot.attributes().put("assert-jdk-15", jdk.getJdk15());
+        projectRoot.attributes().put("assert-jdk-15", jdk.isJdk15());
         projectRoot.attributes().put("languageLevel", jdk.getLanguageLevel());
         projectRoot.attributes().put("project-jdk-name", jdk.getProjectJdkName());
     }

@@ -15,8 +15,8 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
+import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
-import groovy.transform.CompileStatic;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -28,7 +28,6 @@ import java.util.Map;
  * <p>
  * See the examples in docs for {@link IdeaModule} or {@link IdeaProject}.
  */
-@CompileStatic
 public class IdeaModel {
 
     private IdeaModule module;
@@ -109,7 +108,7 @@ public class IdeaModel {
      * @param pathVariables A map with String->File pairs.
      */
     public void pathVariables(Map<String, File> pathVariables) {
-        assert pathVariables != null;
+        Preconditions.checkNotNull(pathVariables);
         module.getPathVariables().putAll(pathVariables);
     }
 }

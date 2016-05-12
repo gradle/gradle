@@ -35,7 +35,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 public class Module extends XmlPersistableConfigurationObject {
 
-    private static final String INHERITED = "inherited";
+    public static final String INHERITED = "inherited";
     private Path contentPath;
     private Set<Path> sourceFolders = Sets.newLinkedHashSet();
     private Set<Path> testSourceFolders = Sets.newLinkedHashSet();
@@ -176,7 +176,7 @@ public class Module extends XmlPersistableConfigurationObject {
         return "defaultModule.xml";
     }
 
-    protected String configure(Path contentPath,
+    protected void configure(Path contentPath,
                                Set<Path> sourceFolders, Set<Path> testSourceFolders, Set<Path> generatedSourceFolders, Set<Path> excludeFolders,
                                Boolean inheritOutputDirs, Path outputDir, Path testOutputDir,
                                Set<Dependency> dependencies, String jdkName, String languageLevel) {
@@ -197,9 +197,9 @@ public class Module extends XmlPersistableConfigurationObject {
         }
         this.dependencies = dependencies; // overwrite rather than append dependencies
         if (!isNullOrEmpty(jdkName)) {
-            return this.jdkName = jdkName;
+            this.jdkName = jdkName;
         } else {
-            return this.jdkName = Module.INHERITED;
+            this.jdkName = Module.INHERITED;
         }
     }
 

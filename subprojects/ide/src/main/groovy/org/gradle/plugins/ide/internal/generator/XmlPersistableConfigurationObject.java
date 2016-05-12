@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.internal.generator;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.util.XmlParser;
@@ -28,6 +29,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A {@link org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject}
@@ -100,10 +102,20 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
         }), null);
     }
 
-    protected static Node findOrCreateFirstChildNamed(Node root, String name) {
+    public static Node findOrCreateFirstChildNamed(Node root, String name) {
         Node child = findFirstChildNamed(root, name);
         if (child == null) {
             child = root.appendNode(name);
+        }
+        return child;
+    }
+
+    public static Node findOrCreateFirstChildWithAttributeValue(@Nullable Node root, String childName, String attribute, String value) {
+        Node child = findFirstChildWithAttributeValue(root, childName, attribute, value);
+        if (child == null) {
+            Map<String, Object> attributes = Maps.newHashMap();
+            attributes.put(attribute, value);
+            child = root.appendNode(childName, attributes);
         }
         return child;
     }
