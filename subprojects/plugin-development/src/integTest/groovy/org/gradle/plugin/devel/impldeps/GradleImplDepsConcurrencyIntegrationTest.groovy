@@ -138,7 +138,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
     private List<String> executeBuildsConcurrently(int projectCount, String... taskNames) {
         def handles = []
         (1..projectCount).each { count ->
-            handles << executer.inDirectory(file(createProjectName(count))).withTasks(taskNames).start()
+            handles << executer.withBuildJvmOpts('-Xmx512m').inDirectory(file(createProjectName(count))).withTasks(taskNames).start()
         }
 
         def outputs = []
