@@ -106,9 +106,8 @@ The legacy Sonar plugin has been removed from the distribution. It is superceded
 ### Ant-Based Scala Compiler has been removed
 
 The deprecated Ant-Based Scala Compiler has been removed from Gradle
-3.0. The Zinc Scala Compiler is now used exclusively. If your scala
-build begins failing with this release of Gradle, be sure to remove
-references to the following deprecated configuration properties:
+3.0. The Zinc Scala Compiler is now used exclusively. The following
+properties have been removed from the ScalaCompile task:
 
 1. `daemonServer`
 1. `fork`
