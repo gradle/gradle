@@ -271,17 +271,14 @@ public class Module extends XmlPersistableConfigurationObject {
                 Set<Path> sources = Sets.newLinkedHashSet();
                 Set<JarDirectory> jarDirectories = Sets.newLinkedHashSet();
                 for (Node library : getChildren(orderEntry, "library")) {
-                    Node classesNode = findFirstChildNamed(library, "CLASSES");
-                    for (Node classesRoot : getChildren(classesNode, "root")) {
-                        classes.add(pathFactory.path((String) classesRoot.attribute("url")));
+                    for (Node classesNode : getChildren(library, "CLASSES")) {
+                        readDependenciesPathsFromXml(classes, classesNode);
                     }
-                    Node javadocNode = findFirstChildNamed(library, "JAVADOC");
-                    for (Node javadocRoot : getChildren(javadocNode, "root")) {
-                        javadoc.add(pathFactory.path((String) javadocRoot.attribute("url")));
+                    for (Node javadocNode : getChildren(library, "JAVADOC")) {
+                        readDependenciesPathsFromXml(javadoc, javadocNode);
                     }
-                    Node sourcesNode = findFirstChildNamed(library, "SOURCES");
-                    for (Node sourcesRoot : getChildren(sourcesNode, "root")) {
-                        sources.add(pathFactory.path((String) sourcesRoot.attribute("url")));
+                    for (Node sourcesNode : getChildren(library, "SOURCES")) {
+                        readDependenciesPathsFromXml(sources, sourcesNode);
                     }
                     for (Node jarDirNode : getChildren(library, "jarDirectory")) {
                         jarDirectories.add(new JarDirectory(pathFactory.path((String) jarDirNode.attribute("url")), Boolean.parseBoolean((String) jarDirNode.attribute("recursive"))));
@@ -292,6 +289,12 @@ public class Module extends XmlPersistableConfigurationObject {
             } else if ("module".equals(orderEntryType)) {
                 dependencies.add(new ModuleDependency((String) orderEntry.attribute("module-name"), (String) orderEntry.attribute("scope")));
             }
+        }
+    }
+
+    private void readDependenciesPathsFromXml(Set<Path> paths, Node node) {
+        for (Node classesRoot : getChildren(node, "root")) {
+            paths.add(pathFactory.path((String) classesRoot.attribute("url")));
         }
     }
 

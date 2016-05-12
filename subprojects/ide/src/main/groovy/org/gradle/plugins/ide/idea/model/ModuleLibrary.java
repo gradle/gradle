@@ -175,12 +175,12 @@ public class ModuleLibrary implements Dependency {
     }
 
     private boolean scopeEquals(String lhs, String rhs) {
-        if (isNullOrEmpty(lhs) || lhs.equals("COMPILE")) {
-            return isNullOrEmpty(rhs) || rhs.equals("COMPILE");
-        } else if (isNullOrEmpty(rhs) || rhs.equals("COMPILE")) {
-            return isNullOrEmpty(lhs) || lhs.equals("COMPILE");
+        if ("COMPILE".equals(lhs)) {
+            return isNullOrEmpty(rhs) || "COMPILE".equals(rhs);
+        } else if ("COMPILE".equals(rhs)) {
+            return isNullOrEmpty(lhs) || "COMPILE".equals(lhs);
         } else {
-            return lhs.equals(rhs);
+            return Objects.equal(lhs, rhs);
         }
     }
 
@@ -196,7 +196,7 @@ public class ModuleLibrary implements Dependency {
     }
 
     private int getScopeHash() {
-        return scope != null && !scope.equals("COMPILE") ? scope.hashCode() : 0;
+        return !isNullOrEmpty(scope) && !scope.equals("COMPILE") ? scope.hashCode() : 0;
     }
 
     @Override
