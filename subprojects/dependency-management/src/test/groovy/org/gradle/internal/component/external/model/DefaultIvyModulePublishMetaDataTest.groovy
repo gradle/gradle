@@ -15,19 +15,20 @@
  */
 
 package org.gradle.internal.component.external.model
-import org.apache.ivy.core.module.descriptor.Artifact
+
 import org.apache.ivy.core.module.descriptor.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.internal.component.local.model.LocalConfigurationMetaData
 import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.IvyArtifactName
 import spock.lang.Specification
 
 class DefaultIvyModulePublishMetaDataTest extends Specification {
     def metaData = new DefaultIvyModulePublishMetaData(Stub(ModuleVersionIdentifier), "status")
 
     def "can add artifacts"() {
-        def artifact = Stub(Artifact)
+        def artifact = Stub(IvyArtifactName)
         def file = new File("artifact.zip")
 
         when:
@@ -36,7 +37,7 @@ class DefaultIvyModulePublishMetaDataTest extends Specification {
         then:
         metaData.artifacts.size() == 1
         def publishArtifact = metaData.artifacts.iterator().next()
-        publishArtifact.artifact == artifact
+        publishArtifact.artifactName == artifact
         publishArtifact.file == file
     }
 

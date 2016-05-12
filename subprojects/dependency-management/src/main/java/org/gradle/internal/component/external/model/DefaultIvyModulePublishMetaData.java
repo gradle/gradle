@@ -105,9 +105,8 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
         }
     }
 
-    public void addArtifact(Artifact artifact, File file) {
-        IvyArtifactName artifactName = DefaultIvyArtifactName.forIvyArtifact(artifact);
-        DefaultIvyModuleArtifactPublishMetaData publishMetaData = new DefaultIvyModuleArtifactPublishMetaData(id, artifactName, file);
+    public void addArtifact(IvyArtifactName artifact, File file) {
+        DefaultIvyModuleArtifactPublishMetaData publishMetaData = new DefaultIvyModuleArtifactPublishMetaData(id, artifact, file);
         artifactsById.put(publishMetaData.getId(), publishMetaData);
     }
 

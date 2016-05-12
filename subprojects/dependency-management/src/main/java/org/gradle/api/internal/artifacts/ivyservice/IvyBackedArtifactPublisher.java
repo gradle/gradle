@@ -16,8 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.MDArtifact;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -31,6 +29,8 @@ import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
 import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
 import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -67,7 +67,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
                 // Convert a second time with only the published configurations: this ensures that the correct artifacts are included
                 BuildableIvyModulePublishMetaData publishMetaData = toPublishMetaData(module, configurationsToPublish);
                 if (descriptor != null) {
-                    Artifact artifact = MDArtifact.newIvyArtifact(publishMetaData.getModuleDescriptor());
+                    IvyArtifactName artifact = new DefaultIvyArtifactName("ivy", "ivy", "xml");
                     publishMetaData.addArtifact(artifact, descriptor);
                 }
 

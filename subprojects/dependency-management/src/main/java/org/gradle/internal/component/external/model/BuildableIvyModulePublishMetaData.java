@@ -16,11 +16,11 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
 public interface BuildableIvyModulePublishMetaData extends IvyModulePublishMetaData, BuildableLocalComponentMetaData {
-    void addArtifact(Artifact artifact, File file);
+    void addArtifact(IvyArtifactName artifact, File file);
 }
