@@ -17,9 +17,8 @@
 package org.gradle.launcher.daemon.diagnostics;
 
 import org.gradle.internal.remote.Address;
-import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
 
-public class DaemonStartupInfo implements DaemonInstanceDetails {
+public class DaemonStartupInfo {
     private final String uid;
     private final Address address;
     private final DaemonDiagnostics diagnostics;

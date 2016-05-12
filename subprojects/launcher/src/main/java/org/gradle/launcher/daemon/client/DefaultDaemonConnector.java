@@ -23,8 +23,8 @@ import org.gradle.internal.remote.internal.ConnectException;
 import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.internal.serialize.Serializers;
+import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
@@ -44,12 +44,14 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private final DaemonRegistry daemonRegistry;
     protected final OutgoingConnector connector;
     private final DaemonStarter daemonStarter;
+    private final DaemonStartListener startListener;
     private long connectTimeout = DefaultDaemonConnector.DEFAULT_CONNECT_TIMEOUT;
 
-    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector connector, DaemonStarter daemonStarter) {
+    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector connector, DaemonStarter daemonStarter, DaemonStartListener startListener) {
         this.daemonRegistry = daemonRegistry;
         this.connector = connector;
         this.daemonStarter = daemonStarter;
+        this.startListener = startListener;
     }
 
     public void setConnectTimeout(long connectTimeout) {
@@ -68,13 +70,9 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return findConnection(daemonRegistry.getAll(), constraint);
     }
 
-    public DaemonClientConnection maybeConnect(DaemonInstanceDetails daemon) {
+    public DaemonClientConnection maybeConnect(DaemonConnectDetails daemon) {
         try {
-            for (DaemonInfo daemonInfo : daemonRegistry.getAll()) {
-                if (daemonInfo.getUid().equals(daemon.getUid())) {
-                    return connectToDaemon(daemonInfo, new CleanupOnStaleAddress(daemonInfo, true));
-                }
-            }
+            return connectToDaemon(daemon, new CleanupOnStaleAddress(daemon, true));
         } catch (ConnectException e) {
             LOGGER.debug("Cannot connect to daemon {} due to {}. Ignoring.", daemon, e);
         }
@@ -116,6 +114,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         do {
             DaemonClientConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
             if (daemonConnection != null) {
+                startListener.daemonStarted(daemonConnection.getDaemon());
                 return daemonConnection;
             }
             try {
@@ -147,7 +146,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return null;
     }
 
-    private DaemonClientConnection connectToDaemon(DaemonInfo daemon, DaemonClientConnection.StaleAddressDetector staleAddressDetector) throws ConnectException {
+    private DaemonClientConnection connectToDaemon(DaemonConnectDetails daemon, DaemonClientConnection.StaleAddressDetector staleAddressDetector) throws ConnectException {
         RemoteConnection<Message> connection;
         try {
             connection = connector.connect(daemon.getAddress()).create(Serializers.stateful(DaemonMessageSerializer.create()));
@@ -159,10 +158,10 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     private class CleanupOnStaleAddress implements DaemonClientConnection.StaleAddressDetector {
-        private final DaemonInfo daemon;
+        private final DaemonConnectDetails daemon;
         private final boolean exposeAsStale;
 
-        public CleanupOnStaleAddress(DaemonInfo daemon, boolean exposeAsStale) {
+        public CleanupOnStaleAddress(DaemonConnectDetails daemon, boolean exposeAsStale) {
             this.daemon = daemon;
             this.exposeAsStale = exposeAsStale;
         }

@@ -42,27 +42,28 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 public class DefaultDaemonStarter implements DaemonStarter {
-
     private static final Logger LOGGER = Logging.getLogger(DefaultDaemonStarter.class);
 
     private final DaemonDir daemonDir;
     private final DaemonParameters daemonParameters;
     private final DaemonGreeter daemonGreeter;
-    private final DaemonStartListener listener;
     private final JvmVersionValidator versionValidator;
 
-    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, DaemonStartListener listener, JvmVersionValidator versionValidator) {
+    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator versionValidator) {
         this.daemonDir = daemonDir;
         this.daemonParameters = daemonParameters;
         this.daemonGreeter = daemonGreeter;
-        this.listener = listener;
         this.versionValidator = versionValidator;
     }
 
@@ -132,9 +133,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         }
         ByteArrayInputStream stdInput = new ByteArrayInputStream(serializedConfig.toByteArray());
 
-        DaemonStartupInfo daemonInfo = startProcess(daemonArgs, daemonDir.getVersionedDir(), stdInput);
-        listener.daemonStarted(daemonInfo);
-        return daemonInfo;
+        return startProcess(daemonArgs, daemonDir.getVersionedDir(), stdInput);
     }
 
     private DaemonStartupInfo startProcess(List<String> args, File workingDir, InputStream stdInput) {

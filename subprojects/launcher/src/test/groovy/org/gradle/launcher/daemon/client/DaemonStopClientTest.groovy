@@ -17,7 +17,6 @@ package org.gradle.launcher.daemon.client
 
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonConnectDetails
-import org.gradle.launcher.daemon.context.DaemonInstanceDetails
 import org.gradle.launcher.daemon.protocol.Finished
 import org.gradle.launcher.daemon.protocol.Stop
 import org.gradle.launcher.daemon.protocol.StopWhenIdle
@@ -113,7 +112,7 @@ class DaemonStopClientTest extends ConcurrentSpecification {
         0 * _
     }
 
-    private DaemonInstanceDetails daemon(String id) {
+    private DaemonConnectDetails daemon(String id) {
         Stub(DaemonConnectDetails) {
             getUid() >> id
         }
