@@ -24,7 +24,6 @@ import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedDependenciesLogger;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -115,9 +114,6 @@ import java.util.Set;
  * </pre>
  */
 public class EclipseClasspath {
-
-    private static final String DEPRECATED_NOEXPORTCONFIGURATION_FIELD = "EclipseClasspath.noExportConfigurations";
-
     private Iterable<SourceSet> sourceSets;
 
     private Collection<Configuration> plusConfigurations = new ArrayList<Configuration>();
@@ -186,21 +182,6 @@ public class EclipseClasspath {
 
     public void setMinusConfigurations(Collection<Configuration> minusConfigurations) {
         this.minusConfigurations = minusConfigurations;
-    }
-
-    /**
-     * A subset of {@link #plusConfigurations} whose files are not to be exported to downstream Eclipse projects.
-     * <p>
-     * See {@link EclipseClasspath} for an example.
-     */
-    Collection<Configuration> getNoExportConfigurations() {
-        DeprecationLogger.nagUserOfDeprecated(DEPRECATED_NOEXPORTCONFIGURATION_FIELD);
-        return noExportConfigurations;
-    }
-
-    void setNoExportConfigurations(Collection<Configuration> noExportConfigurations) {
-        DeprecationLogger.nagUserOfDeprecated(DEPRECATED_NOEXPORTCONFIGURATION_FIELD);
-        this.noExportConfigurations = noExportConfigurations;
     }
 
     /**
