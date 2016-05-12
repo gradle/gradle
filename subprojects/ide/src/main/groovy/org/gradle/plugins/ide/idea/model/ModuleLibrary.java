@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 
@@ -115,23 +116,34 @@ public class ModuleLibrary implements Dependency {
 
     @Override
     public void addToNode(Node parentNode) {
-        Map<String, Object> attributes = ImmutableMap.<String, Object>builder().put("type", "module-library").putAll(getAttributeMapForScopeAndExported()).build();
-        Node libraryNode = parentNode.appendNode("orderEntry", attributes).appendNode("library");
+        Map<String, Object> orderEntryAttributes = Maps.newHashMap(ImmutableMap.<String, Object>builder()
+            .put("type", "module-library")
+            .putAll(getAttributeMapForScopeAndExported())
+            .build());
+        Node libraryNode = parentNode.appendNode("orderEntry", orderEntryAttributes).appendNode("library");
         Node classesNode = libraryNode.appendNode("CLASSES");
         Node javadocNode = libraryNode.appendNode("JAVADOC");
         Node sourcesNode = libraryNode.appendNode("SOURCES");
         for (Path path : classes) {
-            classesNode.appendNode("root", ImmutableMap.of("url", path.getUrl()));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("url", path.getUrl());
+            classesNode.appendNode("root", attributes);
         }
         for (Path path : javadoc) {
-            javadocNode.appendNode("root", ImmutableMap.of("url", path.getUrl()));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("url", path.getUrl());
+            javadocNode.appendNode("root", attributes);
         }
         for (Path path : sources) {
-            sourcesNode.appendNode("root", ImmutableMap.of("url", path.getUrl()));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("url", path.getUrl());
+            sourcesNode.appendNode("root", attributes);
         }
         for (JarDirectory jarDirectory : jarDirectories) {
-            ImmutableMap<String, String> jarDirectoryAttributes = ImmutableMap.of("url", jarDirectory.getPath().getUrl(), "recursive", String.valueOf(jarDirectory.isRecursive()));
-            libraryNode.appendNode("jarDirectory", jarDirectoryAttributes);
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(2);
+            attributes.put("url", jarDirectory.getPath().getUrl());
+            attributes.put("recursive", String.valueOf(jarDirectory.isRecursive()));
+            libraryNode.appendNode("jarDirectory", attributes);
         }
     }
 

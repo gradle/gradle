@@ -17,9 +17,9 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.util.Node;
@@ -209,7 +209,9 @@ public class Project extends XmlPersistableConfigurationObject {
     private void storeModulePaths() {
         Node modulesNode = new Node(null, "modules");
         for (Path modulePath : modulePaths) {
-            Map attributes = ImmutableMap.of("fileurl", modulePath.getUrl(), "filepath", modulePath.getRelPath());
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(2);
+            attributes.put("fileurl", modulePath.getUrl());
+            attributes.put("filepath", modulePath.getRelPath());
             modulesNode.appendNode("module", attributes);
         }
         findOrCreateModules().replaceNode(modulesNode);
@@ -220,7 +222,9 @@ public class Project extends XmlPersistableConfigurationObject {
         Node existingNode = findOrCreateFirstChildNamed(compilerConfigNode, "wildcardResourcePatterns");
         Node wildcardsNode = new Node(null, "wildcardResourcePatterns");
         for (String wildcard : wildcards) {
-            wildcardsNode.appendNode("entry", ImmutableMap.of("name", wildcard));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("name", wildcard);
+            wildcardsNode.appendNode("entry", attributes);
         }
         existingNode.replaceNode(wildcardsNode);
     }
@@ -299,7 +303,9 @@ public class Project extends XmlPersistableConfigurationObject {
     private Node findOrCreateBytecodeLevelConfiguration() {
         Node compilerConfiguration = findCompilerConfiguration();
         if (compilerConfiguration == null) {
-            compilerConfiguration = getXml().appendNode("component", ImmutableMap.of("name", "CompilerConfiguration"));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("name", "CompilerConfiguration");
+            compilerConfiguration = getXml().appendNode("component", attributes);
         }
         return findOrCreateFirstChildNamed(compilerConfiguration, "bytecodeTargetLevel");
     }
@@ -312,7 +318,9 @@ public class Project extends XmlPersistableConfigurationObject {
     private Node findOrCreateLibraryTable() {
         Node libraryTable = findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "libraryTable");
         if (libraryTable == null) {
-            libraryTable = getXml().appendNode("component", ImmutableMap.of("name", "libraryTable"));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("name", "libraryTable");
+            libraryTable = getXml().appendNode("component", attributes);
         }
         return libraryTable;
     }

@@ -20,7 +20,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -186,11 +185,17 @@ public class IdeaScalaConfigurer {
         if (scalaSdkLibrary != null) {
             Node newModuleRootManager = findFirstChildWithAttributeValue(iml, "component", "name", "NewModuleRootManager");
             if (newModuleRootManager == null) {
-                newModuleRootManager = iml.appendNode("component", ImmutableMap.of("name", "NewModuleRootManager"));
+                Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+                attributes.put("name", "NewModuleRootManager");
+                newModuleRootManager = iml.appendNode("component", attributes);
             }
             Node sdkLibrary = findFirstChildWithAttributeValue(newModuleRootManager, "orderEntry", "name", scalaSdkLibrary.getName());
             if (sdkLibrary == null) {
-                newModuleRootManager.appendNode("orderEntry", ImmutableMap.of("type", "library", "name", scalaSdkLibrary.getName(), "level", "project"));
+                Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(3);
+                attributes.put("type", "library");
+                attributes.put("name", scalaSdkLibrary.getName());
+                attributes.put("level", "project");
+                newModuleRootManager.appendNode("orderEntry", attributes);
             }
         }
     }
@@ -198,12 +203,17 @@ public class IdeaScalaConfigurer {
     private static void declareScalaFacet(ProjectLibrary scalaCompilerLibrary, Node iml) {
         Node facetManager = findFirstChildWithAttributeValue(iml, "component", "name", "FacetManager");
         if (facetManager == null) {
-            facetManager = iml.appendNode("component", ImmutableMap.of("name", "FacetManager"));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("name", "FacetManager");
+            facetManager = iml.appendNode("component", attributes);
         }
 
         Node scalaFacet = findFirstChildWithAttributeValue(facetManager, "facet", "type", "scala");
         if (scalaFacet == null) {
-            scalaFacet = facetManager.appendNode("facet", ImmutableMap.of("type", "scala", "name", "Scala"));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(2);
+            attributes.put("type", "scala");
+            attributes.put("name", "Scala");
+            scalaFacet = facetManager.appendNode("facet", attributes);
         }
 
         Node configuration = findFirstChildNamed(scalaFacet, "configuration");
@@ -213,13 +223,17 @@ public class IdeaScalaConfigurer {
 
         Node libraryLevel = findFirstChildWithAttributeValue(configuration, "option", "name", "compilerLibraryLevel");
         if (libraryLevel == null) {
-            libraryLevel = configuration.appendNode("option", Maps.newLinkedHashMap(ImmutableMap.of("name", "compilerLibraryLevel")));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(2);
+            attributes.put("name", "compilerLibraryLevel");
+            libraryLevel = configuration.appendNode("option", attributes);
         }
         libraryLevel.attributes().put("value", "Project");
 
         Node libraryName = findFirstChildWithAttributeValue(configuration, "option", "name", "compilerLibraryName");
         if (libraryName == null) {
-            libraryName = configuration.appendNode("option", Maps.newLinkedHashMap(ImmutableMap.of("name", "compilerLibraryName")));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(2);
+            attributes.put("name", "compilerLibraryName");
+            libraryName = configuration.appendNode("option", attributes);
         }
         libraryName.attributes().put("value", scalaCompilerLibrary.getName());
     }

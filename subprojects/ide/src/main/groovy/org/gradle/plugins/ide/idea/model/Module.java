@@ -16,7 +16,7 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import org.gradle.api.Nullable;
@@ -25,6 +25,7 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -307,12 +308,18 @@ public class Module extends XmlPersistableConfigurationObject {
             if (moduleJdk != null) {
                 moduleRootManager.remove(moduleJdk);
             }
-            moduleRootManager.appendNode("orderEntry", ImmutableMap.of("type", "jdk", "jdkName", jdkName, "jdkType", "JavaSDK"));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(3);
+            attributes.put("type", "jdk");
+            attributes.put("jdkName", jdkName);
+            attributes.put("jdkType", "JavaSDK");
+            moduleRootManager.appendNode("orderEntry", attributes);
         } else if (findFirstWithAttributeValue(orderEntries, "type", "inheritedJdk") == null) {
             if (moduleJdk != null) {
                 moduleRootManager.remove(moduleJdk);
             }
-            moduleRootManager.appendNode("orderEntry", ImmutableMap.of("type", "inheritedJdk"));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("type", "inheritedJdk");
+            moduleRootManager.appendNode("orderEntry", attributes);
         }
     }
 
@@ -335,25 +342,27 @@ public class Module extends XmlPersistableConfigurationObject {
     private void addSourceAndExcludeFolderToXml() {
         Node content = getContentNode();
         for (Path path : sourceFolders) {
-            ImmutableMap.Builder attributes = ImmutableMap.builder()
-                .put("url", path.getUrl())
-                .put("isTestSource", "false");
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(3);
+            attributes.put("url", path.getUrl());
+            attributes.put("isTestSource", "false");
             if (generatedSourceFolders.contains(path)) {
                 attributes.put("generated", "true");
             }
-            content.appendNode("sourceFolder", attributes.build());
+            content.appendNode("sourceFolder", attributes);
         }
         for (Path path : testSourceFolders) {
-            ImmutableMap.Builder attributes = ImmutableMap.builder()
-                .put("url", path.getUrl())
-                .put("isTestSource", "true");
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(3);
+            attributes.put("url", path.getUrl());
+            attributes.put("isTestSource", "true");
             if (generatedSourceFolders.contains(path)) {
                 attributes.put("generated", "true");
             }
-            content.appendNode("sourceFolder", attributes.build());
+            content.appendNode("sourceFolder", attributes);
         }
         for (Path path : excludeFolders) {
-            content.appendNode("excludeFolder", ImmutableMap.of("url", path.getUrl()));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("url", path.getUrl());
+            content.appendNode("excludeFolder", attributes);
         }
     }
 
