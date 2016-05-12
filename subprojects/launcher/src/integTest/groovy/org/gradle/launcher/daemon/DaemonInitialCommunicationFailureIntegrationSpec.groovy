@@ -123,6 +123,37 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         analyzer.visible.size() == 1        //only one address in the registry
     }
 
+    def "daemon drops connection when client request is badly formed"() {
+        when:
+        buildSucceeds()
+
+        then:
+        //there should be one idle daemon
+        def daemon = daemons.daemon
+        daemon.assertIdle()
+
+        when:
+        def socket = new Socket(InetAddress.getLoopbackAddress(), daemon.port)
+        socket.outputStream.write("GET / HTTP/1.0\n\n".getBytes())
+        socket.outputStream.flush()
+
+        then:
+        // Nothing sent back
+        socket.inputStream.read() == -1
+
+        when:
+        // Ensure daemon is functional
+        daemon.assertIdle()
+        buildSucceeds()
+
+        then:
+        daemon.assertIdle()
+        daemons.daemons.size() == 1
+
+        cleanup:
+        socket?.close()
+    }
+
     private static class TestServer extends ExternalResource {
         ServerSocketChannel socket;
         Thread acceptor;
