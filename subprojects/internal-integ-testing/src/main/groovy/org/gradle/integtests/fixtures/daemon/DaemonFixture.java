@@ -25,6 +25,11 @@ public interface DaemonFixture {
     DaemonContext getContext();
 
     /**
+     * Returns the log for this daemon.
+     */
+    String getLog();
+
+    /**
      * Returns the TCP port used by this daemon.
      */
     int getPort();

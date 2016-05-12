@@ -141,9 +141,12 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         // Nothing sent back
         socket.inputStream.read() == -1
 
+        // Daemon is still running
+        daemon.becomesIdle()
+        daemon.log.contains("Unable to receive command from client")
+
         when:
         // Ensure daemon is functional
-        daemon.assertIdle()
         buildSucceeds()
 
         then:

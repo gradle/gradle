@@ -143,7 +143,7 @@ public class DefaultIncomingConnectionHandler implements IncomingConnectionHandl
                 LOGGER.info("Received command: {}.", command);
                 return command;
             } catch (Throwable e) {
-                LOGGER.warn(String.format("Unable to receive command from %s. Discarding connection.", connection), e);
+                LOGGER.warn(String.format("Unable to receive command from client %s. Discarding connection.", connection), e);
                 return null;
             }
         }
