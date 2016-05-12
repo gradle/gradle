@@ -312,6 +312,16 @@ As such, it was not possible to successfully ship a plugin that relied on access
 
 `ComponentModelBasePlugin` can no longer be applied using id `component-base`. Its new id is `component-model-base`.
 
+### Tests now respect java.util.logging.config.file by default
+
+Previous versions of Gradle ignored the `java.util.logging.config.file` system property when running tests. Now, the system property will be honored when tests are running. This can break your tests if you are expecting the default ConsoleHandler to be used during tests, and checking expectations based on that output. If you tests begin failing with this release of Gradle, you can disable reading the logging conifguration file with a system propoerty.
+
+    test {
+        systemProperty 'org.gradle.readLoggingConfigFile' 'false'
+    }
+    
+Support for this system property will be dropped in Gradle 3.0. Please be sure to correct the expectations in your tests if you are using a logging configuration file.
+
 ### JAR metadata and Manifest content encoding
 
 Previous versions of Gradle used to encode JAR/WAR/EAR files metadata and Manifests content using the platform default character set instead of UTF-8. Both are bugs and have been fixed in this release, see the related fixed issues above.
@@ -385,7 +395,8 @@ We would like to thank the following community members for making contributions 
 - [Armin Groll](https://github.com/arming9) - Make Gradle source code compile inside Eclipse
 - [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - fix NPE when configuring FileTree's builtBy by map ([GRADLE-3444](https://issues.gradle.org/browse/GRADLE-3444))
 - [Ryan Ernst](https://github.com/rjernst) - always use -source/-target for the forked Java compiler 
-- [Quinten Krijger](https://github.com/Krijger) - Fix description of leftShift task in error message 
+- [Quinten Krijger](https://github.com/Krijger) - Fix description of leftShift task in error message
+- [Alex Afanasyev](https://github.com/cawka) - Support java.util.logging config files during tests. ([GRADLE-2524](https://issues.gradle.org/browse/GRADLE-2524))
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
