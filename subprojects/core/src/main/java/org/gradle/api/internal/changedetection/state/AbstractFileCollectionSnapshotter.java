@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.hash.Hasher;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.StringHasher;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -54,11 +54,12 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
 
     private Integer calculatePreCheckHash(Collection<VisitedTree> visitedTrees) {
         Hasher hasher = createHasher();
+        StringHasher stringHasher = new StringHasher(hasher);
         List<VisitedTree> sortedTrees = new ArrayList<VisitedTree>();
         Collections.sort(sortedTrees, DefaultVisitedTree.VisitedTreeComparator.INSTANCE);
         for (VisitedTree tree : visitedTrees) {
             if (tree.getAbsolutePath() != null) {
-                hasher.putString(tree.getAbsolutePath(), Charsets.UTF_8);
+                stringHasher.hashString(tree.getAbsolutePath());
             }
             if (tree.getPatternSet() != null) {
                 hasher.putInt(tree.getPatternSet().hashCode());

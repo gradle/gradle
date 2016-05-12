@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file;
 
-import com.google.common.base.Charsets;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import org.gradle.api.file.FileTreeElement;
@@ -34,10 +33,13 @@ public class FileTreeElementHasher {
     public static final int calculateHashForFileMetadata(Collection<? extends FileTreeElement> allFileTreeElements) {
         Collection<FileTreeElement> sortedFileTreeElement = sortForHashing(allFileTreeElements);
 
-        Hasher hasher = createHasher();
+        final Hasher hasher = createHasher();
+
+        StringHasher stringHasher = new StringHasher(hasher);
+
         for (FileTreeElement fileTreeElement : sortedFileTreeElement) {
             for (String pathPart : fileTreeElement.getRelativePath().getSegments()) {
-                hasher.putString(pathPart, Charsets.UTF_8);
+                stringHasher.hashString(pathPart);
                 hasher.putByte(HASH_PATH_SEPARATOR);
             }
             if (!fileTreeElement.isDirectory()) {
@@ -59,9 +61,10 @@ public class FileTreeElementHasher {
         Collection<FileTreeElement> sortedFileTreeElement = sortForHashing(allFileTreeElements);
 
         Hasher hasher = createHasher();
+        StringHasher stringHasher = new StringHasher(hasher);
         for (FileTreeElement fileTreeElement : sortedFileTreeElement) {
             for (String pathPart : fileTreeElement.getRelativePath().getSegments()) {
-                hasher.putString(pathPart, Charsets.UTF_8);
+                stringHasher.hashString(pathPart);
                 hasher.putByte(HASH_PATH_SEPARATOR);
             }
             hasher.putByte(HASH_RECORD_SEPARATOR);
