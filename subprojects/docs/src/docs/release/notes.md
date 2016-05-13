@@ -21,7 +21,7 @@ Add-->
 
 ### Faster Gradle builds
 
-Gradle 2.14 brings significant improvements in configuration time. The Gradle build itself has seen a 50% reduction in its startup time. You should see similar improvements for complex builds or those with lots of subprojects. But even small projects will still a noticeable improvement.
+Gradle 2.14 brings significant improvements in configuration time. The Gradle build itself has seen a 50% reduction in its startup time. You should see similar improvements for complex builds or those with lots of subprojects. But even small projects will see a noticeable improvement.
 
 If you're interested in how this was done, here are some of the optimizations that were implemented:
 
@@ -56,7 +56,7 @@ If you're using the [Play plugin](userguide/play_plugin.html#play_ide) along wit
 
 ### Easier publication and consumption of plugins to and from custom repositories
 
-Gradle 2.1 first introduced the `plugins {}` block for specifying the plugins that your build uses, but this only worked for plugins that were published to the Gradle plugin portal. With the release of 2.14, you can now specify custom repositories via the new `pluginRepositories {}` block. This means that you can now take advantage of the `plugins {}` syntax for your organization's private plugins.
+Gradle 2.1 first introduced the `plugins {}` block for specifying the plugins that your build uses, but this only worked for plugins that were published to the Gradle plugin portal. With the release of 2.14, you can now specify custom repositories via the new `pluginRepositories {}` block. This means that you can take advantage of the `plugins {}` syntax for your organization's private plugins.
 
 To enable this feature, you add the new syntax to the project's _settings.gradle_ file, like so:
 
@@ -81,7 +81,7 @@ The `plugins {}` block looks the same as before, it's just that the plugins can 
 
 The repositories are consulted in the order in which they were specifed in the `pluginRepositories {}` block.
 
-**Note** The new plugin repository definitions **do not work** for the `apply plugin: <name>` syntax. By extension, that also means they don't work with the `allprojects {}`/`subprojects {}` feature. 
+**Note** The new plugin repository definitions **do not work** for the `apply plugin: <name>` syntax. By extension, that also means they won't work with the `allprojects {}`/`subprojects {}` feature. 
 
 For this feature to work with your own plugins, you will need to publish them alongside a special [Plugin Marker Artifact](userguide/plugins.html#sec:plugin_markers). Don't worry, this step happens automatically when you use either the [_maven-publish_](userguide/publishing_maven.html) or [_ivy-publish_](userguide/publishing_ivy.html) plugins
 with the [_java-gradle-plugin_](userguide/javaGradle_plugin.html) plugin.
@@ -113,8 +113,9 @@ To demonstrate how easy it is to publish a plugin with the new marker artifact, 
         }
     }
 
-When you run `./gradlew publish` your plugin `com.mycompany:secretPlugin:1.0` and the *Plugin Marker Artifact*
-`com.mycopmany.secret:com.mycompany.secret.gradle.plugin:1.0` will both be published to your custom Maven repository.
+When you run `./gradlew publish`, the sample plugin above, _com.mycompany:secretPlugin:1.0_, and the plugin marker artifact, _com.mycompany.secret:com.mycompany.secret.gradle.plugin:1.0_, will both be published to the configured custom Maven repository.
+
+You can learn more about defining custom plugin repositories in the [user guide](userguide/plugins.html#sec:custom_plugin_repositories).
 
 ### Configuration of character encoding when filtering files in a CopySpec
 
@@ -135,11 +136,11 @@ We're grateful to [Jean-Baptiste Nizet](https://github.com/jnizet) for his contr
 
 ### Support for inter-project dependency classifiers 
 
-When you're publishing artifacts via the `maven` plugin, Gradle has to map inter-project dependencies to `<dependency>` declarations in the generated POM file. This normally works fine, but Gradle was previously ignoring the classifier attribute on any project artifacts, which resulted in a single `<dependency>` entry in the POM for those inter-project dependencies. This meant that the published POM was incorrect and the project could not be properly resolved from a Maven repository.
+When you're publishing artifacts via the `maven` plugin, Gradle has to map inter-project dependencies to `<dependency>` declarations in the generated POM file. This normally works fine, but Gradle was previously ignoring the `classifier` attribute on any project artifacts, which resulted in a single `<dependency>` entry in the POM for those inter-project dependencies. This meant that the published POM was incorrect and the project could not be properly resolved from a Maven repository.
 
 The mapping of inter-project dependencies into POM dependency declarations has been improved in 2.14. Gradle will now produce correct POM files for the following cases`:
 
-- The depended-on project configuration produces a single artifact with a classifier. In this case, the `classifier` will be included in the `<dependency>` entry.
+- The depended-on project configuration produces a single artifact with a classifier. In this case, the `classifier` attribute will be included in the `<dependency>` entry.
 - The depended-on project configuration produces multiple artifacts. In this case, a `<dependency>` entry with the appropriate `classifier` attribute will be created for each artifact.
 
 As an example, consider the following Gradle project definitions:
@@ -187,7 +188,7 @@ The generated POM file for `project1` will now include these dependency entries:
     </dependencies>
     ...
 
-Prior to 2.14, the POM would only contain a single `<dependency>` entry for 'project2', omitting the 'classifier' attribute altogether.
+Prior to 2.14, the POM would only contain a single `<dependency>` entry for 'project2', omitting the `classifier` attribute altogether.
 
 Many thanks to [Raymond Navarette](https://github.com/rnavarette) for contributing this feature.
 
@@ -201,7 +202,7 @@ You can now control the level of Ant logging by changing the message priority th
         lifecycleLogLevel = "INFO"
     }
 
-This causes any Ant messages logged at the specified priority - "info" in this case - to be logged at the LIFECYCLE logging level. Any messages logged at a higher priority will also be logged at LIFECYCLE level (or above if it is already mapped to a higher logging level). Messages logged at a lower priority than the specified priority will be logged at INFO level or below.
+This causes any Ant messages logged at the specified priority - "info" in this case - to be logged at Gradle's LIFECYCLE logging level. Any messages logged at a higher priority than "info" will also be logged at LIFECYCLE level. Messages logged at a lower priority than the specified priority will be logged at INFO level or below.
 
 ## New for plugin authors
 
@@ -215,12 +216,11 @@ This caused problems when plugins depended on libraries that conflicted with Gra
 This has been fixed in Gradle 2.14.
 Only classes that are part of Gradle's public API are now visible to plugins at build time, which more accurately represents the runtime environment for the plugins.
 
-This change fixes both GRADLE-3433 and GRADLE-1715.
-In addition, it requires no changes to your build scripts.
+This change fixes both GRADLE-3433 and GRADLE-1715, and requires no changes to your build scripts.
 
 ## New for tooling API consumers
 
-There is just one minor change the the Tooling API, related to composite build support.
+There is just one minor change to the Tooling API, related to composite build support.
 
 ### New identifier properties for IDE Tooling API models
 
@@ -230,7 +230,7 @@ As mentioned in the deprecation notes, these properties supersede `EclipseProjec
 
 ## Promoted features
 
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to our backwards compatibility policy.
 See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
