@@ -54,9 +54,9 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         if (value == null) {
             return false;
         } else if (value instanceof Boolean) {
-            return ((Boolean)value).booleanValue();
+            return ((Boolean) value).booleanValue();
         } else {
-            return Boolean.valueOf((String)value);
+            return Boolean.valueOf((String) value);
         }
     }
 
@@ -115,10 +115,10 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
     }
 
     protected Node addClasspathEntry(Node node, Map<String, ?> attributes) {
-        Map<Object, Object> allAttributes = Maps.newHashMap();
+        Map<String, Object> allAttributes = Maps.newHashMap();
         for (String key : attributes.keySet()) {
-            String value = (String) attributes.get(key);
-            if (value != null && !value.isEmpty()) {
+            Object value = attributes.get(key);
+            if (value != null && !String.valueOf(value).isEmpty()) {
                 allAttributes.put(key, value);
             }
         }
@@ -140,14 +140,14 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         return PathUtil.normalizePath(path);
     }
 
-    private Set readAccessRules(Node node) {
-        Set accessRules = Sets.newHashSet();
+    private Set<AccessRule> readAccessRules(Node node) {
+        Set<AccessRule> accessRules = Sets.newHashSet();
         NodeList accessRulesNodes = (NodeList) node.get("accessrules");
         for (Object accessRulesNode : accessRulesNodes) {
-            NodeList accessRuleNodes = (NodeList) ((Node)accessRulesNode).get("accessrule");
+            NodeList accessRuleNodes = (NodeList) ((Node) accessRulesNode).get("accessrule");
             for (Object accessRuleNode : accessRuleNodes) {
-                Node ruleNode = (Node)accessRuleNode;
-                accessRules.add(new AccessRule((String)ruleNode.attribute("kind"), (String)ruleNode.attribute("pattern")));
+                Node ruleNode = (Node) accessRuleNode;
+                accessRules.add(new AccessRule((String) ruleNode.attribute("kind"), (String) ruleNode.attribute("pattern")));
             }
         }
         return accessRules;
@@ -157,7 +157,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         if (accessRules == null || accessRules.isEmpty()) {
             return;
         }
-        Node accessRulesNode = null;
+        Node accessRulesNode;
         NodeList accessRulesNodes = (NodeList) node.get("accessrules");
         if (accessRulesNodes.size() == 0) {
             accessRulesNode = node.appendNode("accessrules");
@@ -165,31 +165,31 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
             accessRulesNode = (Node) accessRulesNodes.get(0);
         }
         for (AccessRule rule : accessRules) {
-            Map attributes  = Maps.newHashMap();
-            attributes.put("kind", rule.kind);
-            attributes.put("pattern", rule.pattern);
+            Map<String, Object> attributes  = Maps.newHashMap();
+            attributes.put("kind", rule.getKind());
+            attributes.put("pattern", rule.getPattern());
             accessRulesNode.appendNode("accessrule", attributes);
         }
     }
 
     private Map readEntryAttributes(Node node) {
-        Map attributes = Maps.newHashMap();
+        Map<String, Object> attributes = Maps.newHashMap();
         NodeList attributesNodes = (NodeList) node.get("attributes");
-        for(Object attributesEntry : attributesNodes) {
+        for (Object attributesEntry : attributesNodes) {
             NodeList attributeNodes = (NodeList) ((Node) attributesEntry).get("attribute");
             for (Object attributeEntry : attributeNodes) {
                 Node attributeNode = (Node) attributeEntry;
-                attributes.put(attributeNode.attribute("name"), attributeNode.attribute("value"));
+                attributes.put((String) attributeNode.attribute("name"), attributeNode.attribute("value"));
             }
         }
         return attributes;
     }
 
     public void writeEntryAttributes(Node node) {
-        Map effectiveEntryAttrs = Maps.newHashMap();
+        Map<String, Object> effectiveEntryAttrs = Maps.newHashMap();
         for (String key : entryAttributes.keySet()) {
-            String value = (String) entryAttributes.get(key);
-            if (value != null || key == COMPONENT_NON_DEPENDENCY_ATTRIBUTE) {
+            Object value = entryAttributes.get(key);
+            if ((value != null && !String.valueOf(value).isEmpty()) || COMPONENT_NON_DEPENDENCY_ATTRIBUTE.equals(key)) {
                 effectiveEntryAttrs.put(key, value);
             }
         }
@@ -205,8 +205,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
             effectiveEntryAttrs.remove(COMPONENT_NON_DEPENDENCY_ATTRIBUTE);
         }
 
-
-        Node attributesNode = null;
+        Node attributesNode;
         NodeList attributesNodes = (NodeList) node.get("attributes");
         if (attributesNodes.size() == 0) {
             attributesNode = node.appendNode("attributes");
@@ -214,9 +213,9 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
             attributesNode = (Node) attributesNodes.get(0);
         }
 
-        for (Object key : effectiveEntryAttrs.keySet()) {
+        for (String key : effectiveEntryAttrs.keySet()) {
             Object value = effectiveEntryAttrs.get(key);
-            Map attrs = Maps.newHashMap();
+            Map<String, Object> attrs = Maps.newHashMap();
             attrs.put("name", key);
             attrs.put("value", value);
             attributesNode.appendNode("attribute", attrs);
@@ -235,12 +234,12 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         return exported == that.exported
             && Objects.equal(path, that.path)
             && Objects.equal(accessRules, that.accessRules)
-            && Objects.equal(entryAttributes, that.entryAttributes);
+            && Objects.equal(getNativeLibraryLocation(), that.getNativeLibraryLocation());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(path, exported, accessRules, entryAttributes);
+        return Objects.hashCode(path, exported, accessRules, getNativeLibraryLocation());
     }
 
     @Override

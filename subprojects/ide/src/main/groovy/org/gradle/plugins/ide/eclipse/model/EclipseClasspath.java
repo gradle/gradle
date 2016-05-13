@@ -336,9 +336,8 @@ public class EclipseClasspath {
 
     public FileReferenceFactory getFileReferenceFactory() {
         FileReferenceFactory referenceFactory = new FileReferenceFactory();
-        for (String name : pathVariables.keySet()) {
-            File dir = pathVariables.get(name);
-            referenceFactory.addPathVariable(name, dir);
+        for (Map.Entry<String, File> entry : pathVariables.entrySet()) {
+            referenceFactory.addPathVariable(entry.getKey(), entry.getValue());
         }
         return referenceFactory;
     }

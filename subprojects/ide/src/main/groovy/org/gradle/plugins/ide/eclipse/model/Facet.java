@@ -53,9 +53,6 @@ public class Facet {
 
     public Facet(FacetType type, String name, String version) {
         assert type != null && name != null;
-        if (type == null) {
-            type = FacetType.installed;
-        }
         if (type == FacetType.installed) {
             assert version != null;
         } else {

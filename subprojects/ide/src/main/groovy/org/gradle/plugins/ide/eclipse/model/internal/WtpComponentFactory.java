@@ -39,7 +39,6 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -89,14 +88,14 @@ public class WtpComponentFactory {
 
     // must include transitive project dependencies
     private List<WbDependentModule> getEntriesFromProjectDependencies(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, String deployPath, boolean transitive) {
-        LinkedHashSet<Dependency> dependencies = getDependencies(plusConfigurations, minusConfigurations, Specs.<Dependency>isInstance(ProjectDependency.class));
+        Set<Dependency> dependencies = getDependencies(plusConfigurations, minusConfigurations, Specs.<Dependency>isInstance(ProjectDependency.class));
 
         List<Project> projects = Lists.newArrayList();
         for (Dependency dependency : dependencies) {
             projects.add(((ProjectDependency)dependency).getDependencyProject());
         }
 
-        LinkedHashSet<Project> allProjects = new LinkedHashSet<Project>();
+        Set<Project> allProjects = Sets.newLinkedHashSet();
         allProjects.addAll(projects);
         if (transitive) {
             for (Project project : projects) {
@@ -165,8 +164,8 @@ public class WtpComponentFactory {
         return new WbDependentModule(deployPath, "module:/classpath/" + handleSnippet);
     }
 
-    private LinkedHashSet<Dependency> getDependencies(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, Spec<Dependency> filter) {
-        LinkedHashSet declaredDependencies = new LinkedHashSet();
+    private Set<Dependency> getDependencies(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, Spec<Dependency> filter) {
+        Set<Dependency> declaredDependencies = Sets.newLinkedHashSet();
         for (Configuration configuration : plusConfigurations) {
             declaredDependencies.addAll(configuration.getAllDependencies().matching(filter));
         }

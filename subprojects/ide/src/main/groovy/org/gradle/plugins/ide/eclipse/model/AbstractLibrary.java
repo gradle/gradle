@@ -79,6 +79,7 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
         return declaredConfigurationName;
     }
 
+    @Deprecated
     public void setDeclaredConfigurationName(String declaredConfigurationName) {
         this.declaredConfigurationName = declaredConfigurationName;
     }
@@ -94,7 +95,7 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
 
     @Override
     public void appendNode(Node node) {
-        Map attributes = Maps.newHashMap();
+        Map<String, Object> attributes = Maps.newHashMap();
         attributes.put("sourcepath", sourcePath == null ? null : sourcePath.getPath());
         addClasspathEntry(node, attributes);
     }

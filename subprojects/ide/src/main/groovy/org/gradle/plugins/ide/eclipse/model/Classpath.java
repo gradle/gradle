@@ -78,7 +78,7 @@ public class Classpath extends XmlPersistableConfigurationObject {
         }
     }
 
-    public List<ClasspathEntry> configure(List newEntries) {
+    public List<ClasspathEntry> configure(List<ClasspathEntry> newEntries) {
         Set<ClasspathEntry> updatedEntries = Sets.newLinkedHashSet();
         for (ClasspathEntry entry : entries) {
             if (!isDependency(entry) && !isJreContainer(entry)) {

@@ -41,6 +41,6 @@ public class LinkedResourcesCreator {
         for (SourceFolder sourceFolder : sourceFolders) {
             links.add(new Link(sourceFolder.getName(), "2", sourceFolder.getAbsolutePath(), null));
         }
-        return Sets.newLinkedHashSet(links);
+        return links;
     }
 }
