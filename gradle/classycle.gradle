@@ -1,5 +1,4 @@
 allprojects {
-    def antBuilder = it.services.get(org.gradle.api.internal.project.IsolatedAntBuilder)
     ext.useClassycle = { params = [:] ->
         def excludePatterns = params.exclude ?: []
 
@@ -24,6 +23,7 @@ allprojects {
                     if (!sourceSet.output.classesDir.directory) {
                         return;
                     }
+                    def antBuilder = it.services.get(org.gradle.api.internal.project.IsolatedAntBuilder)
                     antBuilder.withClasspath(configurations.classycle.files).execute {
                         ant.taskdef(name: "classycleDependencyCheck", classname: "classycle.ant.DependencyCheckingTask")
                         ant.taskdef(name: "classycleReport", classname: "classycle.ant.ReportTask")
