@@ -24,7 +24,7 @@ class DefaultIvyArtifactNameTest extends Specification {
     def "has useful string representation"() {
         expect:
         def name = new DefaultIvyArtifactName("name", "type", "ext", 'classifier')
-        name.toString() == "name.ext"
+        name.toString() == "name-classifier.ext"
     }
 
     def "is equal when all fields are equal"() {
@@ -59,7 +59,6 @@ class DefaultIvyArtifactNameTest extends Specification {
         name.extension == "art-ext"
         name.type == "art-type"
         name.classifier == "art-classifier"
-        name.attributes == [classifier: "art-classifier"]
 
         when:
         1 * publishArtifact.getName() >> null

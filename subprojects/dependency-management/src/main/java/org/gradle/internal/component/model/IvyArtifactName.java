@@ -18,8 +18,6 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.Nullable;
 
-import java.util.Map;
-
 /**
  * Represents the 'name' part of an Ivy artifact, independent of which module version the artifact might belong to.
  */
@@ -31,7 +29,6 @@ public interface IvyArtifactName {
     @Nullable
     String getExtension();
 
+    @Nullable
     String getClassifier();
-
-    Map<String, String> getAttributes();
 }

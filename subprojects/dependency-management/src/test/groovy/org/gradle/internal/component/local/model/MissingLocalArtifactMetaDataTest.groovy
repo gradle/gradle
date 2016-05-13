@@ -29,15 +29,15 @@ class MissingLocalArtifactMetaDataTest extends Specification {
         def componentId = Stub(ComponentIdentifier)
 
         expect:
-        def noClassifier = localArtifactIdentifier(componentId, "<comp>", "name", "type", "ext", [:])
+        def noClassifier = localArtifactIdentifier(componentId, "<comp>", "name", "type", "ext")
         noClassifier.displayName == "name.ext (<comp>)"
         noClassifier.toString() == "name.ext (<comp>)"
 
-        def withClassifier = localArtifactIdentifier(componentId, "<comp>", "name", "type", "ext", ['classifier': 'classifier'])
+        def withClassifier = localArtifactIdentifier(componentId, "<comp>", "name", "type", "ext", 'classifier')
         withClassifier.displayName == "name-classifier.ext (<comp>)"
         withClassifier.toString() == "name-classifier.ext (<comp>)"
 
-        def noExtension = localArtifactIdentifier(componentId, "<comp>", "name", "type", null, ['classifier': 'classifier'])
+        def noExtension = localArtifactIdentifier(componentId, "<comp>", "name", "type", null, 'classifier')
         noExtension.displayName == "name-classifier (<comp>)"
         noExtension.toString() == "name-classifier (<comp>)"
     }

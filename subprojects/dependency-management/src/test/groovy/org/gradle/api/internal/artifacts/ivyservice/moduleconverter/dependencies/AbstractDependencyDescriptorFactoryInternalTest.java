@@ -38,7 +38,6 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -91,7 +90,6 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
 
         IvyArtifactName artifactDescriptorWithoutClassifier = findDescriptor(artifactDescriptors, artifact);
         assertEquals(null, artifactDescriptorWithoutClassifier.getClassifier());
-        assertEquals(new HashMap(), artifactDescriptorWithoutClassifier.getAttributes());
         compareArtifacts(artifact, artifactDescriptorWithoutClassifier);
         assertEquals(artifact.getType(), artifactDescriptorWithoutClassifier.getExtension());
 
