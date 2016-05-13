@@ -23,6 +23,7 @@ import org.gradle.cache.internal.FileIntegrityViolationSuppressingPersistentStat
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.OnDemandFileAccess;
 import org.gradle.cache.internal.SimpleStateCache;
+import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.DefaultSerializer;
@@ -43,7 +44,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     private static final Logger LOGGER = Logging.getLogger(PersistentDaemonRegistry.class);
 
-    public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager) {
+    public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager, Chmod chmod) {
         this.registryFile = registryFile;
         cache = new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<DaemonRegistryContent>(
                 new SimpleStateCache<DaemonRegistryContent>(
@@ -52,7 +53,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                                 registryFile,
                                 "daemon addresses registry",
                                 fileLockManager),
-                        new DefaultSerializer<DaemonRegistryContent>()
+                        new DefaultSerializer<DaemonRegistryContent>(),
+                        chmod
                 ));
     }
 

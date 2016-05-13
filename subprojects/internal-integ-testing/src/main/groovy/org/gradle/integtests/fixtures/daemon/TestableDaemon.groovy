@@ -51,6 +51,11 @@ Current registry state is ${lastRegistryState} and current log state is ${lastLo
     }
 
     @Override
+    void assertRegistryNotWorldReadable() {
+        registryProbe.assertRegistryNotWorldReadable()
+    }
+
+    @Override
     void changeTokenVisibleToClient() {
         registryProbe.resetToken()
     }

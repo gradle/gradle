@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.registry
 
 import org.gradle.internal.nativeintegration.ProcessEnvironment
+import org.gradle.internal.nativeintegration.filesystem.Chmod
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DaemonContextBuilder
 import org.gradle.internal.remote.Address
@@ -34,7 +35,7 @@ class PersistentDaemonRegistryTest extends Specification {
     int addressCounter = 0
     def lockManager = createDefaultFileLockManager()
     def file = tmp.file("registry")
-    def registry = new PersistentDaemonRegistry(file, lockManager)
+    def registry = new PersistentDaemonRegistry(file, lockManager, Stub(Chmod))
 
     def "corrupt registry file is ignored"() {
         given:

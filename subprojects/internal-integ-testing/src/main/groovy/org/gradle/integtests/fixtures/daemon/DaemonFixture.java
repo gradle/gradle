@@ -44,6 +44,8 @@ public interface DaemonFixture {
      */
     void changeTokenVisibleToClient();
 
+    void assertRegistryNotWorldReadable();
+
     /**
      * Asserts that this daemon becomes idle within a short timeout. Blocks until this has happened.
      */
