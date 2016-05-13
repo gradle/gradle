@@ -93,7 +93,7 @@ class BuildReceiptPluginPerformanceTest extends Specification {
         with.totalTime.average - without.totalTime.average < millis(1500)
 
         // cannot use 20MB more “memory”
-        with.totalMemoryUsed.average - without.totalMemoryUsed.average < mbytes(20)
+        with.totalMemoryUsed.average - without.totalMemoryUsed.average < mbytes(40)
     }
 
 }
