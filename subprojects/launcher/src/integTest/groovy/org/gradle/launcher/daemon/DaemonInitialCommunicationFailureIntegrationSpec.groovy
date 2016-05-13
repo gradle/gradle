@@ -93,12 +93,14 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
 
         and:
         output.contains DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE
+        output.contains DaemonMessages.UNABLE_TO_STOP_DAEMON
 
         when:
         stopDaemonsNow()
 
         then:
         !output.contains(DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE)
+        !output.contains(DaemonMessages.UNABLE_TO_STOP_DAEMON)
         output.contains(DaemonMessages.NO_DAEMONS_RUNNING)
     }
 
@@ -123,12 +125,34 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         analyzer.visible.size() == 1        //only one address in the registry
     }
 
-    def "daemon drops connection when client request is badly formed"() {
+    @Issue("GRADLE-2464")
+    def "stop removes entry when nothing is listening on address"() {
         when:
         buildSucceeds()
 
         then:
-        //there should be one idle daemon
+        def daemon = daemons.daemon
+
+        when:
+        daemon.assertIdle()
+        daemon.kill()
+
+        then:
+        stopDaemonsNow()
+
+        and:
+        output.contains(DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE)
+        output.contains(DaemonMessages.NO_DAEMONS_RUNNING)
+
+        and:
+        def analyzer = daemons
+        analyzer.daemons.size() == 1
+        analyzer.visible.size() == 0
+    }
+
+    def "daemon drops connection when client request is badly formed"() {
+        given:
+        buildSucceeds()
         def daemon = daemons.daemon
         daemon.assertIdle()
 

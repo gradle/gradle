@@ -17,22 +17,47 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.launcher.daemon.logging.DaemonMessages
 
 class DaemonAuthenticationIntegrationSpec extends DaemonIntegrationSpec {
     def "daemon discards build request that does not contain correct authentication token"() {
         when:
         buildSucceeds()
+        def daemon = daemons.daemon
+        daemon.assertIdle()
 
         then:
-        //there should be one idle daemon
+        daemon.assertRegistryNotWorldReadable()
+
+        when:
+        daemon.changeTokenVisibleToClient()
+        fails()
+
+        then:
+        failure.assertHasDescription("Unexpected authentication token in command")
+        daemon.log.contains("Unexpected authentication token in command")
+
+        and:
+        // daemon is still running
+        daemon.assertIdle()
+    }
+
+    def "daemon discards stop request that does not contain correct authentication token"() {
+        given:
+        buildSucceeds()
         def daemon = daemons.daemon
         daemon.assertIdle()
 
         when:
         daemon.changeTokenVisibleToClient()
+        stopDaemonsNow()
 
         then:
-        fails()
-        failure.assertHasDescription("Unexpected authentication token in command")
+        output.contains DaemonMessages.UNABLE_TO_STOP_DAEMON
+        daemon.log.contains("Unexpected authentication token in command")
+
+        and:
+        // daemon is still running
+        daemon.assertIdle()
     }
 }
