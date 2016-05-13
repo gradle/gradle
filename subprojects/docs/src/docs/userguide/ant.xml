@@ -213,24 +213,24 @@
                 </tr>
             </thead>
             <tr>
-                <td>VERBOSE</td>
-                <td>DEBUG</td>
+                <td><firstterm>VERBOSE</firstterm></td>
+                <td><literal>DEBUG</literal></td>
             </tr>
             <tr>
-                <td>DEBUG</td>
-                <td>DEBUG</td>
+                <td><firstterm>DEBUG</firstterm></td>
+                <td><literal>DEBUG</literal></td>
             </tr>
             <tr>
-                <td>INFO</td>
-                <td>INFO</td>
+                <td><firstterm>INFO</firstterm></td>
+                <td><literal>INFO</literal></td>
             </tr>
             <tr>
-                <td>WARN</td>
-                <td>WARN</td>
+                <td><firstterm>WARN</firstterm></td>
+                <td><literal>WARN</literal></td>
             </tr>
             <tr>
-                <td>ERROR</td>
-                <td>ERROR</td>
+                <td><firstterm>ERROR</firstterm></td>
+                <td><literal>ERROR</literal></td>
             </tr>
         </table>
 
@@ -239,7 +239,7 @@
 
             <para>The default mapping of Ant message priority to Gradle log level can sometimes be problematic.  For example,
                 there is no message priority that maps directly to the <literal>LIFECYCLE</literal> log level, which is the
-                default for Gradle.  Many Ant tasks log messages at the <literal>INFO</literal> priority, which means to expose
+                default for Gradle.  Many Ant tasks log messages at the <firstterm>INFO</firstterm> priority, which means to expose
                 those messages from Gradle, a build would have to be run with the log level set to <literal>INFO</literal>,
                 potentially logging much more output than is desired.
             </para>
@@ -256,7 +256,7 @@
                 Any Ant message logged below this priority will be logged at most at <literal>INFO</literal>.
             </para>
 
-            <para>For example, the following changes the mapping such that Ant <literal>INFO</literal> priority messages are exposed at the <literal>LIFECYCLE</literal>
+            <para>For example, the following changes the mapping such that Ant <firstterm>INFO</firstterm> priority messages are exposed at the <literal>LIFECYCLE</literal>
                 log level.
             </para>
 
@@ -265,8 +265,8 @@
                 <output args="hello"/>
             </sample>
 
-            <para>On the other hand, if the <literal>lifecycleLogLevel</literal> was set to <literal>ERROR</literal>, Ant messages logged
-                at the <literal>WARN</literal> priority would no longer be logged at the <literal>WARN</literal> log level.  They would now
+            <para>On the other hand, if the <literal>lifecycleLogLevel</literal> was set to <firstterm>ERROR</firstterm>, Ant messages logged
+                at the <firstterm>WARN</firstterm> priority would no longer be logged at the <literal>WARN</literal> log level.  They would now
                 be logged at the <literal>INFO</literal> level and would be suppressed by default.
             </para>
         </section>
