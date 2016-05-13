@@ -35,7 +35,7 @@ public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentRe
     private String snapshotTimestamp;
 
     public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
-        this(componentIdentifier, new ModuleDescriptorState(IvyUtil.createModuleDescriptor(componentIdentifier, artifacts)), "jar", false);
+        this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, artifacts), "jar", false);
     }
 
     public DefaultMavenModuleResolveMetaData(ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated) {

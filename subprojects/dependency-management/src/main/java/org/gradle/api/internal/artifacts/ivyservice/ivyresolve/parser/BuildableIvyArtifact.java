@@ -20,7 +20,6 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
 class BuildableIvyArtifact {
@@ -28,8 +27,8 @@ class BuildableIvyArtifact {
     private final IvyArtifactName ivyArtifactName;
     private final Set<String> configurations = new LinkedHashSet<String>();
 
-    public BuildableIvyArtifact(String name, String type, String ext, Map<String, String> extraAttributes) {
-        this.ivyArtifactName = new DefaultIvyArtifactName(name, type, ext, extraAttributes);
+    public BuildableIvyArtifact(String name, String type, String ext, String classifier) {
+        this.ivyArtifactName = new DefaultIvyArtifactName(name, type, ext, classifier);
     }
 
     public BuildableIvyArtifact addConfiguration(String confName) {

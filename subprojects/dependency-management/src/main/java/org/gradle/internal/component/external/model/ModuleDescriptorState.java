@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
@@ -24,7 +25,6 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.model.DefaultDependencyMetaData;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.CollectionUtils;
@@ -34,11 +34,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ModuleDescriptorState {
     public final ModuleDescriptor ivyDescriptor;
     // Force attribute is ignored in published modules: we only consider force attribute on direct dependencies
     private final boolean allowForcedDependencies;
+    private final List<Artifact> artifacts = Lists.newArrayList();
 
     public ModuleDescriptorState(ModuleDescriptor ivyDescriptor) {
         this.ivyDescriptor = ivyDescriptor;
@@ -96,14 +98,34 @@ public class ModuleDescriptorState {
     }
 
     public List<Artifact> getArtifacts() {
-        List<Artifact> artifacts = Lists.newArrayList();
-        for (org.apache.ivy.core.module.descriptor.Artifact ivyArtifact : ivyDescriptor.getAllArtifacts()) {
-            IvyArtifactName artifactName = DefaultIvyArtifactName.forIvyArtifact(ivyArtifact);
-            List<String> configurations = Lists.newArrayList(ivyArtifact.getConfigurations());
-            Artifact artifact = new Artifact(artifactName, configurations);
-            artifacts.add(artifact);
-        }
         return artifacts;
+    }
+
+    public void addArtifact(IvyArtifactName newArtifact, Set<String> configurations) {
+        if (configurations.isEmpty()) {
+            throw new IllegalArgumentException("Artifact should be attached to at least one configuration.");
+        }
+        List<String> configurationNames = getConfigurationsNames();
+        for (String configuration : configurations) {
+            if (!configurationNames.contains(configuration)) {
+                throw new IllegalArgumentException("Cannot add artifact '" + newArtifact
+                        + "' to configuration '" + configuration + "' of module " + getComponentIdentifier()
+                        + " because this configuration doesn't exist!");
+            }
+        }
+        Artifact artifact = findOrCreate(newArtifact);
+        artifact.configurations.addAll(configurations);
+    }
+
+    private Artifact findOrCreate(IvyArtifactName artifactName) {
+        for (Artifact existingArtifact : artifacts) {
+            if (existingArtifact.artifactName.equals(artifactName)) {
+                return existingArtifact;
+            }
+        }
+        Artifact newArtifact = new Artifact(artifactName);
+        artifacts.add(newArtifact);
+        return newArtifact;
     }
 
     public List<DependencyMetaData> getDependencies() {
@@ -135,11 +157,10 @@ public class ModuleDescriptorState {
 
     public class Artifact {
         public final IvyArtifactName artifactName;
-        public final List<String> configurations;
+        public final Set<String> configurations = Sets.newLinkedHashSet();
 
-        public Artifact(IvyArtifactName artifactName, List<String> configurations) {
+        public Artifact(IvyArtifactName artifactName) {
             this.artifactName = artifactName;
-            this.configurations = configurations;
         }
     }
 }

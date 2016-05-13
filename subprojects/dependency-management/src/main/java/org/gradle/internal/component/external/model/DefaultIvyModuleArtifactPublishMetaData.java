@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 public class DefaultIvyModuleArtifactPublishMetaData implements IvyModuleArtifactPublishMetaData {
@@ -29,7 +30,7 @@ public class DefaultIvyModuleArtifactPublishMetaData implements IvyModuleArtifac
     private final List<String> configurations = Lists.newArrayList();
     private final File file;
 
-    public DefaultIvyModuleArtifactPublishMetaData(ModuleComponentIdentifier componentId, IvyArtifactName artifact, List<String> configurations) {
+    public DefaultIvyModuleArtifactPublishMetaData(ModuleComponentIdentifier componentId, IvyArtifactName artifact, Collection<String> configurations) {
         this.id = new DefaultModuleComponentArtifactIdentifier(componentId, artifact);
         this.file = null;
         this.configurations.addAll(configurations);

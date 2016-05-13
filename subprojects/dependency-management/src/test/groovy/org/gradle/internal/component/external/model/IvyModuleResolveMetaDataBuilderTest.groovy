@@ -37,8 +37,12 @@ class IvyModuleResolveMetaDataBuilderTest extends Specification {
         when: meta.addArtifact(a, newHashSet("runtime"))
 
         then:
-        md.allArtifacts*.toString() == ["org#foo;1.0!foo.ext(jar)"]
-        md.getArtifacts("runtime")*.toString() == ["org#foo;1.0!foo.ext(jar)"]
+        def artifacts = meta.build().getConfiguration("runtime").artifacts
+        artifacts.size() == 1
+        artifacts[0].name.name == "foo"
+        artifacts[0].name.type == "jar"
+        artifacts[0].name.extension == "ext"
+        artifacts[0].name.attributes == [a: "b"]
     }
 
     private static IvyArtifactName ivyArtifact(String name, String type, String ext, Map<String, String> attributes = [:]) {
@@ -66,9 +70,12 @@ class IvyModuleResolveMetaDataBuilderTest extends Specification {
         meta.addArtifact(a2, newHashSet("testUtil"))
 
         then:
-        md.allArtifacts*.toString() == ["org#foo;1.0!foo.jar", "org#foo;1.0!foo-all.zip"]
-        md.getArtifacts("runtime")*.toString() == ["org#foo;1.0!foo.jar"]
-        md.getArtifacts("testUtil")*.toString() == ["org#foo;1.0!foo-all.zip"]
+        def resolveMetaData = meta.build()
+        def runtimeArtifacts = resolveMetaData.getConfiguration("runtime").artifacts
+        def testArtifacts = resolveMetaData.getConfiguration("testUtil").artifacts
+
+        runtimeArtifacts*.toString() as Set == ["foo.jar (org:foo:1.0)"] as Set
+        testArtifacts*.toString() as Set == ["foo-all.zip (org:foo:1.0)"] as Set
     }
 
     def "can be added to metadata that already contains the same artifact in different configuration"() {
@@ -84,9 +91,11 @@ class IvyModuleResolveMetaDataBuilderTest extends Specification {
         meta.addArtifact(a2, newHashSet("runtime"))
 
         then:
-        md.allArtifacts*.toString() == ["org#foo;1.0!foo.jar"]
-        md.getArtifacts("archives")*.toString() == ["org#foo;1.0!foo.jar"]
-        md.getArtifacts("runtime")*.toString() == ["org#foo;1.0!foo.jar"]
-        md.allArtifacts[0].configurations == ["archives", "runtime"]
+        def resolveMetaData = meta.build()
+        def runtimeArtifacts = resolveMetaData.getConfiguration("runtime").artifacts
+        def archivesArtifacts = resolveMetaData.getConfiguration("archives").artifacts
+
+        runtimeArtifacts*.toString() as Set == ["foo.jar (org:foo:1.0)"] as Set
+        archivesArtifacts*.toString() as Set == ["foo.jar (org:foo:1.0)"] as Set
     }
 }

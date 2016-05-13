@@ -22,6 +22,7 @@ import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
+import org.gradle.internal.component.external.model.ModuleDescriptorState
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.test.fixtures.file.TestFile
@@ -42,6 +43,9 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     ResolverStrategy resolverStrategy = Stub()
     IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(resolverStrategy)
     DescriptorParseContext parseContext = Mock()
+
+    ModuleDescriptorState descriptor
+    ModuleDescriptor md
 
     def setup() {
         resolverStrategy.getPatternMatcher("exact") >> ExactPatternMatcher.INSTANCE
@@ -69,9 +73,10 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md.moduleRevisionId.branch == null
         md.status == "integration"
         md.configurations*.name == ["default"]
-        md.getArtifacts("default").length == 1
         md.dependencies.length == 0
         md.inheritedDescriptors.length == 0
+
+        artifact()
     }
 
     def "adds implicit configurations"() throws Exception {
@@ -97,12 +102,13 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md.moduleRevisionId.revision == "myrev"
         md.status == "integration"
         md.configurations*.name == ["default"]
-        md.getArtifacts("default") != null
-        md.getArtifacts("default").length == 1
-        md.getArtifacts("default")[0].name == "mymodule"
-        md.getArtifacts("default")[0].type == "jar"
         md.dependencies.length == 0
         md.inheritedDescriptors.length == 0
+
+        def artifact = artifact()
+        artifact.artifactName.name == "mymodule"
+        artifact.artifactName.type == "jar"
+        artifact.configurations == ["default"] as Set
     }
 
     def "adds implicit artifact when none declared"() throws Exception {
@@ -122,18 +128,15 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         ModuleDescriptor md = parse(parseContext, file)
 
         then:
-        md.allArtifacts.length == 1
-
-        def artifact = md.allArtifacts[0]
-        artifact.name == 'mymodule'
-        artifact.type == 'jar'
-        artifact.ext == 'jar'
         md.configurations*.name == ["A", "B"]
-        md.getArtifacts("A") == [artifact]
-        md.getArtifacts("B") == [artifact]
-
         md.dependencies.length == 0
         md.inheritedDescriptors.length == 0
+
+        def artifact = artifact()
+        artifact.artifactName.name == 'mymodule'
+        artifact.artifactName.type == 'jar'
+        artifact.artifactName.extension == 'jar'
+        artifact.configurations == ["A", "B"] as Set
     }
 
     public void "fails when ivy.xml uses unknown version of descriptor format"() throws IOException {
@@ -290,11 +293,11 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assertConf(md, "myconf4", "desc 4", Configuration.Visibility.PUBLIC, ["myconf1", "myconf2"].toArray(new String[2]))
         assertConf(md, "myoldconf", "my old desc", Configuration.Visibility.PUBLIC, new String[0])
 
-        assertArtifacts(md.getArtifacts("myconf1"), ["myartifact1", "myartifact2", "myartifact3", "myartifact4"].toArray(new String[4]))
-
-        assertArtifacts(md.getArtifacts("myconf2"), ["myartifact1", "myartifact3"].toArray(new String[2]))
-        assertArtifacts(md.getArtifacts("myconf3"), ["myartifact1", "myartifact3", "myartifact4"].toArray(new String[3]))
-        assertArtifacts(md.getArtifacts("myconf4"), ["myartifact1"].toArray(new String[1]))
+        descriptor.artifacts.size() == 4
+        assertArtifacts("myconf1", ["myartifact1", "myartifact2", "myartifact3", "myartifact4"])
+        assertArtifacts("myconf2", ["myartifact1", "myartifact3"])
+        assertArtifacts("myconf3", ["myartifact1", "myartifact3", "myartifact4"])
+        assertArtifacts("myconf4", ["myartifact1"])
 
         DependencyDescriptor[] dependencies = md.getDependencies()
         assertNotNull(dependencies)
@@ -410,13 +413,10 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parse(parseContext, file)
+        parse(parseContext, file)
 
         then:
-        def artifact = descriptor.allArtifacts[0]
-        artifact.configurations == ["conf2"]
-        descriptor.getArtifacts("conf2") == [artifact]
-        descriptor.getArtifacts("conf1") == []
+        artifact().configurations == ["conf2"] as Set
     }
 
     def "parses dependency config mappings"() {
@@ -626,23 +626,23 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parse(parseContext, file)
+        parse(parseContext, file)
 
         then:
-        descriptor.allArtifacts.length == 3
-        descriptor.allArtifacts[0].configurations == ['a', 'b', 'c', 'd']
-        descriptor.allArtifacts[1].configurations == ['a', 'b', 'c', 'd']
-        descriptor.allArtifacts[2].configurations == ['a', 'b']
+        assertArtifacts("a", ["mymodule", "art2", "art3"])
+        assertArtifacts("b", ["mymodule", "art2", "art3"])
+        assertArtifacts("c", ["mymodule", "art2"])
+        assertArtifacts("d", ["mymodule", "art2"])
 
         and:
-        descriptor.getArtifacts("a")*.name == ['mymodule', 'art2', 'art3']
-        descriptor.getArtifacts("a")*.type == ['jar', 'type', 'type2']
-        descriptor.getArtifacts("a")*.ext == ['jar', 'ext', 'type2']
+        artifacts("a")*.artifactName*.name == ['mymodule', 'art2', 'art3']
+        artifacts("a")*.artifactName*.type == ['jar', 'type', 'type2']
+        artifacts("a")*.artifactName*.extension == ['jar', 'ext', 'type2']
 
         and:
-        descriptor.getArtifacts("b")*.name == ['mymodule', 'art2', 'art3']
-        descriptor.getArtifacts("c")*.name == ['mymodule', 'art2']
-        descriptor.getArtifacts("d")*.name == ['mymodule', 'art2']
+        artifacts("b")*.artifactName*.name == ['mymodule', 'art2', 'art3']
+        artifacts("c")*.artifactName*.name == ['mymodule', 'art2']
+        artifacts("d")*.artifactName*.name == ['mymodule', 'art2']
     }
 
     def "accumulates configurations if the same artifact listed more than once"() {
@@ -660,11 +660,10 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parse(parseContext, file)
+        parse(parseContext, file)
 
         then:
-        descriptor.allArtifacts.length == 1
-        descriptor.allArtifacts[0].configurations == ['a', 'b', 'c']
+        artifact().configurations == ['a', 'b', 'c'] as Set
     }
 
     def "parses extra attributes and extra info"() {
@@ -698,7 +697,18 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     }
 
     private ModuleDescriptor parse(DescriptorParseContext parseContext, TestFile file) {
-        parser.parseMetaData(parseContext, file).descriptor.ivyDescriptor
+        descriptor = parser.parseMetaData(parseContext, file).descriptor
+        md = descriptor.ivyDescriptor
+        md
+    }
+
+    private artifact() {
+        assert descriptor.artifacts.size() == 1
+        descriptor.artifacts[0]
+    }
+
+    private artifacts(String conf) {
+        descriptor.artifacts.findAll { it.configurations.contains(conf) }
     }
 
     def verifyFullDependencies(DependencyDescriptor[] dependencies) {
@@ -886,20 +896,9 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         }
     }
 
-    protected void assertArtifacts(Artifact[] artifacts, String[] artifactsNames) {
-        assertNotNull(artifacts)
-        assertEquals(artifactsNames.length, artifacts.length)
-        for (int i = 0; i < artifactsNames.length; i++) {
-            boolean found = false
-            for (int j = 0; j < artifacts.length; j++) {
-                assertNotNull(artifacts[j])
-                if (artifacts[j].getName().equals(artifactsNames[i])) {
-                    found = true
-                    break
-                }
-            }
-            assertTrue("artifact not found: " + artifactsNames[i], found)
-        }
+    protected void assertArtifacts(String configuration, List<String> artifactNames) {
+        def configurationArtifactNames = artifacts(configuration)*.artifactName*.name
+        assert configurationArtifactNames as Set == artifactNames as Set
     }
 
     protected void assertConf(ModuleDescriptor md, String name, String desc, Configuration.Visibility visibility,

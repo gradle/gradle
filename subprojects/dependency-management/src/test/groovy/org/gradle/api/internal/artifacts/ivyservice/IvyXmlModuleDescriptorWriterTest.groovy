@@ -21,6 +21,7 @@ import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.gradle.internal.component.external.model.ModuleDescriptorState
+import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -46,8 +47,10 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         1 * dependency1.transitive >> true
         1 * md.dependencies >> [dependency1, dependency2]
         when:
+        def descriptor = new ModuleDescriptorState(md)
+        descriptor.addArtifact(new DefaultIvyArtifactName("testartifact", "jar", "jar"), ["archives", "runtime"] as Set)
         File ivyFile = temporaryFolder.file("test/ivy/ivy.xml")
-        ivyXmlModuleDescriptorWriter.write(new ModuleDescriptorState(md), ivyFile);
+        ivyXmlModuleDescriptorWriter.write(descriptor, ivyFile);
         then:
         def ivyModule = new XmlSlurper().parse(ivyFile);
         assert ivyModule.@version == "2.0"
@@ -68,9 +71,9 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         _ * moduleRevisionId.organisation >> "org.test"
         _ * moduleRevisionId.name >> "projectA"
         _ * moduleRevisionId.revision >> "1.0"
-        1 * md.configurations >> [mockConfiguration("archives"), mockConfiguration("compile"), mockConfiguration("runtime", ["compile"])]
+        _ * md.configurationsNames >> ["archives", "compile", "runtime"]
+        _ * md.configurations >> [mockConfiguration("archives"), mockConfiguration("compile"), mockConfiguration("runtime", ["compile"])]
         1 * md.allExcludeRules >> []
-        1 * md.allArtifacts >> [mockArtifact()]
         0 * md.allDependencyDescriptorMediators
     }
 
@@ -113,16 +116,6 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         1 * dependencyDescriptor.allDependencyArtifacts >> []
         1 * dependencyDescriptor.allExcludeRules >> []
         dependencyDescriptor
-    }
-
-    def mockArtifact() {
-        Artifact artifact = Mock()
-        1 * artifact.name >> "testartifact"
-        1 * artifact.ext >> "jar"
-        1 * artifact.type >> "jar"
-        1 * artifact.configurations >> ["archives", "runtime"]
-        1 * artifact.extraAttributes >> [:]
-        artifact
     }
 
     def mockConfiguration(String configurationName, List extended = []) {

@@ -16,66 +16,23 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.MDArtifact;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Set;
 
-import static com.google.common.collect.Sets.newLinkedHashSet;
-import static java.util.Arrays.asList;
-
 public class IvyModuleResolveMetaDataBuilder {
-    private final DefaultModuleDescriptor module;
+    private final ModuleDescriptorState moduleDescriptor;
 
     public IvyModuleResolveMetaDataBuilder(DefaultModuleDescriptor module) {
-        this.module = module;
+        this.moduleDescriptor = new ModuleDescriptorState(module);
     }
 
     public void addArtifact(IvyArtifactName newArtifact, Set<String> configurations) {
-        if (configurations.isEmpty()) {
-            throw new IllegalArgumentException("Artifact should be attached to at least one configuration.");
-        }
-
-        MDArtifact unattached = new MDArtifact(module, newArtifact.getName(), newArtifact.getType(), newArtifact.getExtension(), null, newArtifact.getAttributes());
-        //Adding the artifact will replace any existing artifact
-        //This potentially leads to loss of information - the configurations of the replaced artifact are lost (see GRADLE-123)
-        //Hence we attempt to find an existing artifact and merge the information
-        Artifact[] allArtifacts = module.getAllArtifacts();
-        for (Artifact existing : allArtifacts) {
-            // Can't just compare the raw IvyArtifactName, since creating MDArtifact creates a bunch of attributes
-            if (artifactsEqual(unattached, existing)) {
-                if (!(existing instanceof MDArtifact)) {
-                    throw new IllegalArgumentException("Cannot update an existing artifact (" + existing + ") in provided module descriptor (" + module + ")"
-                            + " because the artifact is not an instance of MDArtifact." + module);
-                }
-                attachArtifact((MDArtifact) existing, configurations, module);
-                return; //there is only one matching artifact
-            }
-        }
-        attachArtifact(unattached, configurations, module);
-    }
-
-    private boolean artifactsEqual(Artifact a, Artifact b) {
-        return DefaultIvyArtifactName.forIvyArtifact(a).equals(DefaultIvyArtifactName.forIvyArtifact(b));
-    }
-
-    private static void attachArtifact(MDArtifact artifact, Set<String> configurations, DefaultModuleDescriptor target) {
-        //The existing artifact configurations will be first
-        Set<String> existingConfigurations = newLinkedHashSet(asList(artifact.getConfigurations()));
-        for (String c : configurations) {
-            if (!existingConfigurations.contains(c)) {
-                artifact.addConfiguration(c);
-                target.addArtifact(c, artifact);
-            }
-        }
+        moduleDescriptor.addArtifact(newArtifact, configurations);
     }
 
     public DefaultIvyModuleResolveMetaData build() {
-        ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(module.getModuleRevisionId());
-        return new DefaultIvyModuleResolveMetaData(id, new ModuleDescriptorState(module));
+        return new DefaultIvyModuleResolveMetaData(moduleDescriptor.getComponentIdentifier(), moduleDescriptor);
     }
 }

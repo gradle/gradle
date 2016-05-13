@@ -30,7 +30,7 @@ public class DefaultIvyModuleResolveMetaData extends AbstractModuleComponentReso
     private final String branch;
 
     public DefaultIvyModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
-        this(componentIdentifier, new ModuleDescriptorState(IvyUtil.createModuleDescriptor(componentIdentifier, artifacts)));
+        this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, artifacts));
     }
 
     public DefaultIvyModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor) {

@@ -38,6 +38,7 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
+import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetaDataBuilder;
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -880,8 +881,8 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 String artName = elvis(substitute(attributes.getValue("name")), getMd().getModuleRevisionId().getName());
                 String type = elvis(substitute(attributes.getValue("type")), "jar");
                 String ext = elvis(substitute(attributes.getValue("ext")), type);
-                Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"ext", "type", "name", "conf"});
-                artifact = new BuildableIvyArtifact(artName, type, ext, extraAttributes);
+                String classifier = attributes.getValue(IvyModulePublishMetaData.IVY_MAVEN_NAMESPACE, "classifier");
+                artifact = new BuildableIvyArtifact(artName, type, ext, classifier);
                 String confs = substitute(attributes.getValue("conf"));
 
                 // Only add confs if they are specified. if they aren't, endElement will handle this only if there are no conf defined in sub elements
