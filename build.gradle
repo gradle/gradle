@@ -164,6 +164,7 @@ ext {
         project(':baseServices'),
         project(':baseServicesGroovy'),
         project(':messaging'),
+        project(':processServices'),
         project(':resources')
     ]
 }
