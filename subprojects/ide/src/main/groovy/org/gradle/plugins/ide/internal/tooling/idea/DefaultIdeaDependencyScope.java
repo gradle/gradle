@@ -29,6 +29,7 @@ public class DefaultIdeaDependencyScope implements IdeaDependencyScope, Serializ
         this.scope = scope;
     }
 
+    @Override
     public String getScope() {
         return scope;
     }

@@ -15,8 +15,11 @@
  */
 package org.gradle.launcher.daemon.client
 
+import org.gradle.api.internal.specs.ExplainingSpec
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.context.DaemonConnectDetails
+import org.gradle.launcher.daemon.context.DaemonContext
+import org.gradle.launcher.daemon.protocol.Failure
 import org.gradle.launcher.daemon.protocol.Finished
 import org.gradle.launcher.daemon.protocol.Stop
 import org.gradle.launcher.daemon.protocol.StopWhenIdle
@@ -99,21 +102,78 @@ class DaemonStopClientTest extends ConcurrentSpecification {
     }
 
     def "stops each connection at most once"() {
+        def d1 = daemonContext('1')
+        def d2 = daemonContext('2')
+        def connection2 = Mock(DaemonClientConnection)
+
         when:
         client.stop()
 
         then:
         _ * connection.daemon >> daemon('1')
-        3 * connector.maybeConnect(_) >>> [connection, connection, null]
+        _ * connection2.daemon >> daemon('2')
+
+        1 * connector.maybeConnect(_) >> { ExplainingSpec spec ->
+            assert spec.isSatisfiedBy(d1)
+            assert spec.isSatisfiedBy(d2)
+            connection
+        }
         1 * connection.dispatch({it instanceof Stop})
         1 * connection.receive() >> new Success(null)
         1 * connection.dispatch({it instanceof Finished})
-        2 * connection.stop()
+        1 * connection.stop()
+
+        1 * connector.maybeConnect(_) >> { ExplainingSpec spec ->
+            assert !spec.isSatisfiedBy(d1)
+            assert spec.isSatisfiedBy(d2)
+            connection2
+        }
+        1 * connection2.dispatch({it instanceof Stop})
+        1 * connection2.receive() >> new Success(null)
+        1 * connection2.dispatch({it instanceof Finished})
+        1 * connection2.stop()
+
+        1 * connector.maybeConnect(_) >> { ExplainingSpec spec ->
+            assert !spec.isSatisfiedBy(d1)
+            assert !spec.isSatisfiedBy(d2)
+            null
+        }
+        0 * _
+    }
+
+    def "handles failed stop"() {
+        def d1 = daemonContext('1')
+
+        when:
+        client.stop()
+
+        then:
+        _ * connection.daemon >> daemon('1')
+
+        1 * connector.maybeConnect(_) >> { ExplainingSpec spec ->
+            assert spec.isSatisfiedBy(d1)
+            connection
+        }
+        1 * connection.dispatch({it instanceof Stop})
+        1 * connection.receive() >> new Failure(new RuntimeException())
+        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.stop()
+
+        1 * connector.maybeConnect(_) >> { ExplainingSpec spec ->
+            assert !spec.isSatisfiedBy(d1)
+            null
+        }
         0 * _
     }
 
     private DaemonConnectDetails daemon(String id) {
         Stub(DaemonConnectDetails) {
+            getUid() >> id
+        }
+    }
+
+    private DaemonContext daemonContext(String id) {
+        Stub(DaemonContext) {
             getUid() >> id
         }
     }

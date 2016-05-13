@@ -16,6 +16,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.PersistentStateCache
+import org.gradle.internal.nativeintegration.filesystem.Chmod
 import org.gradle.internal.serialize.DefaultSerializer
 import org.gradle.internal.serialize.Serializer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -27,11 +28,12 @@ import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.*
 class SimpleStateCacheTest extends Specification {
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     final FileAccess fileAccess = Mock()
+    final Chmod chmod = Mock()
     final File file = tmpDir.file("state.bin")
     final SimpleStateCache<String> cache = createStateCache(fileAccess)
 
     private SimpleStateCache createStateCache(FileAccess fileAccess, File file = file, Serializer serializer = new DefaultSerializer()) {
-        return new SimpleStateCache(file, fileAccess, serializer)
+        return new SimpleStateCache(file, fileAccess, serializer, chmod)
     }
 
     def "returns null when file does not exist"() {
@@ -42,7 +44,7 @@ class SimpleStateCacheTest extends Specification {
         result == null
         1 * fileAccess.readFile(!null) >> { it[0].create() }
     }
-    
+
     def "get returns last value written to file"() {
         when:
         cache.set('some value')
@@ -57,6 +59,16 @@ class SimpleStateCacheTest extends Specification {
         then:
         result == 'some value'
         1 * fileAccess.readFile(!null) >> { it[0].create() }
+    }
+
+    def "makes file accessable only to user on write"() {
+        when:
+        cache.set('some value')
+
+        then:
+        1 * fileAccess.writeFile(!null) >> { it[0].run() }
+        1 * chmod.chmod(file.parentFile, 0700)
+        1 * chmod.chmod(file, 0600)
     }
 
     def "update provides access to cached value"() {
@@ -100,17 +112,17 @@ class SimpleStateCacheTest extends Specification {
         result == "bar"
         1 * fileAccess.readFile(!null) >> { it[0].create() }
     }
-    
+
     def "can set value when file integrity is violated"() {
         given:
         def cache = createStateCache(createOnDemandFileLock(file))
-        
+
         and:
         cache.set "a"
-        
+
         expect:
         cache.get() == "a"
-        
+
         when:
         unlockUncleanly(file)
 

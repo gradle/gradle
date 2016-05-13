@@ -30,6 +30,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule;
+import org.gradle.plugins.ide.eclipse.model.WbModuleEntry;
 import org.gradle.plugins.ide.eclipse.model.WbResource;
 import org.gradle.plugins.ide.eclipse.model.WtpComponent;
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor;
@@ -38,13 +39,12 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 public class WtpComponentFactory {
     public void configure(final EclipseWtpComponent wtp, WtpComponent component) {
-        List<Object> entries = Lists.newArrayList();
+        List<WbModuleEntry> entries = Lists.newArrayList();
         entries.addAll(getEntriesFromSourceDirs(wtp));
         for (WbResource element : wtp.getResources()) {
             if (wtp.getProject().file(element.getSourcePath()).isDirectory()) {
@@ -88,14 +88,14 @@ public class WtpComponentFactory {
 
     // must include transitive project dependencies
     private List<WbDependentModule> getEntriesFromProjectDependencies(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, String deployPath, boolean transitive) {
-        LinkedHashSet<Dependency> dependencies = getDependencies(plusConfigurations, minusConfigurations, Specs.<Dependency>isInstance(ProjectDependency.class));
+        Set<Dependency> dependencies = getDependencies(plusConfigurations, minusConfigurations, Specs.<Dependency>isInstance(ProjectDependency.class));
 
         List<Project> projects = Lists.newArrayList();
         for (Dependency dependency : dependencies) {
             projects.add(((ProjectDependency)dependency).getDependencyProject());
         }
 
-        LinkedHashSet<Project> allProjects = new LinkedHashSet<Project>();
+        Set<Project> allProjects = Sets.newLinkedHashSet();
         allProjects.addAll(projects);
         if (transitive) {
             for (Project project : projects) {
@@ -164,8 +164,8 @@ public class WtpComponentFactory {
         return new WbDependentModule(deployPath, "module:/classpath/" + handleSnippet);
     }
 
-    private LinkedHashSet<Dependency> getDependencies(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, Spec<Dependency> filter) {
-        LinkedHashSet declaredDependencies = new LinkedHashSet();
+    private Set<Dependency> getDependencies(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, Spec<Dependency> filter) {
+        Set<Dependency> declaredDependencies = Sets.newLinkedHashSet();
         for (Configuration configuration : plusConfigurations) {
             declaredDependencies.addAll(configuration.getAllDependencies().matching(filter));
         }

@@ -16,7 +16,8 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import org.gradle.api.Nullable;
@@ -25,6 +26,7 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -34,7 +36,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
  */
 public class Module extends XmlPersistableConfigurationObject {
 
-    private static final String INHERITED = "inherited";
+    public static final String INHERITED = "inherited";
     private Path contentPath;
     private Set<Path> sourceFolders = Sets.newLinkedHashSet();
     private Set<Path> testSourceFolders = Sets.newLinkedHashSet();
@@ -175,7 +177,7 @@ public class Module extends XmlPersistableConfigurationObject {
         return "defaultModule.xml";
     }
 
-    protected String configure(Path contentPath,
+    protected void configure(Path contentPath,
                                Set<Path> sourceFolders, Set<Path> testSourceFolders, Set<Path> generatedSourceFolders, Set<Path> excludeFolders,
                                Boolean inheritOutputDirs, Path outputDir, Path testOutputDir,
                                Set<Dependency> dependencies, String jdkName, String languageLevel) {
@@ -196,9 +198,9 @@ public class Module extends XmlPersistableConfigurationObject {
         }
         this.dependencies = dependencies; // overwrite rather than append dependencies
         if (!isNullOrEmpty(jdkName)) {
-            return this.jdkName = jdkName;
+            this.jdkName = jdkName;
         } else {
-            return this.jdkName = Module.INHERITED;
+            this.jdkName = Module.INHERITED;
         }
     }
 
@@ -270,17 +272,14 @@ public class Module extends XmlPersistableConfigurationObject {
                 Set<Path> sources = Sets.newLinkedHashSet();
                 Set<JarDirectory> jarDirectories = Sets.newLinkedHashSet();
                 for (Node library : getChildren(orderEntry, "library")) {
-                    Node classesNode = findFirstChildNamed(library, "CLASSES");
-                    for (Node classesRoot : getChildren(classesNode, "root")) {
-                        classes.add(pathFactory.path((String) classesRoot.attribute("url")));
+                    for (Node classesNode : getChildren(library, "CLASSES")) {
+                        readDependenciesPathsFromXml(classes, classesNode);
                     }
-                    Node javadocNode = findFirstChildNamed(library, "JAVADOC");
-                    for (Node javadocRoot : getChildren(javadocNode, "root")) {
-                        javadoc.add(pathFactory.path((String) javadocRoot.attribute("url")));
+                    for (Node javadocNode : getChildren(library, "JAVADOC")) {
+                        readDependenciesPathsFromXml(javadoc, javadocNode);
                     }
-                    Node sourcesNode = findFirstChildNamed(library, "SOURCES");
-                    for (Node sourcesRoot : getChildren(sourcesNode, "root")) {
-                        sources.add(pathFactory.path((String) sourcesRoot.attribute("url")));
+                    for (Node sourcesNode : getChildren(library, "SOURCES")) {
+                        readDependenciesPathsFromXml(sources, sourcesNode);
                     }
                     for (Node jarDirNode : getChildren(library, "jarDirectory")) {
                         jarDirectories.add(new JarDirectory(pathFactory.path((String) jarDirNode.attribute("url")), Boolean.parseBoolean((String) jarDirNode.attribute("recursive"))));
@@ -294,8 +293,14 @@ public class Module extends XmlPersistableConfigurationObject {
         }
     }
 
+    private void readDependenciesPathsFromXml(Set<Path> paths, Node node) {
+        for (Node classesRoot : getChildren(node, "root")) {
+            paths.add(pathFactory.path((String) classesRoot.attribute("url")));
+        }
+    }
+
     private void addJdkToXml() {
-        assert jdkName != null;
+        Preconditions.checkNotNull(jdkName);
         List<Node> orderEntries = findOrderEntries();
         Node moduleJdk = findFirstWithAttributeValue(orderEntries, "type", "jdk");
         Node moduleRootManager = getNewModuleRootManager();
@@ -307,12 +312,18 @@ public class Module extends XmlPersistableConfigurationObject {
             if (moduleJdk != null) {
                 moduleRootManager.remove(moduleJdk);
             }
-            moduleRootManager.appendNode("orderEntry", ImmutableMap.of("type", "jdk", "jdkName", jdkName, "jdkType", "JavaSDK"));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(3);
+            attributes.put("type", "jdk");
+            attributes.put("jdkName", jdkName);
+            attributes.put("jdkType", "JavaSDK");
+            moduleRootManager.appendNode("orderEntry", attributes);
         } else if (findFirstWithAttributeValue(orderEntries, "type", "inheritedJdk") == null) {
             if (moduleJdk != null) {
                 moduleRootManager.remove(moduleJdk);
             }
-            moduleRootManager.appendNode("orderEntry", ImmutableMap.of("type", "inheritedJdk"));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("type", "inheritedJdk");
+            moduleRootManager.appendNode("orderEntry", attributes);
         }
     }
 
@@ -335,25 +346,27 @@ public class Module extends XmlPersistableConfigurationObject {
     private void addSourceAndExcludeFolderToXml() {
         Node content = getContentNode();
         for (Path path : sourceFolders) {
-            ImmutableMap.Builder attributes = ImmutableMap.builder()
-                .put("url", path.getUrl())
-                .put("isTestSource", "false");
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(3);
+            attributes.put("url", path.getUrl());
+            attributes.put("isTestSource", "false");
             if (generatedSourceFolders.contains(path)) {
                 attributes.put("generated", "true");
             }
-            content.appendNode("sourceFolder", attributes.build());
+            content.appendNode("sourceFolder", attributes);
         }
         for (Path path : testSourceFolders) {
-            ImmutableMap.Builder attributes = ImmutableMap.builder()
-                .put("url", path.getUrl())
-                .put("isTestSource", "true");
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(3);
+            attributes.put("url", path.getUrl());
+            attributes.put("isTestSource", "true");
             if (generatedSourceFolders.contains(path)) {
                 attributes.put("generated", "true");
             }
-            content.appendNode("sourceFolder", attributes.build());
+            content.appendNode("sourceFolder", attributes);
         }
         for (Path path : excludeFolders) {
-            content.appendNode("excludeFolder", ImmutableMap.of("url", path.getUrl()));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("url", path.getUrl());
+            content.appendNode("excludeFolder", attributes);
         }
     }
 
@@ -398,7 +411,7 @@ public class Module extends XmlPersistableConfigurationObject {
 
     private Node getNewModuleRootManager() {
         Node newModuleRootManager = findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "NewModuleRootManager");
-        assert newModuleRootManager != null;
+        Preconditions.checkNotNull(newModuleRootManager);
         return newModuleRootManager;
     }
 
@@ -420,7 +433,7 @@ public class Module extends XmlPersistableConfigurationObject {
 
     private Node getContentNode() {
         Node contentNode = findFirstChildNamed(getNewModuleRootManager(), "content");
-        assert contentNode != null;
+        Preconditions.checkNotNull(contentNode);
         return contentNode;
     }
 

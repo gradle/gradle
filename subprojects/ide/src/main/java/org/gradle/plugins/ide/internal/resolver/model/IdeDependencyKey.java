@@ -115,6 +115,7 @@ public abstract class IdeDependencyKey<T extends IdeDependency, R> {
             return otherDependency instanceof IdeProjectDependency && Objects.equal(ideDependency.getProjectPath(), ((IdeProjectDependency) otherDependency).getProjectPath());
         }
 
+        @Override
         public String toString() {
             return "ProjectDependencyKey{" + ideDependency.getProjectPath() + "}";
         }
@@ -141,6 +142,7 @@ public abstract class IdeDependencyKey<T extends IdeDependency, R> {
             return Objects.equal(ideDependency.getFile(), that.getFile()) && Objects.equal(ideDependency.getId(), that.getId());
         }
 
+        @Override
         public String toString() {
             return "RepoFileDependencyKey{" + ideDependency.getId() + "}";
         }

@@ -21,7 +21,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -229,6 +228,7 @@ public class IdeaModule {
         return generatedSourceDirs;
     }
 
+    @Incubating
     public void setGeneratedSourceDirs(Set<File> generatedSourceDirs) {
         this.generatedSourceDirs = generatedSourceDirs;
     }
@@ -405,6 +405,7 @@ public class IdeaModule {
         return languageLevel;
     }
 
+    @Incubating
     public void setLanguageLevel(IdeaLanguageLevel languageLevel) {
         this.languageLevel = languageLevel;
     }
@@ -420,6 +421,7 @@ public class IdeaModule {
         return targetBytecodeVersion;
     }
 
+    @Incubating
     public void setTargetBytecodeVersion(JavaVersion targetBytecodeVersion) {
         this.targetBytecodeVersion = targetBytecodeVersion;
     }
@@ -432,6 +434,7 @@ public class IdeaModule {
         return scalaPlatform;
     }
 
+    @Incubating
     public void setScalaPlatform(ScalaPlatform scalaPlatform) {
         this.scalaPlatform = scalaPlatform;
     }
@@ -439,7 +442,7 @@ public class IdeaModule {
     /**
      * See {@link #iml(Closure)}
      */
-    public final IdeaModuleIml getIml() {
+    public IdeaModuleIml getIml() {
         return iml;
     }
 
@@ -449,7 +452,7 @@ public class IdeaModule {
      * If IdeaModule requires some information from gradle this field should not be used for this purpose.
      * IdeaModule instances should be configured with all necessary information by the plugin or user.
      */
-    public final Project getProject() {
+    public Project getProject() {
         return project;
     }
 
@@ -525,8 +528,8 @@ public class IdeaModule {
         Set<Path> generatedSourceFolders = pathsOf(existing(getGeneratedSourceDirs()));
         Set<Path> testSourceFolders = pathsOf(existing(getTestSourceDirs()));
         Set<Path> excludeFolders = pathsOf(getExcludeDirs());
-        Path outputDir = DefaultGroovyMethods.asBoolean(getOutputDir()) ? getPathFactory().path(getOutputDir()) : null;
-        Path testOutputDir = DefaultGroovyMethods.asBoolean(getTestOutputDir()) ? getPathFactory().path(getTestOutputDir()) : null;
+        Path outputDir = getOutputDir() != null ? getPathFactory().path(getOutputDir()) : null;
+        Path testOutputDir = getTestOutputDir() != null ? getPathFactory().path(getTestOutputDir()) : null;
         Set<Dependency> dependencies = resolveDependencies();
         String level = getLanguageLevel() != null ? getLanguageLevel().getLevel() : null;
 

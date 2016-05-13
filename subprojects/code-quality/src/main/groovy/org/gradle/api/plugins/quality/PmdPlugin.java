@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.resources.TextResource;
@@ -73,7 +72,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         conventionMappingOf(extension).map("targetJdk", new Callable<Object>() {
             @Override
             public Object call() {
-                return getDefaultTargetJdk(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceCompatibility());
+                return getDefaultTargetJdk(getJavaPluginConvention().getSourceCompatibility());
             }
         });
         return extension;

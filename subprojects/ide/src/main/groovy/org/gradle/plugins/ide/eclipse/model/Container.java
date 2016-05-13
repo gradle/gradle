@@ -31,6 +31,7 @@ public class Container extends AbstractClasspathEntry {
         super(path);
     }
 
+    @Override
     public String getKind() {
         return "con";
     }

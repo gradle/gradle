@@ -234,8 +234,8 @@ public class GlobalScopeServices {
         return new DefaultFileLookup(fileSystem, patternSetFactory);
     }
 
-    DirectoryFileTreeFactory createDirectoryFileTreeFactory() {
-        return new DefaultDirectoryFileTreeFactory();
+    DirectoryFileTreeFactory createDirectoryFileTreeFactory(Factory<PatternSet> patternSetFactory) {
+        return new DefaultDirectoryFileTreeFactory(patternSetFactory);
     }
 
     FileCollectionFactory createFileCollectionFactory() {

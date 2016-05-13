@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.eclipse.model.internal;
+package org.gradle.plugins.ide.eclipse.model;
 
-import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
-import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
+import groovy.util.Node;
 
-import java.util.List;
-
-public interface ClasspathEntryBuilder {
-    void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath);
+/**
+ * Represents an entry in <code>wb-module</code>.
+ */
+public interface WbModuleEntry {
+    void appendNode(Node node);
 }

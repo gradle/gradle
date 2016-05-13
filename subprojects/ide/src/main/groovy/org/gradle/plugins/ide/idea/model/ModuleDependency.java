@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.idea.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import groovy.util.Node;
 import org.gradle.api.Incubating;
 
@@ -67,6 +68,7 @@ public class ModuleDependency implements Dependency {
         return gradlePath;
     }
 
+    @Incubating
     public void setGradlePath(String gradlePath) {
         this.gradlePath = gradlePath;
     }
@@ -81,15 +83,15 @@ public class ModuleDependency implements Dependency {
 
     @Override
     public void addToNode(Node parentNode) {
-        ImmutableMap attributes = ImmutableMap.builder()
+        Map<String, Object> attributes = Maps.newHashMap(ImmutableMap.<String, Object>builder()
             .put("type", "module")
             .put("module-name", name)
             .putAll(getAttributeMapForScopeAndExported())
-            .build();
+            .build());
         parentNode.appendNode("orderEntry", attributes);
     }
 
-    private Map getAttributeMapForScopeAndExported() {
+    private Map<String, Object> getAttributeMapForScopeAndExported() {
         ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
         if (exported) {
             builder.put("exported", "");

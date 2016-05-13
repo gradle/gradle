@@ -60,6 +60,11 @@ Current state is ${lastLogState}.""")
     }
 
     @Override
+    void assertRegistryNotWorldReadable() {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
     int getPort() {
         throw new UnsupportedOperationException()
     }

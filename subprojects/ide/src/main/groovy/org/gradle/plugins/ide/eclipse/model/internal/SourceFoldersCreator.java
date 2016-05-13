@@ -17,14 +17,14 @@
 package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.base.Equivalence;
+import com.google.common.base.Function;
 import com.google.common.collect.Lists;
-import groovy.lang.Closure;
-import org.gradle.api.Transformer;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.internal.DynamicObjectUtil;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Cast;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
@@ -41,13 +41,14 @@ import java.util.Set;
 public class SourceFoldersCreator {
 
     public void populateForClasspath(List<ClasspathEntry> entries, final EclipseClasspath classpath) {
-        Closure<String> provideRelativePath = new Closure<String>(this) {
-            Object doCall(Object arg) {
-                return classpath.getProject().relativePath(arg);
+        Function<File, String> provideRelativePath = new Function<File, String>() {
+            @Override
+            public String apply(File input) {
+                return classpath.getProject().relativePath(input);
             }
         };
         List<SourceFolder> regulars = getRegularSourceFolders(classpath.getSourceSets(), provideRelativePath);
-        List trimmedExternals = getExternalSourceFolders(classpath.getSourceSets(), provideRelativePath);
+        List<SourceFolder> trimmedExternals = getExternalSourceFolders(classpath.getSourceSets(), provideRelativePath);
         entries.addAll(regulars);
         entries.addAll(trimmedExternals);
     }
@@ -58,7 +59,7 @@ public class SourceFoldersCreator {
      *
      * @return source folders that live inside the project
      */
-    public List<SourceFolder> getRegularSourceFolders(Iterable<SourceSet> sourceSets, Closure<String> provideRelativePath) {
+    public List<SourceFolder> getRegularSourceFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath) {
         List<SourceFolder> sourceFolders = projectRelativeFolders(sourceSets, provideRelativePath);
         return CollectionUtils.filter(sourceFolders, new Spec<SourceFolder>() {
             @Override
@@ -73,24 +74,22 @@ public class SourceFoldersCreator {
      *
      * @return source folders that live outside of the project
      */
-    public List<SourceFolder> getExternalSourceFolders(Iterable<SourceSet> sourceSets, Closure<String> provideRelativePath) {
+    public List<SourceFolder> getExternalSourceFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath) {
         List<SourceFolder> sourceFolders = projectRelativeFolders(sourceSets, provideRelativePath);
-        List<SourceFolder> externalSourceFolders =  CollectionUtils.filter(sourceFolders, new Spec<SourceFolder>() {
+        List<SourceFolder> externalSourceFolders = CollectionUtils.filter(sourceFolders, new Spec<SourceFolder>() {
             @Override
             public boolean isSatisfiedBy(SourceFolder element) {
                 return element.getPath().contains("..");
             }
         });
-
-        List<String> regularSourceFolders = CollectionUtils.collect(getRegularSourceFolders(sourceSets, provideRelativePath), new Transformer<String, SourceFolder>() {
+        List<SourceFolder> regularSourceFolders = getRegularSourceFolders(sourceSets, provideRelativePath);
+        List<String> sources = Lists.newArrayList(Lists.transform(regularSourceFolders, new Function<SourceFolder, String>() {
             @Override
-            public String transform(SourceFolder sourceFolder) {
+            public String apply(SourceFolder sourceFolder) {
                 return sourceFolder.getName();
             }
-        });
-
-        List<SourceFolder> trimmedSourceFolders = trimAndDedup(externalSourceFolders, regularSourceFolders);
-        return trimmedSourceFolders;
+        }));
+        return trimAndDedup(externalSourceFolders, sources);
     }
 
     private List<SourceFolder> trimAndDedup(List<SourceFolder> externalSourceFolders, List<String> givenSources) {
@@ -111,7 +110,7 @@ public class SourceFoldersCreator {
         return trimmedSourceFolders;
     }
 
-    private List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Closure<String> provideRelativePath) {
+    private List<SourceFolder> projectRelativeFolders(Iterable<SourceSet> sourceSets, Function<File, String> provideRelativePath) {
         ArrayList<SourceFolder> entries = Lists.newArrayList();
         List<SourceSet> sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets);
         for (SourceSet sourceSet : sortedSourceSets) {
@@ -119,7 +118,7 @@ public class SourceFoldersCreator {
             for (DirectoryTree tree : sortedSourceDirs) {
                 File dir = tree.getDir();
                 if (dir.isDirectory()) {
-                    String relativePath = provideRelativePath.call(dir);
+                    String relativePath = provideRelativePath.apply(dir);
                     SourceFolder folder = new SourceFolder(relativePath, null);
                     folder.setDir(dir);
                     folder.setName(dir.getName());
@@ -157,24 +156,24 @@ public class SourceFoldersCreator {
         if (!srcDirs.contains(directoryTree.getDir())) {
             return Lists.<Set<String>>newArrayList(collectFilters(directoryTree.getPatterns(), filterOperation));
         } else {
-            Set<String> resourcesFilter = collectFiters(sourceSet.getResources().getSrcDirTrees(), directoryTree.getDir(), filterOperation);
-            Set<String> sourceFilter = collectFiters(sourceSet.getAllJava().getSrcDirTrees(), directoryTree.getDir(), filterOperation);
+            Set<String> resourcesFilter = collectFilters(sourceSet.getResources().getSrcDirTrees(), directoryTree.getDir(), filterOperation);
+            Set<String> sourceFilter = collectFilters(sourceSet.getAllJava().getSrcDirTrees(), directoryTree.getDir(), filterOperation);
             return Lists.<Set<String>>newArrayList(resourcesFilter, sourceFilter);
         }
     }
 
-    private Set<String> collectFiters(Set<DirectoryTree> directoryTrees, File targetDir, String filterOpertation) {
+    private Set<String> collectFilters(Set<DirectoryTree> directoryTrees, File targetDir, String filterOperation) {
         for (DirectoryTree directoryTree : directoryTrees) {
             if (directoryTree.getDir().equals(targetDir)) {
                 PatternSet patterns = directoryTree.getPatterns();
-                return collectFilters(patterns, filterOpertation);
+                return collectFilters(patterns, filterOperation);
             }
         }
         return Collections.emptySet();
     }
 
     private Set<String> collectFilters(PatternSet patterns, String filterOperation) {
-        return (Set<String>) DynamicObjectUtil.asDynamicObject(patterns).getProperty(filterOperation);
+        return Cast.<Set<String>>uncheckedCast(DynamicObjectUtil.asDynamicObject(patterns).getProperty(filterOperation));
     }
 
     private List<SourceSet> sortSourceSetsAsPerUsualConvention(Iterable<SourceSet> sourceSets) {
@@ -198,22 +197,22 @@ public class SourceFoldersCreator {
     private static Comparable toComparable(SourceSet sourceSet) {
         String name = sourceSet.getName();
         if (SourceSet.MAIN_SOURCE_SET_NAME.equals(name)) {
-            return Integer.valueOf(0);
+            return 0;
         } else if (SourceSet.TEST_SOURCE_SET_NAME.equals(name)) {
-            return Integer.valueOf(1);
+            return 1;
         } else {
-            return Integer.valueOf(2);
+            return 2;
         }
     }
 
     private static Comparable toComparable(DirectoryTree tree) {
         String path = tree.getDir().getPath();
         if (path.endsWith("java")) {
-            return Integer.valueOf(0);
+            return 0;
         } else if (path.endsWith("resources")) {
-            return Integer.valueOf(2);
+            return 2;
         } else {
-            return Integer.valueOf(1);
+            return 1;
         }
     }
 }

@@ -22,6 +22,7 @@ import groovy.util.Node;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.Map;
 
@@ -29,6 +30,8 @@ import java.util.Map;
  * Common superclass for the library elements.
  */
 public abstract class AbstractLibrary extends AbstractClasspathEntry {
+
+    private static final String DEPRECATED_DECLAREDCONFIGNAME_FIELD = "AbstractLibrary.declaredConfigurationName";
 
     private FileReference sourcePath;
     private FileReference javadocPath;
@@ -76,10 +79,13 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
 
     @Deprecated
     public String getDeclaredConfigurationName() {
+        DeprecationLogger.nagUserOfDeprecated(DEPRECATED_DECLAREDCONFIGNAME_FIELD);
         return declaredConfigurationName;
     }
 
+    @Deprecated
     public void setDeclaredConfigurationName(String declaredConfigurationName) {
+        DeprecationLogger.nagUserOfDeprecated(DEPRECATED_DECLAREDCONFIGNAME_FIELD);
         this.declaredConfigurationName = declaredConfigurationName;
     }
 
@@ -94,7 +100,7 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
 
     @Override
     public void appendNode(Node node) {
-        Map attributes = Maps.newHashMap();
+        Map<String, Object> attributes = Maps.newHashMap();
         attributes.put("sourcepath", sourcePath == null ? null : sourcePath.getPath());
         addClasspathEntry(node, attributes);
     }

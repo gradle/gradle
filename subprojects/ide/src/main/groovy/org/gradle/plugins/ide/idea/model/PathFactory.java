@@ -83,7 +83,7 @@ public class PathFactory {
         return resolvePath(varsByName.get(pathVar), "$" + pathVar + "$", file);
     }
 
-    private FilePath resolvePath(File rootDir, String rootDirName, File file) {
+    private static FilePath resolvePath(File rootDir, String rootDirName, File file) {
         String relPath = getRelativePath(rootDir, rootDirName, file);
         String url = relativePathToURI(relPath);
         String canonicalUrl = relativePathToURI(file.getAbsolutePath().replace(File.separator, "/"));
@@ -120,20 +120,20 @@ public class PathFactory {
         }
     }
 
-    private String toUrl(String scheme, File file) {
+    private static String toUrl(String scheme, File file) {
         return scheme + "://" + file.getAbsolutePath().replace(File.separator, "/");
     }
 
-    private String getRelativePath(File rootDir, String rootDirString, File file) {
+    private static String getRelativePath(File rootDir, String rootDirString, File file) {
         String relpath = matchPathLists(getPathList(rootDir), getPathList(file));
         return relpath != null ? rootDirString + "/" + relpath : file.getAbsolutePath().replace(File.separator, "/");
     }
 
-    private String relativePathToURI(String relpath) {
+    private static String relativePathToURI(String relpath) {
         return relativePathToURI(relpath, false);
     }
 
-    private String relativePathToURI(String relpath, boolean useFileScheme) {
+    private static String relativePathToURI(String relpath, boolean useFileScheme) {
         if (relpath.endsWith(".jar") && !useFileScheme) {
             return "jar://" + relpath + "!/";
         } else {
@@ -141,7 +141,7 @@ public class PathFactory {
         }
     }
 
-    private List<String> getPathList(File f) {
+    private static List<String> getPathList(File f) {
         try {
             List<String> list = Lists.newArrayList();
             File r = f.getCanonicalFile();
@@ -156,7 +156,7 @@ public class PathFactory {
         }
     }
 
-    private String matchPathLists(List<String> r, List<String> f) {
+    private static String matchPathLists(List<String> r, List<String> f) {
         StringBuilder s = new StringBuilder();
 
         // eliminate the common root

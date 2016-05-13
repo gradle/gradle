@@ -91,6 +91,7 @@ public class IdeaDependenciesProvider {
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {
         getPath = new Transformer<FilePath, File>() {
+            @Override
             @Nullable
             public FilePath transform(File file) {
                 return file != null ? ideaModule.getPathFactory().path(file) : null;
@@ -157,6 +158,7 @@ public class IdeaDependenciesProvider {
                 IdeDependencyKey<?, Dependency> key = IdeDependencyKey.forProjectDependency(
                         ideProjectDependency,
                         new IdeDependencyKey.DependencyBuilder<IdeProjectDependency, Dependency>() {
+                            @Override
                             public Dependency buildDependency(IdeProjectDependency dependency, String scope) {
                                 return new ModuleDependencyBuilder().create(dependency, scope);
                             }});
@@ -171,6 +173,7 @@ public class IdeaDependenciesProvider {
                     IdeDependencyKey<?, Dependency> key = IdeDependencyKey.forRepoFileDependency(
                             ideRepoFileDependency,
                             new IdeDependencyKey.DependencyBuilder<IdeExtendedRepoFileDependency, Dependency>() {
+                                @Override
                                 public Dependency buildDependency(IdeExtendedRepoFileDependency dependency, String scope) {
                                     Set<FilePath> javadoc = CollectionUtils.collect(dependency.getJavadocFiles(), new LinkedHashSet<FilePath>(), getPath);
                                     Set<FilePath> source = CollectionUtils.collect(dependency.getSourceFiles(), new LinkedHashSet<FilePath>(), getPath);
@@ -189,6 +192,7 @@ public class IdeaDependenciesProvider {
                 IdeDependencyKey<?, Dependency> key = IdeDependencyKey.forLocalFileDependency(
                         fileDependency,
                         new IdeDependencyKey.DependencyBuilder<IdeLocalFileDependency, Dependency>() {
+                            @Override
                             public Dependency buildDependency(IdeLocalFileDependency dependency, String scope) {
                                 return new SingleEntryModuleLibrary(getPath.transform(dependency.getFile()), scope);
                             }});
@@ -211,6 +215,7 @@ public class IdeaDependenciesProvider {
                     ? Lists.newArrayList(Iterables.transform(
                             minusConfigurations,
                             new Function<Configuration, String>() {
+                                @Override
                                 public String apply(Configuration configuration) {
                                     return configuration.getName();
                                 }
@@ -254,6 +259,7 @@ public class IdeaDependenciesProvider {
 
     private static Function<String, Dependency> scopeToDependency(final IdeDependencyKey<?, Dependency> dependencyKey) {
         return new Function<String, Dependency>() {
+            @Override
             @Nullable
             public Dependency apply(String s) {
                 return dependencyKey.buildDependency(s);
@@ -271,6 +277,7 @@ public class IdeaDependenciesProvider {
         return Iterables.filter(
                 configurations,
                 new Predicate<Configuration>() {
+                    @Override
                     public boolean apply(Configuration input) {
                         return isMappedToIdeaScope(input, ideaModule);
                     }
@@ -280,6 +287,7 @@ public class IdeaDependenciesProvider {
     private boolean isMappedToIdeaScope(final Configuration configuration, IdeaModule ideaModule) {
         Iterable<IdeaScopeMappingRule> rules = Iterables.concat(scopeMappings.values());
         boolean matchesRule = Iterables.any(rules, new Predicate<IdeaScopeMappingRule>() {
+            @Override
             public boolean apply(IdeaScopeMappingRule ideaScopeMappingRule) {
                 return ideaScopeMappingRule.configurationNames.contains(configuration.getName());
             }

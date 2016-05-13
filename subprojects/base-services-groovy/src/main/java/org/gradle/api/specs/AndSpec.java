@@ -59,4 +59,9 @@ public class AndSpec<T> extends CompositeSpec<T> {
     public AndSpec<T> and(Closure spec) {
         return and(new ClosureSpec<T>(spec));
     }
+
+    @Override
+    public int hashCode() {
+        return 7 * super.hashCode();
+    }
 }

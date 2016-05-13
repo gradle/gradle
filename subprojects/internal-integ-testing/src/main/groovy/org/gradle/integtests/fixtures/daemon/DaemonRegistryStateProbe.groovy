@@ -16,10 +16,14 @@
 
 package org.gradle.integtests.fixtures.daemon
 
+import org.gradle.integtests.fixtures.daemon.AbstractDaemonFixture.State
+import org.gradle.internal.nativeintegration.filesystem.Stat
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.context.DaemonContext
+import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.DaemonRegistry
-import org.gradle.integtests.fixtures.daemon.AbstractDaemonFixture.State
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
 class DaemonRegistryStateProbe implements DaemonStateProbe {
     private final DaemonRegistry registry
@@ -34,6 +38,15 @@ class DaemonRegistryStateProbe implements DaemonStateProbe {
         def daemonInfo = registry.all.find { it.context.pid == context.pid }
         registry.remove(daemonInfo.address)
         registry.store(new DaemonInfo(daemonInfo.address, daemonInfo.context, "password".bytes, daemonInfo.idle))
+    }
+
+    void assertRegistryNotWorldReadable() {
+        def registryFile = new DaemonDir(context.daemonRegistryDir).registry
+        if (OperatingSystem.current().isLinux() || OperatingSystem.current().isMacOsX()) {
+            def stat = NativeServicesTestFixture.instance.get(Stat)
+            assert stat.getUnixMode(registryFile) == 0600 // user read-write
+            assert stat.getUnixMode(registryFile.parentFile) == 0700 // user read-write-execute
+        }
     }
 
     @Override

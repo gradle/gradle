@@ -226,6 +226,11 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
     public int compareTo(RelativePath o) {
         int len1 = segments.length;
         int len2 = o.segments.length;
+
+        if (len1 != len2) {
+            return len1 - len2;
+        }
+
         int lim = Math.min(len1, len2);
         String v1[] = segments;
         String v2[] = o.segments;
@@ -240,6 +245,6 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
             }
             k++;
         }
-        return len1 - len2;
+        return 0;
     }
 }

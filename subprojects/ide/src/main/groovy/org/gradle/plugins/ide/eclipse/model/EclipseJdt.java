@@ -113,6 +113,7 @@ public class EclipseJdt {
         return javaRuntimeName;
     }
 
+    @Incubating
     public void setJavaRuntimeName(String javaRuntimeName) {
         this.javaRuntimeName = javaRuntimeName;
     }

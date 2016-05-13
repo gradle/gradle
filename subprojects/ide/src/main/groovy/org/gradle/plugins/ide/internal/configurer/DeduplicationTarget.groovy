@@ -20,7 +20,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Project
 
 @CompileStatic
- class DeduplicationTarget {
+class DeduplicationTarget {
      def Project project
      def String moduleName
      def Closure<String> updateModuleName

@@ -57,10 +57,6 @@ public class Jdk {
         this.assertKeyword = assertKeyword;
     }
 
-    public boolean getJdk15() {
-        return jdk15;
-    }
-
     public boolean isJdk15() {
         return jdk15;
     }

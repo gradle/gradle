@@ -17,12 +17,16 @@
 package org.gradle.launcher.daemon.server.health;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 
 import static java.lang.String.format;
 
 public class DaemonStatus {
+    Logger logger = Logging.getLogger(DaemonStatus.class);
+
     public static final String ENABLE_PERFORMANCE_MONITORING = "org.gradle.daemon.performance.enable-monitoring";
     public static final String TENURED_USAGE_EXPIRE_AT = "org.gradle.daemon.performance.tenured-usage-expire-at";
     public static final String TENURED_RATE_EXPIRE_AT = "org.gradle.daemon.performance.tenured-rate-expire-at";
@@ -33,7 +37,7 @@ public class DaemonStatus {
         this.stats = stats;
     }
 
-    boolean isDaemonTired() {
+    boolean isDaemonUnhealthy() {
         String enabledValue = System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true");
         Boolean enabled = Boolean.parseBoolean(enabledValue);
         return enabled && isTenuredSpaceExhausted();
@@ -51,6 +55,7 @@ public class DaemonStatus {
                 return false;
             }
             GarbageCollectionStats gcStats = stats.getGcMonitor().getTenuredStats();
+            logger.debug(String.format("GC rate: %.2f/s tenured usage: %s%%", gcStats.getRate(), gcStats.getUsage()));
             if (gcStats.getEventCount() >= 5
                 && gcStats.getUsage() >= tenuredUsageThreshold
                 && gcStats.getRate() >= tenuredRateThreshold) {

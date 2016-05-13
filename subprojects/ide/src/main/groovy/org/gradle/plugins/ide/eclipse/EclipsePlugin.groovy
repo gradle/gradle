@@ -36,12 +36,10 @@ import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.internal.UncheckedException
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ear.EarPlugin
 import org.gradle.plugins.ide.api.XmlFileContentMerger
-import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper
 import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
@@ -52,9 +50,7 @@ import org.gradle.plugins.ide.eclipse.model.Link
 import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
-import java.lang.reflect.Method
 import java.util.concurrent.Callable
-
 /**
  * <p>A plugin which generates Eclipse files.</p>
  */
@@ -190,7 +186,7 @@ class EclipsePlugin extends IdePlugin {
 
                         //model properties:
                         task.classpath = model.classpath
-                        task.classpath.file = new XmlFileContentMerger(getTaskXmlTransformer(task))
+                        task.classpath.file = new XmlFileContentMerger((XmlTransformer) task.getProperty('xmlTransformer'))
                         task.classpath.sourceSets = project.convention.getPlugin(JavaPluginConvention).sourceSets
 
                         project.afterEvaluate(new Action<Project>() {
@@ -323,25 +319,5 @@ class EclipsePlugin extends IdePlugin {
         def task = tasks.create(taskName, taskType)
         project.configure(Arrays.asList(task), action)
         plugin.addWorker(task)
-    }
-
-    // TODO Move up and remove duplicate in IdeaPlugin
-    protected static XmlTransformer getTaskXmlTransformer(XmlGeneratorTask task) {
-        Method method = null;
-        try {
-            method = task.getClass().getMethod("getXmlTransformer");
-            method.setAccessible(true);
-            return (XmlTransformer) method.invoke(task);
-        } catch (Exception e) {
-            throw new UncheckedException(e);
-        } finally {
-            if (method != null) {
-                try {
-                    method.setAccessible(false);
-                } catch (SecurityException ignore) {
-                    // Ignore
-                }
-            }
-        }
     }
 }

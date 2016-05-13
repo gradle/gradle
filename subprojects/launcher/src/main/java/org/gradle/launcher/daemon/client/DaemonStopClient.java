@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.specs.ExplainingSpec;
-import org.gradle.api.internal.specs.ExplainingSpecs;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.id.IdGenerator;
@@ -50,7 +49,6 @@ public class DaemonStopClient {
     private static final int STOP_TIMEOUT_SECONDS = 30;
     private final DaemonConnector connector;
     private final IdGenerator<?> idGenerator;
-    private final ExplainingSpec<DaemonContext> compatibilitySpec = ExplainingSpecs.satisfyAll();
     private final StopDispatcher stopDispatcher;
 
     public DaemonStopClient(DaemonConnector connector, IdGenerator<?> idGenerator) {
@@ -84,10 +82,21 @@ public class DaemonStopClient {
     public void stop() {
         long start = System.currentTimeMillis();
         long expiry = start + STOP_TIMEOUT_SECONDS * 1000;
-        Set<String> stopped = new HashSet<String>();
+        final Set<String> seen = new HashSet<String>();
 
-        // TODO - only connect to daemons that we have not yet sent a stop request to
-        DaemonClientConnection connection = connector.maybeConnect(compatibilitySpec);
+        ExplainingSpec<DaemonContext> spec = new ExplainingSpec<DaemonContext>() {
+            @Override
+            public String whyUnsatisfied(DaemonContext element) {
+                return "already seen";
+            }
+
+            @Override
+            public boolean isSatisfiedBy(DaemonContext element) {
+                return !seen.contains(element.getUid());
+            }
+        };
+
+        DaemonClientConnection connection = connector.maybeConnect(spec);
         if (connection == null) {
             LOGGER.lifecycle(DaemonMessages.NO_DAEMONS_RUNNING);
             return;
@@ -98,15 +107,16 @@ public class DaemonStopClient {
         //iterate and stop all daemons
         while (connection != null && System.currentTimeMillis() < expiry) {
             try {
-                if (stopped.add(connection.getDaemon().getUid())) {
-                    LOGGER.debug("Requesting daemon {} stop now", connection.getDaemon());
-                    stopDispatcher.dispatch(connection, new Stop(idGenerator.generateId(), connection.getDaemon().getToken()));
+                seen.add(connection.getDaemon().getUid());
+                LOGGER.debug("Requesting daemon {} stop now", connection.getDaemon());
+                boolean stopped = stopDispatcher.dispatch(connection, new Stop(idGenerator.generateId(), connection.getDaemon().getToken()));
+                if (stopped) {
                     LOGGER.lifecycle("Gradle daemon stopped.");
                 }
             } finally {
                 connection.stop();
             }
-            connection = connector.maybeConnect(compatibilitySpec);
+            connection = connector.maybeConnect(spec);
         }
 
         if (connection != null) {

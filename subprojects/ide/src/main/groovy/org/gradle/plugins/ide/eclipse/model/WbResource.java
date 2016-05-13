@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import groovy.util.Node;
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
@@ -26,7 +27,7 @@ import java.util.Map;
 /**
  * A wtp descriptor resource entry.
  */
-public class WbResource {
+public class WbResource implements WbModuleEntry {
     private String deployPath;
     private String sourcePath;
 
@@ -35,7 +36,8 @@ public class WbResource {
     }
 
     public WbResource(String deployPath, String sourcePath) {
-        assert deployPath != null && sourcePath != null;
+        Preconditions.checkNotNull(deployPath);
+        Preconditions.checkNotNull(sourcePath);
         this.deployPath = PathUtil.normalizePath(deployPath);
         this.sourcePath = PathUtil.normalizePath(sourcePath);
     }
@@ -56,8 +58,9 @@ public class WbResource {
         this.sourcePath = sourcePath;
     }
 
+    @Override
     public void appendNode(Node node) {
-        Map attributes = Maps.newHashMap();
+        Map<String, Object> attributes = Maps.newHashMap();
         attributes.put("deploy-path", deployPath);
         attributes.put("source-path", sourcePath);
         node.appendNode("wb-resource", attributes);

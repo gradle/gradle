@@ -29,10 +29,7 @@ public class FilePath extends Path {
         this.file = file;
     }
 
-    /**
-     * File.
-     */
-    public final File getFile() {
+    public File getFile() {
         return file;
     }
 }

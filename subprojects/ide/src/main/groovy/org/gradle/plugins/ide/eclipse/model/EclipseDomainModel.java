@@ -22,6 +22,23 @@ package org.gradle.plugins.ide.eclipse.model;
  */
 @Deprecated
 public class EclipseDomainModel {
-    public Project project;
-    public Classpath classpath;
+
+    private Project project;
+    private Classpath classpath;
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
+    public Classpath getClasspath() {
+        return classpath;
+    }
+
+    public void setClasspath(Classpath classpath) {
+        this.classpath = classpath;
+    }
 }

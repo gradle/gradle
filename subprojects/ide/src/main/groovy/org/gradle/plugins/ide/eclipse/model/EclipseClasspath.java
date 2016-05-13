@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse.model;
 
+import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.tasks.SourceSet;
@@ -283,7 +284,7 @@ public class EclipseClasspath {
      * @param containers the classpath containers to be added
      */
     public void containers(String... containers) {
-        assert containers != null;
+        Preconditions.checkNotNull(containers);
         this.containers.addAll(Arrays.asList(containers));
     }
 
@@ -317,9 +318,8 @@ public class EclipseClasspath {
 
     public FileReferenceFactory getFileReferenceFactory() {
         FileReferenceFactory referenceFactory = new FileReferenceFactory();
-        for (String name : pathVariables.keySet()) {
-            File dir = pathVariables.get(name);
-            referenceFactory.addPathVariable(name, dir);
+        for (Map.Entry<String, File> entry : pathVariables.entrySet()) {
+            referenceFactory.addPathVariable(entry.getKey(), entry.getValue());
         }
         return referenceFactory;
     }

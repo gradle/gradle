@@ -17,11 +17,10 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.util.NodeList;
 import org.gradle.api.Incubating;
@@ -98,6 +97,7 @@ public class Project extends XmlPersistableConfigurationObject {
         return vcs;
     }
 
+    @Incubating
     public void setVcs(String vcs) {
         this.vcs = vcs;
     }
@@ -110,6 +110,7 @@ public class Project extends XmlPersistableConfigurationObject {
         return projectLibraries;
     }
 
+    @Incubating
     public void setProjectLibraries(Set<ProjectLibrary> projectLibraries) {
         this.projectLibraries = projectLibraries;
     }
@@ -166,9 +167,11 @@ public class Project extends XmlPersistableConfigurationObject {
     }
 
     private void loadWildcards() {
-        Node wildcardsNode = findFirstChildNamed(findCompilerConfiguration(), "wildcardResourcePatterns");
-        for (Node entry : getChildren(wildcardsNode, "entry")) {
-            this.wildcards.add((String) entry.attribute("name"));
+        List<Node> wildcardsNodes = getChildren(findCompilerConfiguration(), "wildcardResourcePatterns");
+        for (Node wildcardsNode : wildcardsNodes) {
+            for (Node entry : getChildren(wildcardsNode, "entry")) {
+                this.wildcards.add((String) entry.attribute("name"));
+            }
         }
     }
 
@@ -186,28 +189,30 @@ public class Project extends XmlPersistableConfigurationObject {
         for (Node library : getChildren(libraryTable, "library")) {
             ProjectLibrary projectLibrary = new ProjectLibrary();
             projectLibrary.setName((String) library.attribute("name"));
-            projectLibrary.setClasses(collectRootUrlAsFiles(findFirstChildNamed(library, "CLASSES")));
-            projectLibrary.setJavadoc(collectRootUrlAsFiles(findFirstChildNamed(library, "JAVADOC")));
-            projectLibrary.setSources(collectRootUrlAsFiles(findFirstChildNamed(library, "SOURCES")));
+            projectLibrary.setClasses(collectRootUrlAsFiles(getChildren(library, "CLASSES")));
+            projectLibrary.setJavadoc(collectRootUrlAsFiles(getChildren(library, "JAVADOC")));
+            projectLibrary.setSources(collectRootUrlAsFiles(getChildren(library, "SOURCES")));
             projectLibraries.add(projectLibrary);
         }
     }
 
-    private Set<File> collectRootUrlAsFiles(Node node) {
-        ImmutableSet.Builder<File> builder = ImmutableSet.builder();
-        if (node != null) {
+    private Set<File> collectRootUrlAsFiles(List<Node> nodes) {
+        Set<File> files = Sets.newLinkedHashSet();
+        for (Node node : nodes) {
             for (Node root : getChildren(node, "root")) {
                 String url = (String) root.attribute("url");
-                builder.add(new File(url));
+                files.add(new File(url));
             }
         }
-        return builder.build();
+        return files;
     }
 
     private void storeModulePaths() {
         Node modulesNode = new Node(null, "modules");
         for (Path modulePath : modulePaths) {
-            Map attributes = ImmutableMap.of("fileurl", modulePath.getUrl(), "filepath", modulePath.getRelPath());
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(2);
+            attributes.put("fileurl", modulePath.getUrl());
+            attributes.put("filepath", modulePath.getRelPath());
             modulesNode.appendNode("module", attributes);
         }
         findOrCreateModules().replaceNode(modulesNode);
@@ -218,7 +223,9 @@ public class Project extends XmlPersistableConfigurationObject {
         Node existingNode = findOrCreateFirstChildNamed(compilerConfigNode, "wildcardResourcePatterns");
         Node wildcardsNode = new Node(null, "wildcardResourcePatterns");
         for (String wildcard : wildcards) {
-            wildcardsNode.appendNode("entry", ImmutableMap.of("name", wildcard));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("name", wildcard);
+            wildcardsNode.appendNode("entry", attributes);
         }
         existingNode.replaceNode(wildcardsNode);
     }
@@ -226,7 +233,7 @@ public class Project extends XmlPersistableConfigurationObject {
     private void storeJdk() {
         Node projectRoot = findProjectRootManager();
         projectRoot.attributes().put("assert-keyword", jdk.isAssertKeyword());
-        projectRoot.attributes().put("assert-jdk-15", jdk.getJdk15());
+        projectRoot.attributes().put("assert-jdk-15", jdk.isJdk15());
         projectRoot.attributes().put("languageLevel", jdk.getLanguageLevel());
         projectRoot.attributes().put("project-jdk-name", jdk.getProjectJdkName());
     }
@@ -240,13 +247,7 @@ public class Project extends XmlPersistableConfigurationObject {
             JavaVersion moduleBytecodeVersionOverwrite = module.getTargetBytecodeVersion();
             if (moduleBytecodeVersionOverwrite == null) {
                 if (moduleNode != null) {
-                    Closure noNodeClosure = new Closure(this, this) {
-                        @Override
-                        public Object call() {
-                            return null;
-                        }
-                    };
-                    moduleNode.replaceNode(noNodeClosure);
+                    bytecodeLevelConfiguration.remove(moduleNode);
                 }
             } else {
                 if (moduleNode == null) {
@@ -282,7 +283,7 @@ public class Project extends XmlPersistableConfigurationObject {
 
     private Node findOrCreateModules() {
         Node moduleManager = findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "ProjectModuleManager");
-        assert moduleManager != null;
+        Preconditions.checkNotNull(moduleManager);
         Node modules = findFirstChildNamed(moduleManager, "modules");
         if (modules == null) {
             modules = moduleManager.appendNode("modules");
@@ -297,7 +298,9 @@ public class Project extends XmlPersistableConfigurationObject {
     private Node findOrCreateBytecodeLevelConfiguration() {
         Node compilerConfiguration = findCompilerConfiguration();
         if (compilerConfiguration == null) {
-            compilerConfiguration = getXml().appendNode("component", ImmutableMap.of("name", "CompilerConfiguration"));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("name", "CompilerConfiguration");
+            compilerConfiguration = getXml().appendNode("component", attributes);
         }
         return findOrCreateFirstChildNamed(compilerConfiguration, "bytecodeTargetLevel");
     }
@@ -310,7 +313,9 @@ public class Project extends XmlPersistableConfigurationObject {
     private Node findOrCreateLibraryTable() {
         Node libraryTable = findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "libraryTable");
         if (libraryTable == null) {
-            libraryTable = getXml().appendNode("component", ImmutableMap.of("name", "libraryTable"));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("name", "libraryTable");
+            libraryTable = getXml().appendNode("component", attributes);
         }
         return libraryTable;
     }

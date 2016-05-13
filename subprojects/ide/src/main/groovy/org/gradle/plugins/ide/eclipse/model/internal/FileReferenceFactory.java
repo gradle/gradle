@@ -16,8 +16,8 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
+import org.gradle.internal.UncheckedException;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 
 import java.io.File;
@@ -85,7 +85,7 @@ public class FileReferenceFactory {
         try {
             fileURI = new URI(jarURI.replace("jar:", "").replace("!/", ""));
         } catch (URISyntaxException e) {
-            Throwables.propagate(e);
+            UncheckedException.throwAsUncheckedException(e);
         }
         File file = new File(fileURI);
         String path = PathUtil.normalizePath(file.getAbsolutePath());
@@ -141,6 +141,7 @@ public class FileReferenceFactory {
             return path;
         }
 
+        @Override
         public String getJarURL(){
             //windows needs an additional backslash in jar urls
             return  "jar:" + file.toURI() + "!/";

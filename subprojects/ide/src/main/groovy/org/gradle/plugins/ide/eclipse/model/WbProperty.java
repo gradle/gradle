@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import groovy.util.Node;
 
@@ -25,7 +26,7 @@ import java.util.Map;
 /**
  * A wtp descriptor property entry.
  */
-public class WbProperty {
+public class WbProperty implements WbModuleEntry {
     private String name;
     private String value;
 
@@ -34,9 +35,8 @@ public class WbProperty {
     }
 
     public WbProperty(String name, String value) {
-        assert name != null && value != null;
-        this.name = name;
-        this.value = value;
+        this.name = Preconditions.checkNotNull(name);
+        this.value = Preconditions.checkNotNull(value);
     }
 
     public String getName() {
@@ -55,8 +55,9 @@ public class WbProperty {
         this.value = value;
     }
 
+    @Override
     public void appendNode(Node node) {
-        Map attributes = Maps.newHashMap();
+        Map<String, Object> attributes = Maps.newHashMap();
         attributes.put("name", name);
         attributes.put("value", value);
         node.appendNode("property", attributes);

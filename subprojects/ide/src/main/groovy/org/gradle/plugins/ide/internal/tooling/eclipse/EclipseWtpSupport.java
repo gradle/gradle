@@ -58,7 +58,7 @@ public class EclipseWtpSupport {
             || container.hasPlugin(EclipseWtpPlugin.class);
     }
 
-    public static final void enhanceProject(Project project, List<DefaultEclipseProjectDependency> projectDependencies, List<DefaultEclipseExternalDependency> externalDependencies) {
+    public static void enhanceProject(Project project, List<DefaultEclipseProjectDependency> projectDependencies, List<DefaultEclipseExternalDependency> externalDependencies) {
         if (isWebProject(project)) {
             EclipseWtp eclipseWtp = project.getExtensions().findByType(EclipseModel.class).getWtp();
             boolean isUtilityProject = !project.getPlugins().hasPlugin(WarPlugin.class) && !project.getPlugins().hasPlugin(EarPlugin.class);

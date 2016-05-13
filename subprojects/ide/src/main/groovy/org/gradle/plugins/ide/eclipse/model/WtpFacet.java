@@ -33,17 +33,15 @@ import java.util.List;
 public class WtpFacet extends XmlPersistableConfigurationObject {
     private List<Facet> facets = Lists.newArrayList(); // TODO: turn into Set?
 
-    // TODO generate getter/setter
-
     public WtpFacet(XmlTransformer xmlTransformer) {
         super(xmlTransformer);
     }
 
-    public List getFacets() {
+    public List<Facet> getFacets() {
         return facets;
     }
 
-    public void setFacets(List facets) {
+    public void setFacets(List<Facet> facets) {
         this.facets = facets;
     }
 

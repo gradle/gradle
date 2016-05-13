@@ -58,7 +58,7 @@ public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter
                 missingFiles.add(file);
             }
         }
-        visitedTrees.add(new DefaultVisitedTree(ImmutableList.<FileTreeElement>copyOf(fileTreeElements), false, -1, null));
+        visitedTrees.add(new DefaultVisitedTree(null, null, ImmutableList.<FileTreeElement>copyOf(fileTreeElements), false, -1, null));
     }
 
     @Override

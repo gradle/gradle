@@ -31,6 +31,8 @@ public abstract class AbstractCompositeSpecTest {
 
     public abstract org.gradle.api.specs.CompositeSpec<Object> createCompositeSpec(Spec<Object>... specs);
 
+    public abstract org.gradle.api.specs.CompositeSpec<Object> createOtherCompositeSpec(Spec<Object>... specs);
+
     @Before
     public void setUp() {
         spec1 = new Spec<Object>() {
@@ -67,5 +69,28 @@ public abstract class AbstractCompositeSpecTest {
     public void equality() {
         assert createCompositeSpec(spec1).equals(createCompositeSpec(spec1));
         assertFalse(createCompositeSpec(spec1).equals(createCompositeSpec(spec2)));
+
+        assert createCompositeSpec(spec1, spec2).equals(createCompositeSpec(spec1, spec2));
+        assert createCompositeSpec(spec2, spec1).equals(createCompositeSpec(spec2, spec1));
+        assertFalse(createCompositeSpec(spec1, spec2).equals(createCompositeSpec(spec2, spec1)));
+
+        assertFalse(createCompositeSpec(spec1).equals(createOtherCompositeSpec(spec1)));
+        assertFalse(createCompositeSpec(spec2).equals(createOtherCompositeSpec(spec2)));
+        assertFalse(createCompositeSpec(spec1, spec2).equals(createOtherCompositeSpec(spec1, spec2)));
     }
+
+    @Test
+    public void testHashCode() {
+        assert createCompositeSpec(spec1).hashCode() == createCompositeSpec(spec1).hashCode();
+        assert createCompositeSpec(spec1).hashCode() != createCompositeSpec(spec2).hashCode();
+
+        assert createCompositeSpec(spec1, spec2).hashCode() == createCompositeSpec(spec1, spec2).hashCode();
+        assert createCompositeSpec(spec2, spec1).hashCode() == createCompositeSpec(spec2, spec1).hashCode();
+        assert createCompositeSpec(spec1, spec2).hashCode() != createCompositeSpec(spec2, spec1).hashCode();
+
+        assert createCompositeSpec(spec1, spec2).hashCode() != createOtherCompositeSpec(spec1, spec2).hashCode();
+        assert createCompositeSpec(spec2, spec1).hashCode() != createOtherCompositeSpec(spec2, spec1).hashCode();
+        assert createCompositeSpec(spec1, spec2).hashCode() != createOtherCompositeSpec(spec2, spec1).hashCode();
+    }
+
 }

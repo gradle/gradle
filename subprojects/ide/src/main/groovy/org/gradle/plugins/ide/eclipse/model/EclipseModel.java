@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse.model;
 
+import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.util.ConfigureUtil;
 
@@ -168,7 +169,7 @@ public class EclipseModel {
      * @param pathVariables A map with String->File pairs.
      */
     public void pathVariables(Map<String, File> pathVariables) {
-        assert pathVariables != null;
+        Preconditions.checkNotNull(pathVariables);
         classpath.getPathVariables().putAll(pathVariables);
         if (wtp != null && wtp.getComponent() != null) {
             wtp.getComponent().getPathVariables().putAll(pathVariables);

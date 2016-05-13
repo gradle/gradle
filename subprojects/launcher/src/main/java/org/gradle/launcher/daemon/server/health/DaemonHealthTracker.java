@@ -49,7 +49,7 @@ class DaemonHealthTracker implements DaemonCommandAction {
             stats.buildFinished();
         }
 
-        if(status.isDaemonTired()) {
+        if(status.isDaemonUnhealthy()) {
             execution.getDaemonStateControl().requestStop();
         }
     }

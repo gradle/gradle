@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
 import java.io.Serializable;
@@ -27,17 +28,15 @@ import java.util.Map;
  */
 public class BuildCommand implements Serializable {
     private String name;
-    private Map arguments;
+    private Map<String, String> arguments;
 
     public BuildCommand(String name) {
-        this(name, Maps.newHashMap());
+        this(name, Maps.<String, String>newHashMap());
     }
 
-    public BuildCommand(String name, Map arguments) {
-        assert name != null;
-        assert arguments != null;
-        this.name = name;
-        this.arguments = arguments;
+    public BuildCommand(String name, Map<String, String> arguments) {
+        this.name = Preconditions.checkNotNull(name);
+        this.arguments = Preconditions.checkNotNull(arguments);
     }
 
     public String getName() {
@@ -48,11 +47,11 @@ public class BuildCommand implements Serializable {
         this.name = name;
     }
 
-    public Map getArguments() {
+    public Map<String, String> getArguments() {
         return arguments;
     }
 
-    public void setArguments(Map arguments) {
+    public void setArguments(Map<String, String> arguments) {
         this.arguments = arguments;
     }
 
@@ -75,6 +74,6 @@ public class BuildCommand implements Serializable {
 
     @Override
     public String toString() {
-        return "BuildCommand{name='" + name  + "', arguments=" + arguments + "}";
+        return "BuildCommand{name='" + name + "', arguments=" + arguments + "}";
     }
 }

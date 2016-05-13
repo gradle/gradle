@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.plugins.ide.eclipse.model;
 
-package org.gradle.plugins.ide.eclipse.model
-
-import groovy.transform.CompileStatic
-import org.gradle.util.ConfigureUtil
+import groovy.lang.Closure;
+import org.gradle.util.ConfigureUtil;
 
 /**
  * Enables fine-tuning wtp/wst details of the Eclipse plugin
@@ -47,51 +46,66 @@ import org.gradle.util.ConfigureUtil
  *
  * </pre>
  */
-@CompileStatic
-class EclipseWtp {
+public class EclipseWtp {
+
+    private EclipseClasspath eclipseClasspath;
+    private EclipseWtpComponent component;
+    private EclipseWtpFacet facet;
 
     /**
-     * Configures wtp component.
-     * <p>
-     * For examples see docs for {@link EclipseWtpComponent}
-     */
-    EclipseWtpComponent component
-
-    /**
-     * Configures wtp facet.
-     * <p>
-     * For examples see docs for {@link EclipseWtpFacet}
-     */
-    EclipseWtpFacet facet
-
-    /**
-     * Configures wtp component.
-     * <p>
-     * For examples see docs for {@link EclipseWtpComponent}
+     * Create a new EclipseWtp.
      *
-     * @param action
-     */
-    void component(Closure action) {
-        ConfigureUtil.configure(action, component)
-    }
-
-    /**
-     * Configures wtp facet.
-     * <p>
-     * For examples see docs for {@link EclipseWtpFacet}
-     *
-     * @param action
-     */
-    void facet(Closure action) {
-        ConfigureUtil.configure(action, facet)
-    }
-
-    /**
      * @param eclipseClasspath - wtp needs access to classpath
      */
     public EclipseWtp(EclipseClasspath eclipseClasspath) {
-        this.eclipseClasspath = eclipseClasspath
+        this.eclipseClasspath = eclipseClasspath;
     }
 
-    private EclipseClasspath eclipseClasspath
+    /**
+     * Configures wtp component.
+     * <p>
+     * For examples see docs for {@link EclipseWtpComponent}
+     */
+    public EclipseWtpComponent getComponent() {
+        return component;
+    }
+
+    public void setComponent(EclipseWtpComponent component) {
+        this.component = component;
+    }
+
+    /**
+     * Configures wtp component.
+     * <p>
+     * For examples see docs for {@link EclipseWtpComponent}
+     *
+     * @param action
+     */
+    public void component(Closure action) {
+        ConfigureUtil.configure(action, component);
+    }
+
+    /**
+     * Configures wtp facet.
+     * <p>
+     * For examples see docs for {@link EclipseWtpFacet}
+     */
+    public EclipseWtpFacet getFacet() {
+        return facet;
+    }
+
+    public void setFacet(EclipseWtpFacet facet) {
+        this.facet = facet;
+    }
+
+    /**
+     * Configures wtp facet.
+     * <p>
+     * For examples see docs for {@link EclipseWtpFacet}
+     *
+     * @param action
+     */
+    public void facet(Closure action) {
+        ConfigureUtil.configure(action, facet);
+    }
 }

@@ -49,6 +49,7 @@ public class DefaultIdeaLanguageLevel implements IdeaLanguageLevel, Serializable
         return "JDK_1_8".equals(level);
     }
 
+    @Override
     public String getLevel() {
         return level;
     }

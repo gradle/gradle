@@ -16,12 +16,13 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import org.gradle.api.Incubating;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -107,30 +108,38 @@ public class ProjectLibrary {
     }
 
     public void addToNode(Node parentNode, PathFactory pathFactory) {
-        ImmutableMap.Builder attributes = ImmutableMap.builder().put("name", name);
+        Map<String, Object> libraryAttributes = Maps.newHashMapWithExpectedSize(2);
+        libraryAttributes.put("name", name);
         if (type != null) {
-            attributes.put("type", type);
+            libraryAttributes.put("type", type);
         }
-
-        Node libraryNode = parentNode.appendNode("library", attributes.build());
+        Node libraryNode = parentNode.appendNode("library", libraryAttributes);
         Node classesNode = libraryNode.appendNode("CLASSES");
         for (File file : classes) {
-            classesNode.appendNode("root", ImmutableMap.of("url", pathFactory.path(file).getUrl()));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("url", pathFactory.path(file).getUrl());
+            classesNode.appendNode("root", attributes);
         }
         Node javadocNode = libraryNode.appendNode("JAVADOC");
         for (File file : javadoc) {
-            javadocNode.appendNode("root", ImmutableMap.of("url", pathFactory.path(file).getUrl()));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("url", pathFactory.path(file).getUrl());
+            javadocNode.appendNode("root", attributes);
         }
         Node sourcesNode = libraryNode.appendNode("SOURCES");
         for (File file : sources) {
-            sourcesNode.appendNode("root", ImmutableMap.of("url", pathFactory.path(file).getUrl()));
+            Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+            attributes.put("url", pathFactory.path(file).getUrl());
+            sourcesNode.appendNode("root", attributes);
         }
 
         if (compilerClasspath.size() > 0) {
             Node properties = libraryNode.appendNode("properties");
             Node compilerClasspathNode = properties.appendNode("compiler-classpath");
             for (File file : compilerClasspath) {
-                compilerClasspathNode.appendNode("root", ImmutableMap.of("url", pathFactory.path(file, true).getUrl()));
+                Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(1);
+                attributes.put("url", pathFactory.path(file, true).getUrl());
+                compilerClasspathNode.appendNode("root", attributes);
             }
         }
     }

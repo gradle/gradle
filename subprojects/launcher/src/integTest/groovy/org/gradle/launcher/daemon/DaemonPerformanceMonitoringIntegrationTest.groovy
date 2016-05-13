@@ -87,12 +87,15 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
     }
 
     def "when leak occurs while daemon is idle daemon is still expired"() {
+        // This is so the idle timeout expiration strategy doesn't kick in
+        // before the gc monitoring expires the daemon
+        executer.withDaemonIdleTimeoutSecs(300)
         heapSize = "200m"
         leakRate = 1000
 
         when:
         leaksWhenIdle()
-        executer.withArguments("-Dorg.gradle.daemon.healthcheckinterval=2000")
+        executer.withArguments("-Dorg.gradle.daemon.healthcheckinterval=1000")
         executer.withBuildJvmOpts("-D${DaemonStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
         executer.noExtraLogging()
         run()
@@ -102,11 +105,14 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
         and:
         String logText = daemons.daemon.log
-        ConcurrentTestUtil.poll(20) {
+        ConcurrentTestUtil.poll(30) {
             println daemons.daemon.log - logText
             logText = daemons.daemon.log
             daemons.daemon.assertStopped()
         }
+
+        and:
+        daemons.daemon.log.contains("Daemon stopping because JVM tenured space is exhausted")
     }
 
     private boolean daemonIsExpiredEagerly() {
@@ -189,7 +195,7 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
                     1000.times {
                         State.map.put(UUID.randomUUID(), "foo" * ${leakRate})
                     }
-                    sleep(500)
+                    sleep(750)
                 }
             }
         """

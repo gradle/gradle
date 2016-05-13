@@ -31,4 +31,5 @@ public abstract class DaemonMessages {
     public final static String REMOVING_PRESENCE_DUE_TO_STOP = "Stop requested. Daemon is removing its presence from the registry...";
     public static final String ADVERTISING_DAEMON = "Advertising the daemon address to the clients: ";
     public static final String REMOVING_DAEMON_ADDRESS_ON_FAILURE = "Removing daemon from the registry due to communication failure. Daemon information: ";
+    public static final String UNABLE_TO_STOP_DAEMON = "Unable to stop one of the daemons. The daemon may have crashed.";
 }

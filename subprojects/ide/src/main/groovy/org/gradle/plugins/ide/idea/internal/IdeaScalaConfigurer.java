@@ -15,13 +15,12 @@
  */
 package org.gradle.plugins.ide.idea.internal;
 
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
@@ -48,11 +47,11 @@ import org.gradle.util.VersionNumber;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject.findFirstChildNamed;
-import static org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject.findFirstChildWithAttributeValue;
+import static org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject.*;
 
 public class IdeaScalaConfigurer {
 
@@ -118,19 +117,13 @@ public class IdeaScalaConfigurer {
     private static Iterable<File> getIdeaModuleLibraryDependenciesAsFiles(IdeaModule ideaModule) {
         // could make resolveDependencies() cache its result for later use by GenerateIdeaModule
         Set<Dependency> dependencies = ideaModule.resolveDependencies();
-        Iterable<ModuleLibrary> moduleLibraries = Iterables.filter(dependencies, ModuleLibrary.class);
-        final Function<FilePath, File> fileFunction = new Function<FilePath, File>() {
-            @Override
-            public File apply(FilePath filePath) {
-                return filePath.getFile();
+        List<File> files = Lists.newArrayList();
+        for(ModuleLibrary moduleLibrary : Iterables.filter(dependencies, ModuleLibrary.class)) {
+            for (FilePath filePath : Iterables.filter(moduleLibrary.getClasses(), FilePath.class)) {
+                files.add(filePath.getFile());
             }
-        };
-        return Iterables.concat(Iterables.transform(moduleLibraries, new Function<ModuleLibrary, Iterable<File>>() {
-            @Override
-            public Iterable<File> apply(ModuleLibrary moduleLibrary) {
-                return Iterables.transform(Iterables.filter(moduleLibrary.getClasses(), FilePath.class), fileFunction);
-            }
-        }));
+        }
+        return files;
     }
 
     private static ProjectLibrary createScalaSdkLibrary(Project scalaProject, Iterable<File> files, boolean useScalaSdk, IdeaModule ideaModule) {
@@ -184,43 +177,27 @@ public class IdeaScalaConfigurer {
     private static void declareScalaSdk(ProjectLibrary scalaSdkLibrary, Node iml) {
         // only define a Scala SDK for a module if we could create a scalaSdkLibrary
         if (scalaSdkLibrary != null) {
-            Node newModuleRootManager = findFirstChildWithAttributeValue(iml, "component", "name", "NewModuleRootManager");
-            if (newModuleRootManager == null) {
-                newModuleRootManager = iml.appendNode("component", ImmutableMap.of("name", "NewModuleRootManager"));
-            }
-            Node sdkLibrary = findFirstChildWithAttributeValue(newModuleRootManager, "orderEntry", "name", scalaSdkLibrary.getName());
-            if (sdkLibrary == null) {
-                newModuleRootManager.appendNode("orderEntry", ImmutableMap.of("type", "library", "name", scalaSdkLibrary.getName(), "level", "project"));
-            }
+            Node newModuleRootManager = findOrCreateFirstChildWithAttributeValue(iml, "component", "name", "NewModuleRootManager");
+
+            Node sdkLibrary = findOrCreateFirstChildWithAttributeValue(newModuleRootManager, "orderEntry", "name", scalaSdkLibrary.getName());
+            sdkLibrary.attributes().put("type", "library");
+            sdkLibrary.attributes().put("level", "project");
         }
     }
 
     private static void declareScalaFacet(ProjectLibrary scalaCompilerLibrary, Node iml) {
-        Node facetManager = findFirstChildWithAttributeValue(iml, "component", "name", "FacetManager");
-        if (facetManager == null) {
-            facetManager = iml.appendNode("component", ImmutableMap.of("name", "FacetManager"));
-        }
+        Node facetManager = findOrCreateFirstChildWithAttributeValue(iml, "component", "name", "FacetManager");
 
-        Node scalaFacet = findFirstChildWithAttributeValue(facetManager, "facet", "type", "scala");
-        if (scalaFacet == null) {
-            scalaFacet = facetManager.appendNode("facet", ImmutableMap.of("type", "scala", "name", "Scala"));
-        }
+        Node scalaFacet = findOrCreateFirstChildWithAttributeValue(facetManager, "facet", "type", "scala");
+        scalaFacet.attributes().put("name", "Scala");
 
-        Node configuration = findFirstChildNamed(scalaFacet, "configuration");
-        if (configuration == null) {
-            configuration = scalaFacet.appendNode("configuration");
-        }
 
-        Node libraryLevel = findFirstChildWithAttributeValue(configuration, "option", "name", "compilerLibraryLevel");
-        if (libraryLevel == null) {
-            libraryLevel = configuration.appendNode("option", Maps.newLinkedHashMap(ImmutableMap.of("name", "compilerLibraryLevel")));
-        }
+        Node configuration = findOrCreateFirstChildNamed(scalaFacet, "configuration");
+
+        Node libraryLevel = findOrCreateFirstChildWithAttributeValue(configuration, "option", "name", "compilerLibraryLevel");
         libraryLevel.attributes().put("value", "Project");
 
-        Node libraryName = findFirstChildWithAttributeValue(configuration, "option", "name", "compilerLibraryName");
-        if (libraryName == null) {
-            libraryName = configuration.appendNode("option", Maps.newLinkedHashMap(ImmutableMap.of("name", "compilerLibraryName")));
-        }
+        Node libraryName = findOrCreateFirstChildWithAttributeValue(configuration, "option", "name", "compilerLibraryName");
         libraryName.attributes().put("value", scalaCompilerLibrary.getName());
     }
 

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language
+
 import groovy.io.FileType
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
@@ -23,7 +24,6 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GUtil
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
@@ -146,10 +146,6 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         skipped compileTask
     }
 
-    // This one fails because we do not include src/other/directory as a discovered input and
-    // treat the compile task as out of date.  Since we also use macros for #includes, the compile
-    // task must recompile that source every time.
-    @Ignore
     def "does not recompile when included header has the same name as a directory"() {
         given:
         buildFile << """
@@ -186,9 +182,7 @@ model {
         skipped compileTask
     }
 
-    // This one works currently because we do not include src/other/directory as a discovered input and
-    // the compile task is out of date so the change in type "seems" to work. 
-    @Ignore
+    @NotYetImplemented
     def "recompiles when included header has the same name as a directory and the directory becomes a file"() {
         given:
         buildFile << """

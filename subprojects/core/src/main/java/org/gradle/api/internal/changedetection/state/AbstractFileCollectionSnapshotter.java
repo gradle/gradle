@@ -18,12 +18,14 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.file.BufferedStreamingHasher;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.FileTreeElementHasher;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.serialize.Encoder;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -51,11 +53,25 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
     }
 
     private Integer calculatePreCheckHash(Collection<VisitedTree> visitedTrees) {
-        Collection<FileTreeElement> fileTreeElements = new ArrayList<FileTreeElement>();
-        for (VisitedTree tree : visitedTrees) {
-            fileTreeElements.addAll(tree.getEntries());
+        BufferedStreamingHasher hasher = new BufferedStreamingHasher();
+        Encoder encoder = hasher.getEncoder();
+        try {
+            List<VisitedTree> sortedTrees = new ArrayList<VisitedTree>();
+            Collections.sort(sortedTrees, DefaultVisitedTree.VisitedTreeComparator.INSTANCE);
+            for (VisitedTree tree : visitedTrees) {
+                if (tree.getAbsolutePath() != null) {
+                    encoder.writeString(tree.getAbsolutePath());
+                }
+                if (tree.getPatternSet() != null) {
+                    encoder.writeInt(tree.getPatternSet().hashCode());
+                }
+                encoder.writeInt(tree.getEntries().size());
+                encoder.writeInt(tree.calculatePreCheckHash());
+            }
+            return hasher.checksum();
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
-        return FileTreeElementHasher.calculateHashForFileMetadata(fileTreeElements);
     }
 
     public FileCollectionSnapshot snapshot(final FileCollectionSnapshot.PreCheck preCheck) {

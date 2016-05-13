@@ -17,23 +17,30 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.internal.Factory;
 import org.gradle.cache.PersistentStateCache;
+import org.gradle.internal.Factory;
+import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
 import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.internal.serialize.Serializer;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 
 public class SimpleStateCache<T> implements PersistentStateCache<T> {
     private final FileAccess fileAccess;
     private final Serializer<T> serializer;
+    private final Chmod chmod;
     private final File cacheFile;
 
-    public SimpleStateCache(File cacheFile, FileAccess fileAccess, Serializer<T> serializer) {
+    public SimpleStateCache(File cacheFile, FileAccess fileAccess, Serializer<T> serializer, Chmod chmod) {
         this.cacheFile = cacheFile;
         this.fileAccess = fileAccess;
         this.serializer = serializer;
+        this.chmod = chmod;
     }
 
     public T get() {
@@ -64,6 +71,11 @@ public class SimpleStateCache<T> implements PersistentStateCache<T> {
 
     private void serialize(T newValue) {
         try {
+            if (!cacheFile.isFile()) {
+                cacheFile.createNewFile();
+            }
+            chmod.chmod(cacheFile.getParentFile(), 0700); // read-write-execute for user only
+            chmod.chmod(cacheFile, 0600); // read-write for user only
             OutputStreamBackedEncoder encoder = new OutputStreamBackedEncoder(new BufferedOutputStream(new FileOutputStream(cacheFile)));
             try {
                 serializer.write(encoder, newValue);

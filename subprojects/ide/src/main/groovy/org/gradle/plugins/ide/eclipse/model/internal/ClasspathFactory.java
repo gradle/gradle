@@ -38,6 +38,11 @@ import java.util.Collection;
 import java.util.List;
 
 public class ClasspathFactory {
+
+    private interface ClasspathEntryBuilder {
+        void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath);
+    }
+
     private final ClasspathEntryBuilder outputCreator = new ClasspathEntryBuilder() {
         @Override
         public void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
@@ -86,7 +91,7 @@ public class ClasspathFactory {
     private final ClassFoldersCreator classFoldersCreator = new ClassFoldersCreator();
 
     public List<ClasspathEntry> createEntries(EclipseClasspath classpath) {
-        List entries = Lists.newArrayList();
+        List<ClasspathEntry> entries = Lists.newArrayList();
         outputCreator.update(entries, classpath);
         sourceFoldersCreator.populateForClasspath(entries, classpath);
         containersCreator.update(entries, classpath);

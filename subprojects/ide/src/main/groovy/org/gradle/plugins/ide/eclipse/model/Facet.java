@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import groovy.util.Node;
 
@@ -52,14 +53,12 @@ public class Facet {
     }
 
     public Facet(FacetType type, String name, String version) {
-        assert type != null && name != null;
-        if (type == null) {
-            type = FacetType.installed;
-        }
+        Preconditions.checkNotNull(type);
+        Preconditions.checkNotNull(name);
         if (type == FacetType.installed) {
-            assert version != null;
+            Preconditions.checkNotNull(version);
         } else {
-            assert version == null;
+            Preconditions.checkArgument(version == null);
         }
         this.type = type;
         this.name = name;
@@ -91,7 +90,7 @@ public class Facet {
     }
 
     public void appendNode(Node node) {
-        Map attributes = Maps.newHashMap();
+        Map<String, Object> attributes = Maps.newHashMap();
         attributes.put("facet", name);
         if (type == FacetType.installed) {
             attributes.put("version", version);

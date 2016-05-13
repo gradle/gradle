@@ -16,17 +16,28 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.Hasher;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.FileTreeElementHasher;
+import org.gradle.api.internal.file.BufferedStreamingHasher;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
+import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
 
 import java.io.File;
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Takes a snapshot of the output files of a task.
@@ -215,16 +226,19 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         private Integer calculatePreCheckHash() {
-            Hasher hasher = FileTreeElementHasher.createHasher();
-            hasher.putInt(delegate.getHash());
-
-            SortedMap<String, Boolean> sortedRoots = new TreeMap<String, Boolean>(roots);
-            for (Map.Entry<String, Boolean> entry : sortedRoots.entrySet()) {
-                hasher.putString(entry.getKey(), Charsets.UTF_8);
-                hasher.putBoolean(entry.getValue());
+            BufferedStreamingHasher hasher = new BufferedStreamingHasher();
+            Encoder encoder = hasher.getEncoder();
+            try {
+                encoder.writeInt(delegate.getHash());
+                SortedMap<String, Boolean> sortedRoots = new TreeMap<String, Boolean>(roots);
+                for (Map.Entry<String, Boolean> entry : sortedRoots.entrySet()) {
+                    encoder.writeString(entry.getKey());
+                    encoder.writeBoolean(entry.getValue());
+                }
+                return hasher.checksum();
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
-
-            return hasher.hash().asInt();
         }
 
         @Override
