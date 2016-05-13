@@ -4,7 +4,7 @@ The team is always working to improve the overall performance of Gradle, and thi
 
 In other news, the Gradle daemon has become self-aware. Not in the AI sense, sadly, but you will find the daemon to be much more **robust and resource-efficient** now because it monitors its memory usage. It's much less likely that you will need to manually kill daemons, which means you can more reliably **use the daemon on your continuous integration servers**.
 
-There are several other quality-of-life improvements for various users, including **IntelliJ IDEA support for Play framework projects**, and a fix that makes authoring plugins easier. In addition, our Eclipse users should note that the composite build support coming in Buildship 2.0 will require Gradle 2.14 as a minimum version.
+There are several other quality-of-life improvements for various users, including **IntelliJ IDEA support for Play framework projects**, and a fix that makes authoring plugins easier. In addition, we mentioned in our 2.13 release notes that **composite build support** is coming in Buildship 2.0. This amazing new feature will require Gradle 2.14 as a minimum version.
 
 Finally, it's time to start preparing for the departure of an old friend. Gradle 2.14 sees the **deprecation of Java 6**. It has been with us a long time now, reaching its official End of Life in 2013. You will still be able to use Java 6 with Gradle 2.14, but you won't be able to run Gradle 3 on it.
 
