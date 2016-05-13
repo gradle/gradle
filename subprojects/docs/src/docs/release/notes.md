@@ -326,9 +326,13 @@ This would often manifest as unexpected compile errors or runtime linking errors
 Starting with Gradle 2.14, `gradleApi()` no longer exposes Gradle's implementation dependencies.
 As such, the compile and test classes for plugins have changed with this release.
 
-This is expected to be a transparent and compatible change for all plugin builds.
+This is expected to be a transparent and compatible change for most plugin builds.
 While Gradle's implementation dependencies were previously visible at build time, they were not at runtime.
 As such, it was not possible to successfully ship a plugin that relied on access to Gradle's implementation dependencies.
+
+However, if you were previously using Gradle implementation dependencies in the _tests_ for your plugin, you will need to add these dependencies to your build.
+For example, if the tests for your plugins use the Guava version shipped by Gradle, you will know need to explicitly declare Guava as a test time dependency.
+The good news though is that you are now able to choose your own version of Guava (and other Gradle internal dependencies) to use at test time, instead of being bound to the version that Gradle uses.
 
 ### Change in plugin id
 
