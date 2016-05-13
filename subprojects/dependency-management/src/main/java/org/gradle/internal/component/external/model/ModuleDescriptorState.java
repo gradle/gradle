@@ -93,21 +93,14 @@ public class ModuleDescriptorState {
     public class Configuration {
         public final String name;
         public final boolean transitive;
-        public final boolean visiible;
+        public final boolean visible;
         public final List<String> extendsFrom;
 
         public Configuration(org.apache.ivy.core.module.descriptor.Configuration configuration) {
             this.name = configuration.getName();
             this.transitive = configuration.isTransitive();
-            this.visiible = configuration.getVisibility() == org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC;
+            this.visible = configuration.getVisibility() == org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC;
             this.extendsFrom = Lists.newArrayList(configuration.getExtends());
-        }
-
-        public Configuration(String name, boolean transitive, boolean visiible, List<String> extendsFrom) {
-            this.name = name;
-            this.transitive = transitive;
-            this.visiible = visiible;
-            this.extendsFrom = extendsFrom;
         }
     }
 

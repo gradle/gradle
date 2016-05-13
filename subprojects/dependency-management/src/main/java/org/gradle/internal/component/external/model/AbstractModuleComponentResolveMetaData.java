@@ -213,7 +213,7 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
             hierarchy.addAll(populateConfigurationFromDescriptor(parent, moduleDescriptor, configurations).hierarchy);
         }
         boolean transitive = descriptorConfiguration.transitive;
-        boolean visible = descriptorConfiguration.visiible;
+        boolean visible = descriptorConfiguration.visible;
         DefaultConfigurationMetaData configuration = new DefaultConfigurationMetaData(name, hierarchy, transitive, visible);
         configurations.put(name, configuration);
         return configuration;
