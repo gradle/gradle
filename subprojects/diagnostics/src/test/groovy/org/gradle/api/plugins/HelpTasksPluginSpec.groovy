@@ -20,10 +20,19 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.reporting.components.ComponentReport
 import org.gradle.api.tasks.diagnostics.*
 import org.gradle.configuration.Help
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
+import spock.lang.Specification
 
-class HelpTasksPluginSpec extends AbstractProjectBuilderSpec {
+@UsesNativeServices
+class HelpTasksPluginSpec extends Specification {
+
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
+    final project = TestUtil.createRootProject(temporaryFolder.testDirectory)
 
     def "adds help tasks"() {
         when:

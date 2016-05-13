@@ -15,12 +15,22 @@
  */
 package org.gradle.plugins.signing
 
+import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
+import spock.lang.Specification
 
-class SigningProjectSpec extends AbstractProjectBuilderSpec {
+@UsesNativeServices
+class SigningProjectSpec extends Specification {
 
     static final DEFAULT_KEY_SET = "gradle"
+
+    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
+    Project project = TestUtil.createRootProject(tmpDir.testDirectory)
 
     private assertProject() {
         assert project != null : "You haven't created a project"
@@ -82,7 +92,7 @@ class SigningProjectSpec extends AbstractProjectBuilderSpec {
     }
 
     def getResourceFile(path) {
-        def copiedFile = temporaryFolder.file(path)
+        def copiedFile = tmpDir.file(path)
         if (!copiedFile.exists()) {
 
             def url = getClass().classLoader.getResource(path)

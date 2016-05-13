@@ -15,10 +15,21 @@
  */
 package org.gradle.api.plugins
 
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
+import spock.lang.Specification
 
-public class ReportingBasePluginTest extends AbstractProjectBuilderSpec {
+@UsesNativeServices
+public class ReportingBasePluginTest extends Specification {
+
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
+    DefaultProject project = TestUtil.createRootProject(temporaryFolder.testDirectory);
 
     def "can apply plugin by id"() {
         given:

@@ -24,12 +24,22 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.testing.Test
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
+import spock.lang.Specification
 
 import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.PLUGIN_UNDER_TEST_METADATA_TASK_NAME
 import static org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin.TestKitAndPluginClasspathDependenciesAction
 
-class JavaGradlePluginPluginTestKitSetupTest extends AbstractProjectBuilderSpec {
+@UsesNativeServices
+class JavaGradlePluginPluginTestKitSetupTest extends Specification {
+
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
+    Project project = TestUtil.createRootProject(temporaryFolder.testDirectory)
 
     def setup() {
         project.plugins.apply(JavaPlugin)

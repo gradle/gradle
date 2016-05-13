@@ -16,11 +16,22 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.artifacts.maven.MavenPom
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.publication.maven.internal.MavenFactory
 import org.gradle.api.publication.maven.internal.pom.DefaultMavenFactory
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
+import spock.lang.Specification
 
-class MavenPluginConventionTest extends AbstractProjectBuilderSpec {
+@UsesNativeServices
+class MavenPluginConventionTest extends Specification {
+
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
+    DefaultProject project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     MavenFactory mavenFactory = new DefaultMavenFactory()
     MavenPluginConvention mavenPluginConvention = new MavenPluginConvention(project, mavenFactory)
 

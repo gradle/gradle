@@ -19,13 +19,23 @@ package org.gradle.plugins.ide.eclipse
 
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Delete
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
+import spock.lang.Specification
 
-class EclipsePluginTest extends AbstractProjectBuilderSpec {
+@UsesNativeServices
+class EclipsePluginTest extends Specification {
 
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
+    private final DefaultProject project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private final EclipsePlugin eclipsePlugin = new EclipsePlugin(project.services.get(Instantiator))
 
     def applyToBaseProject_shouldOnlyHaveEclipseProjectTask() {

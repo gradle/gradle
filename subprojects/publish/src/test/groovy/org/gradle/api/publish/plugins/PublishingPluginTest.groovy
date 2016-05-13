@@ -17,13 +17,23 @@
 package org.gradle.api.publish.plugins
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.internal.PublicationInternal
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
+import spock.lang.Specification
 
-class PublishingPluginTest extends AbstractProjectBuilderSpec {
+@UsesNativeServices
+class PublishingPluginTest extends Specification {
 
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
+    DefaultProject project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     PublishingExtension extension
 
     def setup() {
