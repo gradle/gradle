@@ -29,10 +29,12 @@ public abstract class XmlGeneratorTask<T extends PersistableConfigurationObject>
 
     public XmlGeneratorTask() {
         generator = new PersistableConfigurationObjectGenerator<T>() {
+            @Override
             public T create() {
                 return XmlGeneratorTask.this.create();
             }
 
+            @Override
             public void configure(T object) {
                 XmlGeneratorTask.this.configure(object);
             }

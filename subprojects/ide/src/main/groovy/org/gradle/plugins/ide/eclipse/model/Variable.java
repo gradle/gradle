@@ -32,6 +32,7 @@ public class Variable extends AbstractLibrary {
         super(library);
     }
 
+    @Override
     public String getKind() {
         return "var";
     }

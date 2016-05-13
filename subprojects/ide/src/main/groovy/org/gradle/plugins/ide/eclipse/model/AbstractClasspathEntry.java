@@ -175,7 +175,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         }
     }
 
-    private Map readEntryAttributes(Node node) {
+    private Map<String, Object> readEntryAttributes(Node node) {
         Map<String, Object> attributes = Maps.newHashMap();
         NodeList attributesNodes = (NodeList) node.get("attributes");
         for (Object attributesEntry : attributesNodes) {

@@ -141,6 +141,7 @@ public class FileReferenceFactory {
             return path;
         }
 
+        @Override
         public String getJarURL(){
             //windows needs an additional backslash in jar urls
             return  "jar:" + file.toURI() + "!/";

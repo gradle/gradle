@@ -90,7 +90,7 @@ public class Facet {
     }
 
     public void appendNode(Node node) {
-        Map attributes = Maps.newHashMap();
+        Map<String, Object> attributes = Maps.newHashMap();
         attributes.put("facet", name);
         if (type == FacetType.installed) {
             attributes.put("version", version);
