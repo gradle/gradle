@@ -19,15 +19,14 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+
 /**
  * Ensures that a directory is empty or writes the names of files in
  * the directory to a report file.
  */
-class EmptyDirectory extends DefaultTask {
-    @Optional
+class EmptyDirectoryCheck extends DefaultTask {
     @Input
     FileTree targetDir
 

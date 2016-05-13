@@ -15,7 +15,7 @@
  */
 
 import org.gradle.build.Install
-import org.gradle.cleanup.EmptyDirectory
+import org.gradle.cleanup.EmptyDirectoryCheck
 
 defaultTasks 'assemble'
 apply plugin: 'java-base'
@@ -313,13 +313,12 @@ gradle.addListener(new TaskExecutionListener() {
 // files around.
 //
 // Once a subproject's report is "clean" we should add the following to that
-// subproject's buildsciprt:
+// subproject's buildscript:
 //
 // verifyTestFilesCleanup.errorWhenNotEmpty = true
 //
-// This will ensure that tests no longer leave files lying around.
 subprojects { prj ->
-    task verifyTestFilesCleanup(type: EmptyDirectory) {
+    task verifyTestFilesCleanup(type: EmptyDirectoryCheck) {
         targetDir = prj.fileTree("${prj.buildDir}/tmp/test files")
         report = prj.file("${prj.buildDir}/reports/remains.txt")
     }
