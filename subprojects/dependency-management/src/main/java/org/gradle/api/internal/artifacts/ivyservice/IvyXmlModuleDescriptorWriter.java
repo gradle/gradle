@@ -37,14 +37,17 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
+    public static final String IVY_DATE_PATTERN = "yyyyMMddHHmmss";
 
     @Override
     public void write(ModuleDescriptorState md, File output) {
@@ -110,6 +113,8 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             writer.attribute("default", "true");
         }
 
+        printUnusedContent(descriptor, writer);
+
         for (Map.Entry<NamespaceId, String> entry : descriptor.getExtraInfo().entrySet()) {
             if (entry.getValue() == null || entry.getValue().length() == 0) {
                 continue;
@@ -122,6 +127,23 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
 
         writer.endElement();
+    }
+    /**
+     * These values are written to the desriptor, but never used. They remain here so that the checksum of the descriptor
+     * changes when these values change: thie behaviour is utilized in integration tests.
+     */
+    private static void printUnusedContent(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {
+        SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
+        Date publicationDate = descriptor.getPublicationDate();
+        if (publicationDate != null) {
+            writer.attribute("publication", ivyDateFormat.format(publicationDate));
+        }
+        String description = descriptor.getDescription();
+        if (description != null && description.trim().length() > 0) {
+            writer.startElement("description");
+            writer.characters(description);
+            writer.endElement();
+        }
     }
 
     private static void printConfigurations(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {

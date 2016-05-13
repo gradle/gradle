@@ -31,6 +31,7 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +48,14 @@ public class ModuleDescriptorState {
     public ModuleDescriptorState(ModuleDescriptor ivyDescriptor, boolean allowForcedDependencies) {
         this.ivyDescriptor = ivyDescriptor;
         this.allowForcedDependencies = allowForcedDependencies;
+    }
+
+    // TODO:DAZ These 2 values only need to be persisted because we use them to test changes to descriptor content
+    public String getDescription() {
+        return ivyDescriptor.getDescription();
+    }
+    public Date getPublicationDate() {
+        return ivyDescriptor.getPublicationDate();
     }
 
     public ModuleComponentIdentifier getComponentIdentifier() {
