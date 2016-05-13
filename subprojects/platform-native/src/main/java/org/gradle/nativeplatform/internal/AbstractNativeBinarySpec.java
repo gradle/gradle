@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.language.nativeplatform.internal.DependentSourceSetInternal;
 import org.gradle.nativeplatform.*;
+import org.gradle.nativeplatform.internal.resolve.NativeBinaryRequirementResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeBinaryResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
@@ -182,6 +183,11 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     @Override
     public Collection<NativeLibraryBinary> getDependentBinaries() {
         return resolve(getInputs().withType(DependentSourceSet.class)).getAllLibraryBinaries();
+    }
+
+    @Override
+    public Collection<NativeBinaryRequirementResolveResult> getAllResolutions() {
+        return resolve(getInputs().withType(DependentSourceSet.class)).getAllResolutions();
     }
 
     @Override
