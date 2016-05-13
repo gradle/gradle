@@ -88,7 +88,7 @@ public class IvyUtil {
         ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(componentIdentifier);
 
         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId, "integration", null, true);
-        moduleDescriptor.addConfiguration(new Configuration(ModuleDescriptor.DEFAULT_CONFIGURATION));
+        moduleDescriptor.addConfiguration(new Configuration(Dependency.DEFAULT_CONFIGURATION));
         moduleDescriptor.setLastModified(System.currentTimeMillis());
 
         for (IvyArtifactName artifactName : componentArtifacts) {
@@ -103,7 +103,7 @@ public class IvyUtil {
     }
 
     private static void addArtifact(DefaultModuleDescriptor moduleDescriptor, String name, String type, String extension, Map<String, String> extraAttributes) {
-        String configuration = ModuleDescriptor.DEFAULT_CONFIGURATION;
+        String configuration = Dependency.DEFAULT_CONFIGURATION;
         MDArtifact artifact = new MDArtifact(moduleDescriptor, name, type, extension, null, extraAttributes);
         artifact.addConfiguration(configuration);
         moduleDescriptor.addArtifact(configuration, artifact);
