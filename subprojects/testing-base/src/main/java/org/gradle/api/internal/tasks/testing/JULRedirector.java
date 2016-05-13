@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.api.internal.tasks.testing.processors.DefaultStandardOutputRedirector;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.IOException;
 import java.util.logging.ConsoleHandler;
@@ -37,6 +38,10 @@ public class JULRedirector extends DefaultStandardOutputRedirector {
     public StandardOutputCapture start() {
         super.start();
         boolean shouldReadLoggingConfigFile = System.getProperty(READ_LOGGING_CONFIG_FILE_PROPERTY, "true").equals("true");
+        if (!shouldReadLoggingConfigFile) {
+            SingleMessageLogger.nagUserOfDiscontinuedProperty(READ_LOGGING_CONFIG_FILE_PROPERTY,
+                "Change your test to work with your java.util.logging configuration file settings.");
+        }
         if (!reset) {
             LogManager.getLogManager().reset();
             if (shouldReadLoggingConfigFile) {

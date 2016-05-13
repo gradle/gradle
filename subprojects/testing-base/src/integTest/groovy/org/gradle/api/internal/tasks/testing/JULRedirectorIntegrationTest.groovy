@@ -86,6 +86,7 @@ class JULRedirectorIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
+        executer.expectDeprecationWarning()
         run("test")
 
         then:
