@@ -18,13 +18,14 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.*;
 import org.gradle.internal.remote.internal.Connection;
 
 public class StopDispatcher {
     private static final Logger LOGGER = Logging.getLogger(StopDispatcher.class);
 
-    public void dispatch(Connection<Message> connection, Command stopCommand) {
+    public boolean dispatch(Connection<Message> connection, Command stopCommand) {
         Throwable failure = null;
         try {
             connection.dispatch(stopCommand);
@@ -37,8 +38,9 @@ public class StopDispatcher {
             failure = e;
         }
         if (failure != null) {
-            LOGGER.lifecycle("Unable to stop one of the daemons. The daemon may have crashed.");
+            LOGGER.lifecycle(DaemonMessages.UNABLE_TO_STOP_DAEMON);
             LOGGER.debug(String.format("Unable to complete stop daemon using %s.", connection), failure);
         }
+        return failure == null;
     }
 }
