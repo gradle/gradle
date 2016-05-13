@@ -119,13 +119,13 @@ public abstract class AbstractCodeQualityPlugin<T extends Task> implements Plugi
                 return project.getExtensions().getByType(ReportingExtension.class).file(getReportName());
             }
         });
-        project.getPlugins().withType(getBasePlugin(), new Action<Plugin>() {
+        withBasePlugin(new Action<Plugin>() {
             @Override
             public void execute(Plugin plugin) {
                 extensionMapping.map("sourceSets", new Callable<SourceSetContainer>() {
                     @Override
                     public SourceSetContainer call() {
-                        return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+                        return getJavaPluginConvention().getSourceSets();
                     }
                 });
             }
@@ -150,11 +150,10 @@ public abstract class AbstractCodeQualityPlugin<T extends Task> implements Plugi
     }
 
     private void configureSourceSetRule() {
-        project.getPlugins().withType(getBasePlugin(), new Action<Plugin>() {
+        withBasePlugin(new Action<Plugin>() {
             @Override
             public void execute(Plugin plugin) {
-                JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
-                configureForSourceSets(javaConvention.getSourceSets());
+                configureForSourceSets(getJavaPluginConvention().getSourceSets());
             }
         });
     }
@@ -173,7 +172,7 @@ public abstract class AbstractCodeQualityPlugin<T extends Task> implements Plugi
     }
 
     private void configureCheckTask() {
-        project.getPlugins().withType(getBasePlugin(), new Action<Plugin>() {
+        withBasePlugin(new Action<Plugin>() {
             @Override
             public void execute(Plugin plugin) {
                 configureCheckTaskDependents();
@@ -194,5 +193,13 @@ public abstract class AbstractCodeQualityPlugin<T extends Task> implements Plugi
                 });
             }
         });
+    }
+
+    protected void withBasePlugin(Action<Plugin> action) {
+        project.getPlugins().withType(getBasePlugin(), action);
+    }
+
+    protected JavaPluginConvention getJavaPluginConvention() {
+        return project.getConvention().getPlugin(JavaPluginConvention.class);
     }
 }

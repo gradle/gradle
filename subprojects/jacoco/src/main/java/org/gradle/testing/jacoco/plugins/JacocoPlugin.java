@@ -204,16 +204,19 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
      * @param extension the extension describing the test task names
      */
     private void addDefaultReportTasks(final JacocoPluginExtension extension) {
-        if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-            project.getTasks().withType(Test.class, new Action<Test>() {
-                @Override
-                public void execute(Test task) {
-                    if (task.getName().equals(JavaPlugin.TEST_TASK_NAME)) {
-                        addDefaultReportTask(extension, task);
+        project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
+            @Override
+            public void execute(JavaPlugin javaPlugin) {
+                project.getTasks().withType(Test.class, new Action<Test>() {
+                    @Override
+                    public void execute(Test task) {
+                        if (task.getName().equals(JavaPlugin.TEST_TASK_NAME)) {
+                            addDefaultReportTask(extension, task);
+                        }
                     }
-                }
-            });
-        }
+                });
+            }
+        });
     }
 
     private void addDefaultReportTask(final JacocoPluginExtension extension, final Test task) {
