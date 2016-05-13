@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
 import java.io.Serializable;
@@ -34,10 +35,8 @@ public class BuildCommand implements Serializable {
     }
 
     public BuildCommand(String name, Map<String, String> arguments) {
-        assert name != null;
-        assert arguments != null;
-        this.name = name;
-        this.arguments = arguments;
+        this.name = Preconditions.checkNotNull(name);
+        this.arguments = Preconditions.checkNotNull(arguments);
     }
 
     public String getName() {

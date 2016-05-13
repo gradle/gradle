@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 /**
  * Access rule associated to a classpath entry.
@@ -26,9 +27,8 @@ public class AccessRule {
     private String pattern;
 
     public AccessRule(String kind, String pattern) {
-        assert kind != null && pattern != null;
-        this.kind = kind;
-        this.pattern = pattern;
+        this.kind = Preconditions.checkNotNull(kind);
+        this.pattern = Preconditions.checkNotNull(pattern);
     }
 
     public String getKind() {

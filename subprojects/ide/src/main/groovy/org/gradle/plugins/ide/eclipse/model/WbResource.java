@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import groovy.util.Node;
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
@@ -35,7 +36,8 @@ public class WbResource implements WbModuleEntry {
     }
 
     public WbResource(String deployPath, String sourcePath) {
-        assert deployPath != null && sourcePath != null;
+        Preconditions.checkNotNull(deployPath);
+        Preconditions.checkNotNull(sourcePath);
         this.deployPath = PathUtil.normalizePath(deployPath);
         this.sourcePath = PathUtil.normalizePath(sourcePath);
     }

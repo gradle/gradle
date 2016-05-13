@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse.model;
 
+import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.tasks.SourceSet;
@@ -302,7 +303,7 @@ public class EclipseClasspath {
      * @param containers the classpath containers to be added
      */
     public void containers(String... containers) {
-        assert containers != null;
+        Preconditions.checkNotNull(containers);
         this.containers.addAll(Arrays.asList(containers));
     }
 

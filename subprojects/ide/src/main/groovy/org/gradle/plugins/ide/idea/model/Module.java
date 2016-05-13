@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
@@ -299,7 +300,7 @@ public class Module extends XmlPersistableConfigurationObject {
     }
 
     private void addJdkToXml() {
-        assert jdkName != null;
+        Preconditions.checkNotNull(jdkName);
         List<Node> orderEntries = findOrderEntries();
         Node moduleJdk = findFirstWithAttributeValue(orderEntries, "type", "jdk");
         Node moduleRootManager = getNewModuleRootManager();
@@ -410,7 +411,7 @@ public class Module extends XmlPersistableConfigurationObject {
 
     private Node getNewModuleRootManager() {
         Node newModuleRootManager = findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "NewModuleRootManager");
-        assert newModuleRootManager != null;
+        Preconditions.checkNotNull(newModuleRootManager);
         return newModuleRootManager;
     }
 
@@ -432,7 +433,7 @@ public class Module extends XmlPersistableConfigurationObject {
 
     private Node getContentNode() {
         Node contentNode = findFirstChildNamed(getNewModuleRootManager(), "content");
-        assert contentNode != null;
+        Preconditions.checkNotNull(contentNode);
         return contentNode;
     }
 

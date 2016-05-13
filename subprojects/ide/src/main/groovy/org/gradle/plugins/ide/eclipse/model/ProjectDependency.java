@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse.model;
 
+import com.google.common.base.Preconditions;
 import groovy.util.Node;
 import org.gradle.util.DeprecationLogger;
 
@@ -61,7 +62,7 @@ public class ProjectDependency extends AbstractClasspathEntry {
     }
 
     private void assertPathIsValid() {
-        assert path.startsWith("/");
+        Preconditions.checkArgument(path.startsWith("/"));
     }
 
     @Override

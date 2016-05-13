@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import groovy.util.Node;
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
@@ -35,9 +36,9 @@ public class WbDependentModule implements WbModuleEntry {
     }
 
     public WbDependentModule(String deployPath, String handle) {
-        assert deployPath != null && handle != null;
+        Preconditions.checkNotNull(deployPath);
         this.deployPath = PathUtil.normalizePath(deployPath);
-        this.handle = handle;
+        this.handle = Preconditions.checkNotNull(handle);
     }
 
     public String getDeployPath() {

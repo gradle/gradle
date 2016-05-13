@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -131,7 +132,7 @@ public class WtpComponent extends XmlPersistableConfigurationObject {
 
     private static Node getWbModuleNode(Node xml) {
         Node wbModule = XmlPersistableConfigurationObject.findFirstChildNamed(xml, "wb-module");
-        assert wbModule != null;
+        Preconditions.checkNotNull(wbModule);
         return wbModule;
     }
 

@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -282,7 +283,7 @@ public class Project extends XmlPersistableConfigurationObject {
 
     private Node findOrCreateModules() {
         Node moduleManager = findFirstWithAttributeValue(getChildren(getXml(), "component"), "name", "ProjectModuleManager");
-        assert moduleManager != null;
+        Preconditions.checkNotNull(moduleManager);
         Node modules = findFirstChildNamed(moduleManager, "modules");
         if (modules == null) {
             modules = moduleManager.appendNode("modules");

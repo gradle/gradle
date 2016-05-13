@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
@@ -46,7 +47,8 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         this.exported = isNodeExported(node);
         accessRules = readAccessRules(node);
         entryAttributes = readEntryAttributes(node);
-        assert path != null && accessRules != null;
+        Preconditions.checkNotNull(path);
+        Preconditions.checkNotNull(accessRules);
     }
 
     private boolean isNodeExported(Node node) {
@@ -61,7 +63,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
     }
 
     public AbstractClasspathEntry(String path) {
-        assert path != null;
+        Preconditions.checkNotNull(path);
         this.path = normalizePath(path);
         this.exported = false;
         this.accessRules = Sets.newHashSet();
@@ -110,6 +112,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         entryAttributes.put(NATIVE_LIBRARY_ATTRIBUTE, location);
     }
 
+    @Override
     public void appendNode(Node node) {
         addClasspathEntry(node, Maps.<String, Object>newHashMap());
     }

@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import groovy.util.Node;
 
@@ -34,9 +35,8 @@ public class WbProperty implements WbModuleEntry {
     }
 
     public WbProperty(String name, String value) {
-        assert name != null && value != null;
-        this.name = name;
-        this.value = value;
+        this.name = Preconditions.checkNotNull(name);
+        this.value = Preconditions.checkNotNull(value);
     }
 
     public String getName() {

@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
 
 import static com.google.common.base.Strings.emptyToNull;
@@ -32,10 +33,10 @@ public class Link {
     private String locationUri;
 
     public Link(String name, String type, String location, String locationUri) {
-        assert !isNullOrEmpty(name);
-        assert !isNullOrEmpty(type);
-        assert isNullOrEmpty(location) || isNullOrEmpty(locationUri);
-        assert !isNullOrEmpty(location) || !isNullOrEmpty(locationUri);
+        Preconditions.checkArgument(!isNullOrEmpty(name));
+        Preconditions.checkArgument(!isNullOrEmpty(type));
+        Preconditions.checkArgument(isNullOrEmpty(location) || isNullOrEmpty(locationUri));
+        Preconditions.checkArgument(!isNullOrEmpty(location) || !isNullOrEmpty(locationUri));
         this.name = name;
         this.type = type;
         this.location = PathUtil.normalizePath(emptyToNull(location));
