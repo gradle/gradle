@@ -17,16 +17,13 @@
 package org.gradle.api.publish.plugins
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.publish.PublicationContainer
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.internal.PublicationInternal
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class PublishingPluginTest extends Specification {
+class PublishingPluginTest extends AbstractProjectBuilderSpec {
 
-    DefaultProject project = TestUtil.createRootProject()
     PublishingExtension extension
 
     def setup() {

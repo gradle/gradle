@@ -16,12 +16,9 @@
 
 package org.gradle.api.plugins.antlr
 
-import spock.lang.Specification
-import org.gradle.api.Project
-import org.gradle.util.TestUtil
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class AntlrPluginTest extends Specification {
-    private final Project project = TestUtil.createRootProject()
+class AntlrPluginTest extends AbstractProjectBuilderSpec {
 
     def addsAntlrPropertiesToEachSourceSet() {
         when:

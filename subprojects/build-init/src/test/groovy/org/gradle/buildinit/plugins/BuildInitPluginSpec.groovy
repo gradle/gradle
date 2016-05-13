@@ -18,19 +18,10 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.wrapper.Wrapper
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Specification
 
-@UsesNativeServices
-class BuildInitPluginSpec extends Specification {
-
-    @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-
-    def project = TestUtil.createRootProject(temporaryFolder.testDirectory)
+class BuildInitPluginSpec extends AbstractProjectBuilderSpec {
 
     def "applies plugin"() {
         when:

@@ -20,11 +20,10 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.reporting.components.ComponentReport
 import org.gradle.api.tasks.diagnostics.*
 import org.gradle.configuration.Help
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class HelpTasksPluginSpec extends Specification {
-    final project = TestUtil.createRootProject()
+class HelpTasksPluginSpec extends AbstractProjectBuilderSpec {
 
     def "adds help tasks"() {
         when:

@@ -15,54 +15,46 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
-import org.junit.Rule
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class SigningProjectSpec extends Specification {
-    
+class SigningProjectSpec extends AbstractProjectBuilderSpec {
+
     static final DEFAULT_KEY_SET = "gradle"
-    
-    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-        
-    Project project = TestUtil.createRootProject()
-    
+
     private assertProject() {
         assert project != null : "You haven't created a project"
     }
-    
+
     def methodMissing(String name, args) {
         assertProject()
         project."$name"(*args)
     }
-    
+
     def propertyMissing(String name) {
         project."$name"
     }
-    
+
     def propertyMissing(String name, value) {
         project."$name" = value
     }
-    
+
     def applyPlugin() {
         apply plugin: "signing"
     }
-    
+
     def addProperties(Map props) {
         props.each { k, v ->
             project.ext.set(k, v)
         }
     }
-    
+
     def addSigningProperties(keyId, secretKeyRingFile, password) {
         addPrefixedSigningProperties(null, keyId, secretKeyRingFile, password)
     }
-    
+
     def addPrefixedSigningProperties(prefix, keyId, secretKeyRingFile, password) {
-        def truePrefix = prefix ? "${prefix}." : "" 
+        def truePrefix = prefix ? "${prefix}." : ""
         def properties = [:]
         def values = [keyId: keyId, secretKeyRingFile: secretKeyRingFile, password: password]
         values.each { k, v ->
@@ -71,7 +63,7 @@ class SigningProjectSpec extends Specification {
         addProperties(properties)
         values
     }
-    
+
     def getSigningPropertiesSet(setName = DEFAULT_KEY_SET) {
         def properties = [:]
         properties.keyId = getKeyResourceFile(setName, "keyId.txt").text.trim()
@@ -79,41 +71,41 @@ class SigningProjectSpec extends Specification {
         properties.password = getKeyResourceFile(setName, "password.txt").text.trim()
         properties
     }
-    
+
     def addSigningProperties(Map args = [:]) {
         def properties = getSigningPropertiesSet(args.set ?: DEFAULT_KEY_SET)
         addPrefixedSigningProperties(args.prefix, properties.keyId, properties.secretKeyRingFile, properties.password)
     }
-    
+
     def getKeyResourceFile(setName, fileName) {
         getResourceFile("keys/$setName/$fileName")
     }
-    
+
     def getResourceFile(path) {
-        def copiedFile = tmpDir.file(path)
+        def copiedFile = temporaryFolder.file(path)
         if (!copiedFile.exists()) {
-            
+
             def url = getClass().classLoader.getResource(path)
             def file = new File(url.toURI())
             if (file.exists()) {
                 copiedFile.copyFrom(file)
             }
         }
-        
+
         copiedFile
     }
-    
+
     def useJavadocAndSourceJars() {
         apply plugin: "java"
-        
-        task("sourcesJar", type: Jar, dependsOn: classes) { 
-            classifier = 'sources' 
-            from sourceSets.main.allSource
-        } 
 
-        task("javadocJar", type: Jar, dependsOn: javadoc) { 
-            classifier = 'javadoc' 
-            from javadoc.destinationDir 
-        } 
+        task("sourcesJar", type: Jar, dependsOn: classes) {
+            classifier = 'sources'
+            from sourceSets.main.allSource
+        }
+
+        task("javadocJar", type: Jar, dependsOn: javadoc) {
+            classifier = 'javadoc'
+            from javadoc.destinationDir
+        }
     }
 }

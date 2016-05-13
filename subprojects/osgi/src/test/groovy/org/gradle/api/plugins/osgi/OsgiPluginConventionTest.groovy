@@ -17,14 +17,12 @@ package org.gradle.api.plugins.osgi
 
 import org.gradle.api.internal.plugins.osgi.DefaultOsgiManifest
 import org.gradle.api.internal.plugins.osgi.OsgiHelper
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.util.TestUtil
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
-import spock.lang.Specification
 
-class OsgiPluginConventionTest extends Specification {
-    DefaultProject project = TestUtil.createRootProject()
+class OsgiPluginConventionTest extends AbstractProjectBuilderSpec {
+
     OsgiPluginConvention osgiPluginConvention = new OsgiPluginConvention(project)
 
     def setup() {
@@ -40,7 +38,7 @@ class OsgiPluginConventionTest extends Specification {
 
     def osgiManifestWithClosure() {
         OsgiManifest osgiManifest = osgiPluginConvention.osgiManifest {
-            description = 'myDescription'    
+            description = 'myDescription'
         }
 
         expect:
