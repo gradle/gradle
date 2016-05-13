@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
-
 import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.GlobPatternMatcher
@@ -25,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
 import org.junit.Rule
@@ -59,7 +59,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     />
 </ivy-module>
 """
-        ModuleDescriptor md = parser.parseMetaData(parseContext, file, true).descriptor
+        ModuleDescriptor md = parse(parseContext, file)
 
         then:
         md != null
@@ -88,7 +88,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     </dependencies>
 </ivy-module>
 """
-        ModuleDescriptor md = parser.parseMetaData(parseContext, file, true).descriptor
+        ModuleDescriptor md = parse(parseContext, file)
 
         then:
         md != null
@@ -119,7 +119,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     </configurations>
 </ivy-module>
 """
-        ModuleDescriptor md = parser.parseMetaData(parseContext, file, true).descriptor
+        ModuleDescriptor md = parse(parseContext, file)
 
         then:
         md.allArtifacts.length == 1
@@ -146,7 +146,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 """
 
         when:
-        parser.parseMetaData(parseContext, file, true)
+        parse(parseContext, file)
 
         then:
         def e = thrown(MetaDataParseException)
@@ -168,7 +168,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 """
 
         when:
-        parser.parseMetaData(parseContext, file, true)
+        parse(parseContext, file)
 
         then:
         def e = thrown(MetaDataParseException)
@@ -191,7 +191,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 """
 
         when:
-        parser.parseMetaData(parseContext, file, true)
+        parse(parseContext, file)
 
         then:
         def e = thrown(MetaDataParseException)
@@ -207,7 +207,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 """
 
         when:
-        parser.parseMetaData(parseContext, file, true)
+        parse(parseContext, file)
 
         then:
         def e = thrown(MetaDataParseException)
@@ -223,7 +223,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 """
 
         when:
-        parser.parseMetaData(parseContext, file, true)
+        parse(parseContext, file)
 
         then:
         def e = thrown(MetaDataParseException)
@@ -234,7 +234,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     public void "fails when descriptor does declare module version id"() {
         def file = temporaryFolder.file("ivy.xml") << xml
         when:
-        parser.parseMetaData(parseContext, file, true)
+        parse(parseContext, file)
 
         then:
         def e = thrown(MetaDataParseException)
@@ -254,7 +254,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         file.text = resources.getResource("test-full.xml").text
 
         when:
-        ModuleDescriptor md = parser.parseMetaData(parseContext, file, true).descriptor
+        ModuleDescriptor md = parse(parseContext, file)
 
         then:
         assertNotNull(md)
@@ -342,7 +342,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parseContext.getMetaDataArtifact(_, IVY_DESCRIPTOR) >> new DefaultLocallyAvailableExternalResource(parentFile.toURI(), new DefaultLocallyAvailableResource(parentFile))
 
         when:
-        ModuleDescriptor md = parser.parseMetaData(parseContext, file, true).descriptor
+        ModuleDescriptor md = parse(parseContext, file)
 
         then:
         md != null
@@ -381,7 +381,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
+        def descriptor = parse(parseContext, file)
         def dependency = descriptor.dependencies.first()
 
         then:
@@ -410,7 +410,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
+        def descriptor = parse(parseContext, file)
 
         then:
         def artifact = descriptor.allArtifacts[0]
@@ -453,7 +453,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
+        def descriptor = parse(parseContext, file)
 
         then:
         def dependency1 = descriptor.dependencies[0]
@@ -558,7 +558,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
+        def descriptor = parse(parseContext, file)
 
         then:
         def dependency1 = descriptor.dependencies[0]
@@ -626,7 +626,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
+        def descriptor = parse(parseContext, file)
 
         then:
         descriptor.allArtifacts.length == 3
@@ -660,7 +660,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
+        def descriptor = parse(parseContext, file)
 
         then:
         descriptor.allArtifacts.length == 1
@@ -685,7 +685,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parser.parseMetaData(parseContext, file, true).descriptor
+        def descriptor = parse(parseContext, file)
 
         then:
         descriptor.moduleRevisionId.qualifiedExtraAttributes.size() == 3
@@ -695,6 +695,10 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         descriptor.extraInfo.size() == 2
         descriptor.extraInfo[new NamespaceId("namespace-b", "a")] == "info 1"
         descriptor.extraInfo[new NamespaceId("namespace-c", "a")] == "info 2"
+    }
+
+    private ModuleDescriptor parse(DescriptorParseContext parseContext, TestFile file) {
+        parser.parseMetaData(parseContext, file).descriptor.ivyDescriptor
     }
 
     def verifyFullDependencies(DependencyDescriptor[] dependencies) {

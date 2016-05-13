@@ -40,7 +40,7 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
     }
 
     protected ModuleDescriptor parsePom() {
-        parseMetaData().descriptor
+        parseMetaData().descriptor.ivyDescriptor
     }
 
     protected MutableModuleComponentResolveMetaData parseMetaData() {

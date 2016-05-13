@@ -48,7 +48,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         when:
         def metaData = parseMetaData()
-        def descriptor = metaData.descriptor
+        def descriptor = metaData.descriptor.ivyDescriptor
 
         then:
         metaData instanceof MavenModuleResolveMetaData
@@ -1251,7 +1251,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         when:
         def metaData = parseMetaData()
-        def descriptor = metaData.descriptor
+        def descriptor = metaData.descriptor.ivyDescriptor
 
         then:
         descriptor.moduleRevisionId == moduleId('group-one', 'artifact-one', 'version-one')
@@ -1272,7 +1272,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         when:
         def metaData = parseMetaData()
-        def descriptor = metaData.descriptor
+        def descriptor = metaData.descriptor.ivyDescriptor
 
         then:
         descriptor.allArtifacts.length == 0
@@ -1297,7 +1297,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         when:
         def metaData = parseMetaData()
-        def descriptor = metaData.descriptor
+        def descriptor = metaData.descriptor.ivyDescriptor
 
         then:
         descriptor.allArtifacts.length == 0
@@ -1340,7 +1340,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
 
         when:
         def metaData = parseMetaData()
-        def descriptor = metaData.descriptor
+        def descriptor = metaData.descriptor.ivyDescriptor
 
         then:
         descriptor.allArtifacts.length == 0

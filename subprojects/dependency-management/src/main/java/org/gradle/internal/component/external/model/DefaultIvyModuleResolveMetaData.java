@@ -46,7 +46,7 @@ public class DefaultIvyModuleResolveMetaData extends AbstractModuleComponentReso
     @Override
     public DefaultIvyModuleResolveMetaData copy() {
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
-        DefaultIvyModuleResolveMetaData copy = new DefaultIvyModuleResolveMetaData(getComponentId(), getId(), new ModuleDescriptorState(getDescriptor()));
+        DefaultIvyModuleResolveMetaData copy = new DefaultIvyModuleResolveMetaData(getComponentId(), getId(), getDescriptor());
         copyTo(copy);
         return copy;
     }

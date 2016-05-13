@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.component.external.model;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
@@ -37,5 +36,5 @@ public interface ModuleComponentResolveMetaData extends ComponentResolveMetaData
      *
      * <p>You should avoid using this method.
      */
-    ModuleDescriptor getDescriptor();
+    ModuleDescriptorState getDescriptor();
 }

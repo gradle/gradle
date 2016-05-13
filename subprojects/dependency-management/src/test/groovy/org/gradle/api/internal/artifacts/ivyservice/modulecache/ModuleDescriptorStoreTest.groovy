@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser
-
+import org.gradle.internal.component.external.model.ModuleDescriptorState
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.internal.resource.local.PathKeyFileStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -66,7 +66,7 @@ class ModuleDescriptorStoreTest extends Specification {
         setup:
         File descriptorFile = temporaryFolder.createFile("fileStoreEntry")
         when:
-        store.putModuleDescriptor(repository, moduleComponentIdentifier, moduleDescriptor);
+        store.putModuleDescriptor(repository, moduleComponentIdentifier, new ModuleDescriptorState(moduleDescriptor));
         then:
         1 * pathKeyFileStore.add("org.test/testArtifact/1.0/repositoryId/ivy.xml", _) >> { path, action ->
             action.execute(descriptorFile); fileStoreEntry

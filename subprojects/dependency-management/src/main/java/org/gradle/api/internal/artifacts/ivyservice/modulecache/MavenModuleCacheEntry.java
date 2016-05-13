@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
 import org.gradle.internal.component.external.model.ModuleDescriptorState;
@@ -35,8 +34,8 @@ class MavenModuleCacheEntry extends ModuleDescriptorCacheEntry {
         this.snapshotTimestamp = snapshotTimestamp;
     }
 
-    public MutableModuleComponentResolveMetaData createMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptor descriptor) {
+    public MutableModuleComponentResolveMetaData createMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor) {
         // TODO Relocation is not currently cached
-        return configure(new DefaultMavenModuleResolveMetaData(componentIdentifier, new ModuleDescriptorState(descriptor), packaging, false));
+        return configure(new DefaultMavenModuleResolveMetaData(componentIdentifier, descriptor, packaging, false));
     }
 }

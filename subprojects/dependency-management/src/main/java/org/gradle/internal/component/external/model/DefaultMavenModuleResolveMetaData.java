@@ -55,7 +55,7 @@ public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentRe
     @Override
     public DefaultMavenModuleResolveMetaData copy() {
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
-        DefaultMavenModuleResolveMetaData copy = new DefaultMavenModuleResolveMetaData(getComponentId(), getId(), new ModuleDescriptorState(getDescriptor()), packaging, relocated);
+        DefaultMavenModuleResolveMetaData copy = new DefaultMavenModuleResolveMetaData(getComponentId(), getId(), getDescriptor(), packaging, relocated);
         copyTo(copy);
         copy.snapshotTimestamp = snapshotTimestamp;
         return copy;

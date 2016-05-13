@@ -1675,7 +1675,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 
         when:
         def metaData = parseMetaData()
-        def descriptor = metaData.descriptor
+        def descriptor = metaData.descriptor.ivyDescriptor
 
         then:
         descriptor.allArtifacts.length == 0
@@ -1726,7 +1726,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
 
         when:
         def metaData = parseMetaData()
-        def descriptor = metaData.descriptor
+        def descriptor = metaData.descriptor.ivyDescriptor
 
         then:
         descriptor.allArtifacts.length == 0

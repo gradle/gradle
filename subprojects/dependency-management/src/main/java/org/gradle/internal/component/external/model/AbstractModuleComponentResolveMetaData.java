@@ -20,7 +20,6 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -77,8 +76,8 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
         copy.excludeRules = excludeRules;
     }
 
-    public ModuleDescriptor getDescriptor() {
-        return descriptor.ivyDescriptor;
+    public ModuleDescriptorState getDescriptor() {
+        return descriptor;
     }
 
     public abstract AbstractModuleComponentResolveMetaData copy();

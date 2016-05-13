@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter;
@@ -23,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.model.ModuleDescriptorState;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 
@@ -30,7 +30,6 @@ import java.io.File;
 
 public class ModuleDescriptorStore {
 
-    public static final String FILE_PATH_PATTERN = "%s/%s/%s/%s/ivy.xml";
     private final IvyXmlModuleDescriptorParser descriptorParser;
     private final PathKeyFileStore metaDataStore;
     private final IvyModuleDescriptorWriter descriptorWriter;
@@ -41,7 +40,7 @@ public class ModuleDescriptorStore {
         this.descriptorParser = ivyXmlModuleDescriptorParser;
     }
 
-    public ModuleDescriptor getModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
+    public ModuleDescriptorState getModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
         String filePath = getFilePath(repository, moduleComponentIdentifier);
         final LocallyAvailableResource resource = metaDataStore.get(filePath);
         if (resource != null) {
@@ -50,12 +49,12 @@ public class ModuleDescriptorStore {
         return null;
     }
 
-    public LocallyAvailableResource putModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier, final ModuleDescriptor moduleDescriptor) {
+    public LocallyAvailableResource putModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier, final ModuleDescriptorState moduleDescriptor) {
         String filePath = getFilePath(repository, moduleComponentIdentifier);
         return metaDataStore.add(filePath, new Action<File>() {
             public void execute(File moduleDescriptorFile) {
                 try {
-                    descriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
+                    descriptorWriter.write(moduleDescriptor.ivyDescriptor, moduleDescriptorFile);
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
@@ -63,7 +62,7 @@ public class ModuleDescriptorStore {
         });
     }
 
-    private ModuleDescriptor parseModuleDescriptorFile(File moduleDescriptorFile) {
+    private ModuleDescriptorState parseModuleDescriptorFile(File moduleDescriptorFile) {
         DescriptorParseContext parserSettings = new CachedModuleDescriptorParseContext();
         return descriptorParser.parseMetaData(parserSettings, moduleDescriptorFile, false).getDescriptor();
     }

@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ModuleSource;
 
@@ -64,8 +64,8 @@ abstract class ModuleDescriptorCacheEntry {
     public boolean isMissing() {
         return type == TYPE_MISSING;
     }
-    
-    public MutableModuleComponentResolveMetaData createMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptor descriptor) {
+
+    public MutableModuleComponentResolveMetaData createMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor) {
         throw new UnsupportedOperationException("Cannot create meta-data for entry " + this);
     }
 
