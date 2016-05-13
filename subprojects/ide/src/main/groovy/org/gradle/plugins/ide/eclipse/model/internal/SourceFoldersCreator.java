@@ -156,17 +156,17 @@ public class SourceFoldersCreator {
         if (!srcDirs.contains(directoryTree.getDir())) {
             return Lists.<Set<String>>newArrayList(collectFilters(directoryTree.getPatterns(), filterOperation));
         } else {
-            Set<String> resourcesFilter = collectFiters(sourceSet.getResources().getSrcDirTrees(), directoryTree.getDir(), filterOperation);
-            Set<String> sourceFilter = collectFiters(sourceSet.getAllJava().getSrcDirTrees(), directoryTree.getDir(), filterOperation);
+            Set<String> resourcesFilter = collectFilters(sourceSet.getResources().getSrcDirTrees(), directoryTree.getDir(), filterOperation);
+            Set<String> sourceFilter = collectFilters(sourceSet.getAllJava().getSrcDirTrees(), directoryTree.getDir(), filterOperation);
             return Lists.<Set<String>>newArrayList(resourcesFilter, sourceFilter);
         }
     }
 
-    private Set<String> collectFiters(Set<DirectoryTree> directoryTrees, File targetDir, String filterOpertation) {
+    private Set<String> collectFilters(Set<DirectoryTree> directoryTrees, File targetDir, String filterOperation) {
         for (DirectoryTree directoryTree : directoryTrees) {
             if (directoryTree.getDir().equals(targetDir)) {
                 PatternSet patterns = directoryTree.getPatterns();
-                return collectFilters(patterns, filterOpertation);
+                return collectFilters(patterns, filterOperation);
             }
         }
         return Collections.emptySet();
