@@ -21,8 +21,6 @@ import org.gradle.configuration.ScriptPlugin
 
 import org.gradle.groovy.scripts.ScriptSource
 
-import org.slf4j.LoggerFactory
-
 class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<*>) : ScriptPlugin {
 
     private val logger = loggerFor<KotlinScriptPlugin>()
@@ -31,6 +29,10 @@ class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<
 
     override fun apply(target: Any) {
         logger.info("Applying Kotlin script to {}", target)
+        if (target !is Project) {
+            throw IllegalArgumentException("target $target was not a Project as expected")
+        }
+        target.task<GenerateKtsConfig>("generateKtsConfig")
         scriptClass.getConstructor(Project::class.java).newInstance(target)
     }
 }

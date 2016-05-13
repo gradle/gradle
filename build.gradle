@@ -28,6 +28,7 @@ version = '1.0.0-SNAPSHOT'
 dependencies {
     compileOnly 'org.gradle:gradle-core:2.14+'
     compile 'org.slf4j:slf4j-api:1.7.10'
+    compile 'javax.inject:javax.inject:1'
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
     compile "org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion"
@@ -52,18 +53,6 @@ task generateClasspathManifest(type: codegen.GenerateClasspathManifest) {
 }
 sourceSets {
     main.output.dir generatedResourcesDir, builtBy: generateClasspathManifest
-}
-
-
-// -- Script config ----------------------------------------------------
-task generateKotlinScriptConfig(type: codegen.GenerateKotlinScriptConfig) {
-    template = file("gradle.ktscfg.xml.template")
-    outputFile = file("gradle.ktscfg.xml")
-}
-
-task prepare {
-    description "Ensures a decent IDE experience."
-    dependsOn generateKotlinScriptConfig, compileKotlin
 }
 
 
