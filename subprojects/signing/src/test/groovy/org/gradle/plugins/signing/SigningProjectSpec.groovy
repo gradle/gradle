@@ -19,18 +19,16 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-@UsesNativeServices
 class SigningProjectSpec extends Specification {
 
     static final DEFAULT_KEY_SET = "gradle"
 
     @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    Project project = TestUtil.createRootProject(tmpDir.testDirectory)
+    Project project = TestUtil.createRootProject()
 
     private assertProject() {
         assert project != null : "You haven't created a project"
