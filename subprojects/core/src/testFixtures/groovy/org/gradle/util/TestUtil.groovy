@@ -33,17 +33,51 @@ import org.gradle.testfixtures.ProjectBuilder
 import java.rmi.server.UID
 
 class TestUtil {
-     public static final Closure TEST_CLOSURE = {}
+    public static final Closure TEST_CLOSURE = {}
 
-     static <T extends Task> T createTask(Class<T> type) {
-         return createTask(type, createRootProject())
-     }
+    private final File rootDir;
 
-     static <T extends Task> T createTask(Class<T> type, Map taskFields) {
-         def task = createTask(type, createRootProject())
-         hackInTaskProperties(type, task, taskFields)
-         return task
-     }
+    private TestUtil(File rootDir) {
+        this.rootDir = rootDir;
+    }
+
+    static TestUtil create(File rootDir) {
+        return new TestUtil(rootDir);
+    }
+
+    /**
+     * @deprecated Tests should create their own temporary directories
+     *     annotated with {@link org.junit.Rule} so that they will be cleaned
+     *     up, and pass that directory to {@link #create(java.io.File)} and
+     *     call {@link #createTaskOfType(java.lang.Class)}
+     */
+    @Deprecated
+    static <T extends Task> T createTask(Class<T> type) {
+        return createTask(type, createRootProject())
+    }
+
+    public <T extends Task> T createTaskOfType(Class<T> type) {
+        return createTask(type, createRootProject(this.rootDir))
+    }
+
+    /**
+     * @deprecated Tests should create their own temporary directories
+     *     annotated with {@link org.junit.Rule} so that they will be cleaned
+     *     up, and pass that directory to {@link #create(java.io.File)} and
+     *     call {@link #createTaskOfType(java.lang.Class, java.util.Map)}
+     */
+    @Deprecated
+    static <T extends Task> T createTask(Class<T> type, Map taskFields) {
+        def task = createTask(type, createRootProject())
+        hackInTaskProperties(type, task, taskFields)
+        return task
+    }
+
+    public <T extends Task> T createTaskOfType(Class<T> type, Map taskFields) {
+        def task = createTask(type, createRootProject(rootDir))
+        hackInTaskProperties(type, task, taskFields)
+        return task
+    }
 
     private static void hackInTaskProperties(Class type, Task task, Map args) {
         args.each { k, v ->
@@ -59,82 +93,99 @@ class TestUtil {
     }
 
     static <T extends Task> T createTask(Class<T> type, ProjectInternal project) {
-         return createTask(type, project, 'name')
-     }
+        return createTask(type, project, 'name')
+    }
 
-     static <T extends Task> T createTask(Class<T> type, ProjectInternal project, String name) {
-         return project.services.get(ITaskFactory).createTask([name: name, type: type])
-     }
+    static <T extends Task> T createTask(Class<T> type, ProjectInternal project, String name) {
+        return project.services.get(ITaskFactory).createTask([name: name, type: type])
+    }
 
+    /**
+     * @deprecated Tests should create their own temporary directories
+     *     annotated with {@link org.junit.Rule} so that they will be cleaned
+     *     up, and pass that directory to {@link #builder(java.io.File)}
+     */
+    @Deprecated
     static ProjectBuilder builder() {
         return ProjectBuilder.builder().withProjectDir(TestNameTestDirectoryProvider.newInstance().testDirectory)
     }
 
-     static DefaultProject createRootProject() {
-         createRootProject(TestNameTestDirectoryProvider.newInstance().testDirectory)
-     }
+    static ProjectBuilder builder(File rootDir) {
+        return ProjectBuilder.builder().withProjectDir(rootDir);
+    }
 
-     static DefaultProject createRootProject(File rootDir) {
-         return ProjectBuilder
-                 .builder()
-                 .withProjectDir(rootDir)
-                 .build()
-     }
+    /**
+     * @deprecated Tests should create their own temporary directories
+     *     annotated with {@link org.junit.Rule} so that they will be  cleaned
+     *     up, and pass that directory to
+     *     {@link #createRootProject(java.io.File)}
+     */
+    @Deprecated
+    static DefaultProject createRootProject() {
+        createRootProject(TestNameTestDirectoryProvider.newInstance().testDirectory)
+    }
 
-     static DefaultProject createChildProject(DefaultProject parent, String name, File projectDir = null) {
-         return ProjectBuilder
-                 .builder()
-                 .withName(name)
-                 .withParent(parent)
-                 .withProjectDir(projectDir)
-                 .build();
-     }
+    static DefaultProject createRootProject(File rootDir) {
+        return ProjectBuilder
+            .builder()
+            .withProjectDir(rootDir)
+            .build()
+    }
 
-     static DefaultModuleDescriptor createModuleDescriptor(Set confs) {
-         DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId('org', 'name'), 'rev'), "status", null)
-         confs.each { moduleDescriptor.addConfiguration(new Configuration(it)) }
-         return moduleDescriptor;
-     }
+    static DefaultProject createChildProject(DefaultProject parent, String name, File projectDir = null) {
+        return ProjectBuilder
+            .builder()
+            .withName(name)
+            .withParent(parent)
+            .withProjectDir(projectDir)
+            .build();
+    }
 
-     static groovy.lang.Script createScript(String code) {
-         new GroovyShell().parse(code)
-     }
+    static DefaultModuleDescriptor createModuleDescriptor(Set confs) {
+        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(new ModuleRevisionId(new ModuleId('org', 'name'), 'rev'), "status", null)
+        confs.each { moduleDescriptor.addConfiguration(new Configuration(it)) }
+        return moduleDescriptor;
+    }
 
-     static Object call(String text, Object... params) {
-         toClosure(text).call(*params)
-     }
+    static groovy.lang.Script createScript(String code) {
+        new GroovyShell().parse(code)
+    }
 
-     static Closure toClosure(String text) {
-         return new GroovyShell().evaluate("return " + text)
-     }
+    static Object call(String text, Object... params) {
+        toClosure(text).call(*params)
+    }
 
-     static Closure toClosure(ScriptSource source) {
-         CompilerConfiguration configuration = new CompilerConfiguration();
-         configuration.setScriptBaseClass(TestScript.getName());
+    static Closure toClosure(String text) {
+        return new GroovyShell().evaluate("return " + text)
+    }
 
-         GroovyShell shell = new GroovyShell(configuration)
-         Script script = shell.parse(source.resource.text)
-         script.setScriptSource(source)
-         return script.run()
-     }
+    static Closure toClosure(ScriptSource source) {
+        CompilerConfiguration configuration = new CompilerConfiguration();
+        configuration.setScriptBaseClass(TestScript.getName());
 
-     static Closure toClosure(TestClosure closure) {
-         return { param -> closure.call(param) }
-     }
+        GroovyShell shell = new GroovyShell(configuration)
+        Script script = shell.parse(source.resource.text)
+        script.setScriptSource(source)
+        return script.run()
+    }
 
-     static Closure returns(Object value) {
-         return { value }
-     }
+    static Closure toClosure(TestClosure closure) {
+        return { param -> closure.call(param) }
+    }
 
-     static Closure createSetterClosure(String name, String value) {
-         return {
-             "set$name"(value)
-         }
-     }
+    static Closure returns(Object value) {
+        return { value }
+    }
 
-     static String createUniqueId() {
-         return new UID().toString();
-     }
+    static Closure createSetterClosure(String name, String value) {
+        return {
+            "set$name"(value)
+        }
+    }
+
+    static String createUniqueId() {
+        return new UID().toString();
+    }
 }
 
 
