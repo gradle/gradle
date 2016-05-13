@@ -302,7 +302,7 @@
     <para>The above information is printed to the console when you execute <userinput>gradle -h</userinput>.
     </para>
 
-    <section id='daemon_cli'>
+    <section id="daemon_cli">
         <title>Daemon command-line options</title>
         <para>The
             <xref linkend="gradle_daemon"/>
@@ -360,7 +360,7 @@
         </variablelist>
     </section>
 
-    <section>
+    <section id="sec:system_properties">
         <title>System properties</title>
         <para>The following system properties are available for the
             <command>gradle</command>
@@ -382,7 +382,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:environment_variables">
         <title>Environment variables</title>
         <para>The following environment variables are available for the
             <command>gradle</command>

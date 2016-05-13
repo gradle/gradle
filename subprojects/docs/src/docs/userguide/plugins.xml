@@ -25,7 +25,7 @@
     <para>
         In this chapter we discuss how to use plugins and the terminology and concepts surrounding plugins.
     </para>
-    <section>
+    <section id="sec:what_plugins_do">
         <title>What plugins do</title>
         <para>
             Applying a plugin to a project allows the plugin to extend the project's capabilities. It can do things
@@ -60,7 +60,7 @@
             migrated to a binary plugin that can be easily tested and shared between multiple projects or organizations.
         </para>
     </section>
-    <section id='sec:using_plugins'>
+    <section id="sec:using_plugins">
         <title>Using plugins</title>
         <para>
             To use the build logic encapsulated in a plugin, Gradle needs to perform two steps. First, it needs to <emphasis>resolve</emphasis> the
@@ -174,7 +174,7 @@
                     mechanism. There are also some constraints, some of which are temporary limitations while the mechanism is still
                     being developed and some are inherent to the new approach.
                 </para>
-                <section>
+                <section id="sec:constrained_syntax">
                     <title>Constrained Syntax</title>
                     <para>
                         The new <code>plugins {}</code> block does not support arbitrary Groovy code. It is constrained, in order to be idempotent
@@ -199,7 +199,7 @@
                         another construct (e.g. an if-statement or for-loop).
                     </para>
                 </section>
-                <section>
+                <section id="sec:build_scripts_only">
                     <title>Can only be used in build scripts</title>
                     <para>
                         The <code>plugins {}</code> block can currently only be used in a project's build script. It cannot be used in
@@ -343,7 +343,7 @@
             </section>
         </section>
     </section>
-    <section>
+    <section id="sec:finding_community_plugins">
         <title>Finding community plugins</title>
         <para>
             Gradle has a vibrant community of plugin developers who contribute plugins for a wide variety of capabilities.
@@ -351,7 +351,7 @@
             exploring community plugins.
         </para>
     </section>
-    <section>
+    <section id="sec:more_on_plugins">
         <title>More on plugins</title>
         <para>
             This chapter aims to serve as an introduction to plugins and Gradle and the role they play. For more information on the inner workings

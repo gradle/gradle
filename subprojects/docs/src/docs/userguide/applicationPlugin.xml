@@ -27,7 +27,7 @@
         Applying the Application plugin also implicitly applies the <link linkend="distribution_plugin">Distribution plugin</link>.
         A <literal>main</literal> distribution is created that packages up the application, including code dependencies and generated start scripts.
     </para>
-    <section>
+    <section id="sec:usage">
         <title>Usage</title>
         <para>To use the application plugin, include the following in your build script:</para>
         <sample id="useApplicationPlugin" dir="application" title="Using the application plugin">
@@ -51,7 +51,7 @@
         <sample id="configureApplicationDefaultJvmArgs" dir="application" title="Configure default JVM settings">
             <sourcefile file="build.gradle" snippet="application-defaultjvmargs"/>
         </sample>
-        <section>
+        <section id="sec:the_distribution">
             <title>The distribution</title>
             <para>
                 A distribution of the application can be created, by way of the <link linkend="distribution_plugin">Distribution plugin</link> (which is automatically applied).
@@ -110,7 +110,7 @@
                 <userinput>gradle distTar</userinput> to create an application TAR or <userinput>gradle assemble</userinput> to build both.
             </para>
         </section>
-        <section>
+        <section id="sec:customizing_start_script_generation">
             <title>Customizing start script generation</title>
             <para>
                 The application plugin can generate Unix (suitable for Linux, Mac OS X etc.) and Windows start scripts out of the box.
@@ -123,7 +123,7 @@
             </para>
         </section>
     </section>
-    <section>
+    <section id="sec:tasks">
         <title>Tasks</title>
         <para>The Application plugin adds the following tasks to the project.</para>
         <table>
@@ -188,7 +188,7 @@
             </tr>
         </table>
     </section>
-    <section>
+    <section id="sec:convention_properties">
         <title>Convention properties</title>
         <para>
             The application plugin adds some properties to the project, which you can use to configure its behaviour.

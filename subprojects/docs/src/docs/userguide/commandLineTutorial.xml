@@ -18,7 +18,7 @@
     <para>This chapter introduces the basics of the Gradle command-line. You run a build using the
         <command>gradle</command> command, which you have already seen in action in previous chapters.</para>
 
-    <section>
+    <section id="sec:executing_multiple_tasks">
         <title>Executing multiple tasks</title>
         <para>You can execute multiple tasks in a single build by listing each of the tasks on the command-line. For example,
             the command <userinput>gradle compile test</userinput> will execute the <literal>compile</literal> and
@@ -72,7 +72,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:task_name_abbreviation">
         <title>Task name abbreviation</title>
         <para>When you specify tasks on the command-line, you don't have to provide the full name of the task. You only need to provide enough of the
             task name to uniquely identify the task. For example, in the sample build above, you can execute task
@@ -138,7 +138,7 @@
             <link linkend="project_reports_plugin">project report plugin</link> to add tasks to your project which will
             generate these reports.
         </para>
-        <section>
+        <section id="sec:listing_projects">
             <title>Listing projects</title>
             <para>Running <userinput>gradle projects</userinput> gives you a list of the sub-projects of the selected project,
                 displayed in a hierarchy. Here is an example:
@@ -278,7 +278,7 @@
             execution.
         </para>
     </section>
-    <section>
+    <section id="sec:summary">
         <title>Summary</title>
         <para>In this chapter, you have seen some of the things you can do with Gradle from the command-line. You can
             find out more about the <command>gradle</command> command in <xref linkend="gradle_command_line"/>.</para>

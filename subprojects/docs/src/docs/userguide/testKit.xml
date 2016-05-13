@@ -31,7 +31,7 @@
         Over time, the TestKit will likely expand to facilitate other kinds of tests.
     </para>
 
-    <section>
+    <section id="sec:usage">
         <title>Usage</title>
         <para>To use the TestKit, include the following in your plugin's build:</para>
         <sample id="testKitDependency" dir="testKit/gradleRunner/junitQuickstart" title="Declaring the TestKit dependency">
@@ -49,7 +49,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:functional_testing_with_the_gradle_runner">
         <title>Functional testing with the Gradle runner</title>
         <para>
             The <apilink class="org.gradle.testkit.runner.GradleRunner"/> facilitates programmatically executing Gradle builds, and inspecting the result.
@@ -128,7 +128,7 @@
                 Similarly, if the effective classpath of the code under test changes, the manifest must be regenerated.
                 In either case, executing the <literal>testClasses</literal> task of the build will ensure that things are up to date.
             </para>
-            <section>
+            <section id="sec:working_with_gradle_versions_prior_to_28">
                 <title>Working with Gradle versions prior to 2.8</title>
                 <para>
                     The <apilink class="org.gradle.testkit.runner.GradleRunner" method="withPluginClasspath(java.lang.Iterable)"/> method will not work when
@@ -182,7 +182,7 @@
                 </sample>
             </section>
         </section>
-        <section>
+        <section id="sec:controlling_the_build_environment">
             <title>Controlling the build environment</title>
             <para>
                 The runner executes the test builds in an isolated environment by specifying a dedicated "working directory" in a directory inside the JVM's temp directory

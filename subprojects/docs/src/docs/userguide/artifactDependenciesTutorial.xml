@@ -4,7 +4,7 @@
         This chapter introduces some of the basics of dependency management in Gradle.
     </para>
 
-    <section>
+    <section id="sec:what_is_dependency_management">
         <title>What is dependency management?</title>
         <para>
             Very roughly, dependency management is made up of two pieces. Firstly, Gradle needs to
@@ -51,7 +51,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:declaring_your_dependencies">
         <title>Declaring your dependencies</title>
         <para>
             Let's look at some dependency declarations. Here's a basic build script:
@@ -120,7 +120,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:external_dependencies">
         <title>External dependencies</title>
         <para>There are various types of dependencies that you can declare. One such type is an <firstterm>external dependency</firstterm>.
             This is a dependency on some files built outside the current build, and stored in a repository of some kind, such as Maven central, or
@@ -144,7 +144,7 @@
         <para>To find out more about defining and working with dependencies, have a look at <xref linkend="sec:how_to_declare_your_dependencies"/>.</para>
     </section>
 
-    <section>
+    <section id="sec:repositories">
         <title>Repositories</title>
         <para>
             How does Gradle find the files for external dependencies? Gradle looks for them in a <firstterm>repository</firstterm>.
@@ -179,7 +179,7 @@
         <para>To find out more about defining and working with repositories, have a look at <xref linkend="sec:repositories"/>.</para>
     </section>
 
-    <section>
+    <section id="sec:publishing_artifacts">
         <title>Publishing artifacts</title>
         <para>
             Dependency configurations are also used to publish files.<footnote><para>We think this is confusing, and we are gradually teasing apart the two concepts in the Gradle DSL.</para></footnote>
@@ -210,7 +210,7 @@
         <para>To find out more about publication, have a look at <xref linkend="artifact_management"/>.</para>
     </section>
 
-    <section>
+    <section id="sec:where_to_next">
         <title>Where to next?</title>
         <para>
             For all the details of dependency resolution, see <xref linkend="dependency_management"/>, and for artifact publication see <xref linkend="artifact_management"/>.

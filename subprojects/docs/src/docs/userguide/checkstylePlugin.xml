@@ -4,7 +4,7 @@
         and generates reports from these checks.
     </para>
 
-    <section>
+    <section id="sec:usage">
         <title>Usage</title>
         <para>To use the Checkstyle plugin, include the following in your build script:</para>
         <sample id="useCheckstylePlugin" dir="codeQuality" title="Using the Checkstyle plugin">
@@ -13,7 +13,7 @@
         <para>The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running <userinput>gradle check</userinput>.</para>
         <para>Note that Checkstyle will run with the same Java version used to run Gradle.</para>
     </section>
-    <section>
+    <section id="sec:tasks">
         <title>Tasks</title>
         <para>The Checkstyle plugin adds the following tasks to the project:</para>
         <table>
@@ -66,7 +66,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:project_layout">
         <title>Project layout</title>
         <para>The Checkstyle plugin expects the following project layout:</para>
         <table>
@@ -86,7 +86,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:dependency_management">
         <title>Dependency management</title>
         <para>The Checkstyle plugin adds the following dependency configurations:</para>
         <table>
@@ -106,7 +106,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:configuration">
         <title>Configuration</title>
         <para>See the <apilink class="org.gradle.api.plugins.quality.CheckstyleExtension"/> class in the API documentation.</para>
     </section>

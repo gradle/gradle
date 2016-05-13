@@ -41,7 +41,7 @@
         By comparing builds in these scenarios you can make an informed decision about the Gradle upgrade, migration to Gradle or build change by understanding the differences in the outcomes.
         The comparison process produces a HTML report outlining which outcomes were found to be identical and identifying the differences between non-identical outcomes.
     </para>
-    <section>
+    <section id="sec:definition_of_terms">
         <title>Definition of terms</title>
         <para>The following are the terms used for build comparison and their definitions.</para>
         <variablelist>
@@ -124,12 +124,12 @@
 
         </variablelist>
     </section>
-    <section>
+    <section id="sec:current_capabilities">
         <title>Current Capabilities</title>
         <para>
             As this is an <link linkend="feature_lifecycle">incubating</link> feature, a limited set of the eventual functionality has been implemented at this time.
         </para>
-        <section>
+        <section id="sec:supported_builds">
             <title>Supported builds</title>
             <para>
                 Only support for comparing Gradle builds is available at this time.
@@ -141,7 +141,7 @@
                 or Apache Maven, as well as support for executing arbitrary processes (e.g. shell script based builds)
             </para>
         </section>
-        <section>
+        <section id="sec:supported_build_outcomes">
             <title>Supported build outcomes</title>
             <para>
                 Only support for comparing build outcomes that are <literal>zip</literal> archives is supported at this time.
@@ -152,7 +152,7 @@
             </para>
         </section>
     </section>
-    <section>
+    <section id="sec:comparing_gradle_builds">
         <title>Comparing Gradle Builds</title>
         <para>
             The <literal>compare-gradle-builds</literal> plugin can be used to facilitate a comparison between two Gradle builds. The plugin
@@ -181,7 +181,7 @@ compareGradleBuilds {
         <para>
             The example above specifies a comparison between two different projects using two different Gradle versions.
         </para>
-        <section>
+        <section id="sec:trying_gradle_upgrades">
             <title>Trying Gradle upgrades</title>
             <para>
                 You can use the build comparison functionality to very quickly try a new Gradle version with your build.
@@ -200,7 +200,7 @@ compareGradleBuilds {
                 Then simply execute the <command>compareGradleBuilds</command> task. You will see the console output of the “source” and “target” builds as they are executing.
             </para>
         </section>
-        <section>
+        <section id="sec:the_comparison_result">
             <title>The comparison “result”</title>
             <para>
                 If there are any differences between the <firstterm>compared outcomes</firstterm>, the task will fail. The location of the HTML report
@@ -216,7 +216,7 @@ compareGradleBuilds {
 }
             </programlisting>
         </section>
-        <section>
+        <section id="sec:which_archives_are_compared">
             <title>Which archives are compared?</title>
             <para>
                 For an archive to be a candidate for comparison, it must be added as an artifact of the archives configuration.

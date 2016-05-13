@@ -2,7 +2,7 @@
     <title>Standard Gradle plugins</title>
     <para>There are a number of plugins included in the Gradle distribution. These are listed below.
     </para>
-    <section>
+    <section id="sec:language_plugins">
         <title>Language plugins</title>
         <para>These plugins add support for various languages which can be compiled for and executed in the JVM.</para>
         <table>
@@ -77,7 +77,7 @@
             </tr>
         </table>
     </section>
-    <section>
+    <section id="sec:incubating_language_plugins">
         <title>Incubating language plugins</title>
         <para>These plugins add support for various languages:</para>
         <table>
@@ -164,7 +164,7 @@
             </tr>
         </table>
     </section>
-    <section>
+    <section id="sec:integration_plugins">
         <title>Integration plugins</title>
         <para>These plugins provide some integration with various runtime technologies.</para>
         <table>
@@ -268,7 +268,7 @@
             </tr>
         </table>
     </section>
-    <section>
+    <section id="sec:incubating_integration_plugins">
         <title>Incubating integration plugins</title>
         <para>These plugins provide some integration with various runtime technologies.</para>
         <table>
@@ -335,7 +335,7 @@
             </tr>
         </table>
     </section>
-    <section>
+    <section id="sec:software_development_plugins">
         <title>Software development plugins</title>
         <para>These plugins provide help with your software development process.</para>
         <table>
@@ -536,7 +536,7 @@
             </tr>
         </table>
     </section>
-    <section>
+    <section id="sec:incubating_software_development_plugins">
         <title>Incubating software development plugins</title>
         <para>These plugins provide help with your software development process.</para>
         <table>
@@ -642,7 +642,7 @@
             </tr>
         </table>
     </section>
-    <section>
+    <section id="sec:base_plugins">
         <title>Base plugins</title>
         <para>These plugins form the basic building blocks which the other plugins are assembled from. They are
             available for you to use in your build files, and are listed here for completeness. However, be aware that
@@ -714,7 +714,7 @@
             </tr>
         </table>
     </section>
-    <section>
+    <section id="sec:third_party_plugins">
         <title>Third party plugins</title>
         <para>You can find a list of external plugins at the <ulink url="http://plugins.gradle.org/">Gradle Plugins site</ulink>.
         </para>

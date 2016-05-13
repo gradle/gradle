@@ -12,7 +12,7 @@
         Java or Scala instead, if you want.
     </para>
 
-    <section>
+    <section id="sec:packaging_a_plugin">
         <title>Packaging a plugin</title>
         <para>There are several places where you can put the source for the plugin.
         </para>
@@ -58,7 +58,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:writing_a_simple_plugin">
         <title>Writing a simple plugin</title>
         <para>To create a custom plugin, you need to write an implementation of <apilink class="org.gradle.api.Plugin"/>.
             Gradle instantiates the plugin and calls the plugin instance's <apilink class="org.gradle.api.Plugin" method="apply"/> method when the
@@ -81,7 +81,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:getting_input_from_the_build">
         <title>Getting input from the build</title>
         <para>Most plugins need to obtain some configuration from the build script. One method for doing this is to use <firstterm>extension objects</firstterm>.
              The Gradle <apilink class="org.gradle.api.Project"/> has an associated <apilink class="org.gradle.api.plugins.ExtensionContainer"/> object
@@ -121,7 +121,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:working_with_files_in_custom_tasks_and_plugins">
         <title>Working with files in custom tasks and plugins</title>
         <para>
             When developing custom tasks and plugins, it's a good idea to be very flexible when accepting input configuration for file locations.
@@ -140,7 +140,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:a_standalone_project">
         <title>A standalone project</title>
         <para>Now we will move our plugin to a standalone project, so we can publish it and share it with others.
             This project is simply a Groovy project that produces a JAR containing the plugin classes.
@@ -166,7 +166,7 @@
             that the <literal>implementation-class</literal> property identifies the <apilink class="org.gradle.api.Plugin"/> implementation class.
         </para>
 
-        <section>
+        <section id="sec:creating_a_plugin_id">
             <title>Creating a plugin id</title>
             <para>
                 Plugin ids are fully qualified in a manner similar to Java packages (i.e. a reverse domain name).  This helps to avoid
@@ -198,7 +198,7 @@
             </para>
         </section>
 
-        <section>
+        <section id="sec:publishing_your_plugin">
             <title>Publishing your plugin</title>
             <para>
                 If you are publishing your plugin internally for use within your organization, you can publish it like
@@ -213,7 +213,7 @@
             </para>
         </section>
 
-        <section>
+        <section id="sec:using_your_plugin_in_another_project">
             <title>Using your plugin in another project</title>
             <para>To use a plugin in a build script, you need to add the plugin classes to the build script's classpath. To
                 do this, you use a “<literal>buildscript { }</literal>” block, as described in <xref linkend="sec:applying_plugins_buildscript"/>.
@@ -234,7 +234,7 @@
             </sample>
         </section>
 
-        <section>
+        <section id="sec:writing_tests_for_your_plugin">
             <title>Writing tests for your plugin</title>
             <para>You can use the <apilink class="org.gradle.testfixtures.ProjectBuilder"/> class to create
                 <apilink class="org.gradle.api.Project"/> instances to use when you test your plugin implementation.
@@ -244,7 +244,7 @@
             </sample>
         </section>
 
-        <section>
+        <section id="sec:using_the_java_gradle_plugin_development_plugin">
             <title>Using the Java Gradle Plugin development plugin</title>
             <para>You can use the incubating <link linkend="javaGradle_plugin">Java Gradle Plugin development plugin</link>
                 to eliminate some of the boilerplate declarations in your build script and provide some basic validations
@@ -264,7 +264,7 @@
         </section>
     </section>
 
-    <section>
+    <section id="sec:maintaining_multiple_domain_objects">
         <title>Maintaining multiple domain objects</title>
 
         <para>Gradle provides some utility classes for maintaining collections of objects, which work well with the Gradle build language.</para>

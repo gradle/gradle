@@ -21,7 +21,7 @@
         for many of the other Gradle plugins.
     </para>
 
-    <section>
+    <section id="sec:usage">
         <title>Usage</title>
         <para>To use the Java plugin, include the following in your build script:</para>
         <sample id="useJavaPlugin" dir="java/quickstart" title="Using the Java plugin">
@@ -29,7 +29,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:source_sets">
         <title>Source sets</title>
         <para>The Java plugin introduces the concept of a <firstterm>source set</firstterm>. A source set is simply a group of
             source files which are compiled and executed together. These source files may include Java source files and
@@ -49,7 +49,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:tasks">
         <title>Tasks</title>
         <para>The Java plugin adds a number of tasks to your project, as shown below.</para>
 
@@ -327,7 +327,7 @@
         </figure>
     </section>
 
-    <section>
+    <section id="sec:project_layout">
         <title>Project layout</title>
         <para>The Java plugin assumes the project layout shown below. None of these directories need exist or have
             anything in them. The Java plugin will compile whatever it finds, and handles anything which is missing.
@@ -347,7 +347,7 @@
             <xi:include href="javaProjectGenericLayout.xml"/>
         </table>
 
-        <section>
+        <section id="sec:changing_the_project_layout">
             <title>Changing the project layout</title>
             <para>You configure the project layout by configuring the appropriate source set. This is discussed in
                 more detail in the following sections. Here is a brief example which changes the main Java and resource
@@ -481,7 +481,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:convention_properties">
         <title>Convention properties</title>
         <para>
             The Java plugin adds a number of convention properties to the project, shown below. You can use these properties
@@ -753,7 +753,7 @@
             <sourcefile file="build.gradle" snippet="define-main"/>
         </sample>
 
-        <section>
+        <section id="sec:source_set_properties">
             <title>Source set properties</title>
             <para>The following table lists some of the important properties of a source set.
                 You can find more details in the API documentation for <apilink class="org.gradle.api.tasks.SourceSet"/>.
@@ -944,7 +944,7 @@
             </table>
         </section>
 
-        <section>
+        <section id="sec:defining_new_source_sets">
             <title>Defining new source sets</title>
             <para>To define a new source set, you simply reference it in the <literal>sourceSets { }</literal> block. Here's an example:
             </para>
@@ -970,7 +970,7 @@
             </sample>
         </section>
 
-        <section>
+        <section id="sec:some_source_set_examples">
             <title>Some source set examples</title>
             <para>Adding a JAR containing the classes of a source set:</para>
             <sample id="configureSourceSet" dir="userguide/java/sourceSets" title="Assembling a JAR for a source set">
@@ -987,7 +987,7 @@
         </section>
     </section>
 
-    <section id='sec:javadoc'>
+    <section id="sec:javadoc">
         <title>Javadoc</title>
         <para>The <literal>javadoc</literal> task is an instance of <apilink class="org.gradle.api.tasks.javadoc.Javadoc"/>.
             It supports the core Javadoc options and the options of the standard doclet described in the
@@ -1034,7 +1034,7 @@
         </table>
     </section>
 
-    <section id='sec:clean'>
+    <section id="sec:clean">
         <title>Clean</title>
         <para>The <literal>clean</literal> task is an instance of <apilink class="org.gradle.api.tasks.Delete"/>. It
             simply removes the directory denoted by its <literal>dir</literal>
@@ -1059,7 +1059,7 @@
         </table>
     </section>
 
-    <section id='sec:resources'>
+    <section id="sec:resources">
         <title>Resources</title>
         <para>The Java plugin uses the <apilink class="org.gradle.api.tasks.Copy"/> task for resource handling. It adds an
             instance for each source set in the project. You can find out more about the copy task in
@@ -1091,7 +1091,7 @@
         </table>
     </section>
 
-    <section id='sec:compile'>
+    <section id="sec:compile">
         <title>CompileJava</title>
         <para>The Java plugin adds a <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> instance for each
             source set in the project. Some of the most common configuration options are shown below.
@@ -1136,7 +1136,7 @@
         </para>
     </section>
 
-    <section id='sec:incremental_compile'>
+    <section id="sec:incremental_compile">
         <title>Incremental Java compilation</title>
         <para>Starting with Gradle 2.1, it is possible to compile Java incrementally. This feature is still incubating.
             See the <apilink class="org.gradle.api.tasks.compile.JavaCompile"/> task for information on how to enable it.</para>
@@ -1162,7 +1162,7 @@
         </para>
     </section>
 
-    <section id='sec:java_test'>
+    <section id="sec:java_test">
         <title>Test</title>
         <para>The <literal>test</literal> task is an instance of <apilink class="org.gradle.api.tasks.testing.Test"/>.
             It automatically detects and executes all unit tests in the <literal>test</literal> source set.
@@ -1170,7 +1170,7 @@
             Have a look at <apilink class="org.gradle.api.tasks.testing.Test"/> for the complete API.
         </para>
 
-        <section>
+        <section id="sec:test_execution">
             <title>Test execution</title>
             <para>Tests are executed in a separate JVM, isolated from the main build process. The <apilink class="org.gradle.api.tasks.testing.Test"/> task's
                 API allows you some control over how this happens.
@@ -1205,7 +1205,7 @@
             </para>
         </section>
 
-        <section>
+        <section id="sec:debugging">
             <title>Debugging</title>
             <para>
                 The test task provides a <apilink class="org.gradle.api.tasks.testing.Test" method="getDebug()" /> property that can be set to launch to make the JVM wait for a
@@ -1306,7 +1306,7 @@
                 </itemizedlist>
             </para>
         </section>
-        <section>
+        <section id="sec:single_test_execution_via_system_properties">
             <title>Single test execution via System Properties</title>
             <note>This mechanism has been superseded by 'Test Filtering', described above.</note>
             <para>Setting a system property of <replaceable>taskName.single</replaceable> = <replaceable>testNamePattern</replaceable>
@@ -1339,7 +1339,7 @@
             </para>
         </section>
 
-        <section>
+        <section id="sec:test_detection">
             <title>Test detection</title>
             <para>The <literal>Test</literal> task detects which classes are test classes by inspecting the compiled test classes.
                 By default it scans all <filename>.class</filename> files. You can set custom includes / excludes, only those
@@ -1470,7 +1470,7 @@
             </section>
         </section>
 
-        <section>
+        <section id="sec:convention_values">
             <title>Convention values</title>
             <table>
                 <title>Java plugin - test properties</title>
@@ -1506,7 +1506,7 @@
 
     </section>
 
-    <section>
+    <section id="sec:jar">
         <title>Jar</title>
         <para>The <literal>jar</literal> task creates a JAR file containing the class files and resources of the
             project. The JAR file is declared as an artifact in the <literal>archives</literal> dependency
@@ -1515,7 +1515,7 @@
             more about how to work with archives in <xref linkend="sec:archives"/> and artifact configurations in
             <xref linkend="artifact_management"/>.
         </para>
-        <section id='sub:manifest'>
+        <section id="sub:manifest">
             <title>Manifest</title>
             <para>Each jar or war object has a <literal>manifest</literal>
                 property with a separate instance of <apilink class="org.gradle.api.java.archives.Manifest"/>.
@@ -1552,7 +1552,7 @@
         </section>
     </section>
 
-    <section id='sec:upload'>
+    <section id="sec:upload">
         <title>Uploading</title>
         <para>How to upload your archives is described in <xref linkend="artifact_management"/>.
         </para>

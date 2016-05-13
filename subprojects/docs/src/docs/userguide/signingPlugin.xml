@@ -28,7 +28,7 @@
         publication to the Maven Central Repository</ulink>).
     </para>
 
-    <section>
+    <section id="sec:usage">
         <title>Usage</title>
         <para>To use the Signing plugin, include the following in your build script:</para>
         <sample id="useSigningPlugin" dir="signing/maven" title="Using the Signing plugin">
@@ -36,7 +36,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:signatory_credentials">
         <title>Signatory credentials</title>
         <para>
             In order to create OpenPGP signatures, you will need a key pair (instructions on creating a key pair using the <ulink url="https://www.gnupg.org/">GnuPG tools</ulink>
@@ -101,13 +101,13 @@ gradle.taskGraph.whenReady { taskGraph ->
         </section>
     </section>
 
-    <section>
+    <section id="sec:specifying_what_to_sign">
         <title>Specifying what to sign</title>
         <para>
             As well as configuring how things are to be signed (i.e. the signatory configuration), you must also specify what is to be signed.
             The Signing plugin provides a DSL that allows you to specify the tasks and/or configurations that should be signed.
         </para>
-        <section>
+        <section id="sec:signing_configurations">
             <title>Signing Configurations</title>
             <para>
                 It is common to want to sign the artifacts of a configuration. For example, the <link linkend="java_plugin">Java plugin</link>
@@ -126,7 +126,7 @@ gradle.taskGraph.whenReady { taskGraph ->
                 <output args="signArchives"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:signing_tasks">
             <title>Signing Tasks</title>
             <para>
                 In some cases the artifact that you need to sign may not be part of a configuration. In this case you can directly sign the task that
@@ -149,7 +149,7 @@ gradle.taskGraph.whenReady { taskGraph ->
                 <apilink class="org.gradle.api.tasks.bundling.War"/> and <apilink class="org.gradle.plugins.ear.Ear"/> tasks.
             </para>
         </section>
-        <section>
+        <section id="sec:conditional_signing">
             <title>Conditional Signing</title>
             <para>
                 A common usage pattern is to only sign build artifacts under certain conditions. For example, you may not wish to sign artifacts for non release versions.
@@ -166,7 +166,7 @@ gradle.taskGraph.whenReady { taskGraph ->
         </section>
     </section>
 
-    <section>
+    <section id="sec:publishing_the_signatures">
         <title>Publishing the signatures</title>
         <para>
             When specifying what is to be signed via the Signing DSL, the resultant signature artifacts are automatically added to the <literal>signatures</literal> and
@@ -175,7 +175,7 @@ gradle.taskGraph.whenReady { taskGraph ->
         </para>
     </section>
 
-    <section>
+    <section id="sec:signing_pom_files">
         <title>Signing POM files</title>
         <para>
             When deploying signatures for your artifacts to a Maven repository, you will also want to sign the published POM file. The signing plugin adds a

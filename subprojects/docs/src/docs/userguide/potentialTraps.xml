@@ -15,7 +15,7 @@
   -->
 <appendix id='potential_traps' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Potential Traps</title>
-    <section id='sec:groovy_script_variables'>
+    <section id="sec:groovy_script_variables">
         <title>Groovy script variables</title>
         <para>For Gradle users it is important to understand how Groovy deals with script variables. Groovy has two types
             of script variables. One with a local scope and one with a script-wide scope.
@@ -33,7 +33,7 @@
             </footnote>
         </para>
     </section>
-    <section id='sec:configuration_and_execution_phase'>
+    <section id="sec:configuration_and_execution_phase">
         <title>Configuration and execution phase</title>
         <para>It is important to keep in mind that Gradle has a distinct configuration and execution phase (see 
             <xref linkend='build_lifecycle'/>).

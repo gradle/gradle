@@ -21,7 +21,7 @@
     </para>
     <para>Refer to the API docs for <apilink class="org.gradle.model.RuleSource"/> for more details.</para>
 
-    <section>
+    <section id="sec:applying_additional_rules">
         <title>Applying additional rules</title>
         <para>A rule method annotated with <apilink class="org.gradle.model.Rules"/> can apply a <apilink class="org.gradle.model.RuleSource"/> to a target model element.</para>
     </section>

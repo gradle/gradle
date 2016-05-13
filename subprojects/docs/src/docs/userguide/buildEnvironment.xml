@@ -91,7 +91,7 @@
                 </listitem>
             </varlistentry>
         </para>
-        <section>
+        <section id="sec:forked_java_processes">
             <title>Forked Java processes</title>
             <para>Many settings (like the Java version and maximum heap size) can only be specified when launching a new JVM for the build process. This means that Gradle
                 must launch a separate JVM process to execute the build after parsing the various <filename>gradle.properties</filename> files.
@@ -105,7 +105,7 @@
             we highly recommend that you use the Gradle Daemon. See <xref linkend="gradle_daemon"/> for more details.</para>
         </section>
     </section>
-    <section id='sec:gradle_properties_and_system_properties'>
+    <section id="sec:gradle_properties_and_system_properties">
         <title>Gradle properties and system properties</title>
         <para>Gradle offers a variety of ways to add properties to your build. With the <option>-D</option> command line
             option you can pass a system property to the JVM which runs Gradle. The <option>-D</option> option of the
@@ -155,7 +155,7 @@
             <sourcefile file="build.gradle"/>
             <output args="-q -PcommandLineProjectProp=commandLineProjectPropValue -Dorg.gradle.project.systemProjectProp=systemPropertyValue printProps"/>
         </sample>
-        <section id='sub:checking_for_project_properties'>
+        <section id="sub:checking_for_project_properties">
             <title>Checking for project properties</title>
             <para>You can access a project property in your build script simply by using its name as you would use a
                 variable. If this property does not exist, an exception will be thrown and the build will fail. If your
@@ -169,7 +169,7 @@
         </section>
     </section>
 
-    <section id='sec:accessing_the_web_via_a_proxy'>
+    <section id="sec:accessing_the_web_via_a_proxy">
         <title>Accessing the web via a proxy</title>
         <para>Configuring an HTTP proxy (for downloading dependencies, for example) is done via standard JVM system
         properties. These properties can be set directly in the build script; for example, setting the proxy host
@@ -209,7 +209,7 @@ systemProp.https.nonProxyHosts=*.nonproxyrepos.com|localhost
                 Networking Properties page
             </ulink> from the JDK docs. If anyone knows of a better overview, please let us know via the mailing list.
         </para>
-        <section id='sub:ntlm_authentication'>
+        <section id="sub:ntlm_authentication">
             <title>NTLM Authentication</title>
             <para>If your proxy requires NTLM authentication, you may need to provide the authentication domain as well as the username and password.
                 There are 2 ways that you can provide the domain for authenticating to a NTLM proxy:

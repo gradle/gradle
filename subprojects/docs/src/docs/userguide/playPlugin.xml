@@ -31,7 +31,7 @@
         The Play plugin makes use of the Gradle <link linkend="software_model">software model</link>.
     </para>
 
-    <section>
+    <section id="sec:usage">
         <title>Usage</title>
         <para>To use the Play plugin, include the following in your build script to apply the <literal>play</literal> plugin and add the Typesafe repositories:</para>
         <sample id="usePlayPlugin" dir="play/basic" title="Using the Play plugin">
@@ -40,7 +40,7 @@
         <para>Note that defining the Typesafe repositories is necessary.  In future versions of Gradle, this will be replaced with a more convenient syntax.</para>
     </section>
 
-    <section>
+    <section id="sec:limitations">
         <title>Limitations</title>
         <para>The Play plugin currently has a few limitations.</para>
         <itemizedlist>
@@ -73,7 +73,7 @@
         </itemizedlist>
     </section>
 
-    <section>
+    <section id="sec:software_model">
         <title>Software Model</title>
 
         <para>
@@ -89,7 +89,7 @@
             </imageobject>
         </figure>
 
-        <section>
+        <section id="sec:the_play_application_component">
             <title>The Play application component</title>
             <para>
                 A Play application component describes the application to be built and consists of several configuration elements.  One type of element that
@@ -152,7 +152,7 @@
                 those outputs will be built using the versions specified by the platform configured on the component.
             </para>
         </section>
-        <section>
+        <section id="sec:the_play_application_binary">
             <title>The Play application binary</title>
             <para>
                 A Play application component is compiled and packaged to produce a set of outputs which are represented by a <apilink class="org.gradle.play.PlayApplicationBinarySpec"/>.
@@ -165,7 +165,7 @@
         </section>
     </section>
 
-    <section>
+    <section id="sec:project_layout">
         <title>Project Layout</title>
         <para>The Play plugin follows the typical Play application layout.  You can <link linkend="configuring_play_sourcesets">configure source sets</link> to include additional directories or change the defaults.</para>
         <screen>
@@ -185,7 +185,7 @@
         </screen>
     </section>
 
-    <section>
+    <section id="sec:tasks">
         <title>Tasks</title>
 
         <para>The Play plugin hooks into the normal Gradle lifecycle tasks such as <literal>assemble</literal>, <literal>check</literal> and <literal>build</literal>,
@@ -318,7 +318,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:finding_out_more_about_your_project">
         <title>Finding out more about your project</title>
         <para>
             Gradle provides a report that you can run from the command-line that shows some details about the components and binaries that your
@@ -367,7 +367,7 @@
                 <sourcefile file="build.gradle" snippet="play-platform"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:adding_dependencies">
             <title>Adding dependencies</title>
             <para>
                 You can add compile, test and runtime dependencies to a Play application through <apilink class="org.gradle.api.artifacts.Configuration">Configurations</apilink> created by the Play plugin.
@@ -410,7 +410,7 @@
                 <sourcefile file="build.gradle" snippet="default-sourcesets"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:adding_extra_source_sets">
             <title>Adding extra source sets</title>
             <para>
                 If your Play application has additional sources that exist in non-standard directories, you can add extra source sets that Gradle will automatically add to the appropriate compile tasks.
@@ -419,7 +419,7 @@
                 <sourcefile file="build.gradle" snippet="play-extra-sourcesets"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:configuring_compiler_options">
             <title>Configuring compiler options</title>
             <para>
                 If your Play application requires additional Scala compiler flags, you can add these arguments directly to the Scala compiler task.
@@ -428,7 +428,7 @@
                 <sourcefile file="build.gradle" snippet="play-configure-compiler"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:configuring_routes_style">
             <title>Configuring routes style</title>
             <note>
                 The injected router is only supported in Play Framework 2.4 or better.
@@ -442,7 +442,7 @@
                 <sourcefile file="build.gradle" snippet="play-injected-routes-compiler"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:injecting_a_custom_asset_pipeline">
             <title>Injecting a custom asset pipeline</title>
             <para>
                 Gradle Play support comes with a simplistic asset processing pipeline that minifies JavaScript assets.  However, many organizations have their own
@@ -455,7 +455,7 @@
         </section>
     </section>
 
-    <section>
+    <section id="sec:multiproject_play_applications">
         <title>Multi-project Play applications</title>
         <para>
             Play applications can be built in multi-project builds as well.  Simply apply the <literal>play</literal> plugin in the appropriate subprojects and create any
@@ -570,7 +570,7 @@
             You can run the Play application with Gradle in <link linkend="continuous_build">continuous build</link> to automatically rebuild and reload the application whenever something changes.
         </para>
     </section>
-    <section>
+    <section id="sec:resources">
         <title>Resources</title>
         <para>
             For additional information about developing Play applications:
