@@ -17,23 +17,17 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.internal.component.model.AbstractModuleDescriptorBackedMetaData;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
-import org.gradle.internal.component.model.DefaultDependencyMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -47,7 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDescriptorBackedMetaData implements MutableModuleComponentResolveMetaData {
+abstract class AbstractModuleComponentResolveMetaData implements MutableModuleComponentResolveMetaData {
+    private final ModuleDescriptorState descriptor;
     private ModuleVersionIdentifier moduleVersionIdentifier;
     private ModuleComponentIdentifier componentIdentifier;
     private boolean changing;
@@ -60,16 +55,16 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
     private List<DependencyMetaData> dependencies;
     private List<ExcludeRule> excludeRules;
 
-    public AbstractModuleComponentResolveMetaData(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptor moduleDescriptor) {
-        super(moduleDescriptor);
+    public AbstractModuleComponentResolveMetaData(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptorState moduleDescriptor) {
+        this.descriptor = moduleDescriptor;
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = moduleVersionIdentifier;
         generated = moduleDescriptor.isDefault();
         status = moduleDescriptor.getStatus();
         configurations = populateConfigurationsFromDescriptor(moduleDescriptor);
         artifactsByConfig = populateArtifactsFromDescriptor(componentIdentifier, moduleDescriptor);
-        dependencies = populateDependenciesFromDescriptor(moduleDescriptor);
-        excludeRules = Lists.newArrayList(moduleDescriptor.getAllExcludeRules());
+        dependencies = moduleDescriptor.getDependencies();
+        excludeRules = moduleDescriptor.getExcludeRules();
     }
 
     protected void copyTo(AbstractModuleComponentResolveMetaData copy) {
@@ -80,6 +75,10 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
         copy.artifactsByConfig = artifactsByConfig;
         copy.dependencies = dependencies;
         copy.excludeRules = excludeRules;
+    }
+
+    public ModuleDescriptor getDescriptor() {
+        return descriptor.ivyDescriptor;
     }
 
     public abstract AbstractModuleComponentResolveMetaData copy();
@@ -168,19 +167,12 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
         }
     }
 
-    private static Multimap<String, ModuleComponentArtifactMetaData> populateArtifactsFromDescriptor(ModuleComponentIdentifier componentId, ModuleDescriptor descriptor) {
-        Map<Artifact, ModuleComponentArtifactMetaData> artifactToMetaData = Maps.newLinkedHashMap();
-        for (Artifact descriptorArtifact : descriptor.getAllArtifacts()) {
-            IvyArtifactName artifactName = DefaultIvyArtifactName.forIvyArtifact(descriptorArtifact);
-            ModuleComponentArtifactMetaData artifact = new DefaultModuleComponentArtifactMetaData(componentId, artifactName);
-            artifactToMetaData.put(descriptorArtifact, artifact);
-        }
-
+    private static Multimap<String, ModuleComponentArtifactMetaData> populateArtifactsFromDescriptor(ModuleComponentIdentifier componentId, ModuleDescriptorState descriptor) {
         Multimap<String, ModuleComponentArtifactMetaData> artifactsByConfig = LinkedHashMultimap.create();
-        for (String configuration : descriptor.getConfigurationsNames()) {
-            Artifact[] configArtifacts = descriptor.getArtifacts(configuration);
-            for (Artifact configArtifact : configArtifacts) {
-                artifactsByConfig.put(configuration, artifactToMetaData.get(configArtifact));
+        for (ModuleDescriptorState.Artifact artifact : descriptor.getArtifacts()) {
+            ModuleComponentArtifactMetaData artifactMetadata = new DefaultModuleComponentArtifactMetaData(componentId, artifact.artifactName);
+            for (String configuration : artifact.configurations) {
+                artifactsByConfig.put(configuration, artifactMetadata);
             }
         }
         return artifactsByConfig;
@@ -188,14 +180,6 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
 
     public List<DependencyMetaData> getDependencies() {
         return dependencies;
-    }
-
-     private static List<DependencyMetaData> populateDependenciesFromDescriptor(ModuleDescriptor moduleDescriptor) {
-         List<DependencyMetaData> dependencies = new ArrayList<DependencyMetaData>();
-         for (final DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
-             dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor));
-         }
-         return dependencies;
     }
 
     public void setDependencies(Iterable<? extends DependencyMetaData> dependencies) {
@@ -209,7 +193,7 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
         return configurations.get(name);
     }
 
-    private Map<String, DefaultConfigurationMetaData> populateConfigurationsFromDescriptor(ModuleDescriptor moduleDescriptor) {
+    private Map<String, DefaultConfigurationMetaData> populateConfigurationsFromDescriptor(ModuleDescriptorState moduleDescriptor) {
         Map<String, DefaultConfigurationMetaData> configurations = Maps.newLinkedHashMap();
         for (String configName : moduleDescriptor.getConfigurationsNames()) {
             populateConfigurationFromDescriptor(configName, moduleDescriptor, configurations);
@@ -217,20 +201,20 @@ abstract class AbstractModuleComponentResolveMetaData extends AbstractModuleDesc
         return configurations;
     }
 
-    private DefaultConfigurationMetaData populateConfigurationFromDescriptor(String name, ModuleDescriptor moduleDescriptor, Map<String, DefaultConfigurationMetaData> configurations) {
+    private DefaultConfigurationMetaData populateConfigurationFromDescriptor(String name, ModuleDescriptorState moduleDescriptor, Map<String, DefaultConfigurationMetaData> configurations) {
         DefaultConfigurationMetaData populated = configurations.get(name);
         if (populated != null) {
             return populated;
         }
 
-        Configuration descriptorConfiguration = moduleDescriptor.getConfiguration(name);
+        ModuleDescriptorState.Configuration descriptorConfiguration = moduleDescriptor.getConfiguration(name);
         Set<String> hierarchy = new LinkedHashSet<String>();
         hierarchy.add(name);
-        for (String parent : descriptorConfiguration.getExtends()) {
+        for (String parent : descriptorConfiguration.extendsFrom) {
             hierarchy.addAll(populateConfigurationFromDescriptor(parent, moduleDescriptor, configurations).hierarchy);
         }
-        boolean transitive = descriptorConfiguration.isTransitive();
-        boolean visible = descriptorConfiguration.getVisibility() == Configuration.Visibility.PUBLIC;
+        boolean transitive = descriptorConfiguration.transitive;
+        boolean visible = descriptorConfiguration.visiible;
         DefaultConfigurationMetaData configuration = new DefaultConfigurationMetaData(name, hierarchy, transitive, visible);
         configurations.put(name, configuration);
         return configuration;

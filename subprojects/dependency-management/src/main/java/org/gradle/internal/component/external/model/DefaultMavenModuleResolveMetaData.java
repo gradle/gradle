@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -36,19 +35,19 @@ public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentRe
     private String snapshotTimestamp;
 
     public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
-        this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, artifacts), "jar", false);
+        this(componentIdentifier, new ModuleDescriptorState(IvyUtil.createModuleDescriptor(componentIdentifier, artifacts)), "jar", false);
     }
 
-    public DefaultMavenModuleResolveMetaData(ModuleDescriptor moduleDescriptor, String packaging, boolean relocated) {
-        this(DefaultModuleComponentIdentifier.newId(moduleDescriptor.getModuleRevisionId()), moduleDescriptor, packaging, relocated);
+    public DefaultMavenModuleResolveMetaData(ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated) {
+        this(moduleDescriptor.getComponentIdentifier(), moduleDescriptor, packaging, relocated);
     }
 
-    public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentId, ModuleDescriptor descriptor, String packaging, boolean relocated) {
+    public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentId, ModuleDescriptorState descriptor, String packaging, boolean relocated) {
         this(componentId, DefaultModuleVersionIdentifier.newId(componentId), descriptor, packaging, relocated);
     }
 
-    private DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentId, ModuleVersionIdentifier id, ModuleDescriptor descriptor, String packaging, boolean relocated) {
-        super(componentId, id, descriptor);
+    private DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentId, ModuleVersionIdentifier id, ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated) {
+        super(componentId, id, moduleDescriptor);
         this.packaging = packaging;
         this.relocated = relocated;
     }
@@ -56,7 +55,7 @@ public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentRe
     @Override
     public DefaultMavenModuleResolveMetaData copy() {
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
-        DefaultMavenModuleResolveMetaData copy = new DefaultMavenModuleResolveMetaData(getComponentId(), getId(), getDescriptor(), packaging, relocated);
+        DefaultMavenModuleResolveMetaData copy = new DefaultMavenModuleResolveMetaData(getComponentId(), getId(), new ModuleDescriptorState(getDescriptor()), packaging, relocated);
         copyTo(copy);
         copy.snapshotTimestamp = snapshotTimestamp;
         return copy;

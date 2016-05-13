@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
@@ -29,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.ModuleDescriptorState;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +69,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
         doParsePom(parserSettings, mdBuilder, pomReader);
 
-        DefaultModuleDescriptor moduleDescriptor = mdBuilder.getModuleDescriptor();
+        ModuleDescriptorState moduleDescriptor = new ModuleDescriptorState(mdBuilder.getModuleDescriptor());
         if(pomReader.getRelocation() != null) {
             return new DefaultMavenModuleResolveMetaData(moduleDescriptor, "pom", true);
         }

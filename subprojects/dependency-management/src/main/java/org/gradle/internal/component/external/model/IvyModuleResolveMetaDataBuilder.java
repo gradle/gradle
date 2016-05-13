@@ -76,6 +76,6 @@ public class IvyModuleResolveMetaDataBuilder {
 
     public DefaultIvyModuleResolveMetaData build() {
         ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(module.getModuleRevisionId());
-        return new DefaultIvyModuleResolveMetaData(id, module);
+        return new DefaultIvyModuleResolveMetaData(id, new ModuleDescriptorState(module));
     }
 }

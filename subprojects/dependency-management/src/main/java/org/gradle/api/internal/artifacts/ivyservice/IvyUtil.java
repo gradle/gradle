@@ -103,6 +103,9 @@ public class IvyUtil {
     }
 
     private static void addArtifact(DefaultModuleDescriptor moduleDescriptor, String name, String type, String extension, Map<String, String> extraAttributes) {
-        moduleDescriptor.addArtifact(ModuleDescriptor.DEFAULT_CONFIGURATION, new MDArtifact(moduleDescriptor, name, type, extension, null, extraAttributes));
+        String configuration = ModuleDescriptor.DEFAULT_CONFIGURATION;
+        MDArtifact artifact = new MDArtifact(moduleDescriptor, name, type, extension, null, extraAttributes);
+        artifact.addConfiguration(configuration);
+        moduleDescriptor.addArtifact(configuration, artifact);
     }
 }
