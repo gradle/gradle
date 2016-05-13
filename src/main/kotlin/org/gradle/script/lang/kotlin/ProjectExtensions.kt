@@ -37,6 +37,9 @@ inline fun <T : Any> Project.configure(extensionType: KClass<T>, configuration: 
 inline fun <reified T : Task> Project.task(name: String, noinline configuration: T.() -> Unit) =
     task(name, T::class, configuration)
 
+inline fun <reified T : Task> Project.task(name: String) =
+    tasks.create(name, T::class.java)
+
 fun <T : Task> Project.task(name: String, type: KClass<T>, configuration: T.() -> Unit) =
     createTask(name, type, configuration)
 
