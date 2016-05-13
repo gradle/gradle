@@ -42,17 +42,17 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
         moduleDescriptor = new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(id), status, null);
     }
 
-    public DefaultIvyModulePublishMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor) {
+    public DefaultIvyModulePublishMetaData(ModuleVersionIdentifier id, ModuleDescriptorState moduleDescriptor) {
         this.id = id;
-        this.moduleDescriptor = (DefaultModuleDescriptor) moduleDescriptor;
+        this.moduleDescriptor = (DefaultModuleDescriptor) moduleDescriptor.ivyDescriptor;
     }
 
     public ModuleVersionIdentifier getId() {
         return id;
     }
 
-    public DefaultModuleDescriptor getModuleDescriptor() {
-        return moduleDescriptor;
+    public ModuleDescriptorState getModuleDescriptor() {
+        return new ModuleDescriptorState(moduleDescriptor, true);
     }
 
     @Override

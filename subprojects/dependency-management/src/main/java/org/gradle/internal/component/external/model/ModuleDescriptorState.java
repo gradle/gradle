@@ -20,12 +20,14 @@ import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.model.DefaultDependencyMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,9 +36,17 @@ import java.util.Map;
 
 public class ModuleDescriptorState {
     public final ModuleDescriptor ivyDescriptor;
+    // Force attribute is ignored in published modules: we only consider force attribute on direct dependencies
+    private final boolean allowForcedDependencies;
 
     public ModuleDescriptorState(ModuleDescriptor ivyDescriptor) {
         this.ivyDescriptor = ivyDescriptor;
+        allowForcedDependencies = false;
+    }
+
+    public ModuleDescriptorState(ModuleDescriptor ivyDescriptor, boolean allowForcedDependencies) {
+        this.ivyDescriptor = ivyDescriptor;
+        this.allowForcedDependencies = allowForcedDependencies;
     }
 
     public ModuleComponentIdentifier getComponentIdentifier() {
@@ -67,6 +77,15 @@ public class ModuleDescriptorState {
         return new Configuration(ivyDescriptor.getConfiguration(name));
     }
 
+    public List<Configuration> getConfigurations() {
+        return CollectionUtils.collect(ivyDescriptor.getConfigurations(), new Transformer<Configuration, org.apache.ivy.core.module.descriptor.Configuration>() {
+            @Override
+            public Configuration transform(org.apache.ivy.core.module.descriptor.Configuration ivyConfiguration) {
+                return new Configuration(ivyConfiguration);
+            }
+        });
+    }
+
     public List<Artifact> getArtifacts() {
         List<Artifact> artifacts = Lists.newArrayList();
         for (org.apache.ivy.core.module.descriptor.Artifact ivyArtifact : ivyDescriptor.getAllArtifacts()) {
@@ -81,7 +100,8 @@ public class ModuleDescriptorState {
     public List<DependencyMetaData> getDependencies() {
         List<DependencyMetaData> dependencies = new ArrayList<DependencyMetaData>();
         for (final DependencyDescriptor dependencyDescriptor : ivyDescriptor.getDependencies()) {
-            dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor));
+            boolean force = allowForcedDependencies && dependencyDescriptor.isForce();
+            dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor, force));
         }
         return dependencies;
     }

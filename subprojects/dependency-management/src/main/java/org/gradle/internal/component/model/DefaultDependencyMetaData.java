@@ -37,6 +37,7 @@ import org.gradle.util.CollectionUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -51,12 +52,18 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
 
     private final boolean changing;
     private final boolean transitive;
+    private final boolean force;
     private final String dynamicConstraintVersion;
 
     public DefaultDependencyMetaData(DependencyDescriptor dependencyDescriptor) {
+        this(dependencyDescriptor, false);
+    }
+
+    public DefaultDependencyMetaData(DependencyDescriptor dependencyDescriptor, boolean force) {
         this.requested = DefaultModuleVersionSelector.newSelector(dependencyDescriptor.getDependencyRevisionId());
         this.changing = dependencyDescriptor.isChanging();
         this.transitive = dependencyDescriptor.isTransitive();
+        this.force = force;
         this.dynamicConstraintVersion = dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision();
 
         this.confs = Maps.newLinkedHashMap();
@@ -78,16 +85,26 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         }
     }
 
+    // TODO:DAZ Get rid of this reflection
     private Map<String, List<String>> readConfigMappings(DependencyDescriptor dependencyDescriptor) {
-        try {
-            final Field dependencyConfigField = DefaultDependencyDescriptor.class.getDeclaredField("confs");
-            dependencyConfigField.setAccessible(true);
-            return (Map<String, List<String>>) dependencyConfigField.get(dependencyDescriptor);
-        } catch (NoSuchFieldException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (IllegalAccessException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+        if (dependencyDescriptor instanceof DefaultDependencyDescriptor) {
+            try {
+                final Field dependencyConfigField = DefaultDependencyDescriptor.class.getDeclaredField("confs");
+                dependencyConfigField.setAccessible(true);
+                return (Map<String, List<String>>) dependencyConfigField.get(dependencyDescriptor);
+            } catch (NoSuchFieldException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            } catch (IllegalAccessException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
+
+        String[] modConfs = dependencyDescriptor.getModuleConfigurations();
+        Map<String, List<String>> results = Maps.newLinkedHashMap();
+        for (String modConf : modConfs) {
+            results.put(modConf, Arrays.asList(dependencyDescriptor.getDependencyConfigurations(modConfs)));
+        }
+        return results;
     }
 
     public DefaultDependencyMetaData(ModuleVersionIdentifier moduleVersionIdentifier) {
@@ -124,6 +141,19 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         this.changing = changing;
         this.transitive = transitive;
         this.dynamicConstraintVersion = dynamicConstraintVersion;
+        this.force = false;
+    }
+
+    public Map<String, List<String>> getConfigMappings() {
+        return confs;
+    }
+
+    public Map<IvyArtifactName, Set<String>> getArtifactMappings() {
+        return dependencyArtifacts;
+    }
+
+    public Set<ExcludeRule> getAllExcludeRules() {
+        return excludeRules.keySet();
     }
 
     @Override
@@ -205,8 +235,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
     }
 
     public boolean isForce() {
-        // Force attribute is ignored in published modules: we only consider force attribute on direct dependencies
-        return false;
+        return force;
     }
 
     public String getDynamicConstraintVersion() {

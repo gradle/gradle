@@ -65,12 +65,13 @@ class ModuleDescriptorStoreTest extends Specification {
     def "putModuleDescriptor uses PathKeyFileStore to write file"() {
         setup:
         File descriptorFile = temporaryFolder.createFile("fileStoreEntry")
+        def descriptor = new ModuleDescriptorState(moduleDescriptor)
         when:
-        store.putModuleDescriptor(repository, moduleComponentIdentifier, new ModuleDescriptorState(moduleDescriptor));
+        store.putModuleDescriptor(repository, moduleComponentIdentifier, descriptor);
         then:
         1 * pathKeyFileStore.add("org.test/testArtifact/1.0/repositoryId/ivy.xml", _) >> { path, action ->
             action.execute(descriptorFile); fileStoreEntry
         };
-        1 * ivyModuleDescriptorWriter.write(moduleDescriptor, descriptorFile)
+        1 * ivyModuleDescriptorWriter.write(descriptor, descriptorFile)
     }
 }

@@ -77,7 +77,7 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         converter.addConfigurations(metaData, WrapUtil.toSet(config1, config2));
 
         then:
-        ModuleDescriptor moduleDescriptor = metaData.getModuleDescriptor();
+        ModuleDescriptor moduleDescriptor = metaData.getModuleDescriptor().ivyDescriptor;
         assertIvyConfigurationIsCorrect(moduleDescriptor.getConfiguration("conf1"), expectedIvyConfiguration(config1));
         assertIvyConfigurationIsCorrect(moduleDescriptor.getConfiguration("conf2"), expectedIvyConfiguration(config2));
 

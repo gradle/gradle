@@ -16,16 +16,15 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 
 import java.util.Collection;
 
 public interface IvyModulePublishMetaData {
-    static final String IVY_MAVEN_NAMESPACE = "http://ant.apache.org/ivy/maven";
-    static final String IVY_MAVEN_NAMESPACE_PREFIX = "m";
+    String IVY_MAVEN_NAMESPACE = "http://ant.apache.org/ivy/maven";
+    String IVY_MAVEN_NAMESPACE_PREFIX = "m";
 
-    ModuleDescriptor getModuleDescriptor();
+    ModuleDescriptorState getModuleDescriptor();
 
     ModuleVersionIdentifier getId();
 

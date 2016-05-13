@@ -20,6 +20,7 @@ import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
+import org.gradle.internal.component.external.model.ModuleDescriptorState
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -34,7 +35,6 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
     private @Rule TestNameTestDirectoryProvider temporaryFolder;
     private ModuleDescriptor md = Mock();
     private ModuleRevisionId moduleRevisionId = Mock()
-    private ModuleRevisionId resolvedModuleRevisionId = Mock()
     def ivyXmlModuleDescriptorWriter = new IvyXmlModuleDescriptorWriter()
 
     def "can create ivy (unmodified) descriptor"() {
@@ -42,13 +42,12 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         assertMockMethodInvocations()
         def dependency1 = mockDependencyDescriptor("Dep1")
         def dependency2 = mockDependencyDescriptor("Dep2")
-        1 * dependency2.force >> true
         1 * dependency2.changing >> true
-        1 * md.dependencies >> [dependency1, dependency2]
         1 * dependency1.transitive >> true
+        1 * md.dependencies >> [dependency1, dependency2]
         when:
         File ivyFile = temporaryFolder.file("test/ivy/ivy.xml")
-        ivyXmlModuleDescriptorWriter.write(md, ivyFile);
+        ivyXmlModuleDescriptorWriter.write(new ModuleDescriptorState(md), ivyFile);
         then:
         def ivyModule = new XmlSlurper().parse(ivyFile);
         assert ivyModule.@version == "2.0"
@@ -56,8 +55,6 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         assert ivyModule.info.@module == "projectA"
         assert ivyModule.info.@revision == "1.0"
         assert ivyModule.info.@status == "integration"
-        assert ivyModule.info.@publication == "20120817120000"
-        assert ivyModule.info.@buildNr == "815"
         assert ivyModule.configurations.conf.collect {it.@name } == ["archives", "compile", "runtime"]
         assert ivyModule.publications.artifact.collect {it.@name } == ["testartifact"]
         assert ivyModule.publications.artifact.collect {it.@conf } == ["archives,runtime"]
@@ -65,16 +62,8 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
     }
 
     private void assertMockMethodInvocations() {
-        1 * md.extraAttributesNamespaces >> [:]
-        1 * md.extraAttributes >> [buildNr: "815"]
-        1 * md.qualifiedExtraAttributes >> [buildNr: "815"]
         1 * md.getExtraInfo() >> Collections.emptyMap()
-        1 * md.getLicenses() >> Collections.emptyList()
-        1 * md.inheritedDescriptors >> Collections.emptyList()
-        1 * md.resolvedModuleRevisionId >> resolvedModuleRevisionId
-        1 * md.resolvedPublicationDate >> date("20120817120000")
         1 * md.status >> "integration"
-        1 * resolvedModuleRevisionId.revision >> "1.0"
         _ * md.moduleRevisionId >> moduleRevisionId;
         _ * moduleRevisionId.organisation >> "org.test"
         _ * moduleRevisionId.name >> "projectA"
@@ -96,7 +85,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
 
         when:
         File ivyFile = temporaryFolder.file("test/ivy/ivy.xml")
-        ivyXmlModuleDescriptorWriter.write(moduleDescriptor, ivyFile)
+        ivyXmlModuleDescriptorWriter.write(new ModuleDescriptorState(moduleDescriptor), ivyFile)
 
         then:
         def ivyModule = new XmlSlurper().parse(ivyFile)
@@ -114,15 +103,14 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
     def mockDependencyDescriptor(String organisation = "org.test", String moduleName, String revision = "1.0") {
         DependencyDescriptor dependencyDescriptor = Mock()
         ModuleRevisionId moduleRevisionId = Mock()
-        1 * moduleRevisionId.organisation >> organisation
-        1 * moduleRevisionId.name >> moduleName
-        1 * moduleRevisionId.revision >> revision
+        _ * moduleRevisionId.organisation >> organisation
+        _ * moduleRevisionId.name >> moduleName
+        _ * moduleRevisionId.revision >> revision
         1 * dependencyDescriptor.dependencyRevisionId >> moduleRevisionId
         1 * dependencyDescriptor.dynamicConstraintDependencyRevisionId >> moduleRevisionId
         1 * dependencyDescriptor.moduleConfigurations >> ["default"]
         1 * dependencyDescriptor.getDependencyConfigurations("default") >> ["compile, archives"]
         1 * dependencyDescriptor.allDependencyArtifacts >> []
-        1 * dependencyDescriptor.allIncludeRules >> []
         1 * dependencyDescriptor.allExcludeRules >> []
         dependencyDescriptor
     }
@@ -140,7 +128,6 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
     def mockConfiguration(String configurationName, List extended = []) {
         Configuration configuration = Mock()
         1 * configuration.name >> configurationName
-        1 * configuration.description >> "just another test configuration"
         1 * configuration.extends >> extended
         1 * configuration.visibility >> Configuration.Visibility.PUBLIC
         configuration

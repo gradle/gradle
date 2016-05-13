@@ -54,7 +54,7 @@ public class ModuleDescriptorStore {
         return metaDataStore.add(filePath, new Action<File>() {
             public void execute(File moduleDescriptorFile) {
                 try {
-                    descriptorWriter.write(moduleDescriptor.ivyDescriptor, moduleDescriptorFile);
+                    descriptorWriter.write(moduleDescriptor, moduleDescriptorFile);
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }

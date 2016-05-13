@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.external.model
 
-import org.apache.ivy.core.module.descriptor.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.internal.component.local.model.LocalConfigurationMetaData
@@ -46,12 +45,11 @@ class DefaultIvyModulePublishMetaDataTest extends Specification {
         metaData.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null)
 
         then:
-        metaData.moduleDescriptor.configurations.length == 1
-        Configuration conf = metaData.moduleDescriptor.configurations[0]
+        metaData.moduleDescriptor.configurations.size() == 1
+        ModuleDescriptorState.Configuration conf = metaData.moduleDescriptor.configurations[0]
         conf.name == "configName"
-        conf.description == "configDescription"
-        conf.extends as List == ["one", "three", "two"]
-        conf.visibility == Configuration.Visibility.PUBLIC
+        conf.extendsFrom == ["one", "three", "two"]
+        conf.visible
         conf.transitive
     }
 
@@ -84,12 +82,12 @@ class DefaultIvyModulePublishMetaDataTest extends Specification {
         metaData.addDependency(dependency)
 
         then:
-        metaData.moduleDescriptor.dependencies.length == 1
-        def depDescriptor = metaData.moduleDescriptor.dependencies[0]
-        depDescriptor.force
-        depDescriptor.changing
-        depDescriptor.transitive
-        depDescriptor.moduleConfigurations as List == ["configName"]
-        depDescriptor.allDependencyArtifacts.length == 0
+        metaData.moduleDescriptor.dependencies.size() == 1
+        def dependencyMetaData = metaData.moduleDescriptor.dependencies[0]
+        dependencyMetaData.force
+        dependencyMetaData.changing
+        dependencyMetaData.transitive
+        dependencyMetaData.moduleConfigurations as List == ["configName"]
+        dependencyMetaData.artifacts.empty
     }
 }

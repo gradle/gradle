@@ -17,14 +17,11 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.Lists;
-import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 public class DefaultIvyModuleArtifactPublishMetaData implements IvyModuleArtifactPublishMetaData {
@@ -32,10 +29,10 @@ public class DefaultIvyModuleArtifactPublishMetaData implements IvyModuleArtifac
     private final List<String> configurations = Lists.newArrayList();
     private final File file;
 
-    public DefaultIvyModuleArtifactPublishMetaData(ModuleComponentIdentifier componentId, Artifact artifact) {
-        this.id = new DefaultModuleComponentArtifactIdentifier(componentId, DefaultIvyArtifactName.forIvyArtifact(artifact));
+    public DefaultIvyModuleArtifactPublishMetaData(ModuleComponentIdentifier componentId, IvyArtifactName artifact, List<String> configurations) {
+        this.id = new DefaultModuleComponentArtifactIdentifier(componentId, artifact);
         this.file = null;
-        Collections.addAll(configurations, artifact.getConfigurations());
+        this.configurations.addAll(configurations);
     }
 
     public DefaultIvyModuleArtifactPublishMetaData(ModuleVersionIdentifier moduleVersionIdentifier, IvyArtifactName artifact, File file) {
