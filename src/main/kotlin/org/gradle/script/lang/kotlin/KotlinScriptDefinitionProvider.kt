@@ -19,10 +19,12 @@ package org.gradle.script.lang.kotlin
 import org.gradle.api.Project
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+
 import org.jetbrains.kotlin.script.KotlinConfigurableScriptDefinition
 import org.jetbrains.kotlin.script.KotlinScriptConfig
 import org.jetbrains.kotlin.script.KotlinScriptParameterConfig
 import org.jetbrains.kotlin.script.KotlinScriptSuperclassParameterConfig
+
 import java.io.File
 
 object KotlinScriptDefinitionProvider {

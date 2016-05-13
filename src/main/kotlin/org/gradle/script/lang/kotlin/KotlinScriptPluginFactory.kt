@@ -16,16 +16,20 @@
 
 package org.gradle.script.lang.kotlin
 
+import org.gradle.script.lang.kotlin.KotlinScriptDefinitionProvider.scriptDefinitionFor
+import org.gradle.script.lang.kotlin.KotlinScriptDefinitionProvider.selectGradleApiJars
+
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.api.initialization.dsl.ScriptHandler
+
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
+
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
-import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.script.lang.kotlin.KotlinScriptDefinitionProvider.scriptDefinitionFor
-import org.gradle.script.lang.kotlin.KotlinScriptDefinitionProvider.selectGradleApiJars
+
 import java.io.File
 
 class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : ScriptPluginFactory {
@@ -45,7 +49,8 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
         return compileKotlinScript(scriptFile, scriptDef, classLoader, logger)
     }
 
-    private fun classLoaderFor(classPath: List<File>, scriptHandler: ScriptHandlerInternal, targetScope: ClassLoaderScope): ClassLoader {
+    private fun classLoaderFor(classPath: List<File>, scriptHandler: ScriptHandlerInternal,
+                               targetScope: ClassLoaderScope): ClassLoader {
         scriptHandler.dependencies.add(ScriptHandler.CLASSPATH_CONFIGURATION, SimpleFileCollection(classPath))
         targetScope.export(scriptHandler.scriptClassPath)
         targetScope.export(KotlinBuildScript::class.java.classLoader)

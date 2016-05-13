@@ -1,6 +1,7 @@
 package org.gradle.script.lang.kotlin
 
 import org.gradle.api.file.CopySpec
+
 import java.io.FilterReader
 
 // Interim extensions until those methods are added to CopySpec

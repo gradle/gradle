@@ -20,19 +20,18 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+
 import kotlin.reflect.KClass
 
 fun Project.applyPlugin(pluginClass: KClass<out Plugin<Project>>) = pluginManager.apply(pluginClass.java)
 
 inline fun <reified T : Plugin<Project>> Project.apply() = applyPlugin(T::class)
 
-inline fun <reified T : Any> Project.configure(configuration: T.() -> Unit) {
+inline fun <reified T : Any> Project.configure(configuration: T.() -> Unit) =
     configure(T::class, configuration)
-}
 
-inline fun <T : Any> Project.configure(extensionType: KClass<T>, configuration: T.() -> Unit) {
+inline fun <T : Any> Project.configure(extensionType: KClass<T>, configuration: T.() -> Unit) =
     configuration(convention.getPlugin(extensionType.java))
-}
 
 inline fun <reified T : Task> Project.task(name: String, noinline configuration: T.() -> Unit) =
     task(name, T::class, configuration)

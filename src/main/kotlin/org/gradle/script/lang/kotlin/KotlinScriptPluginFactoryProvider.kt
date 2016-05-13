@@ -16,9 +16,10 @@
 
 package org.gradle.script.lang.kotlin
 
-import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.ScriptPluginFactoryProvider
+
+import org.gradle.api.internal.ClassPathRegistry
 
 import org.gradle.internal.service.ServiceRegistry
 

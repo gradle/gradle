@@ -16,19 +16,25 @@
 
 package org.gradle.script.lang.kotlin
 
-import com.intellij.util.xmlb.XmlSerializer
+import org.gradle.script.lang.kotlin.KotlinScriptDefinitionProvider.scriptDefinitionFor
+import org.gradle.script.lang.kotlin.KotlinScriptDefinitionProvider.selectGradleApiJars
+
 import org.gradle.api.DefaultTask
-import org.gradle.api.internal.ClassPathRegistry
+
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.gradle.script.lang.kotlin.KotlinScriptDefinitionProvider.scriptDefinitionFor
-import org.gradle.script.lang.kotlin.KotlinScriptDefinitionProvider.selectGradleApiJars
+
+import org.gradle.api.internal.ClassPathRegistry
+
 import org.jetbrains.kotlin.relocated.org.jdom.Document
 import org.jetbrains.kotlin.relocated.org.jdom.Element
 import org.jetbrains.kotlin.relocated.org.jdom.output.Format
 import org.jetbrains.kotlin.relocated.org.jdom.output.XMLOutputter
 import org.jetbrains.kotlin.script.KotlinConfigurableScriptDefinition
+
+import com.intellij.util.xmlb.XmlSerializer
+
 import java.io.File
 import java.io.StringWriter
 import javax.inject.Inject
@@ -57,12 +63,12 @@ open class GenerateKtsConfig : DefaultTask() {
         get() = throw NotImplementedError()
 
     @TaskAction
-    fun generate() {
+    fun generate() =
         effectiveOutputFile.writeText(
             toXml(scriptDefinitionFor(classPath)))
-    }
 
-    private fun defaultOutputFile() = project.file("gradle.ktscfg.xml")
+    private fun defaultOutputFile() =
+        project.file("gradle.ktscfg.xml")
 
     private fun computeClassPath() =
         selectGradleApiJars(classPathRegistry)
@@ -70,7 +76,7 @@ open class GenerateKtsConfig : DefaultTask() {
 }
 
 private
-fun toXml(scriptDefinition: KotlinConfigurableScriptDefinition): String =
+fun toXml(scriptDefinition: KotlinConfigurableScriptDefinition) =
     prettyPrint(xmlDocumentFor(scriptDefinition))
 
 private

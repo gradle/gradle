@@ -16,8 +16,6 @@
 
 package org.gradle.script.lang.kotlin
 
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer.newDisposable
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
@@ -29,13 +27,20 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileScript
 import org.jetbrains.kotlin.cli.jvm.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
+
 import org.jetbrains.kotlin.codegen.CompilationException
+
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.addKotlinSourceRoots
+
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
 import org.jetbrains.kotlin.script.KotlinScriptExtraImport
+
 import org.jetbrains.kotlin.utils.PathUtil
+
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer.newDisposable
 
 import org.slf4j.Logger
 

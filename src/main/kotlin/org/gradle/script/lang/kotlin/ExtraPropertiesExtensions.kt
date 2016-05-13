@@ -2,7 +2,9 @@ package org.gradle.script.lang.kotlin
 
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtraPropertiesExtension
+
 import org.gradle.internal.Cast.uncheckedCast
+
 import kotlin.reflect.KProperty
 
 val ExtensionAware.extra: ExtraPropertiesExtension
