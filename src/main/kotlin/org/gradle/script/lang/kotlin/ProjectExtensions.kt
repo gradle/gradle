@@ -31,7 +31,7 @@ inline fun <reified T : Any> Project.configure(configuration: T.() -> Unit) {
 }
 
 inline fun <T : Any> Project.configure(extensionType: KClass<T>, configuration: T.() -> Unit) {
-    configuration(convention.getByType(extensionType.java))
+    configuration(convention.getPlugin(extensionType.java))
 }
 
 inline fun <reified T : Task> Project.task(name: String, noinline configuration: T.() -> Unit) =
