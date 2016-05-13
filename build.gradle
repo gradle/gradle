@@ -320,7 +320,7 @@ gradle.addListener(new TaskExecutionListener() {
 // This will ensure that tests no longer leave files lying around.
 subprojects { prj ->
     task verifyTestFilesCleanup(type: EmptyDirectory) {
-        targetDir = prj.file("${prj.buildDir}/tmp/test files")
+        targetDir = prj.fileTree("${prj.buildDir}/tmp/test files")
         report = prj.file("${prj.buildDir}/reports/remains.txt")
     }
 }

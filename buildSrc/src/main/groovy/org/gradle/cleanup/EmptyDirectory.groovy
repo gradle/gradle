@@ -17,6 +17,7 @@ package org.gradle.cleanup
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
@@ -28,7 +29,7 @@ import org.gradle.api.tasks.TaskAction
 class EmptyDirectory extends DefaultTask {
     @Optional
     @Input
-    File targetDir
+    FileTree targetDir
 
     @OutputFile
     File report
@@ -39,8 +40,7 @@ class EmptyDirectory extends DefaultTask {
     @TaskAction
     def ensureEmptiness() {
         def hasFile = false
-        def targetFiles = getProject().fileTree(targetDir)
-        targetFiles.visit { visitDetails ->
+        targetDir.visit { visitDetails ->
             def f = visitDetails.getFile()
             if (f.isFile()) {
                 hasFile = true
@@ -48,7 +48,7 @@ class EmptyDirectory extends DefaultTask {
             }
         }
         if (hasFile && errorWhenNotEmpty) {
-            throw new GradleException("The directory ${targetDir.path} was not empty.")
+            throw new GradleException("The directory ${targetDir.asPath} was not empty.")
         }
     }
 }
