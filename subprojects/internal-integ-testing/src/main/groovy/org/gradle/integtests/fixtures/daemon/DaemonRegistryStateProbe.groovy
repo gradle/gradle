@@ -42,7 +42,7 @@ class DaemonRegistryStateProbe implements DaemonStateProbe {
 
     void assertRegistryNotWorldReadable() {
         def registryFile = new DaemonDir(context.daemonRegistryDir).registry
-        if (!OperatingSystem.current().isWindows()) {
+        if (OperatingSystem.current().isLinux() || OperatingSystem.current().isMacOsX()) {
             def stat = NativeServicesTestFixture.instance.get(Stat)
             assert stat.getUnixMode(registryFile) == 0600 // user read-write
             assert stat.getUnixMode(registryFile.parentFile) == 0700 // user read-write-execute
