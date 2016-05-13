@@ -19,9 +19,11 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.announce.internal.AnnouncerFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class AnnouncePluginExtensionTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tempDir = TestNameTestDirectoryProvider.newInstance()
