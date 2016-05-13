@@ -32,6 +32,10 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
         this(componentIdentifier, name, type, extension, Collections.<String, String>emptyMap());
     }
 
+    public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension, @Nullable String classifier) {
+        this(componentIdentifier, new DefaultIvyArtifactName(name, type, extension, classifier));
+    }
+
     public DefaultModuleComponentArtifactIdentifier(ModuleComponentIdentifier componentIdentifier, String name, String type, @Nullable String extension, Map<String, String> attributes) {
         this(componentIdentifier, new DefaultIvyArtifactName(name, type, extension, attributes));
     }

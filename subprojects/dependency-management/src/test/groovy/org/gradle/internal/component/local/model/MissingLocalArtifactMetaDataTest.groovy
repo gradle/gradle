@@ -46,15 +46,15 @@ class MissingLocalArtifactMetaDataTest extends Specification {
         def moduleVersion = DefaultModuleVersionIdentifier.newId("group", "module", "version")
         def componentId = DefaultModuleComponentIdentifier.newId(moduleVersion)
 
-        def withClassifier = localArtifactIdentifier(componentId, "comp", "name", "type", "ext", ['classifier': 'classifier'])
-        def same = localArtifactIdentifier(componentId, "comp", "name", "type", "ext", ['classifier': 'classifier'])
-        def differentName = localArtifactIdentifier(componentId, "comp", "2", "type", "ext", ['classifier': 'classifier'])
-        def differentType = localArtifactIdentifier(componentId, "comp", "name", "2", "ext", ['classifier': 'classifier'])
-        def differentExt = localArtifactIdentifier(componentId, "comp", "name", "type", "2", ['classifier': 'classifier'])
-        def differentAttributes = localArtifactIdentifier(componentId, "comp", "name", "type", "ext", ['classifier': '2'])
-        def emptyParts = localArtifactIdentifier(componentId, "comp", "name", "type", null, [:])
-        def emptyPartsSame = localArtifactIdentifier(componentId, "comp", "name", "type", null, [:])
-        def differentFile = new MissingLocalArtifactMetaData(componentId, "comp", new DefaultIvyArtifactName("name", "type", "ext", ['classifier': '2']))
+        def withClassifier = localArtifactIdentifier(componentId, "comp", "name", "type", "ext", 'classifier')
+        def same = localArtifactIdentifier(componentId, "comp", "name", "type", "ext", 'classifier')
+        def differentName = localArtifactIdentifier(componentId, "comp", "2", "type", "ext", 'classifier')
+        def differentType = localArtifactIdentifier(componentId, "comp", "name", "2", "ext", 'classifier')
+        def differentExt = localArtifactIdentifier(componentId, "comp", "name", "type", "2", 'classifier')
+        def differentAttributes = localArtifactIdentifier(componentId, "comp", "name", "type", "ext", 'classifier-2')
+        def emptyParts = localArtifactIdentifier(componentId, "comp", "name", "type", null)
+        def emptyPartsSame = localArtifactIdentifier(componentId, "comp", "name", "type", null)
+        def differentFile = new MissingLocalArtifactMetaData(componentId, "comp", new DefaultIvyArtifactName("name", "type", "ext", 'classifier-2'))
 
         expect:
         withClassifier Matchers.strictlyEqual(same)
@@ -69,7 +69,7 @@ class MissingLocalArtifactMetaDataTest extends Specification {
         emptyParts != withClassifier
     }
 
-    def localArtifactIdentifier(def componentId, def displayName, def name, def type, def extension, Map<String, String> attributes) {
-        return new MissingLocalArtifactMetaData(componentId, displayName, new DefaultIvyArtifactName(name, type, extension, attributes))
+    def localArtifactIdentifier(def componentId, def displayName, def name, def type, def extension, String classifier = null) {
+        return new MissingLocalArtifactMetaData(componentId, displayName, new DefaultIvyArtifactName(name, type, extension, classifier))
     }
 }

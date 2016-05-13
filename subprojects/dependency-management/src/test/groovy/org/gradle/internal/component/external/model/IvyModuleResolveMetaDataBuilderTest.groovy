@@ -31,7 +31,7 @@ class IvyModuleResolveMetaDataBuilderTest extends Specification {
     def meta = new IvyModuleResolveMetaDataBuilder(md)
 
     def "adds correct artifact to meta-data"() {
-        def a = ivyArtifact("foo", "jar", "ext", [a: 'b'])
+        def a = ivyArtifact("foo", "jar", "ext", "classifier")
         md.addConfiguration(new Configuration("runtime"))
 
         when: meta.addArtifact(a, newHashSet("runtime"))
@@ -42,15 +42,15 @@ class IvyModuleResolveMetaDataBuilderTest extends Specification {
         artifacts[0].name.name == "foo"
         artifacts[0].name.type == "jar"
         artifacts[0].name.extension == "ext"
-        artifacts[0].name.attributes == [a: "b"]
+        artifacts[0].name.classifier == "classifier"
     }
 
-    private static IvyArtifactName ivyArtifact(String name, String type, String ext, Map<String, String> attributes = [:]) {
-        return new DefaultIvyArtifactName(name, type, ext, attributes)
+    private static IvyArtifactName ivyArtifact(String name, String type, String ext, String classifier = null) {
+        return new DefaultIvyArtifactName(name, type, ext, classifier)
     }
 
     def "prevents adding artifact without configurations"() {
-        def unattached = ivyArtifact("foo", "jar", "ext", [a: 'b'])
+        def unattached = ivyArtifact("foo", "jar", "ext")
         md.addConfiguration(new Configuration("runtime"))
 
         when: meta.addArtifact(unattached, newHashSet())

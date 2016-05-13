@@ -215,7 +215,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         artifactSet.addAll(artifacts);
 
         if (artifactSet.isEmpty()) {
-            artifactSet.add(new DefaultIvyArtifactName(moduleName, "jar", "jar", Collections.<String, String>emptyMap()));
+            artifactSet.add(new DefaultIvyArtifactName(moduleName, "jar", "jar"));
         }
 
         return artifactSet;

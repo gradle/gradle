@@ -125,7 +125,9 @@ public class GradleVersion implements Comparable<GradleVersion> {
             stage = null;
         }
 
-        if (matcher.group(8) == null) {
+        if ("snapshot".equals(matcher.group(5))) {
+            snapshot = 0L;
+        } else if (matcher.group(8) == null) {
             snapshot = null;
         } else if ("SNAPSHOT".equals(matcher.group(8))) {
             snapshot = 0L;
