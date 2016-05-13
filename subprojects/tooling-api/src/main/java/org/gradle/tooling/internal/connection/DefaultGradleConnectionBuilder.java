@@ -86,7 +86,7 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
         compositeConnectionParametersBuilder.setDaemonMaxIdleTimeValue(daemonMaxIdleTimeValue);
         compositeConnectionParametersBuilder.setDaemonMaxIdleTimeUnits(daemonMaxIdleTimeUnits);
         compositeConnectionParametersBuilder.setDaemonBaseDir(daemonBaseDir);
-        
+
         if (integrated) {
             compositeConnectionParametersBuilder.setEmbedded(embedded);
             DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
@@ -139,6 +139,12 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     @Override
     public GradleConnectionBuilder useInstallation(File gradleHome) {
         this.coordinatorDistribution = distributionFactory.getDistribution(gradleHome);
+        return this;
+    }
+
+    @Override
+    public GradleConnectionBuilder useGradleVersion(String gradleVersion) {
+        this.coordinatorDistribution = distributionFactory.getDistribution(gradleVersion);
         return this;
     }
 

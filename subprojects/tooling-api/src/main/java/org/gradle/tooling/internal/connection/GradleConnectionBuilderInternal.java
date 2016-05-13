@@ -34,5 +34,7 @@ public interface GradleConnectionBuilderInternal extends GradleConnectionBuilder
 
     GradleConnectionBuilder useInstallation(File gradleHome);
 
+    GradleConnectionBuilder useGradleVersion(String version);
+
     GradleConnectionBuilderInternal useClasspathDistribution();
 }
