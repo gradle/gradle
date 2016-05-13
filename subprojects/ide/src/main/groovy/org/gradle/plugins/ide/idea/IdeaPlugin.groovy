@@ -49,6 +49,7 @@ import javax.inject.Inject
  * For projects that have the Java plugin applied, the tasks receive additional Java-specific configuration.
  */
 @CompileStatic
+// This class was not converted to Java because IDEA Gradle integration casts it to GroovyObject.
 class IdeaPlugin extends IdePlugin {
     private final Instantiator instantiator
     private IdeaModel ideaModel

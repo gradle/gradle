@@ -39,7 +39,7 @@ import java.util.List;
 
 public class ClasspathFactory {
 
-    public interface ClasspathEntryBuilder {
+    private interface ClasspathEntryBuilder {
         void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath);
     }
 
