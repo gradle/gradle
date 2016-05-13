@@ -19,7 +19,7 @@ import spock.lang.Specification
 
 class ServiceLocatorTest extends Specification {
     final ClassLoader classLoader = Mock()
-    final ServiceLocator serviceLocator = new ServiceLocator(classLoader)
+    final DefaultServiceLocator serviceLocator = new DefaultServiceLocator(classLoader)
 
     def "locates service implementation class using resources of given ClassLoader"() {
         def serviceFile = stream('org.gradle.ImplClass')
@@ -35,7 +35,7 @@ class ServiceLocatorTest extends Specification {
 
     def "uses union of resources found in all ClassLoaders"() {
         def ClassLoader classLoader2 = Mock()
-        def serviceLocator = new ServiceLocator(classLoader, classLoader2)
+        def serviceLocator = new DefaultServiceLocator(classLoader, classLoader2)
 
         def serviceFile1 = stream('org.gradle.ImplClass')
         def serviceFile2 = stream('org.gradle.ImplClass2')
@@ -81,7 +81,7 @@ class ServiceLocatorTest extends Specification {
     def "ignores comments and whitespace in service meta data resource"() {
         def serviceFile = stream('''#comment
 
-    org.gradle.ImplClass  
+    org.gradle.ImplClass
 ''')
 
         when:

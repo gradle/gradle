@@ -16,13 +16,14 @@
 
 package org.gradle.configuration.project
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.service.DefaultServiceLocator
 import spock.lang.Specification
 
 class PluginsProjectConfigureActionsTest extends Specification {
     final def pluginsClassLoader = Mock(ClassLoader)
 
     private PluginsProjectConfigureActions createActions() {
-        new PluginsProjectConfigureActions(pluginsClassLoader)
+        new PluginsProjectConfigureActions(new DefaultServiceLocator(pluginsClassLoader))
     }
 
     def "executes all implicit configuration actions"() {

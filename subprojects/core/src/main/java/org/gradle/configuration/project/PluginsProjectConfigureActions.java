@@ -23,8 +23,8 @@ import org.gradle.internal.service.ServiceLocator;
 public class PluginsProjectConfigureActions implements ProjectConfigureAction {
     private final Iterable<ProjectConfigureAction> actions;
 
-    public PluginsProjectConfigureActions(ClassLoader pluginsClassLoader) {
-        actions = ImmutableList.copyOf(new ServiceLocator(pluginsClassLoader).getAll(ProjectConfigureAction.class));
+    public PluginsProjectConfigureActions(ServiceLocator pluginsServiceLocator) {
+        actions = ImmutableList.copyOf(pluginsServiceLocator.getAll(ProjectConfigureAction.class));
     }
 
     public void execute(ProjectInternal project) {

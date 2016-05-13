@@ -18,6 +18,8 @@ package org.gradle.internal.classloader;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.service.CachingServiceLocator;
+import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceLocator;
 import org.gradle.util.CollectionUtils;
 
@@ -31,6 +33,8 @@ import java.util.Collection;
 import java.util.List;
 
 public class DefaultClassLoaderFactory implements ClassLoaderFactory {
+    private final CachingServiceLocator systemClassLoaderServiceLocator = CachingServiceLocator.of(new DefaultServiceLocator(getSystemClassLoader()));
+
     @Override
     public ClassLoader getIsolatedSystemClassLoader() {
         return getSystemClassLoader().getParent();
@@ -74,10 +78,9 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         // See the comment for {@link #createIsolatedClassLoader} above
         FilteringClassLoader classLoader = new FilteringClassLoader(parent);
         if (needJaxpImpl()) {
-            ServiceLocator locator = new ServiceLocator(getSystemClassLoader());
-            makeServiceVisible(locator, classLoader, SAXParserFactory.class);
-            makeServiceVisible(locator, classLoader, DocumentBuilderFactory.class);
-            makeServiceVisible(locator, classLoader, DatatypeFactory.class);
+            makeServiceVisible(systemClassLoaderServiceLocator, classLoader, SAXParserFactory.class);
+            makeServiceVisible(systemClassLoaderServiceLocator, classLoader, DocumentBuilderFactory.class);
+            makeServiceVisible(systemClassLoaderServiceLocator, classLoader, DatatypeFactory.class);
         }
         return classLoader;
     }
@@ -121,4 +124,5 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     private ClassLoader getSystemClassLoader() {
         return ClassLoader.getSystemClassLoader();
     }
+
 }

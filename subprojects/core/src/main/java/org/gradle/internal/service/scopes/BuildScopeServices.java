@@ -129,6 +129,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
+import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -225,7 +226,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ProjectEvaluator createProjectEvaluator() {
         ConfigureActionsProjectEvaluator withActionsEvaluator = new ConfigureActionsProjectEvaluator(
-            new PluginsProjectConfigureActions(get(ClassLoaderRegistry.class).getPluginsClassLoader()),
+            new PluginsProjectConfigureActions(get(CachingServiceLocator.class)),
             new BuildScriptProcessor(get(ScriptPluginFactory.class)),
             new DelayedConfigurationActions()
         );
