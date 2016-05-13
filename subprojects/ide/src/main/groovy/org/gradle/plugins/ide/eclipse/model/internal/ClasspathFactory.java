@@ -86,7 +86,7 @@ public class ClasspathFactory {
     private final ClassFoldersCreator classFoldersCreator = new ClassFoldersCreator();
 
     public List<ClasspathEntry> createEntries(EclipseClasspath classpath) {
-        List entries = Lists.newArrayList();
+        List<ClasspathEntry> entries = Lists.newArrayList();
         outputCreator.update(entries, classpath);
         sourceFoldersCreator.populateForClasspath(entries, classpath);
         containersCreator.update(entries, classpath);

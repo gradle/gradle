@@ -48,7 +48,7 @@ public class SourceFoldersCreator {
             }
         };
         List<SourceFolder> regulars = getRegularSourceFolders(classpath.getSourceSets(), provideRelativePath);
-        List trimmedExternals = getExternalSourceFolders(classpath.getSourceSets(), provideRelativePath);
+        List<SourceFolder> trimmedExternals = getExternalSourceFolders(classpath.getSourceSets(), provideRelativePath);
         entries.addAll(regulars);
         entries.addAll(trimmedExternals);
     }
@@ -197,22 +197,22 @@ public class SourceFoldersCreator {
     private static Comparable toComparable(SourceSet sourceSet) {
         String name = sourceSet.getName();
         if (SourceSet.MAIN_SOURCE_SET_NAME.equals(name)) {
-            return Integer.valueOf(0);
+            return 0;
         } else if (SourceSet.TEST_SOURCE_SET_NAME.equals(name)) {
-            return Integer.valueOf(1);
+            return 1;
         } else {
-            return Integer.valueOf(2);
+            return 2;
         }
     }
 
     private static Comparable toComparable(DirectoryTree tree) {
         String path = tree.getDir().getPath();
         if (path.endsWith("java")) {
-            return Integer.valueOf(0);
+            return 0;
         } else if (path.endsWith("resources")) {
-            return Integer.valueOf(2);
+            return 2;
         } else {
-            return Integer.valueOf(1);
+            return 1;
         }
     }
 }
