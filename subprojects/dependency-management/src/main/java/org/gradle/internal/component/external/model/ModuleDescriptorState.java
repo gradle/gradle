@@ -72,7 +72,7 @@ public class ModuleDescriptorState {
         return ivyDescriptor.getModuleRevisionId().getBranch();
     }
 
-    public boolean isDefault() {
+    public boolean isGenerated() {
         return ivyDescriptor.isDefault();
     }
 

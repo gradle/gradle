@@ -109,7 +109,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.attribute("revision", id.getVersion());
         writer.attribute("status", descriptor.getStatus());
 
-        if (descriptor.isDefault()) {
+        if (descriptor.isGenerated()) {
             writer.attribute("default", "true");
         }
 

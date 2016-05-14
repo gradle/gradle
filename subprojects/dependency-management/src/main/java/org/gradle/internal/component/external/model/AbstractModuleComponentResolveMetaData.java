@@ -58,7 +58,7 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
         this.descriptor = moduleDescriptor;
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = moduleVersionIdentifier;
-        generated = moduleDescriptor.isDefault();
+        generated = moduleDescriptor.isGenerated();
         status = moduleDescriptor.getStatus();
         configurations = populateConfigurationsFromDescriptor(moduleDescriptor);
         artifactsByConfig = populateArtifactsFromDescriptor(componentIdentifier, moduleDescriptor);

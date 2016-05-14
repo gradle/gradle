@@ -38,6 +38,6 @@ class DownloadedIvyModuleDescriptorParserTest extends Specification {
         def descriptor = parser.parseMetaData(parserSettings, ivyFile, true).descriptor
 
         then:
-        !descriptor.default
+        !descriptor.generated
     }
 }
