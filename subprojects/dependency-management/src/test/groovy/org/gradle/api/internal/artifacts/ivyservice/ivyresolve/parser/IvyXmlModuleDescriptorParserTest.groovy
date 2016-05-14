@@ -15,25 +15,27 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
-import org.apache.ivy.core.module.descriptor.*
+
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.GlobPatternMatcher
-import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
+import org.gradle.internal.component.external.descriptor.Dependency
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Resources
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.component.ArtifactType.IVY_DESCRIPTOR
-import static org.junit.Assert.*
 
 class IvyXmlModuleDescriptorParserTest extends Specification {
     @Rule
@@ -44,8 +46,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(resolverStrategy)
     DescriptorParseContext parseContext = Mock()
 
-    ModuleDescriptorState descriptor
-    ModuleDescriptor md
+    ModuleDescriptorState md
 
     def setup() {
         resolverStrategy.getPatternMatcher("exact") >> ExactPatternMatcher.INSTANCE
@@ -63,18 +64,14 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     />
 </ivy-module>
 """
-        ModuleDescriptor md = parse(parseContext, file)
+        parse(parseContext, file)
 
         then:
         md != null
-        md.moduleRevisionId.organisation == "myorg"
-        md.moduleRevisionId.name == "mymodule"
-        md.moduleRevisionId.revision == "myrev"
-        md.moduleRevisionId.branch == null
+        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
         md.configurations*.name == ["default"]
-        md.dependencies.length == 0
-        md.inheritedDescriptors.length == 0
+        md.dependencies.empty
 
         artifact()
     }
@@ -93,17 +90,14 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     </dependencies>
 </ivy-module>
 """
-        ModuleDescriptor md = parse(parseContext, file)
+        parse(parseContext, file)
 
         then:
         md != null
-        md.moduleRevisionId.organisation == "myorg"
-        md.moduleRevisionId.name == "mymodule"
-        md.moduleRevisionId.revision == "myrev"
+        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
         md.configurations*.name == ["default"]
-        md.dependencies.length == 0
-        md.inheritedDescriptors.length == 0
+        md.dependencies.empty
 
         def artifact = artifact()
         artifact.artifactName.name == "mymodule"
@@ -125,12 +119,14 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     </configurations>
 </ivy-module>
 """
-        ModuleDescriptor md = parse(parseContext, file)
+        parse(parseContext, file)
 
         then:
+        md != null
+        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
+        md.status == "integration"
         md.configurations*.name == ["A", "B"]
-        md.dependencies.length == 0
-        md.inheritedDescriptors.length == 0
+        md.dependencies.empty
 
         def artifact = artifact()
         artifact.artifactName.name == 'mymodule'
@@ -257,63 +253,43 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         file.text = resources.getResource("test-full.xml").text
 
         when:
-        ModuleDescriptor md = parse(parseContext, file)
+        parse(parseContext, file)
 
         then:
-        assertNotNull(md)
-        assertEquals("myorg", md.getModuleRevisionId().getOrganisation())
-        assertEquals("mymodule", md.getModuleRevisionId().getName())
-        assertEquals("myrev", md.getModuleRevisionId().getRevision())
-        assertEquals("branch", md.getModuleRevisionId().getBranch())
-        assertEquals("integration", md.getStatus())
-        Date pubdate = new GregorianCalendar(2004, 10, 1, 11, 0, 0).getTime()
-        assertEquals(pubdate, md.getPublicationDate())
+        md != null
+        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
+        md.status == "integration"
+        md.publicationDate == new GregorianCalendar(2004, 10, 1, 11, 0, 0).getTime()
 
-        License[] licenses = md.getLicenses()
-        assertEquals(1, licenses.length)
-        assertEquals("MyLicense", licenses[0].getName())
-        assertEquals("http://www.my.org/mymodule/mylicense.html", licenses[0].getUrl())
+        TextUtil.normaliseLineSeparators(md.getDescription()) ==
+            "This module is <b>great</b> !<br/>\n\tYou can use it especially with myconf1 and myconf2, and myconf4 is not too bad too."
 
-        assertEquals("http://www.my.org/mymodule/", md.getHomePage())
-        assertEquals("This module is <b>great</b> !<br/>\n\t"
-                + "You can use it especially with myconf1 and myconf2, "
-                + "and myconf4 is not too bad too.",
-                md.getDescription().replaceAll("\r\n", "\n").replace('\r', '\n'))
+        md.extraInfo.size() == 1
+        md.extraInfo.get(new NamespaceId("http://ant.apache.org/ivy/extra", "someExtra")) == "56576"
 
-        assertEquals(1, md.getExtraInfo().size())
-        assertEquals("56576", md.getExtraInfo().get(new NamespaceId("http://ant.apache.org/ivy/extra", "someExtra")))
+        md.configurations.size() == 5
+        assertConf("myconf1", "desc 1", true, new String[0])
+        assertConf("myconf2", "desc 2", true, new String[0])
+        assertConf("myconf3", "desc 3", false, new String[0])
+        assertConf("myconf4", "desc 4", true, ["myconf1", "myconf2"].toArray(new String[2]))
+        assertConf("myoldconf", "my old desc", true, new String[0])
 
-        Configuration[] confs = md.getConfigurations()
-        assertNotNull(confs)
-        assertEquals(5, confs.length)
-
-        assertConf(md, "myconf1", "desc 1", Configuration.Visibility.PUBLIC, new String[0])
-        assertConf(md, "myconf2", "desc 2", Configuration.Visibility.PUBLIC, new String[0])
-        assertConf(md, "myconf3", "desc 3", Configuration.Visibility.PRIVATE, new String[0])
-        assertConf(md, "myconf4", "desc 4", Configuration.Visibility.PUBLIC, ["myconf1", "myconf2"].toArray(new String[2]))
-        assertConf(md, "myoldconf", "my old desc", Configuration.Visibility.PUBLIC, new String[0])
-
-        descriptor.artifacts.size() == 4
+        md.artifacts.size() == 4
         assertArtifacts("myconf1", ["myartifact1", "myartifact2", "myartifact3", "myartifact4"])
         assertArtifacts("myconf2", ["myartifact1", "myartifact3"])
         assertArtifacts("myconf3", ["myartifact1", "myartifact3", "myartifact4"])
         assertArtifacts("myconf4", ["myartifact1"])
 
-        DependencyDescriptor[] dependencies = md.getDependencies()
-        assertNotNull(dependencies)
-        assertEquals(13, dependencies.length)
+        md.dependencies.size() == 13
 
-        verifyFullDependencies(dependencies)
+        verifyFullDependencies(md.dependencies)
 
-        ExcludeRule[] rules = md.getAllExcludeRules()
-        assertNotNull(rules)
-        assertEquals(2, rules.length)
-        assertEquals(GlobPatternMatcher.INSTANCE, rules[0].getMatcher())
-        assertEquals(ExactPatternMatcher.INSTANCE, rules[1].getMatcher())
-        assertEquals(Arrays.asList("myconf1"), Arrays.asList(rules[0]
-                .getConfigurations()))
-        assertEquals(Arrays.asList("myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"), Arrays.asList(rules[1].getConfigurations()))
-        md.inheritedDescriptors.length == 0
+        def rules = md.excludeRules
+        rules.size() == 2
+        rules[0].matcher == GlobPatternMatcher.INSTANCE
+        rules[0].configurations as List == ["myconf1"]
+        rules[1].matcher == ExactPatternMatcher.INSTANCE
+        rules[1].configurations as List == ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"]
     }
 
     def "merges values from parent Ivy descriptor"() throws Exception {
@@ -345,20 +321,17 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parseContext.getMetaDataArtifact(_, IVY_DESCRIPTOR) >> new DefaultLocallyAvailableExternalResource(parentFile.toURI(), new DefaultLocallyAvailableResource(parentFile))
 
         when:
-        ModuleDescriptor md = parse(parseContext, file)
+        parse(parseContext, file)
 
         then:
         md != null
-        md.moduleRevisionId.organisation == "myorg"
-        md.moduleRevisionId.name == "mymodule"
-        md.moduleRevisionId.revision == "myrev"
+        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
         md.configurations*.name == ["default"]
-        md.dependencies.length == 1
-        md.dependencies[0].dependencyRevisionId.organisation == 'deporg'
-        md.dependencies[0].dependencyRevisionId.name == 'depname'
-        md.dependencies[0].dependencyRevisionId.revision == 'deprev'
-        md.inheritedDescriptors.length == 0
+
+        md.dependencies.size() == 1
+        def dependency = md.dependencies.first()
+        dependency.requested == newSelector("deporg", "depname", "deprev")
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2766")
@@ -384,11 +357,11 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parse(parseContext, file)
-        def dependency = descriptor.dependencies.first()
+        parse(parseContext, file)
+        def dependency = md.dependencies.first()
 
         then:
-        dependency.moduleConfigurations == ["myconf"]
+        dependency.confMappings.keySet() == ["myconf"] as Set
     }
 
     def "defaultconf is respected"() {
@@ -453,80 +426,22 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parse(parseContext, file)
+        parse(parseContext, file)
 
         then:
-        def dependency1 = descriptor.dependencies[0]
-        dependency1.moduleConfigurations == ["a"]
-        dependency1.getDependencyConfigurations("a") == ["a"]
-        dependency1.getDependencyConfigurations("a", "requested") == ["a"]
-
-        def dependency2 = descriptor.dependencies[1]
-        dependency2.moduleConfigurations == ["a"]
-        dependency2.getDependencyConfigurations("a") == ["other"]
-        dependency2.getDependencyConfigurations("a", "requested") == ["other"]
-
-        def dependency3 = descriptor.dependencies[2]
-        dependency3.moduleConfigurations == ["*"]
-        dependency3.getDependencyConfigurations("a") == ["a"]
-        dependency3.getDependencyConfigurations("a", "requested") == ["a"]
-
-        def dependency4 = descriptor.dependencies[3]
-        dependency4.moduleConfigurations == ["a", "%"]
-        dependency4.getDependencyConfigurations("a") == ["other"]
-        dependency4.getDependencyConfigurations("a", "requested") == ["other"]
-        dependency4.getDependencyConfigurations("b") == ["b"]
-        dependency4.getDependencyConfigurations("b", "requested") == ["b"]
-
-        def dependency5 = descriptor.dependencies[4]
-        dependency5.moduleConfigurations == ["*", "!a"]
-        dependency5.getDependencyConfigurations("a") == ["a"]
-        dependency5.getDependencyConfigurations("a", "requested") == ["a"]
-
-        def dependency6 = descriptor.dependencies[5]
-        dependency6.moduleConfigurations == ["a"]
-        dependency6.getDependencyConfigurations("a") == ["*"]
-        dependency6.getDependencyConfigurations("a", "requested") == ["*"]
-
-        def dependency7 = descriptor.dependencies[6]
-        dependency7.moduleConfigurations == ["a", "b", "*", "%"]
-        dependency7.getDependencyConfigurations("a") == ["one", "two", "three", "four"]
-        dependency7.getDependencyConfigurations("b") == ["three", "four"]
-        dependency7.getDependencyConfigurations("c") == ["none", "four"]
-
-        def dependency8 = descriptor.dependencies[7]
-        dependency8.moduleConfigurations == ["a"]
-        dependency8.getDependencyConfigurations("a") == ["a"]
-        dependency8.getDependencyConfigurations("a", "requested") == ["requested"]
-
-        def dependency9 = descriptor.dependencies[8]
-        dependency9.moduleConfigurations == ["a", "%"]
-        dependency9.getDependencyConfigurations("a") == ["a"]
-        dependency9.getDependencyConfigurations("a", "requested") == ["a"]
-        dependency9.getDependencyConfigurations("b") == ["b"]
-        dependency9.getDependencyConfigurations("b", "requested") == ["b"]
-
-        def dependency10 = descriptor.dependencies[9]
-        dependency10.moduleConfigurations == ["a", "*", "!a"]
-        dependency10.getDependencyConfigurations("a") == ["a", "b"]
-        dependency10.getDependencyConfigurations("a", "requested") == ["a", "b"]
-        dependency10.getDependencyConfigurations("b") == ["b"]
-        dependency10.getDependencyConfigurations("b", "requested") == ["b"]
-
-        def dependency11 = descriptor.dependencies[10]
-        dependency11.moduleConfigurations == ["*"]
-        dependency11.getDependencyConfigurations("a") == ["*"]
-        dependency11.getDependencyConfigurations("a", "requested") == ["*"]
-
-        def dependency12 = descriptor.dependencies[11]
-        dependency12.moduleConfigurations == ["*"]
-        dependency12.getDependencyConfigurations("a") == ["*"]
-        dependency12.getDependencyConfigurations("a", "requested") == ["*"]
-
-        def dependency13 = descriptor.dependencies[12]
-        dependency13.moduleConfigurations == ["*"]
-        dependency13.getDependencyConfigurations("a") == ["*"]
-        dependency13.getDependencyConfigurations("a", "requested") == ["*"]
+        md.dependencies[0].confMappings == ["a": ["a"]]
+        md.dependencies[1].confMappings == ["a": ["other"]]
+        md.dependencies[2].confMappings == ["*": ["@"]]
+        md.dependencies[3].confMappings == ["a": ["other"], "%": ["@"]]
+        md.dependencies[4].confMappings == ["*": ["@"], "!a": ["@"]]
+        md.dependencies[5].confMappings == ["a": ["*"]]
+        md.dependencies[6].confMappings == ["a": ["one", "two", "three"], "b": ["three"], "*": ["four"], "%": ["none"]]
+        md.dependencies[7].confMappings == ["a": ["#"]]
+        md.dependencies[8].confMappings == ["a": ["a"], "%": ["@"]]
+        md.dependencies[9].confMappings == ["a": ["a"], "*": ["b"], "!a": ["b"]]
+        md.dependencies[10].confMappings == ["*": ["*"]]
+        md.dependencies[11].confMappings == ["*": ["*"]]
+        md.dependencies[12].confMappings == ["*": ["*"]]
     }
 
     def "parses dependency config mappings with defaults"() {
@@ -558,48 +473,18 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parse(parseContext, file)
+        parse(parseContext, file)
 
         then:
-        def dependency1 = descriptor.dependencies[0]
-        dependency1.moduleConfigurations == ["a"]
-        dependency1.getDependencyConfigurations("a") == ["a1"]
-        dependency1.getDependencyConfigurations("a", "requested") == ["a1"]
+        md.dependencies[0].confMappings == ["a": ["a1"]]
+        md.dependencies[1].confMappings == ["a": ["a1"]]
+        md.dependencies[2].confMappings == ["a": ["a1"]]
+        md.dependencies[3].confMappings == ["b": ["b1", "b2"]]
+        md.dependencies[4].confMappings == ["a": ["other"]]
+        md.dependencies[5].confMappings == ["*": ["@"]]
+        md.dependencies[6].confMappings == ["c": ["other"]]
+        md.dependencies[7].confMappings == ["a": ["a1"]]
 
-        def dependency2 = descriptor.dependencies[1]
-        dependency2.moduleConfigurations == ["a"]
-        dependency2.getDependencyConfigurations("a") == ["a1"]
-        dependency2.getDependencyConfigurations("a", "requested") == ["a1"]
-
-        def dependency3 = descriptor.dependencies[2]
-        dependency3.moduleConfigurations == ["a"]
-        dependency3.getDependencyConfigurations("a") == ["a1"]
-        dependency3.getDependencyConfigurations("a", "requested") == ["a1"]
-
-        def dependency4 = descriptor.dependencies[3]
-        dependency4.moduleConfigurations == ["b"]
-        dependency4.getDependencyConfigurations("b") == ["b1", "b2"]
-        dependency4.getDependencyConfigurations("b", "requested") == ["b1", "b2"]
-
-        def dependency5 = descriptor.dependencies[4]
-        dependency5.moduleConfigurations == ["a"]
-        dependency5.getDependencyConfigurations("a") == ["other"]
-        dependency5.getDependencyConfigurations("a", "requested") == ["other"]
-
-        def dependency6 = descriptor.dependencies[5]
-        dependency6.moduleConfigurations == ["*"]
-        dependency6.getDependencyConfigurations("a") == ["a"]
-        dependency6.getDependencyConfigurations("a", "requested") == ["a"]
-
-        def dependency7 = descriptor.dependencies[6]
-        dependency7.moduleConfigurations == ["c"]
-        dependency7.getDependencyConfigurations("c") == ["other"]
-        dependency7.getDependencyConfigurations("c", "requested") == ["other"]
-
-        def dependency8 = descriptor.dependencies[7]
-        dependency8.moduleConfigurations == ["a"]
-        dependency8.getDependencyConfigurations("a") == ["a1"]
-        dependency8.getDependencyConfigurations("a", "requested") == ["a1"]
     }
 
     def "parses artifact config mappings"() {
@@ -666,7 +551,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         artifact().configurations == ['a', 'b', 'c'] as Set
     }
 
-    def "parses extra attributes and extra info"() {
+    def "parses extra info"() {
         given:
         def file = temporaryFolder.createFile("ivy.xml")
         file.text = """
@@ -684,259 +569,142 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         """
 
         when:
-        def descriptor = parse(parseContext, file)
+        parse(parseContext, file)
 
         then:
-        descriptor.moduleRevisionId.qualifiedExtraAttributes.size() == 3
-        descriptor.moduleRevisionId.qualifiedExtraAttributes['b:a'] == "1"
-        descriptor.moduleRevisionId.qualifiedExtraAttributes['b:b'] == "2"
-        descriptor.moduleRevisionId.qualifiedExtraAttributes['c:a'] == "3"
-        descriptor.extraInfo.size() == 2
-        descriptor.extraInfo[new NamespaceId("namespace-b", "a")] == "info 1"
-        descriptor.extraInfo[new NamespaceId("namespace-c", "a")] == "info 2"
+        md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
+        md.extraInfo.size() == 2
+        md.extraInfo[new NamespaceId("namespace-b", "a")] == "info 1"
+        md.extraInfo[new NamespaceId("namespace-c", "a")] == "info 2"
     }
 
-    private ModuleDescriptor parse(DescriptorParseContext parseContext, TestFile file) {
-        descriptor = parser.parseMetaData(parseContext, file).descriptor
-        md = descriptor.ivyDescriptor
-        md
+    private void parse(DescriptorParseContext parseContext, TestFile file) {
+        md = parser.parseMetaData(parseContext, file).descriptor
     }
 
     private artifact() {
-        assert descriptor.artifacts.size() == 1
-        descriptor.artifacts[0]
+        assert md.artifacts.size() == 1
+        md.artifacts[0]
     }
 
     private artifacts(String conf) {
-        descriptor.artifacts.findAll { it.configurations.contains(conf) }
+        md.artifacts.findAll { it.configurations.contains(conf) }
     }
 
-    def verifyFullDependencies(DependencyDescriptor[] dependencies) {
-        // no conf def => equivalent to *->*
-        DependencyDescriptor dd = getDependency(dependencies, "mymodule2")
-        assertNotNull(dd)
-        assertEquals("myorg", dd.getDependencyId().getOrganisation())
-        assertEquals("2.0", dd.getDependencyRevisionId().getRevision())
-        assertEquals(["*"], Arrays.asList(dd.getModuleConfigurations()))
-        assertEquals(["*"], Arrays.asList(dd.getDependencyConfigurations("myconf1")))
-        assertEquals(["*"], Arrays.asList(dd.getDependencyConfigurations(["myconf2", "myconf3", "myconf4"].toArray(new String[3]))))
-        assertDependencyArtifactIncludeRules(dd, ["myconf1", "myconf2", "myconf3", "myconf4"], [])
-        assertFalse(dd.isChanging())
-        assertTrue(dd.isTransitive())
+    static componentId(String group, String module, String version) {
+        DefaultModuleComponentIdentifier.newId(group, module, version)
+    }
 
-        // changing = true
+    def verifyFullDependencies(Collection<Dependency> dependencies) {
+        // no conf def => equivalent to *->*
+        Dependency dd = getDependency(dependencies, "mymodule2")
+        assert dd.requested == newSelector("myorg", "mymodule2", "2.0")
+        assert dd.confMappings == ["*": ["*"]]
+        assert !dd.changing
+        assert dd.transitive
+        assert dd.dependencyArtifacts.empty
+
+        // changing, not transitive
         dd = getDependency(dependencies, "mymodule3")
-        assertNotNull(dd)
-        assertTrue(getDependency(dependencies, "mymodule3").isChanging())
-        assertFalse(getDependency(dependencies, "mymodule3").isTransitive())
+        assert dd.changing
+        assert !dd.transitive
+
         // conf="myconf1" => equivalent to myconf1->myconf1
         dd = getDependency(dependencies, "yourmodule1")
-        assertNotNull(dd)
-        assertEquals("yourorg", dd.getDependencyId().getOrganisation())
-        assertEquals("trunk", dd.getDependencyRevisionId().getBranch())
-        assertEquals("1.1", dd.getDependencyRevisionId().getRevision())
-        assertEquals("branch1", dd.getDynamicConstraintDependencyRevisionId().getBranch())
-        assertEquals("1+", dd.getDynamicConstraintDependencyRevisionId().getRevision())
-        assertEquals("yourorg#yourmodule1#branch1;1+", dd.getDynamicConstraintDependencyRevisionId().toString())
-
-        assertEquals(["myconf1"], Arrays.asList(dd.getModuleConfigurations()))
-        assertEquals(["myconf1"], Arrays.asList(dd.getDependencyConfigurations("myconf1")))
-        assertEquals([], Arrays.asList(dd.getDependencyConfigurations(["myconf2", "myconf3", "myconf4"].toArray(new String[3]))))
-        assertDependencyArtifactIncludeRules(dd, ["myconf1", "myconf2", "myconf3", "myconf4"], [])
+        assert dd.requested == newSelector("yourorg", "yourmodule1", "1.1")
+        assert dd.dynamicConstraintVersion == "1+"
+        assert dd.confMappings == [myconf1: ["myconf1"]]
+        assert dd.dependencyArtifacts.empty
 
         // conf="myconf1->yourconf1"
         dd = getDependency(dependencies, "yourmodule2")
-        assertNotNull(dd)
-        assertEquals("yourorg", dd.getDependencyId().getOrganisation())
-        assertEquals("2+", dd.getDependencyRevisionId().getRevision())
-        assertEquals(["myconf1"], Arrays.asList(dd.getModuleConfigurations()))
-        assertEquals(["yourconf1"], Arrays.asList(dd.getDependencyConfigurations("myconf1")))
-        assertEquals([], Arrays.asList(dd.getDependencyConfigurations(["myconf2", "myconf3", "myconf4"].toArray(new String[3]))))
-        assertDependencyArtifactIncludeRules(dd, ["myconf1", "myconf2", "myconf3", "myconf4"], [])
+        assert dd.requested == newSelector("yourorg", "yourmodule2", "2+")
+        assert dd.confMappings == [myconf1: ["yourconf1"]]
+        assert dd.dependencyArtifacts.empty
 
         // conf="myconf1->yourconf1, yourconf2"
         dd = getDependency(dependencies, "yourmodule3")
-        assertNotNull(dd)
-        assertEquals("yourorg", dd.getDependencyId().getOrganisation())
-        assertEquals("3.1", dd.getDependencyRevisionId().getRevision())
-        assertEquals(["myconf1"], Arrays.asList(dd.getModuleConfigurations()))
-        assertEquals(["yourconf1", "yourconf2"], Arrays.asList(dd.getDependencyConfigurations("myconf1")))
-        assertEquals([], Arrays.asList(dd.getDependencyConfigurations(["myconf2", "myconf3", "myconf4"].toArray(new String[3]))))
-        assertDependencyArtifactIncludeRules(dd, ["myconf1", "myconf2", "myconf3", "myconf4"], [])
+        assert dd.requested == newSelector("yourorg", "yourmodule3", "3.1")
+        assert dd.confMappings == [myconf1: ["yourconf1", "yourconf2"]]
+        assert dd.dependencyArtifacts.empty
 
         // conf="myconf1, myconf2->yourconf1, yourconf2"
         dd = getDependency(dependencies, "yourmodule4")
-        assertNotNull(dd)
-        assertEquals("yourorg", dd.getDependencyId().getOrganisation())
-        assertEquals("4.1", dd.getDependencyRevisionId().getRevision())
-        assertEquals(new HashSet(["myconf1", "myconf2"]), new HashSet(
-                Arrays.asList(dd.getModuleConfigurations())))
-        assertEquals(["yourconf1", "yourconf2"], Arrays.asList(dd
-                .getDependencyConfigurations("myconf1")))
-        assertEquals(["yourconf1", "yourconf2"], Arrays.asList(dd
-                .getDependencyConfigurations("myconf2")))
-        assertEquals([], Arrays.asList(dd.getDependencyConfigurations(["myconf3", "myconf4"])))
-        assertDependencyArtifactIncludeRules(dd, ["myconf1", "myconf2", "myconf3", "myconf4"], [])
+        assert dd.requested == newSelector("yourorg", "yourmodule4", "4.1")
+        assert dd.confMappings == [myconf1:["yourconf1", "yourconf2"], myconf2:["yourconf1", "yourconf2"]]
+        assert dd.dependencyArtifacts.empty
 
-        // conf="myconf1->yourconf1myconf2->yourconf1, yourconf2"
+        // conf="myconf1->yourconf1 | myconf2->yourconf1, yourconf2"
         dd = getDependency(dependencies, "yourmodule5")
-        assertNotNull(dd)
-        assertEquals("yourorg", dd.getDependencyId().getOrganisation())
-        assertEquals("5.1", dd.getDependencyRevisionId().getRevision())
-        assertEquals(["myconf1", "myconf2"] as Set, new HashSet(Arrays.asList(dd.getModuleConfigurations())))
-        assertEquals(["yourconf1"], Arrays.asList(dd.getDependencyConfigurations("myconf1")))
-        assertEquals(["yourconf1", "yourconf2"], Arrays.asList(dd.getDependencyConfigurations("myconf2")))
-        assertEquals([], Arrays.asList(dd.getDependencyConfigurations(["myconf3", "myconf4"])))
-        assertDependencyArtifactIncludeRules(dd, ["myconf1", "myconf2", "myconf3", "myconf4"], [])
+        assert dd.requested == newSelector("yourorg", "yourmodule5", "5.1")
+        assert dd.confMappings == [myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"]]
+        assert dd.dependencyArtifacts.empty
 
         // conf="*->@"
         dd = getDependency(dependencies, "yourmodule11")
-        assertNotNull(dd)
-        assertEquals("yourorg", dd.getDependencyId().getOrganisation())
-        assertEquals("11.1", dd.getDependencyRevisionId().getRevision())
-        assertEquals(["*"] as Set, new HashSet(Arrays.asList(dd.getModuleConfigurations())))
-        assertEquals(["myconf1"], Arrays.asList(dd.getDependencyConfigurations("myconf1")))
-        assertEquals(["myconf2"], Arrays.asList(dd.getDependencyConfigurations("myconf2")))
-        assertEquals(["myconf3"], Arrays.asList(dd.getDependencyConfigurations("myconf3")))
-        assertEquals(["myconf4"], Arrays.asList(dd.getDependencyConfigurations("myconf4")))
+        assert dd.requested == newSelector("yourorg", "yourmodule11", "11.1")
+        assert dd.confMappings == ["*":["@"]]
+        assert dd.dependencyArtifacts.empty
 
+        // Conf mappings as nested elements
         dd = getDependency(dependencies, "yourmodule6")
-        assertNotNull(dd)
-        assertEquals("yourorg", dd.getDependencyId().getOrganisation())
-        assertEquals("latest.integration", dd.getDependencyRevisionId().getRevision())
-        assertEquals(["myconf1", "myconf2"] as Set, new HashSet(Arrays.asList(dd.getModuleConfigurations())))
-        assertEquals(["yourconf1"], Arrays.asList(dd.getDependencyConfigurations("myconf1")))
-        assertEquals(["yourconf1", "yourconf2"], Arrays.asList(dd.getDependencyConfigurations("myconf2")))
-        assertEquals([], Arrays.asList(dd.getDependencyConfigurations(["myconf3", "myconf4"])))
-        assertDependencyArtifactIncludeRules(dd, ["myconf1", "myconf2", "myconf3", "myconf4"], [])
+        assert dd.requested == newSelector("yourorg", "yourmodule6", "latest.integration")
+        assert dd.confMappings == [myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"]]
+        assert dd.dependencyArtifacts.empty
 
+        // Conf mappings as deeply nested elements
         dd = getDependency(dependencies, "yourmodule7")
-        assertNotNull(dd)
-        assertEquals("yourorg", dd.getDependencyId().getOrganisation())
-        assertEquals("7.1", dd.getDependencyRevisionId().getRevision())
-        assertEquals(new HashSet(["myconf1", "myconf2"]), new HashSet(
-                Arrays.asList(dd.getModuleConfigurations())))
-        assertEquals(["yourconf1"], Arrays.asList(dd.getDependencyConfigurations("myconf1")))
-        assertEquals(["yourconf1", "yourconf2"], Arrays.asList(dd.getDependencyConfigurations("myconf2")))
-        assertEquals([], Arrays.asList(dd.getDependencyConfigurations(["myconf3", "myconf4"])))
-        assertDependencyArtifactIncludeRules(dd, ["myconf1", "myconf2", "myconf3", "myconf4"], [])
+        assert dd.requested == newSelector("yourorg", "yourmodule7", "7.1")
+        assert dd.confMappings == [myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"]]
+        assert dd.dependencyArtifacts.empty
 
+        // Dependency artifacts
         dd = getDependency(dependencies, "yourmodule8")
-        assertNotNull(dd)
-        assertEquals("yourorg", dd.getDependencyId().getOrganisation())
-        assertEquals("8.1", dd.getDependencyRevisionId().getRevision())
-        assertEquals(["*"] as Set, new HashSet(Arrays.asList(dd.getModuleConfigurations())))
-        assertDependencyArtifacts(dd, ["myconf1"], ["yourartifact8-1", "yourartifact8-2"])
-        assertDependencyArtifacts(dd, ["myconf2"], ["yourartifact8-1", "yourartifact8-2"])
-        assertDependencyArtifacts(dd, ["myconf3"], ["yourartifact8-1", "yourartifact8-2"])
-        assertDependencyArtifacts(dd, ["myconf4"], ["yourartifact8-1", "yourartifact8-2"])
-        dd = getDependency(dependencies, "yourmodule9")
-        assertNotNull(dd)
-        assertEquals("yourorg", dd.getDependencyId().getOrganisation())
-        assertEquals("9.1", dd.getDependencyRevisionId().getRevision())
-        assertEquals(["myconf1", "myconf2", "myconf3"] as Set, new HashSet(Arrays.asList(dd.getModuleConfigurations())))
-        assertDependencyArtifacts(dd, ["myconf1"], ["yourartifact9-1"])
-        assertDependencyArtifacts(dd, ["myconf2"], ["yourartifact9-1", "yourartifact9-2"])
-        assertDependencyArtifacts(dd, ["myconf3"], ["yourartifact9-2"])
-        assertDependencyArtifacts(dd, ["myconf4"], [])
-        assertDependencyArtifactExcludeRules(dd, ["myconf1"], [])
-        assertDependencyArtifactExcludeRules(dd, ["myconf2"], [])
-        assertDependencyArtifactExcludeRules(dd, ["myconf3"], [])
-        assertDependencyArtifactExcludeRules(dd, ["myconf4"], [])
+        assert dd.requested == newSelector("yourorg", "yourmodule8", "8.1")
+        assert dd.dependencyArtifacts.size() == 2
+        assertDependencyArtifact(dd, "yourartifact8-1", ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"])
+        assertDependencyArtifact(dd, "yourartifact8-2", ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"])
 
+        // Dependency artifacts with confs
+        dd = getDependency(dependencies, "yourmodule9")
+        assert dd.requested == newSelector("yourorg", "yourmodule9", "9.1")
+        assert dd.dependencyArtifacts.size() == 2
+        assertDependencyArtifact(dd, "yourartifact9-1", ["myconf1", "myconf2"])
+        assertDependencyArtifact(dd, "yourartifact9-2", ["myconf2", "myconf3"])
+
+        // Dependency excludes
         dd = getDependency(dependencies, "yourmodule10")
-        assertNotNull(dd)
-        assertEquals("yourorg", dd.getDependencyId().getOrganisation())
-        assertEquals("10.1", dd.getDependencyRevisionId().getRevision())
-        assertEquals(new HashSet(["*"]), new HashSet(Arrays.asList(dd.getModuleConfigurations())))
-        assertDependencyArtifactIncludeRules(dd, ["myconf1"], ["your.*", PatternMatcher.ANY_EXPRESSION])
-        assertDependencyArtifactIncludeRules(dd, ["myconf2"], ["your.*", PatternMatcher.ANY_EXPRESSION])
-        assertDependencyArtifactIncludeRules(dd, ["myconf3"], ["your.*", PatternMatcher.ANY_EXPRESSION])
-        assertDependencyArtifactIncludeRules(dd, ["myconf4"], ["your.*", PatternMatcher.ANY_EXPRESSION])
-        assertDependencyArtifactExcludeRules(dd, ["myconf1"], ["toexclude"])
-        assertDependencyArtifactExcludeRules(dd, ["myconf2"], ["toexclude"])
-        assertDependencyArtifactExcludeRules(dd, ["myconf3"], ["toexclude"])
-        assertDependencyArtifactExcludeRules(dd, ["myconf4"], ["toexclude"])
+        assert dd.requested == newSelector("yourorg", "yourmodule10", "10.1")
+        assert dd.dependencyArtifacts.empty
+        assert dd.dependencyExcludes.size() == 1
+        assert dd.dependencyExcludes[0].id.name == "toexclude"
+        assert dd.dependencyExcludes[0].configurations as Set == ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"] as Set
         true
     }
 
-    void assertDependencyArtifactExcludeRules(DependencyDescriptor dd, List<String> confs,
-                                              List<String> artifactsNames) {
-        ExcludeRule[] rules = dd.getExcludeRules(confs.toArray(new String[confs.size()]))
-        assertNotNull(rules)
-        assertEquals(artifactsNames.size(), rules.length)
-        for (String artifactName : artifactsNames) {
-            boolean found = false
-            for (int j = 0; j < rules.length; j++) {
-                assertNotNull(rules[j])
-                if (rules[j].getId().getName().equals(artifactName)) {
-                    found = true
-                    break
-                }
-            }
-            assertTrue("dependency exclude not found: " + artifactName, found)
-        }
-    }
-
-    protected void assertDependencyArtifactIncludeRules(DependencyDescriptor dd, List<String> confs,
-                                                        List<String> artifactsNames) {
-        IncludeRule[] dads = dd.getIncludeRules(confs.toArray(new String[confs.size()]))
-        assertNotNull(dads)
-        assertEquals(artifactsNames.size(), dads.length)
-        for (String artifactName : artifactsNames) {
-            boolean found = false
-            for (int j = 0; j < dads.length; j++) {
-                assertNotNull(dads[j])
-                if (dads[j].getId().getName().equals(artifactName)) {
-                    found = true
-                    break
-                }
-            }
-            assertTrue("dependency include not found: " + artifactName, found)
-        }
-    }
 
     protected void assertArtifacts(String configuration, List<String> artifactNames) {
         def configurationArtifactNames = artifacts(configuration)*.artifactName*.name
         assert configurationArtifactNames as Set == artifactNames as Set
     }
 
-    protected void assertConf(ModuleDescriptor md, String name, String desc, Configuration.Visibility visibility,
-                              String[] exts) {
-        Configuration conf = md.getConfiguration(name)
-        assertNotNull("configuration not found: " + name, conf)
-        assertEquals(name, conf.getName())
-        assertEquals(desc, conf.getDescription())
-        assertEquals(visibility, conf.getVisibility())
-        assertEquals(Arrays.asList(exts), Arrays.asList(conf.getExtends()))
+    protected void assertConf(String name, String desc, boolean visible, String[] exts) {
+        def conf = md.getConfiguration(name)
+        assert conf != null : "configuration not found: " + name
+        assert conf.name == name
+        assert conf.visible == visible
+        assert conf.extendsFrom as Set == exts as Set
     }
 
-    protected DependencyDescriptor getDependency(DependencyDescriptor[] dependencies, String name) {
-        for (int i = 0; i < dependencies.length; i++) {
-            assertNotNull(dependencies[i])
-            assertNotNull(dependencies[i].getDependencyId())
-            if (name.equals(dependencies[i].getDependencyId().getName())) {
-                return dependencies[i]
-            }
-        }
-        return null
+    protected static Dependency getDependency(Collection<Dependency> dependencies, String name) {
+        def found = dependencies.find { it.requested.name == name }
+        assert found != null
+        return found
     }
 
-    protected void assertDependencyArtifacts(DependencyDescriptor dd, List<String> confs,
-                                             List<String> artifactsNames) {
-        DependencyArtifactDescriptor[] dads = dd.getDependencyArtifacts(confs.toArray(new String[confs.size()]));
-        assertNotNull(dads);
-        assertEquals(artifactsNames.size(), dads.length);
-        for (String artifactName : artifactsNames) {
-            boolean found = false;
-            for (int j = 0; j < dads.length; j++) {
-                assertNotNull(dads[j]);
-                if (dads[j].getName().equals(artifactName)) {
-                    found = true;
-                    break;
-                }
-            }
-            assertTrue("dependency artifact not found: " + artifactName, found);
-        }
+    protected static void assertDependencyArtifact(Dependency dd, String name, List<String> confs) {
+        def artifact = dd.dependencyArtifacts.find { it.artifactName.name == name }
+        assert artifact != null
+        assert artifact.configurations == confs as Set
     }
 }

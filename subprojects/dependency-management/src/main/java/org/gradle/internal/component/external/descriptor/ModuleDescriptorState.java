@@ -36,9 +36,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class ModuleDescriptorState {
-    // TODO:DAZ Remove this
-    public final ModuleDescriptor ivyDescriptor;
-
     private final ModuleComponentIdentifier componentIdentifier;
     protected final Map<String, Configuration> configurations;
     protected final List<ExcludeRule> excludeRules;
@@ -57,8 +54,6 @@ public class ModuleDescriptorState {
     }
 
     public ModuleDescriptorState(ModuleDescriptor ivyDescriptor, final boolean allowForcedDependencies) {
-        this.ivyDescriptor = ivyDescriptor;
-
         ModuleRevisionId moduleRevisionId = ivyDescriptor.getModuleRevisionId();
         componentIdentifier = DefaultModuleComponentIdentifier.newId(moduleRevisionId);
         branch = moduleRevisionId.getBranch();
