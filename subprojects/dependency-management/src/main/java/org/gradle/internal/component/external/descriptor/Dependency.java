@@ -123,11 +123,11 @@ public class Dependency {
         return dynamicConstraintVersion;
     }
 
-    public static Dependency forDependencyDescriptor(DependencyDescriptor dependencyDescriptor, boolean force) {
+    public static Dependency forDependencyDescriptor(DependencyDescriptor dependencyDescriptor) {
         Dependency dep = new Dependency(
             DefaultModuleVersionSelector.newSelector(dependencyDescriptor.getDependencyRevisionId()),
             dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision(),
-            force,
+            false,
             dependencyDescriptor.isChanging(),
             dependencyDescriptor.isTransitive());
 

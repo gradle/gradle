@@ -63,11 +63,6 @@ public class ModuleDescriptorState {
     }
 
     public ModuleDescriptorState(ModuleDescriptor ivyDescriptor) {
-        // Force attribute is ignored in published modules: we only consider force attribute on direct dependencies declared in Gradle
-        this(ivyDescriptor, false);
-    }
-
-    public ModuleDescriptorState(ModuleDescriptor ivyDescriptor, final boolean allowForcedDependencies) {
         ModuleRevisionId moduleRevisionId = ivyDescriptor.getModuleRevisionId();
         componentIdentifier = DefaultModuleComponentIdentifier.newId(moduleRevisionId);
         branch = moduleRevisionId.getBranch();
@@ -86,8 +81,8 @@ public class ModuleDescriptorState {
         dependencies = CollectionUtils.collect(ivyDescriptor.getDependencies(), new Transformer<Dependency, DependencyDescriptor>() {
             @Override
             public Dependency transform(DependencyDescriptor dependencyDescriptor) {
-                boolean force = allowForcedDependencies && dependencyDescriptor.isForce();
-                return Dependency.forDependencyDescriptor(dependencyDescriptor, force);
+                // Force attribute is ignored in published modules: we only consider force attribute on direct dependencies declared in Gradle
+                return Dependency.forDependencyDescriptor(dependencyDescriptor);
             }
         });
     }
