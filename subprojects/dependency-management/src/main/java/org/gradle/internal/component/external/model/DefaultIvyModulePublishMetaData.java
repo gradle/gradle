@@ -16,86 +16,70 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.apache.ivy.core.module.descriptor.*;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.Dependency;
+import com.google.common.collect.Lists;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
+import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.util.WrapUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublishMetaData, BuildableLocalComponentMetaData {
     private final ModuleVersionIdentifier id;
-    private final DefaultModuleDescriptor moduleDescriptor;
+    private final MutableModuleDescriptorState descriptor;
     private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetaData> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetaData>();
 
     public DefaultIvyModulePublishMetaData(ModuleVersionIdentifier id, String status) {
         this.id = id;
-        moduleDescriptor = new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(id), status, null);
+        this.descriptor = new MutableModuleDescriptorState(new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(id), status, null), true);
     }
 
     public DefaultIvyModulePublishMetaData(ModuleVersionIdentifier id, ModuleDescriptorState moduleDescriptor) {
         this.id = id;
-        this.moduleDescriptor = (DefaultModuleDescriptor) moduleDescriptor.ivyDescriptor;
+        this.descriptor = (MutableModuleDescriptorState) moduleDescriptor;
     }
 
     public ModuleVersionIdentifier getId() {
         return id;
     }
 
-    public ModuleDescriptorState getModuleDescriptor() {
-        return new ModuleDescriptorState(moduleDescriptor, true);
+    public MutableModuleDescriptorState getModuleDescriptor() {
+        return descriptor;
     }
 
     @Override
     public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies) {
-        String[] superConfigs = extendsFrom.toArray(new String[0]);
-        Arrays.sort(superConfigs);
-        Configuration.Visibility visibility = visible ? Configuration.Visibility.PUBLIC : Configuration.Visibility.PRIVATE;
-        Configuration conf = new Configuration(name, visibility, description, superConfigs, transitive, null);
-        moduleDescriptor.addConfiguration(conf);
+        List<String> sortedExtends = Lists.newArrayList(extendsFrom);
+        Collections.sort(sortedExtends);
+        descriptor.addConfiguration(name, transitive, visible, sortedExtends);
     }
 
     @Override
     public void addExcludeRule(ExcludeRule excludeRule) {
-        moduleDescriptor.addExcludeRule(excludeRule);
+        descriptor.addExcludeRule(excludeRule);
     }
 
     @Override
     public void addDependency(DependencyMetaData dependency) {
-        ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(dependency.getRequested().getGroup(), dependency.getRequested().getName(), dependency.getRequested().getVersion());
-        DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(moduleDescriptor, moduleRevisionId, dependency.isForce(), dependency.isChanging(), dependency.isTransitive());
-
-        // In reality, there will only be 1 module configuration and 1 matching dependency configuration
-        for (String moduleConfiguration : dependency.getModuleConfigurations()) {
-            for (String dependencyConfiguration : dependency.getDependencyConfigurations(moduleConfiguration, moduleConfiguration)) {
-                dependencyDescriptor.addDependencyConfiguration(moduleConfiguration, dependencyConfiguration);
-            }
-            addDependencyArtifacts(moduleConfiguration, dependency.getArtifacts(), dependencyDescriptor);
-        }
-
-        moduleDescriptor.addDependency(dependencyDescriptor);
+        descriptor.addDependency(dependency);
     }
 
-    private void addDependencyArtifacts(String configuration, Set<IvyArtifactName> artifacts, DefaultDependencyDescriptor dependencyDescriptor) {
-        for (IvyArtifactName artifact : artifacts) {
-            DefaultDependencyArtifactDescriptor artifactDescriptor = new DefaultDependencyArtifactDescriptor(
-                    dependencyDescriptor, artifact.getName(), artifact.getType(), artifact.getExtension(),
-                    null,
-                    artifact.getClassifier() != null ? WrapUtil.toMap(Dependency.CLASSIFIER, artifact.getClassifier()) : null);
-            dependencyDescriptor.addDependencyArtifact(configuration, artifactDescriptor);
-        }
-    }
-
+    // TODO:DAZ Should be able to push artifacts into MutableModuleDescriptorState, rather than keeping a separate set
+    // Would need to change the copy constructor so that artifacts aren't retained.
     @Override
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {
@@ -123,13 +107,6 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
         DefaultIvyModuleArtifactPublishMetaData artifact = new DefaultIvyModuleArtifactPublishMetaData(id, ivyName, artifactFile);
         artifactsById.put(artifact.getId(), artifact);
         return artifact;
-    }
-
-    private Map<String, String> ivyArtifactAttributes(IvyArtifactName ivyArtifactName) {
-        if (ivyArtifactName.getClassifier() == null) {
-            return Collections.emptyMap();
-        }
-        return Collections.singletonMap("m:classifier", ivyArtifactName.getClassifier());
     }
 
     public Collection<IvyModuleArtifactPublishMetaData> getArtifacts() {

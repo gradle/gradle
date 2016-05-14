@@ -40,9 +40,9 @@ public class ModuleDescriptorState {
     public final ModuleDescriptor ivyDescriptor;
 
     private final ModuleComponentIdentifier componentIdentifier;
-    private final Map<String, Configuration> configurations;
-    private final List<ExcludeRule> excludeRules;
-    private final List<Dependency> dependencies;
+    protected final Map<String, Configuration> configurations;
+    protected final List<ExcludeRule> excludeRules;
+    protected final List<Dependency> dependencies;
     private final List<Artifact> artifacts = Lists.newArrayList();
     private final String description;
     private final Date publicationDate;
