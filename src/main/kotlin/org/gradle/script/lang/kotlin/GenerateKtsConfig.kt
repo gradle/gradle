@@ -89,7 +89,7 @@ fun xmlDocumentFor(scriptDefinition: KotlinConfigurableScriptDefinition): Docume
     return doc
 }
 
-private
+internal
 fun prettyPrint(doc: Document): String {
     val writer = StringWriter()
     with (XMLOutputter()) {

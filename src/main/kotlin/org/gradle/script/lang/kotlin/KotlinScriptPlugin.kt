@@ -34,6 +34,7 @@ class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<
             throw IllegalArgumentException("target $target was not a Project as expected")
         }
         target.task<GenerateKtsConfig>("generateKtsConfig")
+        target.task<PatchIdeaConfig>("patchIdeaConfig")
         scriptClass.getConstructor(Project::class.java).newInstance(target)
     }
 }
