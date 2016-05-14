@@ -230,11 +230,6 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
             }
             State.x++
 
-            //simulate normal collectible objects
-            4000.times {
-                State.map.put(it, "foo" * 3000)
-            }
-
             //simulate normal perm gen usage
             5.times {
                 ClassLoader classLoader1 = new URLClassLoader(buildscript.classLoader.URLs)
