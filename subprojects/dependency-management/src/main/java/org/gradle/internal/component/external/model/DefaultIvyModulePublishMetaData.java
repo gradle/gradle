@@ -17,11 +17,9 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.Lists;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
@@ -39,21 +37,21 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublishMetaData, BuildableLocalComponentMetaData {
-    private final ModuleVersionIdentifier id;
+    private final ModuleComponentIdentifier id;
     private final MutableModuleDescriptorState descriptor;
     private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetaData> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetaData>();
 
-    public DefaultIvyModulePublishMetaData(ModuleVersionIdentifier id, String status) {
+    public DefaultIvyModulePublishMetaData(ModuleComponentIdentifier id, String status) {
         this.id = id;
-        this.descriptor = new MutableModuleDescriptorState(new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(id), status, null), true);
+        this.descriptor = new MutableModuleDescriptorState(id, status, true);
     }
 
-    public DefaultIvyModulePublishMetaData(ModuleVersionIdentifier id, ModuleDescriptorState moduleDescriptor) {
+    public DefaultIvyModulePublishMetaData(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
         this.id = id;
         this.descriptor = (MutableModuleDescriptorState) moduleDescriptor;
     }
 
-    public ModuleVersionIdentifier getId() {
+    public ModuleComponentIdentifier getId() {
         return id;
     }
 

@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -36,8 +35,8 @@ public class DefaultIvyModuleArtifactPublishMetaData implements IvyModuleArtifac
         this.configurations.addAll(configurations);
     }
 
-    public DefaultIvyModuleArtifactPublishMetaData(ModuleVersionIdentifier moduleVersionIdentifier, IvyArtifactName artifact, File file) {
-        this.id = new DefaultModuleComponentArtifactIdentifier(DefaultModuleComponentIdentifier.newId(moduleVersionIdentifier), artifact);
+    public DefaultIvyModuleArtifactPublishMetaData(ModuleComponentIdentifier moduleComponentIdentifier, IvyArtifactName artifact, File file) {
+        this.id = new DefaultModuleComponentArtifactIdentifier(moduleComponentIdentifier, artifact);
         this.file = file;
     }
 

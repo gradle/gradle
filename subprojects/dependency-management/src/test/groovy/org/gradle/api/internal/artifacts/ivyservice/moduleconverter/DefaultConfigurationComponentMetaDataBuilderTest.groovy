@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.internal.artifacts.DefaultDependencySet
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependenciesToModuleDescriptorConverter
@@ -39,7 +38,6 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
     def converter = new DefaultConfigurationComponentMetaDataBuilder(dependenciesConverter)
 
     def componentId = DefaultModuleComponentIdentifier.newId("org", "name", "rev");
-    def id = DefaultModuleVersionIdentifier.newId(componentId);
 
     def "adds artifacts from each configuration"() {
         def emptySet = new HashSet<String>()
@@ -70,7 +68,7 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         when:
         Configuration config1 = createNamesAndExtendedConfigurationStub("conf1");
         Configuration config2 = createNamesAndExtendedConfigurationStub("conf2", config1);
-        DefaultIvyModulePublishMetaData metaData = new DefaultIvyModulePublishMetaData(id, "status");
+        DefaultIvyModulePublishMetaData metaData = new DefaultIvyModulePublishMetaData(componentId, "status");
 
         and:
         converter.addConfigurations(metaData, WrapUtil.toSet(config1, config2));

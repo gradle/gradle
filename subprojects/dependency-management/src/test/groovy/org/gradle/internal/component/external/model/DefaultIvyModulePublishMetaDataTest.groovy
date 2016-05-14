@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.external.model
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.local.model.LocalConfigurationMetaData
@@ -25,7 +25,7 @@ import org.gradle.internal.component.model.IvyArtifactName
 import spock.lang.Specification
 
 class DefaultIvyModulePublishMetaDataTest extends Specification {
-    def metaData = new DefaultIvyModulePublishMetaData(Stub(ModuleVersionIdentifier), "status")
+    def metaData = new DefaultIvyModulePublishMetaData(Stub(ModuleComponentIdentifier), "status")
 
     def "can add artifacts"() {
         def artifact = Stub(IvyArtifactName)
