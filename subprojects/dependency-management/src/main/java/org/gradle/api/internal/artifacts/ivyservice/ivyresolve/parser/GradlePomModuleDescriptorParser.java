@@ -15,9 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
@@ -26,9 +23,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.MavenVersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +66,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
 
         doParsePom(parserSettings, mdBuilder, pomReader);
 
-        ModuleDescriptorState moduleDescriptor = new ModuleDescriptorState(mdBuilder.getModuleDescriptor());
+        ModuleDescriptorState moduleDescriptor = mdBuilder.getModuleDescriptor();
         if(pomReader.getRelocation() != null) {
             return new DefaultMavenModuleResolveMetaData(moduleDescriptor, "pom", true);
         }
@@ -105,7 +102,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                     && artifactId.equals(relocation.getName())
                     && groupId.equals(relocation.getOrganisation())) {
                 LOGGER.error("POM relocation to an other version number is not fully supported in Gradle : {} relocated to {}.",
-                        mdBuilder.getModuleDescriptor().getModuleRevisionId(), relocation);
+                        mdBuilder.getModuleDescriptor().getComponentIdentifier(), relocation);
                 LOGGER.warn("Please update your dependency to directly use the correct version '{}'.", relocation);
                 LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
                 PomReader relocatedModule = parseOtherPom(parserSettings, DefaultModuleComponentIdentifier.newId(relocation.getOrganisation(), relocation.getName(), relocation.getRevision()));
@@ -116,19 +113,12 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                 }
 
             } else {
-                LOGGER.info(mdBuilder.getModuleDescriptor().getModuleRevisionId()
+                LOGGER.info(mdBuilder.getModuleDescriptor().getComponentIdentifier()
                         + " is relocated to " + relocation
                         + ". Please update your dependencies.");
                 LOGGER.debug("Relocated module will be considered as a dependency");
-                DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(mdBuilder.getModuleDescriptor(), relocation, true, false, true);
-                /* Map all public dependencies */
-                Configuration[] m2Confs = GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
-                for (Configuration m2Conf : m2Confs) {
-                    if (Visibility.PUBLIC.equals(m2Conf.getVisibility())) {
-                        dd.addDependencyConfiguration(m2Conf.getName(), m2Conf.getName());
-                    }
-                }
-                mdBuilder.addDependency(dd);
+                // TODO:DAZ Handle relocated dependencies
+                mdBuilder.addDependencyForRelocation(relocation);
             }
         } else {
             overrideDependencyMgtsWithImported(parserSettings, pomReader);

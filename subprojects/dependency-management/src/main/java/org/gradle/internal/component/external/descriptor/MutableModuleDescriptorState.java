@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.descriptor;
 import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -32,7 +33,15 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
     }
 
     public MutableModuleDescriptorState(ModuleComponentIdentifier componentIdentifier) {
-        super(componentIdentifier);
+        super(componentIdentifier, "integration", true);
+    }
+
+    public MutableModuleDescriptorState(ModuleComponentIdentifier componentIdentifier, String status, boolean generated) {
+        super(componentIdentifier, status, generated);
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public void addConfiguration(String name, boolean transitive, boolean visible, Collection<String> extendsFrom) {
@@ -42,6 +51,12 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
 
     public void addExcludeRule(ExcludeRule excludeRule) {
         excludeRules.add(excludeRule);
+    }
+
+    public Dependency addDependency(ModuleVersionSelector requested) {
+        Dependency dependency = new Dependency(requested, requested.getVersion(), false, false, true);
+        dependencies.add(dependency);
+        return dependency;
     }
 
     public void addDependency(DependencyMetaData dependencyMetaData) {

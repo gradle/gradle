@@ -42,20 +42,20 @@ public class ModuleDescriptorState {
     protected final List<ExcludeRule> excludeRules;
     protected final List<Dependency> dependencies;
     private final List<Artifact> artifacts = Lists.newArrayList();
-    private final String description;
+    protected String description;
     private final Date publicationDate;
     private final String status;
     private final String branch;
     private final boolean generated;
     private final Map<NamespaceId, String> extraInfo;
 
-    public ModuleDescriptorState(ModuleComponentIdentifier componentIdentifier) {
+    public ModuleDescriptorState(ModuleComponentIdentifier componentIdentifier, String status, boolean generated) {
         this.componentIdentifier = componentIdentifier;
         branch = null;
         description = null;
         publicationDate = new Date();
-        status = "integration";
-        generated = true;
+        this.status = status;
+        this.generated = generated;
         extraInfo = Collections.emptyMap();
         configurations = Maps.newLinkedHashMap();
         excludeRules = Lists.newArrayList();

@@ -67,9 +67,13 @@ public class Dependency {
         this.transitive = transitive;
     }
 
-    void addArtifact(IvyArtifactName newArtifact, Collection<String> configurations) {
+    public void addArtifact(IvyArtifactName newArtifact, Collection<String> configurations) {
         Artifact artifact = new Artifact(newArtifact, CollectionUtils.toSet(configurations));
         dependencyArtifacts.add(artifact);
+    }
+
+    public void addDependencyConfiguration(String from, String to) {
+        addConfMapping(from, to);
     }
 
     void addConfMapping(String from, String to) {
@@ -83,7 +87,7 @@ public class Dependency {
         }
     }
 
-    void addExcludeRule(ExcludeRule rule) {
+    public void addExcludeRule(ExcludeRule rule) {
         dependencyExcludes.add(rule);
     }
 

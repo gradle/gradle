@@ -15,28 +15,30 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.License;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
-import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.internal.component.external.descriptor.Dependency;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
+import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,13 +96,13 @@ public class GradlePomModuleDescriptorBuilder {
     private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("(.+)-\\d{8}\\.\\d{6}-\\d+");
     private static final String EXTRA_ATTRIBUTE_CLASSIFIER = "m:classifier";
 
-    static interface ConfMapper {
-        public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional);
+    interface ConfMapper {
+        void addMappingConfs(Dependency dd, boolean isOptional);
     }
 
     static {
         MAVEN2_CONF_MAPPING.put("compile", new ConfMapper() {
-            public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional) {
+            public void addMappingConfs(Dependency dd, boolean isOptional) {
                 if (isOptional) {
                     dd.addDependencyConfiguration("optional", "compile(*)");
                     //dd.addDependencyConfiguration("optional", "provided(*)");
@@ -115,7 +117,7 @@ public class GradlePomModuleDescriptorBuilder {
             }
         });
         MAVEN2_CONF_MAPPING.put("provided", new ConfMapper() {
-            public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional) {
+            public void addMappingConfs(Dependency dd, boolean isOptional) {
                 if (isOptional) {
                     dd.addDependencyConfiguration("optional", "compile(*)");
                     dd.addDependencyConfiguration("optional", "provided(*)");
@@ -130,7 +132,7 @@ public class GradlePomModuleDescriptorBuilder {
             }
         });
         MAVEN2_CONF_MAPPING.put("runtime", new ConfMapper() {
-            public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional) {
+            public void addMappingConfs(Dependency dd, boolean isOptional) {
                 if (isOptional) {
                     dd.addDependencyConfiguration("optional", "compile(*)");
                     dd.addDependencyConfiguration("optional", "provided(*)");
@@ -144,14 +146,14 @@ public class GradlePomModuleDescriptorBuilder {
             }
         });
         MAVEN2_CONF_MAPPING.put("test", new ConfMapper() {
-            public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional) {
+            public void addMappingConfs(Dependency dd, boolean isOptional) {
                 //optional doesn't make sense in the test scope
                 dd.addDependencyConfiguration("test", "runtime(*)");
                 dd.addDependencyConfiguration("test", "master(*)");
             }
         });
         MAVEN2_CONF_MAPPING.put("system", new ConfMapper() {
-            public void addMappingConfs(DefaultDependencyDescriptor dd, boolean isOptional) {
+            public void addMappingConfs(Dependency dd, boolean isOptional) {
                 //optional doesn't make sense in the system scope
                 dd.addDependencyConfiguration("system", "master(*)");
             }
@@ -160,26 +162,19 @@ public class GradlePomModuleDescriptorBuilder {
 
     private final VersionSelectorScheme defaultVersionSelectorScheme;
     private final VersionSelectorScheme mavenVersionSelectorScheme;
-    private final DefaultModuleDescriptor ivyModuleDescriptor;
 
-    private ModuleRevisionId mrid;
+    private MutableModuleDescriptorState descriptor;
 
     private final PomReader pomReader;
 
     public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme) {
         this.defaultVersionSelectorScheme = gradleVersionSelectorScheme;
         this.mavenVersionSelectorScheme = mavenVersionSelectorScheme;
-        ivyModuleDescriptor = new DefaultModuleDescriptor(XmlModuleDescriptorParser.getInstance(), null);
-        ivyModuleDescriptor.setResolvedPublicationDate(new Date());
-        for (Configuration maven2Configuration : MAVEN2_CONFIGURATIONS) {
-            ivyModuleDescriptor.addConfiguration(maven2Configuration);
-        }
-        ivyModuleDescriptor.setMappingOverride(true);
         this.pomReader = pomReader;
     }
 
-    public DefaultModuleDescriptor getModuleDescriptor() {
-        return ivyModuleDescriptor;
+    public ModuleDescriptorState getModuleDescriptor() {
+        return descriptor;
     }
 
     public void setModuleRevId(String group, String module, String version) {
@@ -191,28 +186,22 @@ public class GradlePomModuleDescriptorBuilder {
             }
         }
 
-        this.mrid = IvyUtil.createModuleRevisionId(group, module, effectiveVersion);
-        ivyModuleDescriptor.setModuleRevisionId(mrid);
+        String status = effectiveVersion != null && effectiveVersion.endsWith("SNAPSHOT") ? "integration" : "release";
 
-        if (effectiveVersion != null && effectiveVersion.endsWith("SNAPSHOT")) {
-            ivyModuleDescriptor.setStatus("integration");
-        } else {
-            ivyModuleDescriptor.setStatus("release");
+        descriptor = new MutableModuleDescriptorState(DefaultModuleComponentIdentifier.newId(group, module, effectiveVersion), status, false);
+        for (Configuration maven2Configuration : MAVEN2_CONFIGURATIONS) {
+            descriptor.addConfiguration(maven2Configuration.getName(), maven2Configuration.isTransitive(), maven2Configuration.getVisibility() == Visibility.PUBLIC, Lists.newArrayList(maven2Configuration.getExtends()));
         }
     }
 
     public void setHomePage(String homePage) {
-        ivyModuleDescriptor.setHomePage(homePage);
     }
 
     public void setDescription(String description) {
-        ivyModuleDescriptor.setDescription(description);
+        descriptor.setDescription(description);
     }
 
     public void setLicenses(Iterable<License> licenses) {
-        for (License license : licenses) {
-            ivyModuleDescriptor.addLicense(license);
-        }
     }
 
     public void addDependency(PomDependencyData dep) {
@@ -224,20 +213,19 @@ public class GradlePomModuleDescriptorBuilder {
 
         String version = determineVersion(dep);
         String mappedVersion = convertVersionFromMavenSyntax(version);
-        ModuleRevisionId moduleRevId = IvyUtil.createModuleRevisionId(dep.getGroupId(), dep.getArtifactId(), mappedVersion);
+        ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(dep.getGroupId(), dep.getArtifactId(), mappedVersion);
 
         // Some POMs depend on themselves, don't add this dependency: Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/net/jini/jsk-platform/2.1/jsk-platform-2.1.pom
-        ModuleRevisionId mRevId = ivyModuleDescriptor.getModuleRevisionId();
-        if ((mRevId != null) && mRevId.getModuleId().equals(moduleRevId.getModuleId())) {
+        if (selector.getGroup().equals(descriptor.getComponentIdentifier().getGroup())
+            && selector.getName().equals(descriptor.getComponentIdentifier().getModule())) {
             return;
         }
 
-        DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(ivyModuleDescriptor, moduleRevId, true, false, true);
+        Dependency dependency = descriptor.addDependency(selector);
         scope = (scope == null || scope.length() == 0) ? getDefaultScope(dep) : scope;
         ConfMapper mapping = MAVEN2_CONF_MAPPING.get(scope);
-        mapping.addMappingConfs(dd, dep.isOptional());
-        Map<String, String> extraAtt = new HashMap<String, String>();
+        mapping.addMappingConfs(dependency, dep.isOptional());
         boolean hasClassifier = dep.getClassifier() != null && dep.getClassifier().length() > 0;
         boolean hasNonJarType = dep.getType() != null && !"jar".equals(dep.getType());
         if (hasClassifier || hasNonJarType) {
@@ -246,19 +234,14 @@ public class GradlePomModuleDescriptorBuilder {
                 type = dep.getType();
             }
             String ext = determineExtension(type);
-            handleSpecialTypes(type, extraAtt);
+            String classifier = hasClassifier ? dep.getClassifier() : getClassifierForType(type);
 
-            // we deal with classifiers by setting an extra attribute and forcing the
-            // dependency to assume such an artifact is published
-            if (dep.getClassifier() != null) {
-                extraAtt.put(EXTRA_ATTRIBUTE_CLASSIFIER, dep.getClassifier());
-            }
-            DefaultDependencyArtifactDescriptor depArtifact = new DefaultDependencyArtifactDescriptor(dd, dd.getDependencyId().getName(), type, ext, null, extraAtt);
             // here we have to assume a type and ext for the artifact, so this is a limitation
             // compared to how m2 behave with classifiers
             String optionalizedScope = dep.isOptional() ? "optional" : scope;
-            depArtifact.addConfiguration(optionalizedScope);
-            dd.addDependencyArtifact(optionalizedScope, depArtifact);
+
+            IvyArtifactName artifactName = new DefaultIvyArtifactName(selector.getName(), type, ext, classifier);
+            dependency.addArtifact(artifactName, Collections.singleton(optionalizedScope));
         }
 
         // experimentation shows the following, excluded modules are
@@ -269,21 +252,17 @@ public class GradlePomModuleDescriptorBuilder {
         if (excluded.isEmpty()) {
             excluded = getDependencyMgtExclusions(dep);
         }
-        for (Object anExcluded : excluded) {
-            ModuleId excludedModule = (ModuleId) anExcluded;
-            String[] confs = dd.getModuleConfigurations();
+        for (ModuleId excludedModule : excluded) {
             DefaultExcludeRule rule = new DefaultExcludeRule(new ArtifactId(
                 excludedModule, PatternMatcher.ANY_EXPRESSION,
                 PatternMatcher.ANY_EXPRESSION,
                 PatternMatcher.ANY_EXPRESSION),
                 ExactPatternMatcher.INSTANCE, null);
-            for (String conf : confs) {
+            for (String conf : dependency.getConfMappings().keySet()) {
                 rule.addConfiguration(conf);
-                dd.addExcludeRule(conf, rule);
             }
+            dependency.addExcludeRule(rule);
         }
-
-        ivyModuleDescriptor.addDependency(dd);
     }
 
     private String convertVersionFromMavenSyntax(String version) {
@@ -308,14 +287,14 @@ public class GradlePomModuleDescriptorBuilder {
      * - ejb-client (see <a href="http://maven.apache.org/plugins/maven-ejb-plugin/examples/ejb-client-dependency.html">Maven documentation</a>)
      *
      * @param type Type
-     * @param extraAttributes Extra attributes
      */
-    private void handleSpecialTypes(String type, Map<String, String> extraAttributes) {
+    private String getClassifierForType(String type) {
         if(JarDependencyType.TEST_JAR.getName().equals(type)) {
-            extraAttributes.put(EXTRA_ATTRIBUTE_CLASSIFIER, "tests");
+            return "tests";
         } else if(JarDependencyType.EJB_CLIENT.getName().equals(type)) {
-            extraAttributes.put(EXTRA_ATTRIBUTE_CLASSIFIER, "client");
+            return "client";
         }
+        return null;
     }
 
     private enum JarDependencyType {
@@ -364,17 +343,25 @@ public class GradlePomModuleDescriptorBuilder {
         return version;
     }
 
-    public void addDependency(DependencyDescriptor descriptor) {
+    public void addDependencyForRelocation(ModuleRevisionId moduleRevisionId) {
+        ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(moduleRevisionId);
+
         // Some POMs depend on themselves through their parent POM, don't add this dependency
         // since Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/com/atomikos/atomikos-util/3.6.4/atomikos-util-3.6.4.pom
-        ModuleId dependencyId = descriptor.getDependencyId();
-        ModuleRevisionId mRevId = ivyModuleDescriptor.getModuleRevisionId();
-        if ((mRevId != null) && mRevId.getModuleId().equals(dependencyId)) {
+        if (selector.getGroup().equals(descriptor.getComponentIdentifier().getGroup())
+            && selector.getName().equals(descriptor.getComponentIdentifier().getModule())) {
             return;
         }
 
-        ivyModuleDescriptor.addDependency(descriptor);
+        Dependency dependency = descriptor.addDependency(selector);
+        Configuration[] m2Confs = GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
+        // Map dependency on all public configurations
+        for (Configuration m2Conf : m2Confs) {
+            if (Visibility.PUBLIC.equals(m2Conf.getVisibility())) {
+                dependency.addDependencyConfiguration(m2Conf.getName(), m2Conf.getName());
+            }
+        }
     }
 
     private String getDefaultVersion(PomDependencyData dep) {

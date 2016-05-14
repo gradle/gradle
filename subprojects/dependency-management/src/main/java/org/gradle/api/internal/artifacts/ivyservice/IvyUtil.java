@@ -86,6 +86,7 @@ public class IvyUtil {
         return new ArtifactId(createModuleId(org, module), name, type, ext);
     }
 
+    // TODO:DAZ This doesn't really belong in IvyUtil any more.
     public static ModuleDescriptorState createModuleDescriptor(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> componentArtifacts) {
         MutableModuleDescriptorState moduleDescriptorState = new MutableModuleDescriptorState(componentIdentifier);
         moduleDescriptorState.addConfiguration(Dependency.DEFAULT_CONFIGURATION, true, true, Collections.<String>emptySet());
