@@ -87,7 +87,7 @@ class DefaultIvyModulePublishMetaDataTest extends Specification {
         dependencyMetaData.force
         dependencyMetaData.changing
         dependencyMetaData.transitive
-        dependencyMetaData.moduleConfigurations as List == ["configName"]
-        dependencyMetaData.artifacts.empty
+        dependencyMetaData.confMappings == [configName: ["dep1"]]
+        dependencyMetaData.dependencyArtifacts.empty
     }
 }

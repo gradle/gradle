@@ -17,20 +17,26 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.internal.component.model.DefaultDependencyMetaData;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.CollectionUtils;
 
-import java.util.ArrayList;
+import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +58,7 @@ public class ModuleDescriptorState {
         this.allowForcedDependencies = allowForcedDependencies;
     }
 
-    // TODO:DAZ These 2 values only need to be persisted because we use them to test changes to descriptor content
+    // TODO:DAZ Description and publicationDate are only need to be persisted because we use them to test changes to descriptor content
     public String getDescription() {
         return ivyDescriptor.getDescription();
     }
@@ -128,13 +134,62 @@ public class ModuleDescriptorState {
         return newArtifact;
     }
 
-    public List<DependencyMetaData> getDependencies() {
-        List<DependencyMetaData> dependencies = new ArrayList<DependencyMetaData>();
-        for (final DependencyDescriptor dependencyDescriptor : ivyDescriptor.getDependencies()) {
-            boolean force = allowForcedDependencies && dependencyDescriptor.isForce();
-            dependencies.add(new DefaultDependencyMetaData(dependencyDescriptor, force));
+    public List<Dependency> getDependencies() {
+        return CollectionUtils.collect(ivyDescriptor.getDependencies(), new Transformer<Dependency, DependencyDescriptor>() {
+            @Override
+            public Dependency transform(DependencyDescriptor dependencyDescriptor) {
+                return createDependency(dependencyDescriptor);
+            }
+        });
+    }
+
+    private Dependency createDependency(DependencyDescriptor dependencyDescriptor) {
+        boolean force = allowForcedDependencies && dependencyDescriptor.isForce();
+        Dependency dep = new Dependency(
+            DefaultModuleVersionSelector.newSelector(dependencyDescriptor.getDependencyRevisionId()),
+            force,
+            dependencyDescriptor.isChanging(),
+            dependencyDescriptor.isTransitive());
+        dep.dynamicConstraintVersion = dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision();
+
+        Map<String, List<String>> configMappings = readConfigMappings(dependencyDescriptor);
+        for (String from : configMappings.keySet()) {
+            for (String to : configMappings.get(from)) {
+                dep.addConfMapping(from, to);
+            }
         }
-        return dependencies;
+
+        for (DependencyArtifactDescriptor dependencyArtifactDescriptor : dependencyDescriptor.getAllDependencyArtifacts()) {
+            IvyArtifactName ivyArtifactName = DefaultIvyArtifactName.forIvyArtifact(dependencyArtifactDescriptor);
+            dep.addArtifact(ivyArtifactName, Sets.newHashSet(dependencyArtifactDescriptor.getConfigurations()));
+        }
+
+        for (ExcludeRule excludeRule : dependencyDescriptor.getAllExcludeRules()) {
+            dep.addExcludeRule(excludeRule);
+        }
+        return dep;
+    }
+
+    // TODO:DAZ Get rid of this reflection
+    private Map<String, List<String>> readConfigMappings(DependencyDescriptor dependencyDescriptor) {
+        if (dependencyDescriptor instanceof DefaultDependencyDescriptor) {
+            try {
+                final Field dependencyConfigField = DefaultDependencyDescriptor.class.getDeclaredField("confs");
+                dependencyConfigField.setAccessible(true);
+                return (Map<String, List<String>>) dependencyConfigField.get(dependencyDescriptor);
+            } catch (NoSuchFieldException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            } catch (IllegalAccessException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        String[] modConfs = dependencyDescriptor.getModuleConfigurations();
+        Map<String, List<String>> results = Maps.newLinkedHashMap();
+        for (String modConf : modConfs) {
+            results.put(modConf, Arrays.asList(dependencyDescriptor.getDependencyConfigurations(modConfs)));
+        }
+        return results;
     }
 
     public List<ExcludeRule> getExcludeRules() {
@@ -147,6 +202,13 @@ public class ModuleDescriptorState {
         public final boolean visible;
         public final List<String> extendsFrom;
 
+        public Configuration(String name, boolean transitive, boolean visible, Collection<String> extendsFrom) {
+            this.name = name;
+            this.transitive = transitive;
+            this.visible = visible;
+            this.extendsFrom = CollectionUtils.toList(extendsFrom);
+        }
+
         public Configuration(org.apache.ivy.core.module.descriptor.Configuration configuration) {
             this.name = configuration.getName();
             this.transitive = configuration.isTransitive();
@@ -157,10 +219,57 @@ public class ModuleDescriptorState {
 
     public class Artifact {
         public final IvyArtifactName artifactName;
-        public final Set<String> configurations = Sets.newLinkedHashSet();
+        public final Set<String> configurations;
 
         public Artifact(IvyArtifactName artifactName) {
+            this(artifactName, Sets.<String>newLinkedHashSet());
+        }
+
+        public Artifact(IvyArtifactName artifactName, Set<String> configurations) {
             this.artifactName = artifactName;
+            this.configurations = configurations;
+        }
+    }
+
+    public class Dependency {
+        public final ModuleVersionSelector requested;
+
+        public final boolean force;
+        public final boolean changing;
+        public final boolean transitive;
+
+        public final Map<String, List<String>> confMappings = Maps.newLinkedHashMap();
+        public final List<Artifact> dependencyArtifacts = Lists.newArrayList();
+        public final List<ExcludeRule> dependencyExcludes = Lists.newArrayList();
+
+        public String dynamicConstraintVersion;
+
+        public Dependency(ModuleVersionSelector requested, boolean force, boolean changing, boolean transitive) {
+            this.requested = requested;
+            this.dynamicConstraintVersion = requested.getVersion();
+            this.force = force;
+            this.changing = changing;
+            this.transitive = transitive;
+        }
+
+        public void addArtifact(IvyArtifactName newArtifact, Collection<String> configurations) {
+            Artifact artifact = new Artifact(newArtifact, CollectionUtils.toSet(configurations));
+            dependencyArtifacts.add(artifact);
+        }
+
+        public void addConfMapping(String from, String to) {
+            List<String> mappings = confMappings.get(from);
+            if (mappings == null) {
+                mappings = Lists.newArrayList();
+                confMappings.put(from, mappings);
+            }
+            if (!mappings.contains(to)) {
+                mappings.add(to);
+            }
+        }
+
+        public void addExcludeRule(ExcludeRule rule) {
+            dependencyExcludes.add(rule);
         }
     }
 }

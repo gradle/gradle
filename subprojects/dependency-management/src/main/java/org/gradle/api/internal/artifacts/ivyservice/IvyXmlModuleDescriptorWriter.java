@@ -27,8 +27,6 @@ import org.gradle.internal.component.external.model.DefaultIvyModuleArtifactPubl
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
 import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
 import org.gradle.internal.component.external.model.ModuleDescriptorState;
-import org.gradle.internal.component.model.DefaultDependencyMetaData;
-import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.util.CollectionUtils;
@@ -189,10 +187,10 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     private void printDependencies(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {
-        List<DependencyMetaData> dds = descriptor.getDependencies();
+        List<ModuleDescriptorState.Dependency> dds = descriptor.getDependencies();
         if (dds.size() > 0) {
             writer.startElement("dependencies");
-            for (DependencyMetaData dd : dds) {
+            for (ModuleDescriptorState.Dependency dd : dds) {
                 printDependency(descriptor, dd, writer);
             }
             printAllExcludes(descriptor, writer);
@@ -200,42 +198,40 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
     }
 
-    protected void printDependency(ModuleDescriptorState descriptor, DependencyMetaData dep,
+    protected void printDependency(ModuleDescriptorState descriptor, ModuleDescriptorState.Dependency dep,
                                    SimpleXmlWriter writer) throws IOException {
         writer.startElement("dependency");
 
-        ModuleVersionSelector requested = dep.getRequested();
+        ModuleVersionSelector requested = dep.requested;
         writer.attribute("org", requested.getGroup());
         writer.attribute("name", requested.getName());
         writer.attribute("rev", requested.getVersion());
-        if (dep.getDynamicConstraintVersion() != null && !dep.getDynamicConstraintVersion().equals(requested.getVersion())) {
-            writer.attribute("revConstraint", dep.getDynamicConstraintVersion());
+        if (dep.dynamicConstraintVersion != null && !dep.dynamicConstraintVersion.equals(requested.getVersion())) {
+            writer.attribute("revConstraint", dep.dynamicConstraintVersion);
         }
-        if (dep.isForce()) {
+        if (dep.force) {
             writer.attribute("force", "true");
         }
-        if (dep.isChanging()) {
+        if (dep.changing) {
             writer.attribute("changing", "true");
         }
-        if (!dep.isTransitive()) {
+        if (!dep.transitive) {
             writer.attribute("transitive", "false");
         }
         writer.attribute("conf", getConfMapping(dep));
 
-        Map<IvyArtifactName, Set<String>> depArtifacts = ((DefaultDependencyMetaData) dep).getArtifactMappings();
-        for (Map.Entry<IvyArtifactName, Set<String>> artifactEntry : depArtifacts.entrySet()) {
-            printDependencyArtifact(descriptor, writer, artifactEntry.getKey(), artifactEntry.getValue());
+        for (ModuleDescriptorState.Artifact dependencyArtifact : dep.dependencyArtifacts) {
+            printDependencyArtifact(descriptor, writer, dependencyArtifact.artifactName, dependencyArtifact.configurations);
         }
 
-        Set<ExcludeRule> excludes = ((DefaultDependencyMetaData) dep).getAllExcludeRules();
-        printDependencyExcludeRules(descriptor, writer, excludes);
+        printDependencyExcludeRules(descriptor, writer, dep.dependencyExcludes);
 
         writer.endElement();
     }
 
-    private String getConfMapping(DependencyMetaData dependency) {
+    private String getConfMapping(ModuleDescriptorState.Dependency dependency) {
 
-        Map<String, List<String>> configMappings = ((DefaultDependencyMetaData) dependency).getConfigMappings();
+        Map<String, List<String>> configMappings = dependency.confMappings;
 
         StringBuilder confs = new StringBuilder();
         String delimiter = "";
@@ -270,7 +266,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     private static void printDependencyExcludeRules(ModuleDescriptorState descriptor, SimpleXmlWriter writer,
-                                                    Set<ExcludeRule> excludes) throws IOException {
+                                                    Collection<ExcludeRule> excludes) throws IOException {
         for (ExcludeRule exclude : excludes) {
             writer.startElement("exclude");
             writer.attribute("org", exclude.getId().getModuleId().getOrganisation());

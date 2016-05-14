@@ -21,12 +21,14 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
+import org.gradle.internal.component.model.DefaultDependencyMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -62,7 +64,7 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
         status = moduleDescriptor.getStatus();
         configurations = populateConfigurationsFromDescriptor(moduleDescriptor);
         artifactsByConfig = populateArtifactsFromDescriptor(componentIdentifier, moduleDescriptor);
-        dependencies = moduleDescriptor.getDependencies();
+        dependencies = populateDependenciesFromDescriptor(moduleDescriptor);
         excludeRules = moduleDescriptor.getExcludeRules();
     }
 
@@ -176,6 +178,16 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
         }
         return artifactsByConfig;
     }
+
+    private static List<DependencyMetaData> populateDependenciesFromDescriptor(ModuleDescriptorState moduleDescriptor) {
+        return CollectionUtils.collect(moduleDescriptor.getDependencies(), new Transformer<DependencyMetaData, ModuleDescriptorState.Dependency>() {
+            @Override
+            public DependencyMetaData transform(ModuleDescriptorState.Dependency dependency) {
+                return new DefaultDependencyMetaData(dependency);
+            }
+        });
+    }
+
 
     public List<DependencyMetaData> getDependencies() {
         return dependencies;
