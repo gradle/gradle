@@ -75,9 +75,20 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
 
     @Override
     public void addDependency(DependencyMetaData dependency) {
-        descriptor.addDependency(dependency);
+        descriptor.addDependency(normalizeVersionForIvy(dependency));
     }
 
+    /**
+     * [1.0] is a valid version in maven, but not in Ivy: strip the surrounding '[' and ']' characters for ivy publish.
+     */
+    private static DependencyMetaData normalizeVersionForIvy(DependencyMetaData dependency) {
+        String version = dependency.getRequested().getVersion();
+        if (version.startsWith("[") && version.endsWith("]") && version.indexOf(',') == -1) {
+            String normalizedVersion = version.substring(1, version.length() - 1);
+            return dependency.withRequestedVersion(normalizedVersion);
+        }
+        return dependency;
+    }
     // TODO:DAZ Should be able to push artifacts into MutableModuleDescriptorState, rather than keeping a separate set
     // Would need to change the copy constructor so that artifacts aren't retained.
     @Override
