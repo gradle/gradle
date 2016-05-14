@@ -30,6 +30,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.CollectionUtils;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,19 @@ public class ModuleDescriptorState {
     private final String branch;
     private final boolean generated;
     private final Map<NamespaceId, String> extraInfo;
+
+    public ModuleDescriptorState(ModuleComponentIdentifier componentIdentifier) {
+        this.componentIdentifier = componentIdentifier;
+        branch = null;
+        description = null;
+        publicationDate = new Date();
+        status = "integration";
+        generated = true;
+        extraInfo = Collections.emptyMap();
+        configurations = Maps.newLinkedHashMap();
+        excludeRules = Lists.newArrayList();
+        dependencies = Lists.newArrayList();
+    }
 
     public ModuleDescriptorState(ModuleDescriptor ivyDescriptor) {
         // Force attribute is ignored in published modules: we only consider force attribute on direct dependencies declared in Gradle

@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.descriptor.Configuration;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
@@ -25,6 +23,7 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
+import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.GUtil;
@@ -88,13 +87,8 @@ public class IvyUtil {
     }
 
     public static ModuleDescriptorState createModuleDescriptor(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> componentArtifacts) {
-        ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(componentIdentifier);
-
-        DefaultModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(moduleRevisionId, "integration", null, true);
-        moduleDescriptor.addConfiguration(new Configuration(Dependency.DEFAULT_CONFIGURATION));
-        moduleDescriptor.setLastModified(System.currentTimeMillis());
-
-        ModuleDescriptorState moduleDescriptorState = new ModuleDescriptorState(moduleDescriptor);
+        MutableModuleDescriptorState moduleDescriptorState = new MutableModuleDescriptorState(componentIdentifier);
+        moduleDescriptorState.addConfiguration(Dependency.DEFAULT_CONFIGURATION, true, true, Collections.<String>emptySet());
 
         for (IvyArtifactName artifactName : componentArtifacts) {
             moduleDescriptorState.addArtifact(artifactName, Collections.singleton(Dependency.DEFAULT_CONFIGURATION));

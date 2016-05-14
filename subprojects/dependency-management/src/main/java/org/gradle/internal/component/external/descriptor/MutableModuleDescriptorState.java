@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.descriptor;
 import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -28,6 +29,10 @@ import java.util.List;
 public class MutableModuleDescriptorState extends ModuleDescriptorState {
     public MutableModuleDescriptorState(ModuleDescriptor ivyDescriptor, boolean allowForcedDependencies) {
         super(ivyDescriptor, allowForcedDependencies);
+    }
+
+    public MutableModuleDescriptorState(ModuleComponentIdentifier componentIdentifier) {
+        super(componentIdentifier);
     }
 
     public void addConfiguration(String name, boolean transitive, boolean visible, Collection<String> extendsFrom) {
