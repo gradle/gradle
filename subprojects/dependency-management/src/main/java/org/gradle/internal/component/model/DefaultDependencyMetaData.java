@@ -18,9 +18,6 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -30,16 +27,13 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetaData;
 import org.gradle.util.CollectionUtils;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -56,60 +50,6 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
     private final boolean transitive;
     private final boolean force;
     private final String dynamicConstraintVersion;
-
-    // TODO:DAZ Remove
-    public DefaultDependencyMetaData(DependencyDescriptor dependencyDescriptor) {
-        this(dependencyDescriptor, false);
-    }
-
-    // TODO:DAZ Remove
-    public DefaultDependencyMetaData(DependencyDescriptor dependencyDescriptor, boolean force) {
-        this.requested = DefaultModuleVersionSelector.newSelector(dependencyDescriptor.getDependencyRevisionId());
-        this.changing = dependencyDescriptor.isChanging();
-        this.transitive = dependencyDescriptor.isTransitive();
-        this.force = force;
-        this.dynamicConstraintVersion = dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision();
-
-        this.confs = Maps.newLinkedHashMap();
-        Map<String, List<String>> configMappings = readConfigMappings(dependencyDescriptor);
-        for (String config : configMappings.keySet()) {
-            List<String> mappings = new ArrayList<String>(configMappings.get(config));
-            confs.put(config, mappings);
-        }
-
-        dependencyArtifacts = Maps.newLinkedHashMap();
-        for (DependencyArtifactDescriptor dependencyArtifactDescriptor : dependencyDescriptor.getAllDependencyArtifacts()) {
-            IvyArtifactName ivyArtifactName = DefaultIvyArtifactName.forIvyArtifact(dependencyArtifactDescriptor);
-            dependencyArtifacts.put(ivyArtifactName, Sets.newHashSet(dependencyArtifactDescriptor.getConfigurations()));
-        }
-
-        excludeRules = Maps.newLinkedHashMap();
-        for (ExcludeRule excludeRule : dependencyDescriptor.getAllExcludeRules()) {
-            excludeRules.put(excludeRule, Sets.newHashSet(excludeRule.getConfigurations()));
-        }
-    }
-
-    // TODO:DAZ Get rid of this reflection
-    private Map<String, List<String>> readConfigMappings(DependencyDescriptor dependencyDescriptor) {
-        if (dependencyDescriptor instanceof DefaultDependencyDescriptor) {
-            try {
-                final Field dependencyConfigField = DefaultDependencyDescriptor.class.getDeclaredField("confs");
-                dependencyConfigField.setAccessible(true);
-                return (Map<String, List<String>>) dependencyConfigField.get(dependencyDescriptor);
-            } catch (NoSuchFieldException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            } catch (IllegalAccessException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
-        String[] modConfs = dependencyDescriptor.getModuleConfigurations();
-        Map<String, List<String>> results = Maps.newLinkedHashMap();
-        for (String modConf : modConfs) {
-            results.put(modConf, Arrays.asList(dependencyDescriptor.getDependencyConfigurations(modConfs)));
-        }
-        return results;
-    }
 
     public DefaultDependencyMetaData(Dependency dependencyState) {
         this.requested = dependencyState.getRequested();
