@@ -23,10 +23,13 @@ import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.descriptor.Artifact;
+import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.model.DefaultIvyModuleArtifactPublishMetaData;
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
 import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
-import org.gradle.internal.component.external.model.ModuleDescriptorState;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.util.CollectionUtils;
@@ -50,10 +53,10 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     @Override
     public void write(ModuleDescriptorState md, File output) {
         final ModuleComponentIdentifier componentIdentifier = md.getComponentIdentifier();
-        List<IvyModuleArtifactPublishMetaData> ivyArtifacts = CollectionUtils.collect(md.getArtifacts(), new Transformer<IvyModuleArtifactPublishMetaData, ModuleDescriptorState.Artifact>() {
+        List<IvyModuleArtifactPublishMetaData> ivyArtifacts = CollectionUtils.collect(md.getArtifacts(), new Transformer<IvyModuleArtifactPublishMetaData, Artifact>() {
             @Override
-            public IvyModuleArtifactPublishMetaData transform(ModuleDescriptorState.Artifact artifact) {
-                return new DefaultIvyModuleArtifactPublishMetaData(componentIdentifier, artifact.artifactName, artifact.configurations);
+            public IvyModuleArtifactPublishMetaData transform(Artifact artifact) {
+                return new DefaultIvyModuleArtifactPublishMetaData(componentIdentifier, artifact.getArtifactName(), artifact.getConfigurations());
             }
         });
         doWrite(md, ivyArtifacts, output);
@@ -145,25 +148,25 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     private static void printConfigurations(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {
-        List<ModuleDescriptorState.Configuration> configurations = descriptor.getConfigurations();
+        List<Configuration> configurations = descriptor.getConfigurations();
         if (!configurations.isEmpty()) {
             writer.startElement("configurations");
-            for (ModuleDescriptorState.Configuration configuration : configurations) {
+            for (Configuration configuration : configurations) {
                 printConfiguration(configuration, writer);
             }
             writer.endElement();
         }
     }
 
-    private static void printConfiguration(ModuleDescriptorState.Configuration conf, SimpleXmlWriter writer) throws IOException {
+    private static void printConfiguration(Configuration conf, SimpleXmlWriter writer) throws IOException {
         writer.startElement("conf");
-        writer.attribute("name", conf.name);
-        writer.attribute("visibility", conf.visible ? "public" : "private");
-        List<String> exts = conf.extendsFrom;
+        writer.attribute("name", conf.getName());
+        writer.attribute("visibility", conf.isVisible() ? "public" : "private");
+        List<String> exts = conf.getExtendsFrom();
         if (exts.size() > 0) {
             writer.attribute("extends", Joiner.on(',').join(exts));
         }
-        if (!conf.transitive) {
+        if (!conf.isTransitive()) {
             writer.attribute("transitive", "false");
         }
         writer.endElement();
@@ -187,10 +190,10 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     private void printDependencies(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {
-        List<ModuleDescriptorState.Dependency> dds = descriptor.getDependencies();
+        List<Dependency> dds = descriptor.getDependencies();
         if (dds.size() > 0) {
             writer.startElement("dependencies");
-            for (ModuleDescriptorState.Dependency dd : dds) {
+            for (Dependency dd : dds) {
                 printDependency(descriptor, dd, writer);
             }
             printAllExcludes(descriptor, writer);
@@ -198,40 +201,40 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
     }
 
-    protected void printDependency(ModuleDescriptorState descriptor, ModuleDescriptorState.Dependency dep,
+    protected void printDependency(ModuleDescriptorState descriptor, Dependency dep,
                                    SimpleXmlWriter writer) throws IOException {
         writer.startElement("dependency");
 
-        ModuleVersionSelector requested = dep.requested;
+        ModuleVersionSelector requested = dep.getRequested();
         writer.attribute("org", requested.getGroup());
         writer.attribute("name", requested.getName());
         writer.attribute("rev", requested.getVersion());
-        if (dep.dynamicConstraintVersion != null && !dep.dynamicConstraintVersion.equals(requested.getVersion())) {
-            writer.attribute("revConstraint", dep.dynamicConstraintVersion);
+        if (dep.getDynamicConstraintVersion() != null && !dep.getDynamicConstraintVersion().equals(requested.getVersion())) {
+            writer.attribute("revConstraint", dep.getDynamicConstraintVersion());
         }
-        if (dep.force) {
+        if (dep.isForce()) {
             writer.attribute("force", "true");
         }
-        if (dep.changing) {
+        if (dep.isChanging()) {
             writer.attribute("changing", "true");
         }
-        if (!dep.transitive) {
+        if (!dep.isTransitive()) {
             writer.attribute("transitive", "false");
         }
         writer.attribute("conf", getConfMapping(dep));
 
-        for (ModuleDescriptorState.Artifact dependencyArtifact : dep.dependencyArtifacts) {
-            printDependencyArtifact(descriptor, writer, dependencyArtifact.artifactName, dependencyArtifact.configurations);
+        for (Artifact dependencyArtifact : dep.getDependencyArtifacts()) {
+            printDependencyArtifact(descriptor, writer, dependencyArtifact.getArtifactName(), dependencyArtifact.getConfigurations());
         }
 
-        printDependencyExcludeRules(descriptor, writer, dep.dependencyExcludes);
+        printDependencyExcludeRules(descriptor, writer, dep.getDependencyExcludes());
 
         writer.endElement();
     }
 
-    private String getConfMapping(ModuleDescriptorState.Dependency dependency) {
+    private String getConfMapping(Dependency dependency) {
 
-        Map<String, List<String>> configMappings = dependency.confMappings;
+        Map<String, List<String>> configMappings = dependency.getConfMappings();
 
         StringBuilder confs = new StringBuilder();
         String delimiter = "";

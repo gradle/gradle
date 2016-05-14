@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData
-import org.gradle.internal.component.external.model.ModuleDescriptorState
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult

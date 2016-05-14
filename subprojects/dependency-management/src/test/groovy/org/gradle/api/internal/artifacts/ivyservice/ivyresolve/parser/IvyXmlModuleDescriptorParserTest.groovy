@@ -22,7 +22,7 @@ import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
-import org.gradle.internal.component.external.model.ModuleDescriptorState
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.test.fixtures.file.TestFile

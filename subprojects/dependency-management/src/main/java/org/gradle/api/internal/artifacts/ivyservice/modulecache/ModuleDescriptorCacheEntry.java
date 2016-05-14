@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-import org.gradle.internal.component.external.model.ModuleDescriptorState;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ModuleSource;
 

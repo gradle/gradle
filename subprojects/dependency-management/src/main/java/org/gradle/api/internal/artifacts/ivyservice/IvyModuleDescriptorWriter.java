@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
-import org.gradle.internal.component.external.model.ModuleDescriptorState;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 
 import java.io.File;
 import java.util.Collection;

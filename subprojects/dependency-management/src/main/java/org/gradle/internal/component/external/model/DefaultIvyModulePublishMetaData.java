@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetaData;

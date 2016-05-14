@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Set;

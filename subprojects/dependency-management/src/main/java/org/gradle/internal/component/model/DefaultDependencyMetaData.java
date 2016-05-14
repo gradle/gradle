@@ -31,8 +31,9 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.descriptor.Artifact;
+import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.external.model.ModuleDescriptorState;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetaData;
 import org.gradle.util.CollectionUtils;
 
@@ -110,27 +111,27 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return results;
     }
 
-    public DefaultDependencyMetaData(ModuleDescriptorState.Dependency dependencyState) {
-        this.requested = dependencyState.requested;
-        this.changing = dependencyState.changing;
-        this.transitive = dependencyState.transitive;
-        this.force = dependencyState.force;
-        this.dynamicConstraintVersion = dependencyState.dynamicConstraintVersion;
+    public DefaultDependencyMetaData(Dependency dependencyState) {
+        this.requested = dependencyState.getRequested();
+        this.changing = dependencyState.isChanging();
+        this.transitive = dependencyState.isTransitive();
+        this.force = dependencyState.isForce();
+        this.dynamicConstraintVersion = dependencyState.getDynamicConstraintVersion();
 
         this.confs = Maps.newLinkedHashMap();
-        Map<String, List<String>> configMappings = dependencyState.confMappings;
+        Map<String, List<String>> configMappings = dependencyState.getConfMappings();
         for (String config : configMappings.keySet()) {
             List<String> mappings = new ArrayList<String>(configMappings.get(config));
             confs.put(config, mappings);
         }
 
         dependencyArtifacts = Maps.newLinkedHashMap();
-        for (ModuleDescriptorState.Artifact dependencyArtifact : dependencyState.dependencyArtifacts) {
-            dependencyArtifacts.put(dependencyArtifact.artifactName, dependencyArtifact.configurations);
+        for (Artifact dependencyArtifact : dependencyState.getDependencyArtifacts()) {
+            dependencyArtifacts.put(dependencyArtifact.getArtifactName(), dependencyArtifact.getConfigurations());
         }
 
         excludeRules = Maps.newLinkedHashMap();
-        for (ExcludeRule excludeRule : dependencyState.dependencyExcludes) {
+        for (ExcludeRule excludeRule : dependencyState.getDependencyExcludes()) {
             excludeRules.put(excludeRule, Sets.newHashSet(excludeRule.getConfigurations()));
         }
     }

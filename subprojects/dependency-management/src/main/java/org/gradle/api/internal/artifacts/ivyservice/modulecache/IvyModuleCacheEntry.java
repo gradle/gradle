@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData;
-import org.gradle.internal.component.external.model.ModuleDescriptorState;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.internal.component.model.ModuleSource;
 

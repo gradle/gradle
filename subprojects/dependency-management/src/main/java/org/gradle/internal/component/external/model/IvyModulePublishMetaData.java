@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 
 import java.util.Collection;
 

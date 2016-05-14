@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Resolver
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-import org.gradle.internal.component.external.model.ModuleDescriptorState;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;

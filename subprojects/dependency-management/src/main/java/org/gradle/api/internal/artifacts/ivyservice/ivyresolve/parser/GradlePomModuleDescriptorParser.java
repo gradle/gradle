@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.ModuleDescriptorState;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

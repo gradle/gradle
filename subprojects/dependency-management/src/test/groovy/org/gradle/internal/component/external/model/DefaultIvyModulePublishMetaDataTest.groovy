@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.local.model.LocalConfigurationMetaData
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.model.IvyArtifactName
@@ -46,7 +47,7 @@ class DefaultIvyModulePublishMetaDataTest extends Specification {
 
         then:
         metaData.moduleDescriptor.configurations.size() == 1
-        ModuleDescriptorState.Configuration conf = metaData.moduleDescriptor.configurations[0]
+        Configuration conf = metaData.moduleDescriptor.configurations[0]
         conf.name == "configName"
         conf.extendsFrom == ["one", "three", "two"]
         conf.visible

@@ -20,7 +20,7 @@ import org.apache.ivy.core.module.descriptor.*
 import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher
-import org.gradle.internal.component.external.model.ModuleDescriptorState
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

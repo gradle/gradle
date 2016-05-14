@@ -25,6 +25,10 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.internal.component.external.descriptor.Artifact;
+import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.external.descriptor.Dependency;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
@@ -170,9 +174,9 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
 
     private static Multimap<String, ModuleComponentArtifactMetaData> populateArtifactsFromDescriptor(ModuleComponentIdentifier componentId, ModuleDescriptorState descriptor) {
         Multimap<String, ModuleComponentArtifactMetaData> artifactsByConfig = LinkedHashMultimap.create();
-        for (ModuleDescriptorState.Artifact artifact : descriptor.getArtifacts()) {
-            ModuleComponentArtifactMetaData artifactMetadata = new DefaultModuleComponentArtifactMetaData(componentId, artifact.artifactName);
-            for (String configuration : artifact.configurations) {
+        for (Artifact artifact : descriptor.getArtifacts()) {
+            ModuleComponentArtifactMetaData artifactMetadata = new DefaultModuleComponentArtifactMetaData(componentId, artifact.getArtifactName());
+            for (String configuration : artifact.getConfigurations()) {
                 artifactsByConfig.put(configuration, artifactMetadata);
             }
         }
@@ -180,9 +184,9 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
     }
 
     private static List<DependencyMetaData> populateDependenciesFromDescriptor(ModuleDescriptorState moduleDescriptor) {
-        return CollectionUtils.collect(moduleDescriptor.getDependencies(), new Transformer<DependencyMetaData, ModuleDescriptorState.Dependency>() {
+        return CollectionUtils.collect(moduleDescriptor.getDependencies(), new Transformer<DependencyMetaData, Dependency>() {
             @Override
-            public DependencyMetaData transform(ModuleDescriptorState.Dependency dependency) {
+            public DependencyMetaData transform(Dependency dependency) {
                 return new DefaultDependencyMetaData(dependency);
             }
         });
@@ -218,14 +222,14 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
             return populated;
         }
 
-        ModuleDescriptorState.Configuration descriptorConfiguration = moduleDescriptor.getConfiguration(name);
+        Configuration descriptorConfiguration = moduleDescriptor.getConfiguration(name);
         Set<String> hierarchy = new LinkedHashSet<String>();
         hierarchy.add(name);
-        for (String parent : descriptorConfiguration.extendsFrom) {
+        for (String parent : descriptorConfiguration.getExtendsFrom()) {
             hierarchy.addAll(populateConfigurationFromDescriptor(parent, moduleDescriptor, configurations).hierarchy);
         }
-        boolean transitive = descriptorConfiguration.transitive;
-        boolean visible = descriptorConfiguration.visible;
+        boolean transitive = descriptorConfiguration.isTransitive();
+        boolean visible = descriptorConfiguration.isVisible();
         DefaultConfigurationMetaData configuration = new DefaultConfigurationMetaData(name, hierarchy, transitive, visible);
         configurations.put(name, configuration);
         return configuration;
