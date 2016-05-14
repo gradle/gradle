@@ -53,7 +53,9 @@ class IvyModuleResolveMetaDataBuilderTest extends Specification {
         def unattached = ivyArtifact("foo", "jar", "ext")
         md.addConfiguration(new Configuration("runtime"))
 
-        when: meta.addArtifact(unattached, newHashSet())
+        when:
+        meta.addArtifact(unattached, newHashSet())
+        meta.build()
 
         then: thrown(IllegalArgumentException)
     }

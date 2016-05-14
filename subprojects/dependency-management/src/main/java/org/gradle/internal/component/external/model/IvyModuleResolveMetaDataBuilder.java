@@ -16,24 +16,32 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.List;
 import java.util.Set;
 
 public class IvyModuleResolveMetaDataBuilder {
-    private final ModuleDescriptorState moduleDescriptor;
+    private final List<Artifact> artifacts = Lists.newArrayList();
+    private final DefaultModuleDescriptor ivyDescriptor;
 
     public IvyModuleResolveMetaDataBuilder(DefaultModuleDescriptor module) {
-        this.moduleDescriptor = new ModuleDescriptorState(module);
+        this.ivyDescriptor = module;
     }
 
     public void addArtifact(IvyArtifactName newArtifact, Set<String> configurations) {
-        moduleDescriptor.addArtifact(newArtifact, configurations);
+        artifacts.add(new Artifact(newArtifact, configurations));
     }
 
     public DefaultIvyModuleResolveMetaData build() {
-        return new DefaultIvyModuleResolveMetaData(moduleDescriptor.getComponentIdentifier(), moduleDescriptor);
+        ModuleDescriptorState descriptorState = new ModuleDescriptorState(ivyDescriptor);
+        for (Artifact artifact : artifacts) {
+            descriptorState.addArtifact(artifact.getArtifactName(), artifact.getConfigurations());
+        }
+        return new DefaultIvyModuleResolveMetaData(descriptorState.getComponentIdentifier(), descriptorState);
     }
 }
