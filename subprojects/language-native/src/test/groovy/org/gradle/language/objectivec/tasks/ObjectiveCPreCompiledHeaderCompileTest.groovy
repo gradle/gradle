@@ -32,7 +32,7 @@ class ObjectiveCPreCompiledHeaderCompileTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
 
-    ObjectiveCPreCompiledHeaderCompile objCPCHCompile = TestUtil.create(testDir).createTaskOfType(ObjectiveCPreCompiledHeaderCompile)
+    ObjectiveCPreCompiledHeaderCompile objCPCHCompile = TestUtil.create(testDir).task(ObjectiveCPreCompiledHeaderCompile)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)

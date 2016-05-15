@@ -34,7 +34,7 @@ class CppCompileTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
 
-    CppCompile cppCompile = TestUtil.create(testDir).createTaskOfType(CppCompile)
+    CppCompile cppCompile = TestUtil.create(testDir).task(CppCompile)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)

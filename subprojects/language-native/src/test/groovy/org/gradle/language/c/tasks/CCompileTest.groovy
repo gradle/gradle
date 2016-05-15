@@ -34,7 +34,7 @@ class CCompileTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
 
-    CCompile cCompile = TestUtil.create(testDir).createTaskOfType(CCompile)
+    CCompile cCompile = TestUtil.create(testDir).task(CCompile)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)

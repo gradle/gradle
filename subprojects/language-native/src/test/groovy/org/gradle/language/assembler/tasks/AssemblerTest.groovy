@@ -33,7 +33,7 @@ class AssemblerTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
 
-    Assemble assembleTask = TestUtil.create(testDir).createTaskOfType(Assemble)
+    Assemble assembleTask = TestUtil.create(testDir).task(Assemble)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)

@@ -54,14 +54,14 @@ class TestUtil {
      * @deprecated Tests should create their own temporary directories
      *     annotated with {@link org.junit.Rule} so that they will be cleaned
      *     up, and pass that directory to {@link #create(java.io.File)} and
-     *     call {@link #createTaskOfType(java.lang.Class)}
+     *     call {@link #task(java.lang.Class)}
      */
     @Deprecated
     static <T extends Task> T createTask(Class<T> type) {
         return createTask(type, createRootProject())
     }
 
-    public <T extends Task> T createTaskOfType(Class<T> type) {
+    public <T extends Task> T task(Class<T> type) {
         return createTask(type, createRootProject(this.rootDir))
     }
 
@@ -69,7 +69,7 @@ class TestUtil {
      * @deprecated Tests should create their own temporary directories
      *     annotated with {@link org.junit.Rule} so that they will be cleaned
      *     up, and pass that directory to {@link #create(java.io.File)} and
-     *     call {@link #createTaskOfType(java.lang.Class, java.util.Map)}
+     *     call {@link #task(java.lang.Class, java.util.Map)}
      */
     @Deprecated
     static <T extends Task> T createTask(Class<T> type, Map taskFields) {
@@ -78,7 +78,7 @@ class TestUtil {
         return task
     }
 
-    public <T extends Task> T createTaskOfType(Class<T> type, Map taskFields) {
+    public <T extends Task> T task(Class<T> type, Map taskFields) {
         def task = createTask(type, createRootProject(rootDir))
         hackInTaskProperties(type, task, taskFields)
         return task
@@ -128,6 +128,10 @@ class TestUtil {
     @Deprecated
     static DefaultProject createRootProject() {
         createRootProject(TestNameTestDirectoryProvider.newInstance().testDirectory)
+    }
+
+    DefaultProject rootProject() {
+        createRootProject(rootDir)
     }
 
     static DefaultProject createRootProject(File rootDir) {

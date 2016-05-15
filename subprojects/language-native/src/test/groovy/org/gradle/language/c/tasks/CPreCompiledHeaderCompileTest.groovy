@@ -34,7 +34,7 @@ class CPreCompiledHeaderCompileTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
 
-    CPreCompiledHeaderCompile cPCHCompile = TestUtil.create(testDir).createTaskOfType(CPreCompiledHeaderCompile)
+    CPreCompiledHeaderCompile cPCHCompile = TestUtil.create(testDir).task(CPreCompiledHeaderCompile)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)

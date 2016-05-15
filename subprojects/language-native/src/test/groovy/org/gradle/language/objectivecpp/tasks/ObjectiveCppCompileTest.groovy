@@ -34,7 +34,7 @@ class ObjectiveCppCompileTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
 
-    ObjectiveCppCompile objCppCompile = TestUtil.create(testDir).createTaskOfType(ObjectiveCppCompile)
+    ObjectiveCppCompile objCppCompile = TestUtil.create(testDir).task(ObjectiveCppCompile)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)

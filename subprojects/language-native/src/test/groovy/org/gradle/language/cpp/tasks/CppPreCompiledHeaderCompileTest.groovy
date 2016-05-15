@@ -32,7 +32,7 @@ class CppPreCompiledHeaderCompileTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
 
-    CppPreCompiledHeaderCompile cppPCHCompile = TestUtil.create(testDir).createTaskOfType(CppPreCompiledHeaderCompile)
+    CppPreCompiledHeaderCompile cppPCHCompile = TestUtil.create(testDir).task(CppPreCompiledHeaderCompile)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)

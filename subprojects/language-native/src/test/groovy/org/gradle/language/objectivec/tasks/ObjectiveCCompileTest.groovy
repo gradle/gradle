@@ -34,7 +34,7 @@ class ObjectiveCCompileTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
 
-    ObjectiveCCompile objCCompile = TestUtil.create(testDir).createTaskOfType(ObjectiveCCompile)
+    ObjectiveCCompile objCCompile = TestUtil.create(testDir).task(ObjectiveCCompile)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
