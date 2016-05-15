@@ -21,8 +21,6 @@ import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.util.Message;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
-import org.gradle.internal.Transformers;
 
 import java.util.LinkedList;
 import java.util.concurrent.locks.Lock;
@@ -36,16 +34,12 @@ public class DefaultIvyContextManager implements IvyContextManager {
     private final ThreadLocal<Integer> depth = new ThreadLocal<Integer>();
 
     public void withIvy(final Action<? super Ivy> action) {
-        withIvy(Transformers.toTransformer(action));
-    }
-
-    public <T> T withIvy(Transformer<? extends T, ? super Ivy> action) {
         Integer currentDepth = depth.get();
 
         if (currentDepth != null) {
             depth.set(currentDepth + 1);
             try {
-                return action.transform(IvyContext.getContext().getIvy());
+                action.execute(IvyContext.getContext().getIvy());
             } finally {
                 depth.set(currentDepth);
             }
@@ -58,7 +52,7 @@ public class DefaultIvyContextManager implements IvyContextManager {
                 Ivy ivy = getIvy();
                 try {
                     IvyContext.getContext().setIvy(ivy);
-                    return action.transform(ivy);
+                    action.execute(ivy);
                 } finally {
                     releaseIvy(ivy);
                 }

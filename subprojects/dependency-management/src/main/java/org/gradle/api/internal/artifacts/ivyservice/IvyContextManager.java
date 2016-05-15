@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import net.jcip.annotations.ThreadSafe;
 import org.apache.ivy.Ivy;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 
 @ThreadSafe
 public interface IvyContextManager {
@@ -29,11 +28,4 @@ public interface IvyContextManager {
      * <p>The Ivy instance of the calling thread is reused if the thread is already executing an action against an Ivy instance.
      */
     void withIvy(Action<? super Ivy> action);
-
-    /**
-     * Executes the given action against an Ivy instance and returns the result. Sets up the Ivy context before the action and cleans up at the end.
-     *
-     * <p>The Ivy instance of the calling thread is reused if the thread is already executing an action against an Ivy instance.
-     */
-    <T> T withIvy(Transformer<? extends T, ? super Ivy> action);
 }

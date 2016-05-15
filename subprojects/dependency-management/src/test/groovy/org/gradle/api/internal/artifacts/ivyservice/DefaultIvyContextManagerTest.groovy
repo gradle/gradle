@@ -15,12 +15,10 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice
-
 import org.apache.ivy.Ivy
 import org.apache.ivy.core.IvyContext
 import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.gradle.api.Action
-import org.gradle.api.Transformer
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class DefaultIvyContextManagerTest extends ConcurrentSpec {
@@ -39,44 +37,6 @@ class DefaultIvyContextManagerTest extends ConcurrentSpec {
         then:
         1 * action.execute({it != null})
         0 * action._
-    }
-
-    def "executes action against an Ivy instance and returns the result"() {
-        def action = Mock(Transformer)
-
-        when:
-        def result = manager.withIvy(action)
-
-        then:
-        result == "result"
-
-        and:
-        1 * action.transform({it != null}) >> "result"
-        0 * action._
-    }
-
-    def "nested actions are executed against the same Ivy instance"() {
-        def action1 = Mock(Action)
-        def action2 = Mock(Action)
-        def transformer = Mock(Transformer)
-        def ivy
-
-        when:
-        manager.withIvy(action1)
-
-        then:
-        1 * action1.execute(_) >> { Ivy param ->
-            ivy = param
-            manager.withIvy(transformer)
-        }
-        1 * transformer.transform(_) >> { Ivy param ->
-            assert param.is(ivy)
-            manager.withIvy(action2)
-        }
-        1 * action2.execute(_) >> { Ivy param ->
-            assert param.is(ivy)
-        }
-        0 * _._
     }
 
     def "sets up Ivy context stack and cleans up after action"() {
