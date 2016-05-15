@@ -15,32 +15,28 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.Ivy;
-import org.gradle.api.Action;
+import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ComponentUsage;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 
-public class ContextualArtifactResolver implements ArtifactResolver {
+public class CacheLockingArtifactResolver implements ArtifactResolver {
     private final CacheLockingManager lockingManager;
-    private final IvyContextManager ivyContextManager;
     private final ArtifactResolver delegate;
 
-    public ContextualArtifactResolver(CacheLockingManager lockingManager, IvyContextManager ivyContextManager, ArtifactResolver delegate) {
+    public CacheLockingArtifactResolver(CacheLockingManager lockingManager, IvyContextManager ivyContextManager, ArtifactResolver delegate) {
         this.lockingManager = lockingManager;
-        this.ivyContextManager = ivyContextManager;
         this.delegate = delegate;
     }
 
     public void resolveModuleArtifacts(final ComponentResolveMetaData component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
         String description = "Resolve " + artifactType + " for " + component;
-        executeInContext(description, new Action<Ivy>() {
-            public void execute(Ivy ivy) {
+        lockingManager.useCache(description, new Runnable() {
+            public void run() {
                 delegate.resolveModuleArtifacts(component, artifactType, result);
             }
         });
@@ -48,25 +44,18 @@ public class ContextualArtifactResolver implements ArtifactResolver {
 
     public void resolveModuleArtifacts(final ComponentResolveMetaData component, final ComponentUsage usage, final BuildableArtifactSetResolveResult result) {
         String description = "Resolve " + usage + " for " + component;
-        executeInContext(description, new Action<Ivy>() {
-            public void execute(Ivy ivy) {
+        lockingManager.useCache(description, new Runnable() {
+            public void run() {
                 delegate.resolveModuleArtifacts(component, usage, result);
             }
         });
     }
 
     public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
-        executeInContext("Resolve ".concat(artifact.toString()), new Action<Ivy>() {
-            public void execute(Ivy ivy) {
-                delegate.resolveArtifact(artifact, moduleSource, result);
-            }
-        });
-    }
-
-    private void executeInContext(String description, final Action<Ivy> action) {
+        String description = "Resolve ".concat(artifact.toString());
         lockingManager.useCache(description, new Runnable() {
             public void run() {
-                ivyContextManager.withIvy(action);
+                delegate.resolveArtifact(artifact, moduleSource, result);
             }
         });
     }
