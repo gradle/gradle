@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.groovy.scripts.DefaultScript
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 
@@ -43,6 +44,10 @@ class TestUtil {
 
     static TestUtil create(File rootDir) {
         return new TestUtil(rootDir);
+    }
+
+    static TestUtil create(TestDirectoryProvider testDirectoryProvider) {
+        return new TestUtil(testDirectoryProvider.testDirectory);
     }
 
     /**

@@ -15,21 +15,25 @@
  */
 
 package org.gradle.language.assembler.tasks
-import org.gradle.language.base.internal.compile.Compiler
+
 import org.gradle.api.tasks.WorkResult
+import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal
-import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
+import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.compilespec.AssembleSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class AssemblerTest extends Specification {
-    def testDir = new TestNameTestDirectoryProvider().testDirectory
-    Assemble assembleTask = TestUtil.createTask(Assemble)
+    @Rule
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+
+    Assemble assembleTask = TestUtil.create(testDir).createTaskOfType(Assemble)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)

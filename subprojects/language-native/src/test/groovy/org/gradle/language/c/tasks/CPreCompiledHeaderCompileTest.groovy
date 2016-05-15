@@ -26,12 +26,15 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CPCHCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 
 class CPreCompiledHeaderCompileTest extends Specification {
-    def testDir = new TestNameTestDirectoryProvider().testDirectory
-    CPreCompiledHeaderCompile cPCHCompile = TestUtil.createTask(CPreCompiledHeaderCompile)
+    @Rule
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+
+    CPreCompiledHeaderCompile cPCHCompile = TestUtil.create(testDir).createTaskOfType(CPreCompiledHeaderCompile)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
