@@ -15,12 +15,16 @@
  */
 package org.gradle.api.plugins.announce
 
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.util.TestUtil
 import org.gradle.api.Project
 
 class BuildAnnouncementsPluginTest extends Specification {
-    final Project project = TestUtil.createRootProject()
+    @Rule
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    final Project project = TestUtil.create(testDir).rootProject()
     final BuildAnnouncementsPlugin plugin = new BuildAnnouncementsPlugin()
 
     def "applies announce plugin"() {

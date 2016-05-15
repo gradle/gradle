@@ -16,12 +16,16 @@
 package org.gradle.api.plugins.announce
 
 import org.gradle.api.Project
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class AnnouncePluginTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    final Project project = TestUtil.create(testDir).rootProject()
     AnnouncePlugin announcePlugin = new AnnouncePlugin()
-    Project project = TestUtil.createRootProject()
 
     def addExtensionObject() {
         when:
