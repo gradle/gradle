@@ -28,10 +28,16 @@ import org.gradle.platform.base.component.BaseComponentFixtures
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultNativeExecutableBinarySpecTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
+    final testUtil = TestUtil.create(tmpDir)
     def namingScheme = DefaultBinaryNamingScheme.component("bigOne").withBinaryType("executable")
     def taskFactory = Mock(ITaskFactory)
     def tasks = new DefaultNativeExecutableBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, taskFactory))
@@ -56,7 +62,7 @@ class DefaultNativeExecutableBinarySpecTest extends Specification {
 
     def "returns link task when defined"() {
         when:
-        final linkTask = TestUtil.createTask(LinkExecutable)
+        final linkTask = testUtil.task(LinkExecutable)
         tasks.add(linkTask)
 
         then:
@@ -65,7 +71,7 @@ class DefaultNativeExecutableBinarySpecTest extends Specification {
 
     def "returns install task when defined"() {
         when:
-        final install = TestUtil.createTask(InstallExecutable)
+        final install = testUtil.task(InstallExecutable)
         tasks.add(install)
 
         then:

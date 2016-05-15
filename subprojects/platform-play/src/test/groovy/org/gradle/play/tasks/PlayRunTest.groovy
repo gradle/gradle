@@ -20,13 +20,18 @@ import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayApplicationRunnerToken
 import org.gradle.play.internal.run.PlayRunSpec
 import org.gradle.play.internal.toolchain.PlayToolProvider
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.RedirectStdIn
 import org.gradle.util.TestUtil
 import org.junit.ClassRule
+import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
 
 class PlayRunTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
     PlayApplicationRunnerToken runnerToken = Mock(PlayApplicationRunnerToken)
     PlayToolProvider playToolProvider = Mock(PlayToolProvider)
     PlayApplicationRunner playApplicationRunner = Mock(PlayApplicationRunner)
@@ -38,7 +43,7 @@ class PlayRunTest extends Specification {
     PlayRun playRun
 
     def setup() {
-        playRun = TestUtil.createTask(PlayRun)
+        playRun = TestUtil.create(tmpDir).task(PlayRun)
         playRun.applicationJar = new File("application.jar")
         playRun.runtimeClasspath = new SimpleFileCollection()
         playRun.playToolProvider = playToolProvider

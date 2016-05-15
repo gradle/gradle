@@ -139,7 +139,7 @@ class DefaultSharedLibraryBinarySpecTest extends Specification {
         def binary = sharedLibrary
 
         when:
-        final linkTask = TestUtil.createTask(LinkSharedLibrary)
+        final linkTask = TestUtil.create(tmpDir).task(LinkSharedLibrary)
         binary.tasks.add(linkTask)
 
         then:

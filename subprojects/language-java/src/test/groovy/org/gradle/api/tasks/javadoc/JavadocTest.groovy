@@ -43,7 +43,7 @@ public class JavadocTest extends Specification {
     def generator = Mock(Compiler);
     def configurationMock = new SimpleFileCollection(classpath);
     def executable = "somepath";
-    private Javadoc task = TestUtil.createTask(Javadoc)
+    private Javadoc task = TestUtil.create(tmpDir).task(Javadoc)
 
     public void setup() {
         task.setClasspath(configurationMock);
