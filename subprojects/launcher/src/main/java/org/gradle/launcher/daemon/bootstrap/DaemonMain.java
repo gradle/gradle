@@ -189,7 +189,7 @@ public class DaemonMain extends EntryPoint {
         strategies.add(new LowPermGenDaemonExpirationStrategy(daemonServices.get(DaemonHealthServices.class)));
         try {
             strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
-                new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout() / 4, TimeUnit.MILLISECONDS),
+                new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout() / 8, TimeUnit.MILLISECONDS),
                 LowMemoryDaemonExpirationStrategy.belowFreePercentage(0.2)
             )));
         } catch (UnsupportedOperationException e) {
