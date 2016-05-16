@@ -72,6 +72,10 @@ open class GenerateKtsConfig : DefaultTask() {
 
     private fun computeClassPath() =
         selectGradleApiJars(classPathRegistry)
+            // speed up IDE completion by removing jars
+            // already included in the gradle-ide-support library by
+            // PatchIdeaConfig
+            .filter { !it.name.startsWith("gradle-") }
             .sortedBy { it.name }
 }
 
