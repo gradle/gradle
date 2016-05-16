@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.sink;
 
-import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.Console;
@@ -28,10 +27,8 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
-public class ConsoleConfigureAction implements Action<OutputEventRenderer> {
-
-    public void execute(OutputEventRenderer renderer) {
-        ConsoleOutput consoleOutput = renderer.getConsoleOutput();
+public class ConsoleConfigureAction {
+    public void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput) {
         if (consoleOutput == ConsoleOutput.Plain) {
             return;
         }

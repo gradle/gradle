@@ -186,6 +186,24 @@ class OutputEventRendererTest extends OutputSpecification {
         0 * listener._
     }
 
+    def restoresLogLevelWhenChangedSinceSnapshotWasTaken() {
+        def listener = new TestListener()
+
+        given:
+        renderer.addStandardOutputListener(listener)
+        renderer.configure(LogLevel.INFO)
+        def snapshot = renderer.snapshot()
+        renderer.configure(LogLevel.DEBUG)
+
+        when:
+        renderer.restore(snapshot)
+        renderer.onOutput(event('info', LogLevel.INFO))
+        renderer.onOutput(event('debug', LogLevel.DEBUG))
+
+        then:
+        listener.value.readLines() == ['info']
+    }
+
     def rendersProgressEvents() {
         when:
         renderer.attachSystemOutAndErr()

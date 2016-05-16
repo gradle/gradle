@@ -17,7 +17,6 @@
 package org.gradle.internal.logging.sink;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
@@ -49,44 +48,51 @@ import java.io.OutputStreamWriter;
  */
 @ThreadSafe
 public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
-    private final ListenerBroadcast<OutputEventListener> stdOutAndErrorFormatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final Object lock = new Object();
     private final DefaultColorMap colourMap = new DefaultColorMap();
     private LogLevel logLevel = LogLevel.LIFECYCLE;
-    private final Action<? super OutputEventRenderer> consoleConfigureAction;
+    private final ConsoleConfigureAction consoleConfigureAction;
     private OutputStream originalStdOut;
     private OutputStream originalStdErr;
     private StreamBackedStandardOutputListener stdOutListener;
     private StreamBackedStandardOutputListener stdErrListener;
-    private ConsoleOutput consoleOutput;
+    private ConsoleBackedProgressRenderer console;
 
     public OutputEventRenderer() {
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
-        stdOutAndErrorFormatters.add(stdOutChain);
+        formatters.add(stdOutChain);
         OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
-        stdOutAndErrorFormatters.add(stdErrChain);
+        formatters.add(stdErrChain);
         this.consoleConfigureAction = new ConsoleConfigureAction();
     }
 
     @Override
-    public void restore(Snapshot state) {
+    public Snapshot snapshot() {
+        synchronized (lock) {
+            // Currently only snapshot the console output listener. Should snapshot all output listeners, and cleanup in restore()
+            return new SnapshotImpl(logLevel, console);
+        }
     }
 
     @Override
-    public Snapshot snapshot() {
-        return new Snapshot() {
-        };
+    public void restore(Snapshot state) {
+        synchronized (lock) {
+            SnapshotImpl snapshot = (SnapshotImpl) state;
+            if (snapshot.console != console && console != null) {
+                // TODO - close the console
+                ;
+            }
+            if (snapshot.logLevel != logLevel) {
+                configure(snapshot.logLevel);
+            }
+        }
     }
 
     public ColorMap getColourMap() {
         return colourMap;
-    }
-
-    public ConsoleOutput getConsoleOutput() {
-        return consoleOutput;
     }
 
     public OutputStream getOriginalStdOut() {
@@ -99,8 +105,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     public void attachProcessConsole(ConsoleOutput consoleOutput) {
         synchronized (lock) {
-            this.consoleOutput = consoleOutput;
-            consoleConfigureAction.execute(this);
+            consoleConfigureAction.execute(this, consoleOutput);
         }
     }
 
@@ -139,11 +144,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         }
     }
 
-    public void removeStandardOutputAndError() {
-        removeStandardOutputListener();
-        removeStandardErrorListener();
-    }
-
     private void removeStandardOutputListener() {
         synchronized (lock) {
             if (stdOutListener != null) {
@@ -175,16 +175,18 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
-        final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(
-                new ProgressLogEventGenerator(
-                        new StyledTextOutputBackedRenderer(console.getMainArea()), true),
-                console,
-                new DefaultStatusBarFormatter(consoleMetaData),
-                new TrueTimeProvider());
+        final ConsoleBackedProgressRenderer consoleChain = new ConsoleBackedProgressRenderer(
+            new ProgressLogEventGenerator(
+                new StyledTextOutputBackedRenderer(console.getMainArea()), true),
+            console,
+            new DefaultStatusBarFormatter(consoleMetaData),
+            new TrueTimeProvider());
         synchronized (lock) {
+            this.console = consoleChain;
             if (stdout && stderr) {
                 formatters.add(consoleChain);
-                removeStandardOutputAndError();
+                removeStandardOutputListener();
+                removeStandardErrorListener();
             } else if (stdout) {
                 formatters.add(onNonError(consoleChain));
                 removeStandardOutputListener();
@@ -271,8 +273,17 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                 }
                 this.logLevel = newLogLevel;
             }
-            stdOutAndErrorFormatters.getSource().onOutput(event);
             formatters.getSource().onOutput(event);
+        }
+    }
+
+    private class SnapshotImpl implements Snapshot {
+        private final LogLevel logLevel;
+        private final ConsoleBackedProgressRenderer console;
+
+        public SnapshotImpl(LogLevel logLevel, ConsoleBackedProgressRenderer console) {
+            this.logLevel = logLevel;
+            this.console = console;
         }
     }
 }
