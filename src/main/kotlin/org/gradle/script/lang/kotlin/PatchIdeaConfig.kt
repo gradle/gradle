@@ -58,7 +58,7 @@ open class PatchIdeaConfig : DefaultTask() {
 
     private fun relocate(file: File): File {
         val relocatedFile = File(tmpDir(), file.name)
-        file.copyTo(relocatedFile, false)
+        file.copyTo(relocatedFile, true)
         return relocatedFile
     }
 
