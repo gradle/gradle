@@ -20,7 +20,7 @@ import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.ExcludeRule;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 /**
@@ -32,7 +32,7 @@ class IvyPatternMatcherExcludeRuleSpec extends AbstractModuleExcludeRuleFilter {
     private final PatternMatcher matcher;
     private final boolean isArtifactExclude;
 
-    IvyPatternMatcherExcludeRuleSpec(ExcludeRule rule) {
+    IvyPatternMatcherExcludeRuleSpec(Exclude rule) {
         this.moduleId = DefaultModuleIdentifier.newId(rule.getId().getModuleId().getOrganisation(), rule.getId().getModuleId().getName());
         this.ivyArtifactName = new DefaultIvyArtifactName(rule.getId().getName(), rule.getId().getType(), rule.getId().getExt());
         this.matcher = rule.getMatcher();

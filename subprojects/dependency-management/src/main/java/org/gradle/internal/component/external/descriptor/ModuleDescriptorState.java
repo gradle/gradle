@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.model.ExcludeRule;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.CollectionUtils;
 
@@ -38,7 +38,7 @@ import java.util.Set;
 public class ModuleDescriptorState {
     private final ModuleComponentIdentifier componentIdentifier;
     protected final Map<String, Configuration> configurations;
-    protected final List<ExcludeRule> excludeRules;
+    protected final List<Exclude> excludes;
     protected final List<Dependency> dependencies;
     private final List<Artifact> artifacts = Lists.newArrayList();
     private final String status;
@@ -57,7 +57,7 @@ public class ModuleDescriptorState {
         this.generated = generated;
         extraInfo = Maps.newHashMap();
         configurations = Maps.newLinkedHashMap();
-        excludeRules = Lists.newArrayList();
+        excludes = Lists.newArrayList();
         dependencies = Lists.newArrayList();
     }
 
@@ -76,7 +76,7 @@ public class ModuleDescriptorState {
             Configuration configuration = new Configuration(ivyConfiguration);
             configurations.put(configuration.getName(), configuration);
         }
-        excludeRules = DefaultExcludeRule.forIvyExcludes(ivyDescriptor.getAllExcludeRules());
+        excludes = DefaultExclude.forIvyExcludes(ivyDescriptor.getAllExcludeRules());
         dependencies = CollectionUtils.collect(ivyDescriptor.getDependencies(), new Transformer<Dependency, DependencyDescriptor>() {
             @Override
             public Dependency transform(DependencyDescriptor dependencyDescriptor) {
@@ -162,7 +162,7 @@ public class ModuleDescriptorState {
         return dependencies;
     }
 
-    public List<ExcludeRule> getExcludeRules() {
-        return excludeRules;
+    public List<Exclude> getExcludes() {
+        return excludes;
     }
 }

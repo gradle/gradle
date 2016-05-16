@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.component.model.ExcludeRule;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
@@ -56,8 +56,8 @@ public class DslOriginDependencyMetaDataWrapper implements DslOriginDependencyMe
         return delegate.getDependencyConfigurations(moduleConfiguration, requestedConfiguration);
     }
 
-    public List<ExcludeRule> getExcludeRules(Collection<String> configurations) {
-        return delegate.getExcludeRules(configurations);
+    public List<Exclude> getExcludes(Collection<String> configurations) {
+        return delegate.getExcludes(configurations);
     }
 
     public String getDynamicConstraintVersion() {

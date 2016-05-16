@@ -28,7 +28,7 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.component.model.ExcludeRule;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 
@@ -42,7 +42,7 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
     private final Map<String, DefaultLocalConfigurationMetaData> allConfigurations = Maps.newHashMap();
     private final Multimap<String, ComponentArtifactMetaData> allArtifacts = ArrayListMultimap.create();
     private final List<DependencyMetaData> allDependencies = Lists.newArrayList();
-    private final List<ExcludeRule> allExcludeRules = Lists.newArrayList();
+    private final List<Exclude> allExcludes = Lists.newArrayList();
     private final ModuleVersionIdentifier id;
     private final ComponentIdentifier componentIdentifier;
     private final String status;
@@ -77,8 +77,8 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
         allDependencies.add(dependency);
     }
 
-    public void addExcludeRule(ExcludeRule excludeRule) {
-        allExcludeRules.add(excludeRule);
+    public void addExclude(Exclude exclude) {
+        allExcludes.add(exclude);
     }
 
     @Override
@@ -118,8 +118,8 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
         return allDependencies;
     }
 
-    public List<ExcludeRule> getExcludeRules() {
-        return allExcludeRules;
+    public List<Exclude> getExcludeRules() {
+        return allExcludes;
     }
 
     @Override
@@ -141,7 +141,7 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
         private final TaskDependency buildDependencies;
 
         private List<DependencyMetaData> configurationDependencies;
-        private LinkedHashSet<ExcludeRule> configurationExcludeRules;
+        private LinkedHashSet<Exclude> configurationExcludes;
 
         private DefaultLocalConfigurationMetaData(String name, String description, boolean visible, boolean transitive, Set<String> extendsFrom, Set<String> hierarchy, TaskDependency buildDependencies) {
             this.name = name;
@@ -226,19 +226,19 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
             return false;
         }
 
-        public Set<ExcludeRule> getExcludeRules() {
-            if (configurationExcludeRules == null) {
-                configurationExcludeRules = new LinkedHashSet<ExcludeRule>();
-                for (ExcludeRule excludeRule : allExcludeRules) {
-                    for (String config : excludeRule.getConfigurations()) {
+        public Set<Exclude> getExcludes() {
+            if (configurationExcludes == null) {
+                configurationExcludes = new LinkedHashSet<Exclude>();
+                for (Exclude exclude : allExcludes) {
+                    for (String config : exclude.getConfigurations()) {
                         if (hierarchy.contains(config)) {
-                            configurationExcludeRules.add(excludeRule);
+                            configurationExcludes.add(exclude);
                             break;
                         }
                     }
                 }
             }
-            return configurationExcludeRules;
+            return configurationExcludes;
         }
 
         public Set<ComponentArtifactMetaData> getArtifacts() {

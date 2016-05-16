@@ -25,7 +25,7 @@ import org.gradle.internal.component.external.descriptor.MutableModuleDescriptor
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.component.model.ExcludeRule;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
@@ -67,8 +67,8 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
     }
 
     @Override
-    public void addExcludeRule(ExcludeRule excludeRule) {
-        descriptor.addExcludeRule(excludeRule);
+    public void addExclude(Exclude exclude) {
+        descriptor.addExclude(exclude);
     }
 
     @Override

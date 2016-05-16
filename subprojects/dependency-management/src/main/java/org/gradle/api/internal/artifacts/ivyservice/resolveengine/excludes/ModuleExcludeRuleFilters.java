@@ -20,7 +20,7 @@ import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.Transformer;
-import org.gradle.internal.component.model.ExcludeRule;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -60,29 +60,29 @@ public class ModuleExcludeRuleFilters {
     /**
      * Returns a spec that accepts only those module versions that do not match any of the given exclude rules.
      */
-    public static ModuleExcludeRuleFilter excludeAny(ExcludeRule... excludeRules) {
-        if (excludeRules.length == 0) {
+    public static ModuleExcludeRuleFilter excludeAny(Exclude... excludes) {
+        if (excludes.length == 0) {
             return EXCLUDE_NONE;
         }
-        return excludeAny(Arrays.asList(excludeRules));
+        return excludeAny(Arrays.asList(excludes));
     }
 
     /**
      * Returns a spec that accepts only those module versions that do not match any of the given exclude rules.
      */
-    public static ModuleExcludeRuleFilter excludeAny(Collection<ExcludeRule> excludeRules) {
-        if (excludeRules.isEmpty()) {
+    public static ModuleExcludeRuleFilter excludeAny(Collection<Exclude> excludes) {
+        if (excludes.isEmpty()) {
             return EXCLUDE_NONE;
         }
-        return new MultipleExcludeRulesFilter(CollectionUtils.collect(excludeRules, new Transformer<AbstractModuleExcludeRuleFilter, ExcludeRule>() {
+        return new MultipleExcludeRulesFilter(CollectionUtils.collect(excludes, new Transformer<AbstractModuleExcludeRuleFilter, Exclude>() {
             @Override
-            public AbstractModuleExcludeRuleFilter transform(ExcludeRule excludeRule) {
-                return forIvyExcludeRule(excludeRule);
+            public AbstractModuleExcludeRuleFilter transform(Exclude exclude) {
+                return forExclude(exclude);
             }
         }));
     }
 
-    private static AbstractModuleExcludeRuleFilter forIvyExcludeRule(ExcludeRule rule) {
+    private static AbstractModuleExcludeRuleFilter forExclude(Exclude rule) {
         // For custom ivy pattern matchers, don't inspect the rule any more deeply: this prevents us from doing smart merging later
         if (!(rule.getMatcher() instanceof ExactPatternMatcher)) {
             return new IvyPatternMatcherExcludeRuleSpec(rule);

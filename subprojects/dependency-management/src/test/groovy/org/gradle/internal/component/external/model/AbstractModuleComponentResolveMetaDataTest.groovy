@@ -218,13 +218,13 @@ abstract class AbstractModuleComponentResolveMetaDataTest extends Specification 
         moduleDescriptor.allExcludeRules >> ([rule1, rule2, rule3] as ExcludeRule[])
 
         when:
-        def excludeRules = metaData.getConfiguration("conf").excludeRules
+        def excludeRules = metaData.getConfiguration("conf").excludes
 
         then:
         excludeRules as List == [rule1, rule2]
 
         and:
-        metaData.getConfiguration("conf").excludeRules.is(excludeRules)
+        metaData.getConfiguration("conf").excludes.is(excludeRules)
     }
 
     def "can replace the dependencies for the module version"() {

@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.ExcludeRule;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.CollectionUtils;
 
@@ -56,7 +56,7 @@ public class Dependency {
 
     private final Map<String, List<String>> confMappings = Maps.newLinkedHashMap();
     private final List<Artifact> dependencyArtifacts = Lists.newArrayList();
-    private final List<ExcludeRule> dependencyExcludes = Lists.newArrayList();
+    private final List<Exclude> dependencyExcludes = Lists.newArrayList();
 
 
     public Dependency(ModuleVersionSelector requested, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive) {
@@ -91,7 +91,7 @@ public class Dependency {
         }
     }
 
-    public void addExcludeRule(ExcludeRule rule) {
+    public void addExcludeRule(Exclude rule) {
         dependencyExcludes.add(rule);
     }
 
@@ -119,7 +119,7 @@ public class Dependency {
         return dependencyArtifacts;
     }
 
-    public List<ExcludeRule> getDependencyExcludes() {
+    public List<Exclude> getDependencyExcludes() {
         return dependencyExcludes;
     }
 
@@ -147,7 +147,7 @@ public class Dependency {
             dep.addArtifact(ivyArtifactName, Sets.newHashSet(dependencyArtifactDescriptor.getConfigurations()));
         }
 
-        dep.dependencyExcludes.addAll(DefaultExcludeRule.forIvyExcludes(dependencyDescriptor.getAllExcludeRules()));
+        dep.dependencyExcludes.addAll(DefaultExclude.forIvyExcludes(dependencyDescriptor.getAllExcludeRules()));
         return dep;
     }
 

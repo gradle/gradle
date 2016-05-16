@@ -20,6 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.CollectionUtils;
 
@@ -37,11 +38,11 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
         return artifact.getExtension() != null ? artifact.getExtension() : artifact.getType();
     }
 
-    protected List<org.gradle.internal.component.model.ExcludeRule> convertExcludeRules(final String configuration, Set<ExcludeRule> excludeRules) {
-        return CollectionUtils.collect((Iterable<ExcludeRule>) excludeRules, new Transformer<org.gradle.internal.component.model.ExcludeRule, ExcludeRule>() {
+    protected List<Exclude> convertExcludeRules(final String configuration, Set<ExcludeRule> excludeRules) {
+        return CollectionUtils.collect((Iterable<ExcludeRule>) excludeRules, new Transformer<Exclude, ExcludeRule>() {
             @Override
-            public org.gradle.internal.component.model.ExcludeRule transform(ExcludeRule excludeRule) {
-                return excludeRuleConverter.createExcludeRule(configuration, excludeRule);
+            public Exclude transform(ExcludeRule excludeRule) {
+                return excludeRuleConverter.convertExcludeRule(configuration, excludeRule);
             }
         });
     }

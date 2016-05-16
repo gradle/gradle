@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData
+import org.gradle.internal.component.model.Exclude
 import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toDomainObjectSet
@@ -68,7 +69,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
 
     def "adds exclude rule from configuration"() {
         def excludeRule = Mock(ExcludeRule)
-        def ivyExcludeRule = Mock(org.gradle.internal.component.model.ExcludeRule)
+        def ivyExcludeRule = Mock(Exclude)
 
         when:
         converter.addDependencyDescriptors(metaData, [configuration])
@@ -79,8 +80,8 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
 
         1 * configuration.excludeRules >> ([excludeRule] as Set)
         1 * configuration.getName() >> "config"
-        1 * excludeRuleConverter.createExcludeRule("config", excludeRule) >> ivyExcludeRule
-        1 * metaData.addExcludeRule(ivyExcludeRule)
+        1 * excludeRuleConverter.convertExcludeRule("config", excludeRule) >> ivyExcludeRule
+        1 * metaData.addExclude(ivyExcludeRule)
         0 * _
     }
 }

@@ -19,7 +19,7 @@ package org.gradle.internal.component.model;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 
-public interface ExcludeRule {
+public interface Exclude {
 
     /**
      * Returns the id of the described artifact, without revision information

@@ -24,13 +24,13 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.DefaultExcludeRule;
+import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.ExcludeRule;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -74,7 +74,7 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             writeConfigurations(md.getConfigurations());
             writeArtifacts(md.getArtifacts());
             writeDependencies(md.getDependencies());
-            writeExcludeRules(md.getExcludeRules());
+            writeExcludeRules(md.getExcludes());
         }
 
         private void writeInfoSection(ModuleDescriptorState md) throws IOException {
@@ -161,9 +161,9 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             }
         }
 
-        private void writeExcludeRules(List<ExcludeRule> excludes) throws IOException {
+        private void writeExcludeRules(List<Exclude> excludes) throws IOException {
             writeInt(excludes.size());
-            for (ExcludeRule exclude : excludes) {
+            for (Exclude exclude : excludes) {
                 ArtifactId id = exclude.getId();
                 writeString(id.getModuleId().getOrganisation());
                 writeString(id.getModuleId().getName());
@@ -319,12 +319,12 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
         private void readExcludeRules(Dependency dep) throws IOException {
             int len = readInt();
             for (int i = 0; i < len; i++) {
-                DefaultExcludeRule rule = readExcludeRule();
+                DefaultExclude rule = readExcludeRule();
                 dep.addExcludeRule(rule);
             }
         }
 
-        private DefaultExcludeRule readExcludeRule() throws IOException {
+        private DefaultExclude readExcludeRule() throws IOException {
             String moduleOrg = readString();
             String moduleName = readString();
             String name = readString();
@@ -332,7 +332,7 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             String ext = readString();
             String[] confs = readStringArray();
             String matcher = readString();
-            DefaultExcludeRule rule = new DefaultExcludeRule(
+            DefaultExclude rule = new DefaultExclude(
                 IvyUtil.createArtifactId(moduleOrg, moduleName, name, type, ext),
                 confs,
                 resolverStrategy.getPatternMatcher(matcher)
@@ -343,7 +343,7 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
         private void readAllExcludes() throws IOException {
             int len = readInt();
             for (int i = 0; i < len; i++) {
-                md.addExcludeRule(readExcludeRule());
+                md.addExclude(readExcludeRule());
             }
         }
 

@@ -272,7 +272,7 @@ public class DependencyGraphBuilder {
 
         public ModuleExcludeRuleFilter getSelector() {
             Set<String> hierarchy = from.metaData.getHierarchy();
-            ModuleExcludeRuleFilter selector = ModuleExcludeRuleFilters.excludeAny(dependencyMetaData.getExcludeRules(hierarchy));
+            ModuleExcludeRuleFilter selector = ModuleExcludeRuleFilters.excludeAny(dependencyMetaData.getExcludes(hierarchy));
             return ModuleExcludeRuleFilters.intersect(selector, resolutionFilter);
         }
 
@@ -762,7 +762,7 @@ public class DependencyGraphBuilder {
                     resolutionFilter = ModuleExcludeRuleFilters.union(resolutionFilter, dependencyEdge.getSelector());
                 }
             }
-            resolutionFilter = ModuleExcludeRuleFilters.intersect(resolutionFilter, ModuleExcludeRuleFilters.excludeAny(metaData.getExcludeRules()));
+            resolutionFilter = ModuleExcludeRuleFilters.intersect(resolutionFilter, ModuleExcludeRuleFilters.excludeAny(metaData.getExcludes()));
             return resolutionFilter;
         }
 

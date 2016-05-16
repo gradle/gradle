@@ -48,7 +48,7 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
     private void addExcludeRules(BuildableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (ExcludeRule excludeRule : configuration.getExcludeRules()) {
-                metaData.addExcludeRule(excludeRuleConverter.createExcludeRule(configuration.getName(), excludeRule));
+                metaData.addExclude(excludeRuleConverter.convertExcludeRule(configuration.getName(), excludeRule));
             }
         }
     }

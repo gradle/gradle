@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -31,19 +32,19 @@ public class DefaultExcludeRuleConverterTest {
         String configurationName = "someConf";
         final String someOrg = "someOrg";
         final String someModule = "someModule";
-        org.gradle.internal.component.model.ExcludeRule ivyExcludeRule =
-                new DefaultExcludeRuleConverter().createExcludeRule(configurationName, new DefaultExcludeRule(someOrg, someModule));
-        assertThat(ivyExcludeRule.getId().getModuleId().getOrganisation(),
+        Exclude exclude =
+                new DefaultExcludeRuleConverter().convertExcludeRule(configurationName, new DefaultExcludeRule(someOrg, someModule));
+        assertThat(exclude.getId().getModuleId().getOrganisation(),
                 Matchers.equalTo(someOrg));
-        assertThat(ivyExcludeRule.getId().getName(),
+        assertThat(exclude.getId().getName(),
                 Matchers.equalTo(PatternMatcher.ANY_EXPRESSION));
-        assertThat(ivyExcludeRule.getId().getExt(),
+        assertThat(exclude.getId().getExt(),
                 Matchers.equalTo(PatternMatcher.ANY_EXPRESSION));
-        assertThat(ivyExcludeRule.getId().getType(),
+        assertThat(exclude.getId().getType(),
                 Matchers.equalTo(PatternMatcher.ANY_EXPRESSION));
-        assertThat((ExactPatternMatcher) ivyExcludeRule.getMatcher(),
+        assertThat((ExactPatternMatcher) exclude.getMatcher(),
                 Matchers.equalTo(ExactPatternMatcher.INSTANCE));
-        assertThat(ivyExcludeRule.getConfigurations(),
+        assertThat(exclude.getConfigurations(),
                 Matchers.equalTo(WrapUtil.toArray(configurationName)));
     }
 }

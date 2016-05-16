@@ -34,21 +34,21 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
     private final ModuleVersionSelector requested;
     private final String moduleConfiguration;
     private final String dependencyConfiguration;
-    private final List<ExcludeRule> excludeRules;
+    private final List<Exclude> excludes;
     private final Set<IvyArtifactName> artifactNames;
     private final boolean force;
     private final boolean changing;
     private final boolean transitive;
 
     public LocalComponentDependencyMetaData(ComponentSelector selector, ModuleVersionSelector requested, String moduleConfiguration, String dependencyConfiguration,
-                                            Set<IvyArtifactName> artifactNames, List<ExcludeRule> excludeRules,
+                                            Set<IvyArtifactName> artifactNames, List<Exclude> excludes,
                                             boolean force, boolean changing, boolean transitive) {
         this.selector = selector;
         this.requested = requested;
         this.moduleConfiguration = moduleConfiguration;
         this.dependencyConfiguration = dependencyConfiguration;
         this.artifactNames = artifactNames;
-        this.excludeRules = excludeRules;
+        this.excludes = excludes;
         this.force = force;
         this.changing = changing;
         this.transitive = transitive;
@@ -82,9 +82,9 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
         return new String[0];
     }
 
-    public List<ExcludeRule> getExcludeRules(Collection<String> configurations) {
+    public List<Exclude> getExcludes(Collection<String> configurations) {
         if (configurations.contains(moduleConfiguration)) {
-            return excludeRules;
+            return excludes;
         }
         return Collections.emptyList();
     }
@@ -143,13 +143,13 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
     }
 
     private DependencyMetaData copyWithTarget(ComponentSelector selector, ModuleVersionSelector requested) {
-        return new LocalComponentDependencyMetaData(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludeRules, force, changing, transitive);
+        return new LocalComponentDependencyMetaData(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
     }
 
     public DependencyMetaData withChanging() {
         if (isChanging()) {
             return this;
         }
-        return new LocalComponentDependencyMetaData(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludeRules, force, true, transitive);
+        return new LocalComponentDependencyMetaData(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludes, force, true, transitive);
     }
 }

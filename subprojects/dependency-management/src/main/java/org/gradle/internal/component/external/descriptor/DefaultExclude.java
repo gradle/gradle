@@ -19,17 +19,17 @@ package org.gradle.internal.component.external.descriptor;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.Transformer;
-import org.gradle.internal.component.model.ExcludeRule;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
-public class DefaultExcludeRule implements ExcludeRule {
+public class DefaultExclude implements Exclude {
     private final ArtifactId artifactId;
     private final String[] configurations;
     private final PatternMatcher patternMatcher;
 
-    public DefaultExcludeRule(ArtifactId artifactId, String[] configurations, PatternMatcher patternMatcher) {
+    public DefaultExclude(ArtifactId artifactId, String[] configurations, PatternMatcher patternMatcher) {
         this.artifactId = artifactId;
         this.configurations = configurations;
         this.patternMatcher = patternMatcher;
@@ -50,14 +50,14 @@ public class DefaultExcludeRule implements ExcludeRule {
         return patternMatcher;
     }
 
-    public static ExcludeRule forIvyExclude(org.apache.ivy.core.module.descriptor.ExcludeRule excludeRule) {
-        return new DefaultExcludeRule(excludeRule.getId(), excludeRule.getConfigurations(), excludeRule.getMatcher());
+    public static Exclude forIvyExclude(org.apache.ivy.core.module.descriptor.ExcludeRule excludeRule) {
+        return new DefaultExclude(excludeRule.getId(), excludeRule.getConfigurations(), excludeRule.getMatcher());
     }
 
-    public static List<ExcludeRule> forIvyExcludes(org.apache.ivy.core.module.descriptor.ExcludeRule[] excludeRules) {
-        return CollectionUtils.collect(excludeRules, new Transformer<ExcludeRule, org.apache.ivy.core.module.descriptor.ExcludeRule>() {
+    public static List<Exclude> forIvyExcludes(org.apache.ivy.core.module.descriptor.ExcludeRule[] excludeRules) {
+        return CollectionUtils.collect(excludeRules, new Transformer<Exclude, org.apache.ivy.core.module.descriptor.ExcludeRule>() {
             @Override
-            public ExcludeRule transform(org.apache.ivy.core.module.descriptor.ExcludeRule excludeRule) {
+            public Exclude transform(org.apache.ivy.core.module.descriptor.ExcludeRule excludeRule) {
                 return forIvyExclude(excludeRule);
             }
         });

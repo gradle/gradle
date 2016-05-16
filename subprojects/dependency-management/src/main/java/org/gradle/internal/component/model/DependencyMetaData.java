@@ -66,7 +66,7 @@ public interface DependencyMetaData {
 
     String[] getDependencyConfigurations(String moduleConfiguration, String requestedConfiguration);
 
-    List<ExcludeRule> getExcludeRules(Collection<String> configurations);
+    List<Exclude> getExcludes(Collection<String> configurations);
 
     boolean isChanging();
 

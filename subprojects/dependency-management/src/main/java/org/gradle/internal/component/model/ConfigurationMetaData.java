@@ -33,7 +33,7 @@ public interface ConfigurationMetaData {
 
     Set<ComponentArtifactMetaData> getArtifacts();
 
-    Set<ExcludeRule> getExcludeRules();
+    Set<Exclude> getExcludes();
 
     boolean isTransitive();
 

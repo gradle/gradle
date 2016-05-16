@@ -29,7 +29,7 @@ import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultIvyModuleArtifactPublishMetaData;
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
 import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
-import org.gradle.internal.component.model.ExcludeRule;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.xml.SimpleXmlWriter;
 import org.gradle.util.CollectionUtils;
@@ -251,8 +251,8 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     private static void printAllExcludes(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {
-        List<ExcludeRule> excludes = descriptor.getExcludeRules();
-        for (ExcludeRule exclude : excludes) {
+        List<Exclude> excludes = descriptor.getExcludes();
+        for (Exclude exclude : excludes) {
             writer.startElement("exclude");
             writer.attribute("org", exclude.getId().getModuleId().getOrganisation());
             writer.attribute("module", exclude.getId().getModuleId().getName());
@@ -269,8 +269,8 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     private static void printDependencyExcludeRules(ModuleDescriptorState descriptor, SimpleXmlWriter writer,
-                                                    Collection<ExcludeRule> excludes) throws IOException {
-        for (ExcludeRule exclude : excludes) {
+                                                    Collection<Exclude> excludes) throws IOException {
+        for (Exclude exclude : excludes) {
             writer.startElement("exclude");
             writer.attribute("org", exclude.getId().getModuleId().getOrganisation());
             writer.attribute("module", exclude.getId().getModuleId().getName());

@@ -34,7 +34,7 @@ import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.component.local.model.LocalConfigurationMetaData;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
-import org.gradle.internal.component.model.ExcludeRule;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
@@ -108,8 +108,8 @@ public class CompositeContextBuilder implements BuildActionRunner {
             }
             compositeComponentMetadata.addDependency(dependency);
         }
-        for (ExcludeRule excludeRule : originalComponentMetadata.getExcludeRules()) {
-            compositeComponentMetadata.addExcludeRule(excludeRule);
+        for (Exclude exclude : originalComponentMetadata.getExcludeRules()) {
+            compositeComponentMetadata.addExclude(exclude);
         }
 
         return compositeComponentMetadata;

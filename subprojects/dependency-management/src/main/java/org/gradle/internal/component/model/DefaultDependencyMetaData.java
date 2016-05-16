@@ -44,7 +44,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
     private final ModuleVersionSelector requested;
     private final Map<String, List<String>> confs;
     private final Map<IvyArtifactName, Set<String>> dependencyArtifacts;
-    private final Map<ExcludeRule, Set<String>> excludeRules;
+    private final Map<Exclude, Set<String>> excludes;
 
     private final boolean changing;
     private final boolean transitive;
@@ -70,9 +70,9 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
             dependencyArtifacts.put(dependencyArtifact.getArtifactName(), dependencyArtifact.getConfigurations());
         }
 
-        excludeRules = Maps.newLinkedHashMap();
-        for (ExcludeRule excludeRule : dependencyState.getDependencyExcludes()) {
-            excludeRules.put(excludeRule, Sets.newHashSet(excludeRule.getConfigurations()));
+        excludes = Maps.newLinkedHashMap();
+        for (Exclude exclude : dependencyState.getDependencyExcludes()) {
+            excludes.put(exclude, Sets.newHashSet(exclude.getConfigurations()));
         }
     }
 
@@ -81,7 +81,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
             new DefaultModuleVersionSelector(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion()),
             Collections.<String, List<String>>emptyMap(),
             Collections.<IvyArtifactName, Set<String>>emptyMap(),
-            Collections.<ExcludeRule, Set<String>>emptyMap(),
+            Collections.<Exclude, Set<String>>emptyMap(),
             moduleVersionIdentifier.getVersion(),
             false,
             true
@@ -93,7 +93,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
             new DefaultModuleVersionSelector(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion()),
             Collections.<String, List<String>>emptyMap(),
             Collections.<IvyArtifactName, Set<String>>emptyMap(),
-            Collections.<ExcludeRule, Set<String>>emptyMap(),
+            Collections.<Exclude, Set<String>>emptyMap(),
             componentIdentifier.getVersion(),
             false,
             true
@@ -101,28 +101,16 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
     }
 
     public DefaultDependencyMetaData(ModuleVersionSelector requested, Map<String, List<String>> confs,
-                                     Map<IvyArtifactName, Set<String>> dependencyArtifacts, Map<ExcludeRule, Set<String>> excludeRules,
+                                     Map<IvyArtifactName, Set<String>> dependencyArtifacts, Map<Exclude, Set<String>> excludes,
                                      String dynamicConstraintVersion, boolean changing, boolean transitive) {
         this.requested = requested;
         this.confs = confs;
         this.dependencyArtifacts = dependencyArtifacts;
-        this.excludeRules = excludeRules;
+        this.excludes = excludes;
         this.changing = changing;
         this.transitive = transitive;
         this.dynamicConstraintVersion = dynamicConstraintVersion;
         this.force = false;
-    }
-
-    public Map<String, List<String>> getConfigMappings() {
-        return confs;
-    }
-
-    public Map<IvyArtifactName, Set<String>> getArtifactMappings() {
-        return dependencyArtifacts;
-    }
-
-    public Set<ExcludeRule> getAllExcludeRules() {
-        return excludeRules.keySet();
     }
 
     @Override
@@ -183,13 +171,13 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return mappedConfigs.toArray(new String[mappedConfigs.size()]);
     }
 
-    public List<ExcludeRule> getExcludeRules(Collection<String> configurations) {
-        List<ExcludeRule> rules = Lists.newArrayList();
-        for (Map.Entry<ExcludeRule, Set<String>> entry : excludeRules.entrySet()) {
-            ExcludeRule excludeRule = entry.getKey();
+    public List<Exclude> getExcludes(Collection<String> configurations) {
+        List<Exclude> rules = Lists.newArrayList();
+        for (Map.Entry<Exclude, Set<String>> entry : excludes.entrySet()) {
+            Exclude exclude = entry.getKey();
             Set<String> ruleConfigurations = entry.getValue();
             if (include(ruleConfigurations, configurations)) {
-                rules.add(excludeRule);
+                rules.add(exclude);
             }
         }
         return rules;
@@ -254,7 +242,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         if (newRequested.equals(requested)) {
             return this;
         }
-        return new DefaultDependencyMetaData(newRequested, confs, dependencyArtifacts, excludeRules, dynamicConstraintVersion, changing, transitive);
+        return new DefaultDependencyMetaData(newRequested, confs, dependencyArtifacts, excludes, dynamicConstraintVersion, changing, transitive);
     }
 
     @Override
@@ -269,7 +257,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         } else if (target instanceof ProjectComponentSelector) {
             // TODO:Prezi what to do here?
             ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
-            return new DefaultProjectDependencyMetaData(projectTarget.getProjectPath(), requested, confs, dependencyArtifacts, excludeRules, dynamicConstraintVersion, changing, transitive);
+            return new DefaultProjectDependencyMetaData(projectTarget.getProjectPath(), requested, confs, dependencyArtifacts, excludes, dynamicConstraintVersion, changing, transitive);
         } else {
             throw new AssertionError();
         }
@@ -280,7 +268,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
             return this;
         }
 
-        return new DefaultDependencyMetaData(requested, confs, dependencyArtifacts, excludeRules, dynamicConstraintVersion, true, transitive);
+        return new DefaultDependencyMetaData(requested, confs, dependencyArtifacts, excludes, dynamicConstraintVersion, true, transitive);
     }
 
     public ComponentSelector getSelector() {

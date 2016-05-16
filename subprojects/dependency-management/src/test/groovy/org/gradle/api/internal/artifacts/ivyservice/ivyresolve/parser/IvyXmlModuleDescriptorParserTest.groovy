@@ -284,7 +284,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         verifyFullDependencies(md.dependencies)
 
-        def rules = md.excludeRules
+        def rules = md.excludes
         rules.size() == 2
         rules[0].matcher == GlobPatternMatcher.INSTANCE
         rules[0].configurations as List == ["myconf1"]

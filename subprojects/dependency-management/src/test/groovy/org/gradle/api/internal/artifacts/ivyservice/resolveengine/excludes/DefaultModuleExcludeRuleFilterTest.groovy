@@ -18,9 +18,9 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
-import org.gradle.internal.component.external.descriptor.DefaultExcludeRule
+import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.component.model.ExcludeRule
+import org.gradle.internal.component.model.Exclude
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -699,7 +699,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         ModuleExcludeRuleFilters.intersect(spec, otherRule)
     }
 
-    static specForRule(def spec, ExcludeRule rule) {
+    static specForRule(def spec, Exclude rule) {
         return spec.moduleId.group == rule.id.moduleId.organisation && spec.moduleId.name == rule.id.moduleId.name
     }
 
@@ -712,15 +712,15 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
     }
 
     def excludeRule(String org, String module, String name = "*", String type = "*", String ext = "*") {
-        new DefaultExcludeRule(IvyUtil.createArtifactId(org, module, name, type, ext), new String[0], ExactPatternMatcher.INSTANCE)
+        new DefaultExclude(IvyUtil.createArtifactId(org, module, name, type, ext), new String[0], ExactPatternMatcher.INSTANCE)
     }
 
     def excludeModuleRule(String module) {
-        new DefaultExcludeRule(IvyUtil.createArtifactId("*", module, "*", "*", "*"), new String[0], ExactPatternMatcher.INSTANCE)
+        new DefaultExclude(IvyUtil.createArtifactId("*", module, "*", "*", "*"), new String[0], ExactPatternMatcher.INSTANCE)
     }
 
     def excludeGroupRule(String group) {
-        new DefaultExcludeRule(IvyUtil.createArtifactId(group, "*", "*", "*", "*"), new String[0], ExactPatternMatcher.INSTANCE)
+        new DefaultExclude(IvyUtil.createArtifactId(group, "*", "*", "*", "*"), new String[0], ExactPatternMatcher.INSTANCE)
     }
 
     def excludeArtifactRule(String name, String type, String ext) {
@@ -728,7 +728,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
     }
 
     def regexpExcludeRule(String org, String module, String name = "*", String type = "*", String ext = "*") {
-        new DefaultExcludeRule(IvyUtil.createArtifactId(org, module, name, type, ext), new String[0], RegexpPatternMatcher.INSTANCE)
+        new DefaultExclude(IvyUtil.createArtifactId(org, module, name, type, ext), new String[0], RegexpPatternMatcher.INSTANCE)
     }
 
     def regexpExcludeArtifactRule(String name, String type, String ext) {
