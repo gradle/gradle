@@ -20,9 +20,17 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.TrueTimeProvider;
+import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.logging.LoggingOutputInternal;
-import org.gradle.internal.logging.console.*;
+import org.gradle.internal.logging.console.AnsiConsole;
+import org.gradle.internal.logging.console.ColorMap;
+import org.gradle.internal.logging.console.Console;
+import org.gradle.internal.logging.console.ConsoleBackedProgressRenderer;
+import org.gradle.internal.logging.console.DefaultColorMap;
+import org.gradle.internal.logging.console.DefaultStatusBarFormatter;
+import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
 import org.gradle.internal.logging.events.FlushToOutputsEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -32,8 +40,6 @@ import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
-import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.api.logging.configuration.ConsoleOutput;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -58,12 +64,12 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private StreamBackedStandardOutputListener stdErrListener;
     private ConsoleOutput consoleOutput;
 
-    public OutputEventRenderer(Action<? super OutputEventRenderer> consoleConfigureAction) {
+    public OutputEventRenderer() {
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
         stdOutAndErrorFormatters.add(stdOutChain);
         OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
         stdOutAndErrorFormatters.add(stdErrChain);
-        this.consoleConfigureAction = consoleConfigureAction;
+        this.consoleConfigureAction = new ConsoleConfigureAction();
     }
 
     public ColorMap getColourMap() {

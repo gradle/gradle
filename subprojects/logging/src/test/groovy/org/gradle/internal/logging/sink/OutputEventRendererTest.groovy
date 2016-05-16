@@ -17,7 +17,6 @@
 
 package org.gradle.internal.logging.sink
 
-import org.gradle.api.Action
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.logging.OutputSpecification
@@ -32,11 +31,10 @@ class OutputEventRendererTest extends OutputSpecification {
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final ConsoleStub console = new ConsoleStub()
     private final ConsoleMetaData metaData = Mock()
-    private final Action<OutputEventRenderer> consoleConfigureAction = Mock()
     private OutputEventRenderer renderer
 
     def setup() {
-        renderer = new OutputEventRenderer(consoleConfigureAction)
+        renderer = new OutputEventRenderer()
         renderer.configure(LogLevel.INFO)
     }
 
