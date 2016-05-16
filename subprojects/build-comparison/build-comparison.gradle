@@ -27,6 +27,7 @@ dependencies {
     compile libraries.slf4j_api
 
     testCompile libraries.jsoup
+    testCompile project(':internalIntegTesting')
 }
 
 processResources {
@@ -35,5 +36,7 @@ processResources {
         include "base.css"
     }
 }
+
+verifyTestFilesCleanup.errorWhenNotEmpty = true
 
 useTestFixtures()
