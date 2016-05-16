@@ -35,7 +35,6 @@ import static org.junit.Assert.assertTrue
 
 @UsesNativeServices
 class AbstractTaskTest extends Specification {
-
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 

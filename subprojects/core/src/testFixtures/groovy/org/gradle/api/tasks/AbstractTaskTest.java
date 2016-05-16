@@ -41,6 +41,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestUtil;
+import org.gradle.util.UsesNativeServices;
 import org.jmock.Expectations;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
@@ -54,6 +55,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.*;
 
+@UsesNativeServices
 public abstract class AbstractTaskTest {
     public static final String TEST_TASK_NAME = "testTask";
     @Rule
