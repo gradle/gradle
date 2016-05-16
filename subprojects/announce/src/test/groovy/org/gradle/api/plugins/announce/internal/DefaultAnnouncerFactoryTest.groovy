@@ -18,11 +18,17 @@ package org.gradle.api.plugins.announce.internal
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.plugins.announce.AnnouncePluginExtension
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class DefaultAnnouncerFactoryTest extends Specification {
-    final project = TestUtil.createRootProject()
+    @Rule
+    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    final project = TestUtil.createRootProject(testDir.testDirectory)
     final extension = new AnnouncePluginExtension(project)
     final ProcessOperations processOperations = Mock()
     final IconProvider iconProvider = Mock()
