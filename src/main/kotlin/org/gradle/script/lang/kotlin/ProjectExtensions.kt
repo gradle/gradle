@@ -20,6 +20,8 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.dsl.RepositoryHandler
 
 import kotlin.reflect.KClass
 
@@ -47,3 +49,15 @@ fun Project.task(name: String, configuration: Task.() -> Unit) =
 
 fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: T.() -> Unit) =
     tasks.create(name, type.java, configuration)
+
+inline fun Project.repositories(configuration: RepositoryHandler.() -> Unit) = configuration(repositories)
+
+inline fun Project.dependencies(configuration: KotlinDependencyHandler.() -> Unit) =
+    configuration(KotlinDependencyHandler(dependencies))
+
+class KotlinDependencyHandler(val dependencies: DependencyHandler) : DependencyHandler by dependencies {
+
+    operator fun String.invoke(dependencyNotation: String) =
+        dependencies.add(this, dependencyNotation)
+}
+
