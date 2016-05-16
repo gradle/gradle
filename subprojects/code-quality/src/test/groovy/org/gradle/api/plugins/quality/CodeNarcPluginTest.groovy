@@ -17,11 +17,17 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.ReportingBasePlugin
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
 import spock.lang.Specification
 
+@UsesNativeServices
 class CodeNarcPluginTest extends Specification {
-    DefaultProject project = TestUtil.createRootProject()
+    @Rule
+    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    DefaultProject project = TestUtil.createRootProject(testDir.testDirectory)
 
     def setup() {
         project.pluginManager.apply(CodeNarcPlugin)

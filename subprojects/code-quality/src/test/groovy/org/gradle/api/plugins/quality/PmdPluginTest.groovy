@@ -19,15 +19,21 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
 
+@UsesNativeServices
 class PmdPluginTest extends Specification {
-    DefaultProject project = TestUtil.createRootProject()
+    @Rule
+    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    DefaultProject project = TestUtil.createRootProject(testDir.testDirectory)
 
     def setup() {
         project.pluginManager.apply(PmdPlugin)
