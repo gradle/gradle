@@ -53,7 +53,6 @@ import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
-import org.gradle.internal.component.external.model.IvyModuleResolveMetaDataBuilder;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResource;

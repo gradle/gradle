@@ -16,17 +16,12 @@
 
 package org.gradle.internal.component.external.descriptor;
 
-import org.apache.ivy.core.module.id.ArtifactId;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.util.CollectionUtils;
-
-import java.util.List;
 
 public class DefaultExclude implements Exclude {
     private final ModuleIdentifier moduleId;
@@ -73,21 +68,5 @@ public class DefaultExclude implements Exclude {
     @Override
     public String getMatcher() {
         return patternMatcher;
-    }
-
-    public static Exclude forIvyExclude(org.apache.ivy.core.module.descriptor.ExcludeRule excludeRule) {
-        ArtifactId id = excludeRule.getId();
-        return new DefaultExclude(
-            id.getModuleId().getOrganisation(), id.getModuleId().getName(), id.getName(), id.getType(), id.getExt(),
-            excludeRule.getConfigurations(), excludeRule.getMatcher().getName());
-    }
-
-    public static List<Exclude> forIvyExcludes(org.apache.ivy.core.module.descriptor.ExcludeRule[] excludeRules) {
-        return CollectionUtils.collect(excludeRules, new Transformer<Exclude, org.apache.ivy.core.module.descriptor.ExcludeRule>() {
-            @Override
-            public Exclude transform(org.apache.ivy.core.module.descriptor.ExcludeRule excludeRule) {
-                return forIvyExclude(excludeRule);
-            }
-        });
     }
 }

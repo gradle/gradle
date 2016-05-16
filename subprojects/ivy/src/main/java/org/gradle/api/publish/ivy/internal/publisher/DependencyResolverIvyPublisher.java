@@ -16,11 +16,9 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetaData;
@@ -36,8 +34,7 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
         ModuleVersionPublisher publisher = repository.createPublisher();
         IvyPublicationIdentity projectIdentity = publication.getProjectIdentity();
-        ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision());
-        ModuleComponentIdentifier moduleVersionIdentifier = DefaultModuleComponentIdentifier.newId(moduleRevisionId);
+        ModuleComponentIdentifier moduleVersionIdentifier = DefaultModuleComponentIdentifier.newId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision());
         // This indicates the IvyPublishMetaData should probably not be responsible for creating a ModuleDescriptor...
         BuildableIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(moduleVersionIdentifier, "");
 

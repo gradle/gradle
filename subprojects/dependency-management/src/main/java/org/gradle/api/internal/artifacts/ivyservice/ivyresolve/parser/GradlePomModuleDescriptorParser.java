@@ -15,8 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
@@ -91,21 +93,17 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         String version = pomReader.getVersion();
         mdBuilder.setModuleRevId(groupId, artifactId, version);
 
-        mdBuilder.setHomePage(pomReader.getHomePage());
         mdBuilder.setDescription(pomReader.getDescription());
-        mdBuilder.setLicenses(pomReader.getLicenses());
 
-        ModuleRevisionId relocation = pomReader.getRelocation();
+        ModuleVersionIdentifier relocation = pomReader.getRelocation();
 
         if (relocation != null) {
-            if (groupId != null && artifactId != null
-                    && artifactId.equals(relocation.getName())
-                    && groupId.equals(relocation.getOrganisation())) {
+            if (groupId != null && artifactId != null && artifactId.equals(relocation.getName()) && groupId.equals(relocation.getGroup())) {
                 LOGGER.error("POM relocation to an other version number is not fully supported in Gradle : {} relocated to {}.",
                         mdBuilder.getModuleDescriptor().getComponentIdentifier(), relocation);
                 LOGGER.warn("Please update your dependency to directly use the correct version '{}'.", relocation);
                 LOGGER.warn("Resolution will only pick dependencies of the relocated element.  Artifacts and other metadata will be ignored.");
-                PomReader relocatedModule = parseOtherPom(parserSettings, DefaultModuleComponentIdentifier.newId(relocation.getOrganisation(), relocation.getName(), relocation.getRevision()));
+                PomReader relocatedModule = parseOtherPom(parserSettings, DefaultModuleComponentIdentifier.newId(relocation));
 
                 Collection<PomDependencyData> pomDependencyDataList = relocatedModule.getDependencies().values();
                 for(PomDependencyData pomDependencyData : pomDependencyDataList) {
@@ -118,7 +116,8 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                         + ". Please update your dependencies.");
                 LOGGER.debug("Relocated module will be considered as a dependency");
                 // TODO:DAZ Handle relocated dependencies
-                mdBuilder.addDependencyForRelocation(relocation);
+                ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(relocation.getGroup(), relocation.getName(), relocation.getVersion());
+                mdBuilder.addDependencyForRelocation(selector);
             }
         } else {
             overrideDependencyMgtsWithImported(parserSettings, pomReader);

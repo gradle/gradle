@@ -80,7 +80,7 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
         List<String> configurations = Lists.newArrayList(dependencyMetaData.getModuleConfigurations());
         for (String moduleConfiguration : configurations) {
             for (String dependencyConfiguration : dependencyMetaData.getDependencyConfigurations(moduleConfiguration, moduleConfiguration)) {
-                dependency.addConfMapping(moduleConfiguration, dependencyConfiguration);
+                dependency.addDependencyConfiguration(moduleConfiguration, dependencyConfiguration);
             }
         }
 

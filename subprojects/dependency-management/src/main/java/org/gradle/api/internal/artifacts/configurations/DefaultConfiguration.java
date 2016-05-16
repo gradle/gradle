@@ -77,8 +77,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.apache.ivy.core.module.descriptor.Configuration.Visibility;
-
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
     private final ConfigurationResolver resolver;
     private final ListenerManager listenerManager;
@@ -110,7 +108,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final String path;
     private final String name;
 
-    private Visibility visibility = Visibility.PUBLIC;
+    private boolean visible = true;
     private boolean transitive = true;
     private Set<Configuration> extendsFrom = new LinkedHashSet<Configuration>();
     private String description;
@@ -203,12 +201,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public boolean isVisible() {
-        return visibility == Visibility.PUBLIC;
+        return visible;
     }
 
     public Configuration setVisible(boolean visible) {
         validateMutation(MutationType.DEPENDENCIES);
-        this.visibility = visible ? Visibility.PUBLIC : Visibility.PRIVATE;
+        this.visible = visible;
         return this;
     }
 
@@ -529,7 +527,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
 
-        copiedConfiguration.visibility = visibility;
+        copiedConfiguration.visible = visible;
         copiedConfiguration.transitive = transitive;
         copiedConfiguration.description = description;
 

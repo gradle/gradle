@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.external.descriptor;
 
-import com.google.common.collect.Lists;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
@@ -33,13 +32,6 @@ public class Configuration {
         this.transitive = transitive;
         this.visible = visible;
         this.extendsFrom = CollectionUtils.toList(extendsFrom);
-    }
-
-    public Configuration(org.apache.ivy.core.module.descriptor.Configuration configuration) {
-        this.name = configuration.getName();
-        this.transitive = configuration.isTransitive();
-        this.visible = configuration.getVisibility() == org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC;
-        this.extendsFrom = Lists.newArrayList(configuration.getExtends());
     }
 
     public String getName() {

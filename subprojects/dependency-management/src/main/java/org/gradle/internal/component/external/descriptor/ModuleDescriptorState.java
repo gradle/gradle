@@ -18,17 +18,10 @@ package org.gradle.internal.component.external.descriptor;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.internal.Cast;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.util.CollectionUtils;
 
 import java.util.Date;
 import java.util.List;
@@ -59,31 +52,6 @@ public class ModuleDescriptorState {
         configurations = Maps.newLinkedHashMap();
         excludes = Lists.newArrayList();
         dependencies = Lists.newArrayList();
-    }
-
-    public ModuleDescriptorState(ModuleDescriptor ivyDescriptor) {
-        ModuleRevisionId moduleRevisionId = ivyDescriptor.getModuleRevisionId();
-        componentIdentifier = DefaultModuleComponentIdentifier.newId(moduleRevisionId);
-        branch = moduleRevisionId.getBranch();
-        description = ivyDescriptor.getDescription();
-        publicationDate = ivyDescriptor.getPublicationDate();
-        status = ivyDescriptor.getStatus();
-        generated = ivyDescriptor.isDefault();
-        extraInfo = Cast.uncheckedCast(ivyDescriptor.getExtraInfo());
-
-        configurations = Maps.newLinkedHashMap();
-        for (org.apache.ivy.core.module.descriptor.Configuration ivyConfiguration : ivyDescriptor.getConfigurations()) {
-            Configuration configuration = new Configuration(ivyConfiguration);
-            configurations.put(configuration.getName(), configuration);
-        }
-        excludes = DefaultExclude.forIvyExcludes(ivyDescriptor.getAllExcludeRules());
-        dependencies = CollectionUtils.collect(ivyDescriptor.getDependencies(), new Transformer<Dependency, DependencyDescriptor>() {
-            @Override
-            public Dependency transform(DependencyDescriptor dependencyDescriptor) {
-                // Force attribute is ignored in published modules: we only consider force attribute on direct dependencies declared in Gradle
-                return Dependency.forDependencyDescriptor(dependencyDescriptor);
-            }
-        });
     }
 
     public ModuleComponentIdentifier getComponentIdentifier() {

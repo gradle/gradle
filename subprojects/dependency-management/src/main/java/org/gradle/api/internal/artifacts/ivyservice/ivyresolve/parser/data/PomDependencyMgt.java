@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data;
 
-import org.apache.ivy.core.module.id.ModuleId;
+import org.gradle.api.artifacts.ModuleIdentifier;
 
 import java.util.List;
 
@@ -28,5 +28,5 @@ public interface PomDependencyMgt {
     String getScope();
     String getType();
     String getClassifier();
-    List<ModuleId> getExcludedModules();
+    List<ModuleIdentifier> getExcludedModules();
 }

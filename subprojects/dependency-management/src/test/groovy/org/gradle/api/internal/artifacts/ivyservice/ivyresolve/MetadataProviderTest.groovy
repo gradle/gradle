@@ -15,11 +15,11 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
-
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
+import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
@@ -92,10 +92,10 @@ class MetadataProviderTest extends Specification {
 
     def "can provide Ivy descriptor" () {
         given:
-        def md = Stub(ModuleDescriptor) {
-            getStatus() >> "test"
-        }
-        def metaData = new DefaultIvyModuleResolveMetaData(id, new ModuleDescriptorState(md))
+        def mds = new MutableModuleDescriptorState(DefaultModuleComponentIdentifier.newId("group", "name", "version"), "test", false)
+        mds.setBranch("branchValue")
+        mds.getExtraInfo().put(new NamespaceId("baz", "foo"), "extraInfoValue")
+        def metaData = new DefaultIvyModuleResolveMetaData(id, mds)
         resolveState.resolve() >> {
             def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
             result.resolved(metaData)
@@ -107,6 +107,8 @@ class MetadataProviderTest extends Specification {
 
         then:
         returned.ivyStatus == "test"
+        returned.branch == "branchValue"
+        returned.extraInfo.get("foo") == "extraInfoValue"
     }
 
     def "returns null when not Ivy descriptor" () {

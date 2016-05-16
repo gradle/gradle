@@ -18,9 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
-import org.apache.ivy.core.module.descriptor.License;
-import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
@@ -193,14 +191,8 @@ public class GradlePomModuleDescriptorBuilder {
         }
     }
 
-    public void setHomePage(String homePage) {
-    }
-
     public void setDescription(String description) {
         descriptor.setDescription(description);
-    }
-
-    public void setLicenses(Iterable<License> licenses) {
     }
 
     public void addDependency(PomDependencyData dep) {
@@ -247,15 +239,15 @@ public class GradlePomModuleDescriptorBuilder {
         // inherited from parent POMs if either of the following is true:
         // the <exclusions> element is missing or the <exclusions> element
         // is present, but empty.
-        List<ModuleId> excluded = dep.getExcludedModules();
+        List<ModuleIdentifier> excluded = dep.getExcludedModules();
         if (excluded.isEmpty()) {
             excluded = getDependencyMgtExclusions(dep);
         }
         Set<String> confs = dependency.getConfMappings().keySet();
         String[] confArray = confs.toArray(new String[confs.size()]);
-        for (ModuleId excludedModule : excluded) {
+        for (ModuleIdentifier excludedModule : excluded) {
             DefaultExclude rule = new DefaultExclude(
-                excludedModule.getOrganisation(),
+                excludedModule.getGroup(),
                 excludedModule.getName(),
                 confArray,
                 PatternMatchers.EXACT);
@@ -341,8 +333,7 @@ public class GradlePomModuleDescriptorBuilder {
         return version;
     }
 
-    public void addDependencyForRelocation(ModuleRevisionId moduleRevisionId) {
-        ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(moduleRevisionId);
+    public void addDependencyForRelocation(ModuleVersionSelector selector) {
 
         // Some POMs depend on themselves through their parent POM, don't add this dependency
         // since Ivy doesn't allow this!
@@ -382,7 +373,7 @@ public class GradlePomModuleDescriptorBuilder {
         return result;
     }
 
-    private List<ModuleId> getDependencyMgtExclusions(PomDependencyData dep) {
+    private List<ModuleIdentifier> getDependencyMgtExclusions(PomDependencyData dep) {
         PomDependencyMgt pomDependencyMgt = findDependencyDefault(dep);
         if (pomDependencyMgt != null) {
             return pomDependencyMgt.getExcludedModules();

@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
-
-import org.apache.ivy.core.module.descriptor.License
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey
 import org.xml.sax.SAXParseException
 import spock.lang.Issue
@@ -88,11 +86,7 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.artifactId == 'artifact-one'
         pomReader.version == 'version-one'
         pomReader.description == 'The first test artifact'
-        pomReader.homePage == 'http://www.myproject.com'
         pomReader.packaging == 'jar'
-        pomReader.licenses.size() == 1
-        pomReader.licenses[0].name == 'The Apache Software License, Version 2.0'
-        pomReader.licenses[0].url == 'http://www.apache.org/licenses/LICENSE-2.0.txt'
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.properties.size() == 6
@@ -484,9 +478,7 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.artifactId == 'artifact-one'
         pomReader.version == 'version-one'
         pomReader.packaging == 'jar'
-        pomReader.homePage == ''
         pomReader.description == ''
-        pomReader.licenses == new License[0]
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.properties.size() == 15
@@ -528,13 +520,11 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.artifactId == 'artifact-one'
         pomReader.version == 'version-one'
         pomReader.packaging == 'jar'
-        pomReader.homePage == ''
         pomReader.description == ''
-        pomReader.licenses == new License[0]
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation == IvyUtil.createModuleRevisionId('group-one', 'artifact-one', 'version-one')
+        pomReader.relocation == DefaultModuleVersionIdentifier.newId('group-one', 'artifact-one', 'version-one')
     }
 
     def "Parse relocated POM with provided group ID"() {
@@ -559,13 +549,11 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.artifactId == 'artifact-one'
         pomReader.version == 'version-one'
         pomReader.packaging == 'jar'
-        pomReader.homePage == ''
         pomReader.description == ''
-        pomReader.licenses == new License[0]
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation == IvyUtil.createModuleRevisionId('group-two', 'artifact-one', 'version-one')
+        pomReader.relocation == DefaultModuleVersionIdentifier.newId('group-two', 'artifact-one', 'version-one')
     }
 
     def "Parse relocated POM with provided group ID and artifact ID"() {
@@ -591,13 +579,11 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.artifactId == 'artifact-one'
         pomReader.version == 'version-one'
         pomReader.packaging == 'jar'
-        pomReader.homePage == ''
         pomReader.description == ''
-        pomReader.licenses == new License[0]
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation == IvyUtil.createModuleRevisionId('group-two', 'artifact-two', 'version-one')
+        pomReader.relocation == DefaultModuleVersionIdentifier.newId('group-two', 'artifact-two', 'version-one')
     }
 
     def "Parse relocated POM with all provided coordinates"() {
@@ -624,13 +610,11 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.artifactId == 'artifact-one'
         pomReader.version == 'version-one'
         pomReader.packaging == 'jar'
-        pomReader.homePage == ''
         pomReader.description == ''
-        pomReader.licenses == new License[0]
         !pomReader.hasParent()
         pomReader.pomProperties.size() == 0
         pomReader.relocation != null
-        pomReader.relocation == IvyUtil.createModuleRevisionId('group-two', 'artifact-two', 'version-two')
+        pomReader.relocation == DefaultModuleVersionIdentifier.newId('group-two', 'artifact-two', 'version-two')
     }
 
     @Issue("GRADLE-2938")
