@@ -23,6 +23,7 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.CollectionUtils;
 
+import java.util.List;
 import java.util.Set;
 
 public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDependencyDescriptorFactory {
@@ -36,15 +37,13 @@ public abstract class AbstractIvyDependencyDescriptorFactory implements IvyDepen
         return artifact.getExtension() != null ? artifact.getExtension() : artifact.getType();
     }
 
-    protected org.apache.ivy.core.module.descriptor.ExcludeRule[] convertExcludeRules(String configuration, Set<ExcludeRule> excludeRules) {
-        org.apache.ivy.core.module.descriptor.ExcludeRule[] ivyExcludeRules = new org.apache.ivy.core.module.descriptor.ExcludeRule[excludeRules.size()];
-        int i = 0;
-        for (ExcludeRule excludeRule : excludeRules) {
-            org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRule = excludeRuleConverter.createExcludeRule(configuration, excludeRule);
-            ivyExcludeRules[i] = ivyExcludeRule;
-            i++;
-        }
-        return ivyExcludeRules;
+    protected List<org.gradle.internal.component.model.ExcludeRule> convertExcludeRules(final String configuration, Set<ExcludeRule> excludeRules) {
+        return CollectionUtils.collect((Iterable<ExcludeRule>) excludeRules, new Transformer<org.gradle.internal.component.model.ExcludeRule, ExcludeRule>() {
+            @Override
+            public org.gradle.internal.component.model.ExcludeRule transform(ExcludeRule excludeRule) {
+                return excludeRuleConverter.createExcludeRule(configuration, excludeRule);
+            }
+        });
     }
 
     protected Set<IvyArtifactName> convertArtifacts(Set<DependencyArtifact> dependencyArtifacts) {

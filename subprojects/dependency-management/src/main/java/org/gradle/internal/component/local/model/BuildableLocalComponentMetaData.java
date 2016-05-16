@@ -16,10 +16,10 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ExcludeRule;
 
 import java.util.Set;
 

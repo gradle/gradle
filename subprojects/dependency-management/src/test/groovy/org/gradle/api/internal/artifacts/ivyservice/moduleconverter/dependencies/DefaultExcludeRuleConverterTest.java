@@ -31,7 +31,7 @@ public class DefaultExcludeRuleConverterTest {
         String configurationName = "someConf";
         final String someOrg = "someOrg";
         final String someModule = "someModule";
-        org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRule =
+        org.gradle.internal.component.model.ExcludeRule ivyExcludeRule =
                 new DefaultExcludeRuleConverter().createExcludeRule(configurationName, new DefaultExcludeRule(someOrg, someModule));
         assertThat(ivyExcludeRule.getId().getModuleId().getOrganisation(),
                 Matchers.equalTo(someOrg));

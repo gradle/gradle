@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -27,6 +26,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class LocalComponentDependencyMetaData implements DependencyMetaData {
@@ -34,14 +34,14 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
     private final ModuleVersionSelector requested;
     private final String moduleConfiguration;
     private final String dependencyConfiguration;
-    private final ExcludeRule[] excludeRules;
+    private final List<ExcludeRule> excludeRules;
     private final Set<IvyArtifactName> artifactNames;
     private final boolean force;
     private final boolean changing;
     private final boolean transitive;
 
     public LocalComponentDependencyMetaData(ComponentSelector selector, ModuleVersionSelector requested, String moduleConfiguration, String dependencyConfiguration,
-                                            Set<IvyArtifactName> artifactNames, ExcludeRule[] excludeRules,
+                                            Set<IvyArtifactName> artifactNames, List<ExcludeRule> excludeRules,
                                             boolean force, boolean changing, boolean transitive) {
         this.selector = selector;
         this.requested = requested;
@@ -82,11 +82,11 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
         return new String[0];
     }
 
-    public ExcludeRule[] getExcludeRules(Collection<String> configurations) {
+    public List<ExcludeRule> getExcludeRules(Collection<String> configurations) {
         if (configurations.contains(moduleConfiguration)) {
             return excludeRules;
         }
-        return new ExcludeRule[0];
+        return Collections.emptyList();
     }
 
     public boolean isChanging() {

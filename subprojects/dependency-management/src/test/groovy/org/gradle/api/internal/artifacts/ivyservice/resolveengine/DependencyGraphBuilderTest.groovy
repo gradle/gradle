@@ -1031,7 +1031,7 @@ class DependencyGraphBuilderTest extends Specification {
                     ExactPatternMatcher.INSTANCE, null)
         }
         def dependencyMetaData = new LocalComponentDependencyMetaData(componentSelector, selector, "default", "default", [] as Set<IvyArtifactName>,
-                                                                      excludeRules as org.apache.ivy.core.module.descriptor.ExcludeRule[], force, false, transitive)
+                                                                      excludeRules, force, false, transitive)
         dependencyMetaData = new DslOriginDependencyMetaDataWrapper(dependencyMetaData, Stub(ModuleDependency))
         from.getDependencies().add(dependencyMetaData)
         return dependencyMetaData

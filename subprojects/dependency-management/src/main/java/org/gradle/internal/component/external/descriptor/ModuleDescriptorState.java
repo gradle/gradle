@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.descriptor;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.Transformer;
@@ -27,6 +26,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.model.ExcludeRule;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.CollectionUtils;
 
@@ -76,7 +76,7 @@ public class ModuleDescriptorState {
             Configuration configuration = new Configuration(ivyConfiguration);
             configurations.put(configuration.getName(), configuration);
         }
-        excludeRules = Lists.newArrayList(ivyDescriptor.getAllExcludeRules());
+        excludeRules = DefaultExcludeRule.forIvyExcludes(ivyDescriptor.getAllExcludeRules());
         dependencies = CollectionUtils.collect(ivyDescriptor.getDependencies(), new Transformer<Dependency, DependencyDescriptor>() {
             @Override
             public Dependency transform(DependencyDescriptor dependencyDescriptor) {

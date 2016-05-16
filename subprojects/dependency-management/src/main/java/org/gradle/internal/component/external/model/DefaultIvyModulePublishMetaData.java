@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.Lists;
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
@@ -26,6 +25,7 @@ import org.gradle.internal.component.external.descriptor.MutableModuleDescriptor
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ExcludeRule;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;

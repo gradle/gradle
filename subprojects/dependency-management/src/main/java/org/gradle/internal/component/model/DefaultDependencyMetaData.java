@@ -16,9 +16,9 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -183,8 +183,8 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return mappedConfigs.toArray(new String[mappedConfigs.size()]);
     }
 
-    public ExcludeRule[] getExcludeRules(Collection<String> configurations) {
-        Set<ExcludeRule> rules = Sets.newLinkedHashSet();
+    public List<ExcludeRule> getExcludeRules(Collection<String> configurations) {
+        List<ExcludeRule> rules = Lists.newArrayList();
         for (Map.Entry<ExcludeRule, Set<String>> entry : excludeRules.entrySet()) {
             ExcludeRule excludeRule = entry.getKey();
             Set<String> ruleConfigurations = entry.getValue();
@@ -192,7 +192,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
                 rules.add(excludeRule);
             }
         }
-        return rules.toArray(new ExcludeRule[rules.size()]);
+        return rules;
     }
 
     public boolean isChanging() {

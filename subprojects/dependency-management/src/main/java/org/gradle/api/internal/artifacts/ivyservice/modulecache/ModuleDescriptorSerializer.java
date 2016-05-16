@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -26,11 +24,13 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.external.descriptor.DefaultExcludeRule;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.ExcludeRule;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -332,13 +332,11 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             String ext = readString();
             String[] confs = readStringArray();
             String matcher = readString();
-            DefaultExcludeRule rule = new DefaultExcludeRule(IvyUtil.createArtifactId(moduleOrg, moduleName, name, type, ext),
-                resolverStrategy.getPatternMatcher(matcher),
-                null
+            DefaultExcludeRule rule = new DefaultExcludeRule(
+                IvyUtil.createArtifactId(moduleOrg, moduleName, name, type, ext),
+                confs,
+                resolverStrategy.getPatternMatcher(matcher)
             );
-            for (String conf : confs) {
-                rule.addConfiguration(conf);
-            }
             return rule;
         }
 

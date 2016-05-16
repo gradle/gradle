@@ -16,8 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
-
 import java.util.List;
 import java.util.Set;
 

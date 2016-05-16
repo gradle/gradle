@@ -22,11 +22,11 @@ import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.ExcludeRule;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.CollectionUtils;
 
@@ -147,9 +147,7 @@ public class Dependency {
             dep.addArtifact(ivyArtifactName, Sets.newHashSet(dependencyArtifactDescriptor.getConfigurations()));
         }
 
-        for (ExcludeRule excludeRule : dependencyDescriptor.getAllExcludeRules()) {
-            dep.addExcludeRule(excludeRule);
-        }
+        dep.dependencyExcludes.addAll(DefaultExcludeRule.forIvyExcludes(dependencyDescriptor.getAllExcludeRules()));
         return dep;
     }
 

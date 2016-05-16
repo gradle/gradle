@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.Transformer;
+import org.gradle.internal.component.model.ExcludeRule;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;

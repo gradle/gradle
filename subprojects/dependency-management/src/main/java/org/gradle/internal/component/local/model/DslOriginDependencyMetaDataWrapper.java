@@ -16,16 +16,17 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ExcludeRule;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public class DslOriginDependencyMetaDataWrapper implements DslOriginDependencyMetaData {
@@ -55,7 +56,7 @@ public class DslOriginDependencyMetaDataWrapper implements DslOriginDependencyMe
         return delegate.getDependencyConfigurations(moduleConfiguration, requestedConfiguration);
     }
 
-    public ExcludeRule[] getExcludeRules(Collection<String> configurations) {
+    public List<ExcludeRule> getExcludeRules(Collection<String> configurations) {
         return delegate.getExcludeRules(configurations);
     }
 

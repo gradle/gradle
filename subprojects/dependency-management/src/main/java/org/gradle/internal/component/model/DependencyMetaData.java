@@ -16,11 +16,11 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public interface DependencyMetaData {
@@ -66,7 +66,7 @@ public interface DependencyMetaData {
 
     String[] getDependencyConfigurations(String moduleConfiguration, String requestedConfiguration);
 
-    ExcludeRule[] getExcludeRules(Collection<String> configurations);
+    List<ExcludeRule> getExcludeRules(Collection<String> configurations);
 
     boolean isChanging();
 

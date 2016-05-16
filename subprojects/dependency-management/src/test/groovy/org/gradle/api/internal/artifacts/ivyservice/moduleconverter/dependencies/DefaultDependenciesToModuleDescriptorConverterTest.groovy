@@ -68,7 +68,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
 
     def "adds exclude rule from configuration"() {
         def excludeRule = Mock(ExcludeRule)
-        def ivyExcludeRule = Mock(org.apache.ivy.core.module.descriptor.ExcludeRule)
+        def ivyExcludeRule = Mock(org.gradle.internal.component.model.ExcludeRule)
 
         when:
         converter.addDependencyDescriptors(metaData, [configuration])

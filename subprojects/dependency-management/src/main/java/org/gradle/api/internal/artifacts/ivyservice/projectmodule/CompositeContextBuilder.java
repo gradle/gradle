@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import com.google.common.collect.Sets;
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.Buildable;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -35,6 +34,7 @@ import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.component.local.model.LocalConfigurationMetaData;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ExcludeRule;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;

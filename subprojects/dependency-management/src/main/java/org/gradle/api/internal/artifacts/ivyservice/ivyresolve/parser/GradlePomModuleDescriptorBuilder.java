@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
-import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
 import org.apache.ivy.core.module.descriptor.License;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
@@ -31,6 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.internal.component.external.descriptor.DefaultExcludeRule;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -252,15 +253,15 @@ public class GradlePomModuleDescriptorBuilder {
         if (excluded.isEmpty()) {
             excluded = getDependencyMgtExclusions(dep);
         }
+        Set<String> confs = dependency.getConfMappings().keySet();
+        String[] confArray = confs.toArray(new String[confs.size()]);
         for (ModuleId excludedModule : excluded) {
             DefaultExcludeRule rule = new DefaultExcludeRule(new ArtifactId(
                 excludedModule, PatternMatcher.ANY_EXPRESSION,
                 PatternMatcher.ANY_EXPRESSION,
                 PatternMatcher.ANY_EXPRESSION),
-                ExactPatternMatcher.INSTANCE, null);
-            for (String conf : dependency.getConfMappings().keySet()) {
-                rule.addConfiguration(conf);
-            }
+                confArray,
+                ExactPatternMatcher.INSTANCE);
             dependency.addExcludeRule(rule);
         }
     }
