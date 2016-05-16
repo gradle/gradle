@@ -18,6 +18,7 @@ dependencies {
     compile libraries.slf4j_api
     compile project(':core')
     testCompile libraries.groovy
+    testCompile project(':internalIntegTesting')
     integTestRuntime project(':plugins')
 }
 
