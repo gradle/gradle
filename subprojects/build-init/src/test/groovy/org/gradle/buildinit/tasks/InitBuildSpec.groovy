@@ -18,26 +18,32 @@ package org.gradle.buildinit.tasks
 
 import org.gradle.api.GradleException
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds
-import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor
+import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.NONE
 import static org.gradle.buildinit.plugins.internal.BuildInitTestFramework.SPOCK
 
+@UsesNativeServices
 class InitBuildSpec extends Specification {
+    @Rule
+    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
 
-    InitBuild init;
+    InitBuild init
 
-    ProjectLayoutSetupRegistry projectLayoutRegistry;
+    ProjectLayoutSetupRegistry projectLayoutRegistry
 
     ProjectInitDescriptor projectSetupDescriptor
 
     def setup() {
-        init = TestUtil.createTask(InitBuild)
-        projectLayoutRegistry = Mock()
-        projectSetupDescriptor = Mock()
+        init = TestUtil.create(testDir.testDirectory).task(InitBuild)
+        projectLayoutRegistry = Mock(ProjectLayoutSetupRegistry.class)
+        projectSetupDescriptor = Mock(ProjectInitDescriptor.class)
         init.projectLayoutRegistry = projectLayoutRegistry
     }
 

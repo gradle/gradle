@@ -67,7 +67,7 @@ public abstract class AbstractTaskTest {
 
     protected Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry, new DependencyInjectingInstantiator.ConstructorCache());
 
-    private AbstractProject project = TestUtil.createRootProject();
+    private AbstractProject project = TestUtil.createRootProject(tmpDir.getTestDirectory());
 
     public abstract AbstractTask getTask();
 

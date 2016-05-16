@@ -85,6 +85,7 @@ class GenerateVersionProperties extends DefaultTask {
     }
 }
 
+verifyTestFilesCleanup.errorWhenNotEmpty = true
 
 useTestFixtures()
 useClassycle()

@@ -19,14 +19,13 @@ package org.gradle.api.tasks.wrapper;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.UsesNativeServices;
 import org.gradle.util.WrapUtil;
 import org.gradle.wrapper.GradleWrapperMain;
 import org.gradle.wrapper.WrapperExecutor;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
@@ -36,14 +35,13 @@ import java.util.Properties;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
+@UsesNativeServices
 public class WrapperTest extends AbstractTaskTest {
 
     private Wrapper wrapper;
     private String targetWrapperJarPath;
     private TestFile expectedTargetWrapperJar;
     private File expectedTargetWrapperProperties;
-    @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     @Before
     public void setUp() {
