@@ -30,6 +30,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
 import java.rmi.server.UID
 
@@ -39,6 +40,7 @@ class TestUtil {
     private final File rootDir;
 
     private TestUtil(File rootDir) {
+        NativeServicesTestFixture.initialize()
         this.rootDir = rootDir;
     }
 
@@ -112,6 +114,7 @@ class TestUtil {
      */
     @Deprecated
     static ProjectBuilder builder() {
+        NativeServicesTestFixture.initialize()
         return ProjectBuilder.builder().withProjectDir(TestNameTestDirectoryProvider.newInstance().testDirectory)
     }
 
@@ -127,6 +130,7 @@ class TestUtil {
      */
     @Deprecated
     static DefaultProject createRootProject() {
+        NativeServicesTestFixture.initialize()
         createRootProject(TestNameTestDirectoryProvider.newInstance().testDirectory)
     }
 
