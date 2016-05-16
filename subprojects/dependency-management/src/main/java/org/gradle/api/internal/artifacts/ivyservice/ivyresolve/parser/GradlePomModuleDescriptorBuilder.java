@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
 import org.apache.ivy.core.module.descriptor.License;
-import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -255,10 +254,9 @@ public class GradlePomModuleDescriptorBuilder {
         Set<String> confs = dependency.getConfMappings().keySet();
         String[] confArray = confs.toArray(new String[confs.size()]);
         for (ModuleId excludedModule : excluded) {
-            DefaultExclude rule = new DefaultExclude(new ArtifactId(
-                excludedModule, PatternMatchers.ANY_EXPRESSION,
-                PatternMatchers.ANY_EXPRESSION,
-                PatternMatchers.ANY_EXPRESSION),
+            DefaultExclude rule = new DefaultExclude(
+                excludedModule.getOrganisation(),
+                excludedModule.getName(),
                 confArray,
                 PatternMatchers.EXACT);
             dependency.addExcludeRule(rule);

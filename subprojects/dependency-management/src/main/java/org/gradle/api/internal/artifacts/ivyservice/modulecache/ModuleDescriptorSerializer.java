@@ -15,11 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.apache.ivy.core.module.id.ArtifactId;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
@@ -158,12 +156,12 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
         private void writeExcludeRules(List<Exclude> excludes) throws IOException {
             writeInt(excludes.size());
             for (Exclude exclude : excludes) {
-                ArtifactId id = exclude.getId();
-                writeString(id.getModuleId().getOrganisation());
-                writeString(id.getModuleId().getName());
-                writeString(id.getName());
-                writeString(id.getType());
-                writeString(id.getExt());
+                IvyArtifactName artifact = exclude.getArtifact();
+                writeString(exclude.getModuleId().getGroup());
+                writeString(exclude.getModuleId().getName());
+                writeString(artifact.getName());
+                writeString(artifact.getType());
+                writeString(artifact.getExtension());
                 writeStringArray(exclude.getConfigurations());
                 writeString(exclude.getMatcher());
             }
@@ -319,12 +317,12 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
         private DefaultExclude readExcludeRule() throws IOException {
             String moduleOrg = readString();
             String moduleName = readString();
-            String name = readString();
+            String artifact = readString();
             String type = readString();
             String ext = readString();
             String[] confs = readStringArray();
             String matcher = readString();
-            return new DefaultExclude(IvyUtil.createArtifactId(moduleOrg, moduleName, name, type, ext), confs, matcher);
+            return new DefaultExclude(moduleOrg, moduleName, artifact, type, ext, confs, matcher);
         }
 
         private void readAllExcludes() throws IOException {

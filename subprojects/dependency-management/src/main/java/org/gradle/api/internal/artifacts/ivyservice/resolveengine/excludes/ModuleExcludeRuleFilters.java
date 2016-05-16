@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
-import org.apache.ivy.core.module.id.ArtifactId;
-import org.apache.ivy.core.module.id.ModuleId;
 import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -83,29 +83,29 @@ public class ModuleExcludeRuleFilters {
 
     private static AbstractModuleExcludeRuleFilter forExclude(Exclude rule) {
         // For custom ivy pattern matchers, don't inspect the rule any more deeply: this prevents us from doing smart merging later
-        if (! PatternMatchers.isExactMatcher(rule.getMatcher())) {
+        if (!PatternMatchers.isExactMatcher(rule.getMatcher())) {
             return new IvyPatternMatcherExcludeRuleSpec(rule);
         }
 
-        ArtifactId artifactId = rule.getId();
-        ModuleId moduleId = artifactId.getModuleId();
-        boolean anyOrganisation = isWildcard(moduleId.getOrganisation());
+        ModuleIdentifier moduleId = rule.getModuleId();
+        IvyArtifactName artifact = rule.getArtifact();
+        boolean anyOrganisation = isWildcard(moduleId.getGroup());
         boolean anyModule = isWildcard(moduleId.getName());
-        boolean anyArtifact = isWildcard(artifactId.getName()) && isWildcard(artifactId.getType()) && isWildcard(artifactId.getExt());
+        boolean anyArtifact = isWildcard(artifact.getName()) && isWildcard(artifact.getType()) && isWildcard(artifact.getExtension());
 
         // Build a strongly typed (mergeable) exclude spec for each supplied rule
         if (anyArtifact) {
             if (!anyOrganisation && !anyModule) {
-                return new ModuleIdExcludeSpec(moduleId.getOrganisation(), moduleId.getName());
+                return new ModuleIdExcludeSpec(moduleId.getGroup(), moduleId.getName());
             } else if (!anyModule) {
                 return new ModuleNameExcludeSpec(moduleId.getName());
             } else if (!anyOrganisation) {
-                return new GroupNameExcludeSpec(moduleId.getOrganisation());
+                return new GroupNameExcludeSpec(moduleId.getGroup());
             } else {
                 return new ExcludeAllModulesSpec();
             }
         } else {
-            return new ArtifactExcludeSpec(artifactId);
+            return new ArtifactExcludeSpec(moduleId, artifact);
         }
     }
 

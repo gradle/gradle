@@ -93,7 +93,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public IvyArtifactRepository createIvyRepository() {
         return instantiator.newInstance(DefaultIvyArtifactRepository.class, fileResolver, transportFactory,
-                locallyAvailableResourceFinder, instantiator, resolverStrategy, artifactFileStore, createAuthenticationContainer());
+                locallyAvailableResourceFinder, instantiator, artifactFileStore, createAuthenticationContainer());
     }
 
     public MavenArtifactRepository createMavenRepository() {

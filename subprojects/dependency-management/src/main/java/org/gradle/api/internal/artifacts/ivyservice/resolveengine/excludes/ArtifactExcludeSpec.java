@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
-import org.apache.ivy.core.module.id.ArtifactId;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 /**
@@ -30,9 +27,9 @@ class ArtifactExcludeSpec extends AbstractModuleExcludeRuleFilter {
     private final ModuleIdentifier moduleId;
     private final IvyArtifactName ivyArtifactName;
 
-    ArtifactExcludeSpec(ArtifactId artifactId) {
-        this.moduleId = DefaultModuleIdentifier.newId(artifactId.getModuleId().getOrganisation(), artifactId.getModuleId().getName());
-        this.ivyArtifactName = new DefaultIvyArtifactName(artifactId.getName(), artifactId.getType(), artifactId.getExt());
+    ArtifactExcludeSpec(ModuleIdentifier moduleId, IvyArtifactName artifact) {
+        this.moduleId = moduleId;
+        this.ivyArtifactName = artifact;
     }
 
     @Override

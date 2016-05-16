@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
-import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
-import org.apache.ivy.core.module.id.ArtifactId
-import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
@@ -30,7 +26,6 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.DefaultResolvedArtifactsBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactsGraphVisitor
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyArtifactsVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
@@ -48,6 +43,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Resolut
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.specs.Spec
+import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData
@@ -1027,11 +1023,7 @@ class DependencyGraphBuilderTest extends Specification {
         def excludeRules = []
         if (args.exclude) {
             ComponentResolveMetaData excluded = args.exclude
-            excludeRules << new DefaultExcludeRule(new ArtifactId(new ModuleId(excluded.id.group, excluded.id.name),
-                    PatternMatchers.ANY_EXPRESSION,
-                    PatternMatchers.ANY_EXPRESSION,
-                    PatternMatchers.ANY_EXPRESSION),
-                    ExactPatternMatcher.INSTANCE, null)
+            excludeRules << new DefaultExclude(excluded.id.group, excluded.id.name)
         }
         def dependencyMetaData = new LocalComponentDependencyMetaData(componentSelector, selector, "default", "default", [] as Set<IvyArtifactName>,
                                                                       excludeRules, force, false, transitive)

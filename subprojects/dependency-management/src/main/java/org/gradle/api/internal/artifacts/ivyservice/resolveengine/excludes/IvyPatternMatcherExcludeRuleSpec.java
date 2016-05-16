@@ -18,8 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -33,8 +31,8 @@ class IvyPatternMatcherExcludeRuleSpec extends AbstractModuleExcludeRuleFilter {
     private final boolean isArtifactExclude;
 
     IvyPatternMatcherExcludeRuleSpec(Exclude rule) {
-        this.moduleId = DefaultModuleIdentifier.newId(rule.getId().getModuleId().getOrganisation(), rule.getId().getModuleId().getName());
-        this.ivyArtifactName = new DefaultIvyArtifactName(rule.getId().getName(), rule.getId().getType(), rule.getId().getExt());
+        this.moduleId = rule.getModuleId();
+        this.ivyArtifactName = rule.getArtifact();
         this.matcher = PatternMatchers.getInstance().getMatcher(rule.getMatcher());
         isArtifactExclude = !isWildcard(ivyArtifactName.getName()) || !isWildcard(ivyArtifactName.getType()) || !isWildcard(ivyArtifactName.getExtension());
     }

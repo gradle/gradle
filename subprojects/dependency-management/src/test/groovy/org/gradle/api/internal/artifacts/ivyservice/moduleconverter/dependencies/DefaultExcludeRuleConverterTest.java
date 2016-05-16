@@ -33,13 +33,13 @@ public class DefaultExcludeRuleConverterTest {
         final String someModule = "someModule";
         Exclude exclude =
                 new DefaultExcludeRuleConverter().convertExcludeRule(configurationName, new DefaultExcludeRule(someOrg, someModule));
-        assertThat(exclude.getId().getModuleId().getOrganisation(),
+        assertThat(exclude.getModuleId().getGroup(),
                 Matchers.equalTo(someOrg));
-        assertThat(exclude.getId().getName(),
+        assertThat(exclude.getModuleId().getName(),
+                Matchers.equalTo(someModule));
+        assertThat(exclude.getArtifact().getExtension(),
                 Matchers.equalTo(PatternMatchers.ANY_EXPRESSION));
-        assertThat(exclude.getId().getExt(),
-                Matchers.equalTo(PatternMatchers.ANY_EXPRESSION));
-        assertThat(exclude.getId().getType(),
+        assertThat(exclude.getArtifact().getType(),
                 Matchers.equalTo(PatternMatchers.ANY_EXPRESSION));
         assertThat(exclude.getMatcher(),
                 Matchers.equalTo(PatternMatchers.EXACT));

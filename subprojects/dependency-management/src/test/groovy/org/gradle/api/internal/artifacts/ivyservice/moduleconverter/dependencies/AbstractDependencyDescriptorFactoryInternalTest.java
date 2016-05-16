@@ -17,13 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.id.ArtifactId;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.model.DependencyMetaData;
@@ -114,12 +112,7 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
     }
 
     private static DefaultExclude getTestExcludeRule() {
-        return new DefaultExclude(new ArtifactId(
-                IvyUtil.createModuleId("org", "testOrg"), PatternMatchers.ANY_EXPRESSION,
-                PatternMatchers.ANY_EXPRESSION,
-                PatternMatchers.ANY_EXPRESSION),
-                new String[0],
-                PatternMatchers.EXACT);
+        return new DefaultExclude("org", "testOrg", new String[0], PatternMatchers.EXACT);
     }
 }
 

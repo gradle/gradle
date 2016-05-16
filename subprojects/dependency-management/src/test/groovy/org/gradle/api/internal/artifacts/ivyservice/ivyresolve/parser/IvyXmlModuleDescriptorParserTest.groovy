@@ -666,7 +666,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assert dd.requested == newSelector("yourorg", "yourmodule10", "10.1")
         assert dd.dependencyArtifacts.empty
         assert dd.dependencyExcludes.size() == 1
-        assert dd.dependencyExcludes[0].id.name == "toexclude"
+        assert dd.dependencyExcludes[0].artifact.name == "toexclude"
         assert dd.dependencyExcludes[0].configurations as Set == ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"] as Set
         true
     }

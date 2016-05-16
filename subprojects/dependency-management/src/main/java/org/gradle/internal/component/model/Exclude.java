@@ -16,11 +16,12 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.ivy.core.module.id.ArtifactId;
+import org.gradle.api.artifacts.ModuleIdentifier;
 
 public interface Exclude {
+    ModuleIdentifier getModuleId();
 
-    ArtifactId getId();
+    IvyArtifactName getArtifact();
 
     String[] getConfigurations();
 

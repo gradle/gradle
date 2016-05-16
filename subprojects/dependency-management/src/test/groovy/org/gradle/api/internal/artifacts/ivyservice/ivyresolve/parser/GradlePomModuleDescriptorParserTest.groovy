@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
-
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.MavenModuleResolveMetaData
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
 import static org.gradle.api.internal.component.ArtifactType.MAVEN_POM
 
 class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescriptorParserTest {
@@ -192,7 +191,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.confMappings.keySet() == ['test'] as Set
         def excludeRule = single(dep.dependencyExcludes)
-        excludeRule.id.moduleId == createModuleId('group-three', 'artifact-three')
+        excludeRule.moduleId == DefaultModuleIdentifier.newId('group-three', 'artifact-three')
         hasDefaultDependencyArtifact(dep)
     }
 

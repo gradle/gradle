@@ -15,12 +15,11 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
-
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import spock.lang.Issue
 
-import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleId
 import static org.gradle.api.internal.component.ArtifactType.MAVEN_POM
 
 class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModuleDescriptorParserTest {
@@ -286,7 +285,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.requested == moduleId('group-two', 'artifact-two', '1.2')
         dep.confMappings.keySet() == ['test'] as Set
         def exclude = single(dep.dependencyExcludes)
-        exclude.id.moduleId == createModuleId('group-three', 'artifact-three')
+        exclude.moduleId == DefaultModuleIdentifier.newId('group-three', 'artifact-three')
         hasDefaultDependencyArtifact(dep)
     }
 
@@ -1087,7 +1086,7 @@ class GradlePomModuleDescriptorParserProfileTest extends AbstractGradlePomModule
         dep.confMappings.keySet() == ['test'] as Set
         hasDefaultDependencyArtifact(dep)
         def excludeRule = single(dep.dependencyExcludes)
-        excludeRule.id.moduleId == createModuleId('group-three', 'artifact-three')
+        excludeRule.moduleId == DefaultModuleIdentifier.newId('group-three', 'artifact-three')
     }
 
     def "uses parent pom dependency management section in profile activated by absence of system property to provide default values for a dependency"() {

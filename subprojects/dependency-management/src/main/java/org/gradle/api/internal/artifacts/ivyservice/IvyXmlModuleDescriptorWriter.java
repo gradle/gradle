@@ -254,11 +254,11 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         List<Exclude> excludes = descriptor.getExcludes();
         for (Exclude exclude : excludes) {
             writer.startElement("exclude");
-            writer.attribute("org", exclude.getId().getModuleId().getOrganisation());
-            writer.attribute("module", exclude.getId().getModuleId().getName());
-            writer.attribute("artifact", exclude.getId().getName());
-            writer.attribute("type", exclude.getId().getType());
-            writer.attribute("ext", exclude.getId().getExt());
+            writer.attribute("org", exclude.getModuleId().getGroup());
+            writer.attribute("module", exclude.getModuleId().getName());
+            writer.attribute("artifact", exclude.getArtifact().getName());
+            writer.attribute("type", exclude.getArtifact().getType());
+            writer.attribute("ext", exclude.getArtifact().getExtension());
             String[] ruleConfs = exclude.getConfigurations();
             if (!descriptor.getConfigurationsNames().equals(Arrays.asList(ruleConfs))) {
                 writer.attribute("conf", Joiner.on(',').join(ruleConfs));
@@ -272,11 +272,11 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
                                                     Collection<Exclude> excludes) throws IOException {
         for (Exclude exclude : excludes) {
             writer.startElement("exclude");
-            writer.attribute("org", exclude.getId().getModuleId().getOrganisation());
-            writer.attribute("module", exclude.getId().getModuleId().getName());
-            writer.attribute("name", exclude.getId().getName());
-            writer.attribute("type", exclude.getId().getType());
-            writer.attribute("ext", exclude.getId().getExt());
+            writer.attribute("org", exclude.getModuleId().getGroup());
+            writer.attribute("module", exclude.getModuleId().getName());
+            writer.attribute("name", exclude.getArtifact().getName());
+            writer.attribute("type", exclude.getArtifact().getType());
+            writer.attribute("ext", exclude.getArtifact().getExtension());
             String[] ruleConfs = exclude.getConfigurations();
             if (!descriptor.getConfigurationsNames().equals(Arrays.asList(ruleConfs))) {
                 writer.attribute("conf", Joiner.on(',').join(ruleConfs));

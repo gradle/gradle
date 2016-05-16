@@ -99,7 +99,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return new IvyResolver(
                 getName(), transport,
                 locallyAvailableResourceFinder,
-                metaDataProvider.dynamicResolve, resolverStrategy, artifactFileStore);
+                metaDataProvider.dynamicResolve, artifactFileStore);
     }
 
     public URI getUrl() {
