@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 /**
  * A {@link LoggingConfigurer} which configures JUL to route logging events to SLF4J.
  */
-public class JavaUtilLoggingSystem implements LoggingSystem {
+public class JavaUtilLoggingSystem implements LoggingSourceSystem {
     private final Logger logger;
     private boolean installed;
 

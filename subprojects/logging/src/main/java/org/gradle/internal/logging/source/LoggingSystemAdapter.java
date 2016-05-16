@@ -19,9 +19,9 @@ package org.gradle.internal.logging.source;
 import org.gradle.api.logging.LogLevel;
 
 /**
- * Adapts a {@link LoggingConfigurer} to a {@link LoggingSystem}.
+ * Adapts a {@link LoggingConfigurer} to a {@link LoggingSourceSystem}.
  */
-public class LoggingSystemAdapter implements LoggingSystem {
+public class LoggingSystemAdapter implements LoggingSourceSystem {
     private final LoggingConfigurer configurer;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 

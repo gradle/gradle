@@ -20,19 +20,19 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.LoggingOutputInternal;
 import org.gradle.internal.logging.source.LoggingConfigurer;
-import org.gradle.internal.logging.source.LoggingSystem;
+import org.gradle.internal.logging.source.LoggingSourceSystem;
 import org.gradle.internal.logging.source.LoggingSystemAdapter;
 
 public class DefaultLoggingManagerFactory implements Factory<LoggingManagerInternal> {
-    private final LoggingSystem slfLoggingSystem;
-    private final LoggingSystem javaUtilLoggingSystem;
-    private final LoggingSystem stdOutLoggingSystem;
-    private final LoggingSystem stdErrLoggingSystem;
+    private final LoggingSourceSystem slfLoggingSystem;
+    private final LoggingSourceSystem javaUtilLoggingSystem;
+    private final LoggingSourceSystem stdOutLoggingSystem;
+    private final LoggingSourceSystem stdErrLoggingSystem;
     private final LoggingOutputInternal loggingOutput;
     private final DefaultLoggingManager rootManager;
     private boolean created;
 
-    public DefaultLoggingManagerFactory(LoggingConfigurer loggingConfigurer, LoggingOutputInternal loggingOutput, LoggingSystem javaUtilLoggingSystem, LoggingSystem stdOutLoggingSystem, LoggingSystem stdErrLoggingSystem) {
+    public DefaultLoggingManagerFactory(LoggingConfigurer loggingConfigurer, LoggingOutputInternal loggingOutput, LoggingSourceSystem javaUtilLoggingSystem, LoggingSourceSystem stdOutLoggingSystem, LoggingSourceSystem stdErrLoggingSystem) {
         this.loggingOutput = loggingOutput;
         this.javaUtilLoggingSystem = javaUtilLoggingSystem;
         this.stdOutLoggingSystem = stdOutLoggingSystem;

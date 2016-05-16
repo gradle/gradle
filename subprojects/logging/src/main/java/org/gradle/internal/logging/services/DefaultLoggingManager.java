@@ -19,12 +19,13 @@ package org.gradle.internal.logging.services;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.LoggingOutputInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.source.LoggingSourceSystem;
 import org.gradle.internal.logging.source.LoggingSystem;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.util.SingleMessageLogger;
@@ -46,8 +47,8 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     private final Set<OutputEventListener> outputEventListeners = new LinkedHashSet<OutputEventListener>();
     private boolean hasConsole;
 
-    public DefaultLoggingManager(LoggingSystem loggingSystem, LoggingSystem javaUtilLoggingSystem, LoggingSystem stdOutLoggingSystem,
-                                 LoggingSystem stdErrLoggingSystem, LoggingOutputInternal loggingOutput) {
+    public DefaultLoggingManager(LoggingSourceSystem loggingSystem, LoggingSourceSystem javaUtilLoggingSystem, LoggingSourceSystem stdOutLoggingSystem,
+                                 LoggingSourceSystem stdErrLoggingSystem, LoggingOutputInternal loggingOutput) {
         this.loggingOutput = loggingOutput;
         this.loggingSystem = new StartableLoggingSystem(loggingSystem, null);
         this.stdOutLoggingSystem = new StartableLoggingSystem(stdOutLoggingSystem, null);
@@ -205,11 +206,11 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     }
 
     private static class StartableLoggingSystem implements Stoppable {
-        private final LoggingSystem loggingSystem;
+        private final LoggingSourceSystem loggingSystem;
         private LogLevel level;
         private LoggingSystem.Snapshot originalState;
 
-        private StartableLoggingSystem(LoggingSystem loggingSystem, LogLevel level) {
+        private StartableLoggingSystem(LoggingSourceSystem loggingSystem, LogLevel level) {
             this.loggingSystem = loggingSystem;
             this.level = level;
         }

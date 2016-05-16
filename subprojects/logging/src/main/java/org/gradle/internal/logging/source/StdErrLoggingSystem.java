@@ -16,5 +16,8 @@
 
 package org.gradle.internal.logging.source;
 
-public interface StdErrLoggingSystem extends LoggingSystem {
+/**
+ * A logging system that generates log events from System.err
+ */
+public interface StdErrLoggingSystem extends LoggingSourceSystem {
 }

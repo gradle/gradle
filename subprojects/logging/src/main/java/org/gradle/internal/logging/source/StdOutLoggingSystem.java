@@ -16,5 +16,8 @@
 
 package org.gradle.internal.logging.source;
 
-public interface StdOutLoggingSystem extends LoggingSystem {
+/**
+ * A logging system that generates log events from System.out
+ */
+public interface StdOutLoggingSystem extends LoggingSourceSystem {
 }

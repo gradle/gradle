@@ -19,6 +19,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.logging.LoggingOutputInternal
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.source.LoggingSourceSystem
 import org.gradle.internal.logging.source.LoggingSystem
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
@@ -27,11 +28,11 @@ import spock.lang.Specification
 public class DefaultLoggingManagerTest extends Specification {
     @Rule
     public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
-    private final LoggingSystem loggingSystem = Mock(LoggingSystem.class);
-    private final LoggingSystem javaUtilLoggingSystem = Mock(LoggingSystem.class);
-    private final LoggingSystem stdOutLoggingSystem = Mock(LoggingSystem.class);
-    private final LoggingSystem stdErrLoggingSystem = Mock(LoggingSystem.class);
-    private final LoggingOutputInternal loggingOutput = Mock(LoggingOutputInternal.class);
+    private final def loggingSystem = Mock(LoggingSourceSystem)
+    private final def javaUtilLoggingSystem = Mock(LoggingSourceSystem)
+    private final def stdOutLoggingSystem = Mock(LoggingSourceSystem)
+    private final def stdErrLoggingSystem = Mock(LoggingSourceSystem)
+    private final def loggingOutput = Mock(LoggingOutputInternal)
     private final DefaultLoggingManager loggingManager = new DefaultLoggingManager(loggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingOutput);
 
     public void "default values are set"() {
