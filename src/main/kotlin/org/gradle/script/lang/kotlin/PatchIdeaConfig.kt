@@ -36,16 +36,42 @@ open class PatchIdeaConfig : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        outputFile.writeText(
-            prettyPrint(gradleIdeSupportLibrary()))
+        writeGradleIdeSupportLibrary()
+        patchProjectModule()
+    }
 
+    private fun writeGradleIdeSupportLibrary() {
+        outputFile.writeText(
+            prettyPrint(
+                libraryDocumentFor(libraryName, gradleIdeSupportLibraryJars())))
+    }
+
+    private fun gradleIdeSupportLibraryJars(): List<File> {
+        val gradleJars = classPath.filter {
+            it.name.startsWith("gradle-")
+        }
+        val (kotlinJar, coreJars) = gradleJars.partition {
+            it.name.startsWith("gradle-script-kotlin")
+        }
+        return coreJars + kotlinJar.map { relocate(it) }
+    }
+
+    private fun relocate(file: File): File {
+        val relocatedFile = File(tmpDir(), file.name)
+        file.copyTo(relocatedFile, false)
+        return relocatedFile
+    }
+
+    private fun tmpDir() = System.getProperty("java.io.tmpdir")
+
+    private fun patchProjectModule() {
         val moduleFile = project.file(".idea/modules/${project.name}.iml")
         val module = loadDocument(moduleFile)
-        patchIdeaModule(module)
+        addLibraryEntryTo(module, libraryName)
         moduleFile.writeText(prettyPrint(module))
     }
 
-    private fun patchIdeaModule(module: Document) {
+    private fun addLibraryEntryTo(module: Document, libraryName: String) {
         module.rootElement.getChild("component").addContent(
             // <orderEntry type="library" name="$LIBRARY_NAME" level="project" />
             Element("orderEntry").apply {
@@ -55,7 +81,7 @@ open class PatchIdeaConfig : DefaultTask() {
             })
     }
 
-    private fun gradleIdeSupportLibrary(): Document {
+    private fun libraryDocumentFor(libraryName: String, jars: List<File>): Document {
         /*
         <component name="libraryTable">
           <library name="$LIBRARY_NAME">
@@ -71,7 +97,7 @@ open class PatchIdeaConfig : DefaultTask() {
         */
         val classes = Element("CLASSES")
         val sources = Element("SOURCES")
-        gradleJars().forEach { jar ->
+        jars.forEach { jar ->
             classes.addContent(rootElementFor(jar))
             sources.addContent(rootElementFor(jar))
         }
@@ -88,14 +114,11 @@ open class PatchIdeaConfig : DefaultTask() {
         return Document(component)
     }
 
-    private fun gradleJars() =
-        classPath.filter { it.name.startsWith("gradle-") && !it.name.contains("kotlin") }
-
-    private fun rootElementFor(jar: File): Element {
-        return Element("root").apply {
+    private fun rootElementFor(jar: File) =
+        Element("root").apply {
             setAttribute("url", "jar://${jar.absolutePath}!/")
         }
-    }
+
 
     private fun computeClassPath() =
         KotlinScriptDefinitionProvider.selectGradleApiJars(classPathRegistry)
