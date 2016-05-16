@@ -28,7 +28,7 @@ public class CacheLockingArtifactResolver implements ArtifactResolver {
     private final CacheLockingManager lockingManager;
     private final ArtifactResolver delegate;
 
-    public CacheLockingArtifactResolver(CacheLockingManager lockingManager, IvyContextManager ivyContextManager, ArtifactResolver delegate) {
+    public CacheLockingArtifactResolver(CacheLockingManager lockingManager, ArtifactResolver delegate) {
         this.lockingManager = lockingManager;
         this.delegate = delegate;
     }

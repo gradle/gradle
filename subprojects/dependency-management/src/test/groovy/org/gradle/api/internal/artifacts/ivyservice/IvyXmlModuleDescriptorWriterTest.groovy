@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter
 import org.gradle.internal.component.external.descriptor.Dependency
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier

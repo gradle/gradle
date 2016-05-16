@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.artifacts.ivyservice.publisher;
 
-package org.gradle.api.internal.artifacts.ivyservice;
+import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
+import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 
-import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
+import java.util.List;
 
-import java.io.File;
-import java.util.Collection;
-
-public interface IvyModuleDescriptorWriter {
-    void write(ModuleDescriptorState md, File output);
-    void write(ModuleDescriptorState md, Collection<IvyModuleArtifactPublishMetaData> artifacts, File output);
+public interface IvyDependencyPublisher {
+    void publish(List<ModuleVersionPublisher> publishResolvers,
+                 IvyModulePublishMetaData publishMetaData);
 }
