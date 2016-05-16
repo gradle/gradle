@@ -72,7 +72,10 @@ open class PatchIdeaConfig : DefaultTask() {
     }
 
     private fun addLibraryEntryTo(module: Document, libraryName: String) {
-        module.rootElement.getChild("component").addContent(
+        val component = module.rootElement.getChild("component")
+        if (hasLibraryEntry(component, libraryName))
+            return
+        component.addContent(
             // <orderEntry type="library" name="$LIBRARY_NAME" level="project" />
             Element("orderEntry").apply {
                 setAttribute("type", "library")
@@ -80,6 +83,9 @@ open class PatchIdeaConfig : DefaultTask() {
                 setAttribute("level", "project")
             })
     }
+
+    private fun hasLibraryEntry(component: Element, libraryName: String) =
+        component.getChildren("orderEntry").any { it.getAttributeValue("name") == libraryName }
 
     private fun libraryDocumentFor(libraryName: String, jars: List<File>): Document {
         /*
