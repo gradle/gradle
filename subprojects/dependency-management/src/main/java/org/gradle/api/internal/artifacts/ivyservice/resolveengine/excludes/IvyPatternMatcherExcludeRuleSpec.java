@@ -35,7 +35,7 @@ class IvyPatternMatcherExcludeRuleSpec extends AbstractModuleExcludeRuleFilter {
     IvyPatternMatcherExcludeRuleSpec(Exclude rule) {
         this.moduleId = DefaultModuleIdentifier.newId(rule.getId().getModuleId().getOrganisation(), rule.getId().getModuleId().getName());
         this.ivyArtifactName = new DefaultIvyArtifactName(rule.getId().getName(), rule.getId().getType(), rule.getId().getExt());
-        this.matcher = rule.getMatcher();
+        this.matcher = PatternMatchers.getInstance().getMatcher(rule.getMatcher());
         isArtifactExclude = !isWildcard(ivyArtifactName.getName()) || !isWildcard(ivyArtifactName.getType()) || !isWildcard(ivyArtifactName.getExtension());
     }
 

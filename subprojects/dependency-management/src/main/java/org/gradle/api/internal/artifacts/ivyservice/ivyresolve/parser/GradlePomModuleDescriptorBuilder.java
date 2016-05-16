@@ -22,14 +22,13 @@ import org.apache.ivy.core.module.descriptor.License;
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
-import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomReader.PomDependencyData;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
@@ -257,11 +256,11 @@ public class GradlePomModuleDescriptorBuilder {
         String[] confArray = confs.toArray(new String[confs.size()]);
         for (ModuleId excludedModule : excluded) {
             DefaultExclude rule = new DefaultExclude(new ArtifactId(
-                excludedModule, PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION),
+                excludedModule, PatternMatchers.ANY_EXPRESSION,
+                PatternMatchers.ANY_EXPRESSION,
+                PatternMatchers.ANY_EXPRESSION),
                 confArray,
-                ExactPatternMatcher.INSTANCE);
+                PatternMatchers.EXACT);
             dependency.addExcludeRule(rule);
         }
     }

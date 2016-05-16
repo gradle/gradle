@@ -23,12 +23,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.Descriptor
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DisconnectedDescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DisconnectedIvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
 import org.gradle.api.publish.ivy.IvyArtifact;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
 
 import java.io.File;
 import java.util.HashSet;
@@ -37,7 +36,7 @@ import java.util.Set;
 public class ValidatingIvyPublisher implements IvyPublisher {
     private final DescriptorParseContext parserSettings = new DisconnectedDescriptorParseContext();
     private final IvyPublisher delegate;
-    private final DisconnectedIvyXmlModuleDescriptorParser moduleDescriptorParser = new DisconnectedIvyXmlModuleDescriptorParser(new ResolverStrategy());
+    private final DisconnectedIvyXmlModuleDescriptorParser moduleDescriptorParser = new DisconnectedIvyXmlModuleDescriptorParser();
 
     public ValidatingIvyPublisher(IvyPublisher delegate) {
         this.delegate = delegate;

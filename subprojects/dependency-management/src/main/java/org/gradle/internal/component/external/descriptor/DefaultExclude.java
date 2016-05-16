@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.descriptor;
 
 import org.apache.ivy.core.module.id.ArtifactId;
-import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.Transformer;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.util.CollectionUtils;
@@ -27,9 +26,9 @@ import java.util.List;
 public class DefaultExclude implements Exclude {
     private final ArtifactId artifactId;
     private final String[] configurations;
-    private final PatternMatcher patternMatcher;
+    private final String patternMatcher;
 
-    public DefaultExclude(ArtifactId artifactId, String[] configurations, PatternMatcher patternMatcher) {
+    public DefaultExclude(ArtifactId artifactId, String[] configurations, String patternMatcher) {
         this.artifactId = artifactId;
         this.configurations = configurations;
         this.patternMatcher = patternMatcher;
@@ -46,12 +45,12 @@ public class DefaultExclude implements Exclude {
     }
 
     @Override
-    public PatternMatcher getMatcher() {
+    public String getMatcher() {
         return patternMatcher;
     }
 
     public static Exclude forIvyExclude(org.apache.ivy.core.module.descriptor.ExcludeRule excludeRule) {
-        return new DefaultExclude(excludeRule.getId(), excludeRule.getConfigurations(), excludeRule.getMatcher());
+        return new DefaultExclude(excludeRule.getId(), excludeRule.getConfigurations(), excludeRule.getMatcher().getName());
     }
 
     public static List<Exclude> forIvyExcludes(org.apache.ivy.core.module.descriptor.ExcludeRule[] excludeRules) {

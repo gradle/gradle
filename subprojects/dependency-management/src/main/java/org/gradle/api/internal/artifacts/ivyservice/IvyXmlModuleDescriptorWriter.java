@@ -263,7 +263,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             if (!descriptor.getConfigurationsNames().equals(Arrays.asList(ruleConfs))) {
                 writer.attribute("conf", Joiner.on(',').join(ruleConfs));
             }
-            writer.attribute("matcher", exclude.getMatcher().getName());
+            writer.attribute("matcher", exclude.getMatcher());
             writer.endElement();
         }
     }
@@ -281,7 +281,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             if (!descriptor.getConfigurationsNames().equals(Arrays.asList(ruleConfs))) {
                 writer.attribute("conf", Joiner.on(',').join(ruleConfs));
             }
-            writer.attribute("matcher", exclude.getMatcher().getName());
+            writer.attribute("matcher", exclude.getMatcher());
             writer.endElement();
         }
     }

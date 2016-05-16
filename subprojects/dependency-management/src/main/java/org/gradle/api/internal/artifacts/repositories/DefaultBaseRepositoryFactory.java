@@ -25,7 +25,6 @@ import org.gradle.authentication.Authentication;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.internal.authentication.DefaultAuthenticationContainer;
@@ -46,7 +45,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final Instantiator instantiator;
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder;
-    private final ResolverStrategy resolverStrategy;
     private final FileStore<ModuleComponentArtifactMetaData> artifactFileStore;
     private final MetaDataParser<DefaultMavenModuleResolveMetaData> pomParser;
     private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
@@ -56,7 +54,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         Instantiator instantiator,
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
-                                        ResolverStrategy resolverStrategy,
                                         FileStore<ModuleComponentArtifactMetaData> artifactFileStore, MetaDataParser<DefaultMavenModuleResolveMetaData> pomParser,
                                         AuthenticationSchemeRegistry authenticationSchemeRegistry) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
@@ -64,7 +61,6 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
         this.instantiator = instantiator;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
-        this.resolverStrategy = resolverStrategy;
         this.artifactFileStore = artifactFileStore;
         this.pomParser = pomParser;
         this.authenticationSchemeRegistry = authenticationSchemeRegistry;
@@ -72,7 +68,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
 
     public FlatDirectoryArtifactRepository createFlatDirRepository() {
         return instantiator.newInstance(DefaultFlatDirArtifactRepository.class, fileResolver, transportFactory,
-                locallyAvailableResourceFinder, resolverStrategy, artifactFileStore);
+                locallyAvailableResourceFinder, artifactFileStore);
     }
 
     public MavenArtifactRepository createMavenLocalRepository() {

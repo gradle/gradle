@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
@@ -46,15 +45,10 @@ import java.util.Set;
 
 public class ModuleDescriptorSerializer implements org.gradle.internal.serialize.Serializer<ModuleDescriptorState> {
 
-    private final ResolverStrategy resolverStrategy;
-
-    public ModuleDescriptorSerializer(ResolverStrategy resolverStrategy) {
-        this.resolverStrategy = resolverStrategy;
-    }
 
     @Override
     public ModuleDescriptorState read(Decoder decoder) throws EOFException, Exception {
-        return new Reader(decoder, resolverStrategy).read();
+        return new Reader(decoder).read();
     }
 
     @Override
@@ -171,7 +165,7 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
                 writeString(id.getType());
                 writeString(id.getExt());
                 writeStringArray(exclude.getConfigurations());
-                writeString(exclude.getMatcher().getName());
+                writeString(exclude.getMatcher());
             }
         }
 
@@ -219,12 +213,10 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
 
     private static class Reader {
         private final Decoder decoder;
-        private final ResolverStrategy resolverStrategy;
         private MutableModuleDescriptorState md;
 
-        private Reader(Decoder decoder, ResolverStrategy resolverStrategy) {
+        private Reader(Decoder decoder) {
             this.decoder = decoder;
-            this.resolverStrategy = resolverStrategy;
         }
 
         public ModuleDescriptorState read() throws IOException {
@@ -332,12 +324,7 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             String ext = readString();
             String[] confs = readStringArray();
             String matcher = readString();
-            DefaultExclude rule = new DefaultExclude(
-                IvyUtil.createArtifactId(moduleOrg, moduleName, name, type, ext),
-                confs,
-                resolverStrategy.getPatternMatcher(matcher)
-            );
-            return rule;
+            return new DefaultExclude(IvyUtil.createArtifactId(moduleOrg, moduleName, name, type, ext), confs, matcher);
         }
 
         private void readAllExcludes() throws IOException {

@@ -15,9 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
-import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
@@ -37,13 +36,13 @@ public class DefaultExcludeRuleConverterTest {
         assertThat(exclude.getId().getModuleId().getOrganisation(),
                 Matchers.equalTo(someOrg));
         assertThat(exclude.getId().getName(),
-                Matchers.equalTo(PatternMatcher.ANY_EXPRESSION));
+                Matchers.equalTo(PatternMatchers.ANY_EXPRESSION));
         assertThat(exclude.getId().getExt(),
-                Matchers.equalTo(PatternMatcher.ANY_EXPRESSION));
+                Matchers.equalTo(PatternMatchers.ANY_EXPRESSION));
         assertThat(exclude.getId().getType(),
-                Matchers.equalTo(PatternMatcher.ANY_EXPRESSION));
-        assertThat((ExactPatternMatcher) exclude.getMatcher(),
-                Matchers.equalTo(ExactPatternMatcher.INSTANCE));
+                Matchers.equalTo(PatternMatchers.ANY_EXPRESSION));
+        assertThat(exclude.getMatcher(),
+                Matchers.equalTo(PatternMatchers.EXACT));
         assertThat(exclude.getConfigurations(),
                 Matchers.equalTo(WrapUtil.toArray(configurationName)));
     }

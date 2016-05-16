@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
 import org.gradle.api.Transformer;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.util.CollectionUtils;
@@ -84,7 +83,7 @@ public class ModuleExcludeRuleFilters {
 
     private static AbstractModuleExcludeRuleFilter forExclude(Exclude rule) {
         // For custom ivy pattern matchers, don't inspect the rule any more deeply: this prevents us from doing smart merging later
-        if (!(rule.getMatcher() instanceof ExactPatternMatcher)) {
+        if (! PatternMatchers.isExactMatcher(rule.getMatcher())) {
             return new IvyPatternMatcherExcludeRuleSpec(rule);
         }
 

@@ -17,29 +17,13 @@
 package org.gradle.internal.component.model;
 
 import org.apache.ivy.core.module.id.ArtifactId;
-import org.apache.ivy.plugins.matcher.PatternMatcher;
 
 public interface Exclude {
 
-    /**
-     * Returns the id of the described artifact, without revision information
-     *
-     * @return
-     */
-    public ArtifactId getId();
+    ArtifactId getId();
 
-    /**
-     * Returns the configurations of the module in which the artifact is asked
-     *
-     * @return an array of configuration names in which the artifact is asked
-     */
-    public String[] getConfigurations();
+    String[] getConfigurations();
 
-    /**
-     * Returns the matcher to use to know if an artifact match the current descriptor
-     *
-     * @return
-     */
-    public PatternMatcher getMatcher();
+    String getMatcher();
 
 }
