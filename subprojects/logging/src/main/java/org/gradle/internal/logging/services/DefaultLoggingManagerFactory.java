@@ -18,26 +18,24 @@ package org.gradle.internal.logging.services;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.LoggingOutputInternal;
-import org.gradle.internal.logging.config.LoggingConfigurer;
+import org.gradle.internal.logging.config.LoggingRouter;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
-import org.gradle.internal.logging.config.LoggingSystemAdapter;
 
 public class DefaultLoggingManagerFactory implements Factory<LoggingManagerInternal> {
     private final LoggingSourceSystem slfLoggingSystem;
     private final LoggingSourceSystem javaUtilLoggingSystem;
     private final LoggingSourceSystem stdOutLoggingSystem;
     private final LoggingSourceSystem stdErrLoggingSystem;
-    private final LoggingOutputInternal loggingOutput;
     private final DefaultLoggingManager rootManager;
+    private final LoggingRouter loggingRouter;
     private boolean created;
 
-    public DefaultLoggingManagerFactory(LoggingConfigurer loggingConfigurer, LoggingOutputInternal loggingOutput, LoggingSourceSystem javaUtilLoggingSystem, LoggingSourceSystem stdOutLoggingSystem, LoggingSourceSystem stdErrLoggingSystem) {
-        this.loggingOutput = loggingOutput;
+    public DefaultLoggingManagerFactory(LoggingRouter loggingRouter, LoggingSourceSystem slf4j, LoggingSourceSystem javaUtilLoggingSystem, LoggingSourceSystem stdOutLoggingSystem, LoggingSourceSystem stdErrLoggingSystem) {
+        this.loggingRouter = loggingRouter;
+        this.slfLoggingSystem = slf4j;
         this.javaUtilLoggingSystem = javaUtilLoggingSystem;
         this.stdOutLoggingSystem = stdOutLoggingSystem;
         this.stdErrLoggingSystem = stdErrLoggingSystem;
-        slfLoggingSystem = new LoggingSystemAdapter(loggingConfigurer);
         rootManager = newManager();
     }
 
@@ -54,6 +52,6 @@ public class DefaultLoggingManagerFactory implements Factory<LoggingManagerInter
     }
 
     private DefaultLoggingManager newManager() {
-        return new DefaultLoggingManager(slfLoggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingOutput);
+        return new DefaultLoggingManager(slfLoggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingRouter);
     }
 }

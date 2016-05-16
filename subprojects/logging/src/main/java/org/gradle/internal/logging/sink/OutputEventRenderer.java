@@ -23,7 +23,7 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.internal.logging.LoggingOutputInternal;
+import org.gradle.internal.logging.config.LoggingRouter;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
@@ -35,7 +35,6 @@ import org.gradle.internal.logging.events.FlushToOutputsEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.logging.config.LoggingConfigurer;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
@@ -49,7 +48,7 @@ import java.io.OutputStreamWriter;
  * destinations. This implementation is thread-safe.
  */
 @ThreadSafe
-public class OutputEventRenderer implements OutputEventListener, LoggingConfigurer, LoggingOutputInternal {
+public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private final ListenerBroadcast<OutputEventListener> stdOutAndErrorFormatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
@@ -70,6 +69,16 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
         stdOutAndErrorFormatters.add(stdErrChain);
         this.consoleConfigureAction = new ConsoleConfigureAction();
+    }
+
+    @Override
+    public void restore(Snapshot state) {
+    }
+
+    @Override
+    public Snapshot snapshot() {
+        return new Snapshot() {
+        };
     }
 
     public ColorMap getColourMap() {
