@@ -28,8 +28,10 @@ import org.gradle.api.tasks.bundling.War
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.ear.Ear
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -39,7 +41,9 @@ class PublishArtifactToFileBuildOutcomeTransformerTest extends Specification {
 
     def transformer = new PublishArtifactToFileBuildOutcomeTransformer()
 
-    Project project = TestUtil.createRootProject()
+    @Rule
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    final Project project = TestUtil.create(testDir).rootProject()
 
     @Unroll
     "can create outcome for #taskClass archive artifact"(Class<? extends AbstractArchiveTask> taskClass, FileOutcomeIdentifier typeIdentifier) {
