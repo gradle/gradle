@@ -459,7 +459,6 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.stop()
 
         then:
-        1 * loggingRouter.flush()
         1 * loggingRouter.restore(snapshot)
         0 * loggingRouter._
     }
@@ -485,7 +484,6 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.stop()
 
         then:
-        1 * loggingRouter.flush()
         1 * loggingRouter.restore(snapshot)
         0 * loggingRouter._
     }
@@ -508,7 +506,6 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.stop()
 
         then:
-        1 * loggingRouter.flush()
         1 * loggingRouter.restore(snapshot)
         0 * loggingRouter._
     }
@@ -535,7 +532,6 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.stop()
 
         then:
-        1 * loggingRouter.flush()
         1 * loggingRouter.restore(snapshot)
         0 * loggingRouter._
     }

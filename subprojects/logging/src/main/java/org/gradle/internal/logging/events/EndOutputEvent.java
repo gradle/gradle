@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 
 /**
- * Requests that output consumers flush any buffered output to the actual destination.
+ * Notifies output consumer tof the end of the output event stream.
  */
-public class FlushToOutputsEvent extends OutputEvent {
+public class EndOutputEvent extends OutputEvent {
     @Nullable
     @Override
     public LogLevel getLogLevel() {

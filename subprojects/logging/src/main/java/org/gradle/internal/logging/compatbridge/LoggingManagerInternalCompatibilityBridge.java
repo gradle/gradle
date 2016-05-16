@@ -143,9 +143,4 @@ public class LoggingManagerInternalCompatibilityBridge implements org.gradle.log
     public void removeOutputEventListener(OutputEventListener listener) {
         delegate.removeOutputEventListener(listener);
     }
-
-    @Override
-    public void flush() {
-        delegate.flush();
-    }
 }

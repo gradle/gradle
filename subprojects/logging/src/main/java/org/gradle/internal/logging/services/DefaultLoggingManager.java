@@ -196,11 +196,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         loggingRouter.attachAnsiConsole(outputStream);
     }
 
-    @Override
-    public void flush() {
-        throw new UnsupportedOperationException();
-    }
-
     public void attachSystemOutAndErr() {
         loggingOutput.attachSystemOutAndErr();
     }
@@ -274,9 +269,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         @Override
         public void stop() {
             try {
-                if (consoleOutput != null || consoleOutputStream != null) {
-                    loggingRouter.flush();
-                }
                 if (originalState != null) {
                     loggingRouter.restore(originalState);
                 }

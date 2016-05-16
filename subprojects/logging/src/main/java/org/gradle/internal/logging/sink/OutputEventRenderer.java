@@ -30,7 +30,7 @@ import org.gradle.internal.logging.console.ConsoleBackedProgressRenderer;
 import org.gradle.internal.logging.console.DefaultColorMap;
 import org.gradle.internal.logging.console.DefaultStatusBarFormatter;
 import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
-import org.gradle.internal.logging.events.FlushToOutputsEvent;
+import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -59,7 +59,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     private OutputStream originalStdErr;
     private StreamBackedStandardOutputListener stdOutListener;
     private StreamBackedStandardOutputListener stdErrListener;
-    private ConsoleBackedProgressRenderer console;
+    private OutputEventListener console;
 
     public OutputEventRenderer() {
         OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
@@ -81,12 +81,19 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     public void restore(Snapshot state) {
         synchronized (lock) {
             SnapshotImpl snapshot = (SnapshotImpl) state;
-            if (snapshot.console != console && console != null) {
-                // TODO - close the console
-                ;
-            }
             if (snapshot.logLevel != logLevel) {
                 configure(snapshot.logLevel);
+            }
+            // TODO - also close console when it is replaced
+            // TODO - remove console from formatters
+            if (snapshot.console != console) {
+                if (snapshot.console == null) {
+                    formatters.remove(console);
+                    console.onOutput(new EndOutputEvent());
+                    console = null;
+                } else {
+                    throw new UnsupportedOperationException("Cannot restore previous console. This is not implemented yet.");
+                }
             }
         }
     }
@@ -175,26 +182,26 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr, ConsoleMetaData consoleMetaData) {
-        final ConsoleBackedProgressRenderer consoleChain = new ConsoleBackedProgressRenderer(
+        final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(
             new ProgressLogEventGenerator(
                 new StyledTextOutputBackedRenderer(console.getMainArea()), true),
             console,
             new DefaultStatusBarFormatter(consoleMetaData),
             new TrueTimeProvider());
         synchronized (lock) {
-            this.console = consoleChain;
             if (stdout && stderr) {
-                formatters.add(consoleChain);
+                this.console = consoleChain;
                 removeStandardOutputListener();
                 removeStandardErrorListener();
             } else if (stdout) {
-                formatters.add(onNonError(consoleChain));
+                this.console = onNonError(consoleChain);
                 removeStandardOutputListener();
             } else {
-                formatters.add(onError(consoleChain));
+                this.console = onError(consoleChain);
                 removeStandardErrorListener();
             }
             consoleChain.onOutput(new LogLevelChangeEvent(logLevel));
+            formatters.add(this.console);
         }
         return this;
     }
@@ -256,10 +263,6 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         onOutput(new LogLevelChangeEvent(logLevel));
     }
 
-    public void flush() {
-        onOutput(new FlushToOutputsEvent());
-    }
-
     public void onOutput(OutputEvent event) {
         synchronized (lock) {
             if (event.getLogLevel() != null && event.getLogLevel().compareTo(logLevel) < 0) {
@@ -279,9 +282,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
 
     private class SnapshotImpl implements Snapshot {
         private final LogLevel logLevel;
-        private final ConsoleBackedProgressRenderer console;
+        private final OutputEventListener console;
 
-        public SnapshotImpl(LogLevel logLevel, ConsoleBackedProgressRenderer console) {
+        SnapshotImpl(LogLevel logLevel, OutputEventListener console) {
             this.logLevel = logLevel;
             this.console = console;
         }
