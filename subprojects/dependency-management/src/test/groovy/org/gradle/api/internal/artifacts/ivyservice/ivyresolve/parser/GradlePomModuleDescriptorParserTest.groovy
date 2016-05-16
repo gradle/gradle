@@ -1748,7 +1748,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         parsePom()
 
         then:
-        descriptor.dependencies.size == 2
+        descriptor.dependencies.size() == 2
         def depCompile = descriptor.dependencies[0]
         depCompile.requested == moduleId('group-two', 'artifact-two', '1.1')
         depCompile.confMappings.keySet() == ['compile', 'runtime'] as Set
