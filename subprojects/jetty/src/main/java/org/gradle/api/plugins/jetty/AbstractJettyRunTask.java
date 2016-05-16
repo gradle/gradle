@@ -237,13 +237,13 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
             // start Jetty
             server.start();
 
-            if (daemon) {
-                return;
-            }
-
             if (getStopPort() != null && getStopPort() > 0 && getStopKey() != null) {
                 Monitor monitor = new Monitor(getStopPort(), getStopKey(), (Server) server.getProxiedObject());
                 monitor.start();
+            }
+
+            if (daemon) {
+                return;
             }
 
             // start the scanner thread (if necessary) on the main webapp
