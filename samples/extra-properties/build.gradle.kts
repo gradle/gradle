@@ -1,4 +1,5 @@
 import org.gradle.script.lang.kotlin.*
+import org.gradle.api.tasks.wrapper.*
 
 val myTask = task("myTask") {
 
@@ -14,3 +15,6 @@ afterEvaluate {
 }
 
 defaultTasks(myTask.name)
+
+val wrapper = tasks.getByName("wrapper") as Wrapper
+wrapper.distributionUrl = "https://repo.gradle.org/gradle/demo/demo.zip"

@@ -1,4 +1,5 @@
 import org.gradle.api.tasks.*
+import org.gradle.api.tasks.wrapper.*
 import org.gradle.script.lang.kotlin.*
 import org.apache.tools.ant.filters.*
 
@@ -30,3 +31,6 @@ task<Copy>("initConfig") {
 task<Delete>("clean") {
     delete(buildDir)
 }
+
+val wrapper = tasks.getByName("wrapper") as Wrapper
+wrapper.distributionUrl = "https://repo.gradle.org/gradle/demo/demo.zip"
