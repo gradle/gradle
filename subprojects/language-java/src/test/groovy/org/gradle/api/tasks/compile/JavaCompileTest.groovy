@@ -22,11 +22,13 @@ import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal
 import org.gradle.platform.base.internal.toolchain.ToolProvider
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
+@LeaksFileHandles
 class JavaCompileTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def toolChain = Mock(JavaToolChainInternal)

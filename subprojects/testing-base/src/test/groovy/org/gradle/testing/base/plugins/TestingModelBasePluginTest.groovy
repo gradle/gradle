@@ -34,9 +34,11 @@ package org.gradle.testing.base.plugins
 
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.PlatformBaseSpecification
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.testing.base.TestSuiteContainer
 import org.gradle.testing.base.TestSuiteSpec
 
+@LeaksFileHandles
 class TestingModelBasePluginTest extends PlatformBaseSpecification {
     TestSuiteContainer realizeTestSuites() {
         project.modelRegistry.find("testSuites", TestSuiteContainer)

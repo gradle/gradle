@@ -28,7 +28,7 @@ abstract class AbstractLanguagePluginSpec extends PlatformBaseSpecification {
     def "registers transformation for language"() {
         when:
         dsl {
-            apply plugin: pluginClass
+            pluginManager.apply pluginClass
         }
 
         then:

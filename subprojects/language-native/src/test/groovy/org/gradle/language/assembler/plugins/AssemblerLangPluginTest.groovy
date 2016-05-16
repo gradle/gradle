@@ -16,8 +16,10 @@
 package org.gradle.language.assembler.plugins
 
 import org.gradle.language.assembler.AssemblerSourceSet
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
+@LeaksFileHandles
 class AssemblerLangPluginTest extends AbstractLanguagePluginSpec {
     @Override
     Class getPluginClass() {

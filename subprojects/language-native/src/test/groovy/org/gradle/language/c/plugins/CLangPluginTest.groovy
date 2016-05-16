@@ -16,8 +16,10 @@
 package org.gradle.language.c.plugins
 
 import org.gradle.language.c.CSourceSet
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
+@LeaksFileHandles
 class CLangPluginTest extends AbstractLanguagePluginSpec {
     @Override
     Class getPluginClass() {

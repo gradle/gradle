@@ -19,7 +19,9 @@ package org.gradle.language.base.plugins
 import org.gradle.platform.base.*
 import org.gradle.platform.base.plugins.BinaryBasePlugin
 import org.gradle.platform.base.plugins.ComponentBasePlugin
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
+@LeaksFileHandles
 class ComponentModelBasePluginTest extends PlatformBaseSpecification {
     def "applies language and binary base plugins"() {
         when:

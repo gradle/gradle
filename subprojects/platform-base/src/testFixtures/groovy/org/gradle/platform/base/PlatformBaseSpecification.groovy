@@ -15,7 +15,6 @@
  */
 
 package org.gradle.platform.base
-
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.language.base.ProjectSourceSet
