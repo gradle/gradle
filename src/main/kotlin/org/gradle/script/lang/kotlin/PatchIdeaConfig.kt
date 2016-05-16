@@ -30,6 +30,11 @@ open class PatchIdeaConfig : DefaultTask() {
         project.file(".idea/libraries/${libraryName.replace('-', '_')}.xml")
     }
 
+    @get:OutputFile
+    val moduleFile: File by lazy {
+        project.file(".idea/modules/${project.name}.iml")
+    }
+
     @get:Input
     val classPath: List<File> by lazy {
         computeClassPath()
@@ -66,7 +71,6 @@ open class PatchIdeaConfig : DefaultTask() {
     private fun tmpDir() = System.getProperty("java.io.tmpdir")
 
     private fun patchProjectModule() {
-        val moduleFile = project.file(".idea/modules/${project.name}.iml")
         val module = loadDocument(moduleFile)
         addLibraryEntryTo(module, libraryName)
         moduleFile.writeText(prettyPrint(module))
