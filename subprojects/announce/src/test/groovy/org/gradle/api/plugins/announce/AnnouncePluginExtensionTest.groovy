@@ -20,9 +20,10 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class AnnouncePluginExtensionTest extends AbstractProjectBuilderSpec {
     final AnnouncerFactory announcerFactory = Mock()
-    final AnnouncePluginExtension announcePluginConvention = new AnnouncePluginExtension(project)
+    AnnouncePluginExtension announcePluginConvention
 
     def setup() {
+        announcePluginConvention = new AnnouncePluginExtension(project)
         announcePluginConvention.announcerFactory = announcerFactory
     }
 

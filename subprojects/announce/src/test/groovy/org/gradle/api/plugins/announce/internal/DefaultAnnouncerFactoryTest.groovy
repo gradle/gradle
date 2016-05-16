@@ -21,10 +21,15 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 class DefaultAnnouncerFactoryTest extends AbstractProjectBuilderSpec {
-    final extension = new AnnouncePluginExtension(project)
     final ProcessOperations processOperations = Mock()
     final IconProvider iconProvider = Mock()
-    final announcerFactory = new DefaultAnnouncerFactory(extension, processOperations, iconProvider)
+    def extension
+    def announcerFactory
+
+    def setup() {
+        extension = new AnnouncePluginExtension(project)
+        announcerFactory = new DefaultAnnouncerFactory(extension, processOperations, iconProvider)
+    }
 
     def createForTwitter() {
         extension.username = 'username'

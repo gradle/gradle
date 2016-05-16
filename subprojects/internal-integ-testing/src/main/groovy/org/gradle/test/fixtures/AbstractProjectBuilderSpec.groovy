@@ -27,15 +27,22 @@ import spock.lang.Specification
 /**
  * An abstract class for writing tests using ProjectBuilder.
  * The fixture automatically takes care of deleting files creating in the temporary project directory used by the Project instance.
- *
+ * <p>
  * ProjectBuilder internally uses native services.
+ * <p>
+ * The project isn't available until the subclass's {@code setup()} method because initializing it before then, would mean that we
+ * would create a temporary project directory which didn't know about the class and method for which it was being created.
  */
 @CleanupTestDirectory
 @UsesNativeServices
 abstract class AbstractProjectBuilderSpec extends Specification {
-
+    // Naming the field "temporaryFolder" since that is the default field intercepted by the
+    // @CleanupTestDirectory annotation.
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    DefaultProject project
 
-    DefaultProject project = TestUtil.createRootProject(temporaryFolder.testDirectory)
+    def setup() {
+        project = TestUtil.createRootProject(temporaryFolder.testDirectory)
+    }
 }
