@@ -21,7 +21,7 @@
         for many of the other Gradle plugins.
     </para>
 
-    <section id="sec:usage">
+    <section id="sec:java_usage">
         <title>Usage</title>
         <para>To use the Java plugin, include the following in your build script:</para>
         <sample id="useJavaPlugin" dir="java/quickstart" title="Using the Java plugin">
@@ -29,7 +29,7 @@
         </sample>
     </section>
 
-    <section id="sec:source_sets">
+    <section id="sec:java_source_sets">
         <title>Source sets</title>
         <para>The Java plugin introduces the concept of a <firstterm>source set</firstterm>. A source set is simply a group of
             source files which are compiled and executed together. These source files may include Java source files and
@@ -49,7 +49,7 @@
         </para>
     </section>
 
-    <section id="sec:tasks">
+    <section id="sec:java_tasks">
         <title>Tasks</title>
         <para>The Java plugin adds a number of tasks to your project, as shown below.</para>
 
@@ -327,7 +327,7 @@
         </figure>
     </section>
 
-    <section id="sec:project_layout">
+    <section id="sec:java_project_layout">
         <title>Project layout</title>
         <para>The Java plugin assumes the project layout shown below. None of these directories need exist or have
             anything in them. The Java plugin will compile whatever it finds, and handles anything which is missing.
@@ -481,7 +481,7 @@
         </table>
     </section>
 
-    <section id="sec:convention_properties">
+    <section id="sec:java_convention_properties">
         <title>Convention properties</title>
         <para>
             The Java plugin adds a number of convention properties to the project, shown below. You can use these properties
@@ -735,7 +735,7 @@
         </para>
     </section>
 
-    <section id="sec:source_sets">
+    <section id="sec:working_with_java_source_sets">
         <title>Working with source sets</title>
         <para>You can access the source sets of a project using the <literal>sourceSets</literal> property. This
             is a container for the project's source sets, of type <apilink class="org.gradle.api.tasks.SourceSetContainer"/>.
@@ -1059,7 +1059,7 @@
         </table>
     </section>
 
-    <section id="sec:resources">
+    <section id="sec:java_resources">
         <title>Resources</title>
         <para>The Java plugin uses the <apilink class="org.gradle.api.tasks.Copy"/> task for resource handling. It adds an
             instance for each source set in the project. You can find out more about the copy task in

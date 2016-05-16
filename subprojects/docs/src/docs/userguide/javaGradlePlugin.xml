@@ -35,7 +35,7 @@
         <xref linkend="sub:test-kit-automatic-classpath-injection"/> for more on its usage, configuration options and samples.
     </para>
 
-    <section id="sec:usage">
+    <section id="sec:gradle_plugin_dev_usage">
         <title>Usage</title>
         <para>To use the Java Gradle Plugin Development plugin, include the following in your build script:</para>
         <sample id="useJavaGradlePluginPlugin" dir="javaGradlePlugin" title="Using the Java Gradle Plugin Development plugin">

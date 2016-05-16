@@ -278,7 +278,7 @@
             execution.
         </para>
     </section>
-    <section id="sec:summary">
+    <section id="sec:cli_tutorial_summary">
         <title>Summary</title>
         <para>In this chapter, you have seen some of the things you can do with Gradle from the command-line. You can
             find out more about the <command>gradle</command> command in <xref linkend="gradle_command_line"/>.</para>

@@ -120,7 +120,7 @@
         </para>
     </section>
 
-    <section id="sec:external_dependencies">
+    <section id="sec:external_dependencies_tutorial">
         <title>External dependencies</title>
         <para>There are various types of dependencies that you can declare. One such type is an <firstterm>external dependency</firstterm>.
             This is a dependency on some files built outside the current build, and stored in a repository of some kind, such as Maven central, or
@@ -144,7 +144,7 @@
         <para>To find out more about defining and working with dependencies, have a look at <xref linkend="sec:how_to_declare_your_dependencies"/>.</para>
     </section>
 
-    <section id="sec:repositories">
+    <section id="sec:repositories_tutorial">
         <title>Repositories</title>
         <para>
             How does Gradle find the files for external dependencies? Gradle looks for them in a <firstterm>repository</firstterm>.
@@ -179,7 +179,7 @@
         <para>To find out more about defining and working with repositories, have a look at <xref linkend="sec:repositories"/>.</para>
     </section>
 
-    <section id="sec:publishing_artifacts">
+    <section id="sec:publishing_artifacts_tutorial">
         <title>Publishing artifacts</title>
         <para>
             Dependency configurations are also used to publish files.<footnote><para>We think this is confusing, and we are gradually teasing apart the two concepts in the Gradle DSL.</para></footnote>
@@ -210,7 +210,7 @@
         <para>To find out more about publication, have a look at <xref linkend="artifact_management"/>.</para>
     </section>
 
-    <section id="sec:where_to_next">
+    <section id="sec:artifacts_tutorial_where_to_next">
         <title>Where to next?</title>
         <para>
             For all the details of dependency resolution, see <xref linkend="dependency_management"/>, and for artifact publication see <xref linkend="artifact_management"/>.

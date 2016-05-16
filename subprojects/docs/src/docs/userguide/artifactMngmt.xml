@@ -31,7 +31,7 @@
             outside world. This might be a library or a ZIP distribution or any other file. A project can publish as many artifacts as it wants.
         </para>
     </section>
-    <section id="artifacts_and_configurations">
+    <section id="sec:artifacts_and_configurations">
         <title>Artifacts and configurations</title>
         <para>Like dependencies, artifacts are grouped by configurations. In fact, a configuration can contain
             both artifacts and dependencies at the same time.

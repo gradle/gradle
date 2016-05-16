@@ -756,7 +756,7 @@
             to offer our users a choice.
         </para>
     </section>
-    <section id="sec:summary">
+    <section id="sec:multiproject_summary">
         <title>Summary</title>
         <para>Writing this chapter was pretty exhausting and reading it might have a similar effect. Our final message
             for this chapter is that multi-project builds with Gradle are usually

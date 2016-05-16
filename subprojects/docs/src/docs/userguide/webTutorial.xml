@@ -56,7 +56,7 @@
         <para>TODO: which url, configure port, uses source files in place and can edit your files and reload.</para>
     </section>
 
-    <section id="sec:summary">
+    <section id="sec:web_tutorial_summary">
         <title>Summary</title>
         <para>You can find out more about the War plugin in <xref linkend="war_plugin"/> and the Jetty plugin in
             <xref linkend="jetty_plugin"/>. You can find more sample Java projects in the

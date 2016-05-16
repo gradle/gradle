@@ -18,7 +18,7 @@
         The native software plugins make use of the Gradle <link linkend="software_model">software model</link>.
     </para>
 
-    <section id="sec:features">
+    <section id="sec:native_features">
         <title>Features</title>
         <para>The native software plugins provide:</para>
         <itemizedlist>
@@ -218,7 +218,7 @@
         </para>
     </section>
 
-    <section id="sec:tasks">
+    <section id="sec:native_tasks">
         <title>Tasks</title>
         <para>
             For each <apilink class="org.gradle.nativeplatform.NativeBinarySpec"/> that can be produced by a build,

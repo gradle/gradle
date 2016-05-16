@@ -117,7 +117,7 @@
         </sample>
     </section>
 
-    <section id="sec:a_standalone_project">
+    <section id="sec:custom_tasks_standalone_project">
         <title>A standalone project</title>
         <para>Now we will move our task to a standalone project, so we can publish it and share it with others.
             This project is simply a Groovy project that produces a JAR containing the task class.

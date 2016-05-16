@@ -42,7 +42,7 @@
         task from the Wrapper plugin (see <xref linkend='wrapper_plugin'/>),
         which means that the Gradle Wrapper will also be installed into the project.
     </para>
-    <section id="sec:tasks">
+    <section id="sec:build_init_tasks">
         <title>Tasks</title>
         <para>The plugin adds the following tasks to the project:</para>
         <table>

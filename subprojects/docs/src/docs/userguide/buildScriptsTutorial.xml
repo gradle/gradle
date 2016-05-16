@@ -15,7 +15,8 @@
   -->
 <chapter id='tutorial_using_tasks'>
     <title>Build Script Basics</title>
-    <section id="sec:projects_and_tasks"><title>Projects and tasks</title>
+    <section id="sec:projects_and_tasks">
+        <title>Projects and tasks</title>
     <para>Everything in Gradle sits on top of two basic concepts: <firstterm>projects</firstterm> and <firstterm>tasks</firstterm>.</para>
     <para>
         Every Gradle build is made up of one or more <firstterm>projects</firstterm>.
@@ -172,7 +173,7 @@
         </sample>
         Extra properties aren't limited to tasks. You can read more about them in <xref linkend='sec:extra_properties'/>.
     </section>
-    <section id="sec:using_ant_tasks">
+    <section id="sec:using_ant_tasks_tutorial">
         <title>Using Ant Tasks</title>
         <para>Ant tasks are first-class citizens in Gradle. Gradle provides excellent integration for Ant tasks by simply
             relying on Groovy. Groovy is shipped with the fantastic <literal>AntBuilder</literal>. Using Ant tasks
@@ -231,7 +232,7 @@
         This works even when the release task is not the <emphasis>primary</emphasis> task (i.e., the task passed to the <command>gradle</command> command).
         </para>
     </section>
-    <section id="sec:where_to_next">
+    <section id="sec:tasks_tutorial_where_to_next">
         <title>Where to next?</title>
         <para>
             In this chapter, we have had a first look at tasks. But this is not the end of the story for tasks. If you want to jump into more of the details,

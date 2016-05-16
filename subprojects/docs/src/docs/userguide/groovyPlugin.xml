@@ -22,7 +22,7 @@
         This makes it possible to use the best language for the job, and to rewrite any class in the other language if needed.
     </para>
 
-    <section id="sec:usage">
+    <section id="sec:groovy_usage">
         <title>Usage</title>
         <para>To use the Groovy plugin, include the following in your build script:</para>
         <sample id="useGroovyPlugin" dir="groovy/quickstart" title="Using the Groovy plugin">
@@ -30,7 +30,7 @@
         </sample>
     </section>
 
-    <section id="sec:tasks">
+    <section id="sec:groovy_tasks">
         <title>Tasks</title>
         <para>The Groovy plugin adds the following tasks to the project.</para>
         <table>
@@ -96,7 +96,7 @@
         </figure>
     </section>
 
-    <section id="sec:project_layout">
+    <section id="sec:groovy_project_layout">
         <title>Project layout</title>
         <para>The Groovy plugin assumes the project layout shown in <xref linkend='groovylayout'/>. All the Groovy
             source directories can contain Groovy <emphasis>and</emphasis> Java code. The Java source directories may
@@ -155,7 +155,7 @@
 
     </section>
 
-    <section id="sec:dependency_management">
+    <section id="sec:groovy_dependency_management">
         <title>Dependency management</title>
         <para>Because Gradle's build language is based on Groovy, and parts of Gradle are implemented in Groovy, Gradle already ships
             with a Groovy library (2.4.7 as of Gradle 3.0). Nevertheless, Groovy projects need to explicitly declare a Groovy dependency.
@@ -221,12 +221,12 @@
         <para>Note that the “<literal>-indy</literal>” variation of each jar refers to the version with <literal>invokedynamic</literal> support.</para>
     </section>
 
-    <section id="sec:convention_properties">
+    <section id="sec:groovy_convention_properties">
         <title>Convention properties</title>
         <para>The Groovy plugin does not add any convention properties to the project.</para>
     </section>
 
-    <section id="sec:source_set_properties">
+    <section id="sec:groovy_source_set_properties">
         <title>Source set properties</title>
         <para>The Groovy plugin adds the following convention properties to each source set in the project. You can
             use these properties in your build script as though they were properties of the source set object.</para>

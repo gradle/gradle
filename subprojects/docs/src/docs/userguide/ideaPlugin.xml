@@ -45,7 +45,7 @@
         for adding and removing content from the generated files.
     </para>
 
-    <section id="sec:usage">
+    <section id="sec:idea_usage">
         <title>Usage</title>
         <para>To use the IDEA plugin, include this in your build script:</para>
         <sample id="useIdeaPlugin" dir="idea" title="Using the IDEA plugin">
@@ -55,7 +55,7 @@
             are the <literal>idea</literal> and <literal>cleanIdea</literal> tasks.
         </para>
     </section>
-    <section id="sec:tasks">
+    <section id="sec:idea_tasks">
         <title>Tasks</title>
 
         <para>The IDEA plugin adds the tasks shown below to a project.
@@ -154,7 +154,7 @@
         </table>
     </section>
 
-    <section id="sec:configuration">
+    <section id="sec:idea_configuration">
         <title>Configuration</title>
 
         <table id='idea-configuration'>
@@ -197,7 +197,7 @@
         </table>
     </section>
 
-    <section id="sec:customizing_the_generated_files">
+    <section id="sec:idea_customizing_the_generated_files">
         <title>Customizing the generated files</title>
         <para>The IDEA plugin provides hooks and behavior for customizing the generated content.
             The workspace file can effectively only be manipulated via the <code>withXml</code> hook

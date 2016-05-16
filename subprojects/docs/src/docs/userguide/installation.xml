@@ -59,7 +59,7 @@
 </itemizedlist>
 </section>
 
-<section id="sec:environment_variables">
+<section id="sec:installation_environment_variables">
 <title>Environment variables</title>
 
 <para>For running Gradle, firstly add the environment variable <envar>GRADLE_HOME</envar>. This should point to the unpacked files from the
@@ -90,7 +90,7 @@ of the <command>gradle</command> or <command>gradlew</command> script.
 <para>Note that it's not currently possible to set JVM options for Gradle on the command line.</para>
 </section>
 
-<section condition="standalone" id="sec:getting_help">
+<section condition="standalone" id="sec:installation_getting_help">
 <title>Getting help</title>
 
 <para>You might check the user guide at <filename><replaceable>GRADLE_HOME</replaceable>/docs/userguide/userguide.html</filename>.

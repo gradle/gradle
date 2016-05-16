@@ -20,7 +20,7 @@
     </note>
     <para>The Maven plugin adds support for deploying artifacts to Maven repositories.</para>
 
-    <section id="sec:usage">
+    <section id="sec:maven_usage">
         <title>Usage</title>
         <para>To use the Maven plugin, include the following in your build script:</para>
         <sample id="useMavenPlugin" dir="maven/quickstart" title="Using the Maven plugin">
@@ -28,7 +28,7 @@
         </sample>
     </section>
 
-    <section id="sec:tasks">
+    <section id="sec:maven_tasks">
         <title>Tasks</title>
         <para>The Maven plugin defines the following tasks:</para>
         <table>
@@ -57,12 +57,12 @@
         </table>
     </section>
 
-    <section id="sec:dependency_management">
+    <section id="sec:maven_dependency_management">
         <title>Dependency management</title>
         <para>The Maven plugin does not define any dependency configurations.</para>
     </section>
 
-    <section id="sec:convention_properties">
+    <section id="sec:maven_convention_properties">
         <title>Convention properties</title>
         <para>The Maven plugin defines the following convention properties:</para>
         <table>
@@ -108,7 +108,7 @@
             convention object.</para>
     </section>
 
-    <section id="sec:convention_methods">
+    <section id="sec:maven_convention_methods">
         <title>Convention methods</title>
         <para>The maven plugin provides a factory method for creating a POM. This is useful if you need a POM
         without the context of uploading to a Maven repo.</para>

@@ -31,7 +31,7 @@
         Over time, the TestKit will likely expand to facilitate other kinds of tests.
     </para>
 
-    <section id="sec:usage">
+    <section id="sec:testkit_usage">
         <title>Usage</title>
         <para>To use the TestKit, include the following in your plugin's build:</para>
         <sample id="testKitDependency" dir="testKit/gradleRunner/junitQuickstart" title="Declaring the TestKit dependency">

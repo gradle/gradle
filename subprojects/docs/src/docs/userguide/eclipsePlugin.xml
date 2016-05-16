@@ -61,7 +61,7 @@
         for adding and removing content from the generated files.
     </para>
 
-    <section id="sec:usage">
+    <section id="sec:eclipse_usage">
         <title>Usage</title>
         <para>To use either the Eclipse or the Eclipse WTP plugin, include one of the lines in your build script:</para>
 
@@ -79,7 +79,7 @@
             are the <literal>eclipse</literal> and <literal>cleanEclipse</literal> tasks.
         </para>
     </section>
-    <section id="sec:tasks">
+    <section id="sec:eclipse_tasks">
         <title>Tasks</title>
 
         <para>The Eclipse plugins add the tasks shown below to a project.</para>
@@ -228,7 +228,7 @@
             </tr>
         </table>
     </section>
-    <section id="sec:configuration">
+    <section id="sec:eclipse_configuration">
         <title>Configuration</title>
 
         <table id='eclipse-configuration'>
@@ -284,7 +284,7 @@
             </tr>
         </table>
     </section>
-    <section id="sec:customizing_the_generated_files">
+    <section id="sec:eclipse_customizing_the_generated_files">
         <title>Customizing the generated files</title>
         <para>
             The Eclipse plugins allow you to customize the generated metadata files. The plugins provide a DSL for configuring model objects

@@ -27,7 +27,7 @@
         Applying the Application plugin also implicitly applies the <link linkend="distribution_plugin">Distribution plugin</link>.
         A <literal>main</literal> distribution is created that packages up the application, including code dependencies and generated start scripts.
     </para>
-    <section id="sec:usage">
+    <section id="sec:application_usage">
         <title>Usage</title>
         <para>To use the application plugin, include the following in your build script:</para>
         <sample id="useApplicationPlugin" dir="application" title="Using the application plugin">
@@ -123,7 +123,7 @@
             </para>
         </section>
     </section>
-    <section id="sec:tasks">
+    <section id="sec:application_tasks">
         <title>Tasks</title>
         <para>The Application plugin adds the following tasks to the project.</para>
         <table>
@@ -188,7 +188,7 @@
             </tr>
         </table>
     </section>
-    <section id="sec:convention_properties">
+    <section id="sec:application_convention_properties">
         <title>Convention properties</title>
         <para>
             The application plugin adds some properties to the project, which you can use to configure its behaviour.

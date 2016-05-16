@@ -24,7 +24,7 @@
 
     <para>The JaCoCo plugin provides code coverage metrics for Java code via integration with <ulink url="http://www.eclemma.org/jacoco/">JaCoCo</ulink>.
     </para>
-    <section id="sec:getting_started">
+    <section id="sec:jacoco_getting_started">
         <title>Getting Started</title>
         <para>To get started, apply the JaCoCo plugin to the project you want to calculate code coverage for.</para>
         <sample id="applyJacoco" dir="testing/jacoco/quickstart" title="Applying the JaCoCo plugin">
@@ -192,7 +192,7 @@
         </sample>
     </section>
 
-    <section id="sec:tasks">
+    <section id="sec:jacoco_tasks">
         <title>Tasks</title>
         <para>For projects that also apply the Java Plugin, The JaCoCo plugin automatically adds the following tasks:</para>
         <table>
@@ -218,7 +218,7 @@
         </table>
     </section>
 
-    <section id="sec:dependency_management">
+    <section id="sec:jacoco_dependency_management">
         <title>Dependency management</title>
         <para>The JaCoCo plugin adds the following dependency configurations:</para>
         <table>

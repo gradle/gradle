@@ -40,7 +40,7 @@
             More information about troubleshooting the daemon process is located in <xref linkend="gradle_daemon"/>.
         </para>
     </section>
-    <section id="sec:getting_help">
+    <section id="sec:troubleshooting_getting_help">
         <title>Getting help</title>
         <para>
             The place to go for help with Gradle is <ulink url="http://forums.gradle.org">http://forums.gradle.org</ulink>.

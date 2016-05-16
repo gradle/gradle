@@ -27,7 +27,7 @@
         Distribution archives typically contain the executable application and other supporting files, such as documentation.
 	</para>
 
-    <section id="sec:usage">
+    <section id="sec:distribution_usage">
         <title>Usage</title>
         <para>To use the distribution plugin, include the following in your build script:</para>
         <sample id="useDistributionPlugin" dir="userguide/distribution" title="Using the distribution plugin">
@@ -48,7 +48,7 @@
         </para>
     </section>
 
-    <section id="sec:tasks">
+    <section id="sec:distribution_tasks">
         <title>Tasks</title>
         <para>The Distribution plugin adds the following tasks to the project:</para>
         <table>
