@@ -31,19 +31,21 @@ import org.gradle.plugins.ear.Ear
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.*
 
+@UsesNativeServices
 class PublishArtifactToFileBuildOutcomeTransformerTest extends Specification {
 
     def transformer = new PublishArtifactToFileBuildOutcomeTransformer()
 
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
-    final Project project = TestUtil.create(testDir).rootProject()
+    final Project project = TestUtil.createRootProject(testDir.testDirectory)
 
     @Unroll
     "can create outcome for #taskClass archive artifact"(Class<? extends AbstractArchiveTask> taskClass, FileOutcomeIdentifier typeIdentifier) {

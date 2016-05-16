@@ -36,4 +36,6 @@ processResources {
     }
 }
 
+verifyTestFilesCleanup.errorWhenNotEmpty = true
+
 useTestFixtures()
