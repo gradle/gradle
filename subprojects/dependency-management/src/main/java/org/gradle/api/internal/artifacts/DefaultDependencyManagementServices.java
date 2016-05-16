@@ -98,7 +98,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           RepositoryTransportFactory repositoryTransportFactory, LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
                                                           ArtifactIdentifierFileStore artifactIdentifierFileStore,
                                                           VersionSelectorScheme versionSelectorScheme,
-                                                          AuthenticationSchemeRegistry authenticationSchemeRegistry) {
+                                                          AuthenticationSchemeRegistry authenticationSchemeRegistry,
+                                                          IvyContextManager ivyContextManager) {
             return new DefaultBaseRepositoryFactory(
                     localMavenRepositoryLocator,
                     fileResolver,
@@ -107,7 +108,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     locallyAvailableResourceFinder,
                     artifactIdentifierFileStore,
                     new GradlePomModuleDescriptorParser(versionSelectorScheme),
-                    authenticationSchemeRegistry
+                    authenticationSchemeRegistry,
+                    ivyContextManager
             );
         }
 

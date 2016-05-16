@@ -16,6 +16,8 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
+import org.gradle.api.internal.artifacts.ivyservice.IvyContextualMetaDataParser;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
@@ -43,9 +45,9 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     public IvyResolver(String name, RepositoryTransport transport,
                        LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
-                       boolean dynamicResolve, FileStore<ModuleComponentArtifactMetaData> artifactFileStore) {
+                       boolean dynamicResolve, FileStore<ModuleComponentArtifactMetaData> artifactFileStore, IvyContextManager ivyContextManager) {
         super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, artifactFileStore);
-        this.metaDataParser = new DownloadedIvyModuleDescriptorParser();
+        this.metaDataParser = new IvyContextualMetaDataParser<DefaultIvyModuleResolveMetaData>(ivyContextManager, new DownloadedIvyModuleDescriptorParser());
         this.dynamicResolve = dynamicResolve;
     }
 
