@@ -8,5 +8,6 @@ configure<ApplicationPluginConvention> {
     mainClassName = "samples.HelloWorld"
 }
 
-val wrapper = tasks.getByName("wrapper") as Wrapper
-wrapper.distributionUrl = "https://repo.gradle.org/gradle/demo/demo.zip"
+tasks.withType<Wrapper> {
+    distributionUrl = "https://repo.gradle.org/gradle/demo/demo.zip"
+}
