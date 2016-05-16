@@ -22,6 +22,7 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.io.TextStream;
 import org.gradle.internal.io.LinePerThreadBufferingOutputStream;
+import org.gradle.internal.logging.config.LoggingSourceSystem;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;

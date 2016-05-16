@@ -25,8 +25,8 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.LoggingOutputInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.logging.source.LoggingSourceSystem;
-import org.gradle.internal.logging.source.LoggingSystem;
+import org.gradle.internal.logging.config.LoggingSourceSystem;
+import org.gradle.internal.logging.config.LoggingSystem;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.util.SingleMessageLogger;
 

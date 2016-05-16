@@ -30,7 +30,7 @@ import org.gradle.internal.logging.slf4j.Slf4jLoggingConfigurer;
 import org.gradle.internal.logging.source.DefaultStdErrLoggingSystem;
 import org.gradle.internal.logging.source.DefaultStdOutLoggingSystem;
 import org.gradle.internal.logging.source.JavaUtilLoggingSystem;
-import org.gradle.internal.logging.source.LoggingSourceSystem;
+import org.gradle.internal.logging.config.LoggingSourceSystem;
 import org.gradle.internal.logging.source.NoOpLoggingSystem;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;

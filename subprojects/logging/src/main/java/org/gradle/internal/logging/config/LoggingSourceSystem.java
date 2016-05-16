@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.source;
+package org.gradle.internal.logging.config;
 
 import org.gradle.api.logging.LogLevel;
 

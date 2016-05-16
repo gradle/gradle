@@ -17,6 +17,7 @@
 package org.gradle.internal.logging.source;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.logging.config.LoggingSourceSystem;
 
 public class NoOpLoggingSystem implements StdOutLoggingSystem, StdErrLoggingSystem, LoggingSourceSystem {
     public Snapshot snapshot() {
