@@ -36,6 +36,7 @@ import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -43,12 +44,13 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import static org.junit.Assert.assertFalse
 
+@UsesNativeServices
 public abstract class AbstractSpockTaskTest extends Specification {
     public static final String TEST_TASK_NAME = "taskname"
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    private AbstractProject project = TestUtil.createRootProject()
+    private AbstractProject project
 
     private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()))
 
@@ -70,6 +72,10 @@ public abstract class AbstractSpockTaskTest extends Specification {
         return type.cast(task);
     }
 
+    def setup() {
+        project = TestUtil.createRootProject(tmpDir.testDirectory)
+    }
+
     def testTask() {
         expect:
         getTask().isEnabled()
@@ -84,14 +90,13 @@ public abstract class AbstractSpockTaskTest extends Specification {
     }
 
     def testPath() {
-        DefaultProject rootProject = TestUtil.createRootProject();
-        DefaultProject childProject = TestUtil.createChildProject(rootProject, "child");
+        DefaultProject childProject = TestUtil.createChildProject(project, "child");
         childProject.getProjectDir().mkdirs();
         DefaultProject childchildProject = TestUtil.createChildProject(childProject, "childchild");
         childchildProject.getProjectDir().mkdirs();
 
         when:
-        Task task = createTask(rootProject, TEST_TASK_NAME);
+        Task task = createTask(project, TEST_TASK_NAME);
 
         then:
         Project.PATH_SEPARATOR + TEST_TASK_NAME ==  task.getPath()
@@ -300,7 +305,7 @@ public abstract class AbstractSpockTaskTest extends Specification {
         Task task2 = Mock()
         TaskDependency dependencyMock = Mock()
         getTask().dependsOn(dependencyMock)
-        dependencyMock.getDependencies(getTask()) >> [task1, task2] 
+        dependencyMock.getDependencies(getTask()) >> [task1, task2]
         task1.getDidWork() >> false
         task2.getDidWork() >>> [false, true]
 
