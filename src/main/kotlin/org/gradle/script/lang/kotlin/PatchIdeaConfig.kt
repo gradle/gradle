@@ -6,6 +6,7 @@ import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.script.lang.kotlin.KotlinScriptDefinitionProvider.selectGradleApiJars
 import org.jetbrains.kotlin.relocated.org.jdom.Document
 import org.jetbrains.kotlin.relocated.org.jdom.Element
 import java.io.File
@@ -125,8 +126,7 @@ open class PatchIdeaConfig : DefaultTask() {
             setAttribute("url", "jar://${jar.absolutePath}!/")
         }
 
-
     private fun computeClassPath() =
-        KotlinScriptDefinitionProvider.selectGradleApiJars(classPathRegistry)
+        selectGradleApiJars(classPathRegistry)
             .sortedBy { it.name }
 }
