@@ -47,7 +47,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     private final Set<StandardOutputListener> stdoutListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<OutputEventListener> outputEventListeners = new LinkedHashSet<OutputEventListener>();
-    private boolean hasConsole;
 
     public DefaultLoggingManager(LoggingSourceSystem slf4jLoggingSystem, LoggingSourceSystem javaUtilLoggingSystem, LoggingSourceSystem stdOutLoggingSystem,
                                  LoggingSourceSystem stdErrLoggingSystem, LoggingRouter loggingRouter) {
@@ -90,9 +89,6 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             }
             for (OutputEventListener listener : outputEventListeners) {
                 loggingOutput.removeOutputEventListener(listener);
-            }
-            if (hasConsole) {
-                loggingOutput.flush();
             }
             loggingRouter.stop();
         } finally {
@@ -193,13 +189,11 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     }
 
     public void attachProcessConsole(ConsoleOutput consoleOutput) {
-        hasConsole = true;
-        loggingOutput.attachProcessConsole(consoleOutput);
+        loggingRouter.attachProcessConsole(consoleOutput);
     }
 
     public void attachAnsiConsole(OutputStream outputStream) {
-        hasConsole = true;
-        loggingOutput.attachAnsiConsole(outputStream);
+        loggingRouter.attachAnsiConsole(outputStream);
     }
 
     @Override
@@ -215,6 +209,8 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         private final LoggingRouter loggingRouter;
         private LogLevel level;
         private LoggingSystem.Snapshot originalState;
+        private ConsoleOutput consoleOutput;
+        private OutputStream consoleOutputStream;
 
         public StartableLoggingRouter(LoggingRouter loggingRouter) {
             this.loggingRouter = loggingRouter;
@@ -225,6 +221,42 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             if (level != null) {
                 loggingRouter.configure(level);
             }
+            if (consoleOutput != null) {
+                loggingRouter.attachProcessConsole(consoleOutput);
+            }
+            if (consoleOutputStream != null) {
+                loggingRouter.attachAnsiConsole(consoleOutputStream);
+            }
+        }
+
+        public void attachProcessConsole(ConsoleOutput consoleOutput) {
+            if (this.consoleOutput == consoleOutput) {
+                return;
+            }
+            if (consoleOutputStream != null) {
+                throw new UnsupportedOperationException("Not implemented yet.");
+            }
+
+            if (originalState != null) {
+                // Already started
+                loggingRouter.attachProcessConsole(consoleOutput);
+            }
+            this.consoleOutput = consoleOutput;
+        }
+
+        public void attachAnsiConsole(OutputStream outputStream) {
+            if (this.consoleOutputStream == outputStream) {
+                return;
+            }
+            if (consoleOutput != null) {
+                throw new UnsupportedOperationException("Not implemented yet.");
+            }
+
+            if (originalState != null) {
+                // Already started
+                loggingRouter.attachAnsiConsole(outputStream);
+            }
+            this.consoleOutputStream = outputStream;
         }
 
         public void setLevel(LogLevel logLevel) {
@@ -242,6 +274,9 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         @Override
         public void stop() {
             try {
+                if (consoleOutput != null || consoleOutputStream != null) {
+                    loggingRouter.flush();
+                }
                 if (originalState != null) {
                     loggingRouter.restore(originalState);
                 }

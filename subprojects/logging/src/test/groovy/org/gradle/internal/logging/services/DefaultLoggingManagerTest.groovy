@@ -17,6 +17,7 @@ package org.gradle.internal.logging.services
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.internal.logging.config.LoggingRouter
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.config.LoggingSourceSystem
@@ -439,5 +440,103 @@ public class DefaultLoggingManagerTest extends Specification {
 
         then:
         0 * loggingRouter.removeOutputEventListener(listener)
+    }
+
+    def "attaches process console on start and restores on stop"() {
+        def snapshot = Stub(LoggingSystem.Snapshot)
+
+        loggingManager.attachProcessConsole(ConsoleOutput.Auto)
+
+        when:
+        loggingManager.start()
+
+        then:
+        1 * loggingRouter.snapshot() >> snapshot
+        1 * loggingRouter.attachProcessConsole(ConsoleOutput.Auto)
+        0 * loggingRouter._
+
+        when:
+        loggingManager.stop()
+
+        then:
+        1 * loggingRouter.flush()
+        1 * loggingRouter.restore(snapshot)
+        0 * loggingRouter._
+    }
+
+    def "can attach process console while started"() {
+        def snapshot = Stub(LoggingSystem.Snapshot)
+
+        when:
+        loggingManager.start()
+
+        then:
+        1 * loggingRouter.snapshot() >> snapshot
+        0 * loggingRouter._
+
+        when:
+        loggingManager.attachProcessConsole(ConsoleOutput.Auto)
+
+        then:
+        1 * loggingRouter.attachProcessConsole(ConsoleOutput.Auto)
+        0 * loggingRouter._
+
+        when:
+        loggingManager.stop()
+
+        then:
+        1 * loggingRouter.flush()
+        1 * loggingRouter.restore(snapshot)
+        0 * loggingRouter._
+    }
+
+    def "attaches console output on start and restores on stop"() {
+        def snapshot = Stub(LoggingSystem.Snapshot)
+        def output = Stub(OutputStream)
+
+        loggingManager.attachAnsiConsole(output)
+
+        when:
+        loggingManager.start()
+
+        then:
+        1 * loggingRouter.snapshot() >> snapshot
+        1 * loggingRouter.attachAnsiConsole(output)
+        0 * loggingRouter._
+
+        when:
+        loggingManager.stop()
+
+        then:
+        1 * loggingRouter.flush()
+        1 * loggingRouter.restore(snapshot)
+        0 * loggingRouter._
+    }
+
+    def "can attach console output while started"() {
+        def snapshot = Stub(LoggingSystem.Snapshot)
+        def output = Stub(OutputStream)
+
+        when:
+        loggingManager.start()
+
+        then:
+        1 * loggingRouter.snapshot() >> snapshot
+        0 * loggingRouter._
+
+        when:
+        loggingManager.attachAnsiConsole(output)
+
+        then:
+        1 * loggingRouter.attachAnsiConsole(output)
+        0 * loggingRouter._
+
+        when:
+        loggingManager.stop()
+
+        then:
+        1 * loggingRouter.flush()
+        1 * loggingRouter.restore(snapshot)
+        0 * loggingRouter._
     }
 }
