@@ -32,7 +32,7 @@ If you're interested in how this was done, here are some of the optimizations th
 
 ### More robust and memory-efficient Daemon
 
-The Gradle daemon now actively monitors garbage collection to identify when it's using too much memory. When this happens, Gradle will restart the daemon as soon as the current build finishes.
+The Gradle daemon now actively monitors garbage collection to identify when it's running out of resources. When this happens, Gradle will restart the daemon as soon as the current build finishes.
 
 The monitoring is enabled by default, but you can disable it by configuring this project property:
 
@@ -41,8 +41,6 @@ The monitoring is enabled by default, but you can disable it by configuring this
 If you want to disable daemon monitoring for all projects, add this setting to _«USER_HOME»/.gradle/gradle.properties_. Otherwise, just add it to a _gradle.properties_ file in the root of a project.
 
 In addition to this self-monitoring feature, Gradle now attempts to limit its overall consumption of system resources by shutting down daemons that are no longer in use. Gradle previously stopped daemons after a fixed period of inactivity. In 2.14, idle daemons will expire more quickly when memory pressure is high, thus freeing up system resources faster than before.
-
-These changes mean that it's much more convenient to run the daemon on continuous integration servers now, since you won't have to monitor the daemons as frequently yourself.
 
 ### Deprecation of Java 6 support 
 
