@@ -15,20 +15,10 @@
  */
 package org.gradle.api.plugins.announce
 
-import org.gradle.api.Project
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-@UsesNativeServices
-class AnnouncePluginTest extends Specification {
-    @Rule
-    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
-
+class AnnouncePluginTest extends AbstractProjectBuilderSpec {
     AnnouncePlugin announcePlugin = new AnnouncePlugin()
-    Project project = TestUtil.createRootProject(testDir.testDirectory)
 
     def addExtensionObject() {
         when:

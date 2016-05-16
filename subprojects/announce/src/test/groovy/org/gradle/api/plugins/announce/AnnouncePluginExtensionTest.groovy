@@ -15,21 +15,11 @@
  */
 package org.gradle.api.plugins.announce
 
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.announce.internal.AnnouncerFactory
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-@UsesNativeServices
-class AnnouncePluginExtensionTest extends Specification {
-    @Rule
-    public final TestNameTestDirectoryProvider tempDir = TestNameTestDirectoryProvider.newInstance()
-
+class AnnouncePluginExtensionTest extends AbstractProjectBuilderSpec {
     final AnnouncerFactory announcerFactory = Mock()
-    final ProjectInternal project = TestUtil.createRootProject(tempDir.testDirectory)
     final AnnouncePluginExtension announcePluginConvention = new AnnouncePluginExtension(project)
 
     def setup() {
