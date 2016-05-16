@@ -26,7 +26,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.util.List;
 import java.util.Set;
 
-public class IvyModuleResolveMetaDataBuilder {
+class IvyModuleResolveMetaDataBuilder {
     private final List<Artifact> artifacts = Lists.newArrayList();
     private final DefaultModuleDescriptor ivyDescriptor;
 
