@@ -17,10 +17,19 @@
 package org.gradle.api.plugins.buildcomparison.gradle.internal
 
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.Rule
+import spock.lang.Specification
 
-class DefaultGradleBuildInvocationSpecTest extends AbstractProjectBuilderSpec {
-    FileResolver fileResolver = project.fileResolver
+@UsesNativeServices
+class DefaultGradleBuildInvocationSpecTest extends Specification {
+
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
+    FileResolver fileResolver = TestUtil.createRootProject(temporaryFolder.testDirectory).fileResolver
 
     def "equals and hashCode"() {
         given:
@@ -55,4 +64,5 @@ class DefaultGradleBuildInvocationSpecTest extends AbstractProjectBuilderSpec {
         then:
         thrown IllegalArgumentException
     }
+
 }
