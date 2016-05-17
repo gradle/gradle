@@ -17,5 +17,5 @@ afterEvaluate {
 defaultTasks(myTask.name)
 
 tasks.withType<Wrapper> {
-    distributionUrl = "https://repo.gradle.org/gradle/demo/demo-2.zip"
+    distributionUrl = "https://repo.gradle.org/gradle/demo/demo-3.zip"
 }
