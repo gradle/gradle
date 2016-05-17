@@ -115,7 +115,6 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                         + " is relocated to " + relocation
                         + ". Please update your dependencies.");
                 LOGGER.debug("Relocated module will be considered as a dependency");
-                // TODO:DAZ Handle relocated dependencies
                 ModuleVersionSelector selector = DefaultModuleVersionSelector.newSelector(relocation.getGroup(), relocation.getName(), relocation.getVersion());
                 mdBuilder.addDependencyForRelocation(selector);
             }

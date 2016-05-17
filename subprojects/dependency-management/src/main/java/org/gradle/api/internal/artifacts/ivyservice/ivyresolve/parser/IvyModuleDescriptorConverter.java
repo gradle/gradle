@@ -129,7 +129,7 @@ public class IvyModuleDescriptorConverter {
             excludeRule.getConfigurations(), excludeRule.getMatcher().getName());
     }
 
-    // TODO:DAZ Get rid of this reflection (will need to hook directly into the parser)
+    // TODO We should get rid of this reflection (will need to reimplement the parser to create a ModuleDescriptorState directly)
     private static Map<String, List<String>> readConfigMappings(DependencyDescriptor dependencyDescriptor) {
         if (dependencyDescriptor instanceof DefaultDependencyDescriptor) {
             try {

@@ -58,7 +58,6 @@ public class ModuleDescriptorState {
         return componentIdentifier;
     }
 
-    // TODO:DAZ Description and publicationDate only need to be persisted so we can detect changes (for integration tests)
     public String getDescription() {
         return description;
     }
@@ -82,7 +81,6 @@ public class ModuleDescriptorState {
         return status;
     }
 
-    // TODO:DAZ Remove all of this collection wrapping
     public List<String> getConfigurationsNames() {
         return Lists.newArrayList(configurations.keySet());
     }
