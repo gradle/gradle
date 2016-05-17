@@ -85,7 +85,7 @@ private fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootD
 private fun messageCollectorFor(log: Logger): MessageCollector =
     MessageCollector { severity, message, location ->
         fun msg() =
-            if (location == CompilerMessageLocation.Companion.NO_LOCATION) "$message"
+            if (location == CompilerMessageLocation.NO_LOCATION) "$message"
             else "$message ($location)"
 
         when (severity) {
