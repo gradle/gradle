@@ -61,10 +61,10 @@ class TestNGListenerAdapterFactory {
                 if (!realReturnType.equals(void.class) && realReturnType.isPrimitive()) {
                     boxedReturnType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(realReturnType);
                 }
-                if (method.getName().equals("equals") && args.length == 1) {
+                if (method.getName().equals("equals") && args != null && args.length == 1) {
                     return proxyEquals(proxy, args[0]);
                 }
-                if (method.getName().equals("hashCode") && args.length == 0) {
+                if (method.getName().equals("hashCode") && args == null) {
                     return proxyHashCode(proxy);
                 }
                 return invoke(listener.getClass(), listener, boxedReturnType, method, args);
