@@ -474,7 +474,7 @@ class DefaultModuleExclusionTest extends Specification {
         union instanceof UnionExclusion
         union.filters.size() == 2
         union.filters.any {
-            it instanceof MultipleExcludeRulesFilter && it.excludeSpecs == spec.excludeSpecs
+            it instanceof IntersectionExclusion && it.excludeSpecs == spec.excludeSpecs
         }
         union.filters.contains(spec3)
     }
@@ -501,8 +501,8 @@ class DefaultModuleExclusionTest extends Specification {
         specs == [spec2, spec3];
 
         // Verify test is exercising the function it's supposed to.
-        excludeBacked1 instanceof MultipleExcludeRulesFilter
-        excludeBacked2 instanceof MultipleExcludeRulesFilter
+        excludeBacked1 instanceof IntersectionExclusion
+        excludeBacked2 instanceof IntersectionExclusion
 
         union1 instanceof UnionExclusion
         finalUnion instanceof UnionExclusion

@@ -28,14 +28,9 @@ abstract class AbstractModuleExclusion implements ModuleExclusion {
     }
 
     /**
-     * Possibly unpack a composite spec into it's constituent parts, if those parts are applied as a union.
-     */
-    protected void unpackUnion(Collection<AbstractModuleExclusion> specs) {
-        specs.add(this);
-    }
-
-    /**
      * Returns the union of this filter and the given filter. Returns null if not recognized.
+     * We currently only have special handling to merge 2 `IntersectionExclusions` into a single `Exclusion`.
+     * For all other types, we don
      */
     protected AbstractModuleExclusion maybeMergeIntoUnion(AbstractModuleExclusion other) {
         return null;
@@ -83,6 +78,13 @@ abstract class AbstractModuleExclusion implements ModuleExclusion {
      * Possibly unpack a composite spec into it's constituent parts, if those parts are applied as an intersection.
      */
     protected void unpackIntersection(Collection<AbstractModuleExclusion> specs) {
+        specs.add(this);
+    }
+
+    /**
+     * Possibly unpack a composite spec into it's constituent parts, if those parts are applied as a union.
+     */
+    protected void unpackUnion(Collection<AbstractModuleExclusion> specs) {
         specs.add(this);
     }
 

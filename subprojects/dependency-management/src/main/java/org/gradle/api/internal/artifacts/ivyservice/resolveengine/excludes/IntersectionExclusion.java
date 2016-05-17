@@ -25,10 +25,10 @@ import java.util.*;
  * A spec that excludes modules or artifacts that are excluded by _any_ of the supplied exclusions.
  * As such, this is an intersection of the separate exclude rule filters.
  */
-class MultipleExcludeRulesFilter extends AbstractCompositeExclusion {
+class IntersectionExclusion extends AbstractCompositeExclusion {
     private final Set<AbstractModuleExclusion> excludeSpecs = new HashSet<AbstractModuleExclusion>();
 
-    public MultipleExcludeRulesFilter(Collection<AbstractModuleExclusion> specs) {
+    public IntersectionExclusion(Collection<AbstractModuleExclusion> specs) {
         this.excludeSpecs.addAll(specs);
     }
 
@@ -84,15 +84,17 @@ class MultipleExcludeRulesFilter extends AbstractCompositeExclusion {
 
     /**
      * Construct a single spec that will exclude any module/artifact that is excluded by both this _and_ the other filter.
-     * Returns null when this union cannot be computed.
+     *
+     * Returns null when this union cannot be computed. This will happen if 'other' is _not_ an Intersection itself,
+     * or if any of the consituent specs cannot be merged.
      */
     @Override
     protected AbstractModuleExclusion maybeMergeIntoUnion(AbstractModuleExclusion other) {
-        if (!(other instanceof MultipleExcludeRulesFilter)) {
+        if (!(other instanceof IntersectionExclusion)) {
             return null;
         }
 
-        MultipleExcludeRulesFilter multipleExcludeRulesSpec = (MultipleExcludeRulesFilter) other;
+        IntersectionExclusion multipleExcludeRulesSpec = (IntersectionExclusion) other;
         if (excludeSpecs.equals(multipleExcludeRulesSpec.excludeSpecs)) {
             return this;
         }
@@ -119,7 +121,7 @@ class MultipleExcludeRulesFilter extends AbstractCompositeExclusion {
         if (merged.isEmpty()) {
             return ModuleExclusions.EXCLUDE_NONE;
         }
-        return new MultipleExcludeRulesFilter(merged);
+        return new IntersectionExclusion(merged);
     }
 
     private boolean canMerge(AbstractModuleExclusion excludeSpec) {

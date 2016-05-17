@@ -73,7 +73,7 @@ public class ModuleExclusions {
         if (excludes.isEmpty()) {
             return EXCLUDE_NONE;
         }
-        return new MultipleExcludeRulesFilter(CollectionUtils.collect(excludes, new Transformer<AbstractModuleExclusion, Exclude>() {
+        return new IntersectionExclusion(CollectionUtils.collect(excludes, new Transformer<AbstractModuleExclusion, Exclude>() {
             @Override
             public AbstractModuleExclusion transform(Exclude exclude) {
                 return forExclude(exclude);
@@ -164,6 +164,6 @@ public class ModuleExclusions {
         ((AbstractModuleExclusion) one).unpackIntersection(specs);
         ((AbstractModuleExclusion) two).unpackIntersection(specs);
 
-        return new MultipleExcludeRulesFilter(specs);
+        return new IntersectionExclusion(specs);
     }
 }
