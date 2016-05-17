@@ -40,11 +40,11 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
 
         try {
             for (IvyArtifact publishArtifact : publication.getArtifacts()) {
-                publishMetaData.addArtifact(createIvyArtifact(publishArtifact), publishArtifact.getFile());
+                publishMetaData.addPublishedArtifact(createIvyArtifact(publishArtifact), publishArtifact.getFile());
             }
 
             IvyArtifactName artifact = new DefaultIvyArtifactName("ivy", "ivy", "xml");
-            publishMetaData.addArtifact(artifact, publication.getDescriptorFile());
+            publishMetaData.addPublishedArtifact(artifact, publication.getDescriptorFile());
 
             publisher.publish(publishMetaData);
         } catch (IOException e) {

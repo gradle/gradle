@@ -55,14 +55,14 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         if (descriptor != null) {
             // Convert once, in order to write the Ivy descriptor with _all_ configurations
             IvyModulePublishMetaData publishMetaData = toPublishMetaData(module, allConfigurations);
-            ivyModuleDescriptorWriter.write(publishMetaData.getModuleDescriptor(), publishMetaData.getArtifacts(), descriptor);
+            ivyModuleDescriptorWriter.write(publishMetaData.getModuleDescriptor(), descriptor);
         }
 
         // Convert a second time with only the published configurations: this ensures that the correct artifacts are included
         BuildableIvyModulePublishMetaData publishMetaData = toPublishMetaData(module, configurationsToPublish);
         if (descriptor != null) {
             IvyArtifactName artifact = new DefaultIvyArtifactName("ivy", "ivy", "xml");
-            publishMetaData.addArtifact(artifact, descriptor);
+            publishMetaData.addPublishedArtifact(artifact, descriptor);
         }
 
         List<ModuleVersionPublisher> publishResolvers = new ArrayList<ModuleVersionPublisher>();

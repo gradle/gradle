@@ -32,7 +32,7 @@ class DefaultIvyModulePublishMetaDataTest extends Specification {
         def file = new File("artifact.zip")
 
         when:
-        metaData.addArtifact(artifact, file)
+        metaData.addPublishedArtifact(artifact, file)
 
         then:
         metaData.artifacts.size() == 1
