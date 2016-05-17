@@ -22,8 +22,5 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.io.File;
 
 public interface BuildableIvyModulePublishMetaData extends IvyModulePublishMetaData, BuildableLocalComponentMetaData {
-    /**
-     * Adds an artifact that is not registered in the module descriptor.
-     */
-    void addPublishedArtifact(IvyArtifactName artifact, File file);
+    void addArtifact(IvyArtifactName artifact, File file);
 }
