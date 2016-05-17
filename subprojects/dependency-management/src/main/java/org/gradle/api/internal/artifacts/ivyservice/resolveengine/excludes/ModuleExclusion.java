@@ -22,7 +22,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 /**
  * Manages sets of exclude rules, allowing union and intersection operations on the rules.
  */
-public interface ModuleExcludeRuleFilter {
+public interface ModuleExclusion {
     /**
      * Should this module be excluded from the resolution result?
      */
@@ -45,5 +45,5 @@ public interface ModuleExcludeRuleFilter {
      *
      * @return true if the filters excludes the same set of modules. Returns false if they may not, or if it is unknown.
      */
-    boolean excludesSameModulesAs(ModuleExcludeRuleFilter other);
+    boolean excludesSameModulesAs(ModuleExclusion other);
 }

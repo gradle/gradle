@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 
-class ExcludeNone extends AbstractModuleExcludeRuleFilter {
+class ExcludeNone extends AbstractModuleExclusion {
     @Override
     public String toString() {
         return "{exclude-none}";

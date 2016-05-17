@@ -23,7 +23,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
  * A ModuleResolutionFilter that excludes any artifact that matches supplied module and artifact details.
  * Does not exclude any modules
  */
-class ArtifactExcludeSpec extends AbstractModuleExcludeRuleFilter {
+class ArtifactExcludeSpec extends AbstractModuleExclusion {
     private final ModuleIdentifier moduleId;
     private final IvyArtifactName ivyArtifactName;
 
@@ -49,7 +49,7 @@ class ArtifactExcludeSpec extends AbstractModuleExcludeRuleFilter {
     }
 
     @Override
-    protected boolean doExcludesSameModulesAs(AbstractModuleExcludeRuleFilter other) {
+    protected boolean doExcludesSameModulesAs(AbstractModuleExclusion other) {
         return true;
     }
 

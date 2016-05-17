@@ -26,14 +26,14 @@ import java.util.List;
  * A filter that only excludes artifacts and modules that are excluded by _all_ of the supplied exclude rules.
  * As such, this is a union of the separate exclude rule filters.
  */
-class UnionExcludeRuleFilter extends AbstractCompositeExcludeRuleFilter {
-    private final List<AbstractModuleExcludeRuleFilter> filters;
+class UnionExclusion extends AbstractCompositeExclusion {
+    private final List<AbstractModuleExclusion> filters;
 
-    public UnionExcludeRuleFilter(List<AbstractModuleExcludeRuleFilter> filters) {
+    public UnionExclusion(List<AbstractModuleExclusion> filters) {
         this.filters = filters;
     }
 
-    Collection<AbstractModuleExcludeRuleFilter> getFilters() {
+    Collection<AbstractModuleExclusion> getFilters() {
         return filters;
     }
 
@@ -41,13 +41,13 @@ class UnionExcludeRuleFilter extends AbstractCompositeExcludeRuleFilter {
      * Can unpack into constituents when creating a larger union.
      */
     @Override
-    protected void unpackUnion(Collection<AbstractModuleExcludeRuleFilter> specs) {
+    protected void unpackUnion(Collection<AbstractModuleExclusion> specs) {
         specs.addAll(this.filters);
     }
 
     @Override
     protected boolean excludesNoModules() {
-        for (AbstractModuleExcludeRuleFilter excludeSpec : filters) {
+        for (AbstractModuleExclusion excludeSpec : filters) {
             if (excludeSpec.excludesNoModules()) {
                 return true;
             }
@@ -56,7 +56,7 @@ class UnionExcludeRuleFilter extends AbstractCompositeExcludeRuleFilter {
     }
 
     public boolean excludeModule(ModuleIdentifier element) {
-        for (AbstractModuleExcludeRuleFilter spec : filters) {
+        for (AbstractModuleExclusion spec : filters) {
             if (!spec.excludeModule(element)) {
                 return false;
             }
@@ -66,7 +66,7 @@ class UnionExcludeRuleFilter extends AbstractCompositeExcludeRuleFilter {
     }
 
     public boolean excludeArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-        for (AbstractModuleExcludeRuleFilter spec : filters) {
+        for (AbstractModuleExclusion spec : filters) {
             if (!spec.excludeArtifact(module, artifact)) {
                 return false;
             }
@@ -76,7 +76,7 @@ class UnionExcludeRuleFilter extends AbstractCompositeExcludeRuleFilter {
     }
 
     public boolean mayExcludeArtifacts() {
-        for (AbstractModuleExcludeRuleFilter spec : filters) {
+        for (AbstractModuleExclusion spec : filters) {
             if (!spec.mayExcludeArtifacts()) {
                 return false;
             }

@@ -23,7 +23,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
  * Excludes any module that has a module id matching the one specified.
  * Does not exclude artifacts.
  */
-class ModuleIdExcludeSpec extends AbstractModuleExcludeRuleFilter {
+class ModuleIdExcludeSpec extends AbstractModuleExclusion {
     final ModuleIdentifier moduleId;
 
     public ModuleIdExcludeSpec(String group, String name) {
@@ -47,7 +47,7 @@ class ModuleIdExcludeSpec extends AbstractModuleExcludeRuleFilter {
     }
 
     @Override
-    protected boolean doExcludesSameModulesAs(AbstractModuleExcludeRuleFilter other) {
+    protected boolean doExcludesSameModulesAs(AbstractModuleExclusion other) {
         ModuleIdExcludeSpec moduleIdExcludeSpec = (ModuleIdExcludeSpec) other;
         return moduleId.equals(moduleIdExcludeSpec.moduleId);
     }

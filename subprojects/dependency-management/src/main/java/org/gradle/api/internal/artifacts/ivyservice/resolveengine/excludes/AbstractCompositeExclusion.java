@@ -18,15 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import java.util.Collection;
 
-abstract class AbstractCompositeExcludeRuleFilter extends AbstractModuleExcludeRuleFilter {
-    abstract Collection<AbstractModuleExcludeRuleFilter> getFilters();
+abstract class AbstractCompositeExclusion extends AbstractModuleExclusion {
+    abstract Collection<AbstractModuleExclusion> getFilters();
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("{");
         builder.append(getClass().getSimpleName());
-        for (AbstractModuleExcludeRuleFilter spec : getFilters()) {
+        for (AbstractModuleExclusion spec : getFilters()) {
             builder.append(' ');
             builder.append(spec);
         }
@@ -35,14 +35,14 @@ abstract class AbstractCompositeExcludeRuleFilter extends AbstractModuleExcludeR
     }
 
     @Override
-    protected boolean doExcludesSameModulesAs(AbstractModuleExcludeRuleFilter other) {
-        AbstractCompositeExcludeRuleFilter spec = (AbstractCompositeExcludeRuleFilter) other;
+    protected boolean doExcludesSameModulesAs(AbstractModuleExclusion other) {
+        AbstractCompositeExclusion spec = (AbstractCompositeExclusion) other;
         return implies(spec) && spec.implies(this);
     }
 
     @Override
     protected boolean doEquals(Object obj) {
-        AbstractCompositeExcludeRuleFilter other = (AbstractCompositeExcludeRuleFilter) obj;
+        AbstractCompositeExclusion other = (AbstractCompositeExclusion) obj;
         return getFilters().equals(other.getFilters());
     }
 
@@ -54,10 +54,10 @@ abstract class AbstractCompositeExcludeRuleFilter extends AbstractModuleExcludeR
     /**
      * Returns true if for every spec in this spec, there is a corresponding spec in the given spec that excludesSameModulesAs().
      */
-    protected boolean implies(AbstractCompositeExcludeRuleFilter spec) {
-        for (AbstractModuleExcludeRuleFilter thisSpec : getFilters()) {
+    protected boolean implies(AbstractCompositeExclusion spec) {
+        for (AbstractModuleExclusion thisSpec : getFilters()) {
             boolean found = false;
-            for (AbstractModuleExcludeRuleFilter otherSpec : spec.getFilters()) {
+            for (AbstractModuleExclusion otherSpec : spec.getFilters()) {
                 if (thisSpec.excludesSameModulesAs(otherSpec)) {
                     found = true;
                     break;

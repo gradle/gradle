@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.AbstractModuleExcludeRuleFilter.isWildcard;
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.AbstractModuleExclusion.isWildcard;
 
 /**
  * Manages sets of exclude rules, allowing union and intersection operations on the rules.
@@ -36,7 +36,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.exclude
  * org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder}, on the assumption that there are many more edges in the dependency graph than there are exclude rules (ie we evaluate the rules much more often that we construct them).
  * </p>
  *
- * <p>Also, this class attempts to be quite accurate in determining if 2 specs will match exactly the same set of modules. {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder} uses this to avoid traversing the
+ * <p>Also, this class attempts to be quite accurate in determining if 2 specs will exclude exactly the same set of modules. {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder} uses this to avoid traversing the
  * dependency graph of a particular version that has already been traversed when a new incoming edge is added (eg a newly discovered dependency) and when an incoming edge is removed (eg a conflict
  * evicts a version that depends on the given version). </p>
  *
@@ -46,20 +46,20 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.exclude
  *     <li>When a module is depended on via multiple paths in the graph, then the resulting exclusion is the _union_ of the exclusions on each of those paths (module is excluded if excluded by _all_).</li>
  * </ul>
  */
-public class ModuleExcludeRuleFilters {
+public class ModuleExclusions {
     static final ExcludeNone EXCLUDE_NONE = new ExcludeNone();
 
     /**
      * Returns a spec that excludes nothing.
      */
-    public static ModuleExcludeRuleFilter excludeNone() {
+    public static ModuleExclusion excludeNone() {
         return EXCLUDE_NONE;
     }
 
     /**
      * Returns a spec that excludes those modules and artifacts that are excluded by _any_ of the given exclude rules.
      */
-    public static ModuleExcludeRuleFilter excludeAny(Exclude... excludes) {
+    public static ModuleExclusion excludeAny(Exclude... excludes) {
         if (excludes.length == 0) {
             return EXCLUDE_NONE;
         }
@@ -69,19 +69,19 @@ public class ModuleExcludeRuleFilters {
     /**
      * Returns a spec that excludes those modules and artifacts that are excluded by _any_ of the given exclude rules.
      */
-    public static ModuleExcludeRuleFilter excludeAny(Collection<Exclude> excludes) {
+    public static ModuleExclusion excludeAny(Collection<Exclude> excludes) {
         if (excludes.isEmpty()) {
             return EXCLUDE_NONE;
         }
-        return new MultipleExcludeRulesFilter(CollectionUtils.collect(excludes, new Transformer<AbstractModuleExcludeRuleFilter, Exclude>() {
+        return new MultipleExcludeRulesFilter(CollectionUtils.collect(excludes, new Transformer<AbstractModuleExclusion, Exclude>() {
             @Override
-            public AbstractModuleExcludeRuleFilter transform(Exclude exclude) {
+            public AbstractModuleExclusion transform(Exclude exclude) {
                 return forExclude(exclude);
             }
         }));
     }
 
-    private static AbstractModuleExcludeRuleFilter forExclude(Exclude rule) {
+    private static AbstractModuleExclusion forExclude(Exclude rule) {
         // For custom ivy pattern matchers, don't inspect the rule any more deeply: this prevents us from doing smart merging later
         if (!PatternMatchers.isExactMatcher(rule.getMatcher())) {
             return new IvyPatternMatcherExcludeRuleSpec(rule);
@@ -112,7 +112,7 @@ public class ModuleExcludeRuleFilters {
     /**
      * Returns a spec that excludes only those modules and artifacts that are excluded by both of the supplied exclude rules.
      */
-    public static ModuleExcludeRuleFilter union(ModuleExcludeRuleFilter one, ModuleExcludeRuleFilter two) {
+    public static ModuleExclusion union(ModuleExclusion one, ModuleExclusion two) {
         if (one == two) {
             return one;
         }
@@ -120,12 +120,12 @@ public class ModuleExcludeRuleFilters {
             return EXCLUDE_NONE;
         }
 
-        List<AbstractModuleExcludeRuleFilter> specs = new ArrayList<AbstractModuleExcludeRuleFilter>();
-        ((AbstractModuleExcludeRuleFilter) one).unpackUnion(specs);
-        ((AbstractModuleExcludeRuleFilter) two).unpackUnion(specs);
+        List<AbstractModuleExclusion> specs = new ArrayList<AbstractModuleExclusion>();
+        ((AbstractModuleExclusion) one).unpackUnion(specs);
+        ((AbstractModuleExclusion) two).unpackUnion(specs);
         for (int i = 0; i < specs.size();) {
-            AbstractModuleExcludeRuleFilter spec = specs.get(i);
-            AbstractModuleExcludeRuleFilter merged = null;
+            AbstractModuleExclusion spec = specs.get(i);
+            AbstractModuleExclusion merged = null;
             // See if we can merge any of the following specs into one
             for (int j = i + 1; j < specs.size(); j++) {
                 merged = spec.maybeMergeIntoUnion(specs.get(j));
@@ -143,13 +143,13 @@ public class ModuleExcludeRuleFilters {
         if (specs.size() == 1) {
             return specs.get(0);
         }
-        return new UnionExcludeRuleFilter(specs);
+        return new UnionExclusion(specs);
     }
 
     /**
      * Returns a spec that excludes those modules and artifacts that are excluded by _either_ of the given exclude rules.
      */
-    public static ModuleExcludeRuleFilter intersect(ModuleExcludeRuleFilter one, ModuleExcludeRuleFilter two) {
+    public static ModuleExclusion intersect(ModuleExclusion one, ModuleExclusion two) {
         if (one == two) {
             return one;
         }
@@ -160,9 +160,9 @@ public class ModuleExcludeRuleFilters {
             return one;
         }
 
-        List<AbstractModuleExcludeRuleFilter> specs = new ArrayList<AbstractModuleExcludeRuleFilter>();
-        ((AbstractModuleExcludeRuleFilter) one).unpackIntersection(specs);
-        ((AbstractModuleExcludeRuleFilter) two).unpackIntersection(specs);
+        List<AbstractModuleExclusion> specs = new ArrayList<AbstractModuleExclusion>();
+        ((AbstractModuleExclusion) one).unpackIntersection(specs);
+        ((AbstractModuleExclusion) two).unpackIntersection(specs);
 
         return new MultipleExcludeRulesFilter(specs);
     }

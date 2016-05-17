@@ -25,20 +25,20 @@ import java.util.*;
  * A spec that excludes modules or artifacts that are excluded by _any_ of the supplied exclusions.
  * As such, this is an intersection of the separate exclude rule filters.
  */
-class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
-    private final Set<AbstractModuleExcludeRuleFilter> excludeSpecs = new HashSet<AbstractModuleExcludeRuleFilter>();
+class MultipleExcludeRulesFilter extends AbstractCompositeExclusion {
+    private final Set<AbstractModuleExclusion> excludeSpecs = new HashSet<AbstractModuleExclusion>();
 
-    public MultipleExcludeRulesFilter(Collection<AbstractModuleExcludeRuleFilter> specs) {
+    public MultipleExcludeRulesFilter(Collection<AbstractModuleExclusion> specs) {
         this.excludeSpecs.addAll(specs);
     }
 
-    Collection<AbstractModuleExcludeRuleFilter> getFilters() {
+    Collection<AbstractModuleExclusion> getFilters() {
         return excludeSpecs;
     }
 
     @Override
     protected boolean excludesNoModules() {
-        for (AbstractModuleExcludeRuleFilter excludeSpec : excludeSpecs) {
+        for (AbstractModuleExclusion excludeSpec : excludeSpecs) {
             if (!excludeSpec.excludesNoModules()) {
                 return false;
             }
@@ -47,7 +47,7 @@ class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
     }
 
     public boolean excludeModule(ModuleIdentifier element) {
-        for (AbstractModuleExcludeRuleFilter excludeSpec : excludeSpecs) {
+        for (AbstractModuleExclusion excludeSpec : excludeSpecs) {
             if (excludeSpec.excludeModule(element)) {
                 return true;
             }
@@ -56,7 +56,7 @@ class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
     }
 
     public boolean excludeArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-        for (AbstractModuleExcludeRuleFilter excludeSpec : excludeSpecs) {
+        for (AbstractModuleExclusion excludeSpec : excludeSpecs) {
             if (excludeSpec.excludeArtifact(module, artifact)) {
                 return true;
             }
@@ -65,7 +65,7 @@ class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
     }
 
     public boolean mayExcludeArtifacts() {
-        for (AbstractModuleExcludeRuleFilter spec : excludeSpecs) {
+        for (AbstractModuleExclusion spec : excludeSpecs) {
             if (spec.mayExcludeArtifacts()) {
                 return true;
             }
@@ -78,7 +78,7 @@ class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
      * Can unpack into constituents when creating a larger intersection (since elements are applied as an intersection).
      */
     @Override
-    protected void unpackIntersection(Collection<AbstractModuleExcludeRuleFilter> specs) {
+    protected void unpackIntersection(Collection<AbstractModuleExclusion> specs) {
         specs.addAll(excludeSpecs);
     }
 
@@ -87,7 +87,7 @@ class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
      * Returns null when this union cannot be computed.
      */
     @Override
-    protected AbstractModuleExcludeRuleFilter maybeMergeIntoUnion(AbstractModuleExcludeRuleFilter other) {
+    protected AbstractModuleExclusion maybeMergeIntoUnion(AbstractModuleExclusion other) {
         if (!(other instanceof MultipleExcludeRulesFilter)) {
             return null;
         }
@@ -98,31 +98,31 @@ class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
         }
 
         // Can only merge exact match rules, so don't try if this or the other spec contains any other type of rule
-        for (AbstractModuleExcludeRuleFilter excludeSpec : excludeSpecs) {
+        for (AbstractModuleExclusion excludeSpec : excludeSpecs) {
             if (!canMerge(excludeSpec)) {
                 return null;
             }
         }
-        for (AbstractModuleExcludeRuleFilter excludeSpec : multipleExcludeRulesSpec.excludeSpecs) {
+        for (AbstractModuleExclusion excludeSpec : multipleExcludeRulesSpec.excludeSpecs) {
             if (!canMerge(excludeSpec)) {
                 return null;
             }
         }
 
         // Merge the exclude rules from both specs into a single union spec.
-        List<AbstractModuleExcludeRuleFilter> merged = new ArrayList<AbstractModuleExcludeRuleFilter>();
-        for (AbstractModuleExcludeRuleFilter thisSpec : excludeSpecs) {
-            for (AbstractModuleExcludeRuleFilter otherSpec : multipleExcludeRulesSpec.excludeSpecs) {
+        List<AbstractModuleExclusion> merged = new ArrayList<AbstractModuleExclusion>();
+        for (AbstractModuleExclusion thisSpec : excludeSpecs) {
+            for (AbstractModuleExclusion otherSpec : multipleExcludeRulesSpec.excludeSpecs) {
                 mergeExcludeRules(thisSpec, otherSpec, merged);
             }
         }
         if (merged.isEmpty()) {
-            return ModuleExcludeRuleFilters.EXCLUDE_NONE;
+            return ModuleExclusions.EXCLUDE_NONE;
         }
         return new MultipleExcludeRulesFilter(merged);
     }
 
-    private boolean canMerge(AbstractModuleExcludeRuleFilter excludeSpec) {
+    private boolean canMerge(AbstractModuleExclusion excludeSpec) {
         return excludeSpec instanceof ExcludeAllModulesSpec
             || excludeSpec instanceof ArtifactExcludeSpec
             || excludeSpec instanceof GroupNameExcludeSpec
@@ -131,7 +131,7 @@ class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
     }
 
     // Add exclusions to the list that will exclude modules/artifacts that are excluded by _both_ of the candidate rules.
-    private void mergeExcludeRules(AbstractModuleExcludeRuleFilter spec1, AbstractModuleExcludeRuleFilter spec2, List<AbstractModuleExcludeRuleFilter> merged) {
+    private void mergeExcludeRules(AbstractModuleExclusion spec1, AbstractModuleExclusion spec2, List<AbstractModuleExclusion> merged) {
         if (spec1 instanceof ExcludeAllModulesSpec) {
             // spec1 excludes everything: use spec2 excludes
             merged.add(spec2);
@@ -171,7 +171,7 @@ class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
         }
     }
 
-    private void mergeExcludeRules(GroupNameExcludeSpec spec1, AbstractModuleExcludeRuleFilter spec2, List<AbstractModuleExcludeRuleFilter> merged) {
+    private void mergeExcludeRules(GroupNameExcludeSpec spec1, AbstractModuleExclusion spec2, List<AbstractModuleExclusion> merged) {
         if (spec2 instanceof GroupNameExcludeSpec) {
             // Intersection of 2 group excludes does nothing unless excluded groups match
             GroupNameExcludeSpec groupNameExcludeSpec = (GroupNameExcludeSpec) spec2;
@@ -193,7 +193,7 @@ class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
          }
     }
 
-    private void mergeExcludeRules(ModuleNameExcludeSpec spec1, AbstractModuleExcludeRuleFilter spec2, List<AbstractModuleExcludeRuleFilter> merged) {
+    private void mergeExcludeRules(ModuleNameExcludeSpec spec1, AbstractModuleExclusion spec2, List<AbstractModuleExclusion> merged) {
         if (spec2 instanceof ModuleNameExcludeSpec) {
             // Intersection of 2 module name excludes does nothing unless excluded module names match
             ModuleNameExcludeSpec moduleNameExcludeSpec = (ModuleNameExcludeSpec) spec2;

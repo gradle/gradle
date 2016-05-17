@@ -22,9 +22,9 @@ import org.gradle.internal.component.model.Exclude
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExcludeRuleFilters.excludeAny
+import static ModuleExclusions.excludeAny
 
-class DefaultModuleExcludeRuleFilterTest extends Specification {
+class DefaultModuleExclusionTest extends Specification {
     def "accepts all modules default"() {
         def spec = excludeAny()
 
@@ -48,7 +48,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
     @Unroll
     def "does not accept module that matches single module exclude rule (#rule)"() {
         when:
-        def spec = ModuleExcludeRuleFilters.excludeAny(rule)
+        def spec = ModuleExclusions.excludeAny(rule)
 
         then:
         spec.excludeModule(moduleId('org', 'module'))
@@ -68,7 +68,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
     @Unroll
     def "accepts module that doesn't match single module exclude rule (#rule)"() {
         when:
-        def spec = ModuleExcludeRuleFilters.excludeAny(rule)
+        def spec = ModuleExclusions.excludeAny(rule)
 
         then:
         !spec.excludeModule(moduleId('org', 'module'))
@@ -86,8 +86,8 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
     @Unroll
     def "module exclude rule selects the same modules as itself (#rule)"() {
         when:
-        def spec = ModuleExcludeRuleFilters.excludeAny(rule)
-        def same = ModuleExcludeRuleFilters.excludeAny(rule)
+        def spec = ModuleExclusions.excludeAny(rule)
+        def same = ModuleExclusions.excludeAny(rule)
         def all = excludeAny()
         def otherRule = excludeAny(excludeRule('*', 'other'))
         def artifactRule = excludeAny(excludeRule('*', 'other', 'thing', '*', '*'))
@@ -111,7 +111,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
     @Unroll
     def "accepts module for every artifact exclude rule (#rule)"() {
         when:
-        def spec = ModuleExcludeRuleFilters.excludeAny(rule)
+        def spec = ModuleExclusions.excludeAny(rule)
 
         then:
         !spec.excludeModule(moduleId('org', 'module'))
@@ -127,7 +127,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
     @Unroll
     def "accepts artifact for every module exclude rule (#rule)"() {
         when:
-        def spec = ModuleExcludeRuleFilters.excludeAny(rule)
+        def spec = ModuleExclusions.excludeAny(rule)
 
         then:
         !spec.excludeArtifact(moduleId('org', 'module'), artifactName('name', 'jar', 'jar'))
@@ -148,7 +148,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
     @Unroll
     def "does not accept artifact that matches single artifact exclude rule (#rule)"() {
         when:
-        def spec = ModuleExcludeRuleFilters.excludeAny(rule)
+        def spec = ModuleExclusions.excludeAny(rule)
 
         then:
         spec.excludeArtifact(moduleId('org', 'module'), artifactName('mylib', 'jar', 'jar'))
@@ -170,7 +170,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
     @Unroll
     def "accepts artifact that doesn't match single artifact exclude rule (#rule)"() {
         when:
-        def spec = ModuleExcludeRuleFilters.excludeAny(rule)
+        def spec = ModuleExclusions.excludeAny(rule)
 
         then:
         !spec.excludeArtifact(moduleId('org', 'module'), artifactName('mylib', 'jar', 'jar'))
@@ -210,10 +210,10 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
     @Unroll
     def "artifact exclude rule accepts the same modules as other rules that accept all modules (#rule)"() {
         when:
-        def spec = ModuleExcludeRuleFilters.excludeAny(rule)
-        def sameRule = ModuleExcludeRuleFilters.excludeAny(rule)
+        def spec = ModuleExclusions.excludeAny(rule)
+        def sameRule = ModuleExclusions.excludeAny(rule)
         def otherRule = excludeAny(excludeRule('*', '*', 'thing', '*', '*'))
-        def all = ModuleExcludeRuleFilters.excludeNone()
+        def all = ModuleExclusions.excludeNone()
         def moduleRule = excludeAny(excludeRule('*', 'module'))
 
         then:
@@ -400,7 +400,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         union2 == excludeAny(excludeRule("org", "module"))
 
         def union3 = union(spec, excludeAny(rule6))
-        union3 == ModuleExcludeRuleFilters.excludeNone()
+        union3 == ModuleExclusions.excludeNone()
     }
 
     def "union of two specs with disjoint exact matching exclude rules excludes no modules"() {
@@ -411,7 +411,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
 
         expect:
         def union = union(spec, spec2)
-        union == ModuleExcludeRuleFilters.excludeNone()
+        union == ModuleExclusions.excludeNone()
     }
 
     def "union of a spec with exclude-all spec returns the original spec"() {
@@ -471,7 +471,7 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         expect:
         def union = union(union(spec, spec3), spec2)
 
-        union instanceof UnionExcludeRuleFilter
+        union instanceof UnionExclusion
         union.filters.size() == 2
         union.filters.any {
             it instanceof MultipleExcludeRulesFilter && it.excludeSpecs == spec.excludeSpecs
@@ -504,8 +504,8 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         excludeBacked1 instanceof MultipleExcludeRulesFilter
         excludeBacked2 instanceof MultipleExcludeRulesFilter
 
-        union1 instanceof UnionExcludeRuleFilter
-        finalUnion instanceof UnionExcludeRuleFilter
+        union1 instanceof UnionExclusion
+        finalUnion instanceof UnionExclusion
 
         !spec2.excludeModule(moduleId("org", "module4"))
 
@@ -689,12 +689,12 @@ class DefaultModuleExcludeRuleFilterTest extends Specification {
         union(intersection, simpleExclude)
     }
 
-    static ModuleExcludeRuleFilter union(ModuleExcludeRuleFilter spec, ModuleExcludeRuleFilter otherRule) {
-        ModuleExcludeRuleFilters.union(spec, otherRule)
+    static ModuleExclusion union(ModuleExclusion spec, ModuleExclusion otherRule) {
+        ModuleExclusions.union(spec, otherRule)
     }
 
-    static ModuleExcludeRuleFilter intersect(ModuleExcludeRuleFilter spec, ModuleExcludeRuleFilter otherRule) {
-        ModuleExcludeRuleFilters.intersect(spec, otherRule)
+    static ModuleExclusion intersect(ModuleExclusion spec, ModuleExclusion otherRule) {
+        ModuleExclusions.intersect(spec, otherRule)
     }
 
     static specForRule(def spec, Exclude rule) {

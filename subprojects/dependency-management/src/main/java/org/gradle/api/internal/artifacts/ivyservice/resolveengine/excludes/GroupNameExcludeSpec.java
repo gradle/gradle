@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ModuleIdentifier;
  * A ModuleResolutionFilter that excludes any module with a matching group.
  * Does not exclude any artifacts.
  */
-class GroupNameExcludeSpec extends AbstractModuleExcludeRuleFilter {
+class GroupNameExcludeSpec extends AbstractModuleExclusion {
     final String group;
 
     GroupNameExcludeSpec(String group) {
@@ -46,7 +46,7 @@ class GroupNameExcludeSpec extends AbstractModuleExcludeRuleFilter {
     }
 
     @Override
-    public boolean doExcludesSameModulesAs(AbstractModuleExcludeRuleFilter other) {
+    public boolean doExcludesSameModulesAs(AbstractModuleExclusion other) {
         GroupNameExcludeSpec groupNameExcludeSpec = (GroupNameExcludeSpec) other;
         return group.equals(groupNameExcludeSpec.group);
     }

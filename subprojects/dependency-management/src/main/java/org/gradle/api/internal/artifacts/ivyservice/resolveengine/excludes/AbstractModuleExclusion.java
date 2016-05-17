@@ -20,7 +20,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
 
-abstract class AbstractModuleExcludeRuleFilter implements ModuleExcludeRuleFilter {
+abstract class AbstractModuleExclusion implements ModuleExclusion {
     private static final String WILDCARD = "*";
 
     protected static boolean isWildcard(String attribute) {
@@ -30,14 +30,14 @@ abstract class AbstractModuleExcludeRuleFilter implements ModuleExcludeRuleFilte
     /**
      * Possibly unpack a composite spec into it's constituent parts, if those parts are applied as a union.
      */
-    protected void unpackUnion(Collection<AbstractModuleExcludeRuleFilter> specs) {
+    protected void unpackUnion(Collection<AbstractModuleExclusion> specs) {
         specs.add(this);
     }
 
     /**
      * Returns the union of this filter and the given filter. Returns null if not recognized.
      */
-    protected AbstractModuleExcludeRuleFilter maybeMergeIntoUnion(AbstractModuleExcludeRuleFilter other) {
+    protected AbstractModuleExclusion maybeMergeIntoUnion(AbstractModuleExclusion other) {
         return null;
     }
 
@@ -49,11 +49,11 @@ abstract class AbstractModuleExcludeRuleFilter implements ModuleExcludeRuleFilte
         return false;
     }
 
-    public final boolean excludesSameModulesAs(ModuleExcludeRuleFilter filter) {
+    public final boolean excludesSameModulesAs(ModuleExclusion filter) {
         if (filter == this) {
             return true;
         }
-        AbstractModuleExcludeRuleFilter other = (AbstractModuleExcludeRuleFilter) filter;
+        AbstractModuleExclusion other = (AbstractModuleExclusion) filter;
         boolean thisExcludesNothing = excludesNoModules();
         boolean otherExcludesNothing = other.excludesNoModules();
         if (thisExcludesNothing && otherExcludesNothing) {
@@ -71,7 +71,7 @@ abstract class AbstractModuleExcludeRuleFilter implements ModuleExcludeRuleFilte
     /**
      * Only called when this and the other spec have the same class.
      */
-    protected boolean doExcludesSameModulesAs(AbstractModuleExcludeRuleFilter other) {
+    protected boolean doExcludesSameModulesAs(AbstractModuleExclusion other) {
         return false;
     }
 
@@ -82,7 +82,7 @@ abstract class AbstractModuleExcludeRuleFilter implements ModuleExcludeRuleFilte
     /**
      * Possibly unpack a composite spec into it's constituent parts, if those parts are applied as an intersection.
      */
-    protected void unpackIntersection(Collection<AbstractModuleExcludeRuleFilter> specs) {
+    protected void unpackIntersection(Collection<AbstractModuleExclusion> specs) {
         specs.add(this);
     }
 
