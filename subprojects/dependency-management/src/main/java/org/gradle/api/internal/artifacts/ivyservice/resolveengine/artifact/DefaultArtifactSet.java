@@ -62,7 +62,7 @@ public class DefaultArtifactSet implements ArtifactSet {
         Set<ResolvedArtifact> resolvedArtifacts = new LinkedHashSet<ResolvedArtifact>(artifacts.size());
         for (ComponentArtifactMetaData artifact : artifacts) {
             IvyArtifactName artifactName = artifact.getName();
-            if (!selector.acceptArtifact(moduleVersionIdentifier.getModule(), artifactName)) {
+            if (selector.excludeArtifact(moduleVersionIdentifier.getModule(), artifactName)) {
                 continue;
             }
 

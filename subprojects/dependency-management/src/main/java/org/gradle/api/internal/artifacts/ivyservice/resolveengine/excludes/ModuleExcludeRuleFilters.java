@@ -50,14 +50,14 @@ public class ModuleExcludeRuleFilters {
     static final ExcludeNone EXCLUDE_NONE = new ExcludeNone();
 
     /**
-     * Returns a spec that accepts everything.
+     * Returns a spec that excludes nothing.
      */
     public static ModuleExcludeRuleFilter excludeNone() {
         return EXCLUDE_NONE;
     }
 
     /**
-     * Returns a spec that accepts only those module versions that do not match any of the given exclude rules.
+     * Returns a spec that excludes those modules and artifacts that are excluded by _any_ of the given exclude rules.
      */
     public static ModuleExcludeRuleFilter excludeAny(Exclude... excludes) {
         if (excludes.length == 0) {
@@ -67,7 +67,7 @@ public class ModuleExcludeRuleFilters {
     }
 
     /**
-     * Returns a spec that accepts only those module versions that do not match any of the given exclude rules.
+     * Returns a spec that excludes those modules and artifacts that are excluded by _any_ of the given exclude rules.
      */
     public static ModuleExcludeRuleFilter excludeAny(Collection<Exclude> excludes) {
         if (excludes.isEmpty()) {
@@ -110,8 +110,7 @@ public class ModuleExcludeRuleFilters {
     }
 
     /**
-     * Returns a filter that accepts the union of those module versions and artifacts that are accepted by this filter and the other.
-     * The union excludes only if _both_ of the input filters exclude.
+     * Returns a spec that excludes only those modules and artifacts that are excluded by both of the supplied exclude rules.
      */
     public static ModuleExcludeRuleFilter union(ModuleExcludeRuleFilter one, ModuleExcludeRuleFilter two) {
         if (one == two) {
@@ -148,8 +147,7 @@ public class ModuleExcludeRuleFilters {
     }
 
     /**
-     * Returns a filter that accepts the intersection of those module versions and artifacts that are accepted by this filter and the other.
-     * The intersection excludes if _either_ of the input filters exclude.
+     * Returns a spec that excludes those modules and artifacts that are excluded by _either_ of the given exclude rules.
      */
     public static ModuleExcludeRuleFilter intersect(ModuleExcludeRuleFilter one, ModuleExcludeRuleFilter two) {
         if (one == two) {

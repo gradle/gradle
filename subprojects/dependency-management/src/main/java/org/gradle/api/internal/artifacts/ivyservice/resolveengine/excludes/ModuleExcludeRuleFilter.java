@@ -24,26 +24,26 @@ import org.gradle.internal.component.model.IvyArtifactName;
  */
 public interface ModuleExcludeRuleFilter {
     /**
-     * Should this module be included in the resolution result?
+     * Should this module be excluded from the resolution result?
      */
-    boolean acceptModule(ModuleIdentifier module);
+    boolean excludeModule(ModuleIdentifier module);
 
     /**
-     * Should this artifact be included in the resolution result?
+     * Should this artifact be excluded from the resolution result?
      */
-    boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact);
+    boolean excludeArtifact(ModuleIdentifier module, IvyArtifactName artifact);
 
     /**
-     * Does this filter accept all artifacts?
+     * Could any artifacts be excluded by this filter?
      *
-     * @return true if this filter returns <code>true</code> for {@link #acceptArtifact} for any provided artifact.
+     * @return false if this filter could return <code>false</code> for {@link #excludeArtifact} for every provided artifact.
      */
-    boolean acceptsAllArtifacts();
+    boolean mayExcludeArtifacts();
 
     /**
-     * Determines if this filter accepts the same set of modules as the other.
+     * Determines if this filter excludes the same set of modules as the other.
      *
-     * @return true if the filters accept the same set of modules. Returns false if they may not, or if it is unknown.
+     * @return true if the filters excludes the same set of modules. Returns false if they may not, or if it is unknown.
      */
     boolean excludesSameModulesAs(ModuleExcludeRuleFilter other);
 }

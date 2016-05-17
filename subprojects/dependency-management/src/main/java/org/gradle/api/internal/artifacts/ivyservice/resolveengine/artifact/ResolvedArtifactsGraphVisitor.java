@@ -94,7 +94,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
             configurationArtifactSet = new DefaultArtifactSet(component.getId(), component.getSource(), dependency.getSelector(), artifacts, artifactResolver, allResolvedArtifacts, id);
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
-            if (dependency.getSelector().acceptsAllArtifacts()) {
+            if (!dependency.getSelector().mayExcludeArtifacts()) {
                 artifactSetsByConfiguration.put(configurationIdentifier, configurationArtifactSet);
             }
         }

@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.internal.component.model.IvyArtifactName;
+
 import java.util.Collection;
 
 abstract class AbstractModuleExcludeRuleFilter implements ModuleExcludeRuleFilter {
@@ -38,33 +41,41 @@ abstract class AbstractModuleExcludeRuleFilter implements ModuleExcludeRuleFilte
         return null;
     }
 
+    public boolean excludeArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
+        return false;
+    }
+
+    public boolean mayExcludeArtifacts() {
+        return false;
+    }
+
     public final boolean excludesSameModulesAs(ModuleExcludeRuleFilter filter) {
         if (filter == this) {
             return true;
         }
         AbstractModuleExcludeRuleFilter other = (AbstractModuleExcludeRuleFilter) filter;
-        boolean thisAcceptsEverything = acceptsAllModules();
-        boolean otherAcceptsEverything = other.acceptsAllModules();
-        if (thisAcceptsEverything && otherAcceptsEverything) {
+        boolean thisExcludesNothing = excludesNoModules();
+        boolean otherExcludesNothing = other.excludesNoModules();
+        if (thisExcludesNothing && otherExcludesNothing) {
             return true;
         }
-        if (thisAcceptsEverything || otherAcceptsEverything) {
+        if (thisExcludesNothing || otherExcludesNothing) {
             return false;
         }
         if (!other.getClass().equals(getClass())) {
             return false;
         }
-        return doAcceptsSameModulesAs(other);
+        return doExcludesSameModulesAs(other);
     }
 
     /**
      * Only called when this and the other spec have the same class.
      */
-    protected boolean doAcceptsSameModulesAs(AbstractModuleExcludeRuleFilter other) {
+    protected boolean doExcludesSameModulesAs(AbstractModuleExcludeRuleFilter other) {
         return false;
     }
 
-    protected boolean acceptsAllModules() {
+    protected boolean excludesNoModules() {
         return false;
     }
 

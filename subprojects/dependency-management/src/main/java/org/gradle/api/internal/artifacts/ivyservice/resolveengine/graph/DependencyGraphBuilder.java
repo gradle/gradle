@@ -729,7 +729,7 @@ public class DependencyGraphBuilder {
         }
 
         private boolean isExcluded(ModuleExcludeRuleFilter selector, ModuleIdentifier targetModuleId) {
-            if(!selector.acceptModule(targetModuleId)) {
+            if(selector.excludeModule(targetModuleId)) {
                 LOGGER.debug("{} is excluded from {}.", targetModuleId, this);
                 return true;
             }

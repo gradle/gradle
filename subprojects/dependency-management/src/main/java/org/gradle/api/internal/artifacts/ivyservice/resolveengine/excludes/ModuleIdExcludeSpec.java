@@ -18,11 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.internal.component.model.IvyArtifactName;
 
 /**
- * A ModuleResolutionFilter that accepts any module that has a module id other than the one specified.
- * Accepts all artifacts.
+ * Excludes any module that has a module id matching the one specified.
+ * Does not exclude artifacts.
  */
 class ModuleIdExcludeSpec extends AbstractModuleExcludeRuleFilter {
     final ModuleIdentifier moduleId;
@@ -48,20 +47,12 @@ class ModuleIdExcludeSpec extends AbstractModuleExcludeRuleFilter {
     }
 
     @Override
-    protected boolean doAcceptsSameModulesAs(AbstractModuleExcludeRuleFilter other) {
+    protected boolean doExcludesSameModulesAs(AbstractModuleExcludeRuleFilter other) {
         ModuleIdExcludeSpec moduleIdExcludeSpec = (ModuleIdExcludeSpec) other;
         return moduleId.equals(moduleIdExcludeSpec.moduleId);
     }
 
-    public boolean acceptModule(ModuleIdentifier module) {
-        return !module.equals(moduleId);
-    }
-
-    public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-        return true;
-    }
-
-    public boolean acceptsAllArtifacts() {
-        return true;
+    public boolean excludeModule(ModuleIdentifier module) {
+        return module.equals(moduleId);
     }
 }

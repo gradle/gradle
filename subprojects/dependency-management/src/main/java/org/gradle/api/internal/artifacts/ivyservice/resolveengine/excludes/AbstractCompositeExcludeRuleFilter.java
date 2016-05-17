@@ -35,7 +35,7 @@ abstract class AbstractCompositeExcludeRuleFilter extends AbstractModuleExcludeR
     }
 
     @Override
-    protected boolean doAcceptsSameModulesAs(AbstractModuleExcludeRuleFilter other) {
+    protected boolean doExcludesSameModulesAs(AbstractModuleExcludeRuleFilter other) {
         AbstractCompositeExcludeRuleFilter spec = (AbstractCompositeExcludeRuleFilter) other;
         return implies(spec) && spec.implies(this);
     }
@@ -52,7 +52,7 @@ abstract class AbstractCompositeExcludeRuleFilter extends AbstractModuleExcludeR
     }
 
     /**
-     * Returns true if for every spec in this spec, there is a corresponding spec in the given spec that acceptsSameModulesAs().
+     * Returns true if for every spec in this spec, there is a corresponding spec in the given spec that excludesSameModulesAs().
      */
     protected boolean implies(AbstractCompositeExcludeRuleFilter spec) {
         for (AbstractModuleExcludeRuleFilter thisSpec : getFilters()) {

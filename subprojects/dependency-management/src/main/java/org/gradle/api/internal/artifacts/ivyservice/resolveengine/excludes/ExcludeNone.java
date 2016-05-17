@@ -17,12 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.internal.component.model.IvyArtifactName;
 
 class ExcludeNone extends AbstractModuleExcludeRuleFilter {
     @Override
     public String toString() {
-        return "{accept-all}";
+        return "{exclude-none}";
     }
 
     @Override
@@ -35,21 +34,13 @@ class ExcludeNone extends AbstractModuleExcludeRuleFilter {
         return 0;
     }
 
-    public boolean acceptModule(ModuleIdentifier element) {
-        return true;
+    @Override
+    public boolean excludeModule(ModuleIdentifier module) {
+        return false;
     }
 
     @Override
-    protected boolean acceptsAllModules() {
-        return true;
-    }
-
-    public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-        return true;
-    }
-
-    @Override
-    public boolean acceptsAllArtifacts() {
+    protected boolean excludesNoModules() {
         return true;
     }
 }

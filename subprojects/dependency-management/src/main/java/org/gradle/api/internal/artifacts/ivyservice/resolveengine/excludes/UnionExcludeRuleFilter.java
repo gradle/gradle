@@ -24,7 +24,7 @@ import java.util.List;
 
 /**
  * A filter that only excludes artifacts and modules that are excluded by _all_ of the supplied exclude rules.
- * As such, this filter accepts the union of artifacts and modules accepted by the separate filters.
+ * As such, this is a union of the separate exclude rule filters.
  */
 class UnionExcludeRuleFilter extends AbstractCompositeExcludeRuleFilter {
     private final List<AbstractModuleExcludeRuleFilter> filters;
@@ -46,42 +46,42 @@ class UnionExcludeRuleFilter extends AbstractCompositeExcludeRuleFilter {
     }
 
     @Override
-    protected boolean acceptsAllModules() {
+    protected boolean excludesNoModules() {
         for (AbstractModuleExcludeRuleFilter excludeSpec : filters) {
-            if (excludeSpec.acceptsAllModules()) {
+            if (excludeSpec.excludesNoModules()) {
                 return true;
             }
         }
         return false;
     }
 
-    public boolean acceptModule(ModuleIdentifier element) {
+    public boolean excludeModule(ModuleIdentifier element) {
         for (AbstractModuleExcludeRuleFilter spec : filters) {
-            if (spec.acceptModule(element)) {
-                return true;
+            if (!spec.excludeModule(element)) {
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
-    public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
+    public boolean excludeArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
         for (AbstractModuleExcludeRuleFilter spec : filters) {
-            if (spec.acceptArtifact(module, artifact)) {
-                return true;
+            if (!spec.excludeArtifact(module, artifact)) {
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
-    public boolean acceptsAllArtifacts() {
+    public boolean mayExcludeArtifacts() {
         for (AbstractModuleExcludeRuleFilter spec : filters) {
-            if (spec.acceptsAllArtifacts()) {
-                return true;
+            if (!spec.mayExcludeArtifacts()) {
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 }

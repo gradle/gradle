@@ -22,7 +22,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.util.*;
 
 /**
- * A spec that selects only those artifacts and modules that satisfy _all_ of the supplied exclude rules.
+ * A spec that excludes modules or artifacts that are excluded by _any_ of the supplied exclusions.
  * As such, this is an intersection of the separate exclude rule filters.
  */
 class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
@@ -37,41 +37,41 @@ class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
     }
 
     @Override
-    protected boolean acceptsAllModules() {
+    protected boolean excludesNoModules() {
         for (AbstractModuleExcludeRuleFilter excludeSpec : excludeSpecs) {
-            if (!excludeSpec.acceptsAllModules()) {
+            if (!excludeSpec.excludesNoModules()) {
                 return false;
             }
         }
         return true;
     }
 
-    public boolean acceptModule(ModuleIdentifier element) {
+    public boolean excludeModule(ModuleIdentifier element) {
         for (AbstractModuleExcludeRuleFilter excludeSpec : excludeSpecs) {
-            if (!excludeSpec.acceptModule(element)) {
-                return false;
+            if (excludeSpec.excludeModule(element)) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
-    public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
+    public boolean excludeArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
         for (AbstractModuleExcludeRuleFilter excludeSpec : excludeSpecs) {
-            if (!excludeSpec.acceptArtifact(module, artifact)) {
-                return false;
+            if (excludeSpec.excludeArtifact(module, artifact)) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
-    public boolean acceptsAllArtifacts() {
+    public boolean mayExcludeArtifacts() {
         for (AbstractModuleExcludeRuleFilter spec : excludeSpecs) {
-            if (!spec.acceptsAllArtifacts()) {
-                return false;
+            if (spec.mayExcludeArtifacts()) {
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
     /**
@@ -83,7 +83,7 @@ class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
     }
 
     /**
-     * Construct a filter that will accept any module/artifact that is accepted by this _or_ the other filter.
+     * Construct a single spec that will exclude any module/artifact that is excluded by both this _and_ the other filter.
      * Returns null when this union cannot be computed.
      */
     @Override
@@ -130,13 +130,13 @@ class MultipleExcludeRulesFilter extends AbstractCompositeExcludeRuleFilter {
             || excludeSpec instanceof ModuleIdExcludeSpec;
     }
 
-    // Add exclusions to the list that will exclude modules/artifacts that are excluded by both of the candidate rules.
+    // Add exclusions to the list that will exclude modules/artifacts that are excluded by _both_ of the candidate rules.
     private void mergeExcludeRules(AbstractModuleExcludeRuleFilter spec1, AbstractModuleExcludeRuleFilter spec2, List<AbstractModuleExcludeRuleFilter> merged) {
         if (spec1 instanceof ExcludeAllModulesSpec) {
-            // spec1 excludes everything: only accept if spec2 accepts
+            // spec1 excludes everything: use spec2 excludes
             merged.add(spec2);
         } else if (spec2 instanceof ExcludeAllModulesSpec) {
-            // spec2 excludes everything: only accept if spec1 accepts
+            // spec2 excludes everything: use spec1 excludes
             merged.add(spec1);
         } else if (spec1 instanceof ArtifactExcludeSpec) {
             // Excludes _no_ modules, may exclude some artifacts.

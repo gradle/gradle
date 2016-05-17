@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 /**
- * A ModuleResolutionFilter that accepts any artifact that doesn't match the exclude rule.
- * Accepts all modules.
+ * A ModuleResolutionFilter that excludes any artifact that matches supplied module and artifact details.
+ * Does not exclude any modules
  */
 class ArtifactExcludeSpec extends AbstractModuleExcludeRuleFilter {
     private final ModuleIdentifier moduleId;
@@ -49,29 +49,31 @@ class ArtifactExcludeSpec extends AbstractModuleExcludeRuleFilter {
     }
 
     @Override
-    protected boolean doAcceptsSameModulesAs(AbstractModuleExcludeRuleFilter other) {
+    protected boolean doExcludesSameModulesAs(AbstractModuleExcludeRuleFilter other) {
         return true;
     }
 
     @Override
-    protected boolean acceptsAllModules() {
+    protected boolean excludesNoModules() {
         return true;
     }
 
-    public boolean acceptModule(ModuleIdentifier module) {
-        return true;
-    }
-
-    public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-        return !(matches(moduleId.getGroup(), module.getGroup())
-                && matches(moduleId.getName(), module.getName())
-                && matches(ivyArtifactName.getName(), artifact.getName())
-                && matches(ivyArtifactName.getExtension(), artifact.getExtension())
-                && matches(ivyArtifactName.getType(), artifact.getType()));
-    }
-
-    public boolean acceptsAllArtifacts() {
+    @Override
+    public boolean excludeModule(ModuleIdentifier module) {
         return false;
+    }
+
+    @Override
+    public boolean excludeArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
+        return matches(moduleId.getGroup(), module.getGroup())
+            && matches(moduleId.getName(), module.getName())
+            && matches(ivyArtifactName.getName(), artifact.getName())
+            && matches(ivyArtifactName.getExtension(), artifact.getExtension())
+            && matches(ivyArtifactName.getType(), artifact.getType());
+    }
+
+    public boolean mayExcludeArtifacts() {
+        return true;
     }
 
     private boolean matches(String expression, String input) {
