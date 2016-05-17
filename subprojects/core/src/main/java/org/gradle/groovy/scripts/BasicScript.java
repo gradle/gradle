@@ -42,11 +42,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
 
     private void setScriptTarget(Object target) {
         this.target = target;
-        this.dynamicTarget = toDynamicTarget(target);
-    }
-
-    protected DynamicObject toDynamicTarget(Object target) {
-        return DynamicObjectUtil.asDynamicObject(target);
+        this.dynamicTarget = DynamicObjectUtil.asDynamicObject(target);
     }
 
     public StandardOutputCapture getStandardOutputCapture() {
