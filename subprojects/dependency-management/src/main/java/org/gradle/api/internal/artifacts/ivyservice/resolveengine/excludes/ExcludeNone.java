@@ -25,6 +25,16 @@ class ExcludeNone extends AbstractModuleExcludeRuleFilter {
         return "{accept-all}";
     }
 
+    @Override
+    protected boolean doEquals(Object o) {
+        return true;
+    }
+
+    @Override
+    protected int doHashCode() {
+        return 0;
+    }
+
     public boolean acceptModule(ModuleIdentifier element) {
         return true;
     }

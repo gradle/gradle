@@ -43,19 +43,13 @@ class IvyPatternMatcherExcludeRuleSpec extends AbstractModuleExcludeRuleFilter {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        }
-        if (o == null || o.getClass() != getClass()) {
-            return false;
-        }
+    protected boolean doEquals(Object o) {
         IvyPatternMatcherExcludeRuleSpec other = (IvyPatternMatcherExcludeRuleSpec) o;
         return doAcceptsSameModulesAs(other);
     }
 
     @Override
-    public int hashCode() {
+    protected int doHashCode() {
         return moduleId.hashCode() ^ ivyArtifactName.hashCode();
     }
 

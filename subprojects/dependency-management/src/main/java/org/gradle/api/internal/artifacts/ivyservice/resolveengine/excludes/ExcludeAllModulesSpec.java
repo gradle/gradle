@@ -26,12 +26,12 @@ class ExcludeAllModulesSpec extends AbstractModuleExcludeRuleFilter {
     }
 
     @Override
-    public boolean equals(Object o) {
-        return o == this || !(o == null || o.getClass() != getClass());
+    protected boolean doEquals(Object o) {
+        return true;
     }
 
     @Override
-    public int hashCode() {
+    protected int doHashCode() {
         return 0;
     }
 

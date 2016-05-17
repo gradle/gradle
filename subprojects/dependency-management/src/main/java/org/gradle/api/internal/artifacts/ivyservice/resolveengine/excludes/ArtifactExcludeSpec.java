@@ -38,19 +38,13 @@ class ArtifactExcludeSpec extends AbstractModuleExcludeRuleFilter {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        }
-        if (o == null || o.getClass() != getClass()) {
-            return false;
-        }
+    protected boolean doEquals(Object o) {
         ArtifactExcludeSpec other = (ArtifactExcludeSpec) o;
         return moduleId.equals(other.moduleId) && ivyArtifactName.equals(other.ivyArtifactName);
     }
 
     @Override
-    public int hashCode() {
+    protected int doHashCode() {
         return moduleId.hashCode() ^ ivyArtifactName.hashCode();
     }
 

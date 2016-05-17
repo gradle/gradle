@@ -74,4 +74,24 @@ abstract class AbstractModuleExcludeRuleFilter implements ModuleExcludeRuleFilte
     protected void unpackIntersection(Collection<AbstractModuleExcludeRuleFilter> specs) {
         specs.add(this);
     }
+
+    @Override
+    public final boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != getClass()) {
+            return false;
+        }
+        return doEquals(obj);
+    }
+
+    protected abstract boolean doEquals(Object obj);
+
+    @Override
+    public final int hashCode() {
+        return doHashCode();
+    }
+
+    protected abstract int doHashCode();
 }

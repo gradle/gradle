@@ -41,19 +41,13 @@ abstract class AbstractCompositeExcludeRuleFilter extends AbstractModuleExcludeR
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
-            return false;
-        }
+    protected boolean doEquals(Object obj) {
         AbstractCompositeExcludeRuleFilter other = (AbstractCompositeExcludeRuleFilter) obj;
         return getFilters().equals(other.getFilters());
     }
 
     @Override
-    public int hashCode() {
+    protected int doHashCode() {
         return getFilters().hashCode();
     }
 
