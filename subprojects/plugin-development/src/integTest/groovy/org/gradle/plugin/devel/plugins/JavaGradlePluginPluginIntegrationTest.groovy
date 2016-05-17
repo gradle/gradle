@@ -204,6 +204,26 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "jar"
     }
 
+    def "Plugin descriptor generation is up-to-date if declarations did not change"() {
+        given:
+        buildFile()
+        goodPlugin()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    testPlugin {
+                        id = 'test-plugin'
+                        implementationClass = 'com.xxx.TestPlugin'
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds "jar"
+        succeeds "jar"
+        skipped ":pluginDescriptors"
+    }
+
     def buildFile() {
         buildFile << """
 apply plugin: 'java-gradle-plugin'
