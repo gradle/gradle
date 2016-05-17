@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.BufferedStreamingHasher;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.cache.CacheAccess;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.Encoder;
 
@@ -35,9 +36,9 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
     protected final FileSnapshotter snapshotter;
     protected final StringInterner stringInterner;
     protected final FileResolver fileResolver;
-    protected TaskArtifactStateCacheAccess cacheAccess;
+    protected CacheAccess cacheAccess;
 
-    public AbstractFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver) {
+    public AbstractFileCollectionSnapshotter(FileSnapshotter snapshotter, CacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver) {
         this.snapshotter = snapshotter;
         this.cacheAccess = cacheAccess;
         this.stringInterner = stringInterner;
