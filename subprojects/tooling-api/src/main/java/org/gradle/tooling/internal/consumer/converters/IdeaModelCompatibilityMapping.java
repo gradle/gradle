@@ -28,19 +28,22 @@ import java.io.Serializable;
 
 public class IdeaModelCompatibilityMapping implements Action<SourceObjectMapping>, Serializable {
 
-    private final String version;
+    private final boolean versionSupportsIdeaJavaSourceSettings;
+    private final boolean versionSupportsIdeaModuleIdentifier;
 
     public IdeaModelCompatibilityMapping(VersionDetails versionDetails) {
-        version = versionDetails.getVersion();
+        GradleVersion targetGradleVersion = GradleVersion.version(versionDetails.getVersion());
+        versionSupportsIdeaJavaSourceSettings = supportsIdeaJavaSourceSettings(targetGradleVersion);
+        versionSupportsIdeaModuleIdentifier = supportsIdeaModuleIdentifier(targetGradleVersion);
     }
 
     @Override
     public void execute(SourceObjectMapping mapping) {
         Class<?> targetType = mapping.getTargetType();
-        if (IdeaProject.class.isAssignableFrom(targetType) && !versionSupportsIdeaJavaSourceSettings()) {
+        if (IdeaProject.class.isAssignableFrom(targetType) && !versionSupportsIdeaJavaSourceSettings) {
             mapping.mixIn(IdeaProjectJavaLanguageSettingsMixin.class);
         }
-        if (!versionSupportsIdeaModuleIdentifier()) {
+        if (!versionSupportsIdeaModuleIdentifier) {
             if (IdeaDependency.class.isAssignableFrom(targetType)) {
                 mapping.mixIn(IdeaModuleDependencyTargetMixin.class);
             } else if (IdeaModule.class.isAssignableFrom(targetType)) {
@@ -49,14 +52,12 @@ public class IdeaModelCompatibilityMapping implements Action<SourceObjectMapping
         }
     }
 
-    private boolean versionSupportsIdeaJavaSourceSettings() {
-        GradleVersion targetGradleVersion = GradleVersion.version(version);
+    private boolean supportsIdeaJavaSourceSettings(GradleVersion targetGradleVersion) {
         // return 'true' for 2.11 snapshots too
         return targetGradleVersion.getBaseVersion().compareTo(GradleVersion.version("2.11")) >= 0;
     }
 
-    private boolean versionSupportsIdeaModuleIdentifier() {
-        GradleVersion targetGradleVersion = GradleVersion.version(version);
+    private boolean supportsIdeaModuleIdentifier(GradleVersion targetGradleVersion) {
         return targetGradleVersion.getBaseVersion().compareTo(GradleVersion.version("2.14")) >= 0;
     }
 }

@@ -27,16 +27,17 @@ import java.io.Serializable;
 
 public class EclipseModelCompatibilityMapping implements Action<SourceObjectMapping>, Serializable {
 
-    private final String version;
+    private final boolean versionSupportsEclipseProjectIdentifier;
 
     public EclipseModelCompatibilityMapping(VersionDetails versionDetails) {
-        version = versionDetails.getVersion();
+        GradleVersion targetGradleVersion = GradleVersion.version(versionDetails.getVersion());
+        versionSupportsEclipseProjectIdentifier = supportsEclipseProjectIdentifier(targetGradleVersion);
     }
 
     @Override
     public void execute(SourceObjectMapping mapping) {
         Class<?> targetType = mapping.getTargetType();
-        if (!versionSupportsEclipseProjectIdentifier()) {
+        if (!versionSupportsEclipseProjectIdentifier) {
             if (EclipseProjectDependency.class.isAssignableFrom(targetType)) {
                 mapping.mixIn(EclipseProjectDependencyTargetMixin.class);
             } else if (HierarchicalEclipseProject.class.isAssignableFrom(targetType)) {
@@ -45,8 +46,7 @@ public class EclipseModelCompatibilityMapping implements Action<SourceObjectMapp
         }
     }
 
-    private boolean versionSupportsEclipseProjectIdentifier() {
-        GradleVersion targetGradleVersion = GradleVersion.version(version);
+    private boolean supportsEclipseProjectIdentifier(GradleVersion targetGradleVersion) {
         return targetGradleVersion.getBaseVersion().compareTo(GradleVersion.version("2.14")) >= 0;
     }
 }
