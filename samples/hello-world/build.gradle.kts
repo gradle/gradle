@@ -17,5 +17,5 @@ dependencies {
 }
 
 tasks.withType<Wrapper> {
-    distributionUrl = "https://repo.gradle.org/gradle/demo/demo.zip"
+    distributionUrl = "https://repo.gradle.org/gradle/demo/demo-2.zip"
 }
