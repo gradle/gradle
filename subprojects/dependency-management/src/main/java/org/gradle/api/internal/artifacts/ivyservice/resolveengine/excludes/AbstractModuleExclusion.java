@@ -27,15 +27,6 @@ abstract class AbstractModuleExclusion implements ModuleExclusion {
         return WILDCARD.equals(attribute);
     }
 
-    /**
-     * Returns the union of this filter and the given filter. Returns null if not recognized.
-     * We currently only have special handling to merge 2 `IntersectionExclusions` into a single `Exclusion`.
-     * For all other types, we don
-     */
-    protected AbstractModuleExclusion maybeMergeIntoUnion(AbstractModuleExclusion other) {
-        return null;
-    }
-
     public boolean excludeArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
         return false;
     }
