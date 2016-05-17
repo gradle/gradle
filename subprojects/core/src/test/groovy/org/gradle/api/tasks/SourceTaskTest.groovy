@@ -16,10 +16,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.internal.AbstractTask
-import org.junit.Before
-import org.junit.Test
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 
 class SourceTaskTest extends AbstractTaskTest {
     private SourceTask task
@@ -28,21 +24,21 @@ class SourceTaskTest extends AbstractTaskTest {
         return task
     }
 
-    @Before
-    public void setUp() {
+    def setup() {
         task = createTask(SourceTask.class)
     }
-    
-    @Test
-    public void canAppendToSource() {
-        File file1 = tmpDir.file('file1.txt').createFile()
-        File file2 = tmpDir.file('file2.txt').createFile()
+
+    def "can append to source"() {
+        given:
+        File file1 = temporaryFolder.file('file1.txt').createFile()
+        File file2 = temporaryFolder.file('file2.txt').createFile()
         file2.createNewFile()
 
         task.source = file1
         task.source = task.source + project.files(file2)
 
-        assertThat(task.source as List, equalTo([file1, file2]))
+        expect:
+        task.source.asList() == [file1, file2]
     }
 }
 

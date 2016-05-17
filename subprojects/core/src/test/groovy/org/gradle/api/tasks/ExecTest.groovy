@@ -16,23 +16,15 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.internal.AbstractTask
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.process.internal.ExecAction
 import org.gradle.process.ExecResult
-import org.hamcrest.Matchers
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
-import static org.junit.Assert.assertThat
+import org.gradle.process.internal.ExecAction
+import org.gradle.process.internal.ExecException
 
-@RunWith (org.jmock.integration.junit4.JMock)
 public class ExecTest extends AbstractTaskTest {
-    JUnit4GroovyMockery context = new JUnit4GroovyMockery();
-    Exec execTask;
-    ExecAction execAction = context.mock(ExecAction);
+    Exec execTask
+    def execAction = Mock(ExecAction)
 
-    @Before
-    public void setUp() {
+    def setup() {
         execTask = createTask(Exec.class)
         execTask.setExecAction(execAction)
     }
@@ -41,24 +33,47 @@ public class ExecTest extends AbstractTaskTest {
         return execTask;
     }
 
-    @Test void executesActionOnExecute() {
-        context.checking {
-            one(execAction).setExecutable("ls")
-            one(execAction).execute(); will(returnValue({ 0 } as ExecResult))
-        }
+    def "executes action on execute"() {
+        when:
         execTask.setExecutable("ls")
         execTask.execute()
-        assertThat(execTask.execResult.exitValue, Matchers.equalTo(0))
+
+        then:
+        1 * execAction.setExecutable("ls")
+        1 * execAction.execute() >> new ExpectedExecResult(0)
+        execTask.execResult.exitValue == 0
+
     }
 
-    @Test
-    void executeWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
-        context.checking {
-            one(execAction).execute(); will(returnValue({ 1 } as ExecResult))
-        }
+    def "execute with non-zero exit value and ignore exit value should not throw exception"() {
+        when:
         execTask.execute()
-        assertThat(execTask.execResult.exitValue, Matchers.equalTo(1))
+
+        then:
+        1 * execAction.execute() >> new ExpectedExecResult(1)
+        execTask.execResult.exitValue == 1
     }
 
+    private class ExpectedExecResult implements ExecResult {
+        int exitValue
 
+        ExpectedExecResult(int exitValue) {
+            this.exitValue = exitValue
+        }
+
+        @Override
+        int getExitValue() {
+            return exitValue
+        }
+
+        @Override
+        ExecResult assertNormalExitValue() throws ExecException {
+            return this
+        }
+
+        @Override
+        ExecResult rethrowFailure() throws ExecException {
+            return this
+        }
+    }
 }

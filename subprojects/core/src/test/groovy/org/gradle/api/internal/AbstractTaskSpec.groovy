@@ -18,26 +18,18 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.Task
-import org.gradle.api.internal.project.AbstractProject
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Specification
 
 import static org.junit.Assert.assertTrue
 
-@UsesNativeServices
-class AbstractTaskTest extends Specification {
-    @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-
+class AbstractTaskSpec extends AbstractProjectBuilderSpec {
     private DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry()
     private Instantiator instantiator = new DependencyInjectingInstantiator(serviceRegistry, new DependencyInjectingInstantiator.ConstructorCache())
     private final AnnotationProcessingTaskFactory rootFactory = new AnnotationProcessingTaskFactory(new TaskFactory(new AsmBackedClassGenerator()))
@@ -46,7 +38,7 @@ class AbstractTaskTest extends Specification {
     }
 
     public TaskInternal createTask(String name) {
-        AbstractProject project = TestUtil.createRootProject(temporaryFolder.testDirectory)
+        project = TestUtil.createRootProject(temporaryFolder.testDirectory)
         DefaultServiceRegistry registry = new DefaultServiceRegistry()
         registry.add(Instantiator, DirectInstantiator.INSTANCE)
         TaskInternal task = rootFactory.createChild(project, instantiator).createTask(GUtil.map(Task.TASK_TYPE, TestTask, Task.TASK_NAME, name))

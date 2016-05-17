@@ -16,25 +16,21 @@
 
 package org.gradle.api.tasks.bundling
 
-import org.junit.Before
-import org.junit.Test
-
-import static org.junit.Assert.assertEquals
-
 class WarTest extends AbstractArchiveTaskTest {
-
     War war
 
-    @Before public void setUp() {
+    def setup() {
         war = createTask(War)
         configure(war)
     }
 
+    @Override
     AbstractArchiveTask getArchiveTask() {
         war
     }
 
-    @Test public void testWar() {
-        assertEquals(War.WAR_EXTENSION, war.extension)
+    def "test War"() {
+        expect:
+        war.extension == War.WAR_EXTENSION
     }
 }

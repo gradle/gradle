@@ -17,8 +17,11 @@
 package org.gradle.api.tasks
 
 class SyncTest extends AbstractCopyTaskContractTest {
+    private Sync task
 
-    private Sync task = project.tasks.create(TEST_TASK_NAME, Sync)
+    def setup() {
+        task = createTask(Sync)
+    }
 
     @Override
     AbstractCopyTask getTask() {
