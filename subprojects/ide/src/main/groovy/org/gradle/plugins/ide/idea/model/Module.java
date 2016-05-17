@@ -37,6 +37,9 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 public class Module extends XmlPersistableConfigurationObject {
 
     public static final String INHERITED = "inherited";
+
+    private static final String CONTENT = "content";
+
     private Path contentPath;
     private Set<Path> sourceFolders = Sets.newLinkedHashSet();
     private Set<Path> testSourceFolders = Sets.newLinkedHashSet();
@@ -329,12 +332,12 @@ public class Module extends XmlPersistableConfigurationObject {
 
     private void setContentURL() {
         if (contentPath != null) {
-            getContentNode().attributes().put("url", contentPath.getUrl());
+            findOrCreateContentNode().attributes().put("url", contentPath.getUrl());
         }
     }
 
     private void removeSourceAndExcludeFolderFromXml() {
-        Node content = getContentNode();
+        Node content = findOrCreateContentNode();
         for (Node sourceFolder : findSourceFolder()) {
             content.remove(sourceFolder);
         }
@@ -344,7 +347,7 @@ public class Module extends XmlPersistableConfigurationObject {
     }
 
     private void addSourceAndExcludeFolderToXml() {
-        Node content = getContentNode();
+        Node content = findOrCreateContentNode();
         for (Path path : sourceFolders) {
             Map<String, Object> attributes = Maps.newHashMapWithExpectedSize(3);
             attributes.put("url", path.getUrl());
@@ -431,18 +434,21 @@ public class Module extends XmlPersistableConfigurationObject {
         return getNewModuleRootManager().appendNode("output-test");
     }
 
-    private Node getContentNode() {
-        Node contentNode = findFirstChildNamed(getNewModuleRootManager(), "content");
-        Preconditions.checkNotNull(contentNode);
-        return contentNode;
+    private Node findOrCreateContentNode() {
+        Node newModuleRootManager = getNewModuleRootManager();
+        Node contentNode = findFirstChildNamed(newModuleRootManager, CONTENT);
+        if (contentNode != null) {
+            return contentNode;
+        }
+        return newModuleRootManager.appendNode(CONTENT);
     }
 
     private List<Node> findSourceFolder() {
-        return getChildren(getContentNode(), "sourceFolder");
+        return getChildren(findOrCreateContentNode(), "sourceFolder");
     }
 
     private List<Node> findExcludeFolder() {
-        return getChildren(getContentNode(), "excludeFolder");
+        return getChildren(findOrCreateContentNode(), "excludeFolder");
     }
 
     @Nullable
