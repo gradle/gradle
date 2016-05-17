@@ -1,17 +1,9 @@
 buildscript {
     ext.kotlinVersion = '1.1.0-dev-372'
 
-    ext.ciProperty = { p ->
-        project.hasProperty(p) ? project.property(p) : System.properties[p]
-    }
-
     repositories {
         maven {
-            url 'https://repo.gradle.org/gradle/fram'
-            credentials {
-                username = ciProperty('artifactory_user')
-                password = ciProperty('artifactory_password')
-            }
+            url 'https://repo.gradle.org/gradle/repo'
         }
     }
 
@@ -32,10 +24,6 @@ dependencies {
 
 repositories {
     maven {
-        url 'https://repo.gradle.org/gradle/fram'
-        credentials {
-            username = ciProperty('artifactory_user')
-            password = ciProperty('artifactory_password')
-        }
+        url 'https://repo.gradle.org/gradle/repo'
     }
 }

@@ -2,11 +2,7 @@ buildscript {
     ext.kotlinVersion = '1.1.0-dev-372'
     repositories {
         maven {
-            url 'https://repo.gradle.org/gradle/fram'
-            credentials {
-                username = artifactory_user
-                password = artifactory_password
-            }
+            url 'https://repo.gradle.org/gradle/repo'
         }
     }
     dependencies {
@@ -74,9 +70,11 @@ artifactory {
     contextUrl = "https://repo.gradle.org/gradle"
     publish {
         repository {
-            repoKey = 'fram-local'
-            username = artifactory_user
-            password = artifactory_password
+            repoKey = project.version.endsWith('-SNAPSHOT') ?
+                'libs-snapshots-local' :
+                'libs-releases-local'
+            username = project.findProperty("artifactory_user") ?: "nouser"
+            password = project.findProperty("artifactory_password") ?: "nopass"
             maven = true
         }
         defaults {
@@ -84,8 +82,6 @@ artifactory {
         }
     }
     resolve {
-        repoKey = 'fram'
-        username = artifactory_user
-        password = artifactory_password
+        repoKey = 'repo'
     }
 }
