@@ -69,22 +69,26 @@ Start by opening `build.gradle.kts`, and continue with any or all of the followi
 
 #### Syntax highlighting
 
-TODO: add instructions
-
-#### Auto-completion / content assist
-
-TODO: add instructions
-
-#### Symbol navigation
-
-TODO: add instructions
+You should notice that normal Kotlin syntax highlighting works throughout the file.
 
 #### Quick documentation
 
-TODO: add instructions
+Try clicking on any type or function in the script, and hit `F1` (or possibly `CTRL-J`, dependending on which IDEA key mapping you use). Notice how you're presented with a quick documentation pop-up complete with that element's Javadoc / KDoc.
+
+#### Navigation to source
+
+Again, try clicking on any type or finuction in the script and hit `CMD-B`. Notice that you're taken directly to the source for that element.
+
+#### Auto-completion / content assist
+
+Try using `CTRL-SPACE` at various sites in the script, and notice that you're provided with complete content assist regarding what's available at that site.
 
 #### Refactoring
 
-TODO: add instructions
+Most any refactoring action that is possible in a Kotlin file should also work in a Kotlin-based Gradle build script. Explore!
 
-See [doc/release-notes](../doc/release-notes) for further details on current features and limitations.
+
+See also
+--------
+
+See the latest [release notes](../../../releases) for further details on current features and limitations.
