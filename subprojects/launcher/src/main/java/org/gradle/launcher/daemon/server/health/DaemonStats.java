@@ -91,14 +91,17 @@ public class DaemonStats {
         if (buildCount == 1) {
             return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(memory.getMaxMemory()));
         } else {
+            String message = format("Starting %s build in daemon [uptime: %s, performance: %s%%",
+                NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance());
             if (gcMonitor.getGcStrategy() != GarbageCollectorMonitoringStrategy.UNKNOWN) {
                 GarbageCollectionStats tenuredStats = gcMonitor.getTenuredStats();
-                return format("Starting %s build in daemon [uptime: %s, performance: %s%%, GC rate: %.2f/s, tenured heap usage: %s%% of %s]",
-                    NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance(), tenuredStats.getRate(), tenuredStats.getUsage(), NumberUtil.formatBytes(tenuredStats.getMax()));
-            } else {
-                return format("Starting %s build in daemon [uptime: %s, performance: %s%%]",
-                    NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance());
+                if (tenuredStats.getUsage() > 0) {
+                    message += format(", GC rate: %.2f/s, tenured heap usage: %s%% of %s", tenuredStats.getRate(), tenuredStats.getUsage(), NumberUtil.formatBytes(tenuredStats.getMax()));
+                } else {
+                    message += ", no major garbage collections";
+                }
             }
+            return message + "]";
         }
     }
 

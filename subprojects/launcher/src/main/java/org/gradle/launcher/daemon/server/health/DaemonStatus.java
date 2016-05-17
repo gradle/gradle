@@ -57,7 +57,11 @@ public class DaemonStatus {
                 return false;
             }
             GarbageCollectionStats gcStats = stats.getGcMonitor().getTenuredStats();
-            logger.debug(String.format("GC rate: %.2f/s tenured usage: %s%%", gcStats.getRate(), gcStats.getUsage()));
+            if (gcStats.getUsage() > 0) {
+                logger.debug(String.format("GC rate: %.2f/s tenured usage: %s%%", gcStats.getRate(), gcStats.getUsage()));
+            } else {
+                logger.debug("GC rate: 0.0/s");
+            }
             if (gcStats.getEventCount() >= 5
                 && gcStats.getUsage() >= tenuredUsageThreshold
                 && gcStats.getRate() >= tenuredRateThreshold) {
