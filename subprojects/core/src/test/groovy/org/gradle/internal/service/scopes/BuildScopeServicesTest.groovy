@@ -19,7 +19,7 @@ package org.gradle.internal.service.scopes
 import org.gradle.StartParameter
 import org.gradle.api.internal.*
 import org.gradle.api.internal.artifacts.DependencyManagementServices
-import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
+import org.gradle.api.internal.changedetection.state.CacheAccessingFileSnapshotter
 import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.classpath.PluginModuleRegistry
@@ -28,8 +28,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter
-import org.gradle.plugin.repository.internal.PluginRepositoryFactory
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry
 import org.gradle.api.internal.project.*
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder
 import org.gradle.api.logging.configuration.LoggingConfiguration
@@ -52,6 +50,8 @@ import org.gradle.internal.operations.logging.BuildOperationLoggerFactory
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
+import org.gradle.plugin.repository.internal.PluginRepositoryFactory
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry
 import org.gradle.plugin.use.internal.InjectedPluginClasspath
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.profile.ProfileEventAdapter
@@ -90,7 +90,7 @@ public class BuildScopeServicesTest extends Specification {
         sessionServices.get(ClassLoaderCache) >> Mock(ClassLoaderCache)
         sessionServices.get(ImportsReader) >> Mock(ImportsReader)
         sessionServices.get(StartParameter) >> startParameter
-        sessionServices.get(CachingFileSnapshotter) >> Mock(CachingFileSnapshotter)
+        sessionServices.get(CacheAccessingFileSnapshotter) >> Mock(CacheAccessingFileSnapshotter)
         sessionServices.get(ClassPathSnapshotter) >> Mock(ClassPathSnapshotter)
         sessionServices.get(CrossBuildInMemoryCachingScriptClassCache) >> Mock(CrossBuildInMemoryCachingScriptClassCache)
         sessionServices.get(InjectedPluginClasspath) >> Mock(InjectedPluginClasspath)

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.hash.Hasher;
@@ -30,6 +31,7 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 
+@NotThreadSafe
 public class CachingFileSnapshotter implements FileSnapshotter {
     private final PersistentIndexedCache<String, FileInfo> cache;
     private final Hasher hasher;
