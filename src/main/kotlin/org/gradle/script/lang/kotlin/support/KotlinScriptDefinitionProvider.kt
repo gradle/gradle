@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin
+package org.gradle.script.lang.kotlin.support
 
 import org.gradle.api.Project
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+
+import org.gradle.script.lang.kotlin.KotlinBuildScript
+import org.gradle.script.lang.kotlin.loggerFor
 
 import org.jetbrains.kotlin.script.KotlinConfigurableScriptDefinition
 import org.jetbrains.kotlin.script.KotlinScriptConfig

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin
+package org.gradle.script.lang.kotlin.provider
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
@@ -85,7 +85,7 @@ private fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootD
 private fun messageCollectorFor(log: Logger): MessageCollector =
     MessageCollector { severity, message, location ->
         fun msg() =
-            if (location == CompilerMessageLocation.NO_LOCATION) "$message"
+            if (location == CompilerMessageLocation.Companion.NO_LOCATION) "$message"
             else "$message ($location)"
 
         when (severity) {

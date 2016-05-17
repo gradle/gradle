@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin
+package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.ScriptPluginFactoryProvider

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin
+package org.gradle.script.lang.kotlin.tasks
 
-import org.gradle.script.lang.kotlin.KotlinScriptDefinitionProvider.scriptDefinitionFor
-import org.gradle.script.lang.kotlin.KotlinScriptDefinitionProvider.selectGradleApiJars
+import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.scriptDefinitionFor
+import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.selectGradleApiJars
 
 import org.gradle.api.DefaultTask
 

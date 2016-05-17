@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin
+package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.api.Project
 
 import org.gradle.configuration.ScriptPlugin
 
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.script.lang.kotlin.loggerFor
+import org.gradle.script.lang.kotlin.task
+import org.gradle.script.lang.kotlin.tasks.GenerateKtsConfig
+import org.gradle.script.lang.kotlin.tasks.PatchIdeaConfig
 
 class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<*>) : ScriptPlugin {
 
@@ -33,8 +37,16 @@ class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<
         if (target !is Project) {
             throw IllegalArgumentException("target $target was not a Project as expected")
         }
+        registerBuiltinTasks(target)
+        instantiateScriptClass(target)
+    }
+
+    private fun registerBuiltinTasks(target: Project) {
         target.task<GenerateKtsConfig>("generateKtsConfig")
         target.task<PatchIdeaConfig>("patchIdeaConfig")
+    }
+
+    private fun instantiateScriptClass(target: Any) {
         scriptClass.getConstructor(Project::class.java).newInstance(target)
     }
 }

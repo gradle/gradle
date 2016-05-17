@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin
+package org.gradle.script.lang.kotlin.provider
 
-import org.gradle.script.lang.kotlin.KotlinScriptDefinitionProvider.scriptDefinitionFor
-import org.gradle.script.lang.kotlin.KotlinScriptDefinitionProvider.selectGradleApiJars
+import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.scriptDefinitionFor
+import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.selectGradleApiJars
 
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.api.initialization.dsl.ScriptHandler
@@ -29,6 +29,8 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal
 
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.script.lang.kotlin.KotlinBuildScript
+import org.gradle.script.lang.kotlin.loggerFor
 
 import java.io.File
 
