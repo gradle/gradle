@@ -48,7 +48,7 @@ abstract class AbstractModuleExcludeRuleFilter implements ModuleExcludeRuleFilte
         if (thisAcceptsEverything && otherAcceptsEverything) {
             return true;
         }
-        if (thisAcceptsEverything ^ otherAcceptsEverything) {
+        if (thisAcceptsEverything || otherAcceptsEverything) {
             return false;
         }
         if (!other.getClass().equals(getClass())) {
