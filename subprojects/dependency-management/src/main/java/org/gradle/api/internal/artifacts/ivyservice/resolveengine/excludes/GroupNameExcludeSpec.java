@@ -32,7 +32,7 @@ class GroupNameExcludeSpec extends AbstractModuleExcludeRuleFilter {
 
     @Override
     public String toString() {
-        return String.format("{group %s}", group);
+        return "group " + group;
     }
 
     @Override

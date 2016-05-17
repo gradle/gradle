@@ -39,7 +39,7 @@ class IvyPatternMatcherExcludeRuleSpec extends AbstractModuleExcludeRuleFilter {
 
     @Override
     public String toString() {
-        return String.format("{exclude-rule %s:%s with matcher %s}", moduleId, ivyArtifactName, matcher.getName());
+        return "{exclude-rule " + moduleId + ":" + ivyArtifactName + " with matcher " + matcher.getName() + "}";
     }
 
     @Override

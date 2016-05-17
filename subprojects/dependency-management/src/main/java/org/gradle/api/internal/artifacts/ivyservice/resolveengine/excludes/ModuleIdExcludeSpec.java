@@ -33,7 +33,7 @@ class ModuleIdExcludeSpec extends AbstractModuleExcludeRuleFilter {
 
     @Override
     public String toString() {
-        return String.format("{module-id %s}", moduleId);
+        return "{module-id " + moduleId + "}";
     }
 
     @Override

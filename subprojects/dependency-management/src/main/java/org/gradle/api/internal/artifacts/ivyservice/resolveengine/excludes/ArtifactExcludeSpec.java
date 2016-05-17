@@ -34,7 +34,7 @@ class ArtifactExcludeSpec extends AbstractModuleExcludeRuleFilter {
 
     @Override
     public String toString() {
-        return String.format("{artifact %s:%s}", moduleId, ivyArtifactName);
+        return "{artifact " + moduleId + ":" + ivyArtifactName + "}";
     }
 
     @Override
