@@ -77,10 +77,10 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String GRADLE_PLUGINS = "gradle-plugins";
     static final String PLUGIN_DESCRIPTOR_PATTERN = "META-INF/" + GRADLE_PLUGINS + "/*.properties";
     static final String CLASSES_PATTERN = "**/*.class";
-    static final String BAD_IMPL_CLASS_WARNING_MESSAGE = "A valid plugin descriptor was found for %s but the implementation class %s was not found in the jar.";
-    static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "A plugin descriptor was found for %s but it was invalid.";
-    static final String NO_DESCRIPTOR_WARNING_MESSAGE = "No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
-    static final String DECLARED_PLUGIN_MISSING_MESSAGE = "Could not find plugin descriptor of %s at META-INF/" + GRADLE_PLUGINS + "/%s.properties";
+    static final String BAD_IMPL_CLASS_WARNING_MESSAGE = "%s: A valid plugin descriptor was found for %s but the implementation class %s was not found in the jar.";
+    static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "%s: A plugin descriptor was found for %s but it was invalid.";
+    static final String NO_DESCRIPTOR_WARNING_MESSAGE = "%s: No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
+    static final String DECLARED_PLUGIN_MISSING_MESSAGE = "%s: Could not find plugin descriptor of %s at META-INF/" + GRADLE_PLUGINS + "/%s.properties";
     static final String DECLARATION_MISSING_ID_MESSAGE = "Missing id for %s";
     static final String DECLARATION_MISSING_IMPLEMENTATION_MESSAGE = "Missing implementationClass for %s";
     static final String EXTENSION_NAME = "gradlePlugin";
@@ -224,7 +224,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
         public void execute(Task task) {
             if (descriptors == null || descriptors.isEmpty()) {
-                LOGGER.warn(NO_DESCRIPTOR_WARNING_MESSAGE);
+                LOGGER.warn(String.format(NO_DESCRIPTOR_WARNING_MESSAGE, task.getPath()));
             } else {
                 Set<String> pluginFileNames = Sets.newHashSet();
                 for (PluginDescriptor descriptor : descriptors) {
@@ -241,14 +241,14 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                     pluginFileNames.add(pluginFileName);
                     String pluginImplementation = descriptor.getImplementationClassName();
                     if (pluginImplementation.length() == 0) {
-                        LOGGER.warn(String.format(INVALID_DESCRIPTOR_WARNING_MESSAGE, pluginFileName));
+                        LOGGER.warn(String.format(INVALID_DESCRIPTOR_WARNING_MESSAGE, task.getPath(), pluginFileName));
                     } else if (!hasFullyQualifiedClass(pluginImplementation)) {
-                        LOGGER.warn(String.format(BAD_IMPL_CLASS_WARNING_MESSAGE, pluginFileName, pluginImplementation));
+                        LOGGER.warn(String.format(BAD_IMPL_CLASS_WARNING_MESSAGE, task.getPath(), pluginFileName, pluginImplementation));
                     }
                 }
                 for (PluginDeclaration declaration : plugins) {
                     if (!pluginFileNames.contains(declaration.getId() + ".properties")) {
-                        LOGGER.warn(String.format(DECLARED_PLUGIN_MISSING_MESSAGE, declaration.getName(), declaration.getId()));
+                        LOGGER.warn(String.format(DECLARED_PLUGIN_MISSING_MESSAGE, task.getPath(), declaration.getName(), declaration.getId()));
                     }
                 }
             }

@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel;
 
+import com.google.common.base.Objects;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
@@ -59,5 +60,21 @@ public class PluginDeclaration implements Named, Serializable {
 
     public void setImplementationClass(String implementationClass) {
         this.implementationClass = implementationClass;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof PluginDeclaration) {
+            PluginDeclaration other = (PluginDeclaration) obj;
+            return Objects.equal(name, other.name)
+                && Objects.equal(id, other.id)
+                && Objects.equal(implementationClass, other.implementationClass);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name, id, implementationClass);
     }
 }

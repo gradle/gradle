@@ -39,10 +39,10 @@ class JavaGradlePluginPluginTest extends Specification {
     @Rule
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
-    final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE
-    final static String DECLARED_PLUGIN_MISSING_PREFIX = JavaGradlePluginPlugin.DECLARED_PLUGIN_MISSING_MESSAGE.split('%')[0]
-    final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.split('%')[0]
-    final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.split('%')[0]
+    final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE.substring(4)
+    final static String DECLARED_PLUGIN_MISSING_PREFIX = JavaGradlePluginPlugin.DECLARED_PLUGIN_MISSING_MESSAGE.substring(4).split('[%]')[0]
+    final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.substring(4).split('[%]')[0]
+    final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.substring(4).split('[%]')[0]
 
     def project = TestUtil.builder().withName("plugin").build()
 
