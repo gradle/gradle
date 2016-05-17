@@ -40,6 +40,15 @@ inline fun <reified T : Plugin<Project>> Project.apply() =
     pluginManager.apply(T::class.java)
 
 /**
+ * Applies a script to the project.
+ *
+ * @param script the script to apply. Evaluated as per [Project.file]. However, note that
+ * a URL can also be used, allowing the script to be fetched using HTTP, for example.
+ */
+fun Project.applyFrom(script: Any) =
+    apply { it.from(script) }
+
+/**
  * Executes the given configuration block against the [plugin convention][Convention.getPlugin] of the specified type.
  *
  * @param T the plugin convention type.
