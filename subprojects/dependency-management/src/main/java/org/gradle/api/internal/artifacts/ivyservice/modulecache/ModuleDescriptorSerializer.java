@@ -78,7 +78,7 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             writeBoolean(md.isGenerated());
 
             writeNullableString(md.getDescription());
-            writeLong(md.getPublicationDate().getTime());
+            writeNullableDate(md.getPublicationDate());
             writeNullableString(md.getBranch());
 
             writeExtraInfo(md.getExtraInfo());
@@ -183,6 +183,14 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             encoder.writeBoolean(b);
         }
 
+        private void writeNullableDate(Date publicationDate) throws IOException {
+            if (publicationDate == null) {
+                writeLong(-1);
+            } else {
+                writeLong(publicationDate.getTime());
+            }
+        }
+
         private void writeLong(long l) throws IOException {
             encoder.writeLong(l);
         }
@@ -234,7 +242,7 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             md = new MutableModuleDescriptorState(componentIdentifier, status, generated);
 
             md.setDescription(readNullableString());
-            md.setPublicationDate(new Date(readLong()));
+            md.setPublicationDate(readNullableDate());
             md.setBranch(readNullableString());
 
             readExtraInfo();
@@ -346,6 +354,15 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
 
         private boolean readBoolean() throws IOException {
             return decoder.readBoolean();
+        }
+
+        private Date readNullableDate() throws IOException {
+            long value = readLong();
+            if (value == -1) {
+                return null;
+            } else {
+                return new Date(value);
+            }
         }
 
         private long readLong() throws IOException {
