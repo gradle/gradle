@@ -22,13 +22,31 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.plugins.Convention
+import org.gradle.api.plugins.PluginManager
 
 import kotlin.reflect.KClass
 
-fun Project.applyPlugin(pluginClass: KClass<out Plugin<Project>>) = pluginManager.apply(pluginClass.java)
+/**
+ * Applies the given plugin. Does nothing if the plugin has already been applied.
+ *
+ * The given class should implement the [Plugin] interface, and be parameterized for a compatible type of `this`.
+ *
+ * @param T the plugin type.
+ *
+ * @see PluginManager.apply
+ */
+inline fun <reified T : Plugin<Project>> Project.apply() =
+    pluginManager.apply(T::class.java)
 
-inline fun <reified T : Plugin<Project>> Project.apply() = applyPlugin(T::class)
-
+/**
+ * Executes the given configuration block against the [plugin convention][Convention.getPlugin] of the specified type.
+ *
+ * @param T the plugin convention type.
+ * @param configuration the configuration block.
+ *
+ * @see Convention.getPlugin
+ */
 inline fun <reified T : Any> Project.configure(configuration: T.() -> Unit) =
     configure(T::class, configuration)
 
@@ -50,13 +68,38 @@ fun Project.task(name: String, configuration: Task.() -> Unit) =
 fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: T.() -> Unit) =
     tasks.create(name, type.java, configuration)
 
+/**
+ * Configures the repositories for this project.
+ *
+ * Executes the given configuration block against the [RepositoryHandler] for this project.
+ *
+ * @param configuration the configuration block.
+ */
 inline fun Project.repositories(configuration: RepositoryHandler.() -> Unit) = configuration(repositories)
 
+/**
+ * Configures the dependencies for this project.
+ *
+ * Executes the given configuration block against the [KotlinDependencyHandler] for this project.
+ *
+ * @param configuration the configuration block.
+ */
 inline fun Project.dependencies(configuration: KotlinDependencyHandler.() -> Unit) =
     configuration(KotlinDependencyHandler(dependencies))
 
+/**
+ * @see DependencyHandler
+ */
 class KotlinDependencyHandler(val dependencies: DependencyHandler) : DependencyHandler by dependencies {
 
+    /**
+     * Adds a dependency to the given configuration.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @return The dependency.
+     *
+     * @see DependencyHandler.add
+     */
     operator fun String.invoke(dependencyNotation: String) =
         dependencies.add(this, dependencyNotation)
 }
