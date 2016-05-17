@@ -30,7 +30,8 @@ import kotlin.reflect.KClass
 /**
  * Applies the given plugin. Does nothing if the plugin has already been applied.
  *
- * The given class should implement the [Plugin] interface, and be parameterized for a compatible type of `this`.
+ * The given class should implement the [Plugin] interface, and be parameterized for a
+ * compatible type of `this`.
  *
  * @param T the plugin type.
  *
@@ -49,7 +50,8 @@ fun Project.applyFrom(script: Any) =
     apply { it.from(script) }
 
 /**
- * Executes the given configuration block against the [plugin convention][Convention.getPlugin] of the specified type.
+ * Executes the given configuration block against the [plugin convention]
+ * [Convention.getPlugin] of the specified type.
  *
  * @param T the plugin convention type.
  * @param configuration the configuration block.
@@ -80,7 +82,8 @@ fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: 
 /**
  * Configures the repositories for this project.
  *
- * Executes the given configuration block against the [RepositoryHandler] for this project.
+ * Executes the given configuration block against the [RepositoryHandler] for this
+ * project.
  *
  * @param configuration the configuration block.
  */
@@ -89,7 +92,8 @@ inline fun Project.repositories(configuration: RepositoryHandler.() -> Unit) = c
 /**
  * Configures the dependencies for this project.
  *
- * Executes the given configuration block against the [KotlinDependencyHandler] for this project.
+ * Executes the given configuration block against the [KotlinDependencyHandler] for this
+ * project.
  *
  * @param configuration the configuration block.
  */
@@ -112,4 +116,3 @@ class KotlinDependencyHandler(val dependencies: DependencyHandler) : DependencyH
     operator fun String.invoke(dependencyNotation: String) =
         dependencies.add(this, dependencyNotation)
 }
-
