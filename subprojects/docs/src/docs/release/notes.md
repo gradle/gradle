@@ -136,6 +136,8 @@ properties have been removed from the ScalaCompile task:
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+ - [Tatsiana Drabovich](https://github.com/blestka) - Fixed TestNG Listener adapters equality (GRADLE-3189)
+
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->
