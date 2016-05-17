@@ -22,7 +22,7 @@ import org.gradle.api.file.CopySpec;
 import java.util.ArrayList;
 
 /**
- * <p>A {@link Convention} used for the ApplicationPlugin.</p>
+ * <p>The {@link Convention} used for configuring the {@link ApplicationPlugin}.</p>
  */
 public class ApplicationPluginConvention {
     private String applicationName;
