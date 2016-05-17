@@ -5,7 +5,7 @@
   <settings>
     <parameters>
       <param name="gradle.artifactory.password" value="zxx7e91f2355c1754a88adbce8adee33876beffb906dbbffb5ab6b54f406f225869" spec="password display='hidden'" />
-      <param name="gradle.artifactory.user" value="fram" />
+      <param name="gradle.artifactory.user" value="cbeams" />
       <param name="webhook.body"><![CDATA[{
 "text":" ${buildResult} - *${projectName} :: ${buildName}* <${buildStatusUrl}|#${buildNumber}> (triggered by ${triggeredBy})"
 }]]></param>
