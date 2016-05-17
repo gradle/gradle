@@ -137,7 +137,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         Runnable command = Mock()
 
         given:
-        coordinator.requestForcefulStop()
+        coordinator.requestForcefulStop("stop")
 
         when:
         coordinator.runCommand(command, "command")
@@ -413,7 +413,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         !coordinator.stopped
 
         when:
-        coordinator.requestForcefulStop()
+        coordinator.requestForcefulStop("stop")
 
         then:
         coordinator.willRefuseNewCommands
@@ -444,7 +444,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         1 * onStartCommand.run()
         1 * command.run() >> {
             assert !coordinator.stopped
-            coordinator.requestForcefulStop()
+            coordinator.requestForcefulStop("stop")
             assert coordinator.stopped
             thread.blockUntil.run
         }
@@ -460,7 +460,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         }
         async {
             thread.blockUntil.startAction
-            coordinator.requestForcefulStop()
+            coordinator.requestForcefulStop("stop")
             coordinator.awaitStop()
             instant.idle
         }

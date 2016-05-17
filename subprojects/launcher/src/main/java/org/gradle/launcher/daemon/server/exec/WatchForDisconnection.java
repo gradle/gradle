@@ -29,7 +29,7 @@ public class WatchForDisconnection implements DaemonCommandAction {
         execution.getConnection().onDisconnect(new Runnable() {
             public void run() {
                 LOGGER.warn("client disconnection detected, stopping the daemon");
-                execution.getDaemonStateControl().requestForcefulStop();
+                execution.getDaemonStateControl().requestForcefulStop("client disconnect detected");
             }
         });
 

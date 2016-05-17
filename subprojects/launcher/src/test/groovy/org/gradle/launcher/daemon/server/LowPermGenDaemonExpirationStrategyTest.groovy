@@ -38,6 +38,7 @@ class LowPermGenDaemonExpirationStrategyTest extends Specification {
 
         and:
         result.expired
+        !result.immediate
         result.reason == "JVM perm gen space is exhausted"
     }
 

@@ -31,6 +31,7 @@ public class DaemonStatus {
     public static final String TENURED_USAGE_EXPIRE_AT = "org.gradle.daemon.performance.tenured-usage-expire-at";
     public static final String TENURED_RATE_EXPIRE_AT = "org.gradle.daemon.performance.tenured-rate-expire-at";
     public static final String PERMGEN_USAGE_EXPIRE_AT = "org.gradle.daemon.performance.permgen-usage-expire-at";
+    public static final String THRASHING_EXPIRE_AT = "org.gradle.daemon.performance.thrashing-expire-at";
 
     private final DaemonStats stats;
 
@@ -54,14 +55,14 @@ public class DaemonStatus {
                 return false;
             }
             GarbageCollectionStats gcStats = stats.getGcMonitor().getTenuredStats();
-            if (gcStats.getUsage() > 0) {
-                logger.debug(String.format("GC rate: %.2f/s tenured usage: %s%%", gcStats.getRate(), gcStats.getUsage()));
-            } else {
-                logger.debug("GC rate: 0.0/s");
-            }
             if (gcStats.getEventCount() >= 5
                 && gcStats.getUsage() >= tenuredUsageThreshold
                 && gcStats.getRate() >= tenuredRateThreshold) {
+                if (gcStats.getUsage() > 0) {
+                    logger.debug(String.format("GC rate: %.2f/s tenured usage: %s%%", gcStats.getRate(), gcStats.getUsage()));
+                } else {
+                    logger.debug("GC rate: 0.0/s");
+                }
                 return true;
             }
         }
@@ -79,6 +80,38 @@ public class DaemonStatus {
             GarbageCollectionStats gcStats = stats.getGcMonitor().getPermGenStats();
             if (gcStats.getEventCount() >= 5
                 && gcStats.getUsage() >= permgenUsageThreshold) {
+                if (gcStats.getUsage() > 0) {
+                    logger.debug(String.format("GC rate: %.2f/s tenured usage: %s%%", gcStats.getRate(), gcStats.getUsage()));
+                } else {
+                    logger.debug("GC rate: 0.0/s");
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isThrashing() {
+        GarbageCollectorMonitoringStrategy strategy = stats.getGcMonitor().getGcStrategy();
+        if (strategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
+            int tenuredUsageThreshold = parseValue(TENURED_USAGE_EXPIRE_AT, strategy.getTenuredUsageThreshold());
+            if (tenuredUsageThreshold == 0) {
+                return false;
+            }
+            double thrashingThreshold = parseValue(THRASHING_EXPIRE_AT, strategy.getThrashingThreshold());
+            if (thrashingThreshold == 0) {
+                return false;
+            }
+
+            GarbageCollectionStats gcStats = stats.getGcMonitor().getTenuredStats();
+            if (gcStats.getEventCount() >= 5
+                && gcStats.getRate() >= thrashingThreshold
+                && gcStats.getUsage() >= tenuredUsageThreshold) {
+                if (gcStats.getUsage() > 0) {
+                    logger.debug(String.format("GC rate: %.2f/s tenured usage: %s%%", gcStats.getRate(), gcStats.getUsage()));
+                } else {
+                    logger.debug("GC rate: 0.0/s");
+                }
                 return true;
             }
         }

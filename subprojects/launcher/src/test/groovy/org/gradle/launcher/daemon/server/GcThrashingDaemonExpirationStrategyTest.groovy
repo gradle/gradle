@@ -20,36 +20,37 @@ import org.gradle.launcher.daemon.server.health.DaemonHealthServices
 import org.gradle.launcher.daemon.server.health.DaemonStatus
 import spock.lang.Specification
 
-class LowTenuredSpaceDaemonExpirationStrategyTest extends Specification {
+
+class GcThrashingDaemonExpirationStrategyTest extends Specification {
     private final Daemon daemon = Mock(Daemon)
     private final DaemonHealthServices healthServices = Mock(DaemonHealthServices)
     private final DaemonStatus status = Mock(DaemonStatus)
 
-    def "daemon is expired when tenured space is low" () {
-        LowTenuredSpaceDaemonExpirationStrategy strategy = new LowTenuredSpaceDaemonExpirationStrategy(healthServices)
+    def "daemon is expired when garbage collector is thrashing" () {
+        GcThrashingDaemonExpirationStrategy strategy = new GcThrashingDaemonExpirationStrategy(healthServices)
 
         when:
         DaemonExpirationResult result = strategy.checkExpiration(daemon)
 
         then:
         1 * healthServices.getDaemonStatus() >> status
-        1 * status.isTenuredSpaceExhausted() >> true
+        1 * status.isThrashing() >> true
 
         and:
         result.expired
-        !result.immediate
-        result.reason == "JVM tenured space is exhausted"
+        result.immediate
+        result.reason == "garbage collector is starting to thrash"
     }
 
-    def "daemon is not expired when tenured space is fine" () {
-        LowTenuredSpaceDaemonExpirationStrategy strategy = new LowTenuredSpaceDaemonExpirationStrategy(healthServices)
+    def "daemon is not expired when garbage collector is fine" () {
+        GcThrashingDaemonExpirationStrategy strategy = new GcThrashingDaemonExpirationStrategy(healthServices)
 
         when:
         DaemonExpirationResult result = strategy.checkExpiration(daemon)
 
         then:
         1 * healthServices.getDaemonStatus() >> status
-        1 * status.isTenuredSpaceExhausted() >> false
+        1 * status.isThrashing() >> false
 
         and:
         result == DaemonExpirationResult.DO_NOT_EXPIRE

@@ -17,12 +17,12 @@
 package org.gradle.launcher.daemon.server.health.gc;
 
 public enum GarbageCollectorMonitoringStrategy {
-    ORACLE_PARALLEL_CMS("PS Old Gen", "PS Perm Gen", "PS MarkSweep", 1.2, 80, 80),
-    ORACLE_6_CMS("CMS Old Gen", "CMS Perm Gen", "ConcurrentMarkSweep", 1.2, 80, 80),
-    ORACLE_SERIAL("Tenured Gen", "Perm Gen", "MarkSweepCompact", 1.2, 80, 80),
-    ORACLE_G1("G1 Old Gen", "G1 Perm Gen", "G1 Old Generation", 0.4, 75, 80),
-    IBM_ALL("Java heap", "PermGen Not Used", "MarkSweepCompact", 0.8, 70, -1),
-    UNKNOWN(null, null, null, -1, -1, -1);
+    ORACLE_PARALLEL_CMS("PS Old Gen", "PS Perm Gen", "PS MarkSweep", 1.2, 80, 80, 5.0),
+    ORACLE_6_CMS("CMS Old Gen", "CMS Perm Gen", "ConcurrentMarkSweep", 1.2, 80, 80, 5.0),
+    ORACLE_SERIAL("Tenured Gen", "Perm Gen", "MarkSweepCompact", 1.2, 80, 80, 5.0),
+    ORACLE_G1("G1 Old Gen", "G1 Perm Gen", "G1 Old Generation", 0.4, 75, 80, 2.0),
+    IBM_ALL("Java heap", "PermGen Not Used", "MarkSweepCompact", 0.8, 70, -1, 6.0),
+    UNKNOWN(null, null, null, -1, -1, -1, -1);
 
     private final String tenuredPoolName;
     private final String permGenPoolName;
@@ -30,14 +30,16 @@ public enum GarbageCollectorMonitoringStrategy {
     private final double gcRateThreshold;
     private final int tenuredUsageThreshold;
     private final int permGenUsageThreshold;
+    private final double thrashingThreshold;
 
-    GarbageCollectorMonitoringStrategy(String tenuredPoolName, String permGenPoolName, String garbageCollectorName, double gcRateThreshold, int tenuredUsageThreshold, int permGenUsageThreshold) {
+    GarbageCollectorMonitoringStrategy(String tenuredPoolName, String permGenPoolName, String garbageCollectorName, double gcRateThreshold, int tenuredUsageThreshold, int permGenUsageThreshold, double thrashingThreshold) {
         this.tenuredPoolName = tenuredPoolName;
         this.permGenPoolName = permGenPoolName;
         this.garbageCollectorName = garbageCollectorName;
         this.gcRateThreshold = gcRateThreshold;
         this.tenuredUsageThreshold = tenuredUsageThreshold;
         this.permGenUsageThreshold = permGenUsageThreshold;
+        this.thrashingThreshold = thrashingThreshold;
     }
 
     public String getTenuredPoolName() {
@@ -62,5 +64,9 @@ public enum GarbageCollectorMonitoringStrategy {
 
     public int getPermGenUsageThreshold() {
         return permGenUsageThreshold;
+    }
+
+    public double getThrashingThreshold() {
+        return thrashingThreshold;
     }
 }

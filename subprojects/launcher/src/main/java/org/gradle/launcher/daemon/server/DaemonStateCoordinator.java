@@ -173,9 +173,9 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    public void requestForcefulStop() {
+    public void requestForcefulStop(String reason) {
         LOGGER.debug("Daemon stop requested.");
-        stopNow("forceful stop requested");
+        stopNow(reason);
     }
 
     public BuildCancellationToken getCancellationToken() {

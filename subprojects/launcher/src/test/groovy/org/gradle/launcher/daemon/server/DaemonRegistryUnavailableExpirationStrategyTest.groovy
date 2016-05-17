@@ -42,6 +42,7 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
 
         then:
         expirationCheck.expired
+        !expirationCheck.immediate
         expirationCheck.reason == "daemon registry became unreadable"
     }
 

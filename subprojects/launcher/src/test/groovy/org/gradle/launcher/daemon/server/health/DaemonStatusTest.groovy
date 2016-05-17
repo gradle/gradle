@@ -26,7 +26,10 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static org.gradle.launcher.daemon.server.health.DaemonStatus.*
+import static org.gradle.launcher.daemon.server.health.DaemonStatus.PERMGEN_USAGE_EXPIRE_AT
+import static org.gradle.launcher.daemon.server.health.DaemonStatus.TENURED_RATE_EXPIRE_AT
+import static org.gradle.launcher.daemon.server.health.DaemonStatus.TENURED_USAGE_EXPIRE_AT
+import static org.gradle.launcher.daemon.server.health.DaemonStatus.THRASHING_EXPIRE_AT
 
 class DaemonStatusTest extends Specification {
 
@@ -82,10 +85,10 @@ class DaemonStatusTest extends Specification {
         }
 
         then:
-        status.isDaemonUnhealthy() == tired
+        status.isDaemonUnhealthy() == unhealthy
 
         where:
-        rateThreshold | usageThreshold | rate | used | tired
+        rateThreshold | usageThreshold | rate | used | unhealthy
         1.0           | 90             | 1.1  | 100  | true
         1.0           | 90             | 1.1  | 91   | true
         1.0           | 90             | 1.1  | 89   | false
@@ -101,7 +104,7 @@ class DaemonStatusTest extends Specification {
     }
 
     @Unroll
-    def "knows when perm gen space is exhausted (#usageThreshold <= #used)"() {
+    def "knows when perm gen space is exhausted (#usageThreshold <= #used, #usageThreshold <= #used)"() {
         _ * stats.getGcMonitor() >> gcMonitor
         _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
 
@@ -118,10 +121,10 @@ class DaemonStatusTest extends Specification {
         }
 
         then:
-        status.isDaemonUnhealthy() == tired
+        status.isDaemonUnhealthy() == unhealthy
 
         where:
-        usageThreshold | used | tired
+        usageThreshold | used | unhealthy
         90             | 100  | true
         90             | 91   | true
         90             | 90   | true
@@ -129,6 +132,42 @@ class DaemonStatusTest extends Specification {
         0              | 0    | false
         0              | 100  | false
         100            | 100  | true
+    }
+
+    @Unroll
+    def "knows when gc is thrashing (#rateThreshold <= #rate)"() {
+        _ * stats.getGcMonitor() >> gcMonitor
+        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
+
+        when:
+        System.setProperty(TENURED_USAGE_EXPIRE_AT, usageThreshold.toString())
+        System.setProperty(THRASHING_EXPIRE_AT, rateThreshold.toString())
+        gcMonitor.getTenuredStats() >> {
+            Stub(GarbageCollectionStats) {
+                getRate() >> rate
+                getUsage() >> usage
+                getEventCount() >> 10
+            }
+        }
+
+        then:
+        status.isThrashing() == thrashing
+
+        where:
+        rateThreshold  | usageThreshold | rate | usage | thrashing
+        10             | 90             | 15   | 100  | true
+        10             | 90             | 10.1 | 91   | true
+        10             | 90             | 10.1 | 89   | false
+        10             | 90             | 9.9  | 91   | false
+        10             | 0              | 15   | 0    | false
+        0              | 90             | 0    | 100  | false
+        10             | 0              | 10.1 | 100  | false
+        0              | 90             | 10.1 | 100  | false
+        10             | 100            | 10.1 | 100  | true
+        10             | 75             | 10.1 | 75   | true
+        10             | 75             | 10   | 100  | true
+        10             | 90             | 0    | 100  | false
+        10             | 90             | 15   | 0    | false
     }
 
     def "can disable daemon performance monitoring"() {

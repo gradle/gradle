@@ -19,14 +19,20 @@ package org.gradle.launcher.daemon.server;
 import org.gradle.api.Nullable;
 
 public class DaemonExpirationResult {
-    public static final DaemonExpirationResult DO_NOT_EXPIRE = new DaemonExpirationResult(false, null);
+    public static final DaemonExpirationResult DO_NOT_EXPIRE = new DaemonExpirationResult(false, false, null);
 
     private final boolean expired;
+    private final boolean immediate;
     private final String reason;
 
-    public DaemonExpirationResult(boolean expired, @Nullable String reason) {
+    public DaemonExpirationResult(boolean expired, boolean immediate, @Nullable String reason) {
         this.expired = expired;
+        this.immediate = immediate;
         this.reason = reason;
+    }
+
+    public DaemonExpirationResult(boolean expired, @Nullable String reason) {
+        this(expired, false, reason);
     }
 
     public boolean isExpired() {
@@ -35,5 +41,9 @@ public class DaemonExpirationResult {
 
     public String getReason() {
         return reason;
+    }
+
+    public boolean isImmediate() {
+        return immediate;
     }
 }

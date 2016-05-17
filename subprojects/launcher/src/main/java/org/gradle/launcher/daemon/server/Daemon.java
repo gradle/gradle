@@ -244,8 +244,13 @@ public class Daemon implements Stoppable {
             final DaemonExpirationResult expirationCheck = expirationStrategy.checkExpiration(daemon);
             if (expirationCheck.isExpired()) {
                 LOGGER.info("Daemon expiration criteria met, requesting stop");
-                LOGGER.lifecycle("Daemon stopping because " + expirationCheck.getReason());
-                daemon.getStateCoordinator().requestStop();
+                if (expirationCheck.isImmediate()) {
+                    LOGGER.lifecycle("Daemon stopping immediately because " + expirationCheck.getReason());
+                    daemon.getStateCoordinator().requestForcefulStop(expirationCheck.getReason());
+                } else {
+                    LOGGER.lifecycle("Daemon stopping because " + expirationCheck.getReason());
+                    daemon.getStateCoordinator().requestStop();
+                }
             }
         }
     }

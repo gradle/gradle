@@ -129,6 +129,37 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
         daemonIsExpiredEagerly()
     }
 
+    def "detects a thrashing condition" () {
+        // This is so the idle timeout expiration strategy doesn't kick in
+        // before the gc monitoring expires the daemon
+        executer.withDaemonIdleTimeoutSecs(300)
+        heapSize = "200m"
+        leakRate = 1700
+
+        when:
+        leaksWithinOneBuild()
+        executer.withArguments("-Dorg.gradle.daemon.healthcheckinterval=1000", "--debug")
+        executer.withBuildJvmOpts("-D${DaemonStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
+        executer.noExtraLogging()
+        executer.start()
+
+        then:
+        ConcurrentTestUtil.poll(10) {
+            daemons.daemon.assertBusy()
+        }
+
+        when:
+        file("leak").createFile()
+
+        then:
+        ConcurrentTestUtil.poll(60) {
+            daemons.daemon.assertStopped()
+        }
+
+        and:
+        daemons.daemon.log.contains("Daemon stopping immediately because garbage collector is starting to thrash")
+    }
+
     private boolean daemonIsExpiredEagerly() {
         def dataFile = file("stats")
         setupBuildScript()
@@ -247,6 +278,30 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
             State.map.put(UUID.randomUUID(), classLoader2)
 
             println "Build: " + State.x
+        """
+    }
+
+    private final Closure leaksWithinOneBuild = {
+        buildFile << """
+            def map = [:]
+
+            while (true) {
+                if (file("leak").exists()) {
+                    logger.debug "leaking some heap"
+                    //simulate normal collectible objects
+                    10000.times {
+                        map.put(it, "foo" * ${leakRate})
+                    }
+
+                    //simulate the leak
+                    1000.times {
+                        map.put(UUID.randomUUID(), "foo" * ${leakRate})
+                    }
+                } else {
+                    logger.warn "waiting for leak to start"
+                }
+                sleep 1000
+            }
         """
     }
 }

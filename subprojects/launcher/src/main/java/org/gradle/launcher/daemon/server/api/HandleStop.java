@@ -24,7 +24,7 @@ public class HandleStop implements DaemonCommandAction {
     @Override
     public void execute(DaemonCommandExecution execution) {
         if (execution.getCommand() instanceof Stop) {
-            execution.getDaemonStateControl().requestForcefulStop();
+            execution.getDaemonStateControl().requestForcefulStop("stop command received");
             execution.getConnection().completed(new Success(null));
         } else if (execution.getCommand() instanceof StopWhenIdle) {
             execution.getDaemonStateControl().requestStop();
