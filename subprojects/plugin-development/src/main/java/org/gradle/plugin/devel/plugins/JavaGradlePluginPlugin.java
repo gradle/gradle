@@ -59,14 +59,11 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 /**
- * A plugin for building java gradle plugins. Automatically generates plugin descriptors. Emits warnings for common error conditions.
- * <p>
- * Provides a direct integration with TestKit by declaring the {@code gradleTestKit()} dependency for the test
- * compile configuration and a dependency on the plugin classpath manifest generation task for the test runtime
- * configuration. Default conventions can be customized with the help of {@link GradlePluginDevelopmentExtension}.
+ * A plugin for building java gradle plugins. Automatically generates plugin descriptors. Emits warnings for common error conditions. <p> Provides a direct integration with TestKit by declaring the
+ * {@code gradleTestKit()} dependency for the test compile configuration and a dependency on the plugin classpath manifest generation task for the test runtime configuration. Default conventions can
+ * be customized with the help of {@link GradlePluginDevelopmentExtension}.
  *
- * Integrates with the 'maven-publish' and 'ivy-publish' plugins to automatically publish the plugins so they can be
- * resolved using the `pluginRepositories` and `plugins` DSL.
+ * Integrates with the 'maven-publish' and 'ivy-publish' plugins to automatically publish the plugins so they can be resolved using the `pluginRepositories` and `plugins` DSL.
  */
 @Incubating
 public class JavaGradlePluginPlugin implements Plugin<Project> {
@@ -208,13 +205,14 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             }
         });
     }
+
     /**
      * Implements plugin validation tasks to validate that a proper plugin jar is produced.
      */
     static class PluginValidationAction implements Action<Task> {
-        private Collection<PluginDeclaration> plugins;
-        private Collection<PluginDescriptor> descriptors;
-        private Set<String> classes;
+        private final Collection<PluginDeclaration> plugins;
+        private final Collection<PluginDescriptor> descriptors;
+        private final Set<String> classes;
 
         PluginValidationAction(Collection<PluginDeclaration> plugins, Collection<PluginDescriptor> descriptors, Set<String> classes) {
             this.plugins = plugins;
