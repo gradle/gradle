@@ -38,12 +38,14 @@ public class DaemonStatus {
     }
 
     boolean isDaemonUnhealthy() {
-        String enabledValue = System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true");
-        Boolean enabled = Boolean.parseBoolean(enabledValue);
-        return enabled && isTenuredSpaceExhausted();
+        return isTenuredSpaceExhausted();
     }
 
     public boolean isTenuredSpaceExhausted() {
+        if (!isEnabled()) {
+            return false;
+        }
+
         GarbageCollectorMonitoringStrategy strategy = stats.getGcMonitor().getGcStrategy();
         if (strategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
             int tenuredUsageThreshold = parseValue(TENURED_USAGE_EXPIRE_AT, strategy.getTenuredUsageThreshold());
@@ -63,6 +65,11 @@ public class DaemonStatus {
             }
         }
         return false;
+    }
+
+    private boolean isEnabled() {
+        String enabledValue = System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true");
+        return Boolean.parseBoolean(enabledValue);
     }
 
     private static int parseValue(String property, int defaultValue) {
