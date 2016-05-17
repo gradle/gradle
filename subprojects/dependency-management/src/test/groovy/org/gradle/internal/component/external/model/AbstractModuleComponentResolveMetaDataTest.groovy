@@ -15,40 +15,40 @@
  */
 
 package org.gradle.internal.component.external.model
-import org.apache.ivy.core.module.descriptor.*
-import org.gradle.api.artifacts.ModuleVersionIdentifier
+
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.internal.component.external.descriptor.DefaultExclude
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
+import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
+import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetaData
 import spock.lang.Specification
 
+import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+
 abstract class AbstractModuleComponentResolveMetaDataTest extends Specification {
 
-    def id = Stub(ModuleVersionIdentifier)
-    def componentId = Stub(ModuleComponentIdentifier)
-    def moduleDescriptor = Mock(ModuleDescriptor)
-    AbstractModuleComponentResolveMetaData metaData
+    def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+    def moduleDescriptor = new MutableModuleDescriptorState(id, "status", false)
 
-    def setup() {
-        metaData = createMetaData(id, moduleDescriptor, componentId)
+    abstract AbstractModuleComponentResolveMetaData createMetaData(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor);
+
+    MutableModuleComponentResolveMetaData getMetaData() {
+        return createMetaData(id, moduleDescriptor)
     }
-
-    abstract AbstractModuleComponentResolveMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier);
 
     def "has useful string representation"() {
         given:
-        def config = Stub(Configuration)
-        moduleDescriptor.getConfiguration('config') >> config
-        componentId.getDisplayName() >> '<component>'
+        configuration("config")
 
         expect:
-        metaData.toString() == '<component>'
-        metaData.getConfiguration('config').toString() == '<component>:config'
+        metaData.toString() == 'group:module:version'
+        metaData.getConfiguration('config').toString() == 'group:module:version:config'
     }
 
     def "can replace identifiers"() {
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def metaData = getMetaData()
 
         given:
         metaData.setComponentId(newId)
@@ -61,74 +61,42 @@ abstract class AbstractModuleComponentResolveMetaDataTest extends Specification 
     }
 
     def "builds and caches the dependency meta-data from the module descriptor"() {
-        def dependency1 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
-        def dependency2 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "another", "1.2"), false)
-
         given:
-        moduleDescriptor.dependencies >> ([dependency1, dependency2] as DependencyDescriptor[])
+        dependency("org", "module", "1.2")
+        dependency("org", "another", "1.2")
 
         when:
         def deps = metaData.dependencies
 
         then:
         deps.size() == 2
-        deps[0].requested == DefaultModuleVersionSelector.newSelector("org", "module", "1.2")
-        deps[1].requested == DefaultModuleVersionSelector.newSelector("org", "another", "1.2")
-
-        when:
-        def deps2 = metaData.dependencies
-
-        then:
-        deps2.is(deps)
-
-        and:
-        0 * moduleDescriptor._
+        deps[0].requested == newSelector("org", "module", "1.2")
+        deps[1].requested == newSelector("org", "another", "1.2")
     }
 
     def "builds and caches the configuration meta-data from the module descriptor"() {
         when:
-        def config = metaData.getConfiguration("conf")
+        configuration("conf")
 
         then:
-        1 * moduleDescriptor.getConfiguration("conf") >> Stub(Configuration)
-
-        when:
-        def config2 = metaData.getConfiguration("conf")
-
-        then:
-        config2.is(config)
-
-        and:
-        0 * moduleDescriptor._
+        metaData.getConfiguration("conf").transitive
+        metaData.getConfiguration("conf").visible
     }
 
     def "returns null for unknown configuration"() {
-        given:
-        moduleDescriptor.getConfiguration("conf") >> null
-
         expect:
         metaData.getConfiguration("conf") == null
     }
 
     def "builds and caches dependencies for a configuration"() {
-        def config = Stub(Configuration)
-        def parent = Stub(Configuration)
-        def dependency1 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.1"), false)
-        dependency1.addDependencyConfiguration("conf", "a")
-        def dependency2 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.2"), false)
-        dependency2.addDependencyConfiguration("*", "b")
-        def dependency3 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.3"), false)
-        dependency3.addDependencyConfiguration("super", "c")
-        def dependency4 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.4"), false)
-        dependency4.addDependencyConfiguration("other", "d")
-        def dependency5 = new DefaultDependencyDescriptor(IvyUtil.createModuleRevisionId("org", "module", "1.5"), false)
-        dependency5.addDependencyConfiguration("%", "e")
-
         given:
-        moduleDescriptor.dependencies >> ([dependency1, dependency2, dependency3, dependency4, dependency5] as DependencyDescriptor[])
-        moduleDescriptor.getConfiguration("conf") >> config
-        moduleDescriptor.getConfiguration("super") >> parent
-        config.extends >> ["super"]
+        configuration("super")
+        configuration("conf", ["super"])
+        dependency("org", "module", "1.1").addDependencyConfiguration("conf", "a")
+        dependency("org", "module", "1.2").addDependencyConfiguration("*", "b")
+        dependency("org", "module", "1.3").addDependencyConfiguration("super", "c")
+        dependency("org", "module", "1.4").addDependencyConfiguration("other", "d")
+        dependency("org", "module", "1.5").addDependencyConfiguration("%", "e")
 
         when:
         def dependencies = metaData.getConfiguration("conf").dependencies
@@ -136,61 +104,35 @@ abstract class AbstractModuleComponentResolveMetaDataTest extends Specification 
         then:
         dependencies*.requested*.version == ["1.1", "1.2", "1.3", "1.5"]
 
-        and:
-        metaData.getConfiguration("conf").dependencies.is(dependencies)
-
         when:
+        def metaData = getMetaData()
         metaData.setDependencies([])
 
         then:
         metaData.getConfiguration("conf").dependencies == []
     }
 
-    Artifact artifact(String name) {
-        return Stub(Artifact) {
-            getName() >> name
-            getType() >> "type"
-            getExt() >> "ext"
-            getExtraAttributes() >> [classifier: "classifier"]
-        }
-    }
-
     def "builds and caches artifacts for a configuration"() {
-        def artifact1 = artifact("one")
-        def artifact2 = artifact("two")
-        def config = Stub(Configuration)
-
         given:
-        moduleDescriptor.allArtifacts >> ([artifact1, artifact2] as Artifact[])
-        moduleDescriptor.configurationsNames >> ["conf"]
-        moduleDescriptor.getArtifacts("conf") >> ([artifact1, artifact2] as Artifact[])
-        moduleDescriptor.getConfiguration("conf") >> config
+        configuration("conf")
+        artifact("one", ["conf"])
+        artifact("two", ["conf"])
 
         when:
         def artifacts = metaData.getConfiguration("conf").artifacts
 
         then:
         artifacts*.name.name == ["one", "two"]
-
-        and:
-        metaData.getConfiguration("conf").artifacts.is(artifacts)
     }
 
     def "artifacts include union of those inherited from other configurations"() {
-        def config = Stub(Configuration)
-        def parent = Stub(Configuration)
-        def artifact1 = artifact("one")
-        def artifact2 = artifact("two")
-        def artifact3 = artifact("three")
 
         given:
-        moduleDescriptor.configurationsNames >> ["conf", "super"]
-        moduleDescriptor.getConfiguration("conf") >> config
-        moduleDescriptor.getConfiguration("super") >> parent
-        config.extends >> ["super"]
-        moduleDescriptor.allArtifacts >> ([artifact1, artifact2, artifact3] as Artifact[])
-        moduleDescriptor.getArtifacts("conf") >> ([artifact1, artifact2] as Artifact[])
-        moduleDescriptor.getArtifacts("super") >> ([artifact2, artifact3] as Artifact[])
+        configuration("super")
+        configuration("conf", ["super"])
+        artifact("one", ["conf"])
+        artifact("two", ["conf", "super"])
+        artifact("three", ["super"])
 
         when:
         def artifacts = metaData.getConfiguration("conf").artifacts
@@ -200,31 +142,18 @@ abstract class AbstractModuleComponentResolveMetaDataTest extends Specification 
     }
 
     def "builds and caches exclude rules for a configuration"() {
-        def rule1 = Stub(ExcludeRule)
-        def rule2 = Stub(ExcludeRule)
-        def rule3 = Stub(ExcludeRule)
-        def config = Stub(Configuration)
-        def parent = Stub(Configuration)
-
         given:
-        rule1.configurations >> ["conf"]
-        rule2.configurations >> ["super"]
-        rule3.configurations >> ["other"]
-
-        and:
-        moduleDescriptor.getConfiguration("conf") >> config
-        moduleDescriptor.getConfiguration("super") >> parent
-        config.extends >> ["super"]
-        moduleDescriptor.allExcludeRules >> ([rule1, rule2, rule3] as ExcludeRule[])
+        configuration("super")
+        configuration("conf", ["super"])
+        def rule1 = exclude("one", ["conf"])
+        def rule2 = exclude("two", ["super"])
+        def rule3 = exclude("three", ["other"])
 
         when:
         def excludeRules = metaData.getConfiguration("conf").excludes
 
         then:
         excludeRules as List == [rule1, rule2]
-
-        and:
-        metaData.getConfiguration("conf").excludes.is(excludeRules)
     }
 
     def "can replace the dependencies for the module version"() {
@@ -232,12 +161,35 @@ abstract class AbstractModuleComponentResolveMetaDataTest extends Specification 
         def dependency2 = Stub(DependencyMetaData)
 
         when:
+        dependency("foo", "bar", "1.0")
+        def metaData = getMetaData()
+
+        then:
+        metaData.dependencies*.requested*.toString() == ["foo:bar:1.0"]
+
+        when:
         metaData.dependencies = [dependency1, dependency2]
 
         then:
         metaData.dependencies == [dependency1, dependency2]
-
-        and:
-        0 * moduleDescriptor._
     }
+
+    def configuration(String name, List<String> extendsFrom = []) {
+        moduleDescriptor.addConfiguration(name, true, true, extendsFrom)
+    }
+
+    def dependency(String org, String module, String version) {
+        moduleDescriptor.addDependency(newSelector(org, module, version))
+    }
+
+    def artifact(String name, List<String> confs = []) {
+        moduleDescriptor.addArtifact(new DefaultIvyArtifactName(name, "type", "ext", "classifier"), confs as Set<String>)
+    }
+
+    def exclude(String name, List<String> confs = []) {
+        def exclude = new DefaultExclude("group", name, confs as String[], "exact")
+        moduleDescriptor.addExclude(exclude)
+        exclude
+    }
+
 }
