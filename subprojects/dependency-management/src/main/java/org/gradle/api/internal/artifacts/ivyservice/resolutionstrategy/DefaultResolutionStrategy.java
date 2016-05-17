@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.internal.Actions;
+import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
 
@@ -170,7 +171,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
             out.failOnVersionConflict();
         }
         out.setForcedModules(getForcedModules());
-        out.getComponentSelection().getRules().addAll(componentSelectionRules.getRules());
+        for (SpecRuleAction<? super ComponentSelection> ruleAction : componentSelectionRules.getRules()) {
+            out.getComponentSelection().addRule(ruleAction);
+        }
         return out;
     }
 }

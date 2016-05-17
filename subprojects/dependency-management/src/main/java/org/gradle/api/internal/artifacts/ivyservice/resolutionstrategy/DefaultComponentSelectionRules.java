@@ -113,13 +113,18 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
-    private ComponentSelectionRules addRule(SpecRuleAction<? super ComponentSelection> specRuleAction) {
+    public ComponentSelectionRules addRule(SpecRuleAction<? super ComponentSelection> specRuleAction) {
         mutationValidator.validateMutation(STRATEGY);
         if (rules == null) {
             rules = new HashSet<SpecRuleAction<? super ComponentSelection>>();
         }
         rules.add(specRuleAction);
         return this;
+    }
+
+    @Override
+    public ComponentSelectionRules addRule(RuleAction<? super ComponentSelection> specRuleAction) {
+        return addRule(createAllSpecRulesAction(specRuleAction));
     }
 
     private SpecRuleAction<? super ComponentSelection> createSpecRuleActionFromId(Object id, RuleAction<? super ComponentSelection> ruleAction) {
