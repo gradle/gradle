@@ -28,6 +28,7 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
+import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
@@ -40,6 +41,7 @@ import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -70,6 +72,22 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
         artifactsByConfig = populateArtifactsFromDescriptor(componentIdentifier, moduleDescriptor);
         dependencies = populateDependenciesFromDescriptor(moduleDescriptor);
         excludes = moduleDescriptor.getExcludes();
+    }
+
+    protected static ModuleDescriptorState createModuleDescriptor(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> componentArtifacts) {
+        MutableModuleDescriptorState moduleDescriptorState = new MutableModuleDescriptorState(componentIdentifier);
+        moduleDescriptorState.addConfiguration(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION, true, true, Collections.<String>emptySet());
+
+        for (IvyArtifactName artifactName : componentArtifacts) {
+            moduleDescriptorState.addArtifact(artifactName, Collections.singleton(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION));
+        }
+
+        if (componentArtifacts.isEmpty()) {
+            IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar");
+            moduleDescriptorState.addArtifact(defaultArtifact, Collections.singleton(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION));
+        }
+
+        return moduleDescriptorState;
     }
 
     protected void copyTo(AbstractModuleComponentResolveMetaData copy) {

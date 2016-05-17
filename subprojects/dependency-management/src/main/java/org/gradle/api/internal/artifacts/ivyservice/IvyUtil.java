@@ -15,20 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.apache.ivy.core.module.id.ArtifactId;
 import org.apache.ivy.core.module.id.ModuleId;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.GUtil;
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 
 import static java.util.Collections.emptyMap;
 
@@ -62,26 +54,5 @@ public class IvyUtil {
         synchronized (MODULE_ID_LOCK) {
             return ModuleId.newInstance(org, name);
         }
-    }
-
-    public static ArtifactId createArtifactId(String org, String module, String name, String type, String ext) {
-        return new ArtifactId(createModuleId(org, module), name, type, ext);
-    }
-
-    // TODO:DAZ This doesn't really belong in IvyUtil any more.
-    public static ModuleDescriptorState createModuleDescriptor(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> componentArtifacts) {
-        MutableModuleDescriptorState moduleDescriptorState = new MutableModuleDescriptorState(componentIdentifier);
-        moduleDescriptorState.addConfiguration(Dependency.DEFAULT_CONFIGURATION, true, true, Collections.<String>emptySet());
-
-        for (IvyArtifactName artifactName : componentArtifacts) {
-            moduleDescriptorState.addArtifact(artifactName, Collections.singleton(Dependency.DEFAULT_CONFIGURATION));
-        }
-
-        if (componentArtifacts.isEmpty()) {
-            IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar");
-            moduleDescriptorState.addArtifact(defaultArtifact, Collections.singleton(Dependency.DEFAULT_CONFIGURATION));
-        }
-
-        return moduleDescriptorState;
     }
 }

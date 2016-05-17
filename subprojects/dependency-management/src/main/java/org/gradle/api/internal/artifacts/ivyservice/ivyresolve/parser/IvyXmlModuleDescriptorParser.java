@@ -1038,14 +1038,14 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 PatternMatcher matcher = getPatternMatcher(attributes.getValue("matcher"));
                 String org = elvis(substitute(attributes.getValue("org")), PatternMatchers.ANY_EXPRESSION);
                 String module = elvis(substitute(attributes.getValue("module")), PatternMatchers.ANY_EXPRESSION);
-                ArtifactId aid = IvyUtil.createArtifactId(org, module, name, type, ext);
+                ArtifactId aid = new ArtifactId(IvyUtil.createModuleId(org, module), name, type, ext);
                 Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
                 confAware = new DefaultIncludeRule(aid, matcher, extraAttributes);
             } else { // _state == ARTIFACT_EXCLUDE || EXCLUDE
                 PatternMatcher matcher = getPatternMatcher(attributes.getValue("matcher"));
                 String org = elvis(substitute(attributes.getValue("org")), PatternMatchers.ANY_EXPRESSION);
                 String module = elvis(substitute(attributes.getValue("module")), PatternMatchers.ANY_EXPRESSION);
-                ArtifactId aid = IvyUtil.createArtifactId(org, module, name, type, ext);
+                ArtifactId aid = new ArtifactId(IvyUtil.createModuleId(org, module), name, type, ext);
                 Map<String, String> extraAttributes = getExtraAttributes(attributes, new String[]{"org", "module", "name", "type", "ext", "matcher", "conf"});
                 confAware = new DefaultExcludeRule(aid, matcher, extraAttributes);
             }
