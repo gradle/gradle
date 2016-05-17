@@ -61,10 +61,10 @@ class TestNGListenerAdapterFactory {
                 if (!realReturnType.equals(void.class) && realReturnType.isPrimitive()) {
                     boxedReturnType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(realReturnType);
                 }
-                if (method.getName().equals("equals") && args.length == 1){
+                if (method.getName().equals("equals") && args.length == 1) {
                     return proxyEquals(proxy, args[0]);
                 }
-                if (method.getName().equals("hashCode") && args.length == 0){
+                if (method.getName().equals("hashCode") && args.length == 0) {
                     return proxyHashCode(proxy);
                 }
                 return invoke(listener.getClass(), listener, boxedReturnType, method, args);
@@ -76,17 +76,25 @@ class TestNGListenerAdapterFactory {
                 return javaMethod.invoke(listenerCast, args);
             }
 
-            protected int proxyHashCode(Object proxy) {
-                return System.identityHashCode(proxy);
+            private boolean proxyEquals(Object proxy, Object other) {
+                if (other == null) {
+                    return false;
+                }
+                if (proxy == other) {
+                    return true;
+                }
+                String proxyClassName = Proxy.getInvocationHandler(proxy).getClass().toString();
+                String otherClassName;
+                if (Proxy.isProxyClass(other.getClass())) {
+                    otherClassName = Proxy.getInvocationHandler(other).getClass().toString();
+                } else {
+                    otherClassName = other.getClass().toString();
+                }
+                return proxyClassName.equalsIgnoreCase(otherClassName);
             }
 
-            protected boolean proxyEquals(Object proxy, Object other) {
-                if(other == null)
-                    return false;
-                String className1 = Proxy.getInvocationHandler(proxy).getClass().toString();
-                String className2 = Proxy.isProxyClass(other.getClass())?Proxy.getInvocationHandler(other).getClass().toString():other.getClass().toString();
-                return className1.equalsIgnoreCase(className2);
-
+            private int proxyHashCode(Object proxy) {
+                return System.identityHashCode(proxy);
             }
         });
     }
