@@ -15,6 +15,9 @@
  */
 package org.gradle.testing.jacoco.tasks;
 
+import groovy.lang.GroovyObject;
+import groovy.lang.MetaClass;
+import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
@@ -24,7 +27,38 @@ import org.gradle.api.tasks.InputFiles;
  * Base class for Jacoco tasks.
  */
 @Incubating
-public abstract class JacocoBase extends DefaultTask {
+public abstract class JacocoBase extends DefaultTask implements GroovyObject {
+
+    // ----- backwards compatibility section, implements the GroovyObject interface
+    private transient MetaClass metaClass;
+
+    public JacocoBase() {
+        this.metaClass = InvokerHelper.getMetaClass(this.getClass());
+    }
+
+    public Object getProperty(String property) {
+        return getMetaClass().getProperty(this, property);
+    }
+
+    public void setProperty(String property, Object newValue) {
+        getMetaClass().setProperty(this, property, newValue);
+    }
+
+    public Object invokeMethod(String name, Object args) {
+        return getMetaClass().invokeMethod(this, name, args);
+    }
+
+    public MetaClass getMetaClass() {
+        if (metaClass == null) {
+            metaClass = InvokerHelper.getMetaClass(getClass());
+        }
+        return metaClass;
+    }
+
+    public void setMetaClass(MetaClass metaClass) {
+        this.metaClass = metaClass;
+    }
+    // ------- end of backwards compatibility section
 
     private FileCollection jacocoClasspath;
 
