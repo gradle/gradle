@@ -24,6 +24,7 @@ import spock.lang.Specification
 class TestNGListenerAdapterFactorySpec extends Specification {
     TestNGListenerAdapterFactory factory = new TestNGListenerAdapterFactory(getClass().classLoader)
     MyListener listener = Mock()
+    MyListener2 otherListener = Mock()
 
     def "adapts to IConfigurationListener2 interface if available on class path"() {
         expect:
@@ -34,10 +35,12 @@ class TestNGListenerAdapterFactorySpec extends Specification {
         when:
         ITestListener listener1 = factory.createAdapter(listener);
         ITestListener listener2 = factory.createAdapter(listener);
+        ITestListener differentListener = factory.createAdapter(otherListener);
 
         then:
         listener1.equals(listener2) && listener1.hashCode() == listener2.hashCode()
-        !listener1.equals(listener) && listener1.hashCode() != listener.hashCode()
+        !listener1.equals(listener)
+        !listener1.equals(differentListener)
         !listener1.equals(null)
     }
 
@@ -89,3 +92,4 @@ class TestNGListenerAdapterFactorySpec extends Specification {
 }
 
 interface MyListener extends ITestListener, IConfigurationListener2 {}
+interface MyListener2 extends ITestListener, IConfigurationListener2 {}

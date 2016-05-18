@@ -16,8 +16,8 @@
 package org.gradle.api.internal.tasks.testing.testng;
 
 import com.google.common.base.Objects;
-import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.testng.ISuiteListener;
 import org.testng.ITestListener;
 
@@ -110,7 +110,8 @@ class TestNGListenerAdapterFactory {
         }
 
         private int proxyHashCode(Object proxy) {
-            return Objects.hashCode(Proxy.getInvocationHandler(proxy).getClass(), delegate.getClass());
+            AdaptedListener invocationHandler = (AdaptedListener) Proxy.getInvocationHandler(proxy);
+            return Objects.hashCode(invocationHandler.getClass(), invocationHandler.delegate);
         }
     }
 }
