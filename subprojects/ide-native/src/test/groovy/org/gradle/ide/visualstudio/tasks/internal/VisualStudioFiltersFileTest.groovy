@@ -17,13 +17,15 @@
 package org.gradle.ide.visualstudio.tasks.internal
 import org.gradle.api.Transformer
 import org.gradle.internal.xml.XmlTransformer
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 class VisualStudioFiltersFileTest extends Specification {
-    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    @Rule
+    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+
     Transformer<String, File> fileNameTransformer = { it.name } as Transformer<String, File>
     def filtersFile = new VisualStudioFiltersFile(new XmlTransformer(), fileNameTransformer)
 

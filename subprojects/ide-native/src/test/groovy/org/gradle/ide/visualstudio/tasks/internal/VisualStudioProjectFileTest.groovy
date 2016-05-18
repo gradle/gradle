@@ -16,16 +16,18 @@
 
 package org.gradle.ide.visualstudio.tasks.internal
 import org.gradle.api.Transformer
-import org.gradle.internal.xml.XmlTransformer
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
-import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.internal.xml.XmlTransformer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
 class VisualStudioProjectFileTest extends Specification {
-    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    @Rule
+    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+
     Transformer<String, File> fileNameTransformer = { it.name } as Transformer<String, File>
     def generator = new VisualStudioProjectFile(new XmlTransformer(), fileNameTransformer)
 
