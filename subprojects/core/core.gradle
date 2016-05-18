@@ -107,3 +107,6 @@ class PluginsManifest extends DefaultTask {
         propertiesFile.setText(content, "utf-8")
     }
 }
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

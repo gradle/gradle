@@ -33,3 +33,5 @@ useTestFixtures()
 useTestFixtures(project: ":modelCore")
 useTestFixtures(project: ":platformBase")
 useClassycle()
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

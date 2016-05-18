@@ -24,6 +24,4 @@ dependencies {
     compile libraries.slf4j_api
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = true
-
 useTestFixtures()

@@ -21,6 +21,4 @@ dependencies {
     integTestRuntime project(':plugins')
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = true
-
 useTestFixtures()

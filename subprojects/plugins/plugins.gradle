@@ -58,3 +58,6 @@ useTestFixtures(sourceSet: "testFixtures")
 useTestFixtures(project: ":dependencyManagement")
 useTestFixtures(project: ':diagnostics')
 
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

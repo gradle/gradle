@@ -776,3 +776,6 @@ java9IntegTest {
         excludeCategories 'org.gradle.performance.categories.PerformanceTest'
     }
 }
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

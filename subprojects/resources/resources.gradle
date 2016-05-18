@@ -13,3 +13,6 @@ dependencies {
 
 useTestFixtures()
 useClassycle()
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

@@ -7,3 +7,6 @@ dependencies {
 
 strictCompile()
 useTestFixtures()
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

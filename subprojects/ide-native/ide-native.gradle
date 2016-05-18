@@ -28,3 +28,6 @@ useTestFixtures()
 useTestFixtures(project: ":platformNative")
 useClassycle()
 
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

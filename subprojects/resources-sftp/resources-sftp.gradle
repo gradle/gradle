@@ -27,3 +27,6 @@ useTestFixtures(project: ":maven")
 useTestFixtures()
 useClassycle()
 strictCompile()
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

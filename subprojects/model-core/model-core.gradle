@@ -47,3 +47,6 @@ useClassycle(exclude: [
     'org/gradle/model/internal/type/**'
 ])
 strictCompileIgnoreDeprecations()
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

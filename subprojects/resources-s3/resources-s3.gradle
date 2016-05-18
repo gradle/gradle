@@ -13,3 +13,6 @@ useTestFixtures(project: ":ivy")
 useTestFixtures(project: ":maven")
 useClassycle()
 strictCompile()
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

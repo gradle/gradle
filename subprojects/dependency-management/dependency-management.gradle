@@ -43,3 +43,6 @@ if (isWindows && javaVersion.java5) {
 
 useTestFixtures()
 useTestFixtures(project: ":messaging")
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

@@ -77,3 +77,6 @@ eclipse {
         }
     }
 }
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

@@ -322,5 +322,6 @@ subprojects { prj ->
     task verifyTestFilesCleanup(type: EmptyDirectoryCheck) {
         targetDir = prj.fileTree("${prj.buildDir}/tmp/test files")
         report = prj.file("${prj.buildDir}/reports/remains.txt")
+        errorWhenNotEmpty = true
     }
 }

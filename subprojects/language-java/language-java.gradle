@@ -16,3 +16,6 @@ useTestFixtures()
 useTestFixtures(project: ":languageJvm", sourceSet: 'testFixtures')
 useTestFixtures(project: ":platformBase")
 useTestFixtures(project: ":launcher")
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+
