@@ -15,6 +15,9 @@
  */
 package org.gradle.nativeplatform.tasks;
 
+import groovy.lang.GroovyObject;
+import groovy.lang.MetaClass;
+import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -46,7 +49,7 @@ import java.util.concurrent.Callable;
  * Base task for linking a native binary from object files and libraries.
  */
 @Incubating
-public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
+public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary, GroovyObject {
 
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
@@ -55,8 +58,36 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     private FileCollection source;
     private FileCollection libs;
 
+    // ----- backwards compatibility section, implements the GroovyObject interface
+    private transient MetaClass metaClass;
+
+    public Object getProperty(String property) {
+        return getMetaClass().getProperty(this, property);
+    }
+
+    public void setProperty(String property, Object newValue) {
+        getMetaClass().setProperty(this, property, newValue);
+    }
+
+    public Object invokeMethod(String name, Object args) {
+        return getMetaClass().invokeMethod(this, name, args);
+    }
+
+    public MetaClass getMetaClass() {
+        if (metaClass == null) {
+            metaClass = InvokerHelper.getMetaClass(getClass());
+        }
+        return metaClass;
+    }
+
+    public void setMetaClass(MetaClass metaClass) {
+        this.metaClass = metaClass;
+    }
+    // ------- end of backwards compatibility section
+
     @Inject
     public AbstractLinkTask() {
+        this.metaClass = InvokerHelper.getMetaClass(getClass());
         libs = getProject().files();
         source = getProject().files();
         getInputs().property("outputType", new Callable<String>() {

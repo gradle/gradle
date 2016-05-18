@@ -16,6 +16,7 @@
 package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.util.concurrent.Callables;
+import groovy.lang.GroovyObjectSupport;
 import org.codehaus.plexus.util.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -46,7 +47,7 @@ import java.util.concurrent.Callable;
  * Plugin that provides support for generating Jacoco coverage data.
  */
 @Incubating
-public class JacocoPlugin implements Plugin<ProjectInternal> {
+public class JacocoPlugin extends GroovyObjectSupport implements Plugin<ProjectInternal> {
 
     public static final String AGENT_CONFIGURATION_NAME = "jacocoAgent";
     public static final String ANT_CONFIGURATION_NAME = "jacocoAnt";

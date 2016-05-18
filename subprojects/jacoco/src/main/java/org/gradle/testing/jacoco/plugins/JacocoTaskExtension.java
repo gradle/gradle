@@ -17,6 +17,7 @@
 package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.base.Joiner;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -33,7 +34,7 @@ import java.util.List;
  * Extension for tasks that should run with a Jacoco agent to generate coverage execution data.
  */
 @Incubating
-public class JacocoTaskExtension {
+public class JacocoTaskExtension extends GroovyObjectSupport {
 
     /**
      * The types of output that the agent can use for execution data.
