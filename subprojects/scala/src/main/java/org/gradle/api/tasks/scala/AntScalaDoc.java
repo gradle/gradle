@@ -18,6 +18,7 @@ package org.gradle.api.tasks.scala;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
@@ -30,7 +31,7 @@ import java.util.List;
  * Ant-based Scaladoc.
  */
 @Deprecated
-public class AntScalaDoc {
+public class AntScalaDoc extends GroovyObjectSupport {
     private final IsolatedAntBuilder antBuilder;
     private final List<File> bootclasspathFiles;
     private final List<File> extensionDirs;

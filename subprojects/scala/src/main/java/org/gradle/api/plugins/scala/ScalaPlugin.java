@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.scala;
 
+import groovy.lang.GroovyObjectSupport;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
@@ -35,7 +36,7 @@ import java.util.concurrent.Callable;
  *
  * @see ScalaBasePlugin
  */
-public class ScalaPlugin implements Plugin<Project> {
+public class ScalaPlugin extends GroovyObjectSupport implements Plugin<Project> {
 
     public static final String SCALA_DOC_TASK_NAME = "scaladoc";
 

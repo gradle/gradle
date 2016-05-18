@@ -17,6 +17,7 @@ package org.gradle.api.plugins.scala;
 
 import com.google.common.annotations.VisibleForTesting;
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
@@ -49,7 +50,7 @@ import java.util.concurrent.Callable;
 /**
  * <p>A {@link Plugin} which compiles and tests Scala sources.</p>
  */
-public class ScalaBasePlugin implements Plugin<Project> {
+public class ScalaBasePlugin extends GroovyObjectSupport implements Plugin<Project> {
 
     @VisibleForTesting
     static final String ZINC_CONFIGURATION_NAME = "zinc";

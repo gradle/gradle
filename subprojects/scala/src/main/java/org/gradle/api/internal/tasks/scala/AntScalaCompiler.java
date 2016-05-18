@@ -22,6 +22,7 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
@@ -42,7 +43,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class AntScalaCompiler implements Compiler<ScalaCompileSpec> {
+public class AntScalaCompiler extends GroovyObjectSupport implements Compiler<ScalaCompileSpec> {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntScalaCompiler.class);
 
     private final IsolatedAntBuilder antBuilder;
