@@ -16,6 +16,7 @@
 
 package org.gradle.api.distribution.plugins;
 
+import groovy.lang.GroovyObjectSupport;
 import org.codehaus.groovy.runtime.StringGroovyMethods;
 import org.gradle.api.*;
 import org.gradle.api.distribution.Distribution;
@@ -43,7 +44,7 @@ import java.util.concurrent.Callable;
  * <p>A {@link Plugin} to package project as a distribution.</p>
  */
 @Incubating
-public class DistributionPlugin implements Plugin<ProjectInternal> {
+public class DistributionPlugin extends GroovyObjectSupport implements Plugin<ProjectInternal> {
     /**
      * Name of the main distribution
      */

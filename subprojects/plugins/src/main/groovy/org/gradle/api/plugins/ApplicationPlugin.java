@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.*;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
@@ -35,7 +36,7 @@ import java.util.concurrent.Callable;
 /**
  * <p>A {@link Plugin} which runs a project as a Java Application.</p>
  */
-public class ApplicationPlugin implements Plugin<Project> {
+public class ApplicationPlugin extends GroovyObjectSupport implements Plugin<Project> {
     public static final String APPLICATION_PLUGIN_NAME = "application";
     public static final String APPLICATION_GROUP = APPLICATION_PLUGIN_NAME;
     public static final String TASK_RUN_NAME = "run";

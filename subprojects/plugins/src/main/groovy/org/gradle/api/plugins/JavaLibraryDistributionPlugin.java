@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -29,7 +30,7 @@ import org.gradle.api.tasks.bundling.Jar;
  * A {@link Plugin} which package a Java project as a distribution including the JAR and runtime dependencies.
  */
 @Incubating
-public class JavaLibraryDistributionPlugin implements Plugin<ProjectInternal> {
+public class JavaLibraryDistributionPlugin extends GroovyObjectSupport implements Plugin<ProjectInternal> {
     private Project project;
 
     @Override
