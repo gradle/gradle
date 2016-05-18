@@ -18,19 +18,23 @@ package org.gradle.internal.logging.services;
 
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineConverter;
-import org.gradle.internal.Actions;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.config.LoggingSourceSystem;
+import org.gradle.internal.logging.config.LoggingSystemAdapter;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
-import org.gradle.internal.logging.source.*;
+import org.gradle.internal.logging.slf4j.Slf4jLoggingConfigurer;
+import org.gradle.internal.logging.source.DefaultStdErrLoggingSystem;
+import org.gradle.internal.logging.source.DefaultStdOutLoggingSystem;
+import org.gradle.internal.logging.source.JavaUtilLoggingSystem;
+import org.gradle.internal.logging.source.NoOpLoggingSystem;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.logging.slf4j.Slf4jLoggingConfigurer;
 
 /**
  * A {@link org.gradle.internal.service.ServiceRegistry} implementation that provides the logging services. To use this:
@@ -123,29 +127,23 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
         return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), get(TimeProvider.class));
     }
 
-    protected abstract DefaultLoggingManagerFactory createLoggingManagerFactory();
+    protected DefaultLoggingManagerFactory createLoggingManagerFactory() {
+        OutputEventRenderer renderer = get(OutputEventRenderer.class);
+        LoggingSourceSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(TimeProvider.class));
+        LoggingSourceSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class));
+        return new DefaultLoggingManagerFactory(
+                renderer,
+                new LoggingSystemAdapter(new Slf4jLoggingConfigurer(renderer)),
+                new JavaUtilLoggingSystem(),
+                stdout,
+                stderr);
+    }
 
     protected OutputEventRenderer createOutputEventRenderer() {
-        return new OutputEventRenderer(Actions.doNothing());
+        return new OutputEventRenderer();
     }
 
     private static class CommandLineLogging extends LoggingServiceRegistry {
-        protected DefaultLoggingManagerFactory createLoggingManagerFactory() {
-            OutputEventRenderer renderer = get(OutputEventRenderer.class);
-            LoggingSystem stdout = new DefaultStdOutLoggingSystem(getStdoutListener(), get(TimeProvider.class));
-            LoggingSystem stderr = new DefaultStdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class));
-            return new DefaultLoggingManagerFactory(
-                    new DefaultLoggingConfigurer(renderer,
-                            new Slf4jLoggingConfigurer(renderer)),
-                    renderer,
-                    new JavaUtilLoggingSystem(),
-                    stdout,
-                    stderr);
-        }
-
-        protected OutputEventRenderer createOutputEventRenderer() {
-            return new OutputEventRenderer(new ConsoleConfigureAction());
-        }
     }
 
     private static class NestedLogging extends LoggingServiceRegistry {
@@ -153,7 +151,7 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
             OutputEventRenderer renderer = get(OutputEventRenderer.class);
             // Don't configure anything
             return new DefaultLoggingManagerFactory(renderer,
-                    renderer,
+                    new NoOpLoggingSystem(),
                     new NoOpLoggingSystem(),
                     new NoOpLoggingSystem(),
                     new NoOpLoggingSystem());

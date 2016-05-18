@@ -57,7 +57,6 @@ public class GradlePluginDevelopmentExtension {
     private SourceSet pluginSourceSet;
     private Set<SourceSet> testSourceSets = Collections.emptySet();
     private final NamedDomainObjectContainer<PluginDeclaration> plugins;
-    private final PluginArtifactCoordinates pluginArtifactCoordinates;
     private boolean automatedPublishing = true;
 
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet testSourceSet) {
@@ -66,7 +65,6 @@ public class GradlePluginDevelopmentExtension {
 
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet[] testSourceSets) {
         this.plugins = project.container(PluginDeclaration.class);
-        this.pluginArtifactCoordinates = new PluginArtifactCoordinates(project);
         this.pluginSourceSet = pluginSourceSet;
         testSourceSets(testSourceSets);
     }
@@ -126,16 +124,6 @@ public class GradlePluginDevelopmentExtension {
     public void plugins(Action<? super NamedDomainObjectContainer<PluginDeclaration>> action) {
         action.execute(plugins);
     }
-
-    /**
-     * The coordinates under which the main plugin artifact (the Jar containing the implementation classes) will be published.
-     *
-     * @return the coordiantes, never null
-     */
-    public PluginArtifactCoordinates getPluginArtifactCoordinates() {
-        return pluginArtifactCoordinates;
-    }
-
 
     /**
      * Whether the plugin should automatically configure the publications for the plugins.

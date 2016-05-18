@@ -39,9 +39,7 @@ public class DaemonStatus {
     }
 
     boolean isDaemonUnhealthy() {
-        String enabledValue = System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true");
-        Boolean enabled = Boolean.parseBoolean(enabledValue);
-        return enabled && (isTenuredSpaceExhausted() || isPermGenSpaceExhausted());
+        return isEnabled() && (isTenuredSpaceExhausted() || isPermGenSpaceExhausted());
     }
 
     public boolean isTenuredSpaceExhausted() {
@@ -56,7 +54,11 @@ public class DaemonStatus {
                 return false;
             }
             GarbageCollectionStats gcStats = stats.getGcMonitor().getTenuredStats();
-            logger.debug(String.format("GC rate: %.2f/s tenured usage: %s%%", gcStats.getRate(), gcStats.getUsage()));
+            if (gcStats.getUsage() > 0) {
+                logger.debug(String.format("GC rate: %.2f/s tenured usage: %s%%", gcStats.getRate(), gcStats.getUsage()));
+            } else {
+                logger.debug("GC rate: 0.0/s");
+            }
             if (gcStats.getEventCount() >= 5
                 && gcStats.getUsage() >= tenuredUsageThreshold
                 && gcStats.getRate() >= tenuredRateThreshold) {
@@ -81,6 +83,11 @@ public class DaemonStatus {
             }
         }
         return false;
+    }
+
+    private boolean isEnabled() {
+        String enabledValue = System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true");
+        return Boolean.parseBoolean(enabledValue);
     }
 
     private static int parseValue(String property, int defaultValue) {

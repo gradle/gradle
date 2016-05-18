@@ -17,9 +17,11 @@ package org.gradle.internal.logging.services
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
-import org.gradle.internal.logging.LoggingOutputInternal
+import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.internal.logging.config.LoggingRouter
+import org.gradle.internal.logging.config.LoggingSourceSystem
+import org.gradle.internal.logging.config.LoggingSystem
 import org.gradle.internal.logging.events.OutputEventListener
-import org.gradle.internal.logging.source.LoggingSystem
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
@@ -27,12 +29,12 @@ import spock.lang.Specification
 public class DefaultLoggingManagerTest extends Specification {
     @Rule
     public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
-    private final LoggingSystem loggingSystem = Mock(LoggingSystem.class);
-    private final LoggingSystem javaUtilLoggingSystem = Mock(LoggingSystem.class);
-    private final LoggingSystem stdOutLoggingSystem = Mock(LoggingSystem.class);
-    private final LoggingSystem stdErrLoggingSystem = Mock(LoggingSystem.class);
-    private final LoggingOutputInternal loggingOutput = Mock(LoggingOutputInternal.class);
-    private final DefaultLoggingManager loggingManager = new DefaultLoggingManager(loggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingOutput);
+    private final def slf4jLoggingSystem = Mock(LoggingSourceSystem)
+    private final def javaUtilLoggingSystem = Mock(LoggingSourceSystem)
+    private final def stdOutLoggingSystem = Mock(LoggingSourceSystem)
+    private final def stdErrLoggingSystem = Mock(LoggingSourceSystem)
+    private final def loggingRouter = Mock(LoggingRouter)
+    private final DefaultLoggingManager loggingManager = new DefaultLoggingManager(slf4jLoggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingRouter);
 
     public void "default values are set"() {
         expect:
@@ -114,35 +116,50 @@ public class DefaultLoggingManagerTest extends Specification {
     public void "can start and stop with log level set"() {
         loggingManager.setLevelInternal(LogLevel.DEBUG)
 
-        final LoggingSystem.Snapshot snapshot = Mock(LoggingSystem.Snapshot.class)
+        final def routerSnapshot = Mock(LoggingSystem.Snapshot)
+        final def slf4jSnapshot = Mock(LoggingSystem.Snapshot)
 
         when:
         loggingManager.start()
 
         then:
-        1 * loggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG) >> snapshot
+        1 * slf4jLoggingSystem.on(LogLevel.DEBUG, LogLevel.DEBUG) >> slf4jSnapshot
+        1 * loggingRouter.snapshot() >> routerSnapshot
+        1 * loggingRouter.configure(LogLevel.DEBUG)
+        0 * loggingRouter._
+        0 * slf4jLoggingSystem._
 
         when:
         loggingManager.stop()
 
         then:
-        1 * loggingSystem.restore(snapshot)
+        1 * slf4jLoggingSystem.restore(slf4jSnapshot)
+        1 * loggingRouter.restore(routerSnapshot)
+        0 * loggingRouter._
+        0 * slf4jLoggingSystem._
     }
 
     public void "can start and stop with log level not set"() {
-        final LoggingSystem.Snapshot snapshot = Mock(LoggingSystem.Snapshot.class);
+        final slf4jSnapshot = Mock(LoggingSystem.Snapshot.class);
+        final routerSnapshot = Mock(LoggingSystem.Snapshot.class);
 
         when:
         loggingManager.start()
 
         then:
-        1 * loggingSystem.snapshot() >> snapshot
+        1 * loggingRouter.snapshot() >> routerSnapshot
+        1 * slf4jLoggingSystem.snapshot() >> slf4jSnapshot
+        0 * loggingRouter._
+        0 * slf4jLoggingSystem._
 
         when:
         loggingManager.stop()
 
         then:
-        loggingSystem.restore(snapshot)
+        1 * loggingRouter.restore(routerSnapshot)
+        1 * slf4jLoggingSystem.restore(slf4jSnapshot)
+        0 * loggingRouter._
+        0 * slf4jLoggingSystem._
     }
 
     public void "can change capture level while started"() {
@@ -174,25 +191,35 @@ public class DefaultLoggingManagerTest extends Specification {
     }
 
     public void "can change log level while started"() {
-        final LoggingSystem.Snapshot snapshot = Mock(LoggingSystem.Snapshot.class)
+        final slf4jSnapshot = Mock(LoggingSystem.Snapshot.class)
+        final routerSnapshot = Mock(LoggingSystem.Snapshot.class)
 
         when:
         loggingManager.start()
 
         then:
-        1 * loggingSystem.snapshot() >> snapshot
+        1 * slf4jLoggingSystem.snapshot() >> slf4jSnapshot
+        1 * loggingRouter.snapshot() >> routerSnapshot
+        0 * loggingRouter._
+        0 * slf4jLoggingSystem._
 
         when:
         loggingManager.setLevelInternal(LogLevel.LIFECYCLE)
 
         then:
-        1 * loggingSystem.on(LogLevel.LIFECYCLE, LogLevel.LIFECYCLE) >> Mock(LoggingSystem.Snapshot.class)
+        1 * slf4jLoggingSystem.on(LogLevel.LIFECYCLE, LogLevel.LIFECYCLE) >> Mock(LoggingSystem.Snapshot.class)
+        1 * loggingRouter.configure(LogLevel.LIFECYCLE)
+        0 * loggingRouter._
+        0 * slf4jLoggingSystem._
 
         when:
         loggingManager.stop()
 
         then:
-        1 * loggingSystem.restore(snapshot)
+        1 * slf4jLoggingSystem.restore(slf4jSnapshot)
+        1 * loggingRouter.restore(routerSnapshot)
+        0 * loggingRouter._
+        0 * slf4jLoggingSystem._
     }
 
     public void "adds standard out listener on start and removes on stop"() {
@@ -204,13 +231,13 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.start()
 
         then:
-        1 * loggingOutput.addStandardOutputListener(stdoutListener)
+        1 * loggingRouter.addStandardOutputListener(stdoutListener)
 
         when:
         loggingManager.stop()
 
         then:
-        1 * loggingOutput.removeStandardOutputListener(stdoutListener)
+        1 * loggingRouter.removeStandardOutputListener(stdoutListener)
     }
 
     public void "adds standard error listener on start and removes on stop"() {
@@ -222,13 +249,13 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.start()
 
         then:
-        1 * loggingOutput.addStandardErrorListener(stderrListener)
+        1 * loggingRouter.addStandardErrorListener(stderrListener)
 
         when:
         loggingManager.stop()
 
         then:
-        1 * loggingOutput.removeStandardErrorListener(stderrListener)
+        1 * loggingRouter.removeStandardErrorListener(stderrListener)
     }
 
     public void "adds output event listener on start and removes on stop"() {
@@ -240,7 +267,7 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.start();
 
         then:
-        1 * loggingOutput.addOutputEventListener(listener)
+        1 * loggingRouter.addOutputEventListener(listener)
 
         when:
         loggingManager.stop()
@@ -258,13 +285,13 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.addStandardOutputListener(stdoutListener)
 
         then:
-        loggingOutput.addStandardOutputListener(stdoutListener)
+        loggingRouter.addStandardOutputListener(stdoutListener)
 
         when:
         loggingManager.stop()
 
         then:
-        1 * loggingOutput.removeStandardOutputListener(stdoutListener)
+        1 * loggingRouter.removeStandardOutputListener(stdoutListener)
     }
 
     public void "can add standard error listener while started"() {
@@ -276,13 +303,13 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.addStandardErrorListener(stderrListener)
 
         then:
-        1 * loggingOutput.addStandardErrorListener(stderrListener)
+        1 * loggingRouter.addStandardErrorListener(stderrListener)
 
         when:
         loggingManager.stop()
 
         then:
-        loggingOutput.removeStandardErrorListener(stderrListener)
+        loggingRouter.removeStandardErrorListener(stderrListener)
     }
 
     public void "can add output event listener while started"() {
@@ -294,13 +321,13 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.addOutputEventListener(listener)
 
         then:
-        1 * loggingOutput.addOutputEventListener(listener)
+        1 * loggingRouter.addOutputEventListener(listener)
 
         when:
         loggingManager.stop()
 
         then:
-        1 * loggingOutput.removeOutputEventListener(listener)
+        1 * loggingRouter.removeOutputEventListener(listener)
     }
 
     public void "can remove standard output listener while started"() {
@@ -312,19 +339,19 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.start()
 
         then:
-        1 * loggingOutput.addStandardOutputListener(stdoutListener)
+        1 * loggingRouter.addStandardOutputListener(stdoutListener)
 
         when:
         loggingManager.removeStandardOutputListener(stdoutListener)
 
         then:
-        1 * loggingOutput.removeStandardOutputListener(stdoutListener)
+        1 * loggingRouter.removeStandardOutputListener(stdoutListener)
 
         when:
         loggingManager.stop()
 
         then:
-        0 * loggingOutput.removeStandardOutputListener(stdoutListener)
+        0 * loggingRouter.removeStandardOutputListener(stdoutListener)
     }
 
     public void "can remove standard error listener while started"() {
@@ -336,19 +363,19 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.start()
 
         then:
-        1 * loggingOutput.addStandardErrorListener(stderrListener)
+        1 * loggingRouter.addStandardErrorListener(stderrListener)
 
         when:
         loggingManager.removeStandardErrorListener(stderrListener)
 
         then:
-        1 * loggingOutput.removeStandardErrorListener(stderrListener)
+        1 * loggingRouter.removeStandardErrorListener(stderrListener)
 
         when:
         loggingManager.stop()
 
         then:
-        0 * loggingOutput.removeStandardErrorListener(stderrListener)
+        0 * loggingRouter.removeStandardErrorListener(stderrListener)
     }
 
     public void "can remove output event listener while started"() {
@@ -360,18 +387,112 @@ public class DefaultLoggingManagerTest extends Specification {
         loggingManager.start()
 
         then:
-        1 * loggingOutput.addOutputEventListener(listener)
+        1 * loggingRouter.addOutputEventListener(listener)
 
         when:
         loggingManager.removeOutputEventListener(listener)
 
         then:
-        1 * loggingOutput.removeOutputEventListener(listener)
+        1 * loggingRouter.removeOutputEventListener(listener)
 
         when:
         loggingManager.stop()
 
         then:
-        0 * loggingOutput.removeOutputEventListener(listener)
+        0 * loggingRouter.removeOutputEventListener(listener)
+    }
+
+    def "attaches process console on start and restores on stop"() {
+        def snapshot = Stub(LoggingSystem.Snapshot)
+
+        loggingManager.attachProcessConsole(ConsoleOutput.Auto)
+
+        when:
+        loggingManager.start()
+
+        then:
+        1 * loggingRouter.snapshot() >> snapshot
+        1 * loggingRouter.attachProcessConsole(ConsoleOutput.Auto)
+        0 * loggingRouter._
+
+        when:
+        loggingManager.stop()
+
+        then:
+        1 * loggingRouter.restore(snapshot)
+        0 * loggingRouter._
+    }
+
+    def "can attach process console while started"() {
+        def snapshot = Stub(LoggingSystem.Snapshot)
+
+        when:
+        loggingManager.start()
+
+        then:
+        1 * loggingRouter.snapshot() >> snapshot
+        0 * loggingRouter._
+
+        when:
+        loggingManager.attachProcessConsole(ConsoleOutput.Auto)
+
+        then:
+        1 * loggingRouter.attachProcessConsole(ConsoleOutput.Auto)
+        0 * loggingRouter._
+
+        when:
+        loggingManager.stop()
+
+        then:
+        1 * loggingRouter.restore(snapshot)
+        0 * loggingRouter._
+    }
+
+    def "attaches console output on start and restores on stop"() {
+        def snapshot = Stub(LoggingSystem.Snapshot)
+        def output = Stub(OutputStream)
+
+        loggingManager.attachAnsiConsole(output)
+
+        when:
+        loggingManager.start()
+
+        then:
+        1 * loggingRouter.snapshot() >> snapshot
+        1 * loggingRouter.attachAnsiConsole(output)
+        0 * loggingRouter._
+
+        when:
+        loggingManager.stop()
+
+        then:
+        1 * loggingRouter.restore(snapshot)
+        0 * loggingRouter._
+    }
+
+    def "can attach console output while started"() {
+        def snapshot = Stub(LoggingSystem.Snapshot)
+        def output = Stub(OutputStream)
+
+        when:
+        loggingManager.start()
+
+        then:
+        1 * loggingRouter.snapshot() >> snapshot
+        0 * loggingRouter._
+
+        when:
+        loggingManager.attachAnsiConsole(output)
+
+        then:
+        1 * loggingRouter.attachAnsiConsole(output)
+        0 * loggingRouter._
+
+        when:
+        loggingManager.stop()
+
+        then:
+        1 * loggingRouter.restore(snapshot)
+        0 * loggingRouter._
     }
 }

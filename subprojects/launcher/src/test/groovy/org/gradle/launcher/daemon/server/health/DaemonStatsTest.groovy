@@ -55,7 +55,7 @@ class DaemonStatsTest extends Specification {
                 getUsage() >> 10
                 getMax() >> 1024
                 getRate() >> 1.0
-                getCount() >> 100
+                getEventCount() >> 100
             }
         }
 
@@ -69,6 +69,33 @@ class DaemonStatsTest extends Specification {
 
         then:
         stats.healthInfo == String.format("Starting 2nd build in daemon [uptime: 3 mins, performance: 98%%, GC rate: %.2f/s, tenured heap usage: 10%% of %.1f kB]", 1.0, 1.0)
+    }
+
+    def "handles no garbage collection data"() {
+        clock.getTime() >> "3 mins"
+        time.getCurrentTime() >>> [1, 1001]
+
+        memory.getCollectionTime() >> 25
+
+        gcMonitor.getTenuredStats() >> {
+            Stub(GarbageCollectionStats) {
+                getUsage() >> -1
+                getMax() >> -1
+                getRate() >> 0
+                getCount() >> 100
+            }
+        }
+
+        def stats = new DaemonStats(clock, time, memory, gcMonitor)
+
+        when:
+        stats.buildStarted()
+        stats.buildFinished()
+        stats.buildStarted()
+        stats.buildFinished()
+
+        then:
+        stats.healthInfo == "Starting 2nd build in daemon [uptime: 3 mins, performance: 98%, no major garbage collections]"
     }
 
     def "time might go backwards"() {
@@ -97,6 +124,6 @@ class DaemonStatsTest extends Specification {
         stats.buildFinished()
 
         then:
-        stats.healthInfo == String.format("Starting 2nd build in daemon [uptime: %s, performance: 98%%, GC rate: %.2f/s, tenured heap usage: 0%% of 0 B]", Clock.prettyTime(1), 0.0)
+        stats.healthInfo == String.format("Starting 2nd build in daemon [uptime: %s, performance: 98%%, no major garbage collections]", Clock.prettyTime(1))
     }
 }

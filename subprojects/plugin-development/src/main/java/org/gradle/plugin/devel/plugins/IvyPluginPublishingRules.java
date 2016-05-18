@@ -26,10 +26,10 @@ import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.model.Finalize;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
-import org.gradle.plugin.devel.PluginArtifactCoordinates;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -40,7 +40,7 @@ class IvyPluginPublishingRules extends RuleSource {
     public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
 
     @Mutate
-    public void addPluginPublications(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment, ServiceRegistry services) {
+    public void addMainPublication(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment, ServiceRegistry services) {
         if (!pluginDevelopment.isAutomatedPublishing()) {
             return;
         }
@@ -48,24 +48,27 @@ class IvyPluginPublishingRules extends RuleSource {
         SoftwareComponent component = componentContainer.getByName("java");
 
         PublicationContainer publications = publishing.getPublications();
-        PluginArtifactCoordinates coordinates = pluginDevelopment.getPluginArtifactCoordinates();
-        NamedDomainObjectContainer<PluginDeclaration> declaredPlugins = pluginDevelopment.getPlugins();
+        createIvyPluginPublication(component, publications);
+    }
 
-        createIvyPluginPublication(component, coordinates, publications);
+    @Finalize
+    public void addMarkerPublications(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment) {
+        if (!pluginDevelopment.isAutomatedPublishing()) {
+            return;
+        }
+        PublicationContainer publications = publishing.getPublications();
+        NamedDomainObjectContainer<PluginDeclaration> declaredPlugins = pluginDevelopment.getPlugins();
         for (PluginDeclaration declaration : declaredPlugins) {
-            createIvyMarkerPublication(declaration, coordinates, publications);
+            createIvyMarkerPublication(declaration, (IvyPublication) publications.getByName("pluginIvy"), publications);
         }
     }
 
-    private void createIvyPluginPublication(SoftwareComponent component, PluginArtifactCoordinates coordinates, PublicationContainer publications) {
+    private void createIvyPluginPublication(SoftwareComponent component, PublicationContainer publications) {
         IvyPublication publication = publications.create("pluginIvy", IvyPublication.class);
         publication.from(component);
-        publication.setOrganisation(coordinates.getGroup());
-        publication.setModule(coordinates.getName());
-        publication.setRevision(coordinates.getVersion());
     }
 
-    private void createIvyMarkerPublication(PluginDeclaration declaration, final PluginArtifactCoordinates coordinates, PublicationContainer publications) {
+    private void createIvyMarkerPublication(PluginDeclaration declaration, final IvyPublication mainPublication, PublicationContainer publications) {
         String pluginId = declaration.getId();
         IvyPublication publication = publications.create(declaration.getName() + "PluginMarkerIvy", IvyPublication.class);
         publication.setOrganisation(pluginId);
@@ -81,13 +84,13 @@ class IvyPluginPublishingRules extends RuleSource {
                         Node dependencies = root.getElementsByTagName("dependencies").item(0);
                         Node dependency = dependencies.appendChild(document.createElement("dependency"));
                         Attr org = document.createAttribute("org");
-                        org.setValue(coordinates.getGroup());
+                        org.setValue(mainPublication.getOrganisation());
                         dependency.getAttributes().setNamedItem(org);
                         Attr name = document.createAttribute("name");
-                        name.setValue(coordinates.getName());
+                        name.setValue(mainPublication.getModule());
                         dependency.getAttributes().setNamedItem(name);
                         Attr rev = document.createAttribute("rev");
-                        rev.setValue(coordinates.getVersion());
+                        rev.setValue(mainPublication.getRevision());
                         dependency.getAttributes().setNamedItem(rev);
                     }
                 });
