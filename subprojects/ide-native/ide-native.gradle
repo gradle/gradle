@@ -22,12 +22,7 @@ dependencies {
     compile project(':languageNative')
     compile project(':testingNative')
 }
-verifyTestFilesCleanup.errorWhenNotEmpty = true
 
 useTestFixtures()
 useTestFixtures(project: ":platformNative")
 useClassycle()
-
-
-verifyTestFilesCleanup.errorWhenNotEmpty = false
-
