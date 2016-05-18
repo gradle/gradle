@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.signing.signatory.pgp;
 
+import groovy.lang.GroovyObjectSupport;
 import org.bouncycastle.openpgp.PGPSecretKey;
 import org.bouncycastle.openpgp.PGPSecretKeyRing;
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
@@ -35,7 +36,7 @@ import static org.gradle.internal.IoActions.uncheckedClose;
 /**
  * Creates {@link PgpSignatory} instances.
  */
-public class PgpSignatoryFactory {
+public class PgpSignatoryFactory extends GroovyObjectSupport {
 
     private static final String[] PROPERTIES = new String[]{"keyId", "secretKeyRingFile", "password"};
 
