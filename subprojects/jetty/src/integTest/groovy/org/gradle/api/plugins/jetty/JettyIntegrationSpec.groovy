@@ -21,9 +21,11 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Timeout
 import spock.util.concurrent.PollingConditions
 
+@Ignore
 @Timeout(15)
 class JettyIntegrationSpec extends AbstractIntegrationSpec {
 
