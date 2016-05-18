@@ -23,9 +23,7 @@ import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable
 import org.gradle.platform.base.PlatformBaseSpecification
-import org.gradle.test.fixtures.file.LeaksFileHandles
 
-@LeaksFileHandles
 class NativeBinariesTestPluginTest extends PlatformBaseSpecification {
     def "registers NativeTestSuiteBinarySpec"() {
         when:

@@ -17,7 +17,6 @@ package org.gradle.nativeplatform.test.cunit
 import org.gradle.language.c.CSourceSet
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.test.cunit.plugins.CUnitConventionPlugin
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.base.TestSuiteSpec
 import org.gradle.util.TestUtil
@@ -26,7 +25,6 @@ import spock.lang.Specification
 
 import static org.gradle.model.internal.type.ModelTypes.modelMap
 
-@LeaksFileHandles
 class CUnitTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()

@@ -19,10 +19,8 @@ package org.gradle.language.scala.plugins
 import org.gradle.api.Plugin
 import org.gradle.language.base.LanguageSourceSet
 import org.gradle.language.scala.ScalaLanguageSourceSet
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
-@LeaksFileHandles
 class ScalaLanguagePluginTest extends AbstractLanguagePluginSpec {
 
     @Override
