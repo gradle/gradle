@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.api.publish.maven.internal.publication
-
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
@@ -31,14 +30,15 @@ import org.gradle.api.publish.maven.internal.publisher.MavenProjectIdentity
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.typeconversion.NotationParser
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import spock.lang.Shared
+import org.junit.Rule
 import spock.lang.Specification
 
 public class DefaultMavenPublicationTest extends Specification {
-    @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    @Rule
+    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+
     def module = Mock(MavenProjectIdentity)
     NotationParser<Object, MavenArtifact> notationParser = Mock(NotationParser)
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
