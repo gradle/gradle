@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.signing.type;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.plugins.signing.signatory.Signatory;
@@ -33,7 +34,7 @@ import static org.gradle.internal.IoActions.withResource;
 /**
  * Convenience base class for {@link SignatureType} implementations.
  */
-public abstract class AbstractSignatureType implements SignatureType {
+public abstract class AbstractSignatureType extends GroovyObjectSupport implements SignatureType {
 
     @Override
     public File sign(final Signatory signatory, File toSign) {

@@ -15,13 +15,15 @@
  */
 package org.gradle.plugins.signing.signatory;
 
+import groovy.lang.GroovyObjectSupport;
+
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 /**
  * Convenience base class for {@link Signatory} implementations.
  */
-public abstract class SignatorySupport implements Signatory {
+public abstract class SignatorySupport extends GroovyObjectSupport implements Signatory {
 
     @Override
     public byte[] sign(InputStream toSign) {

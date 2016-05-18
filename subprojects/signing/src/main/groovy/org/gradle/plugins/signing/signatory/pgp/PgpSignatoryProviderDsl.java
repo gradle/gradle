@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.signing.signatory.pgp;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Project;
 
 import java.io.File;
@@ -25,7 +26,7 @@ import static org.codehaus.groovy.runtime.DefaultGroovyMethods.asType;
 /**
  * Configuration dsl for {@link PgpSignatoryProvider}.
  */
-class PgpSignatoryProviderDsl {
+class PgpSignatoryProviderDsl extends GroovyObjectSupport {
 
     private final Project project;
     private final Map<String, PgpSignatory> signatories;

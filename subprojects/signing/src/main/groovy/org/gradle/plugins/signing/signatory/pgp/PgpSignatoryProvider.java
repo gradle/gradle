@@ -16,6 +16,7 @@
 package org.gradle.plugins.signing.signatory.pgp;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Project;
 import org.gradle.plugins.signing.SigningExtension;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
@@ -27,7 +28,7 @@ import java.util.Map;
 /**
  * A {@link SignatoryProvider} of {@link PgpSignatory} instances.
  */
-public class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
+public class PgpSignatoryProvider extends GroovyObjectSupport implements SignatoryProvider<PgpSignatory> {
 
     private final PgpSignatoryFactory factory = new PgpSignatoryFactory();
 
