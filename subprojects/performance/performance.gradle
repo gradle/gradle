@@ -13,7 +13,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'gradle.plugin.me.champeau.gradle:jmh-gradle-plugin:0.3.0'
+        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.3.1'
     }
 }
 
