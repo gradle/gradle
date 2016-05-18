@@ -15,6 +15,9 @@
  */
 package org.gradle.nativeplatform.tasks;
 
+import groovy.lang.GroovyObject;
+import groovy.lang.MetaClass;
+import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
@@ -42,13 +45,39 @@ import java.io.File;
  */
 @Incubating
 @ParallelizableTask
-public class InstallExecutable extends DefaultTask {
+public class InstallExecutable extends DefaultTask implements GroovyObject {
 
     private ToolChain toolChain;
     private NativePlatform platform;
     private File destinationDir;
     private File executable;
     private FileCollection libs;
+    // ----- backwards compatibility section, implements the GroovyObject interface
+    private transient MetaClass metaClass;
+
+    public Object getProperty(String property) {
+        return getMetaClass().getProperty(this, property);
+    }
+
+    public void setProperty(String property, Object newValue) {
+        getMetaClass().setProperty(this, property, newValue);
+    }
+
+    public Object invokeMethod(String name, Object args) {
+        return getMetaClass().invokeMethod(this, name, args);
+    }
+
+    public MetaClass getMetaClass() {
+        if (metaClass == null) {
+            metaClass = InvokerHelper.getMetaClass(getClass());
+        }
+        return metaClass;
+    }
+
+    public void setMetaClass(MetaClass metaClass) {
+        this.metaClass = metaClass;
+    }
+    // ------- end of backwards compatibility section
 
     @Inject
     public InstallExecutable() {
