@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.internal.generator;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.internal.UncheckedException;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject;
 
@@ -25,7 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public abstract class AbstractPersistableConfigurationObject implements PersistableConfigurationObject {
+public abstract class AbstractPersistableConfigurationObject extends GroovyObjectSupport implements PersistableConfigurationObject {
 
     @Override
     public void load(File inputFile) {

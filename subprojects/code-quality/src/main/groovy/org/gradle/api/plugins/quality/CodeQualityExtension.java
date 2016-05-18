@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.tasks.SourceSet;
 
 import java.io.File;
@@ -23,7 +24,7 @@ import java.util.Collection;
 /**
  * Base Code Quality Extension.
  */
-public abstract class CodeQualityExtension {
+public abstract class CodeQualityExtension extends GroovyObjectSupport {
 
     private String toolVersion;
     private Collection<SourceSet> sourceSets;

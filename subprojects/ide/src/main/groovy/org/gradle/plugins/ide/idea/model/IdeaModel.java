@@ -17,6 +17,7 @@ package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -28,7 +29,7 @@ import java.util.Map;
  * <p>
  * See the examples in docs for {@link IdeaModule} or {@link IdeaProject}.
  */
-public class IdeaModel {
+public class IdeaModel extends GroovyObjectSupport {
 
     private IdeaModule module;
     private IdeaProject project;

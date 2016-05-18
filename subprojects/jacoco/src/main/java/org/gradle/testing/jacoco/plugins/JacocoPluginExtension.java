@@ -15,6 +15,7 @@
  */
 package org.gradle.testing.jacoco.plugins;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
@@ -34,7 +35,7 @@ import java.util.concurrent.Callable;
  * Extension including common properties and methods for Jacoco.
  */
 @Incubating
-public class JacocoPluginExtension {
+public class JacocoPluginExtension extends GroovyObjectSupport {
 
     public static final String TASK_EXTENSION_NAME = "jacoco";
 

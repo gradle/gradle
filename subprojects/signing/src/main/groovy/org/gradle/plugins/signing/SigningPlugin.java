@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.signing;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.BasePlugin;
@@ -23,7 +24,7 @@ import org.gradle.api.plugins.BasePlugin;
 /**
  * Adds the ability to digitally sign files and artifacts.
  */
-public class SigningPlugin implements Plugin<Project> {
+public class SigningPlugin extends GroovyObjectSupport implements Plugin<Project> {
 
     /**
      * <p>Adds the ability to digitally sign files and artifacts.</p>

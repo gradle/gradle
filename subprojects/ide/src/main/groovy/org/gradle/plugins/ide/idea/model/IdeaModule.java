@@ -21,6 +21,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -142,7 +143,7 @@ import java.util.Set;
  *
  * </pre>
  */
-public class IdeaModule {
+public class IdeaModule extends GroovyObjectSupport {
 
     private String name;
     private Set<File> sourceDirs;

@@ -16,11 +16,12 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
+import groovy.lang.GroovyObjectSupport;
 
 /**
  * Represents a path in a format as used often in ipr and iml files.
  */
-public class Path {
+public class Path extends GroovyObjectSupport {
 
     private final String url;
     private final String relPath;

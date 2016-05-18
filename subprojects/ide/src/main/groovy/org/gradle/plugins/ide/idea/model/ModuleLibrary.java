@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import groovy.lang.GroovyObjectSupport;
 import groovy.util.Node;
 
 import java.util.Collection;
@@ -30,7 +31,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 /**
  * Represents an orderEntry of type module-library in the iml XML.
  */
-public class ModuleLibrary implements Dependency {
+public class ModuleLibrary extends GroovyObjectSupport implements Dependency {
 
     private Set<Path> classes = Sets.newLinkedHashSet();
     private Set<JarDirectory> jarDirectories = Sets.newLinkedHashSet();

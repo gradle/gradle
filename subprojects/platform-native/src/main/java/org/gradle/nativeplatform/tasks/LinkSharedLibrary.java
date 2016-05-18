@@ -15,6 +15,9 @@
  */
 package org.gradle.nativeplatform.tasks;
 
+import groovy.lang.GroovyObject;
+import groovy.lang.MetaClass;
+import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
@@ -28,8 +31,39 @@ import org.gradle.nativeplatform.internal.SharedLibraryLinkerSpec;
  */
 @Incubating
 @ParallelizableTask
-public class LinkSharedLibrary extends AbstractLinkTask {
+public class LinkSharedLibrary extends AbstractLinkTask implements GroovyObject {
     private String installName;
+
+    // ----- backwards compatibility section, implements the GroovyObject interface
+    private transient MetaClass metaClass;
+
+    public LinkSharedLibrary() {
+        this.metaClass = InvokerHelper.getMetaClass(this.getClass());
+    }
+
+    public Object getProperty(String property) {
+        return getMetaClass().getProperty(this, property);
+    }
+
+    public void setProperty(String property, Object newValue) {
+        getMetaClass().setProperty(this, property, newValue);
+    }
+
+    public Object invokeMethod(String name, Object args) {
+        return getMetaClass().invokeMethod(this, name, args);
+    }
+
+    public MetaClass getMetaClass() {
+        if (metaClass == null) {
+            metaClass = InvokerHelper.getMetaClass(getClass());
+        }
+        return metaClass;
+    }
+
+    public void setMetaClass(MetaClass metaClass) {
+        this.metaClass = metaClass;
+    }
+    // ------- end of backwards compatibility section
 
     @Input
     @Optional

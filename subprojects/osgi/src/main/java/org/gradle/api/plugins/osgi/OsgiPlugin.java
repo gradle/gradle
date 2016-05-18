@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.osgi;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -27,7 +28,7 @@ import org.gradle.api.tasks.bundling.Jar;
 /**
  * A {@link Plugin} which extends the {@link JavaPlugin} to add OSGi meta-information to the project Jars.
  */
-public class OsgiPlugin implements Plugin<Project> {
+public class OsgiPlugin extends GroovyObjectSupport implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 

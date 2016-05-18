@@ -15,7 +15,10 @@
  */
 package org.gradle.plugins.signing;
 
+import groovy.lang.GroovyObject;
+import groovy.lang.MetaClass;
 import groovy.transform.CompileStatic;
+import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -36,7 +39,7 @@ import static org.gradle.util.GUtil.uncheckedCall;
  * <p>A signature file is always generated from another file, which may be a {@link PublishArtifact}.</p>
  */
 @CompileStatic
-public class Signature extends AbstractPublishArtifact {
+public class Signature extends AbstractPublishArtifact implements GroovyObject {
 
     /**
      * The specification of how to generate the signature.
@@ -93,6 +96,33 @@ public class Signature extends AbstractPublishArtifact {
     private final Callable<File> toSignGenerator;
 
     private final Callable<String> classifierGenerator;
+
+    // ----- backwards compatibility section, implements the GroovyObject interface
+    private transient MetaClass metaClass = InvokerHelper.getMetaClass(this.getClass());
+
+    public Object getProperty(String property) {
+        return getMetaClass().getProperty(this, property);
+    }
+
+    public void setProperty(String property, Object newValue) {
+        getMetaClass().setProperty(this, property, newValue);
+    }
+
+    public Object invokeMethod(String name, Object args) {
+        return getMetaClass().invokeMethod(this, name, args);
+    }
+
+    public MetaClass getMetaClass() {
+        if (metaClass == null) {
+            metaClass = InvokerHelper.getMetaClass(getClass());
+        }
+        return metaClass;
+    }
+
+    public void setMetaClass(MetaClass metaClass) {
+        this.metaClass = metaClass;
+    }
+    // ------- end of backwards compatibility section
 
     /**
      * Creates a signature artifact for the given public artifact.

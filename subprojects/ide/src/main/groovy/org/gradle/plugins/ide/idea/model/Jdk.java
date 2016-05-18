@@ -16,12 +16,13 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
+import groovy.lang.GroovyObjectSupport;
 
 /**
  * Represents information for the project Java SDK.
  * This translates to attributes of the ProjectRootManager element in the ipr.
  */
-public class Jdk {
+public class Jdk extends GroovyObjectSupport {
 
     private boolean assertKeyword;
     private boolean jdk15;

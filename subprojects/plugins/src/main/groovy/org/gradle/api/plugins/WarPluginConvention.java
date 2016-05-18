@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Project;
 
 import java.io.File;
@@ -23,7 +24,7 @@ import java.io.File;
 /**
  * <p>A {@link Convention} used for the WarPlugin.</p>
  */
-public class WarPluginConvention {
+public class WarPluginConvention extends GroovyObjectSupport {
     private String webAppDirName;
     private final Project project;
 

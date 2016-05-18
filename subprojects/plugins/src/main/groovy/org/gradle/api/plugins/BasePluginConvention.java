@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Project;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -25,7 +26,7 @@ import java.io.File;
 /**
  * <p>A {@link Convention} used for the BasePlugin.</p>
  */
-public class BasePluginConvention {
+public class BasePluginConvention extends GroovyObjectSupport {
     private ProjectInternal project;
 
     private String distsDirName;

@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.announce;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
@@ -28,7 +29,7 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
 /**
  * <p>The extension used by the AnnouncePlugin.</p>
  */
-public class AnnouncePluginExtension {
+public class AnnouncePluginExtension extends GroovyObjectSupport {
     private final Logger logger = Logging.getLogger(getClass());
     private final LocalAnnouncer onDemandLocalAnnouncer;
     private final Project project;

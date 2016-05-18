@@ -17,11 +17,12 @@ package org.gradle.plugins.ide.idea.model;
 
 
 import com.google.common.base.Objects;
+import groovy.lang.GroovyObjectSupport;
 
 /**
  * Represents a jar directory element of an idea module library.
  */
-public class JarDirectory {
+public class JarDirectory extends GroovyObjectSupport {
 
     private Path path;
     private boolean recursive;

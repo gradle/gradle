@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.buildcomparison.gradle;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
@@ -31,7 +32,7 @@ import java.util.concurrent.Callable;
  * Preconfigures the project to run a gradle build comparison.
  */
 @Incubating
-public class CompareGradleBuildsPlugin implements Plugin<Project> {
+public class CompareGradleBuildsPlugin extends GroovyObjectSupport implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(ReportingBasePlugin.class);
         final ReportingExtension reportingExtension = project.getExtensions().findByType(ReportingExtension.class);

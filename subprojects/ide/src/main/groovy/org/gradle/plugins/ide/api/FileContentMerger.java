@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.api;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.listener.ActionBroadcast;
 
@@ -25,7 +26,7 @@ import org.gradle.listener.ActionBroadcast;
  * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}
  * or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
  */
-public class FileContentMerger {
+public class FileContentMerger extends GroovyObjectSupport {
 
     private ActionBroadcast whenMerged = new ActionBroadcast();
     private ActionBroadcast beforeMerged = new ActionBroadcast();

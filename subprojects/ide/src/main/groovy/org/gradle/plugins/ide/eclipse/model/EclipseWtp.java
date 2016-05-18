@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.util.ConfigureUtil;
 
 /**
@@ -46,7 +47,7 @@ import org.gradle.util.ConfigureUtil;
  *
  * </pre>
  */
-public class EclipseWtp {
+public class EclipseWtp extends GroovyObjectSupport {
 
     private EclipseClasspath eclipseClasspath;
     private EclipseWtpComponent component;

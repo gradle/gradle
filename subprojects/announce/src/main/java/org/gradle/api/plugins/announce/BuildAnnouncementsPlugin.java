@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.announce;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.announce.internal.AnnouncingBuildListener;
@@ -23,7 +24,7 @@ import org.gradle.api.plugins.announce.internal.AnnouncingBuildListener;
 /**
  * A plugin which announces interesting build lifecycle events.
  */
-public class BuildAnnouncementsPlugin implements Plugin<Project> {
+public class BuildAnnouncementsPlugin extends GroovyObjectSupport implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(AnnouncePlugin.class);
         AnnouncePluginExtension extension = project.getExtensions().findByType(AnnouncePluginExtension.class);

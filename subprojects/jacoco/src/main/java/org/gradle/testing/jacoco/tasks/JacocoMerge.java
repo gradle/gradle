@@ -15,6 +15,9 @@
  */
 package org.gradle.testing.jacoco.tasks;
 
+import groovy.lang.GroovyObject;
+import groovy.lang.MetaClass;
+import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
@@ -35,10 +38,41 @@ import java.io.File;
  * Task to merge multiple execution data files into one.
  */
 @Incubating
-public class JacocoMerge extends JacocoBase {
+public class JacocoMerge extends JacocoBase implements GroovyObject {
 
     private FileCollection executionData;
     private File destinationFile;
+
+    // ----- backwards compatibility section, implements the GroovyObject interface
+    private transient MetaClass metaClass;
+
+    public JacocoMerge() {
+        this.metaClass = InvokerHelper.getMetaClass(this.getClass());
+    }
+
+    public Object getProperty(String property) {
+        return getMetaClass().getProperty(this, property);
+    }
+
+    public void setProperty(String property, Object newValue) {
+        getMetaClass().setProperty(this, property, newValue);
+    }
+
+    public Object invokeMethod(String name, Object args) {
+        return getMetaClass().invokeMethod(this, name, args);
+    }
+
+    public MetaClass getMetaClass() {
+        if (metaClass == null) {
+            metaClass = InvokerHelper.getMetaClass(getClass());
+        }
+        return metaClass;
+    }
+
+    public void setMetaClass(MetaClass metaClass) {
+        this.metaClass = metaClass;
+    }
+    // ------- end of backwards compatibility section
 
     /**
      * Collection of execution data files to merge.

@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -52,7 +53,7 @@ import java.util.Map;
  *
  * More examples in docs for {@link EclipseProject}, {@link EclipseClasspath}, {@link EclipseWtp}
  */
-public class EclipseModel {
+public class EclipseModel extends GroovyObjectSupport {
 
     private EclipseProject project;
 

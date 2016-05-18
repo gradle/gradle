@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.ConfigureUtil;
 
@@ -70,7 +71,7 @@ import java.util.Map;
  * </pre>
  */
 
-public class EclipseWtpFacet {
+public class EclipseWtpFacet extends GroovyObjectSupport {
 
     private final XmlFileContentMerger file;
     private List<Facet> facets = Lists.newArrayList();

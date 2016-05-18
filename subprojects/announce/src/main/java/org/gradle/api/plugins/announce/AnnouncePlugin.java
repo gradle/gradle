@@ -16,13 +16,14 @@
 
 package org.gradle.api.plugins.announce;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 
 /**
  * This plugin allows to send announce messages to Twitter.
  */
-public class AnnouncePlugin implements Plugin<Project> {
+public class AnnouncePlugin extends GroovyObjectSupport implements Plugin<Project>{
     public void apply(Project project) {
         project.getExtensions().create("announce", AnnouncePluginExtension.class, project);
     }

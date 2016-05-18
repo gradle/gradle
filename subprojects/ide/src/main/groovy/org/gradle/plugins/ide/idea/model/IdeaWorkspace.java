@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.idea.model;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.ConfigureUtil;
 
@@ -33,7 +34,7 @@ import org.gradle.util.ConfigureUtil;
  * }
  * </pre>
  */
-public class IdeaWorkspace {
+public class IdeaWorkspace extends GroovyObjectSupport {
 
     private XmlFileContentMerger iws;
 

@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Project;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.util.WrapUtil;
@@ -26,7 +27,7 @@ import java.util.Set;
 /**
  * The conventional configuration for the `ProjectReportsPlugin`.
  */
-public class ProjectReportsPluginConvention {
+public class ProjectReportsPluginConvention extends GroovyObjectSupport {
     private String projectReportDirName = "project";
     private final Project project;
 

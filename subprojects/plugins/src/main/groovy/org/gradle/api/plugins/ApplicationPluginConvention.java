@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
 
@@ -24,7 +25,7 @@ import java.util.ArrayList;
 /**
  * <p>A {@link Convention} used for the ApplicationPlugin.</p>
  */
-public class ApplicationPluginConvention {
+public class ApplicationPluginConvention extends GroovyObjectSupport {
     private String applicationName;
     private String mainClassName;
     private Iterable<String> applicationDefaultJvmArgs = new ArrayList<String>();

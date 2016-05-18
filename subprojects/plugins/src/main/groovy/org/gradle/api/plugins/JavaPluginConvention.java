@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.internal.file.FileLookup;
@@ -37,7 +38,7 @@ import java.io.File;
  * Is mixed into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
  * {@link org.gradle.api.plugins.JavaPlugin}.
  */
-public class JavaPluginConvention {
+public class JavaPluginConvention extends GroovyObjectSupport {
     private ProjectInternal project;
 
     private String dependencyCacheDirName;

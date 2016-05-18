@@ -17,11 +17,13 @@
 package org.gradle.plugins.ide.eclipse.model;
 
 
+import groovy.lang.GroovyObjectSupport;
+
 /**
  * For now, we only need the Project. However this class will contain more domain objects soon.
  */
 @Deprecated
-public class EclipseDomainModel {
+public class EclipseDomainModel extends GroovyObjectSupport {
 
     private Project project;
     private Classpath classpath;

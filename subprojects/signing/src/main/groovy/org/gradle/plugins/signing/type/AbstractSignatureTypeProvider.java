@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.signing.type;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.InvalidUserDataException;
 
 import java.util.LinkedHashMap;
@@ -23,7 +24,7 @@ import java.util.Map;
 /**
  * Convenience base class for {@link SignatureTypeProvider} implementations.
  */
-public abstract class AbstractSignatureTypeProvider implements SignatureTypeProvider {
+public abstract class AbstractSignatureTypeProvider extends GroovyObjectSupport implements SignatureTypeProvider {
 
     private String defaultTypeExtension;
     private final Map<String, SignatureType> types = new LinkedHashMap<String, SignatureType>();

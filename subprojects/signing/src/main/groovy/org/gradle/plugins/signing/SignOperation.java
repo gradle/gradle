@@ -17,6 +17,7 @@ package org.gradle.plugins.signing;
 
 import com.google.common.base.Function;
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.SimpleFileCollection;
@@ -35,7 +36,7 @@ import java.util.List;
  * operation manages one or more {@link Signature} objects. The {@code sign} methods are used to register things to generate signatures for. The {@link #execute()} method generates the signatures for
  * all of the registered items at that time.
  */
-public class SignOperation implements SignatureSpec {
+public class SignOperation extends GroovyObjectSupport implements SignatureSpec {
 
     /**
      * The file representation of the signature(s).

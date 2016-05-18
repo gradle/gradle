@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -115,7 +116,7 @@ import java.util.Set;
  * }
  * </pre>
  */
-public class EclipseClasspath {
+public class EclipseClasspath extends GroovyObjectSupport {
 
     private static final String DEPRECATED_NOEXPORTCONFIGURATION_FIELD = "EclipseClasspath.noExportConfigurations";
 

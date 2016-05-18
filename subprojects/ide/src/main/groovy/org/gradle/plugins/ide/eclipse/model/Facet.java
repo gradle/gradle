@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import groovy.lang.GroovyObjectSupport;
 import groovy.util.Node;
 
 import java.util.Map;
@@ -26,7 +27,7 @@ import java.util.Map;
 /**
  * A project facet.
  */
-public class Facet {
+public class Facet extends GroovyObjectSupport {
 
     /**
      * An {@code installed} facet is really present on an Eclipse project whereas facet type {@code fixed} means that

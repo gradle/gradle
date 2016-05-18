@@ -16,6 +16,7 @@
 package org.gradle.plugins.signing;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -47,7 +48,7 @@ import static org.gradle.util.GUtil.uncheckedCall;
 /**
  * The global signing configuration for a project.
  */
-public class SigningExtension {
+public class SigningExtension extends GroovyObjectSupport {
 
     /**
      * The name of the configuration that all signature artifacts will be placed into ("signatures")

@@ -16,6 +16,7 @@
 package org.gradle.plugins.ear;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
@@ -28,7 +29,7 @@ import java.io.File;
 /**
  * Ear Plugin Convention.
  */
-public class EarPluginConvention {
+public class EarPluginConvention extends GroovyObjectSupport {
 
     private final FileResolver fileResolver;
     private final Instantiator instantiator;

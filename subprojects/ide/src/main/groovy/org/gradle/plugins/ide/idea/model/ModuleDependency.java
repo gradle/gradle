@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import groovy.lang.GroovyObjectSupport;
 import groovy.util.Node;
 import org.gradle.api.Incubating;
 
@@ -27,7 +28,7 @@ import java.util.Map;
 /**
  * Represents an orderEntry of type module in the iml XML.
  */
-public class ModuleDependency implements Dependency {
+public class ModuleDependency extends GroovyObjectSupport implements Dependency {
 
     private String name;
     private String scope;
