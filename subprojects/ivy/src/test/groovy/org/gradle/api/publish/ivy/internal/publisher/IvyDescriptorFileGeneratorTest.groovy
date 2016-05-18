@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.publish.ivy.internal.publisher
-
 import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.DependencyArtifact
@@ -24,16 +23,18 @@ import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifact
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyConfiguration
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TextUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 import javax.xml.namespace.QName
 
 class IvyDescriptorFileGeneratorTest extends Specification {
-    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+
     def projectIdentity = new DefaultIvyPublicationIdentity("my-org", "my-name", "my-version")
     IvyDescriptorFileGenerator generator = new IvyDescriptorFileGenerator(projectIdentity)
 
