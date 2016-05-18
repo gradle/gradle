@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.javascript.rhino;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -33,7 +34,7 @@ import org.gradle.plugins.javascript.base.JavaScriptExtension;
 
 import java.util.concurrent.Callable;
 
-public class RhinoPlugin implements Plugin<Project> {
+public class RhinoPlugin extends GroovyObjectSupport implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(JavaScriptBasePlugin.class);
 

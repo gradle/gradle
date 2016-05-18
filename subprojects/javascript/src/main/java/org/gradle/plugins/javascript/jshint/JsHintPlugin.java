@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.javascript.jshint;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -37,7 +38,7 @@ import org.gradle.plugins.javascript.rhino.RhinoPlugin;
 import java.io.File;
 import java.util.concurrent.Callable;
 
-public class JsHintPlugin implements Plugin<Project> {
+public class JsHintPlugin extends GroovyObjectSupport implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(RhinoPlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);

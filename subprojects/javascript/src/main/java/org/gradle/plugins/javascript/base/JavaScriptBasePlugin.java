@@ -16,12 +16,13 @@
 
 package org.gradle.plugins.javascript.base;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.ExtensionAware;
 
-public class JavaScriptBasePlugin implements Plugin<Project> {
+public class JavaScriptBasePlugin extends GroovyObjectSupport implements Plugin<Project> {
     public void apply(Project project) {
         project.getPluginManager().apply(BasePlugin.class);
         project.getExtensions().create(JavaScriptExtension.NAME, JavaScriptExtension.class);

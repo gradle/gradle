@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.javascript.envjs;
 
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -42,7 +43,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 
-public class EnvJsPlugin implements Plugin<Project> {
+public class EnvJsPlugin extends GroovyObjectSupport implements Plugin<Project> {
     private final WorkerProcessFactory workerProcessBuilderFactory;
 
     @Inject
