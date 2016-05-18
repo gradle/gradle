@@ -18,13 +18,13 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExcludeRuleContainer;
 
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
-    private Set<ExcludeRule> addedRules = new LinkedHashSet<ExcludeRule>();
+    private Set<ExcludeRule> addedRules;
 
     public DefaultExcludeRuleContainer() {}
 
@@ -33,10 +33,13 @@ public class DefaultExcludeRuleContainer implements ExcludeRuleContainer {
     }
 
     public void add(Map<String, String> args) {
+        if (addedRules == null) {
+            addedRules = new HashSet<ExcludeRule>();
+        }
         addedRules.add(ExcludeRuleNotationConverter.parser().parseNotation(args));
     }
 
     public Set<ExcludeRule> getRules() {
-        return addedRules;
+        return addedRules == null ? Collections.<ExcludeRule>emptySet() : addedRules;
     }
 }

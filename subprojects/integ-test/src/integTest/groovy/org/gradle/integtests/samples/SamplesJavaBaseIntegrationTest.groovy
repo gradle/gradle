@@ -20,14 +20,19 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
 import org.junit.Rule
 import org.junit.Test
 
+import static org.gradle.util.TestPrecondition.JDK7_OR_LATER
+
 class SamplesJavaBaseIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/base')
+    @Rule
+    public final Sample sample = new Sample(testDirectoryProvider, 'java/base')
 
     @Test
+    @Requires(JDK7_OR_LATER)
     public void canBuildAndUploadJar() {
         TestFile javaprojectDir = sample.dir
 
@@ -40,13 +45,13 @@ class SamplesJavaBaseIntegrationTest extends AbstractIntegrationTest {
 
         // Check jar exists
         javaprojectDir.file("prod/build/libs/prod-1.0.jar").assertIsFile()
-        
+
         // Check contents of Jar
         TestFile jarContents = file('jar')
         javaprojectDir.file('prod/build/libs/prod-1.0.jar').unzipTo(jarContents)
         jarContents.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'org/gradle/Person.class'
+            'META-INF/MANIFEST.MF',
+            'org/gradle/Person.class'
         )
     }
 }

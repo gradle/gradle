@@ -15,12 +15,8 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
-
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher
-import org.apache.ivy.plugins.matcher.GlobPatternMatcher
-import org.apache.ivy.plugins.matcher.RegexpPatternMatcher
+import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy
 import org.gradle.internal.component.external.descriptor.Dependency
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -42,17 +38,10 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     public final Resources resources = new Resources()
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    ResolverStrategy resolverStrategy = Stub()
-    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser(resolverStrategy)
+    IvyXmlModuleDescriptorParser parser = new IvyXmlModuleDescriptorParser()
     DescriptorParseContext parseContext = Mock()
 
     ModuleDescriptorState md
-
-    def setup() {
-        resolverStrategy.getPatternMatcher("exact") >> ExactPatternMatcher.INSTANCE
-        resolverStrategy.getPatternMatcher("glob") >> GlobPatternMatcher.INSTANCE
-        resolverStrategy.getPatternMatcher("regexp") >> RegexpPatternMatcher.INSTANCE
-    }
 
     def "parses minimal Ivy descriptor"() throws Exception {
         when:
@@ -284,11 +273,11 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         verifyFullDependencies(md.dependencies)
 
-        def rules = md.excludeRules
+        def rules = md.excludes
         rules.size() == 2
-        rules[0].matcher == GlobPatternMatcher.INSTANCE
+        rules[0].matcher == PatternMatcher.GLOB
         rules[0].configurations as List == ["myconf1"]
-        rules[1].matcher == ExactPatternMatcher.INSTANCE
+        rules[1].matcher == PatternMatcher.EXACT
         rules[1].configurations as List == ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"]
     }
 
@@ -677,7 +666,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assert dd.requested == newSelector("yourorg", "yourmodule10", "10.1")
         assert dd.dependencyArtifacts.empty
         assert dd.dependencyExcludes.size() == 1
-        assert dd.dependencyExcludes[0].id.name == "toexclude"
+        assert dd.dependencyExcludes[0].artifact.name == "toexclude"
         assert dd.dependencyExcludes[0].configurations as Set == ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"] as Set
         true
     }

@@ -17,13 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.internal.component.model.IvyArtifactName;
 
 /**
- * A ModuleResolutionFilter that accepts any module that has a group other than the one specified.
- * Accepts all artifacts.
+ * A ModuleResolutionFilter that excludes any module with a matching group.
+ * Does not exclude any artifacts.
  */
-class GroupNameExcludeSpec extends AbstractModuleExcludeRuleFilter {
+class GroupNameExcludeSpec extends AbstractModuleExclusion {
     final String group;
 
     GroupNameExcludeSpec(String group) {
@@ -32,41 +31,28 @@ class GroupNameExcludeSpec extends AbstractModuleExcludeRuleFilter {
 
     @Override
     public String toString() {
-        return String.format("{group %s}", group);
+        return "group " + group;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        }
-        if (o == null || o.getClass() != getClass()) {
-            return false;
-        }
+    protected boolean doEquals(Object o) {
         GroupNameExcludeSpec other = (GroupNameExcludeSpec) o;
         return group.equals(other.group);
     }
 
     @Override
-    public int hashCode() {
+    protected int doHashCode() {
         return group.hashCode();
     }
 
     @Override
-    public boolean doAcceptsSameModulesAs(AbstractModuleExcludeRuleFilter other) {
+    public boolean doExcludesSameModulesAs(AbstractModuleExclusion other) {
         GroupNameExcludeSpec groupNameExcludeSpec = (GroupNameExcludeSpec) other;
         return group.equals(groupNameExcludeSpec.group);
     }
 
-    public boolean acceptModule(ModuleIdentifier element) {
-        return !element.getGroup().equals(group);
-    }
-
-    public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-        return true;
-    }
-
-    public boolean acceptsAllArtifacts() {
-        return true;
+    @Override
+    public boolean excludeModule(ModuleIdentifier module) {
+        return module.getGroup().equals(group);
     }
 }

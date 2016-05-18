@@ -19,43 +19,46 @@ package org.gradle.jvm.tasks
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.AbstractArchiveTaskTest
-import org.junit.Before
-import org.junit.Test
-
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertNotNull
 
 class JarTest extends AbstractArchiveTaskTest {
     Jar jar
 
-    @Before public void setUp()  {
+    def setup()  {
         jar = createTask(Jar)
         configure(jar)
     }
 
+    @Override
     AbstractArchiveTask getArchiveTask() {
         jar
     }
 
-    @Test public void testJar() {
-        assertEquals(Jar.DEFAULT_EXTENSION, jar.extension)
-        assertNotNull(jar.manifest)
-        assertNotNull(jar.metaInf)
+    def "test Jar"() {
+        expect:
+        jar.extension == Jar.DEFAULT_EXTENSION
+        jar.manifest != null
+        jar.metaInf != null
     }
 
-    @Test public void testManifest() {
+    def "correct jar manifest"() {
+        when:
         jar.manifest = new DefaultManifest(null);
         jar.manifest {
             attributes(key: 'value')
         }
-        assertEquals(jar.manifest.attributes.key, 'value')
+
+        then:
+        jar.manifest.attributes.key == 'value'
     }
 
-    @Test public void testManifestWithNullManifest() {
+    def "correct jar manifest from null manifest"() {
+        when:
         jar.manifest = null
         jar.manifest {
             attributes(key: 'value')
         }
-        assertEquals(jar.manifest.attributes.key, 'value')
+
+        then:
+        jar.manifest.attributes.key == 'value'
     }
 }

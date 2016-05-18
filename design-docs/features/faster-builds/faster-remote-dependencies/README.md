@@ -44,4 +44,23 @@ And calling `help`. The results show that:
 - time spent in `dependencies` block is equally dominated by parsing the dependency notation (6.85%) and adding the dependencies to the container (4.8%)
 - 54% of build time is spent in applying the Java plugin, and 21% just in creating the source sets plus 8% in creating the `Test` tasks
 
+### Large project with lot of snapshot dependencies and local repository
+
+Those measurements were made as of May 17th, using `master`, after optimizing the depdendency management engine to remove use of Ivy structures in our engine.
+The project used is `lotDependencies`, which defines:
+
+- a local Maven repository
+- 4 sub-projects with lots of snapshot dependencies
+
+The task being executed is `dependencyReport` which triggers full dependency resolution. Times are measured with a hot daemon.
+
+- dependency resolution represents 58% of build execution time
+- 42.3% of build execution time is spent in resolving dependencies
+   - 13% spent in parsing `maven-metadata.xml`. This time is totally dominated by the SAX parser initialization itself. Actual parsing is less than 2% of time.
+   - 17% spent in parsing the POM descriptors. This time is also totally dominated by parser initialization. Only 5% of time is really spent in parsing.
+   - 4% of time is spent in `ExternalResourceResolver#getId`. This ID cannot be cached efficiently because it depends on the configuration of the resolver which is not immutable.
+   - 3% of time spent in `DefaultMavenModuleResolveMetaData#copy`
+- 11.8% of build execution time is spent in assembling the result (mostly populating internal datastructures / copying)
+
+
 

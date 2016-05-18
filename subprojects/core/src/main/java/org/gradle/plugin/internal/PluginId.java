@@ -17,6 +17,7 @@
 package org.gradle.plugin.internal;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Strings;
 import org.gradle.api.Nullable;
 
 import static com.google.common.base.CharMatcher.anyOf;
@@ -24,6 +25,7 @@ import static com.google.common.base.CharMatcher.inRange;
 
 public class PluginId {
 
+    public static final String ID_EMPTY = "must not be null or empty";
     public static final String ID_SEPARATOR_ON_START_OR_END = "cannot begin or end with '" + PluginId.SEPARATOR + "'";
     public static final String DOUBLE_SEPARATOR = "cannot contain '" + PluginId.SEPARATOR + PluginId.SEPARATOR + "'";
 
@@ -51,7 +53,9 @@ public class PluginId {
     }
 
     public static void validate(String value) throws InvalidPluginIdException {
-        if (value.startsWith(SEPARATOR) || value.endsWith(SEPARATOR)) {
+        if(Strings.isNullOrEmpty(value)) {
+            throw new InvalidPluginIdException(value, ID_EMPTY);
+        } else if (value.startsWith(SEPARATOR) || value.endsWith(SEPARATOR)) {
             throw new InvalidPluginIdException(value, ID_SEPARATOR_ON_START_OR_END);
         } else if (value.contains(PluginId.SEPARATOR + PluginId.SEPARATOR)) {
             throw new InvalidPluginIdException(value, DOUBLE_SEPARATOR);

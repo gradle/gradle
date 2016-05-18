@@ -17,10 +17,10 @@
 package org.gradle.internal.component.external.descriptor;
 
 import com.google.common.collect.Lists;
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collection;
@@ -54,8 +54,8 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
         configurations.put(name, configuration);
     }
 
-    public void addExcludeRule(ExcludeRule excludeRule) {
-        excludeRules.add(excludeRule);
+    public void addExclude(Exclude exclude) {
+        excludes.add(exclude);
     }
 
     public Dependency addDependency(ModuleVersionSelector requested) {
@@ -80,7 +80,7 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
         List<String> configurations = Lists.newArrayList(dependencyMetaData.getModuleConfigurations());
         for (String moduleConfiguration : configurations) {
             for (String dependencyConfiguration : dependencyMetaData.getDependencyConfigurations(moduleConfiguration, moduleConfiguration)) {
-                dependency.addConfMapping(moduleConfiguration, dependencyConfiguration);
+                dependency.addDependencyConfiguration(moduleConfiguration, dependencyConfiguration);
             }
         }
 

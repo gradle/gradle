@@ -125,10 +125,11 @@ class DaemonStatusTest extends Specification {
         usageThreshold | used | tired
         90             | 100  | true
         90             | 91   | true
+        90             | 90   | true
+        90             | 89   | false
         0              | 0    | false
         0              | 100  | false
         100            | 100  | true
-        75             | 75   | true
     }
 
     def "can disable daemon performance monitoring"() {

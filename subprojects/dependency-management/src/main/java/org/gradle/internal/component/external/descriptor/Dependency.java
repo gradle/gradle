@@ -18,34 +18,16 @@ package org.gradle.internal.component.external.descriptor;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.CollectionUtils;
 
-import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public class Dependency {
-    private static final Field DEPENDENCY_CONFIG_FIELD;
-    static {
-        try {
-            DEPENDENCY_CONFIG_FIELD = DefaultDependencyDescriptor.class.getDeclaredField("confs");
-            DEPENDENCY_CONFIG_FIELD.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
 
     private final ModuleVersionSelector requested;
     private final String dynamicConstraintVersion;
@@ -56,7 +38,7 @@ public class Dependency {
 
     private final Map<String, List<String>> confMappings = Maps.newLinkedHashMap();
     private final List<Artifact> dependencyArtifacts = Lists.newArrayList();
-    private final List<ExcludeRule> dependencyExcludes = Lists.newArrayList();
+    private final List<Exclude> dependencyExcludes = Lists.newArrayList();
 
 
     public Dependency(ModuleVersionSelector requested, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive) {
@@ -73,14 +55,6 @@ public class Dependency {
     }
 
     public void addDependencyConfiguration(String from, String to) {
-        addConfMapping(from, to);
-    }
-
-    public void addDependencyConfiguration(String from, List<String> to) {
-        confMappings.put(from, to);
-    }
-
-    void addConfMapping(String from, String to) {
         List<String> mappings = confMappings.get(from);
         if (mappings == null) {
             mappings = Lists.newArrayList();
@@ -91,7 +65,11 @@ public class Dependency {
         }
     }
 
-    public void addExcludeRule(ExcludeRule rule) {
+    public void addDependencyConfiguration(String from, List<String> to) {
+        confMappings.put(from, to);
+    }
+
+    public void addExcludeRule(Exclude rule) {
         dependencyExcludes.add(rule);
     }
 
@@ -119,56 +97,11 @@ public class Dependency {
         return dependencyArtifacts;
     }
 
-    public List<ExcludeRule> getDependencyExcludes() {
+    public List<Exclude> getDependencyExcludes() {
         return dependencyExcludes;
     }
 
     public String getDynamicConstraintVersion() {
         return dynamicConstraintVersion;
     }
-
-    public static Dependency forDependencyDescriptor(DependencyDescriptor dependencyDescriptor) {
-        Dependency dep = new Dependency(
-            DefaultModuleVersionSelector.newSelector(dependencyDescriptor.getDependencyRevisionId()),
-            dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision(),
-            false,
-            dependencyDescriptor.isChanging(),
-            dependencyDescriptor.isTransitive());
-
-        Map<String, List<String>> configMappings = readConfigMappings(dependencyDescriptor);
-        for (String from : configMappings.keySet()) {
-            for (String to : configMappings.get(from)) {
-                dep.addConfMapping(from, to);
-            }
-        }
-
-        for (DependencyArtifactDescriptor dependencyArtifactDescriptor : dependencyDescriptor.getAllDependencyArtifacts()) {
-            IvyArtifactName ivyArtifactName = DefaultIvyArtifactName.forIvyArtifact(dependencyArtifactDescriptor);
-            dep.addArtifact(ivyArtifactName, Sets.newHashSet(dependencyArtifactDescriptor.getConfigurations()));
-        }
-
-        for (ExcludeRule excludeRule : dependencyDescriptor.getAllExcludeRules()) {
-            dep.addExcludeRule(excludeRule);
-        }
-        return dep;
-    }
-
-    // TODO:DAZ Get rid of this reflection (will need to hook directly into the parser)
-    private static Map<String, List<String>> readConfigMappings(DependencyDescriptor dependencyDescriptor) {
-        if (dependencyDescriptor instanceof DefaultDependencyDescriptor) {
-            try {
-                return (Map<String, List<String>>) DEPENDENCY_CONFIG_FIELD.get(dependencyDescriptor);
-            } catch (IllegalAccessException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
-        String[] modConfs = dependencyDescriptor.getModuleConfigurations();
-        Map<String, List<String>> results = Maps.newLinkedHashMap();
-        for (String modConf : modConfs) {
-            results.put(modConf, Arrays.asList(dependencyDescriptor.getDependencyConfigurations(modConfs)));
-        }
-        return results;
-    }
-
 }

@@ -15,30 +15,24 @@
  */
 
 package org.gradle.internal.component.external.model
-
 import org.apache.ivy.core.module.descriptor.Artifact
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor
 import org.apache.ivy.core.module.descriptor.ExcludeRule
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.model.DependencyMetaData
-import spock.lang.Ignore
 
-// TODO:DAZ Re-enable this when the de-ivy-fication is complete
-@Ignore
 class DefaultIvyModuleResolveMetaDataTest extends AbstractModuleComponentResolveMetaDataTest {
 
     @Override
-    AbstractModuleComponentResolveMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
+    AbstractModuleComponentResolveMetaData createMetaData(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
         moduleDescriptor.getModuleRevisionId() >> IvyUtil.createModuleRevisionId(id)
         moduleDescriptor.getConfigurationsNames() >> new String[0]
         moduleDescriptor.getAllArtifacts() >> new Artifact[0]
         moduleDescriptor.getDependencies() >> new DependencyDescriptor[0]
         moduleDescriptor.getAllExcludeRules() >> new ExcludeRule[0]
-        return new DefaultIvyModuleResolveMetaData(componentIdentifier, moduleDescriptor)
+        return new DefaultIvyModuleResolveMetaData(id, moduleDescriptor)
     }
 
     def "can make a copy"() {
@@ -46,6 +40,7 @@ class DefaultIvyModuleResolveMetaDataTest extends AbstractModuleComponentResolve
         def dependency2 = Stub(DependencyMetaData)
 
         given:
+        def metaData = getMetaData()
         metaData.changing = true
         metaData.dependencies = [dependency1, dependency2]
         metaData.status = 'a'
@@ -65,11 +60,8 @@ class DefaultIvyModuleResolveMetaDataTest extends AbstractModuleComponentResolve
 
     def "getBranch returns branch from moduleDescriptor" () {
         setup:
-        def moduleRevisionId = ModuleRevisionId.newInstance('orgId', 'moduleId', expectedBranch, 'version')
-        def descriptor = Stub(ModuleDescriptor) {
-            getModuleRevisionId() >> moduleRevisionId
-        }
-        def metaDataWithBranch = new DefaultIvyModuleResolveMetaData(componentId, descriptor)
+        moduleDescriptor.setBranch(expectedBranch)
+        def metaDataWithBranch = new DefaultIvyModuleResolveMetaData(id, moduleDescriptor)
 
         expect:
         metaDataWithBranch.branch == expectedBranch

@@ -15,22 +15,19 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.apache.ivy.core.module.id.ArtifactId;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -46,15 +43,10 @@ import java.util.Set;
 
 public class ModuleDescriptorSerializer implements org.gradle.internal.serialize.Serializer<ModuleDescriptorState> {
 
-    private final ResolverStrategy resolverStrategy;
-
-    public ModuleDescriptorSerializer(ResolverStrategy resolverStrategy) {
-        this.resolverStrategy = resolverStrategy;
-    }
 
     @Override
     public ModuleDescriptorState read(Decoder decoder) throws EOFException, Exception {
-        return new Reader(decoder, resolverStrategy).read();
+        return new Reader(decoder).read();
     }
 
     @Override
@@ -74,7 +66,7 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             writeConfigurations(md.getConfigurations());
             writeArtifacts(md.getArtifacts());
             writeDependencies(md.getDependencies());
-            writeExcludeRules(md.getExcludeRules());
+            writeExcludeRules(md.getExcludes());
         }
 
         private void writeInfoSection(ModuleDescriptorState md) throws IOException {
@@ -86,7 +78,7 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             writeBoolean(md.isGenerated());
 
             writeNullableString(md.getDescription());
-            writeLong(md.getPublicationDate().getTime());
+            writeNullableDate(md.getPublicationDate());
             writeNullableString(md.getBranch());
 
             writeExtraInfo(md.getExtraInfo());
@@ -161,17 +153,17 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             }
         }
 
-        private void writeExcludeRules(List<ExcludeRule> excludes) throws IOException {
+        private void writeExcludeRules(List<Exclude> excludes) throws IOException {
             writeInt(excludes.size());
-            for (ExcludeRule exclude : excludes) {
-                ArtifactId id = exclude.getId();
-                writeString(id.getModuleId().getOrganisation());
-                writeString(id.getModuleId().getName());
-                writeString(id.getName());
-                writeString(id.getType());
-                writeString(id.getExt());
+            for (Exclude exclude : excludes) {
+                IvyArtifactName artifact = exclude.getArtifact();
+                writeString(exclude.getModuleId().getGroup());
+                writeString(exclude.getModuleId().getName());
+                writeString(artifact.getName());
+                writeString(artifact.getType());
+                writeString(artifact.getExtension());
                 writeStringArray(exclude.getConfigurations());
-                writeString(exclude.getMatcher().getName());
+                writeString(exclude.getMatcher());
             }
         }
 
@@ -189,6 +181,14 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
 
         private void writeBoolean(boolean b) throws IOException {
             encoder.writeBoolean(b);
+        }
+
+        private void writeNullableDate(Date publicationDate) throws IOException {
+            if (publicationDate == null) {
+                writeLong(-1);
+            } else {
+                writeLong(publicationDate.getTime());
+            }
         }
 
         private void writeLong(long l) throws IOException {
@@ -219,12 +219,10 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
 
     private static class Reader {
         private final Decoder decoder;
-        private final ResolverStrategy resolverStrategy;
         private MutableModuleDescriptorState md;
 
-        private Reader(Decoder decoder, ResolverStrategy resolverStrategy) {
+        private Reader(Decoder decoder) {
             this.decoder = decoder;
-            this.resolverStrategy = resolverStrategy;
         }
 
         public ModuleDescriptorState read() throws IOException {
@@ -244,7 +242,7 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             md = new MutableModuleDescriptorState(componentIdentifier, status, generated);
 
             md.setDescription(readNullableString());
-            md.setPublicationDate(new Date(readLong()));
+            md.setPublicationDate(readNullableDate());
             md.setBranch(readNullableString());
 
             readExtraInfo();
@@ -319,33 +317,26 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
         private void readExcludeRules(Dependency dep) throws IOException {
             int len = readInt();
             for (int i = 0; i < len; i++) {
-                DefaultExcludeRule rule = readExcludeRule();
+                DefaultExclude rule = readExcludeRule();
                 dep.addExcludeRule(rule);
             }
         }
 
-        private DefaultExcludeRule readExcludeRule() throws IOException {
+        private DefaultExclude readExcludeRule() throws IOException {
             String moduleOrg = readString();
             String moduleName = readString();
-            String name = readString();
+            String artifact = readString();
             String type = readString();
             String ext = readString();
             String[] confs = readStringArray();
             String matcher = readString();
-            DefaultExcludeRule rule = new DefaultExcludeRule(IvyUtil.createArtifactId(moduleOrg, moduleName, name, type, ext),
-                resolverStrategy.getPatternMatcher(matcher),
-                null
-            );
-            for (String conf : confs) {
-                rule.addConfiguration(conf);
-            }
-            return rule;
+            return new DefaultExclude(moduleOrg, moduleName, artifact, type, ext, confs, matcher);
         }
 
         private void readAllExcludes() throws IOException {
             int len = readInt();
             for (int i = 0; i < len; i++) {
-                md.addExcludeRule(readExcludeRule());
+                md.addExclude(readExcludeRule());
             }
         }
 
@@ -363,6 +354,15 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
 
         private boolean readBoolean() throws IOException {
             return decoder.readBoolean();
+        }
+
+        private Date readNullableDate() throws IOException {
+            long value = readLong();
+            if (value == -1) {
+                return null;
+            } else {
+                return new Date(value);
+            }
         }
 
         private long readLong() throws IOException {

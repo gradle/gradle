@@ -14,97 +14,98 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks;
+package org.gradle.api.tasks
 
-import org.gradle.api.internal.ConventionTask;
-import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.util.Requires;
-import org.gradle.util.TestPrecondition;
-import org.gradle.util.WrapUtil;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.gradle.api.internal.ConventionTask
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.gradle.util.WrapUtil
 
-import static org.gradle.api.internal.file.TestFiles.fileSystem;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.*;
+import static org.gradle.api.internal.file.TestFiles.fileSystem
 
-@RunWith(org.jmock.integration.junit4.JMock.class)
 public class DeleteTest extends AbstractConventionTaskTest {
-    private Delete delete;
+    private Delete delete
 
-    @Before
-    public void setUp() {
-        delete = createTask(Delete.class);
+    def setup() {
+        delete = createTask(Delete)
     }
 
     public ConventionTask getTask() {
-        return delete;
+        return delete
     }
 
-    @Test
-    public void defaultValues() {
-        assertTrue(delete.getDelete().isEmpty());
+    def "deletes nothing by default"() {
+        expect:
+        delete.getDelete().isEmpty()
     }
 
-    @Test
-    public void didWorkIsTrueWhenSomethingGetsDeleted() throws IOException {
-        TestFile file = tmpDir.createFile("someFile");
+    def "did work is true when something gets deleted"() {
+        given:
+        def file = temporaryFolder.createFile("someFile")
 
-        delete.delete(file);
-        delete.execute();
+        when:
+        delete.delete(file)
+        delete.execute()
 
-        assertTrue(delete.getDidWork());
-        assertFalse(file.exists());
+        then:
+        delete.getDidWork()
+        !file.exists()
     }
 
-    @Test
-    public void didWorkIsFalseWhenNothingDeleted() throws IOException {
-        delete.delete("does-not-exist");
-        delete.execute();
+    def "did work is false when nothing gets deleted"() {
+        when:
+        delete.delete("does-not-exist")
+        delete.execute()
 
-        assertFalse(delete.getDidWork());
+        then:
+        !delete.getDidWork()
     }
 
-    @Test
-    public void getTargetFilesAndMultipleTargets() throws IOException {
-        delete.delete("someFile");
-        delete.delete(new File("someOtherFile"));
-        delete.getTargetFiles();
-        assertThat(delete.getDelete(), equalTo(WrapUtil.<Object>toSet("someFile", new File("someOtherFile"))));
-        assertThat(delete.getTargetFiles().getFiles(), equalTo(getProject().files(delete.getDelete()).getFiles()));
-    }
+    def "get target files and multiple targets"() {
+        when:
+        delete.delete("someFile")
+        delete.delete(new File("someOtherFile"))
+        delete.getTargetFiles()
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    public void canFollowSymlinks() throws IOException {
-        TestFile keepTxt = tmpDir.createFile("originalDir", "keep.txt");
-        TestFile originalDir = keepTxt.getParentFile();
-        File link = new File(tmpDir.getTestDirectory(), "link");
-
-        fileSystem().createSymbolicLink(link, originalDir);
-
-        delete.delete(link);
-        delete.setFollowSymlinks(true);
-        delete.execute();
-
-        assertTrue(delete.getDidWork());
-        assertFalse(link.exists());
-        assertFalse(keepTxt.exists());
+        then:
+        delete.getDelete() == WrapUtil.toSet("someFile", new File("someOtherFile"))
+        delete.getTargetFiles().getFiles() == getProject().files(delete.getDelete()).getFiles()
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
-    public void willNotFollowSymlinksByDefault() throws IOException {
-        TestFile keepTxt = tmpDir.createFile("originalDir", "keep.txt");
-        TestFile originalDir = keepTxt.getParentFile();
-        File link = new File(tmpDir.getTestDirectory(), "link");
+    def "can follow symlinks"() {
+        given:
+        def keepTxt = temporaryFolder.createFile("originalDir", "keep.txt")
+        def originalDir = keepTxt.getParentFile()
+        def link = new File(temporaryFolder.getTestDirectory(), "link")
+        fileSystem().createSymbolicLink(link, originalDir)
 
-        fileSystem().createSymbolicLink(link, originalDir);
+        when:
+        delete.delete(link)
+        delete.setFollowSymlinks(true)
+        delete.execute()
 
-        delete.delete(link);
-        delete.execute();
+        then:
+        delete.getDidWork()
+        !link.exists()
+        !keepTxt.exists()
+    }
 
-        assertTrue(delete.getDidWork());
-        assertFalse(link.exists());
-        assertTrue(keepTxt.exists());
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "will not follow symlinks by default"() {
+        given:
+        def keepTxt = temporaryFolder.createFile("originalDir", "keep.txt")
+        def originalDir = keepTxt.getParentFile()
+        def link = new File(temporaryFolder.getTestDirectory(), "link")
+        fileSystem().createSymbolicLink(link, originalDir)
+
+        when:
+        delete.delete(link)
+        delete.execute()
+
+        then:
+        delete.getDidWork()
+        !link.exists()
+        keepTxt.exists()
     }
 }

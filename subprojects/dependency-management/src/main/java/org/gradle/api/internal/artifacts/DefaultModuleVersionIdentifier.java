@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -97,10 +96,6 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
 
     public static ModuleVersionIdentifier newId(String group, String name, String version) {
         return new DefaultModuleVersionIdentifier(group, name, version);
-    }
-
-    public static ModuleVersionIdentifier newId(ModuleRevisionId moduleRevisionId) {
-        return new DefaultModuleVersionIdentifier(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());
     }
 
     public static ModuleVersionIdentifier newId(ModuleComponentIdentifier componentId) {

@@ -19,47 +19,48 @@ package org.gradle.plugins.ear
 import org.gradle.api.Action
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.AbstractArchiveTaskTest
+import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
 import org.gradle.plugins.ear.descriptor.EarSecurityRole
 import org.gradle.plugins.ear.descriptor.internal.DefaultDeploymentDescriptor
-import org.junit.Before
-import org.junit.Test
-
-import static org.junit.Assert.assertEquals
 
 class EarTest extends AbstractArchiveTaskTest {
-
     Ear ear
 
-    @Before
-    public void setUp() {
+    def setup() {
         ear = createTask(Ear)
         configure(ear)
     }
 
+    @Override
     AbstractArchiveTask getArchiveTask() {
         ear
     }
 
-    @Test
-    public void testEar() {
-        assertEquals(Ear.EAR_EXTENSION, ear.extension)
+    def "test Ear"() {
+        expect:
+        ear.extension == Ear.EAR_EXTENSION
     }
 
+    def "correct default deployment descriptor"() {
+        when:
+        ear.deploymentDescriptor = new DefaultDeploymentDescriptor(null, instantiator)
+        def d = makeDeploymentDescriptor(ear)
 
-    @Test
-    public void testDeploymentDescriptor() {
-        ear.deploymentDescriptor = new DefaultDeploymentDescriptor(null,instantiator)
-        checkDeploymentDescriptor()
+        then:
+        checkDeploymentDescriptor(d)
     }
 
-    @Test
-    public void testDeploymentDescriptorWithNullManifest() {
+    def "correct default deployment descriptor initialized from null"() {
+        when:
         ear.deploymentDescriptor = null
-        checkDeploymentDescriptor()
+        def d = makeDeploymentDescriptor(ear)
+
+        then:
+        checkDeploymentDescriptor(d)
     }
 
-    public void checkDeploymentDescriptor() {
-        ear.deploymentDescriptor {
+    private static DeploymentDescriptor makeDeploymentDescriptor(Ear e) {
+        e.deploymentDescriptor {
             fileName = "myApp.xml"
             version = "5"
             applicationName = "myapp"
@@ -79,24 +80,27 @@ class EarTest extends AbstractArchiveTaskTest {
                 //just adds an action
             }
         }
-        def d = ear.deploymentDescriptor
-        assertEquals("myApp.xml", d.fileName)
-        assertEquals("5", d.version)
-        assertEquals("myapp", d.applicationName)
-        assertEquals(true, d.initializeInOrder)
-        assertEquals("My App", d.displayName)
-        assertEquals("My Application", d.description)
-        assertEquals("APP-INF/lib", d.libraryDirectory)
-        assertEquals(2, d.modules.size())
-        assertEquals("my.jar", (d.modules as List)[0].path)
-        assertEquals("my.war", (d.modules as List)[1].path)
-        assertEquals("/", (d.modules as List)[1].contextRoot)
-        assertEquals("java", d.moduleTypeMappings["my.jar"])
-        assertEquals("web", d.moduleTypeMappings["my.war"])
-        assertEquals(2, d.securityRoles.size())
-        assertEquals("admin", (d.securityRoles as List)[0].roleName)
-        assertEquals("superadmin", (d.securityRoles as List)[1].roleName)
-        assertEquals("Super Admin Role", (d.securityRoles as List)[1].description)
-        assertEquals(1, d.transformer.actions.size())
+        return e.deploymentDescriptor
+    }
+
+    private static void checkDeploymentDescriptor(DeploymentDescriptor d) {
+        assert d.fileName == "myApp.xml"
+        assert d.version == "5"
+        assert d.applicationName == "myapp"
+        assert d.initializeInOrder
+        assert d.displayName == "My App"
+        assert d.description == "My Application"
+        assert d.libraryDirectory == "APP-INF/lib"
+        assert d.modules.size() == 2
+        assert d.modules[0].path == "my.jar"
+        assert d.modules[1].path == "my.war"
+        assert d.modules[1].contextRoot == "/"
+        assert d.moduleTypeMappings["my.jar"] == "java"
+        assert d.moduleTypeMappings["my.war"] == "web"
+        assert d.securityRoles.size() == 2
+        assert d.securityRoles[0].roleName == "admin"
+        assert d.securityRoles[1].roleName == "superadmin"
+        assert d.securityRoles[1].description == "Super Admin Role"
+        assert d.transformer.actions.size() == 1
     }
 }

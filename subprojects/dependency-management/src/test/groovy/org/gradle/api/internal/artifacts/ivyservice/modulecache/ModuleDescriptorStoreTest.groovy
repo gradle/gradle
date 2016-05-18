@@ -16,12 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
+import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.internal.resource.local.PathKeyFileStore
@@ -37,7 +34,6 @@ class ModuleDescriptorStoreTest extends Specification {
     ModuleComponentRepository repository = Mock()
     LocallyAvailableResource fileStoreEntry = Mock()
     ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "testArtifact", "1.0")
-    ModuleDescriptor moduleDescriptor = new DefaultModuleDescriptor(IvyUtil.createModuleRevisionId(moduleComponentIdentifier), "Integration", new Date())
     ModuleDescriptorSerializer serializer = Mock()
 
     def setup() {
@@ -62,7 +58,7 @@ class ModuleDescriptorStoreTest extends Specification {
     def "putModuleDescriptor uses PathKeyFileStore to write file"() {
         setup:
         File descriptorFile = temporaryFolder.createFile("fileStoreEntry")
-        def descriptor = new ModuleDescriptorState(moduleDescriptor)
+        def descriptor = new MutableModuleDescriptorState(moduleComponentIdentifier)
         when:
         store.putModuleDescriptor(repository, moduleComponentIdentifier, descriptor);
         then:

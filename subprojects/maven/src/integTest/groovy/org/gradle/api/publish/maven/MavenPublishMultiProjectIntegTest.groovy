@@ -246,10 +246,11 @@ project(":project2") {
         project2.assertPublishedAsJavaModule()
         def dependency = project2.parsedPom.scopes.runtime.expectDependency("org.gradle.test:project1:1.0")
         dependency.exclusions.size() == 2
-        dependency.exclusions[0].groupId == "*"
-        dependency.exclusions[0].artifactId == "commons-collections"
-        dependency.exclusions[1].groupId == "commons-io"
-        dependency.exclusions[1].artifactId == "*"
+        def sorted = dependency.exclusions.sort { it.groupId }
+        sorted[0].groupId == "*"
+        sorted[0].artifactId == "commons-collections"
+        sorted[1].groupId == "commons-io"
+        sorted[1].artifactId == "*"
     }
 
     private void createBuildScripts(String append = "") {

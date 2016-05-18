@@ -16,10 +16,10 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.Exclude;
 
 import java.util.Set;
 
@@ -30,5 +30,5 @@ public interface BuildableLocalComponentMetaData {
 
     void addDependency(DependencyMetaData dependency);
 
-    void addExcludeRule(ExcludeRule excludeRule);
+    void addExclude(Exclude exclude);
 }

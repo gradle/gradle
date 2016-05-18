@@ -30,8 +30,8 @@ import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyToConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExcludeRuleFilter;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExcludeRuleFilters;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
@@ -190,14 +190,14 @@ public class DependencyGraphBuilder {
 
         private final DependencyMetaData dependencyMetaData;
         private final ResolveState resolveState;
-        private final ModuleExcludeRuleFilter resolutionFilter;
+        private final ModuleExclusion moduleExclusion;
         private final Set<ConfigurationNode> targetConfigurations = new LinkedHashSet<ConfigurationNode>();
         private ModuleVersionResolveState targetModuleRevision;
 
-        public DependencyEdge(ConfigurationNode from, DependencyMetaData dependencyMetaData, ModuleExcludeRuleFilter resolutionFilter, ResolveState resolveState) {
+        public DependencyEdge(ConfigurationNode from, DependencyMetaData dependencyMetaData, ModuleExclusion moduleExclusion, ResolveState resolveState) {
             this.from = from;
             this.dependencyMetaData = dependencyMetaData;
-            this.resolutionFilter = resolutionFilter;
+            this.moduleExclusion = moduleExclusion;
             this.resolveState = resolveState;
             selector = resolveState.getSelector(dependencyMetaData);
         }
@@ -270,10 +270,10 @@ public class DependencyGraphBuilder {
             }
         }
 
-        public ModuleExcludeRuleFilter getSelector() {
+        public ModuleExclusion getExclusions() {
             Set<String> hierarchy = from.metaData.getHierarchy();
-            ModuleExcludeRuleFilter selector = ModuleExcludeRuleFilters.excludeAny(dependencyMetaData.getExcludeRules(hierarchy));
-            return ModuleExcludeRuleFilters.intersect(selector, resolutionFilter);
+            ModuleExclusion edgeExclusions = ModuleExclusions.excludeAny(dependencyMetaData.getExcludes(hierarchy));
+            return ModuleExclusions.intersect(edgeExclusions, moduleExclusion);
         }
 
         public ComponentSelector getRequested() {
@@ -619,7 +619,7 @@ public class DependencyGraphBuilder {
 
         private final ConfigurationMetaData metaData;
         private final ResolveState resolveState;
-        private ModuleExcludeRuleFilter previousTraversal;
+        private ModuleExclusion previousTraversalExclusions;
 
         private ConfigurationNode(ResolvedConfigurationIdentifier id, ModuleVersionResolveState moduleRevision, ResolveState resolveState) {
             this.id = id;
@@ -694,7 +694,7 @@ public class DependencyGraphBuilder {
             }
 
             if (transitiveIncoming.isEmpty() && this != resolveState.root) {
-                if (previousTraversal != null) {
+                if (previousTraversalExclusions != null) {
                     removeOutgoingEdges();
                 }
                 if (incomingEdges.isEmpty()) {
@@ -705,12 +705,12 @@ public class DependencyGraphBuilder {
                 return;
             }
 
-            ModuleExcludeRuleFilter resolutionFilter = getModuleResolutionFilter(transitiveIncoming);
-            if (previousTraversal != null) {
-                if (previousTraversal.excludesSameModulesAs(resolutionFilter)) {
+            ModuleExclusion resolutionFilter = getModuleResolutionFilter(transitiveIncoming);
+            if (previousTraversalExclusions != null) {
+                if (previousTraversalExclusions.excludesSameModulesAs(resolutionFilter)) {
                     LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring", this);
                     // Don't need to traverse again, but hang on to the new filter as the set of artifact may have changed
-                    previousTraversal = resolutionFilter;
+                    previousTraversalExclusions = resolutionFilter;
                     return;
                 }
                 removeOutgoingEdges();
@@ -725,11 +725,11 @@ public class DependencyGraphBuilder {
                 outgoingEdges.add(dependencyEdge);
                 target.add(dependencyEdge);
             }
-            previousTraversal = resolutionFilter;
+            previousTraversalExclusions = resolutionFilter;
         }
 
-        private boolean isExcluded(ModuleExcludeRuleFilter selector, ModuleIdentifier targetModuleId) {
-            if(!selector.acceptModule(targetModuleId)) {
+        private boolean isExcluded(ModuleExclusion selector, ModuleIdentifier targetModuleId) {
+            if(selector.excludeModule(targetModuleId)) {
                 LOGGER.debug("{} is excluded from {}.", targetModuleId, this);
                 return true;
             }
@@ -751,18 +751,18 @@ public class DependencyGraphBuilder {
             return moduleRevision.state == ModuleState.Selected;
         }
 
-        private ModuleExcludeRuleFilter getModuleResolutionFilter(List<DependencyEdge> transitiveEdges) {
-            ModuleExcludeRuleFilter resolutionFilter;
+        private ModuleExclusion getModuleResolutionFilter(List<DependencyEdge> transitiveEdges) {
+            ModuleExclusion resolutionFilter;
             if (transitiveEdges.isEmpty()) {
-                resolutionFilter = ModuleExcludeRuleFilters.excludeNone();
+                resolutionFilter = ModuleExclusions.excludeNone();
             } else {
-                resolutionFilter = transitiveEdges.get(0).getSelector();
+                resolutionFilter = transitiveEdges.get(0).getExclusions();
                 for (int i = 1; i < transitiveEdges.size(); i++) {
                     DependencyEdge dependencyEdge = transitiveEdges.get(i);
-                    resolutionFilter = ModuleExcludeRuleFilters.union(resolutionFilter, dependencyEdge.getSelector());
+                    resolutionFilter = ModuleExclusions.union(resolutionFilter, dependencyEdge.getExclusions());
                 }
             }
-            resolutionFilter = ModuleExcludeRuleFilters.intersect(resolutionFilter, ModuleExcludeRuleFilters.excludeAny(metaData.getExcludeRules()));
+            resolutionFilter = ModuleExclusions.intersect(resolutionFilter, ModuleExclusions.excludeAny(metaData.getExcludes()));
             return resolutionFilter;
         }
 
@@ -771,7 +771,7 @@ public class DependencyGraphBuilder {
                 outgoingDependency.removeFromTargetConfigurations();
             }
             outgoingEdges.clear();
-            previousTraversal = null;
+            previousTraversalExclusions = null;
         }
 
         public void restart(ModuleVersionResolveState selected) {

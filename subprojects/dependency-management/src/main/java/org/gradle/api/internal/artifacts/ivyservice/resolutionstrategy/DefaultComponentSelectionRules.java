@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
@@ -31,12 +30,19 @@ import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.rules.*;
+import org.gradle.internal.rules.DefaultRuleActionAdapter;
+import org.gradle.internal.rules.DefaultRuleActionValidator;
+import org.gradle.internal.rules.RuleAction;
+import org.gradle.internal.rules.RuleActionAdapter;
+import org.gradle.internal.rules.RuleActionValidator;
+import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
@@ -49,7 +55,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         .toComposite();
 
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
-    private final Set<SpecRuleAction<? super ComponentSelection>> rules = Sets.newLinkedHashSet();
+    private Set<SpecRuleAction<? super ComponentSelection>> rules;
 
     private final RuleActionAdapter<ComponentSelection> ruleActionAdapter;
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
@@ -80,7 +86,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
     }
 
     public Collection<SpecRuleAction<? super ComponentSelection>> getRules() {
-        return rules;
+        return rules != null ? rules : Collections.<SpecRuleAction<? super ComponentSelection>>emptySet();
     }
 
     public ComponentSelectionRules all(Action<? super ComponentSelection> selectionAction) {
@@ -107,10 +113,18 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         return addRule(createSpecRuleActionFromId(id, ruleActionAdapter.createFromRuleSource(ComponentSelection.class, ruleSource)));
     }
 
-    private ComponentSelectionRules addRule(SpecRuleAction<? super ComponentSelection> specRuleAction) {
+    public ComponentSelectionRules addRule(SpecRuleAction<? super ComponentSelection> specRuleAction) {
         mutationValidator.validateMutation(STRATEGY);
+        if (rules == null) {
+            rules = new HashSet<SpecRuleAction<? super ComponentSelection>>();
+        }
         rules.add(specRuleAction);
         return this;
+    }
+
+    @Override
+    public ComponentSelectionRules addRule(RuleAction<? super ComponentSelection> specRuleAction) {
+        return addRule(createAllSpecRulesAction(specRuleAction));
     }
 
     private SpecRuleAction<? super ComponentSelection> createSpecRuleActionFromId(Object id, RuleAction<? super ComponentSelection> ruleAction) {

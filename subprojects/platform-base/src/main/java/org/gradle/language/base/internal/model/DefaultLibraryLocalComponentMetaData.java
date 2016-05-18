@@ -15,7 +15,6 @@
  */
 package org.gradle.language.base.internal.model;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -32,6 +31,7 @@ import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.local.model.UsageKind;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetaData;
 import org.gradle.platform.base.DependencySpec;
@@ -40,6 +40,7 @@ import org.gradle.platform.base.ModuleDependencySpec;
 import org.gradle.platform.base.ProjectDependencySpec;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
@@ -48,7 +49,7 @@ import static org.gradle.platform.base.internal.DefaultModuleDependencySpec.effe
 
 public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentMetaData {
     private static final String VERSION = "<local component>";
-    private static final ExcludeRule[] EXCLUDE_RULES = new ExcludeRule[0];
+    private static final List<Exclude> EXCLUDE_RULES = Collections.emptyList();
     private static final String CONFIGURATION_COMPILE = "compile";
 
     public static DefaultLibraryLocalComponentMetaData newResolvedLibraryMetadata(

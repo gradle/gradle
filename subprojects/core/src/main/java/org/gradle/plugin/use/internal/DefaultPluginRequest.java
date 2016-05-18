@@ -16,32 +16,17 @@
 
 package org.gradle.plugin.use.internal;
 
-import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.plugin.internal.PluginId;
 
 public class DefaultPluginRequest implements PluginRequest {
 
     private final PluginId id;
     private final String version;
-    private final int lineNumber;
     private final String scriptDisplayName;
 
-    public DefaultPluginRequest(String id, String version, int lineNumber, ScriptSource scriptSource) {
-        this(PluginId.of(id), version, lineNumber, scriptSource);
-    }
-
-    public DefaultPluginRequest(PluginId id, String version, int lineNumber, ScriptSource scriptSource) {
-        this(id, version, lineNumber, scriptSource.getDisplayName());
-    }
-
-    public DefaultPluginRequest(String id, String version, int lineNumber, String scriptDisplayName) {
-        this(PluginId.of(id), version, lineNumber, scriptDisplayName);
-    }
-
-    public DefaultPluginRequest(PluginId id, String version, int lineNumber, String scriptDisplayName) {
+    public DefaultPluginRequest(PluginId id, String version, String scriptDisplayName) {
         this.id = id;
         this.version = version;
-        this.lineNumber = lineNumber;
         this.scriptDisplayName = scriptDisplayName;
     }
 
@@ -51,10 +36,6 @@ public class DefaultPluginRequest implements PluginRequest {
 
     public String getVersion() {
         return version;
-    }
-
-    public int getLineNumber() {
-        return lineNumber;
     }
 
     public String getScriptDisplayName() {

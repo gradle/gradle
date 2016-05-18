@@ -15,13 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import com.google.common.collect.Lists;
 import org.apache.ivy.core.IvyPatternHelper;
-import org.apache.ivy.core.module.descriptor.License;
-import org.apache.ivy.core.module.id.ModuleId;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomProfile;
@@ -38,7 +39,12 @@ import org.xml.sax.SAXParseException;
 import javax.xml.parsers.DocumentBuilder;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.PomDomParser.*;
 
@@ -57,11 +63,6 @@ public class PomReader implements PomParent {
     private static final String ARTIFACT_ID = "artifactId";
     private static final String VERSION = "version";
     private static final String DESCRIPTION = "description";
-    private static final String HOMEPAGE = "url";
-    private static final String LICENSES = "licenses";
-    private static final String LICENSE = "license";
-    private static final String LICENSE_NAME = "name";
-    private static final String LICENSE_URL = "url";
     private static final String PARENT = "parent";
     private static final String SCOPE = "scope";
     private static final String CLASSIFIER = "classifier";
@@ -275,14 +276,6 @@ public class PomReader implements PomParent {
         return replaceProps(val);
     }
 
-    public String getHomePage() {
-        String val = getFirstChildText(projectElement, HOMEPAGE);
-        if (val == null) {
-            val = "";
-        }
-        return val;
-    }
-
     public String getDescription() {
         String val = getFirstChildText(projectElement, DESCRIPTION);
         if (val == null) {
@@ -291,35 +284,7 @@ public class PomReader implements PomParent {
         return val.trim();
     }
 
-    public List<License> getLicenses() {
-        Element licenses = getFirstChildElement(projectElement, LICENSES);
-        if (licenses == null) {
-            return Collections.emptyList();
-        }
-        licenses.normalize();
-        List<License> lics = new ArrayList<License>();
-        for (Element license : getAllChilds(licenses)) {
-            if (LICENSE.equals(license.getNodeName())) {
-                String name = getFirstChildText(license, LICENSE_NAME);
-                String url = getFirstChildText(license, LICENSE_URL);
-
-                if ((name == null) && (url == null)) {
-                    // move to next license
-                    continue;
-                }
-
-                if (name == null) {
-                    // The license name is required in Ivy but not in a POM!
-                    name = "Unknown License";
-                }
-
-                lics.add(new License(name, url));
-            }
-        }
-        return lics;
-    }
-
-    public ModuleRevisionId getRelocation() {
+    public ModuleVersionIdentifier getRelocation() {
         Element distrMgt = getFirstChildElement(projectElement, DISTRIBUTION_MGT);
         Element relocation = getFirstChildElement(distrMgt , RELOCATION);
         if (relocation == null) {
@@ -331,7 +296,7 @@ public class PomReader implements PomParent {
             relocGroupId = relocGroupId == null ? getGroupId() : relocGroupId;
             relocArtId = relocArtId == null ? getArtifactId() : relocArtId;
             relocVersion = relocVersion == null ? getVersion() : relocVersion;
-            return IvyUtil.createModuleRevisionId(relocGroupId, relocArtId, relocVersion);
+            return DefaultModuleVersionIdentifier.newId(relocGroupId, relocArtId, relocVersion);
         }
     }
 
@@ -515,23 +480,24 @@ public class PomReader implements PomParent {
             return replaceProps(val);
         }
 
-        public List<ModuleId> getExcludedModules() {
+        public List<ModuleIdentifier> getExcludedModules() {
             Element exclusionsElement = getFirstChildElement(depElement, EXCLUSIONS);
-            List<ModuleId> exclusions = new LinkedList<ModuleId>();
             if (exclusionsElement != null) {
                 NodeList childs = exclusionsElement.getChildNodes();
+                List<ModuleIdentifier> exclusions = Lists.newArrayList();
                 for (int i = 0; i < childs.getLength(); i++) {
                     Node node = childs.item(i);
                     if (node instanceof Element && EXCLUSION.equals(node.getNodeName())) {
                         String groupId = getFirstChildText((Element) node, GROUP_ID);
                         String artifactId = getFirstChildText((Element) node, ARTIFACT_ID);
                         if ((groupId != null) && (artifactId != null)) {
-                            exclusions.add(IvyUtil.createModuleId(groupId, artifactId));
+                            exclusions.add(DefaultModuleIdentifier.newId(groupId, artifactId));
                         }
                     }
                 }
+                return exclusions;
             }
-            return exclusions;
+            return Collections.emptyList();
         }
     }
 

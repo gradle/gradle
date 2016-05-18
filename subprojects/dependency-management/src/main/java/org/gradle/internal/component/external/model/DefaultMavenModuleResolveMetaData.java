@@ -20,7 +20,6 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -36,7 +35,7 @@ public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentRe
     private String snapshotTimestamp;
 
     public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
-        this(componentIdentifier, IvyUtil.createModuleDescriptor(componentIdentifier, artifacts), "jar", false);
+        this(componentIdentifier, createModuleDescriptor(componentIdentifier, artifacts), "jar", false);
     }
 
     public DefaultMavenModuleResolveMetaData(ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated) {

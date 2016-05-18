@@ -17,7 +17,7 @@
 package org.gradle.plugin.use.resolve.service.internal
 
 import org.gradle.cache.PersistentIndexedCache
-import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.plugin.internal.PluginId
 import org.gradle.plugin.use.internal.DefaultPluginRequest
 import org.gradle.plugin.use.internal.PluginRequest
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -149,7 +149,7 @@ class PersistentCachingPluginResolutionServiceClientTest extends Specification {
     }
 
     static PluginRequest request(String id, String version = "1") {
-        new DefaultPluginRequest(id, version, 1, new StringScriptSource("test", "test"))
+        new DefaultPluginRequest(PluginId.of(id), version, "test")
     }
 
 }

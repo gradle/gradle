@@ -48,9 +48,7 @@ public class DefaultDependenciesToModuleDescriptorConverter implements Dependenc
     private void addExcludeRules(BuildableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations) {
         for (Configuration configuration : configurations) {
             for (ExcludeRule excludeRule : configuration.getExcludeRules()) {
-                org.apache.ivy.core.module.descriptor.ExcludeRule rule = excludeRuleConverter.createExcludeRule(
-                        configuration.getName(), excludeRule);
-                metaData.addExcludeRule(rule);
+                metaData.addExclude(excludeRuleConverter.convertExcludeRule(configuration.getName(), excludeRule));
             }
         }
     }

@@ -18,17 +18,10 @@ package org.gradle.internal.component.external.descriptor;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.internal.Cast;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.util.CollectionUtils;
 
 import java.util.Date;
 import java.util.List;
@@ -38,7 +31,7 @@ import java.util.Set;
 public class ModuleDescriptorState {
     private final ModuleComponentIdentifier componentIdentifier;
     protected final Map<String, Configuration> configurations;
-    protected final List<ExcludeRule> excludeRules;
+    protected final List<Exclude> excludes;
     protected final List<Dependency> dependencies;
     private final List<Artifact> artifacts = Lists.newArrayList();
     private final String status;
@@ -57,40 +50,14 @@ public class ModuleDescriptorState {
         this.generated = generated;
         extraInfo = Maps.newHashMap();
         configurations = Maps.newLinkedHashMap();
-        excludeRules = Lists.newArrayList();
+        excludes = Lists.newArrayList();
         dependencies = Lists.newArrayList();
-    }
-
-    public ModuleDescriptorState(ModuleDescriptor ivyDescriptor) {
-        ModuleRevisionId moduleRevisionId = ivyDescriptor.getModuleRevisionId();
-        componentIdentifier = DefaultModuleComponentIdentifier.newId(moduleRevisionId);
-        branch = moduleRevisionId.getBranch();
-        description = ivyDescriptor.getDescription();
-        publicationDate = ivyDescriptor.getPublicationDate();
-        status = ivyDescriptor.getStatus();
-        generated = ivyDescriptor.isDefault();
-        extraInfo = Cast.uncheckedCast(ivyDescriptor.getExtraInfo());
-
-        configurations = Maps.newLinkedHashMap();
-        for (org.apache.ivy.core.module.descriptor.Configuration ivyConfiguration : ivyDescriptor.getConfigurations()) {
-            Configuration configuration = new Configuration(ivyConfiguration);
-            configurations.put(configuration.getName(), configuration);
-        }
-        excludeRules = Lists.newArrayList(ivyDescriptor.getAllExcludeRules());
-        dependencies = CollectionUtils.collect(ivyDescriptor.getDependencies(), new Transformer<Dependency, DependencyDescriptor>() {
-            @Override
-            public Dependency transform(DependencyDescriptor dependencyDescriptor) {
-                // Force attribute is ignored in published modules: we only consider force attribute on direct dependencies declared in Gradle
-                return Dependency.forDependencyDescriptor(dependencyDescriptor);
-            }
-        });
     }
 
     public ModuleComponentIdentifier getComponentIdentifier() {
         return componentIdentifier;
     }
 
-    // TODO:DAZ Description and publicationDate only need to be persisted so we can detect changes (for integration tests)
     public String getDescription() {
         return description;
     }
@@ -114,7 +81,6 @@ public class ModuleDescriptorState {
         return status;
     }
 
-    // TODO:DAZ Remove all of this collection wrapping
     public List<String> getConfigurationsNames() {
         return Lists.newArrayList(configurations.keySet());
     }
@@ -162,7 +128,7 @@ public class ModuleDescriptorState {
         return dependencies;
     }
 
-    public List<ExcludeRule> getExcludeRules() {
-        return excludeRules;
+    public List<Exclude> getExcludes() {
+        return excludes;
     }
 }

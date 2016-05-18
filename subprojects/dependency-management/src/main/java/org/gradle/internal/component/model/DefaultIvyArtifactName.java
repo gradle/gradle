@@ -17,7 +17,6 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.base.Objects;
-import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.util.GUtil;
@@ -25,15 +24,10 @@ import org.gradle.util.GUtil;
 import static com.google.common.base.Objects.equal;
 
 public class DefaultIvyArtifactName implements IvyArtifactName {
-    private static final String CLASSIFIER = "classifier";
     private final String name;
     private final String type;
     private final String extension;
     private final String classifier;
-
-    public static DefaultIvyArtifactName forIvyArtifact(DependencyArtifactDescriptor a) {
-        return new DefaultIvyArtifactName(a.getName(), a.getType(), a.getExt(), (String) a.getExtraAttributes().get(CLASSIFIER));
-    }
 
     public static DefaultIvyArtifactName forPublishArtifact(PublishArtifact publishArtifact) {
         String name = publishArtifact.getName();

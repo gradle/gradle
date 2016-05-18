@@ -82,9 +82,9 @@ import java.util.Set;
 public abstract class ExternalResourceResolver implements ModuleVersionPublisher, ConfiguredModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
+    private final String name;
     private List<ResourcePattern> ivyPatterns = new ArrayList<ResourcePattern>();
     private List<ResourcePattern> artifactPatterns = new ArrayList<ResourcePattern>();
-    private String name;
     private ComponentResolvers componentResolvers;
 
     private final ExternalResourceRepository repository;
@@ -117,10 +117,6 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public boolean isDynamicResolveMode() {

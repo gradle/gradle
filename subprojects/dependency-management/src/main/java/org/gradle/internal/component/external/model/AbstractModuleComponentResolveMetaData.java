@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -29,17 +28,20 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
+import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ComponentResolveMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
 import org.gradle.internal.component.model.DefaultDependencyMetaData;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -58,7 +60,7 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
     private Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>();
     private Multimap<String, ModuleComponentArtifactMetaData> artifactsByConfig;
     private List<DependencyMetaData> dependencies;
-    private List<ExcludeRule> excludeRules;
+    private List<Exclude> excludes;
 
     public AbstractModuleComponentResolveMetaData(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptorState moduleDescriptor) {
         this.descriptor = moduleDescriptor;
@@ -69,7 +71,23 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
         configurations = populateConfigurationsFromDescriptor(moduleDescriptor);
         artifactsByConfig = populateArtifactsFromDescriptor(componentIdentifier, moduleDescriptor);
         dependencies = populateDependenciesFromDescriptor(moduleDescriptor);
-        excludeRules = moduleDescriptor.getExcludeRules();
+        excludes = moduleDescriptor.getExcludes();
+    }
+
+    protected static ModuleDescriptorState createModuleDescriptor(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> componentArtifacts) {
+        MutableModuleDescriptorState moduleDescriptorState = new MutableModuleDescriptorState(componentIdentifier);
+        moduleDescriptorState.addConfiguration(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION, true, true, Collections.<String>emptySet());
+
+        for (IvyArtifactName artifactName : componentArtifacts) {
+            moduleDescriptorState.addArtifact(artifactName, Collections.singleton(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION));
+        }
+
+        if (componentArtifacts.isEmpty()) {
+            IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar");
+            moduleDescriptorState.addArtifact(defaultArtifact, Collections.singleton(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION));
+        }
+
+        return moduleDescriptorState;
     }
 
     protected void copyTo(AbstractModuleComponentResolveMetaData copy) {
@@ -79,7 +97,7 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
         copy.moduleSource = moduleSource;
         copy.artifactsByConfig = artifactsByConfig;
         copy.dependencies = dependencies;
-        copy.excludeRules = excludeRules;
+        copy.excludes = excludes;
     }
 
     public ModuleDescriptorState getDescriptor() {
@@ -240,7 +258,7 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
         private final Set<String> hierarchy;
         private List<DependencyMetaData> configDependencies;
         private Set<ComponentArtifactMetaData> artifacts;
-        private LinkedHashSet<ExcludeRule> configExcludeRules;
+        private LinkedHashSet<Exclude> configExcludes;
         private final boolean transitive;
         private final boolean visible;
 
@@ -311,19 +329,19 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
             return false;
         }
 
-        public Set<ExcludeRule> getExcludeRules() {
-            if (configExcludeRules == null) {
+        public Set<Exclude> getExcludes() {
+            if (configExcludes == null) {
                 populateExcludeRulesFromDescriptor();
             }
-            return configExcludeRules;
+            return configExcludes;
         }
 
         private void populateExcludeRulesFromDescriptor() {
-            configExcludeRules = new LinkedHashSet<ExcludeRule>();
-            for (ExcludeRule excludeRule : excludeRules) {
-                for (String config : excludeRule.getConfigurations()) {
+            configExcludes = new LinkedHashSet<Exclude>();
+            for (Exclude exclude : excludes) {
+                for (String config : exclude.getConfigurations()) {
                     if (hierarchy.contains(config)) {
-                        configExcludeRules.add(excludeRule);
+                        configExcludes.add(exclude);
                         break;
                     }
                 }

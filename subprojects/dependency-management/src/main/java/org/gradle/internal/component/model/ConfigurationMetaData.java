@@ -16,8 +16,6 @@
 
 package org.gradle.internal.component.model;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
-
 import java.util.List;
 import java.util.Set;
 
@@ -35,7 +33,7 @@ public interface ConfigurationMetaData {
 
     Set<ComponentArtifactMetaData> getArtifacts();
 
-    Set<ExcludeRule> getExcludeRules();
+    Set<Exclude> getExcludes();
 
     boolean isTransitive();
 

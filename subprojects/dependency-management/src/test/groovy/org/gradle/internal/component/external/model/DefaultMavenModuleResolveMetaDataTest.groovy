@@ -17,19 +17,14 @@
 
 package org.gradle.internal.component.external.model
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
-import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.model.DependencyMetaData
-import spock.lang.Ignore
 
-// TODO:DAZ Re-enable this when the de-ivy-fication is complete
-@Ignore
 class DefaultMavenModuleResolveMetaDataTest extends AbstractModuleComponentResolveMetaDataTest {
 
-    @Override
-    AbstractModuleComponentResolveMetaData createMetaData(ModuleVersionIdentifier id, ModuleDescriptor moduleDescriptor, ModuleComponentIdentifier componentIdentifier) {
-        return new DefaultMavenModuleResolveMetaData(componentIdentifier, moduleDescriptor, "pom", false)
+    AbstractModuleComponentResolveMetaData createMetaData(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
+        return new DefaultMavenModuleResolveMetaData(id, moduleDescriptor, "pom", false)
     }
 
     def "can make a copy"() {
@@ -37,6 +32,7 @@ class DefaultMavenModuleResolveMetaDataTest extends AbstractModuleComponentResol
         def dependency2 = Stub(DependencyMetaData)
 
         given:
+        def metaData = getMetaData()
         metaData.changing = true
         metaData.dependencies = [dependency1, dependency2]
         metaData.status = 'a'
@@ -60,7 +56,7 @@ class DefaultMavenModuleResolveMetaDataTest extends AbstractModuleComponentResol
 
     def "recognises pom packaging"() {
         when:
-        def metaData = new DefaultMavenModuleResolveMetaData(componentId, moduleDescriptor, packaging, false)
+        def metaData = new DefaultMavenModuleResolveMetaData(id, moduleDescriptor, packaging, false)
 
         then:
         metaData.packaging == packaging

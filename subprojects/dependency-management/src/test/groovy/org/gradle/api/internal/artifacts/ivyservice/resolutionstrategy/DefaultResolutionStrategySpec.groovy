@@ -139,7 +139,7 @@ public class DefaultResolutionStrategySpec extends Specification {
 
         strategy.failOnVersionConflict()
         strategy.force("org:foo:1.0")
-        strategy.componentSelection.rules.add(new NoInputsRuleAction<ComponentSelection>({}))
+        strategy.componentSelection.addRule(new NoInputsRuleAction<ComponentSelection>({}))
 
         when:
         def copy = strategy.copy()

@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
-import org.apache.ivy.core.module.descriptor.DefaultExcludeRule
-import org.apache.ivy.core.module.id.ArtifactId
-import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher
-import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.artifacts.*
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
@@ -35,7 +30,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Composit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.*
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationDependencyGraphVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DummyBinaryStore
@@ -45,6 +43,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Resolut
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.specs.Spec
+import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData
@@ -1024,14 +1023,10 @@ class DependencyGraphBuilderTest extends Specification {
         def excludeRules = []
         if (args.exclude) {
             ComponentResolveMetaData excluded = args.exclude
-            excludeRules << new DefaultExcludeRule(new ArtifactId(new ModuleId(excluded.id.group, excluded.id.name),
-                    PatternMatcher.ANY_EXPRESSION,
-                    PatternMatcher.ANY_EXPRESSION,
-                    PatternMatcher.ANY_EXPRESSION),
-                    ExactPatternMatcher.INSTANCE, null)
+            excludeRules << new DefaultExclude(excluded.id.group, excluded.id.name)
         }
         def dependencyMetaData = new LocalComponentDependencyMetaData(componentSelector, selector, "default", "default", [] as Set<IvyArtifactName>,
-                                                                      excludeRules as org.apache.ivy.core.module.descriptor.ExcludeRule[], force, false, transitive)
+                                                                      excludeRules, force, false, transitive)
         dependencyMetaData = new DslOriginDependencyMetaDataWrapper(dependencyMetaData, Stub(ModuleDependency))
         from.getDependencies().add(dependencyMetaData)
         return dependencyMetaData

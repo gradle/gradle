@@ -50,7 +50,7 @@ public class GarbageCollectionMonitor {
                 gcStrategy.getTenuredPoolName(), new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW),
                 gcStrategy.getPermGenPoolName(), new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW)
             );
-            pollForValues(gcStrategy.getGarbageCollectorName(), ImmutableList.of(gcStrategy.getTenuredPoolName(), gcStrategy.getPermGenPoolName()));
+            pollForValues(gcStrategy.getGarbageCollectorName(), ImmutableList.copyOf(events.keySet()));
         } else {
             events = ImmutableMap.<String, SlidingWindow<GarbageCollectionEvent>>builder().build();
         }

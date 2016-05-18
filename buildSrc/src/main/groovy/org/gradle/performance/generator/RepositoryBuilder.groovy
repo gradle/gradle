@@ -69,7 +69,7 @@ class RepositoryBuilder {
     }
 
     void transformGraphToDepth(List<MavenModule> modules, int depth) {
-        def depGroups = modules.groupBy { (int) (it.artifactId - "artifact").toInteger() / depth }
+        def depGroups = modules.groupBy { (int) ((it.artifactId - "artifact").toInteger() / depth) }
         depGroups.each { idx, groupModules ->
             for (int i = 0; i < groupModules.size() - 1; i++) {
                 def next = groupModules[i + 1]

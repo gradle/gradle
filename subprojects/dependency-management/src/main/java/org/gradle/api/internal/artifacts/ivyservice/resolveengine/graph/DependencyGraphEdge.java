@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExcludeRuleFilter;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
 import org.gradle.internal.component.model.ConfigurationMetaData;
@@ -31,7 +31,7 @@ public interface DependencyGraphEdge extends InternalDependencyResult {
     // TODO This should be replaced by getRequested()
     ModuleVersionSelector getRequestedModuleVersion();
 
-    ModuleExcludeRuleFilter getSelector();
+    ModuleExclusion getExclusions();
 
     Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData metaData);
 
