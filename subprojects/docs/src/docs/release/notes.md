@@ -132,6 +132,10 @@ properties have been removed from the ScalaCompile task:
 * Removed `AntScalaCompiler` in favor of `ZincScalaCompiler`.
 * Removed `EclipseClasspath.noExportConfigurations` property.
 
+### Tooling API changes
+
+TBD - Requires tooling API version 2.0 or later.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

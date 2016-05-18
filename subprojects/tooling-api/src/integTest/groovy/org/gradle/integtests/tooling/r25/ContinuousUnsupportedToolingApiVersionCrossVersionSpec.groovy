@@ -27,7 +27,7 @@ import spock.lang.Timeout
 
 class ContinuousUnsupportedToolingApiVersionCrossVersionSpec extends ToolingApiSpecification {
     @Timeout(120)
-    @ToolingApiVersion(ToolingApiVersions.PRE_CANCELLATION)
+    @ToolingApiVersion(">=2.0 <2.1")
     @TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
     def "client receives appropriate error if continuous build attempted using client that does not support cancellation"() {
         when:

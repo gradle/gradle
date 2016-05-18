@@ -16,10 +16,8 @@
 package org.gradle.integtests.tooling.r112
 
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.GradleProject
 
-@ToolingApiVersion('>=1.12')
 class TaskDisplayNameCrossVersionSpec extends ToolingApiSpecification {
     def "can get task's display name"() {
         file('build.gradle') << '''

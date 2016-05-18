@@ -18,13 +18,11 @@ package org.gradle.integtests.tooling.r112
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.tooling.model.*
 import org.gradle.tooling.model.gradle.BuildInvocations
 
-@ToolingApiVersion(">=1.12")
 class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         settingsFile << '''

@@ -63,7 +63,6 @@ class ToolingApiDeprecatedBuildJvmCrossVersionSpec extends ToolingApiSpecificati
         output.toString().contains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
     }
 
-    @ToolingApiVersion(">=1.8")
     def "warning running action when build is configured to use Java 6"() {
         def output = new ByteArrayOutputStream()
 

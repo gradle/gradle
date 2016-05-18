@@ -19,10 +19,8 @@ package org.gradle.integtests.tooling
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.r18.NullAction
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.util.GradleVersion
 
 class ToolingApiDeprecatedVersionCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion("current")
@@ -53,50 +51,5 @@ class ToolingApiDeprecatedVersionCrossVersionSpec extends ToolingApiSpecificatio
 
         then:
         stdout.toString().contains("Support for Gradle version ${targetDist.version.version} is deprecated and will be removed in tooling API version 3.0. You should upgrade your Gradle build to use Gradle 1.2 or later.")
-    }
-
-    @ToolingApiVersion(">=1.2 <2.0")
-    @TargetGradleVersion(">=2.14")
-    def "warning is received when building using pre 2.0 client"() {
-        when:
-        def stdout = new ByteArrayOutputStream()
-        withConnection { ProjectConnection connection ->
-            def build = connection.newBuild()
-            build.standardOutput = stdout
-            build.run()
-        }
-
-        then:
-        stdout.toString().contains("Support for clients using tooling API version ${GradleVersion.current().version} is deprecated and will be removed in Gradle 3.0. You should upgrade your tooling API client to version 2.0 or later.")
-    }
-
-    @ToolingApiVersion(">=1.2 <2.0")
-    @TargetGradleVersion(">=2.14")
-    def "warning is received when fetching model using pre 2.0 client"() {
-        when:
-        def stdout = new ByteArrayOutputStream()
-        withConnection { ProjectConnection connection ->
-            def build = connection.model(EclipseProject)
-            build.standardOutput = stdout
-            build.get()
-        }
-
-        then:
-        stdout.toString().contains("Support for clients using tooling API version ${GradleVersion.current().version} is deprecated and will be removed in Gradle 3.0. You should upgrade your tooling API client to version 2.0 or later.")
-    }
-
-    @ToolingApiVersion(">=1.8 <2.0")
-    @TargetGradleVersion(">=2.14")
-    def "warning is received when running a build action using pre 2.0 client"() {
-        when:
-        def stdout = new ByteArrayOutputStream()
-        withConnection { ProjectConnection connection ->
-            def build = connection.action(new NullAction())
-            build.standardOutput = stdout
-            build.run()
-        }
-
-        then:
-        stdout.toString().contains("Support for clients using tooling API version ${GradleVersion.current().version} is deprecated and will be removed in Gradle 3.0. You should upgrade your tooling API client to version 2.0 or later.")
     }
 }

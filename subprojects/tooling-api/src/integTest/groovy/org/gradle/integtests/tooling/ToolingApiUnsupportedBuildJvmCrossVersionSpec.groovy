@@ -59,7 +59,6 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         e.cause.message == "Gradle ${targetDist.version.version} requires Java 6 or later to run. Your build is currently configured to use Java 5."
     }
 
-    @ToolingApiVersion(">=1.8")
     def "cannot run action when build is configured to use Java 5"() {
         when:
         toolingApi.withConnection { ProjectConnection connection ->

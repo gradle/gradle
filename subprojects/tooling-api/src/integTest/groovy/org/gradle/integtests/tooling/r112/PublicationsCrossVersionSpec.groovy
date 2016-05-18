@@ -18,11 +18,9 @@ package org.gradle.integtests.tooling.r112
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.gradle.ProjectPublications
 
-@ToolingApiVersion('>=1.12')
 @TargetGradleVersion('>=1.12')
 class PublicationsCrossVersionSpec extends ToolingApiSpecification {
     def "empty project"() {

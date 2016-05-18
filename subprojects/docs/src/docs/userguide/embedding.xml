@@ -111,7 +111,7 @@
 
         <para>You should note that not all features of the Tooling API are available for all versions of Gradle. For example, build cancellation is only available when a build uses Gradle 2.1 and later. Refer to the documentation for each class and method for more details.</para>
 
-        <para>The current Gradle version can be used from Tooling API versions 1.2 or later. Support for execution using tooling API versions 1.2 to 1.12 is deprecated and will be removed in Gradle 3.0.</para>
+        <para>The current Gradle version can be used from Tooling API versions 2.0 or later.</para>
 
         <para>The Tooling API requires Java 6 or later. Support for Java 6 is currently deprecated and will be removed in Gradle 3.0.</para>
     </section>

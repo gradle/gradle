@@ -25,7 +25,6 @@ import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaProject
 
-@ToolingApiVersion('>=1.8')
 @TargetGradleVersion('>=1.8')
 @LeaksFileHandles
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {

@@ -18,11 +18,9 @@ package org.gradle.integtests.tooling.r18
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.gradle.GradleBuild
 
-@ToolingApiVersion(">=1.8")
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         file('settings.gradle') << '''

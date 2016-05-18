@@ -75,17 +75,6 @@ public class TestClient {
     }
 
     @TargetGradleVersion("current")
-    @ToolingApiVersion(">=1.2 <=1.12")
-    def "cannot use old tooling API client to run build using Java 5"() {
-        when:
-        def out = runScript()
-
-        then:
-        out.contains("Could not execute build using Gradle installation")
-        out.contains("Gradle ${targetDist.version.version} requires Java 6 or later to run. You are currently using Java 5.")
-    }
-
-    @TargetGradleVersion("current")
     @ToolingApiVersion("current")
     def "cannot use tooling API from Java 5"() {
         when:

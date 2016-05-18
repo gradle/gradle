@@ -67,7 +67,7 @@ import java.net.URI;
  *
  * <p>You should note that not all features of the Tooling API are available for all versions of Gradle. For example, build cancellation is only available for builds using Gradle 2.1 and later. Refer to the documentation for each class and method for more details.</p>
  *
- * <p>The current Gradle version can be used from Tooling API versions 1.2 or later. Support for Tooling API versions 1.2 to 1.12 is deprecated and will be removed in Gradle 3.0</p>
+ * <p>The current Gradle version can be used from Tooling API versions 2.0 or later.
  *
  * <h2>Java version compatibility</h2>
  *

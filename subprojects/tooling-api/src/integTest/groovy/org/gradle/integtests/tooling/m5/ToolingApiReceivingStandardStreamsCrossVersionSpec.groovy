@@ -17,7 +17,6 @@ package org.gradle.integtests.tooling.m5
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiLoggingSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r18.NullAction
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.GradleProject
@@ -72,7 +71,6 @@ class ToolingApiReceivingStandardStreamsCrossVersionSpec extends ToolingApiLoggi
         stdout.toString().contains('A warning using JUL')
     }
 
-    @ToolingApiVersion(">=1.8")
     @TargetGradleVersion(">=1.8")
     def "receives standard streams while client action is running"() {
         given:
