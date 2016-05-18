@@ -33,5 +33,5 @@ task<Delete>("clean") {
 }
 
 tasks.withType<Wrapper> {
-    distributionUrl = "https://repo.gradle.org/gradle/demo/demo-3.zip"
+    distributionUrl = "https://repo.gradle.org/gradle/repo/gradle-gsk-1.0.0-M1.zip"
 }
