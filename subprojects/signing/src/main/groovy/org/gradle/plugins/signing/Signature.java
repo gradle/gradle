@@ -17,7 +17,6 @@ package org.gradle.plugins.signing;
 
 import groovy.lang.GroovyObject;
 import groovy.lang.MetaClass;
-import groovy.transform.CompileStatic;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
@@ -38,7 +37,6 @@ import static org.gradle.util.GUtil.uncheckedCall;
  *
  * <p>A signature file is always generated from another file, which may be a {@link PublishArtifact}.</p>
  */
-@CompileStatic
 public class Signature extends AbstractPublishArtifact implements GroovyObject {
 
     /**
