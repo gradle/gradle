@@ -72,7 +72,7 @@ public class DeleteTest extends AbstractConventionTaskTest {
         delete.getTargetFiles().getFiles() == getProject().files(delete.getDelete()).getFiles()
     }
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    @Requires(TestPrecondition.SYMLINKS)
     def "can follow symlinks"() {
         given:
         def keepTxt = temporaryFolder.createFile("originalDir", "keep.txt")
@@ -91,7 +91,7 @@ public class DeleteTest extends AbstractConventionTaskTest {
         !keepTxt.exists()
     }
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    @Requires(TestPrecondition.SYMLINKS)
     def "will not follow symlinks by default"() {
         given:
         def keepTxt = temporaryFolder.createFile("originalDir", "keep.txt")
