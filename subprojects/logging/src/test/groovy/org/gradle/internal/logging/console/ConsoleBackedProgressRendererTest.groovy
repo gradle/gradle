@@ -15,9 +15,9 @@
  */
 package org.gradle.internal.logging.console
 
-import org.gradle.internal.logging.events.FlushToOutputsEvent
-import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.OutputSpecification
+import org.gradle.internal.logging.events.EndOutputEvent
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.util.MockExecutor
 import org.gradle.util.MockTimeProvider
@@ -66,7 +66,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
         0 * _
 
         when:
-        executor.runNow()
+        flush()
 
         then:
         1 * listener.onOutput(event2)
@@ -105,12 +105,11 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
         0 * _
     }
 
-    def forwardsQueuedEventsOnFlush() {
+    def forwardsQueuedEventsOnEndOfOutputEvent() {
         def event1 = event('1')
         def event2 = event('2')
         def event3 = event('3')
-        def flush = new FlushToOutputsEvent()
-        def event4 = event('4')
+        def end = new EndOutputEvent()
 
         when:
         renderer.onOutput(event1)
@@ -123,19 +122,13 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
         0 * _
 
         when:
-        renderer.onOutput(flush)
+        renderer.onOutput(end)
 
         then:
         1 * listener.onOutput(event2)
         1 * listener.onOutput(event3)
-        1 * listener.onOutput(flush)
+        1 * listener.onOutput(end)
         1 * console.flush()
-        0 * _
-
-        when:
-        renderer.onOutput(event4)
-
-        then:
         0 * _
     }
 
@@ -143,21 +136,15 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
         def event1 = event('1')
         def event2 = event('2')
         def event3 = event('3')
-        def flush = new FlushToOutputsEvent()
+        def end = new EndOutputEvent()
 
         given:
         renderer.onOutput(event1)
         renderer.onOutput(event2)
-        renderer.onOutput(flush)
+        renderer.onOutput(end)
 
         when:
-        executor.runNow()
-
-        then:
-        0 * _
-
-        when:
-        renderer.onOutput(event3)
+        flush()
 
         then:
         0 * _

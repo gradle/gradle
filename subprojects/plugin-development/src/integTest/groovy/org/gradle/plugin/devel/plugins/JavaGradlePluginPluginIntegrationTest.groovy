@@ -20,10 +20,10 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
-    final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE
+    final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE.substring(4)
     final static String DECLARED_PLUGIN_MISSING_MESSAGE = JavaGradlePluginPlugin.DECLARED_PLUGIN_MISSING_MESSAGE
-    final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.split('%')[0]
-    final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.split('%')[0]
+    final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.substring(4).split('[%]')[0]
+    final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.substring(4).split('[%]')[0]
 
     @Override
     String getMainTask() {
@@ -84,7 +84,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
 
         expect:
         succeeds "jar"
-        output.contains(String.format(DECLARED_PLUGIN_MISSING_MESSAGE, "otherPlugin", "other-plugin"))
+        output.contains(String.format(':jar', DECLARED_PLUGIN_MISSING_MESSAGE, "otherPlugin", "other-plugin"))
     }
 
     def "jar issues warning if built jar contains bad descriptor" (String descriptorContents, String warningMessage) {
@@ -202,6 +202,26 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         """
         expect:
         succeeds "jar"
+    }
+
+    def "Plugin descriptor generation is up-to-date if declarations did not change"() {
+        given:
+        buildFile()
+        goodPlugin()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    testPlugin {
+                        id = 'test-plugin'
+                        implementationClass = 'com.xxx.TestPlugin'
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds "jar"
+        succeeds "jar"
+        skipped ":pluginDescriptors"
     }
 
     def buildFile() {

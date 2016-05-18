@@ -33,11 +33,11 @@ class ModelBuilderBackedModelProducerTest extends Specification {
     ModelMapping mapping = Mock(ModelMapping);
     ModelBuilder builder = Mock(ModelBuilder);
 
-    ModelBuilderBackedModelProducer modelProducer = new ModelBuilderBackedModelProducer(adapter, versionDetails, mapping, builder);
+    ModelBuilderBackedModelProducer modelProducer
 
     def setup() {
-        _ * versionDetails.getVersion() >> "X.Y"
-
+        _ * versionDetails.getVersion() >> "1.0"
+        modelProducer = new ModelBuilderBackedModelProducer(adapter, versionDetails, mapping, builder);
     }
 
     def "builder not triggered for unsupported Models"() {
@@ -48,7 +48,7 @@ class ModelBuilderBackedModelProducerTest extends Specification {
         then:
         0 * builder.getModel(_, _)
         def e = thrown(UnknownModelException)
-        e.message == "The version of Gradle you are using (X.Y) does not support building a model of type 'SomeModel'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions."
+        e.message == "The version of Gradle you are using (1.0) does not support building a model of type 'SomeModel'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions."
     }
 
     def "builder triggered for supported Models"() {

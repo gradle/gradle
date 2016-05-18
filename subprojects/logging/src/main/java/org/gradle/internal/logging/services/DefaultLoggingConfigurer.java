@@ -17,7 +17,7 @@
 package org.gradle.internal.logging.services;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.logging.source.LoggingConfigurer;
+import org.gradle.internal.logging.config.LoggingConfigurer;
 
 import java.util.ArrayList;
 import java.util.Arrays;

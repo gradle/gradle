@@ -20,7 +20,6 @@ import org.gradle.play.internal.run.PlayApplicationRunner
 import org.gradle.play.internal.run.PlayApplicationRunnerToken
 import org.gradle.play.internal.run.PlayRunSpec
 import org.gradle.play.internal.toolchain.PlayToolProvider
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.RedirectStdIn
 import org.gradle.util.TestUtil
@@ -29,7 +28,6 @@ import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
 
-@LeaksFileHandles
 class PlayRunTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()

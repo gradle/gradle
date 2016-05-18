@@ -20,8 +20,9 @@ import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.TimeProvider;
-import org.gradle.internal.io.TextStream;
 import org.gradle.internal.io.LinePerThreadBufferingOutputStream;
+import org.gradle.internal.io.TextStream;
+import org.gradle.internal.logging.config.LoggingSourceSystem;
 import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
@@ -30,11 +31,11 @@ import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * A {@link LoggingSystem} which routes content written to a {@code PrintStream} to a {@link OutputEventListener}.
+ * A {@link LoggingSourceSystem} which routes content written to a {@code PrintStream} to a {@link OutputEventListener}.
  * Generates a {@link StyledTextOutputEvent} instance when a line of text is written to the {@code PrintStream}.
  * Generates a {@link LogLevelChangeEvent} when the log level for this {@code LoggingSystem} is changed.
  */
-abstract class PrintStreamLoggingSystem implements LoggingSystem {
+abstract class PrintStreamLoggingSystem implements LoggingSourceSystem {
     private final AtomicReference<StandardOutputListener> destination = new AtomicReference<StandardOutputListener>();
     private final PrintStream outstr = new LinePerThreadBufferingOutputStream(new TextStream() {
         public void text(String output) {

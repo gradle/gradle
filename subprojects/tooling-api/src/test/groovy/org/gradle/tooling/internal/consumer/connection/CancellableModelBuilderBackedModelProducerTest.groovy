@@ -35,10 +35,11 @@ class CancellableModelBuilderBackedModelProducerTest extends Specification {
     def transformer = Transformers.noOpTransformer()
     def builder = Mock(InternalCancellableConnection)
 
-    def modelProducer = new CancellableModelBuilderBackedModelProducer(adapter, versionDetails, mapping, builder, transformer)
+    def modelProducer
 
     def setup() {
-        _ * versionDetails.getVersion() >> "X.Y"
+        _ * versionDetails.getVersion() >> "1.0"
+        modelProducer = new CancellableModelBuilderBackedModelProducer(adapter, versionDetails, mapping, builder, transformer)
     }
 
     def "builder not triggered for unsupported Models"() {
@@ -49,7 +50,7 @@ class CancellableModelBuilderBackedModelProducerTest extends Specification {
         then:
         0 * builder.getModel(_, _, _)
         def e = thrown(UnknownModelException)
-        e.message == "The version of Gradle you are using (X.Y) does not support building a model of type 'SomeModel'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions."
+        e.message == "The version of Gradle you are using (1.0) does not support building a model of type 'SomeModel'. Support for building custom tooling models was added in Gradle 1.6 and is available in all later versions."
     }
 
     def "builder triggered for supported Models"() {

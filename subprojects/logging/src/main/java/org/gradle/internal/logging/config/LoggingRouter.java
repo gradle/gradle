@@ -14,27 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.test.fixtures.plugin
+package org.gradle.internal.logging.config;
 
-import org.gradle.platform.base.PlatformBaseSpecification
+import org.gradle.api.logging.LogLevel;
+import org.gradle.internal.logging.LoggingOutputInternal;
 
-abstract class AbstractLanguagePluginSpec extends PlatformBaseSpecification {
-    abstract Class getPluginClass()
-
-    abstract Class getLanguageSourceSet()
-
-    abstract String getLanguageId()
-
-    def "registers transformation for language"() {
-        when:
-        dsl {
-            apply plugin: pluginClass
-        }
-
-        then:
-        def transform = realize("languageTransforms").find { it.languageName == languageId }
-
-        transform != null
-        transform.sourceSetType == languageSourceSet
-    }
+public interface LoggingRouter extends LoggingSystem, LoggingOutputInternal {
+    void configure(LogLevel logLevel);
 }

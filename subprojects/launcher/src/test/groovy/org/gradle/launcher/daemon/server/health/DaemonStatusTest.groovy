@@ -26,9 +26,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static org.gradle.launcher.daemon.server.health.DaemonStatus.PERMGEN_USAGE_EXPIRE_AT
-import static org.gradle.launcher.daemon.server.health.DaemonStatus.TENURED_RATE_EXPIRE_AT
-import static org.gradle.launcher.daemon.server.health.DaemonStatus.TENURED_USAGE_EXPIRE_AT
+import static org.gradle.launcher.daemon.server.health.DaemonStatus.*
 
 class DaemonStatusTest extends Specification {
 
@@ -93,6 +91,7 @@ class DaemonStatusTest extends Specification {
         1.0           | 90             | 1.1  | 89   | false
         1.0           | 90             | 0.9  | 91   | false
         1.0           | 0              | 1.0  | 0    | false
+        1.0           | 0              | 1.0  | -1   | false
         0             | 90             | 0    | 100  | false
         1.0           | 0              | 1.1  | 100  | false
         0             | 90             | 1.1  | 100  | false

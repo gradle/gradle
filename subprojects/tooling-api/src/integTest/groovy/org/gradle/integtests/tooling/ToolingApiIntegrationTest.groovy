@@ -226,10 +226,12 @@ allprojects {
                     try {
                         // Configure the build
                         BuildLauncher launcher = connection.newBuild();
-                        launcher.forTasks("thing").withArguments("-u");
+                        launcher.forTasks("thing");
+                        launcher.withArguments("-u");
                         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                         launcher.setStandardOutput(outputStream);
                         launcher.setStandardError(outputStream);
+                        launcher.setColorOutput(true);
 
                         // Run the build
                         launcher.run();

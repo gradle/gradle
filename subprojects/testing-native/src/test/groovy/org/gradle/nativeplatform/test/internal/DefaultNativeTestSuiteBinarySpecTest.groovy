@@ -20,13 +20,11 @@ import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-@LeaksFileHandles
 class DefaultNativeTestSuiteBinarySpecTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()

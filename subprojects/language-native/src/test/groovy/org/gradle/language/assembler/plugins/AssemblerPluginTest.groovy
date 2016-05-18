@@ -22,10 +22,8 @@ import org.gradle.language.assembler.tasks.Assemble
 import org.gradle.model.ModelMap
 import org.gradle.nativeplatform.*
 import org.gradle.platform.base.PlatformBaseSpecification
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GFileUtils
 
-@LeaksFileHandles
 class AssemblerPluginTest extends PlatformBaseSpecification {
 
     def "creates asm source set with conventional locations for components"() {

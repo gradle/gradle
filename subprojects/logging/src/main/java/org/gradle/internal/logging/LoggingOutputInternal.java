@@ -68,9 +68,4 @@ public interface LoggingOutputInternal extends LoggingOutput {
      * Adds the given listener.
      */
     void removeOutputEventListener(OutputEventListener listener);
-
-    /**
-     * Flushes output to all destinations.
-     */
-    void flush();
 }

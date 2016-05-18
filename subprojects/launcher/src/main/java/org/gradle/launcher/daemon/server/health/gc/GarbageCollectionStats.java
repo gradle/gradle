@@ -66,7 +66,7 @@ public class GarbageCollectionStats {
 
     static long calculateAverageUsage(Set<GarbageCollectionEvent> events) {
         if (events.size() < 1) {
-            return 0;
+            return -1;
         }
 
         long total = 0;
@@ -90,7 +90,7 @@ public class GarbageCollectionStats {
         }
 
         if (lastCount == 0 || lastCount == firstCount) {
-            return 0;
+            return -1;
         } else {
             long totalCount = lastCount - firstCount + 1;
             return total / totalCount;
@@ -99,7 +99,7 @@ public class GarbageCollectionStats {
 
     static long calculateMaxSize(Set<GarbageCollectionEvent> events) {
         if (events.size() < 1) {
-            return 0;
+            return -1;
         }
 
         // Maximum pool size is fixed, so we should only need to get it from the first event
@@ -112,7 +112,11 @@ public class GarbageCollectionStats {
     }
 
     public int getUsage() {
-        return NumberUtil.percentOf(used, max);
+        if (used > 0) {
+            return NumberUtil.percentOf(used, max);
+        } else {
+            return -1;
+        }
     }
 
     public double getUsed() {

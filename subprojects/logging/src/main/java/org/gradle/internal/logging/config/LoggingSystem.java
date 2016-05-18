@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.logging.events;
-
-import org.gradle.api.Nullable;
-import org.gradle.api.logging.LogLevel;
+package org.gradle.internal.logging.config;
 
 /**
- * Requests that output consumers flush any buffered output to the actual destination.
+ * Some configurable logging system, whose state can be snapshot, mutated and restored.
  */
-public class FlushToOutputsEvent extends OutputEvent {
-    @Nullable
-    @Override
-    public LogLevel getLogLevel() {
-        return null;
+public interface LoggingSystem {
+    /**
+     * Snapshots the current configuration state of this logging system.
+     */
+    Snapshot snapshot();
+
+    /**
+     * Resets this logging system to some previous configuration state.
+     */
+    void restore(Snapshot state);
+
+    interface Snapshot {
     }
 }

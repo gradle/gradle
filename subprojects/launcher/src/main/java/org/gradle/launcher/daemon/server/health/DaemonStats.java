@@ -94,13 +94,19 @@ public class DaemonStats {
             if (gcMonitor.getGcStrategy() != GarbageCollectorMonitoringStrategy.UNKNOWN) {
                 GarbageCollectionStats tenuredStats = gcMonitor.getTenuredStats();
                 GarbageCollectionStats permgenStats = gcMonitor.getPermGenStats();
-                if (permgenStats.getEventCount() > 0) {
-                    return format("Starting %s build in daemon [uptime: %s, performance: %s%%, GC rate: %.2f/s, tenured heap usage: %s%% of %s, perm gen usage: %s%% of %s]",
-                        NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance(), tenuredStats.getRate(), tenuredStats.getUsage(), NumberUtil.formatBytes(tenuredStats.getMax()), permgenStats.getUsage(), NumberUtil.formatBytes(permgenStats.getMax()));
+                String message = format("Starting %s build in daemon [uptime: %s, performance: %s%%",
+                    NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance());
+                if (tenuredStats.getEventCount() > 0) {
+                    message += format(", GC rate: %.2f/s, tenured heap usage: %s%% of %s", tenuredStats.getRate(), tenuredStats.getUsage(), NumberUtil.formatBytes(tenuredStats.getMax()));
+                    if (permgenStats.getEventCount() > 0) {
+                        message += format(", perm gen usage: %s%% of %s",
+                            permgenStats.getUsage(), NumberUtil.formatBytes(permgenStats.getMax()));
+                    }
                 } else {
-                    return format("Starting %s build in daemon [uptime: %s, performance: %s%%, GC rate: %.2f/s, tenured heap usage: %s%% of %s]",
-                        NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance(), tenuredStats.getRate(), tenuredStats.getUsage(), NumberUtil.formatBytes(tenuredStats.getMax()));
+                    message += ", no major garbage collections";
                 }
+                message += "]";
+                return message;
             } else {
                 return format("Starting %s build in daemon [uptime: %s, performance: %s%%]",
                     NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance());

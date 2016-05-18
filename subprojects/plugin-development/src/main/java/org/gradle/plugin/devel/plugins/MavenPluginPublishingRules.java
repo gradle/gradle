@@ -25,10 +25,10 @@ import org.gradle.api.publish.PublicationContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.model.Finalize;
 import org.gradle.model.Mutate;
 import org.gradle.model.RuleSource;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
-import org.gradle.plugin.devel.PluginArtifactCoordinates;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -38,7 +38,7 @@ class MavenPluginPublishingRules extends RuleSource {
     public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
 
     @Mutate
-    public void addPluginPublications(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment, ServiceRegistry services) {
+    public void addMainPublication(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment, ServiceRegistry services) {
         if (!pluginDevelopment.isAutomatedPublishing()) {
             return;
         }
@@ -46,24 +46,27 @@ class MavenPluginPublishingRules extends RuleSource {
         SoftwareComponent component = componentContainer.getByName("java");
 
         PublicationContainer publications = publishing.getPublications();
-        PluginArtifactCoordinates coordinates = pluginDevelopment.getPluginArtifactCoordinates();
+        createMavenPluginPublication(component, publications);
+    }
+    @Finalize
+    public void addMarkerPublications(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment) {
+        if (!pluginDevelopment.isAutomatedPublishing()) {
+            return;
+        }
+
+        PublicationContainer publications = publishing.getPublications();
         NamedDomainObjectContainer<PluginDeclaration> declaredPlugins = pluginDevelopment.getPlugins();
 
-        createMavenPluginPublication(component, coordinates, publications);
         for (PluginDeclaration declaration : declaredPlugins) {
-            createMavenMarkerPublication(declaration, coordinates, publications);
+            createMavenMarkerPublication(declaration, (MavenPublication) publications.getByName("pluginMaven"), publications);
         }
     }
-
-    private void createMavenPluginPublication(SoftwareComponent component, PluginArtifactCoordinates coordinates, PublicationContainer publications) {
+    private void createMavenPluginPublication(SoftwareComponent component, PublicationContainer publications) {
         MavenPublication publication = publications.create("pluginMaven", MavenPublication.class);
         publication.from(component);
-        publication.setGroupId(coordinates.getGroup());
-        publication.setArtifactId(coordinates.getName());
-        publication.setVersion(coordinates.getVersion());
     }
 
-    private void createMavenMarkerPublication(PluginDeclaration declaration, final PluginArtifactCoordinates coordinates, PublicationContainer publications) {
+    private void createMavenMarkerPublication(PluginDeclaration declaration, final MavenPublication coordinates, PublicationContainer publications) {
         String pluginId = declaration.getId();
         MavenPublication publication = publications.create(declaration.getName() + "PluginMarkerMaven", MavenPublication.class);
         publication.setArtifactId(pluginId + PLUGIN_MARKER_SUFFIX);
@@ -76,9 +79,9 @@ class MavenPluginPublishingRules extends RuleSource {
                 Node dependencies = root.appendChild(document.createElement("dependencies"));
                 Node dependency = dependencies.appendChild(document.createElement("dependency"));
                 Node groupId = dependency.appendChild(document.createElement("groupId"));
-                groupId.setTextContent(coordinates.getGroup());
+                groupId.setTextContent(coordinates.getGroupId());
                 Node artifactId = dependency.appendChild(document.createElement("artifactId"));
-                artifactId.setTextContent(coordinates.getName());
+                artifactId.setTextContent(coordinates.getArtifactId());
                 Node version = dependency.appendChild(document.createElement("version"));
                 version.setTextContent(coordinates.getVersion());
             }
