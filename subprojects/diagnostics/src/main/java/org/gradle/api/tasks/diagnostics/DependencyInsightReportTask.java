@@ -16,7 +16,10 @@
 
 package org.gradle.api.tasks.diagnostics;
 
+import groovy.lang.GroovyObject;
+import groovy.lang.MetaClass;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
@@ -74,10 +77,37 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
  * and {@link DependencyInsightReportTask#setConfiguration(String)}
  */
 @Incubating
-public class DependencyInsightReportTask extends DefaultTask {
+public class DependencyInsightReportTask extends DefaultTask implements GroovyObject {
 
     private Configuration configuration;
     private Spec<DependencyResult> dependencySpec;
+
+    // ----- backwards compatibility section, implements the GroovyObject interface
+    private transient MetaClass metaClass;
+
+    public Object getProperty(String property) {
+        return getMetaClass().getProperty(this, property);
+    }
+
+    public void setProperty(String property, Object newValue) {
+        getMetaClass().setProperty(this, property, newValue);
+    }
+
+    public Object invokeMethod(String name, Object args) {
+        return getMetaClass().invokeMethod(this, name, args);
+    }
+
+    public MetaClass getMetaClass() {
+        if (metaClass == null) {
+            metaClass = InvokerHelper.getMetaClass(getClass());
+        }
+        return metaClass;
+    }
+
+    public void setMetaClass(MetaClass metaClass) {
+        this.metaClass = metaClass;
+    }
+    // ------- end of backwards compatibility section
 
     /**
      * Selects the dependency (or dependencies if multiple matches found) to show the report for.
