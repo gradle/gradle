@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import groovy.lang.GroovyObjectSupport;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -26,7 +27,7 @@ import java.util.Map;
 /**
  * A build command.
  */
-public class BuildCommand implements Serializable {
+public class BuildCommand extends GroovyObjectSupport implements Serializable {
     private String name;
     private Map<String, String> arguments;
 

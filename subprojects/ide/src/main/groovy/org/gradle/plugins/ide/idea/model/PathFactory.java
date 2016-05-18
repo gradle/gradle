@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.idea.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
@@ -28,7 +29,7 @@ import java.util.Map;
 /**
  * Path Factory.
  */
-public class PathFactory {
+public class PathFactory extends GroovyObjectSupport {
 
     private final List<Variable> variables = Lists.newArrayList();
     private final Map<String, File> varsByName = Maps.newHashMap();

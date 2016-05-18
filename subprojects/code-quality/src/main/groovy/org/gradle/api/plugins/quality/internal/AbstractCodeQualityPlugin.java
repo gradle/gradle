@@ -19,6 +19,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Callables;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
@@ -39,7 +40,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-public abstract class AbstractCodeQualityPlugin<T extends Task> implements Plugin<ProjectInternal> {
+public abstract class AbstractCodeQualityPlugin<T extends Task> extends GroovyObjectSupport implements Plugin<ProjectInternal> {
 
     protected static ConventionMapping conventionMappingOf(Object object) {
         return ((IConventionAware) object).getConventionMapping();

@@ -16,12 +16,13 @@
 package org.gradle.plugins.ide.idea.model;
 
 import com.google.common.base.Objects;
+import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.JavaVersion;
 
 /**
  * Java language level used by IDEA projects.
  */
-public class IdeaLanguageLevel {
+public class IdeaLanguageLevel extends GroovyObjectSupport {
 
     private String level;
 

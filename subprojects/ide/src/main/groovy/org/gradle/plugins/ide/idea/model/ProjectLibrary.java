@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.idea.model;
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import groovy.lang.GroovyObjectSupport;
 import groovy.util.Node;
 import org.gradle.api.Incubating;
 
@@ -29,7 +30,7 @@ import java.util.Set;
  * A project-level IDEA library.
  */
 @Incubating
-public class ProjectLibrary {
+public class ProjectLibrary extends GroovyObjectSupport {
 
     private String name;
     private String type;

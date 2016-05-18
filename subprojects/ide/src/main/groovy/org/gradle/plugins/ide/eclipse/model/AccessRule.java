@@ -18,11 +18,12 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import groovy.lang.GroovyObjectSupport;
 
 /**
  * Access rule associated to a classpath entry.
  */
-public class AccessRule {
+public class AccessRule extends GroovyObjectSupport {
     private String kind;
     private String pattern;
 

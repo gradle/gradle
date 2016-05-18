@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import groovy.lang.GroovyObjectSupport;
 import groovy.util.Node;
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
 
@@ -27,7 +28,7 @@ import java.util.Map;
 /**
  * A wtp descriptor resource entry.
  */
-public class WbResource implements WbModuleEntry {
+public class WbResource extends GroovyObjectSupport implements WbModuleEntry {
     private String deployPath;
     private String sourcePath;
 
