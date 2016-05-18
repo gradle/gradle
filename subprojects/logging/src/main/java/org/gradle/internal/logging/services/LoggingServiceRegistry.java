@@ -35,6 +35,7 @@ import org.gradle.internal.logging.source.JavaUtilLoggingSystem;
 import org.gradle.internal.logging.source.NoOpLoggingSystem;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.logging.DeprecatedStyledTextOutputFactory;
 
 /**
  * A {@link org.gradle.internal.service.ServiceRegistry} implementation that provides the logging services. To use this:
@@ -114,6 +115,10 @@ public abstract class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     protected StyledTextOutputFactory createStyledTextOutputFactory() {
         return new DefaultStyledTextOutputFactory(getStdoutListener(), get(TimeProvider.class));
+    }
+
+    protected org.gradle.logging.StyledTextOutputFactory createDeprectatedStyledTextOutputFactory(final StyledTextOutputFactory delegate) {
+        return new DeprecatedStyledTextOutputFactory(delegate);
     }
 
     protected TextStreamOutputEventListener getStdoutListener() {

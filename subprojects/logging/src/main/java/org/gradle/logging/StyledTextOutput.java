@@ -22,12 +22,39 @@ package org.gradle.logging;
  * @deprecated This is here because tasks implemented in Groovy that are compiled against older versions of Gradle have this type baked into their byte-code, and cannot be loaded if it's not found.
  */
 @Deprecated
-public interface StyledTextOutputFactory {
-    /**
-     * Creates a {@code StyledTextOutput} with the given category and the standard output log level.
-     *
-     * @param logCategory The log category.
-     * @return the output
-     */
-    StyledTextOutput create(Class logCategory);
+public interface StyledTextOutput {
+    enum Style {
+        Normal,
+        Header,
+        UserInput,
+        Identifier,
+        Description,
+        ProgressStatus,
+        Success,
+        Failure,
+        Info,
+        Error
+    }
+
+    StyledTextOutput style(Style var1);
+
+    StyledTextOutput append(char c);
+
+    StyledTextOutput println(Object text);
+
+    StyledTextOutput exception(Throwable throwable);
+
+    StyledTextOutput append(CharSequence csq, int start, int end);
+
+    StyledTextOutput withStyle(Style var1);
+
+    StyledTextOutput println();
+
+    StyledTextOutput append(CharSequence csq);
+
+    StyledTextOutput text(Object text);
+
+    StyledTextOutput formatln(String pattern, Object... args);
+
+    StyledTextOutput format(String pattern, Object... args);
 }
