@@ -52,6 +52,9 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
     static {
         URL resource = GradleVersion.class.getResource(RESOURCE_NAME);
+        if (resource == null) {
+            throw new GradleException(format("Resource '%s' not found.", RESOURCE_NAME));
+        }
 
         InputStream inputStream = null;
         try {
