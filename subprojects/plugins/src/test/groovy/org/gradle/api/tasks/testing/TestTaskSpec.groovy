@@ -20,18 +20,19 @@ import org.gradle.api.GradleException
 import org.gradle.api.internal.tasks.testing.*
 import org.gradle.api.internal.tasks.testing.detection.TestExecuter
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class TestTaskSpec extends Specification {
+class TestTaskSpec extends AbstractProjectBuilderSpec {
     def testExecuter = Mock(TestExecuter)
     def testFramework = Mock(TestFramework)
     def suiteDescriptor = Mock(TestDescriptorInternal)
     def testDescriptor = Mock(TestDescriptorInternal)
 
-    def task = TestUtil.createTask(Test, [testExecuter: testExecuter, testFramework: testFramework])
+    private Test task
 
     def setup() {
+        task = TestUtil.create(temporaryFolder).task(Test, [testExecuter: testExecuter, testFramework: testFramework])
         task.testReporter = Mock(TestReporter)
         task.binResultsDir = task.project.file('build/test-results')
         task.reports.junitXml.destination = task.project.file('build/test-results')
