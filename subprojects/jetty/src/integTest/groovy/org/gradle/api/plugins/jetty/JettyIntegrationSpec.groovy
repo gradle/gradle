@@ -91,7 +91,7 @@ class JettyIntegrationSpec extends AbstractIntegrationSpec {
         handle.abort()
 
         then:
-        handle.waitForExit()
+        // handle.waitForExit() Doesn't seem to work
         pollingConditions.eventually {
             assertJettyIsDown()
         }
