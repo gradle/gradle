@@ -21,7 +21,9 @@
         </parameters>
       </runner>
     </build-runners>
-    <vcs-settings />
+    <vcs-settings>
+      <vcs-entry-ref root-id="Gradle_Branches_GradleScriptKotlin" />
+    </vcs-settings>
     <requirements />
     <build-triggers />
     <cleanup />
