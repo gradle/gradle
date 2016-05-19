@@ -19,6 +19,7 @@ package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.TextUtil
 import spock.lang.FailsWith
 import spock.lang.Issue
 
@@ -84,10 +85,13 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-3068")
     def "can use gradleApi in test"() {
+        // TODO:DAZ We shouldn't require these: they make the test download JUnit from mavenCentral() on every run.
         requireGradleHome()
         requireOwnGradleUserHomeDir()
 
         given:
+        def testProjectDir = file("test-project-dir")
+        def testProjectPath = TextUtil.normaliseFileSeparators(testProjectDir.absolutePath)
         file("src/test/groovy/org/acme/ProjectBuilderTest.groovy") << """
             package org.acme
             import org.gradle.api.Project
@@ -97,7 +101,8 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
             class ProjectBuilderTest {
                 @Test
                 void "can evaluate ProjectBuilder"() {
-                    def project = ProjectBuilder.builder().build()
+                    def projectDir = new File('${testProjectPath}')
+                    def project = ProjectBuilder.builder().withProjectDir(projectDir).build()
                     project.apply(plugin: 'groovy')
                     project.evaluate()
                 }
@@ -120,7 +125,6 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
         '''
 
         expect:
-        executer.withArgument("--debug")
         succeeds("test")
     }
 }
