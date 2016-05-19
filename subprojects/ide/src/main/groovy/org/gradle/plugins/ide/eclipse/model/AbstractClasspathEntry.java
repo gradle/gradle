@@ -40,7 +40,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
     protected String path;
     protected boolean exported;
     protected Set<AccessRule> accessRules;
-    protected final Map<String, Object> entryAttributes;
+    protected Map<String, Object> entryAttributes;
 
     public AbstractClasspathEntry(Node node) {
         path = normalizePath((String) node.attribute("path"));
@@ -192,20 +192,13 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         Map<String, Object> effectiveEntryAttrs = Maps.newHashMap();
         for (String key : entryAttributes.keySet()) {
             Object value = entryAttributes.get(key);
-            if ((value != null && !String.valueOf(value).isEmpty()) || COMPONENT_NON_DEPENDENCY_ATTRIBUTE.equals(key)) {
+            if (value != null) {
                 effectiveEntryAttrs.put(key, value);
             }
         }
 
         if (effectiveEntryAttrs.isEmpty()) {
             return;
-        }
-
-        if (effectiveEntryAttrs.containsKey(COMPONENT_DEPENDENCY_ATTRIBUTE)
-            && effectiveEntryAttrs.containsKey(COMPONENT_NON_DEPENDENCY_ATTRIBUTE)) {
-            //For conflicting component dependency entries, the non-dependency loses
-            //because it is our default and it means the user has configured something else.
-            effectiveEntryAttrs.remove(COMPONENT_NON_DEPENDENCY_ATTRIBUTE);
         }
 
         Node attributesNode;

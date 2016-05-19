@@ -23,6 +23,7 @@ import com.google.common.collect.Sets
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
+import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
@@ -33,6 +34,7 @@ import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
@@ -51,6 +53,7 @@ import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
 import java.util.concurrent.Callable
+
 /**
  * <p>A plugin which generates Eclipse files.</p>
  */
@@ -85,6 +88,8 @@ class EclipsePlugin extends IdePlugin {
         configureEclipseClasspath(project, model)
 
         hookDeduplicationToTheRoot(project)
+
+        applyEclipseWtpPluginOnWebProjects(project)
     }
 
     void hookDeduplicationToTheRoot(Project project) {
@@ -308,6 +313,21 @@ class EclipsePlugin extends IdePlugin {
                 })
             }
         })
+    }
+
+    private void applyEclipseWtpPluginOnWebProjects(Project project) {
+        Action<Plugin<Project>> action = createActionApplyingEclipseWtpPlugin()
+        project.getPlugins().withType(WarPlugin.class, action);
+        project.getPlugins().withType(EarPlugin.class, action);
+    }
+
+    private Action<Plugin<Project>> createActionApplyingEclipseWtpPlugin() {
+        return new Action<Plugin<Project>>() {
+            @Override
+            public void execute(Plugin<Project> plugin) {
+                project.getPluginManager().apply(EclipseWtpPlugin.class);
+            }
+        }
     }
 
     private static <T extends Task> void maybeAddTask(Project project, IdePlugin plugin, String taskName,

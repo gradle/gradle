@@ -253,7 +253,7 @@ class EclipseModelBuilderTest extends Specification {
         plugins.each { project.pluginManager.apply(it) }
 
         when:
-        def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
+        modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
 
         then:
         project.plugins.hasPlugin(EclipseWtpPlugin) == hasWtpPlugin

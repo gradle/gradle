@@ -19,7 +19,7 @@ import org.gradle.tooling.internal.protocol.eclipse.DefaultEclipseProjectIdentif
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.List;
 
 public class DefaultEclipseProjectDependency extends DefaultEclipseDependency implements Serializable {
     private final DefaultEclipseProjectIdentifier targetIdentifier;
@@ -27,15 +27,15 @@ public class DefaultEclipseProjectDependency extends DefaultEclipseDependency im
 
     private final DefaultEclipseProject targetProject;
 
-    public DefaultEclipseProjectDependency(String path, DefaultEclipseProject targetProject, boolean exported) {
-        super(exported, new ArrayList<DefaultClasspathAttribute>());
+    public DefaultEclipseProjectDependency(String path, DefaultEclipseProject targetProject, boolean exported, List<DefaultClasspathAttribute> attributes) {
+        super(exported, attributes);
         this.targetProject = targetProject;
         this.path = path;
         this.targetIdentifier = new DefaultEclipseProjectIdentifier(targetProject.getProjectDirectory());
     }
 
-    public DefaultEclipseProjectDependency(String path, File targetProjectDirectory, boolean exported) {
-        super(exported, new ArrayList<DefaultClasspathAttribute>());
+    public DefaultEclipseProjectDependency(String path, File targetProjectDirectory, boolean exported, List<DefaultClasspathAttribute> attributes) {
+        super(exported, attributes);
         this.targetProject = null;
         this.path = path;
         this.targetIdentifier = new DefaultEclipseProjectIdentifier(targetProjectDirectory);

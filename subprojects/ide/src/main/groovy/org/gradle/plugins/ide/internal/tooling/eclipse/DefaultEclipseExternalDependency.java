@@ -22,7 +22,7 @@ import org.gradle.tooling.model.GradleModuleVersion;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.List;
 
 public class DefaultEclipseExternalDependency extends DefaultEclipseDependency implements ExternalDependencyVersion1,
     Serializable {
@@ -33,8 +33,8 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
     private final ModuleVersionIdentifier identifier;
     private final GradleModuleVersion moduleVersion;
 
-    public DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported) {
-        super(exported, new ArrayList<DefaultClasspathAttribute>());
+    public DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes) {
+        super(exported, attributes);
         this.file = file;
         this.javadoc = javadoc;
         this.source = source;

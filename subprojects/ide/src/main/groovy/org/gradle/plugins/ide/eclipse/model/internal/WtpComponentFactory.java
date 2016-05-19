@@ -18,13 +18,9 @@ package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.specs.Spec;
-import org.gradle.internal.Specs;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
@@ -36,6 +32,7 @@ import org.gradle.plugins.ide.eclipse.model.WtpComponent;
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor;
 import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
+import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 
 import java.io.File;
 import java.util.Collection;
@@ -53,9 +50,9 @@ public class WtpComponentFactory {
         }
         entries.addAll(wtp.getProperties());
         // for ear files root deps are NOT transitive; wars don't use root deps so this doesn't hurt them
-        // TODO: maybe do this in a more explicit way, via config or something
-        entries.addAll(getEntriesFromConfigurations(configOrEmptySet(wtp.getRootConfigurations()), configOrEmptySet(wtp.getMinusConfigurations()), wtp, "/", false));
-        entries.addAll(getEntriesFromConfigurations(configOrEmptySet(wtp.getLibConfigurations()), configOrEmptySet(wtp.getMinusConfigurations()), wtp, wtp.getLibDeployPath(), true));
+        Project project = wtp.getProject();
+        entries.addAll(getEntriesFromConfigurations(project, configOrEmptySet(wtp.getRootConfigurations()), configOrEmptySet(wtp.getMinusConfigurations()), wtp, "/"));
+        entries.addAll(getEntriesFromConfigurations(project, configOrEmptySet(wtp.getLibConfigurations()), configOrEmptySet(wtp.getMinusConfigurations()), wtp, wtp.getLibDeployPath()));
         component.configure(wtp.getDeployName(), wtp.getContextPath(), entries);
     }
 
@@ -78,63 +75,36 @@ public class WtpComponentFactory {
         }
         return result;
     }
-
-    private List<WbDependentModule> getEntriesFromConfigurations(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath, boolean transitive) {
+    private List<WbDependentModule> getEntriesFromConfigurations(Project project, Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
         List<WbDependentModule> entries = Lists.newArrayList();
-        entries.addAll(getEntriesFromProjectDependencies(plusConfigurations, minusConfigurations, deployPath, transitive));
-        entries.addAll(getEntriesFromLibraries(plusConfigurations, minusConfigurations, wtp, deployPath));
+        entries.addAll(getEntriesFromProjectDependencies(project, plusConfigurations, minusConfigurations, deployPath));
+        // All dependencies should be declared as Eclipse classpath entries by default. However if the project is not a Java
+        // project, then as a fallback the dependencies are added to the component descriptor. This is useful for EAR
+        // projects which typically are not Java projects.
+        if (!project.getPlugins().hasPlugin(JavaPlugin.class)) {
+            entries.addAll(getEntriesFromLibraries(plusConfigurations, minusConfigurations, wtp, deployPath));
+        }
         return entries;
     }
 
-    // must include transitive project dependencies
-    private List<WbDependentModule> getEntriesFromProjectDependencies(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, String deployPath, boolean transitive) {
-        Set<Dependency> dependencies = getDependencies(plusConfigurations, minusConfigurations, Specs.<Dependency>isInstance(ProjectDependency.class));
-
-        List<Project> projects = Lists.newArrayList();
-        for (Dependency dependency : dependencies) {
-            projects.add(((ProjectDependency)dependency).getDependencyProject());
-        }
-
-        Set<Project> allProjects = Sets.newLinkedHashSet();
-        allProjects.addAll(projects);
-        if (transitive) {
-            for (Project project : projects) {
-                collectDependedUponProjects(project, allProjects);
-            }
-        }
+    private List<WbDependentModule> getEntriesFromProjectDependencies(Project project, Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, String deployPath) {
+        IdeDependenciesExtractor extractor = new IdeDependenciesExtractor();
+        Collection<IdeProjectDependency> dependencies = extractor.extractProjectDependencies(project, plusConfigurations, minusConfigurations);
 
         List<WbDependentModule> projectDependencies = Lists.newArrayList();
-        for (Project project : allProjects) {
+        for (IdeProjectDependency dependency : dependencies) {
+            Project dependencyProject = dependency.getProject();
             String moduleName;
-            if (project.getPlugins().hasPlugin(EclipsePlugin.class)) {
-                moduleName = project.getExtensions().getByType(EclipseModel.class).getProject().getName();
+            if (dependencyProject.getPlugins().hasPlugin(EclipsePlugin.class)) {
+                moduleName = dependencyProject.getExtensions().getByType(EclipseModel.class).getProject().getName();
             } else {
-                moduleName = project.getName();
+                moduleName = dependencyProject.getName();
             }
             projectDependencies.add(new WbDependentModule(deployPath, "module:/resource/" + moduleName + "/" + moduleName));
         }
         return projectDependencies;
     }
 
-    // TODO: might have to search all class paths of all source sets for project dependencies, not just runtime configuration
-    private void collectDependedUponProjects(org.gradle.api.Project project, Set<org.gradle.api.Project> result) {
-        Configuration runtimeConfig = project.getConfigurations().findByName("runtime");
-        if (runtimeConfig != null) {
-            DomainObjectSet<ProjectDependency> projectDeps = runtimeConfig.getAllDependencies().withType(ProjectDependency.class);
-
-            List<Project> dependedUponProjects = Lists.newArrayList();
-            for (ProjectDependency projectDep : projectDeps) {
-                dependedUponProjects.add(projectDep.getDependencyProject());
-            }
-
-            result.addAll(dependedUponProjects);
-            for (Project dependedUponProject : dependedUponProjects) {
-                collectDependedUponProjects(dependedUponProject, result);
-            }
-        }
-    }
-
-    // must NOT include transitive library dependencies
     private List<WbDependentModule> getEntriesFromLibraries(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
         IdeDependenciesExtractor extractor = new IdeDependenciesExtractor();
         //below is not perfect because we're skipping the unresolved dependencies completely
@@ -164,14 +134,5 @@ public class WtpComponentFactory {
         return new WbDependentModule(deployPath, "module:/classpath/" + handleSnippet);
     }
 
-    private Set<Dependency> getDependencies(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, Spec<Dependency> filter) {
-        Set<Dependency> declaredDependencies = Sets.newLinkedHashSet();
-        for (Configuration configuration : plusConfigurations) {
-            declaredDependencies.addAll(configuration.getAllDependencies().matching(filter));
-        }
-        for (Configuration configuration : minusConfigurations) {
-            declaredDependencies.removeAll(configuration.getAllDependencies().matching(filter));
-        }
-        return declaredDependencies;
-    }
+
 }

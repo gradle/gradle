@@ -17,111 +17,63 @@
 package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
+import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.Container;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
-import org.gradle.plugins.ide.eclipse.model.FileReference;
-import org.gradle.plugins.ide.eclipse.model.Library;
 import org.gradle.plugins.ide.eclipse.model.Output;
-import org.gradle.plugins.ide.eclipse.model.Variable;
-import org.gradle.plugins.ide.internal.IdeDependenciesExtractor;
-import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
-import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
-import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
 
-import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class ClasspathFactory {
 
-    private interface ClasspathEntryBuilder {
-        void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath);
+    private final EclipseClasspath classpath;
+    private final EclipseDependenciesCreator dependenciesCreator;
+
+    public ClasspathFactory(EclipseClasspath classpath) {
+        this.classpath = classpath;
+        this.dependenciesCreator = new EclipseDependenciesCreator(classpath);
     }
 
-    private final ClasspathEntryBuilder outputCreator = new ClasspathEntryBuilder() {
-        @Override
-        public void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
-            entries.add(new Output(eclipseClasspath.getProject().relativePath(eclipseClasspath.getDefaultOutputDir())));
-        }
-    };
-
-    private final ClasspathEntryBuilder containersCreator = new ClasspathEntryBuilder() {
-        @Override
-        public void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
-            for (String container : eclipseClasspath.getContainers()) {
-                Container entry = new Container(container);
-                entries.add(entry);
-            }
-        }
-    };
-
-    private final ClasspathEntryBuilder projectDependenciesCreator = new ClasspathEntryBuilder() {
-        @Override
-        public void update(List<ClasspathEntry> entries, EclipseClasspath eclipseClasspath) {
-            Collection<IdeProjectDependency> projectDependencies = dependenciesExtractor.extractProjectDependencies(eclipseClasspath.getProject(), eclipseClasspath.getPlusConfigurations(), eclipseClasspath.getMinusConfigurations());
-            for (IdeProjectDependency projectDependency : projectDependencies) {
-                entries.add(new ProjectDependencyBuilder().build(projectDependency));
-            }
-        }
-    };
-
-    private final ClasspathEntryBuilder librariesCreator = new ClasspathEntryBuilder() {
-        @Override
-        public void update(List<ClasspathEntry> entries, EclipseClasspath classpath) {
-            Collection<IdeExtendedRepoFileDependency> repoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(
-                classpath.getProject().getDependencies(), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), classpath.isDownloadSources(), classpath.isDownloadJavadoc());
-            for (IdeExtendedRepoFileDependency dependency : repoFileDependencies) {
-                entries.add(ClasspathFactory.createLibraryEntry(dependency.getFile(), dependency.getSourceFile(), dependency.getJavadocFile(), classpath, dependency.getId()));
-            }
-
-            Collection<IdeLocalFileDependency> localFileDependencies = dependenciesExtractor.extractLocalFileDependencies(classpath.getPlusConfigurations(), classpath.getMinusConfigurations());
-            for (IdeLocalFileDependency it : localFileDependencies) {
-                entries.add(ClasspathFactory.createLibraryEntry(it.getFile(), null, null, classpath, null));
-            }
-        }
-    };
-
-    private final SourceFoldersCreator sourceFoldersCreator = new SourceFoldersCreator();
-    private final IdeDependenciesExtractor dependenciesExtractor = new IdeDependenciesExtractor();
-    private final ClassFoldersCreator classFoldersCreator = new ClassFoldersCreator();
-
-    public List<ClasspathEntry> createEntries(EclipseClasspath classpath) {
+    public List<ClasspathEntry> createEntries() {
         List<ClasspathEntry> entries = Lists.newArrayList();
-        outputCreator.update(entries, classpath);
-        sourceFoldersCreator.populateForClasspath(entries, classpath);
-        containersCreator.update(entries, classpath);
-
-        if (classpath.isProjectDependenciesOnly()) {
-            projectDependenciesCreator.update(entries, classpath);
-        } else {
-            projectDependenciesCreator.update(entries, classpath);
-            librariesCreator.update(entries, classpath);
-            entries.addAll(classFoldersCreator.create(classpath));
-        }
+        entries.add(createOutput());
+        entries.addAll(createSourceFolders());
+        entries.addAll(createContainers());
+        entries.addAll(createDependencies());
+        entries.addAll(createClassFolders());
         return entries;
     }
 
-    public Collection<UnresolvedIdeRepoFileDependency> getUnresolvedDependencies(EclipseClasspath classpath) {
-        return dependenciesExtractor.unresolvedExternalDependencies(classpath.getPlusConfigurations(), classpath.getMinusConfigurations());
+    private ClasspathEntry createOutput() {
+        return new Output(classpath.getProject().relativePath(classpath.getDefaultOutputDir()));
     }
 
-    private static AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id) {
-        FileReferenceFactory referenceFactory = classpath.getFileReferenceFactory();
+    private List<ClasspathEntry> createSourceFolders() {
+        return new SourceFoldersCreator().createSourceFolders(classpath);
+    }
 
-        FileReference binaryRef = referenceFactory.fromFile(binary);
-        FileReference sourceRef = referenceFactory.fromFile(source);
-        FileReference javadocRef = referenceFactory.fromFile(javadoc);
+    private List<ClasspathEntry> createContainers() {
+        List<ClasspathEntry> containers = Lists.newArrayList();
+        for (String container : classpath.getContainers()) {
+            Container entry = new Container(container);
+            containers.add(entry);
+        }
+        return containers;
+    }
 
-        final AbstractLibrary out = binaryRef.isRelativeToPathVariable() ? new Variable(binaryRef) : new Library(binaryRef);
+    private List<AbstractClasspathEntry> createDependencies() {
+        return dependenciesCreator.createDependencyEntries();
+    }
 
-        out.setJavadocPath(javadocRef);
-        out.setSourcePath(sourceRef);
-        out.setExported(false);
-        out.setModuleVersion(id);
-        return out;
+    private List<? extends ClasspathEntry> createClassFolders() {
+        return classpath.isProjectDependenciesOnly() ? Collections.<ClasspathEntry>emptyList() : new ClassFoldersCreator().create(classpath);
+    }
+
+    public Collection<UnresolvedIdeRepoFileDependency> getUnresolvedDependencies() {
+        return dependenciesCreator.unresolvedExternalDependencies();
     }
 }

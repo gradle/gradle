@@ -60,8 +60,12 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
 
     public void setJavadocPath(FileReference path) {
         this.javadocPath = path;
-        String location = path != null ? path.getJarURL() : null;
-        getEntryAttributes().put("javadoc_location", location);
+        if (path != null) {
+            String location = path.getJarURL();
+            getEntryAttributes().put("javadoc_location", location);
+        } else {
+            getEntryAttributes().remove("javadoc_location");
+        }
     }
 
     public FileReference getLibrary() {

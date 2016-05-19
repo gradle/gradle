@@ -116,7 +116,7 @@ class EclipseWtpPluginTest extends Specification {
         when:
         project.apply(plugin: 'war')
         project.sourceCompatibility = 1.5
-        wtpPlugin.apply(project)
+        project.apply(plugin: 'eclipse-wtp')
 
         then:
         [project.cleanEclipseWtpComponent, project.cleanEclipseWtpFacet].each {
@@ -134,7 +134,7 @@ class EclipseWtpPluginTest extends Specification {
 
     def applyFirstToWarProject_shouldHaveWebProjectAndClasspathTask() {
         when:
-        wtpPlugin.apply(project)
+        project.apply(plugin: 'eclipse-wtp')
         project.apply(plugin: 'war')
         project.sourceCompatibility = 1.8
 
@@ -155,7 +155,7 @@ class EclipseWtpPluginTest extends Specification {
     def "can add custom facets to war default facets"() {
         when:
         project.apply(plugin: 'war')
-        wtpPlugin.apply(project)
+        project.apply(plugin: 'eclipse-wtp')
         project.sourceCompatibility = 1.4
 
         project.eclipse.wtp {
@@ -177,7 +177,7 @@ class EclipseWtpPluginTest extends Specification {
     def "wb resource honors web app dir even if configured after plugin appliance"() {
         when:
         project.apply(plugin: 'war')
-        wtpPlugin.apply(project)
+        project.apply(plugin: 'eclipse-wtp')
         project.webAppDirName = 'foo'
 
         then:
@@ -187,7 +187,7 @@ class EclipseWtpPluginTest extends Specification {
     def "web app dir should not disappear while manually adding a wb resource"() {
         when:
         project.apply(plugin: 'war')
-        wtpPlugin.apply(project)
+        project.apply(plugin: 'eclipse-wtp')
         project.webAppDirName = 'foo'
 
         project.eclipse.wtp {
@@ -205,7 +205,7 @@ class EclipseWtpPluginTest extends Specification {
         when:
         plugs.each { p ->
             if (p == 'eclipse-wtp') {
-                wtpPlugin.apply(project)
+                project.apply(plugin: 'eclipse-wtp')
             } else {
                 project.apply(plugin: p)
             }
@@ -245,7 +245,7 @@ class EclipseWtpPluginTest extends Specification {
     def "can add custom facets to ear project"() {
         when:
         project.apply(plugin: 'ear')
-        wtpPlugin.apply(project)
+        project.apply(plugin: 'eclipse-wtp')
 
         project.eclipse.wtp {
             facet {
@@ -355,7 +355,7 @@ class EclipseWtpPluginTest extends Specification {
     def applyToEarProjectWithoutJavaPlugin_shouldUseAppDirInWtpComponentSource() {
         when:
         project.apply(plugin: 'ear')
-        wtpPlugin.apply(project)
+        project.apply(plugin: 'eclipse-wtp')
         then:
         project.eclipse.wtp.component.sourceDirs == [project.file(project.appDirName)] as Set
     }

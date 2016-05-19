@@ -61,7 +61,7 @@ dependencies {
         thrown UnsupportedMethodException
     }
 
-    @TargetGradleVersion(">=2.14")
+    @TargetGradleVersion(">=2.14 <3.0")
     def "each dependency has an empty list of classpath attributes"() {
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)
