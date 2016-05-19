@@ -123,7 +123,7 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
         setupBuildScript = permGenLeak
         maxBuilds = 20
         heapSize = "200m"
-        leakRate = 3500
+        leakRate = 3300
 
         then:
         daemonIsExpiredEagerly()
