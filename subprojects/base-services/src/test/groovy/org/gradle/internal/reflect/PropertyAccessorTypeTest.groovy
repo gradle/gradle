@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.model.internal.manage.schema.extract
+package org.gradle.internal.reflect
 
 import spock.lang.Specification
 import spock.lang.Unroll

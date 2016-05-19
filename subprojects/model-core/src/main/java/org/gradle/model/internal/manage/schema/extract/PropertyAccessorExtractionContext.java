@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 
 import java.lang.annotation.Annotation;

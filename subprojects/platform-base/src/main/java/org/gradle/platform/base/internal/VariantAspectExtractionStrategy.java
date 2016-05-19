@@ -19,8 +19,14 @@ package org.gradle.platform.base.internal;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Named;
 import org.gradle.api.Nullable;
+import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.internal.manage.schema.ModelProperty;
-import org.gradle.model.internal.manage.schema.extract.*;
+import org.gradle.model.internal.manage.schema.extract.InvalidManagedModelElementTypeException;
+import org.gradle.model.internal.manage.schema.extract.ModelPropertyExtractionResult;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractionResult;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractionStrategy;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionContext;
+import org.gradle.model.internal.manage.schema.extract.PropertyAccessorExtractionContext;
 import org.gradle.platform.base.Variant;
 
 import java.util.List;

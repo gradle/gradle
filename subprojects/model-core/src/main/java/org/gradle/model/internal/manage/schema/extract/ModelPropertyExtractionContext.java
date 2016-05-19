@@ -16,8 +16,13 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 import org.gradle.api.Nullable;
+import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.internal.type.ModelType;
 
 import java.lang.reflect.Method;
@@ -26,8 +31,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.hasGetter;
-import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.hasSetter;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasGetter;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasSetter;
 
 public class ModelPropertyExtractionContext {
 

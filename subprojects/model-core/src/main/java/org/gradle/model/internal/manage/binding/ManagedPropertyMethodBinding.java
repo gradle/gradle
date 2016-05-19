@@ -17,7 +17,7 @@
 package org.gradle.model.internal.manage.binding;
 
 import com.google.common.base.Preconditions;
-import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
+import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 

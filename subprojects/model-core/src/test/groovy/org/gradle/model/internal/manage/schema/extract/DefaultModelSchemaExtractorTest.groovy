@@ -17,6 +17,7 @@
 package org.gradle.model.internal.manage.schema.extract
 
 import org.gradle.api.Action
+import org.gradle.internal.reflect.PropertyAccessorType
 import org.gradle.model.Managed
 import org.gradle.model.ModelMap
 import org.gradle.model.ModelSet
