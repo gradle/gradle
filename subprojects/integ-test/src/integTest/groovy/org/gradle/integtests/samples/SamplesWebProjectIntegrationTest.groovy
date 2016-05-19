@@ -72,12 +72,6 @@ println "http port = \$httpPort, stop port = \$stopPort"
 ext.url = new URL("${url}")
 
 [jettyRun, jettyRunWar]*.daemon = true
-[jettyRun, jettyRunWar]*.doLast {
-   if (getStopPort() != null && getStopPort() > 0 && getStopKey() != null) {
-      Monitor monitor = new Monitor(getStopPort(), getStopKey(), server.getProxiedObject());
-      monitor.start();
-   }
-}
 
 task runTest(dependsOn: jettyRun) << {
     callServlet()
