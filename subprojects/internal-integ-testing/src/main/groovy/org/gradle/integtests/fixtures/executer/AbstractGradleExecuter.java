@@ -30,6 +30,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -384,6 +385,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected List<String> getImplicitBuildJvmArgs() {
         List<String> buildJvmOpts = new ArrayList<String>();
         buildJvmOpts.add("-ea");
+        // Ensure that native services is alwasy initialized to a common location
+        buildJvmOpts.add("-D" + NativeServices.NATIVE_DIR_OVERRIDE + "=" + buildContext.getNativeServicesDir().getAbsolutePath());
+
         if (isDebug()) {
             buildJvmOpts.addAll(DEBUG_ARGS);
         }

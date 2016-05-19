@@ -58,7 +58,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     SetSystemProperties setSystemProperties = new SetSystemProperties(
-        (NativeServices.NATIVE_DIR_OVERRIDE): buildContext.gradleUserHomeDir.file("native").absolutePath,
+        (NativeServices.NATIVE_DIR_OVERRIDE): buildContext.nativeServicesDir.absolutePath,
         (GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY): buildContext.gradleUserHomeDir.absolutePath
     )
 
