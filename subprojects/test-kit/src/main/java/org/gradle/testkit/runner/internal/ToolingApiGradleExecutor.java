@@ -21,6 +21,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.BuildTask;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
 import org.gradle.testkit.runner.TaskOutcome;
+import org.gradle.testkit.runner.UnsupportedFeatureException;
 import org.gradle.testkit.runner.internal.io.NoCloseOutputStream;
 import org.gradle.testkit.runner.internal.io.SynchronizedOutputStream;
 import org.gradle.tooling.*;
@@ -51,6 +52,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
     public static final String TEST_KIT_DAEMON_DIR_NAME = "test-kit-daemon";
 
     private static final String CLEANUP_THREAD_NAME = "gradle-runner-cleanup";
+    private static final GradleVersion MIN_GRADLE_VERSION = GradleVersion.version("1.2");
 
     private final static AtomicBoolean SHUTDOWN_REGISTERED = new AtomicBoolean();
 
@@ -85,6 +87,10 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         try {
             connection = gradleConnector.connect();
             targetGradleVersion = determineTargetGradleVersion(connection);
+            if (targetGradleVersion.compareTo(MIN_GRADLE_VERSION) < 0) {
+                throw new UnsupportedFeatureException(String.format("The version of Gradle you are using (%s) is not supported by TestKit. TestKit supports all Gradle versions 1.2 and later.", targetGradleVersion.getVersion()));
+            }
+
             DefaultBuildLauncher launcher = (DefaultBuildLauncher) connection.newBuild();
 
             launcher.setStandardOutput(new NoCloseOutputStream(teeOutput(syncOutput, parameters.getStandardOutput())));
