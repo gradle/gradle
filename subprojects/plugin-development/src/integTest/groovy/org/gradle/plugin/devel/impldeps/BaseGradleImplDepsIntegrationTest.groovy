@@ -24,7 +24,7 @@ abstract class BaseGradleImplDepsIntegrationTest extends AbstractIntegrationSpec
     public static final String TESTKIT_GENERATION_OUTPUT_REGEX = "Generating JAR file 'gradle-test-kit-(.*)\\.jar"
 
     def setup() {
-        executer.requireGradleHome()
+        executer.requireGradleDistribution()
     }
 
     static String applyJavaPlugin() {

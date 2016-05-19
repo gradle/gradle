@@ -23,7 +23,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
     public static final String GRADLE_TEST_KIT_JAR_BASE_NAME = 'gradle-test-kit-'
 
     def setup() {
-        executer.requireGradleHome()
+        executer.requireGradleDistribution()
 
         buildFile << """
             apply plugin: 'java'

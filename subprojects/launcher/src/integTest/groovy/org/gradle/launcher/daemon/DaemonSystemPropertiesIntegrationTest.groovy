@@ -109,7 +109,7 @@ task verify << {
 
     def "forks new daemon when file encoding is set to different value via GRADLE_OPTS"() {
         setup:
-        executer.requireGradleHome()
+        executer.requireGradleDistribution()
         buildScript """
             println "GRADLE_VERSION: " + gradle.gradleVersion
 
@@ -141,7 +141,7 @@ task verify << {
     @IgnoreIf({ !JavaVersion.current().java7Compatible })
     def "forks new daemon when tmpdir is set to different value via GRADLE_OPTS"() {
         setup:
-        executer.requireGradleHome()
+        executer.requireGradleDistribution()
         buildScript """
             println "GRADLE_VERSION: " + gradle.gradleVersion
 
@@ -172,7 +172,7 @@ task verify << {
 
     def "forks new daemon for changed javax.net.ssl sys properties"() {
         setup:
-        executer.requireGradleHome()
+        executer.requireGradleDistribution()
         buildScript """
             println "GRADLE_VERSION: " + gradle.gradleVersion
 

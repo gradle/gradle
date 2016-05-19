@@ -31,7 +31,7 @@ class SamplesCodeQualityIntegrationTest extends AbstractIntegrationSpec {
         TestFile buildDir = projectDir.file('build')
 
         when:
-        executer.inDirectory(projectDir).requireGradleHome().withTasks('check').run()
+        executer.inDirectory(projectDir).requireGradleDistribution().withTasks('check').run()
 
         then:
         buildDir.file('reports/checkstyle/main.xml').assertIsFile()

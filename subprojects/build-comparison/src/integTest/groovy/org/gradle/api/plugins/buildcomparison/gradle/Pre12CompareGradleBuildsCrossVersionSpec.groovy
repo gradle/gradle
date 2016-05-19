@@ -141,7 +141,7 @@ class Pre12CompareGradleBuildsCrossVersionSpec extends CrossVersionIntegrationSp
     }
 
     protected GradleExecuter currentExecuter() {
-        current.executer(temporaryFolder).requireGradleHome().withStackTraceChecksDisabled().withTasks("compareGradleBuilds")
+        current.executer(temporaryFolder).requireGradleDistribution().withStackTraceChecksDisabled().withTasks("compareGradleBuilds")
     }
 
     BuildComparisonHtmlReportFixture report(path = "build/reports/compareGradleBuilds/index.html") {

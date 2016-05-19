@@ -38,7 +38,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "task foo"
 
         when:
-        executer.requireGradleHome() // experiment to fix flaky test
+        executer.requireGradleDistribution() // experiment to fix flaky test
         run("foo", "--configure-on-demand")
 
         then:
@@ -52,7 +52,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         buildFile << "task foo"
 
         when:
-        executer.requireGradleHome() // experiment to fix flaky test
+        executer.requireGradleDistribution() // experiment to fix flaky test
         run("foo", "--configure-on-demand", "--parallel")
 
         then:

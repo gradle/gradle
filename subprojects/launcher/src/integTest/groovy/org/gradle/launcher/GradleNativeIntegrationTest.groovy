@@ -26,7 +26,7 @@ class GradleNativeIntegrationTest extends AbstractIntegrationSpec {
         given:
         executer.useDefaultBuildJvmArgs()
         executer.requireOwnGradleUserHomeDir()
-        executer.requireGradleHome()
+        executer.requireGradleDistribution()
 
         when:
         succeeds "help"

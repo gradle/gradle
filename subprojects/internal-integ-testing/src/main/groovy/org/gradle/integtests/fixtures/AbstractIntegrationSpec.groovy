@@ -101,8 +101,8 @@ class AbstractIntegrationSpec extends Specification {
         executer
     }
 
-    protected GradleExecuter requireGradleHome() {
-        executer.requireGradleHome()
+    protected GradleExecuter requireGradleDistribution() {
+        executer.requireGradleDistribution()
         executer
     }
 

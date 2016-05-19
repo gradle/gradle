@@ -293,7 +293,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         if (defaultLocale != null) {
             assertEquals(defaultLocale, Locale.getDefault());
         }
-        assertFalse(isRequireGradleHome());
+        assertFalse(isRequiresGradleDistribution());
     }
 
     @Override

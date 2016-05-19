@@ -103,7 +103,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> buildJvmOpts = new ArrayList<String>();
     private final List<String> commandLineJvmOpts = new ArrayList<String>();
     private boolean useOnlyRequestedJvmOpts;
-    private boolean requireGradleHome;
+    private boolean requiresGradleDistribution;
 
     private int expectedDeprecationWarnings;
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -264,8 +264,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!stackTraceChecksOn) {
             executer.withStackTraceChecksDisabled();
         }
-        if (requireGradleHome) {
-            executer.requireGradleHome();
+        if (requiresGradleDistribution) {
+            executer.requireGradleDistribution();
         }
         if (requireDaemon) {
             executer.requireDaemon();
@@ -845,12 +845,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return allowExtraLogging;
     }
 
-    public boolean isRequireGradleHome() {
-        return requireGradleHome;
+    public boolean isRequiresGradleDistribution() {
+        return requiresGradleDistribution;
     }
 
-    public GradleExecuter requireGradleHome() {
-        this.requireGradleHome = true;
+    public GradleExecuter requireGradleDistribution() {
+        this.requiresGradleDistribution = true;
         return this;
     }
 

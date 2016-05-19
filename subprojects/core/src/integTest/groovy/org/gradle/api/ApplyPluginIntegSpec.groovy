@@ -91,7 +91,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-3068")
     def "can use gradleApi in test"() {
-        requireGradleHome()
+        requireGradleDistribution()
         // TODO:DAZ We shouldn't require this: it forces the test to download JUnit from mavenCentral() on every run.
         requireOwnGradleUserHomeDir()
 

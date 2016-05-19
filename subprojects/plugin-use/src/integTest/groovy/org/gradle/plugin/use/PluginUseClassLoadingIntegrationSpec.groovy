@@ -39,7 +39,7 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec {
     PluginResolutionServiceTestServer resolutionService = new PluginResolutionServiceTestServer(executer, mavenRepo)
 
     def setup() {
-        executer.requireGradleHome() // need accurate classloading
+        executer.requireGradleDistribution() // need accurate classloading
         executer.requireOwnGradleUserHomeDir()
         resolutionService.start()
     }
