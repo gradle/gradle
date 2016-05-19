@@ -622,8 +622,7 @@ project('c') {
         failure.assertHasCause "Cannot change dependencies of configuration ':api:conf' after it has been included in dependency resolution"
     }
 
-    @Issue("GRADLE-3330")
-    @Issue("GRADLE-3362")
+    @Issue(["GRADLE-3330", "GRADLE-3362"])
     public void "project dependency can resolve multiple artifacts from target project that are differentiated by archiveName only"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"

@@ -29,8 +29,7 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@Issue("GRADLE-3371")
-@Issue("GRADLE-3370")
+@Issue(["GRADLE-3371", "GRADLE-3370"])
 @IgnoreIf({GradleContextualExecuter.parallel})
 // these tests are always parallel
 class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
