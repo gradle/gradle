@@ -32,19 +32,20 @@ class S3ResourceResolverTest extends Specification {
         objectListing.getObjectSummaries() >> [objectSummary, objectSummary2]
 
         objectListing.getCommonPrefixes() >> ['/SNAPSHOT/', '/SNAPSHOT/1.0.8/']
+        S3ResourceResolver resolver = new S3ResourceResolver()
 
         when:
-        def results = S3ResourceResolver.resolveDirectoryResourceNames(objectListing)
+        def results = resolver.resolveDirectoryResourceNames(objectListing)
         then:
         results == ['SNAPSHOT/', '1.0.8/']
 
         when:
-        results = S3ResourceResolver.resolveFileResourceNames(objectListing)
+        results = resolver.resolveFileResourceNames(objectListing)
         then:
         results == ['some.jar', 'someOther.jar']
 
         when:
-        results = S3ResourceResolver.resolveResourceNames(objectListing)
+        results = resolver.resolveResourceNames(objectListing)
         then:
         results == ['some.jar', 'someOther.jar', 'SNAPSHOT/', '1.0.8/']
     }

@@ -20,8 +20,11 @@ import spock.lang.Specification
 
 class S3ResourceNameExtractorTest extends Specification {
     def "should extract file name from s3 listing"() {
+        setup:
+        S3ResourceNameExtractor extractor = new S3ResourceNameExtractor()
+
         expect:
-        S3ResourceNameExtractor.extractResourceName(listing) == expected
+        extractor.extractResourceName(listing) == expected
 
         where:
         listing         | expected
@@ -34,8 +37,11 @@ class S3ResourceNameExtractorTest extends Specification {
     }
 
     def "should extract directory name from s3 common prefix"() {
+        setup:
+        S3ResourceNameExtractor extractor = new S3ResourceNameExtractor()
+
         expect:
-        S3ResourceNameExtractor.extractDirectoryName(commonPrefix) == expected
+        extractor.extractDirectoryName(commonPrefix) == expected
 
         where:
         commonPrefix                | expected

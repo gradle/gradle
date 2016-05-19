@@ -24,7 +24,7 @@ import java.util.List;
 
 public class S3ResourceResolver {
 
-    public static List<String> resolveResourceNames(ObjectListing objectListing) {
+    public List<String> resolveResourceNames(ObjectListing objectListing) {
         List<String> results = new ArrayList<String>();
 
         results.addAll(resolveFileResourceNames(objectListing));
@@ -33,13 +33,14 @@ public class S3ResourceResolver {
         return results;
     }
 
-    public static List<String> resolveFileResourceNames(ObjectListing objectListing) {
+    public List<String> resolveFileResourceNames(ObjectListing objectListing) {
         List<String> results = new ArrayList<String>();
+        S3ResourceNameExtractor nameExtractor = new S3ResourceNameExtractor();
         List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
         if (null != objectSummaries) {
             for (S3ObjectSummary objectSummary : objectSummaries) {
                 String key = objectSummary.getKey();
-                String fileName = S3ResourceNameExtractor.extractResourceName(key);
+                String fileName = nameExtractor.extractResourceName(key);
                 if (null != fileName) {
                     results.add(fileName);
                 }
@@ -49,12 +50,13 @@ public class S3ResourceResolver {
         return results;
     }
 
-    public static List<String> resolveDirectoryResourceNames(ObjectListing objectListing) {
+    public List<String> resolveDirectoryResourceNames(ObjectListing objectListing) {
         List<String> results = new ArrayList<String>();
+        S3ResourceNameExtractor nameExtractor = new S3ResourceNameExtractor();
         List<String> commonPrefixes = objectListing.getCommonPrefixes();
         if(null != commonPrefixes) {
             for(String prefix : commonPrefixes) {
-                String dirName = S3ResourceNameExtractor.extractDirectoryName(prefix);
+                String dirName = nameExtractor.extractDirectoryName(prefix);
                 if(null != dirName) {
                     results.add(dirName);
                 }

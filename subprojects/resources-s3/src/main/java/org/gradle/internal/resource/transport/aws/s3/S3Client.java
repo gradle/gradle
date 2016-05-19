@@ -119,6 +119,7 @@ public class S3Client {
     public List<String> list(URI parent) {
         List<String> results = new ArrayList<String>();
 
+        S3ResourceResolver resourceResolver = new S3ResourceResolver();
         S3RegionalResource s3RegionalResource = new S3RegionalResource(parent);
         String bucketName = s3RegionalResource.getBucketName();
         String s3BucketKey = s3RegionalResource.getKey();
@@ -130,11 +131,11 @@ public class S3Client {
                 .withMaxKeys(1000)
                 .withDelimiter("/");
         ObjectListing objectListing = amazonS3Client.listObjects(listObjectsRequest);
-        results.addAll(S3ResourceResolver.resolveResourceNames(objectListing));
+        results.addAll(resourceResolver.resolveResourceNames(objectListing));
 
         while (objectListing.isTruncated()) {
             objectListing = amazonS3Client.listNextBatchOfObjects(objectListing);
-            results.addAll(S3ResourceResolver.resolveResourceNames(objectListing));
+            results.addAll(resourceResolver.resolveResourceNames(objectListing));
         }
         return results;
     }

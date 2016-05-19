@@ -26,7 +26,7 @@ public class S3ResourceNameExtractor {
     /**
      * Extracts the directory name from a common prefix
      */
-    public static String extractDirectoryName(String key) {
+    public String extractDirectoryName(String key) {
         Matcher matcher = DIRNAME_PATTERN.matcher(key);
         if (matcher.find()) {
             return matcher.group(0);
@@ -37,7 +37,7 @@ public class S3ResourceNameExtractor {
     /**
      * Extracts the filename of a file in S3.  Filename must contain a '.'
      */
-    public static String extractResourceName(String key) {
+    public String extractResourceName(String key) {
         Matcher matcher = FILENAME_PATTERN.matcher(key);
         if (matcher.find()) {
             String group = matcher.group(0);
