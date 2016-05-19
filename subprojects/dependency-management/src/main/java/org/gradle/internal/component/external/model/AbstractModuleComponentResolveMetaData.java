@@ -19,7 +19,6 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Nullable;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -57,7 +56,7 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
     private String status;
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
-    private Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>();
+    private Map<String, DefaultConfigurationMetaData> configurations;
     private Multimap<String, ModuleComponentArtifactMetaData> artifactsByConfig;
     private List<DependencyMetaData> dependencies;
     private List<Exclude> excludes;
@@ -202,12 +201,12 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
     }
 
     private static List<DependencyMetaData> populateDependenciesFromDescriptor(ModuleDescriptorState moduleDescriptor) {
-        return CollectionUtils.collect(moduleDescriptor.getDependencies(), new Transformer<DependencyMetaData, Dependency>() {
-            @Override
-            public DependencyMetaData transform(Dependency dependency) {
-                return new DefaultDependencyMetaData(dependency);
-            }
-        });
+        List<Dependency> dependencies = moduleDescriptor.getDependencies();
+        List<DependencyMetaData> result = new ArrayList<DependencyMetaData>(dependencies.size());
+        for (Dependency dependency : dependencies) {
+            result.add(new DefaultDependencyMetaData(dependency));
+        }
+        return result;
     }
 
 
