@@ -151,7 +151,7 @@ class DefaultDependencyMetaDataTest extends Specification {
 
         expect:
         metaData.artifacts.size() == 3
-        def artifacts = metaData.artifacts as List
+        def artifacts = metaData.artifacts.sort { it.name }
         artifacts[0].name == 'art1'
         artifacts[1].name == 'art2'
         artifacts[2].name == 'art3'
