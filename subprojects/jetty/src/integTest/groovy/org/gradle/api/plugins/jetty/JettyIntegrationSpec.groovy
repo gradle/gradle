@@ -21,16 +21,15 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Timeout
 import spock.util.concurrent.PollingConditions
 
-@Ignore
-@Timeout(15)
+@Timeout(15) // Is pretty useless currently, since executor.wait* swallows the InterruptedException
 class JettyIntegrationSpec extends AbstractIntegrationSpec {
 
     private static final CONTEXT_PATH = 'testContext'
     private static final String JSP_CONTENT = 'Test'
+    private static final String STOP_KEY = 'now'
 
     @Rule
     CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
@@ -64,18 +63,19 @@ class JettyIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         def handle = executer.withTasks('jettyRun', 'block').start()
+        server.waitFor()
 
         then:
-        server.waitFor()
-        jettyIsUp()
+        assertJettyIsUp()
 
         when:
         server.release()
+        stopJettyViaMonitor()
 
         then:
         handle.waitForFinish()
         pollingConditions.eventually {
-            assertJettyStopped()
+            assertJettyIsDown()
         }
     }
 
@@ -93,7 +93,7 @@ class JettyIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         pollingConditions.eventually {
-            jettyIsUp()
+            assertJettyIsUp()
         }
 
         when:
@@ -102,23 +102,30 @@ class JettyIntegrationSpec extends AbstractIntegrationSpec {
         then:
         handle.waitForExit()
         pollingConditions.eventually {
-            assertJettyStopped()
+            assertJettyIsDown()
         }
     }
 
-    private void jettyIsUp() {
+    private void stopJettyViaMonitor() {
+        new Socket("localhost", stopPort).getOutputStream().withPrintWriter {
+            it.println(STOP_KEY)
+            it.println('stop')
+        }
+    }
+
+    private void assertJettyIsUp() {
         try {
             new URL("http://localhost:${httpPort}/${CONTEXT_PATH}/test.jsp").text == JSP_CONTENT
         } catch (ConnectException e) {
-            assert 'Jetty is not up, yet', e != null
+            assert 'Jetty is not up, yet' && e == null
         }
     }
 
-    private void assertJettyStopped() {
+    private void assertJettyIsDown() {
         try {
             new ServerSocket(httpPort).close()
         } catch (BindException e) {
-            assert 'Jetty is still up but should be stopped', e != null
+            assert 'Jetty is still up but should be stopped' && e == null
         }
     }
 
@@ -129,6 +136,7 @@ class JettyIntegrationSpec extends AbstractIntegrationSpec {
             apply plugin: 'jetty'
             stopPort = ${stopPort}
             httpPort = ${httpPort}
+            stopKey = '${STOP_KEY}'
 
             jettyRun {
                 daemon ${options.daemon}
