@@ -50,7 +50,7 @@ public class ModuleDescriptorState {
         this.status = status;
         this.generated = generated;
         extraInfo = Maps.newHashMap();
-        configurations = Maps.newLinkedHashMap();
+        configurations = Maps.newHashMap();
         excludes = Lists.newArrayList();
         dependencies = Lists.newArrayList();
     }
