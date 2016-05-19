@@ -49,6 +49,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     private static boolean useNativePlatform = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
     private static final NativeServices INSTANCE = new NativeServices();
     private static boolean initialized;
+    private static File nativeBaseDir;
 
     public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
 
@@ -62,16 +63,10 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
 
     public static synchronized void initialize(File userHomeDir, boolean initializeJNA) {
         if (!initialized) {
-            String overrideProperty = System.getProperty(NATIVE_DIR_OVERRIDE);
-            File nativeDir;
-            if (overrideProperty == null) {
-                nativeDir = new File(userHomeDir, "native");
-            } else {
-                nativeDir = new File(overrideProperty);
-            }
+            nativeBaseDir = getNativeServicesDir(userHomeDir);
             if (useNativePlatform) {
                 try {
-                    net.rubygrapefruit.platform.Native.init(nativeDir);
+                    net.rubygrapefruit.platform.Native.init(nativeBaseDir);
                 } catch (NativeIntegrationUnavailableException ex) {
                     LOGGER.debug("Native-platform is not available.");
                     useNativePlatform = false;
@@ -86,9 +81,24 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             }
             if (OperatingSystem.current().isWindows() && initializeJNA) {
                 // JNA is still being used by jansi
-                new JnaBootPathConfigurer().configure(nativeDir);
+                new JnaBootPathConfigurer().configure(nativeBaseDir);
             }
             initialized = true;
+
+            LOGGER.info("Initialized native services in: " + nativeBaseDir);
+        }
+
+        if (useNativePlatform && !nativeBaseDir.exists()) {
+            throw new IllegalStateException("NativeServices initialized for directory that no longer exists: " + userHomeDir.getAbsolutePath());
+        }
+    }
+
+    private static File getNativeServicesDir(File userHomeDir) {
+        String overrideProperty = System.getProperty(NATIVE_DIR_OVERRIDE);
+        if (overrideProperty == null) {
+            return new File(userHomeDir, "native");
+        } else {
+            return new File(overrideProperty);
         }
     }
 
