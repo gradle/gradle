@@ -55,8 +55,7 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
         if (type.equals(BuildEnvironment.class)) {
             return adapter.adapt(type, doGetBuildEnvironment());
         }
-        throw new UnsupportedVersionException(String.format("Support for Gradle version %s was removed in tooling API version 2.0. You should upgrade your Gradle build to use Gradle 1.0-milestone-8 or later.", version));
-
+        throw new UnsupportedVersionException(String.format("Support for builds using Gradle versions older than 1.2 was removed in tooling API version 3.0. You are currently using Gradle version %s. You should upgrade your Gradle build to use Gradle 1.2 or later.", version));
     }
 
     private Object doGetBuildEnvironment() {

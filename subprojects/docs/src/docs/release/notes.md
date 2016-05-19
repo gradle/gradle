@@ -135,6 +135,7 @@ properties have been removed from the ScalaCompile task:
 ### Tooling API changes
 
 TBD - Requires tooling API version 2.0 or later.
+TBD - Tooling API supports only Gradle 1.2 and later.
 
 ## External contributions
 

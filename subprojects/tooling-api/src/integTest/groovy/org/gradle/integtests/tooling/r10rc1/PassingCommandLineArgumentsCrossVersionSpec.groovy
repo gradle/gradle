@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.integtests.tooling.r10rc1
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
-import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
 import org.gradle.tooling.model.GradleProject
 
-@TargetGradleVersion(">=1.0")
 class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecification {
 
 //    We don't want to validate *all* command line options here, just enough to make sure passing through works.
@@ -113,27 +107,6 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
         then:
         UnsupportedBuildArgumentException ex = thrown()
         ex.message.contains('--foreground')
-    }
-
-    @TargetGradleVersion(">=1.0-milestone-8 <1.0")
-    def "gives decent feedback when build arguments not supported"() {
-        when:
-        withConnection { ProjectConnection it ->
-            it.newBuild().withArguments('--foreground').run()
-        }
-
-        then:
-        UnsupportedOperationConfigurationException ex = thrown()
-        ex.message.contains("The version of Gradle you are using (${targetDist.version.version}) does not support the BuildLauncher API withArguments() configuration option. Support for this is available in Gradle 1.0 and all later versions.")
-
-        when:
-        withConnection { ProjectConnection it ->
-            it.model(GradleProject).withArguments('--foreground').get()
-        }
-
-        then:
-        UnsupportedOperationConfigurationException ex2 = thrown()
-        ex2.message.contains("The version of Gradle you are using (${targetDist.version.version}) does not support the ModelBuilder API withArguments() configuration option. Support for this is available in Gradle 1.0 and all later versions.")
     }
 
     def "can overwrite project dir via build arguments"() {

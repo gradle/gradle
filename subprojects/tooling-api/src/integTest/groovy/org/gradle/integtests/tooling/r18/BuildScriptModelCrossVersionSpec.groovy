@@ -44,7 +44,7 @@ class BuildScriptModelCrossVersionSpec extends ToolingApiSpecification {
         project.buildScript.sourceFile == custom
     }
 
-    @TargetGradleVersion('<1.8 >=1.0-milestone-8')
+    @TargetGradleVersion('<1.8 >=1.2')
     def "gives reasonable error message when target Gradle version does not provide build script details"() {
         when:
         GradleProject project = withConnection { it.getModel(GradleProject.class) }

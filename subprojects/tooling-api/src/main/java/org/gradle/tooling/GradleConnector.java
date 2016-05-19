@@ -63,7 +63,7 @@ import java.net.URI;
  *
  * <p>The Tooling API is both forwards and backwards compatible with other versions of Gradle. It supports execution of Gradle builds that use older or newer versions of Gradle.</p>
  *
- * <p>The current version of the Tooling API supports running builds using Gradle versions 1.0-milestone-8 and later. Support for versions from 1.0-milestone-8 to 1.1 is deprecated and will be removed from the Tooling API in Gradle 3.0.</p>
+ * <p>The current version of the Tooling API supports running builds using Gradle versions 1.2.</p>
  *
  * <p>You should note that not all features of the Tooling API are available for all versions of Gradle. For example, build cancellation is only available for builds using Gradle 2.1 and later. Refer to the documentation for each class and method for more details.</p>
  *

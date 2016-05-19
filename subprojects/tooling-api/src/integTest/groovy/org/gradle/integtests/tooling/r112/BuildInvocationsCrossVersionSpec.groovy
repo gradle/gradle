@@ -327,7 +327,6 @@ project(':b:c') {
         result.result.assertTasksExecuted(':b:c:t1', ':b:t3', ':t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
     def "can request tasks for root project"() {
         // TODO make sure it is for root project if default project is different
 

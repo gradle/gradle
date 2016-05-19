@@ -212,7 +212,7 @@ project(':impl') {
         mod.scope.scope == 'COMPILE'
     }
 
-    @TargetGradleVersion('>=1.0-milestone-8 <=2.7')
+    @TargetGradleVersion('>=1.2 <=2.7')
     def "makes sure module names are unique"() {
 
         file('build.gradle').text = """

@@ -20,7 +20,7 @@ package org.gradle.tooling.internal.protocol;
  * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
  *
  * <p>Consumer compatibility: This interface is used by all consumer versions from 1.0-milestone-8 to 1.1. It is also used by later consumers when the
- * provider does not implement newer interfaces.</p>
+ * provider does not implement newer interfaces. It is not used by provider versions 3.0 and later.</p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 1.0-milestone-8.</p>
  *
  * @since 1.0-milestone-8
@@ -36,8 +36,8 @@ public interface InternalConnection extends ConnectionVersion4, InternalProtocol
      * The other method on the interface, e.g. {@link #getModel(Class, BuildOperationParametersVersion1)} should be considered deprecated
      *
      * <p>Consumer compatibility: This method is used by all consumer versions from 1.0-milestone-8 to 1.1. It is also used by later consumers when the
-     * provider does not implement newer interfaces.</p>
-     * <p>Provider compatibility: This interface is implemented by all provider versions from 1.0-milestone-8. Versions 2.0 and later fail with a 'no longer implemented' exception.</p>
+     * provider does not implement newer interfaces. It is not used by provider versions 3.0 and later.</p>
+     * <p>Provider compatibility: This interface is implemented by all provider versions from 1.0-milestone-8. Provider versions 2.0 and later fail with a 'no longer supported' exception.</p>
      *
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.

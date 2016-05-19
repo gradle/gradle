@@ -107,7 +107,7 @@
     <section id='sec:embedding_compatibility'>
         <title>Gradle and Java version compatibility</title>
 
-        <para>The current version of the Tooling API supports running builds using Gradle versions 1.0-milestone-8 and later. Support for versions from 1.0-milestone-8 to 1.1 is deprecated and will be removed from the Tooling API in Gradle 3.0.</para>
+        <para>The current version of the Tooling API supports running builds using Gradle versions 1.2 and later.</para>
 
         <para>You should note that not all features of the Tooling API are available for all versions of Gradle. For example, build cancellation is only available when a build uses Gradle 2.1 and later. Refer to the documentation for each class and method for more details.</para>
 

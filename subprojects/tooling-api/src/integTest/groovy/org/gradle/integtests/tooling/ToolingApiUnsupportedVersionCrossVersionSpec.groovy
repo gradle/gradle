@@ -36,8 +36,8 @@ task noop << {
     }
 
     @ToolingApiVersion("current")
-    @TargetGradleVersion("<1.0-milestone-8")
-    def "build execution fails for pre 1.0m8 providers"() {
+    @TargetGradleVersion("<1.2")
+    def "build execution fails for pre 1.2 providers"() {
         when:
         withConnection { ProjectConnection connection ->
             connection.newBuild().run()
@@ -45,12 +45,12 @@ task noop << {
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "Support for Gradle version ${targetDist.version.version} was removed in tooling API version 2.0. You should upgrade your Gradle build to use Gradle 1.0-milestone-8 or later."
+        e.message == "Support for builds using Gradle versions older than 1.2 was removed in tooling API version 3.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 1.2 or later."
     }
 
     @ToolingApiVersion("current")
-    @TargetGradleVersion("<1.0-milestone-8")
-    def "model retrieval fails for pre 1.0m8 providers"() {
+    @TargetGradleVersion("<1.2")
+    def "model retrieval fails for pre 1.2 providers"() {
         when:
         withConnection { ProjectConnection connection ->
             connection.model(EclipseProject).get()
@@ -58,11 +58,11 @@ task noop << {
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "Support for Gradle version ${targetDist.version.version} was removed in tooling API version 2.0. You should upgrade your Gradle build to use Gradle 1.0-milestone-8 or later."
+        e.message == "Support for builds using Gradle versions older than 1.2 was removed in tooling API version 3.0. You are currently using Gradle version ${targetDist.version.version}. You should upgrade your Gradle build to use Gradle 1.2 or later."
     }
 
     @ToolingApiVersion("current")
-    @TargetGradleVersion("<1.0-milestone-8")
+    @TargetGradleVersion("<1.8")
     def "build action execution fails for pre 1.0m8 providers"() {
         when:
         withConnection { ProjectConnection connection ->
@@ -75,7 +75,7 @@ task noop << {
     }
 
     @ToolingApiVersion("current")
-    @TargetGradleVersion("<1.0-milestone-8")
+    @TargetGradleVersion("<2.6")
     def "test execution fails for pre 1.0m8 providers"() {
         when:
         withConnection { ProjectConnection connection ->

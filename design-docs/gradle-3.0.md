@@ -78,7 +78,6 @@ Tooling api client no longer executes builds for Gradle versions older than 1.2.
 
 - Warning when running a build, a build action or fetching model using tapi 1.12 or earlier
     - `ProjectConnection`
-    - `GradleConnection`
 
 ## Remove Sonar plugins
 

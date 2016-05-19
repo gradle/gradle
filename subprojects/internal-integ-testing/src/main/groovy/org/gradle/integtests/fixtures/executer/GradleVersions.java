@@ -25,7 +25,5 @@ public class GradleVersions {
     }
 
     public static final String SUPPORTS_CONTINUOUS = ">=2.5";
-    public static final String PRE_CONTINUOUS = ">=1.2 <2.5";
     public static final String SUPPORTS_DEPLOYMENT_REGISTRY = ">=2.6";
-    public static final String SUPPORTS_COMPOSITE_BUILD = ">=2.13";
 }

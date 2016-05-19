@@ -82,8 +82,6 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
                 adaptedConnection = new ModelBuilderBackedConsumerConnection(connection, modelMapping, adapter);
             } else if (connection instanceof BuildActionRunner) {
                 adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection, modelMapping, adapter);
-            } else if (connection instanceof InternalConnection) {
-                adaptedConnection = new InternalConnectionBackedConsumerConnection(connection, modelMapping, adapter);
             } else {
                 return new UnsupportedOlderVersionConnection(connection, adapter);
             }
