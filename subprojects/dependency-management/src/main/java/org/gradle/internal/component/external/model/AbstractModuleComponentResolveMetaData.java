@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
@@ -227,8 +226,9 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
     }
 
     private Map<String, DefaultConfigurationMetaData> populateConfigurationsFromDescriptor(ModuleDescriptorState moduleDescriptor) {
-        Map<String, DefaultConfigurationMetaData> configurations = Maps.newLinkedHashMap();
-        for (String configName : moduleDescriptor.getConfigurationsNames()) {
+        Set<String> configurationsNames = moduleDescriptor.getConfigurationsNames();
+        Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>(configurationsNames.size());
+        for (String configName : configurationsNames) {
             populateConfigurationFromDescriptor(configName, moduleDescriptor, configurations);
         }
         return configurations;
@@ -241,33 +241,59 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
         }
 
         Configuration descriptorConfiguration = moduleDescriptor.getConfiguration(name);
-        Set<String> hierarchy = new LinkedHashSet<String>();
-        hierarchy.add(name);
-        for (String parent : descriptorConfiguration.getExtendsFrom()) {
-            hierarchy.addAll(populateConfigurationFromDescriptor(parent, moduleDescriptor, configurations).hierarchy);
-        }
+        List<String> extendsFrom = descriptorConfiguration.getExtendsFrom();
         boolean transitive = descriptorConfiguration.isTransitive();
         boolean visible = descriptorConfiguration.isVisible();
-        DefaultConfigurationMetaData configuration = new DefaultConfigurationMetaData(name, hierarchy, transitive, visible);
-        configurations.put(name, configuration);
-        return configuration;
+        if (extendsFrom.isEmpty()) {
+            // tail
+            populated = new DefaultConfigurationMetaData(name, transitive, visible);
+            configurations.put(name, populated);
+            return populated;
+        } else if (extendsFrom.size() == 1) {
+            populated = new DefaultConfigurationMetaData(
+                name,
+                transitive,
+                visible,
+                Collections.singletonList(populateConfigurationFromDescriptor(extendsFrom.get(0), moduleDescriptor, configurations))
+            );
+            configurations.put(name, populated);
+            return populated;
+        }
+        List<DefaultConfigurationMetaData> hierarchy = new ArrayList<DefaultConfigurationMetaData>(extendsFrom.size());
+        for (String confName : extendsFrom) {
+            hierarchy.add(populateConfigurationFromDescriptor(confName, moduleDescriptor, configurations));
+        }
+        populated = new DefaultConfigurationMetaData(
+            name,
+            transitive,
+            visible,
+            hierarchy
+        );
+
+        configurations.put(name, populated);
+        return populated;
     }
 
     private class DefaultConfigurationMetaData implements ConfigurationMetaData {
         private final String name;
-        private final Set<String> hierarchy;
+        private final List<DefaultConfigurationMetaData> parents;
         private List<DependencyMetaData> configDependencies;
         private Set<ComponentArtifactMetaData> artifacts;
         private LinkedHashSet<Exclude> configExcludes;
         private final boolean transitive;
         private final boolean visible;
 
-        private DefaultConfigurationMetaData(String name, Set<String> hierarchy, boolean transitive, boolean visible) {
+        private DefaultConfigurationMetaData(String name, boolean transitive, boolean visible, List<DefaultConfigurationMetaData> parents) {
             this.name = name;
-            this.hierarchy = hierarchy;
+            this.parents = parents;
             this.transitive = transitive;
             this.visible = visible;
         }
+
+        private DefaultConfigurationMetaData(String name, boolean transitive, boolean visible) {
+            this(name, transitive, visible, null);
+        }
+
 
         @Override
         public String toString() {
@@ -283,7 +309,21 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
         }
 
         public Set<String> getHierarchy() {
+            if (parents == null) {
+                return Collections.singleton(name);
+            }
+            Set<String> hierarchy = new LinkedHashSet<String>(1+parents.size());
+            populateHierarchy(hierarchy);
             return hierarchy;
+        }
+
+        private void populateHierarchy(Set<String> accumulator) {
+            accumulator.add(name);
+            if (parents != null) {
+                for (DefaultConfigurationMetaData parent : parents) {
+                    parent.populateHierarchy(accumulator);
+                }
+            }
         }
 
         public boolean isTransitive() {
@@ -308,6 +348,7 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
 
         private boolean include(DependencyMetaData dependency) {
             String[] moduleConfigurations = dependency.getModuleConfigurations();
+            Set<String> hierarchy = getHierarchy();
             for (int i = 0; i < moduleConfigurations.length; i++) {
                 String moduleConfiguration = moduleConfigurations[i];
                 if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
@@ -338,6 +379,7 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
 
         private void populateExcludeRulesFromDescriptor() {
             configExcludes = new LinkedHashSet<Exclude>();
+            Set<String> hierarchy = getHierarchy();
             for (Exclude exclude : excludes) {
                 for (String config : exclude.getConfigurations()) {
                     if (hierarchy.contains(config)) {

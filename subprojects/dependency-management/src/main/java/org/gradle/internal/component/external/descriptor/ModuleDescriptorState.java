@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -81,16 +82,16 @@ public class ModuleDescriptorState {
         return status;
     }
 
-    public List<String> getConfigurationsNames() {
-        return Lists.newArrayList(configurations.keySet());
+    public Set<String> getConfigurationsNames() {
+        return configurations.keySet();
     }
 
     public Configuration getConfiguration(String name) {
         return configurations.get(name);
     }
 
-    public List<Configuration> getConfigurations() {
-        return Lists.newArrayList(configurations.values());
+    public Collection<Configuration> getConfigurations() {
+        return configurations.values();
     }
 
     public List<Artifact> getArtifacts() {
@@ -101,7 +102,7 @@ public class ModuleDescriptorState {
         if (configurations.isEmpty()) {
             throw new IllegalArgumentException("Artifact should be attached to at least one configuration.");
         }
-        List<String> configurationNames = getConfigurationsNames();
+        Set<String> configurationNames = getConfigurationsNames();
         for (String configuration : configurations) {
             if (!configurationNames.contains(configuration)) {
                 throw new IllegalArgumentException("Cannot add artifact '" + newArtifact

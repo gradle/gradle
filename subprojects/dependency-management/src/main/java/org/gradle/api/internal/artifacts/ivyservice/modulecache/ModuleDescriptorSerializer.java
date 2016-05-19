@@ -35,6 +35,7 @@ import org.gradle.internal.serialize.Encoder;
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -94,7 +95,7 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             }
         }
 
-        private void writeConfigurations(List<Configuration> configurations) throws IOException {
+        private void writeConfigurations(Collection<Configuration> configurations) throws IOException {
             writeInt(configurations.size());
             for (Configuration conf : configurations) {
                 writeConfiguration(conf);
