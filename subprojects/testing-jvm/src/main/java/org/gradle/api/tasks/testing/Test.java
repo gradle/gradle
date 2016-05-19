@@ -979,7 +979,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @param testFrameworkConfigure A closure used to configure the JUnit options.
      */
     public void useJUnit(Closure testFrameworkConfigure) {
-        useTestFramework(new JUnitTestFramework(this, filter, getClassLoaderCache()), testFrameworkConfigure);
+        useTestFramework(new JUnitTestFramework(this, filter), testFrameworkConfigure);
     }
 
     /**
