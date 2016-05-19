@@ -83,8 +83,8 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
     private final String name;
-    private List<ResourcePattern> ivyPatterns = new ArrayList<ResourcePattern>();
-    private List<ResourcePattern> artifactPatterns = new ArrayList<ResourcePattern>();
+    private final List<ResourcePattern> ivyPatterns = new ArrayList<ResourcePattern>();
+    private final List<ResourcePattern> artifactPatterns = new ArrayList<ResourcePattern>();
     private ComponentResolvers componentResolvers;
 
     private final ExternalResourceRepository repository;
@@ -94,6 +94,8 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     private final FileStore<ModuleComponentArtifactMetaData> artifactFileStore;
 
     private final VersionLister versionLister;
+
+    private String id;
 
     public ExternalResourceResolver(String name,
                                     boolean local,
@@ -112,7 +114,11 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     public String getId() {
-        return generateId(this);
+        if (id != null) {
+            return id;
+        }
+        id = generateId(this);
+        return id;
     }
 
     public String getName() {
@@ -334,10 +340,12 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected void addIvyPattern(ResourcePattern pattern) {
+        id = null;
         ivyPatterns.add(pattern);
     }
 
     protected void addArtifactPattern(ResourcePattern pattern) {
+        id = null;
         artifactPatterns.add(pattern);
     }
 
@@ -358,12 +366,15 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     protected void setIvyPatterns(Iterable<? extends ResourcePattern> patterns) {
+        id = null;
         ivyPatterns.clear();
         CollectionUtils.addAll(ivyPatterns, patterns);
     }
 
     protected void setArtifactPatterns(List<ResourcePattern> patterns) {
-        artifactPatterns = patterns;
+        id = null;
+        artifactPatterns.clear();
+        CollectionUtils.addAll(artifactPatterns, patterns);
     }
 
     public abstract boolean isM2compatible();
