@@ -24,6 +24,7 @@ import org.gradle.util.TestPrecondition
 class GradleNativeIntegrationTest extends AbstractIntegrationSpec {
     def "caches native binaries in specified user home"() {
         given:
+        executer.useDefaultBuildJvmArgs()
         executer.requireOwnGradleUserHomeDir()
         executer.requireGradleHome()
 
