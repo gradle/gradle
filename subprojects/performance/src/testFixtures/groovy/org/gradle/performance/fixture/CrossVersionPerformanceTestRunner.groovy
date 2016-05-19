@@ -157,13 +157,13 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .invocationCount(runs)
             .listener(buildExperimentListener)
             .invocation {
-            workingDirectory(projectDir)
-            distribution(dist)
-            tasksToRun(this.tasksToRun as String[])
-            args(this.args as String[])
-            gradleOpts(this.gradleOpts as String[])
-            useDaemon(this.useDaemon)
-        }
+                workingDirectory(projectDir)
+                distribution(dist)
+                tasksToRun(this.tasksToRun as String[])
+                args(this.args as String[])
+                gradleOpts(this.gradleOpts as String[])
+                useDaemon(this.useDaemon)
+            }
 
         def spec = builder.build()
 
