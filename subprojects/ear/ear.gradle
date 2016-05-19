@@ -21,6 +21,3 @@ dependencies {
 }
 
 useTestFixtures()
-
-verifyTestFilesCleanup.errorWhenNotEmpty = false
-
