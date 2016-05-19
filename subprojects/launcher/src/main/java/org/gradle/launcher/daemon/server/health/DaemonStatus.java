@@ -40,10 +40,14 @@ public class DaemonStatus {
     }
 
     boolean isDaemonUnhealthy() {
-        return isEnabled() && (isTenuredSpaceExhausted() || isPermGenSpaceExhausted());
+        return isTenuredSpaceExhausted() || isPermGenSpaceExhausted();
     }
 
     public boolean isTenuredSpaceExhausted() {
+        if (!isEnabled()) {
+            return false;
+        }
+
         GarbageCollectorMonitoringStrategy strategy = stats.getGcMonitor().getGcStrategy();
         if (strategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
             int tenuredUsageThreshold = parseValue(TENURED_USAGE_EXPIRE_AT, strategy.getTenuredUsageThreshold());
@@ -70,6 +74,10 @@ public class DaemonStatus {
     }
 
     public boolean isPermGenSpaceExhausted() {
+        if (!isEnabled()) {
+            return false;
+        }
+
         GarbageCollectorMonitoringStrategy strategy = stats.getGcMonitor().getGcStrategy();
         if (strategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
             int permgenUsageThreshold = parseValue(PERMGEN_USAGE_EXPIRE_AT, strategy.getPermGenUsageThreshold());
@@ -92,6 +100,10 @@ public class DaemonStatus {
     }
 
     public boolean isThrashing() {
+        if (!isEnabled()) {
+            return false;
+        }
+
         GarbageCollectorMonitoringStrategy strategy = stats.getGcMonitor().getGcStrategy();
         if (strategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
             int tenuredUsageThreshold = parseValue(TENURED_USAGE_EXPIRE_AT, strategy.getTenuredUsageThreshold());

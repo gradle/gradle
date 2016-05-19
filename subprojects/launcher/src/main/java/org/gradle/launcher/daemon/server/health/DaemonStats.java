@@ -96,9 +96,9 @@ public class DaemonStats {
                 GarbageCollectionStats permgenStats = gcMonitor.getPermGenStats();
                 String message = format("Starting %s build in daemon [uptime: %s, performance: %s%%",
                     NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance());
-                if (tenuredStats.getEventCount() > 0) {
+                if (tenuredStats.getUsage() > 0) {
                     message += format(", GC rate: %.2f/s, tenured heap usage: %s%% of %s", tenuredStats.getRate(), tenuredStats.getUsage(), NumberUtil.formatBytes(tenuredStats.getMax()));
-                    if (permgenStats.getEventCount() > 0) {
+                    if (permgenStats.getUsage() > 0) {
                         message += format(", perm gen usage: %s%% of %s",
                             permgenStats.getUsage(), NumberUtil.formatBytes(permgenStats.getMax()));
                     }
