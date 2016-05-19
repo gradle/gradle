@@ -24,6 +24,12 @@ import java.util.List;
 
 public class S3ResourceResolver {
 
+    private S3ResourceNameExtractor nameExtractor;
+
+    public S3ResourceResolver() {
+        this.nameExtractor = new S3ResourceNameExtractor();
+    }
+
     public List<String> resolveResourceNames(ObjectListing objectListing) {
         List<String> results = new ArrayList<String>();
 
@@ -35,7 +41,6 @@ public class S3ResourceResolver {
 
     public List<String> resolveFileResourceNames(ObjectListing objectListing) {
         List<String> results = new ArrayList<String>();
-        S3ResourceNameExtractor nameExtractor = new S3ResourceNameExtractor();
         List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
         if (null != objectSummaries) {
             for (S3ObjectSummary objectSummary : objectSummaries) {
@@ -52,7 +57,6 @@ public class S3ResourceResolver {
 
     public List<String> resolveDirectoryResourceNames(ObjectListing objectListing) {
         List<String> results = new ArrayList<String>();
-        S3ResourceNameExtractor nameExtractor = new S3ResourceNameExtractor();
         List<String> commonPrefixes = objectListing.getCommonPrefixes();
         if(null != commonPrefixes) {
             for(String prefix : commonPrefixes) {
