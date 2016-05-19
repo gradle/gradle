@@ -39,6 +39,8 @@ import static org.gradle.api.distribution.plugins.DistributionPlugin.TASK_INSTAL
 
 /**
  * <p>A {@link Plugin} which runs a project as a Java Application.</p>
+ *
+ * <p>The plugin can be configured via its companion {@link ApplicationPluginConvention} object.</p>
  */
 public class ApplicationPlugin implements Plugin<Project> {
     public static final String APPLICATION_PLUGIN_NAME = "application";

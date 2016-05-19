@@ -22,7 +22,7 @@ import org.gradle.api.file.CopySpec;
 import java.util.ArrayList;
 
 /**
- * <p>A {@link Convention} used for the ApplicationPlugin.</p>
+ * <p>The {@link Convention} used for configuring the {@link ApplicationPlugin}.</p>
  */
 public class ApplicationPluginConvention {
     private String applicationName;
@@ -44,6 +44,9 @@ public class ApplicationPluginConvention {
         return applicationName;
     }
 
+    /**
+     * The name of the application.
+     */
     public void setApplicationName(String applicationName) {
         this.applicationName = applicationName;
     }
@@ -55,6 +58,9 @@ public class ApplicationPluginConvention {
         return mainClassName;
     }
 
+    /**
+     * The fully qualified name of the application's main class.
+     */
     public void setMainClassName(String mainClassName) {
         this.mainClassName = mainClassName;
     }
@@ -66,6 +72,9 @@ public class ApplicationPluginConvention {
         return applicationDefaultJvmArgs;
     }
 
+    /**
+     * Array of string arguments to pass to the JVM when running the application
+     */
     public void setApplicationDefaultJvmArgs(Iterable<String> applicationDefaultJvmArgs) {
         this.applicationDefaultJvmArgs = applicationDefaultJvmArgs;
     }
