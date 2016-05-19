@@ -17,10 +17,8 @@
 package org.gradle.util;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.UncheckedException;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -32,6 +30,9 @@ import java.util.Properties;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static java.lang.String.format;
+import static org.gradle.internal.IoActions.uncheckedClose;
 
 public class GradleVersion implements Comparable<GradleVersion> {
     public static final String URL = "http://www.gradle.org";
@@ -71,14 +72,10 @@ public class GradleVersion implements Comparable<GradleVersion> {
 
             CURRENT = new GradleVersion(version, buildTime, commitId);
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not load version details from resource '%s'.", resource), e);
+            throw new GradleException(format("Could not load version details from resource '%s'.", resource), e);
         } finally {
             if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+                uncheckedClose(inputStream);
             }
         }
     }
@@ -102,7 +99,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
         this.buildTime = buildTime == null ? null : formatBuildTime(buildTime);
         Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.matches()) {
-            throw new IllegalArgumentException(String.format("'%s' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')", version));
+            throw new IllegalArgumentException(format("'%s' is not a valid Gradle version string (examples: '1.0', '1.0-rc-1')", version));
         }
 
         versionPart = matcher.group(1);
