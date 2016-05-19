@@ -18,6 +18,11 @@ package org.gradle.launcher.daemon.server
 import com.google.common.collect.ImmutableList
 import spock.lang.Specification
 
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.DO_NOT_EXPIRE
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_EXPIRE
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.IMMEDIATE_EXPIRE
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.QUIET_EXPIRE
+
 class AnyDaemonExpirationStrategyTest extends Specification {
     private Daemon mockDaemon = Mock(Daemon)
     private DaemonExpirationStrategy c1;
@@ -33,14 +38,22 @@ class AnyDaemonExpirationStrategyTest extends Specification {
         AnyDaemonExpirationStrategy agg = new AnyDaemonExpirationStrategy(ImmutableList.of(c1, c2))
 
         when:
-        1 * c1.checkExpiration(_) >> { new DaemonExpirationResult(true, true, "r1") }
-        1 * c2.checkExpiration(_) >> { DaemonExpirationResult.DO_NOT_EXPIRE }
+        1 * c1.checkExpiration(_) >> { new DaemonExpirationResult(c1Status, "r1") }
+        1 * c2.checkExpiration(_) >> { new DaemonExpirationResult(c2Status, "r2") }
 
         then:
         DaemonExpirationResult result = agg.checkExpiration(mockDaemon)
-        result.expired
-        result.terminated
-        result.reason == "r1"
+        result.status == anyStatus
+        result.reason == reason
+
+        where:
+        c1Status         | c2Status         | anyStatus        | reason
+        QUIET_EXPIRE     | DO_NOT_EXPIRE    | QUIET_EXPIRE     | "r1"
+        DO_NOT_EXPIRE    | GRACEFUL_EXPIRE  | GRACEFUL_EXPIRE  | "r2"
+        QUIET_EXPIRE     | GRACEFUL_EXPIRE  | GRACEFUL_EXPIRE  | "r1 and r2"
+        IMMEDIATE_EXPIRE | QUIET_EXPIRE     | IMMEDIATE_EXPIRE | "r1 and r2"
+        DO_NOT_EXPIRE    | IMMEDIATE_EXPIRE | IMMEDIATE_EXPIRE | "r2"
+        GRACEFUL_EXPIRE  | IMMEDIATE_EXPIRE | IMMEDIATE_EXPIRE | "r1 and r2"
     }
 
     def "doesn't expire if no child strategies expire"() {
@@ -48,14 +61,13 @@ class AnyDaemonExpirationStrategyTest extends Specification {
         AnyDaemonExpirationStrategy agg = new AnyDaemonExpirationStrategy(ImmutableList.of(c1, c2))
 
         when:
-        1 * c1.checkExpiration(_) >> { DaemonExpirationResult.DO_NOT_EXPIRE }
-        1 * c2.checkExpiration(_) >> { DaemonExpirationResult.DO_NOT_EXPIRE }
+        1 * c1.checkExpiration(_) >> { new DaemonExpirationResult(DO_NOT_EXPIRE, null) }
+        1 * c2.checkExpiration(_) >> { new DaemonExpirationResult(DO_NOT_EXPIRE, null) }
 
         then:
         DaemonExpirationResult result = agg.checkExpiration(mockDaemon)
-        !result.expired
-        !result.terminated
-        result.reason == ""
+        result.status == DO_NOT_EXPIRE
+        result.reason == null
     }
 
     def "doesn't expire if no strategies are passed"() {
@@ -66,8 +78,7 @@ class AnyDaemonExpirationStrategyTest extends Specification {
 
         then:
         DaemonExpirationResult result = agg.checkExpiration(mockDaemon)
-        !result.expired
-        !result.terminated
-        result.reason == ""
+        result.status == DO_NOT_EXPIRE
+        result.reason == null
     }
 }

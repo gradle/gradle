@@ -243,21 +243,24 @@ public class Daemon implements Stoppable {
         @Override
         public void run() {
             LOGGER.debug("DaemonExpirationPeriodicCheck running");
-            final DaemonExpirationResult expirationCheck = expirationStrategy.checkExpiration(daemon);
-            if (expirationCheck.isExpired()) {
-                LOGGER.info("Daemon expiration criteria met, requesting stop");
-                if (expirationCheck.isImmediate()) {
-                    LOGGER.lifecycle("Daemon stopping immediately because " + expirationCheck.getReason());
-                    daemon.getStateCoordinator().requestForcefulStop(expirationCheck.getReason());
-                    daemon.registryUpdater.onExpire(expirationCheck.getReason());
-                } else {
-                    LOGGER.lifecycle("Daemon stopping because " + expirationCheck.getReason());
+            final DaemonExpirationResult result = expirationStrategy.checkExpiration(daemon);
+            switch(result.getStatus()) {
+                case DO_NOT_EXPIRE:
+                    break;
+                case QUIET_EXPIRE:
+                    LOGGER.lifecycle("Daemon stopping because " + result.getReason());
                     daemon.getStateCoordinator().requestStop();
-                    if (expirationCheck.isTerminated()) {
-                        // REVIEWME: Preferable to use getter for registryUpdater here?
-                        daemon.registryUpdater.onExpire(expirationCheck.getReason());
-                    }
-                }
+                    break;
+                case GRACEFUL_EXPIRE:
+                    LOGGER.lifecycle("Daemon stopping because " + result.getReason());
+                    daemon.getStateCoordinator().requestStop();
+                    daemon.registryUpdater.onExpire(result.getReason());
+                    break;
+                case IMMEDIATE_EXPIRE:
+                    LOGGER.lifecycle("Daemon stopping immediately because " + result.getReason());
+                    daemon.getStateCoordinator().requestForcefulStop(result.getReason());
+                    daemon.registryUpdater.onExpire(result.getReason());
+                    break;
             }
         }
     }

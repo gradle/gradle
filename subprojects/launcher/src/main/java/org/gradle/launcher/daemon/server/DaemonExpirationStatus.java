@@ -16,24 +16,13 @@
 
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.api.Nullable;
-
-public class DaemonExpirationResult {
-    public static final DaemonExpirationResult NOT_TRIGGERED = new DaemonExpirationResult(DaemonExpirationStatus.DO_NOT_EXPIRE, null);
-
-    private final DaemonExpirationStatus status;
-    private final String reason;
-
-    public DaemonExpirationResult(DaemonExpirationStatus status, @Nullable String reason) {
-        this.status = status;
-        this.reason = reason;
-    }
-
-    public DaemonExpirationStatus getStatus() {
-        return status;
-    }
-
-    public String getReason() {
-        return reason;
-    }
+/**
+ * Expiration status for daemon expiration check results.  Note that order here is important, higher ordinal statuses take
+ * precedent over lower ordinal statuses when aggregating results in {@link AllDaemonExpirationStrategy}.
+ */
+public enum DaemonExpirationStatus {
+    DO_NOT_EXPIRE,
+    QUIET_EXPIRE,
+    GRACEFUL_EXPIRE,
+    IMMEDIATE_EXPIRE
 }

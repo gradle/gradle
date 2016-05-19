@@ -21,6 +21,8 @@ import spock.lang.Specification
 import javax.annotation.Nullable
 import java.util.concurrent.TimeUnit
 
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.*
+
 class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
     final Daemon daemon = Mock(Daemon)
     final DaemonStateCoordinator daemonStateCoordinator = Mock(DaemonStateCoordinator)
@@ -35,7 +37,7 @@ class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration(daemon)
-        result.isExpired()
+        result.status == QUIET_EXPIRE
         result.reason == "daemon has been idle for 101 milliseconds"
     }
 
@@ -56,13 +58,13 @@ class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
 
         then:
         DaemonExpirationResult firstResult = expirationStrategy.checkExpiration(daemon)
-        firstResult.isExpired()
+        firstResult.status == QUIET_EXPIRE
         firstResult.reason == "daemon has been idle for 2 milliseconds"
 
         DaemonExpirationResult secondResult = expirationStrategy.checkExpiration(daemon)
-        !secondResult.isExpired()
+        secondResult.status == DO_NOT_EXPIRE
 
         DaemonExpirationResult thirdResult = expirationStrategy.checkExpiration(daemon)
-        !thirdResult.isExpired()
+        thirdResult.status == DO_NOT_EXPIRE
     }
 }

@@ -33,21 +33,23 @@ public class AnyDaemonExpirationStrategy implements DaemonExpirationStrategy {
     @Override
     public DaemonExpirationResult checkExpiration(final Daemon daemon) {
         DaemonExpirationResult expirationResult;
-        boolean expired = false;
-        boolean immediate = false;
-        boolean terminated = false;
+        DaemonExpirationStatus expirationStatus = DaemonExpirationStatus.DO_NOT_EXPIRE;
         List<String> reasons = Lists.newArrayList();
 
         for (DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
             expirationResult = expirationStrategy.checkExpiration(daemon);
-            if (expirationResult.isExpired()) {
-                expired = true;
-                immediate = immediate || expirationResult.isImmediate();
-                terminated = terminated || expirationResult.isTerminated();
+            if (expirationResult.getStatus() != DaemonExpirationStatus.DO_NOT_EXPIRE) {
                 reasons.add(expirationResult.getReason());
+                if (expirationResult.getStatus().ordinal() > expirationStatus.ordinal()) {
+                    expirationStatus = expirationResult.getStatus();
+                }
             }
         }
 
-        return new DaemonExpirationResult(expired, immediate, terminated, Joiner.on(" and ").skipNulls().join(reasons));
+        if (expirationStatus == DaemonExpirationStatus.DO_NOT_EXPIRE) {
+            return DaemonExpirationResult.NOT_TRIGGERED;
+        } else {
+            return new DaemonExpirationResult(expirationStatus, Joiner.on(" and ").skipNulls().join(reasons));
+        }
     }
 }

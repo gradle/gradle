@@ -114,7 +114,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     void waitForDaemonExpiration(buildNum = 0) {
         run {
-            poll(20) { assert builds[buildNum].standardOutput.contains("Daemon expiration criteria met") }
+            poll(20) { assert builds[buildNum].standardOutput.contains("Daemon stopping") }
         }
     }
 

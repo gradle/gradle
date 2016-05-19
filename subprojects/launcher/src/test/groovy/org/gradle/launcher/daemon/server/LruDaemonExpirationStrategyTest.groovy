@@ -22,6 +22,8 @@ import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import org.gradle.util.MockTimeProvider
 import spock.lang.Specification
 
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.QUIET_EXPIRE
+
 class LruDaemonExpirationStrategyTest extends Specification {
     private final LruDaemonExpirationStrategy strategy = new LruDaemonExpirationStrategy()
     private EmbeddedDaemonRegistry registry
@@ -97,6 +99,6 @@ class LruDaemonExpirationStrategyTest extends Specification {
             _ * getDaemonContext() >> { info.getContext() }
         }
 
-        return strategy.checkExpiration(daemon).expired
+        return strategy.checkExpiration(daemon).status == QUIET_EXPIRE
     }
 }

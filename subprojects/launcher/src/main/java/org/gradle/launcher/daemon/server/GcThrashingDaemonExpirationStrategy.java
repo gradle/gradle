@@ -18,6 +18,8 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.IMMEDIATE_EXPIRE;
+
 public class GcThrashingDaemonExpirationStrategy implements DaemonExpirationStrategy {
     private final DaemonHealthServices healthServices;
 
@@ -28,9 +30,9 @@ public class GcThrashingDaemonExpirationStrategy implements DaemonExpirationStra
     @Override
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
         if (healthServices.getDaemonStatus().isThrashing()) {
-            return new DaemonExpirationResult(true, true, true, "garbage collector is starting to thrash");
+            return new DaemonExpirationResult(IMMEDIATE_EXPIRE, "garbage collector is starting to thrash");
         } else {
-            return DaemonExpirationResult.DO_NOT_EXPIRE;
+            return DaemonExpirationResult.NOT_TRIGGERED;
         }
     }
 }

@@ -20,6 +20,8 @@ import org.gradle.launcher.daemon.server.health.DaemonHealthServices
 import org.gradle.launcher.daemon.server.health.DaemonStatus
 import spock.lang.Specification
 
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_EXPIRE
+
 
 class LowPermGenDaemonExpirationStrategyTest extends Specification {
     private final Daemon daemon = Mock(Daemon)
@@ -37,9 +39,8 @@ class LowPermGenDaemonExpirationStrategyTest extends Specification {
         1 * status.isPermGenSpaceExhausted() >> true
 
         and:
-        result.expired
-        !result.immediate
-        result.reason == "JVM perm gen space exhausted"
+        result.status == GRACEFUL_EXPIRE
+        result.reason == "JVM perm gen space is exhausted"
     }
 
     def "daemon is not expired when tenured space is fine" () {
@@ -53,6 +54,6 @@ class LowPermGenDaemonExpirationStrategyTest extends Specification {
         1 * status.isPermGenSpaceExhausted() >> false
 
         and:
-        result == DaemonExpirationResult.DO_NOT_EXPIRE
+        result == DaemonExpirationResult.NOT_TRIGGERED
     }
 }

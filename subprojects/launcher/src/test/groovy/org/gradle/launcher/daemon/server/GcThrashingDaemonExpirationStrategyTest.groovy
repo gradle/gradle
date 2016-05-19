@@ -20,6 +20,8 @@ import org.gradle.launcher.daemon.server.health.DaemonHealthServices
 import org.gradle.launcher.daemon.server.health.DaemonStatus
 import spock.lang.Specification
 
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.IMMEDIATE_EXPIRE
+
 
 class GcThrashingDaemonExpirationStrategyTest extends Specification {
     private final Daemon daemon = Mock(Daemon)
@@ -37,8 +39,7 @@ class GcThrashingDaemonExpirationStrategyTest extends Specification {
         1 * status.isThrashing() >> true
 
         and:
-        result.expired
-        result.immediate
+        result.status == IMMEDIATE_EXPIRE
         result.reason == "garbage collector is starting to thrash"
     }
 
@@ -53,6 +54,6 @@ class GcThrashingDaemonExpirationStrategyTest extends Specification {
         1 * status.isThrashing() >> false
 
         and:
-        result == DaemonExpirationResult.DO_NOT_EXPIRE
+        result == DaemonExpirationResult.NOT_TRIGGERED
     }
 }

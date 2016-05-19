@@ -26,6 +26,9 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.DO_NOT_EXPIRE
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_EXPIRE
+
 class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
     @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
     Daemon daemon = Mock(Daemon)
@@ -41,8 +44,7 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
         DaemonExpirationResult expirationCheck = expirationStrategy.checkExpiration(daemon)
 
         then:
-        expirationCheck.expired
-        !expirationCheck.immediate
+        expirationCheck.status == GRACEFUL_EXPIRE
         expirationCheck.reason == "daemon registry became unreadable"
     }
 
@@ -66,7 +68,7 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
 
         then:
         DaemonExpirationResult expirationCheck = expirationStrategy.checkExpiration(daemon)
-        !expirationCheck.expired
+        expirationCheck.status == DO_NOT_EXPIRE
         expirationCheck.reason == null
     }
 }

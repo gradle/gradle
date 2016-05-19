@@ -18,6 +18,8 @@ package org.gradle.launcher.daemon.server;
 
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_EXPIRE;
+
 public class LowPermGenDaemonExpirationStrategy implements DaemonExpirationStrategy {
     private final DaemonHealthServices healthServices;
 
@@ -28,9 +30,9 @@ public class LowPermGenDaemonExpirationStrategy implements DaemonExpirationStrat
     @Override
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
         if (healthServices.getDaemonStatus().isPermGenSpaceExhausted()) {
-            return new DaemonExpirationResult(true, true, "JVM perm gen space exhausted");
+            return new DaemonExpirationResult(GRACEFUL_EXPIRE, "JVM perm gen space is exhausted");
         } else {
-            return DaemonExpirationResult.DO_NOT_EXPIRE;
+            return DaemonExpirationResult.NOT_TRIGGERED;
         }
     }
 }

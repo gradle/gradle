@@ -20,6 +20,8 @@ import com.google.common.collect.Lists;
 
 import java.util.List;
 
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.DO_NOT_EXPIRE;
+
 /**
  * Expires the daemon only if all children would expire the daemon.
  */
@@ -32,29 +34,29 @@ public class AllDaemonExpirationStrategy implements DaemonExpirationStrategy {
 
     public DaemonExpirationResult checkExpiration(Daemon daemon) {
         // If no expiration strategies exist, the daemon will not expire.
-        DaemonExpirationResult expirationResult = DaemonExpirationResult.DO_NOT_EXPIRE;
-        List<String> reasons = Lists.newArrayList();
-        boolean terminated = true;
-        boolean immediate = false;
+        DaemonExpirationResult expirationResult = DaemonExpirationResult.NOT_TRIGGERED;
+        DaemonExpirationStatus expirationStatus = DO_NOT_EXPIRE;
 
+        List<String> reasons = Lists.newArrayList();
         for (DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
             // If any of the child strategies don't expire the daemon, the daemon will not expire.
             // Otherwise, the daemon will expire and aggregate the reasons together.
             expirationResult = expirationStrategy.checkExpiration(daemon);
 
-            if (!expirationResult.isExpired()) {
-                return DaemonExpirationResult.DO_NOT_EXPIRE;
+            if (expirationResult.getStatus() == DO_NOT_EXPIRE) {
+                return DaemonExpirationResult.NOT_TRIGGERED;
             } else {
-                immediate = immediate || expirationResult.isImmediate();
-                terminated = terminated && expirationResult.isTerminated();
                 reasons.add(expirationResult.getReason());
+                if (expirationResult.getStatus().ordinal() > expirationStatus.ordinal()) {
+                    expirationStatus = expirationResult.getStatus();
+                }
             }
         }
 
-        if (!expirationResult.isExpired()) {
-            return expirationResult;
+        if (expirationResult.getStatus() == DO_NOT_EXPIRE) {
+            return DaemonExpirationResult.NOT_TRIGGERED;
         } else {
-            return new DaemonExpirationResult(true, immediate, terminated, Joiner.on(" and ").skipNulls().join(reasons));
+            return new DaemonExpirationResult(expirationStatus, Joiner.on(" and ").skipNulls().join(reasons));
         }
     }
 }

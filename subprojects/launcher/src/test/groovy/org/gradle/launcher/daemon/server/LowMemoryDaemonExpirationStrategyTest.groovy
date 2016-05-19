@@ -19,6 +19,9 @@ import com.google.common.base.Strings
 import org.gradle.launcher.daemon.server.health.MemoryInfo
 import spock.lang.Specification
 
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.DO_NOT_EXPIRE
+import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_EXPIRE
+
 class LowMemoryDaemonExpirationStrategyTest extends Specification {
     private final Daemon daemon = Mock(Daemon)
     private final MemoryInfo mockMemoryInfo = Mock(MemoryInfo)
@@ -32,7 +35,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration(daemon)
-        result.isExpired()
+        result.status == GRACEFUL_EXPIRE
         result.reason == "Free system memory (2 bytes) is below threshold of 5 bytes"
     }
 
@@ -45,7 +48,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration(daemon)
-        !result.isExpired()
+        result.status == DO_NOT_EXPIRE
         Strings.isNullOrEmpty(result.reason)
     }
 
