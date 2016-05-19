@@ -42,6 +42,7 @@ import org.gradle.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -392,17 +393,24 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
 
         public Set<ComponentArtifactMetaData> getArtifacts() {
             if (artifacts == null) {
-                artifacts = getArtifactsForConfiguration(this);
+                artifacts = getArtifactsForConfiguration(this, new LinkedHashSet<ComponentArtifactMetaData>(), new HashSet<String>());
             }
             return artifacts;
         }
 
-        protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData) {
-            Set<ComponentArtifactMetaData> artifactMetaData = new LinkedHashSet<ComponentArtifactMetaData>();
-            for (String ancestor : configurationMetaData.getHierarchy()) {
-                artifactMetaData.addAll(artifactsByConfig.get(ancestor));
+        protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData, Set<ComponentArtifactMetaData> accumulator, HashSet<String> visited) {
+            String name = configurationMetaData.getName();
+            if (visited.contains(name)) {
+                return accumulator;
             }
-            return artifactMetaData;
+            visited.add(name);
+            accumulator.addAll(artifactsByConfig.get(name));
+            if (parents!= null) {
+                for (DefaultConfigurationMetaData parent : parents) {
+                    getArtifactsForConfiguration(parent, accumulator, visited);
+                }
+            }
+            return accumulator;
         }
 
         public ModuleComponentArtifactMetaData artifact(IvyArtifactName artifact) {
