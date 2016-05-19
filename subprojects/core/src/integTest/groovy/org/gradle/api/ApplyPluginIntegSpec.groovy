@@ -15,16 +15,26 @@
  */
 
 package org.gradle.api
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
+import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.TextUtil
+import org.gradle.util.UsesNativeServices
 import spock.lang.FailsWith
 import spock.lang.Issue
 
 // TODO: This needs a better home - Possibly in the test kit package in the future
+@UsesNativeServices
 class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
+    def nativeDirPath
+    def testProjectPath
+
+    def setup() {
+        nativeDirPath = TextUtil.normaliseFileSeparators(NativeServicesTestFixture.nativeServicesDir.absolutePath)
+        testProjectPath = TextUtil.normaliseFileSeparators(file("test-project-dir").absolutePath)
+    }
 
     @Issue("GRADLE-2358")
     @FailsWith(UnexpectedBuildFailure) // Test is currently failing
@@ -53,7 +63,8 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
             class TestPluginSpec extends Specification {
                 def "can apply plugin by id"() {
                     when:
-                    Project project = ProjectBuilder.builder().build()
+                    def projectDir = new File('${testProjectPath}')
+                    Project project = ProjectBuilder.builder().withProjectDir(projectDir).build()
                     project.apply(plugin: "testplugin")
 
                     then:
@@ -63,7 +74,7 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
         """
 
         and:
-        buildFile << '''
+        buildFile << """
             apply plugin: 'groovy'
 
             repositories {
@@ -73,11 +84,14 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
             dependencies {
                 compile gradleApi()
                 compile localGroovy()
-                compile "org.spockframework:spock-core:1.0-groovy-2.4", {
-                    exclude module: "groovy-all"
+                compile 'org.spockframework:spock-core:1.0-groovy-2.4', {
+                    exclude module: 'groovy-all'
                 }
             }
-        '''
+            test {
+                systemProperties = ['${NativeServices.NATIVE_DIR_OVERRIDE}' : '${nativeDirPath}']
+            }
+        """
 
         expect:
         succeeds("test")
@@ -85,13 +99,11 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-3068")
     def "can use gradleApi in test"() {
-        // TODO:DAZ We shouldn't require these: they make the test download JUnit from mavenCentral() on every run.
+        // TODO:DAZ We shouldn't require this: it forces the test to download JUnit from mavenCentral() on every run.
         requireGradleHome()
         requireOwnGradleUserHomeDir()
 
         given:
-        def testProjectDir = file("test-project-dir")
-        def testProjectPath = TextUtil.normaliseFileSeparators(testProjectDir.absolutePath)
         file("src/test/groovy/org/acme/ProjectBuilderTest.groovy") << """
             package org.acme
             import org.gradle.api.Project
@@ -110,7 +122,8 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
         """
 
         and:
-        buildFile << '''
+        buildFile << """
+            org.gradle.internal.nativeintegration.services.NativeServices.initialize(project.file('native'))
             apply plugin: 'groovy'
 
             repositories {
@@ -122,7 +135,10 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
                 compile localGroovy()
                 testCompile 'junit:junit:4.12'
             }
-        '''
+            test {
+                systemProperties = ['${NativeServices.NATIVE_DIR_OVERRIDE}' : '${nativeDirPath}']
+            }
+        """
 
         expect:
         succeeds("test")
