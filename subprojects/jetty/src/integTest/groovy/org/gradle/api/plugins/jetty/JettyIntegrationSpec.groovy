@@ -24,7 +24,7 @@ import org.junit.Rule
 import spock.lang.Timeout
 import spock.util.concurrent.PollingConditions
 
-@Timeout(15) // Is pretty useless currently, since executor.wait* swallows the InterruptedException
+@Timeout(15)
 class JettyIntegrationSpec extends AbstractIntegrationSpec {
 
     private static final CONTEXT_PATH = 'testContext'
@@ -88,10 +88,10 @@ class JettyIntegrationSpec extends AbstractIntegrationSpec {
         }
 
         when:
-        handle.abort()
+        stopJettyViaMonitor()
+        handle.waitForFinish()
 
         then:
-        // handle.waitForExit() Doesn't seem to work
         pollingConditions.eventually {
             assertJettyIsDown()
         }
