@@ -47,15 +47,6 @@ class JettyIntegrationSpec extends AbstractIntegrationSpec {
     def 'Jetty Run starts jetty in daemon mode'() {
         given:
         jettyBuildScript(daemon: true, """
-            import org.gradle.api.plugins.jetty.internal.Monitor
-
-            [jettyRun, jettyRunWar]*.doLast {
-              if (getStopPort() != null && getStopPort() > 0 && getStopKey() != null) {
-                Monitor monitor = new Monitor(getStopPort(), getStopKey(), server.getProxiedObject());
-                monitor.start();
-              }
-            }
-
             task block doLast {
               new URL("$server.uri").text
             }

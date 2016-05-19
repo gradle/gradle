@@ -141,7 +141,7 @@ TBD - Requires tooling API version 2.0 or later.
 We would like to thank the following community members for making contributions to this release of Gradle.
 
  - [Tatsiana Drabovich](https://github.com/blestka) - Fixed TestNG Listener adapters equality (GRADLE-3189)
-
+ - [Michael Ottati](https://github.com/mottati) - Allow Jetty daemon instances to be shut down. (GRADLE-2263)
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->
