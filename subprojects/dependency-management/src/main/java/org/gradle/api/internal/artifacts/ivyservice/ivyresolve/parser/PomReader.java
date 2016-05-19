@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
-import org.apache.ivy.util.XMLHelper;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDependencyMgt;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomProfile;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -37,6 +38,9 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -79,6 +83,30 @@ public class PomReader implements PomParent {
     private static final String PROFILE_ACTIVATION = "activation";
     private static final String PROFILE_ACTIVATION_ACTIVE_BY_DEFAULT = "activeByDefault";
     private static final String PROFILE_ACTIVATION_PROPERTY = "property";
+    private static final byte[] M2_ENTITIES_RESOURCE;
+    private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY;
+
+    static {
+        byte[] bytes;
+        try {
+            bytes = IOUtils.toByteArray(org.apache.ivy.plugins.parser.m2.PomReader.class.getResourceAsStream("m2-entities.ent"));
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+        M2_ENTITIES_RESOURCE = bytes;
+        DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
+        DOCUMENT_BUILDER_FACTORY.setValidating(false);
+    }
+
+    private static final EntityResolver M2_ENTITY_RESOLVER = new EntityResolver() {
+        public InputSource resolveEntity(String publicId, String systemId)
+            throws SAXException, IOException {
+            if ((systemId != null) && systemId.endsWith("m2-entities.ent")) {
+                return new InputSource(new ByteArrayInputStream(M2_ENTITIES_RESOURCE));
+            }
+            return null;
+        }
+    };
 
     private PomParent pomParent = new RootPomParent();
     private final Map<String, String> properties = new HashMap<String, String>();
@@ -189,19 +217,21 @@ public class PomReader implements PomParent {
         return projectElement.getOwnerDocument().getDocumentURI();
     }
 
-    public static Document parseToDom(InputStream stream, String systemId) throws IOException, SAXException {
-        EntityResolver entityResolver = new EntityResolver() {
-            public InputSource resolveEntity(String publicId, String systemId)
-                    throws SAXException, IOException {
-                if ((systemId != null) && systemId.endsWith("m2-entities.ent")) {
-                    return new InputSource(org.apache.ivy.plugins.parser.m2.PomReader.class.getResourceAsStream("m2-entities.ent"));
-                }
-                return null;
+    private static DocumentBuilder getDocBuilder(EntityResolver entityResolver) {
+        try {
+            DocumentBuilder docBuilder = DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
+            if (entityResolver != null) {
+                docBuilder.setEntityResolver(entityResolver);
             }
-        };
+            return docBuilder;
+        } catch (ParserConfigurationException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private static Document parseToDom(InputStream stream, String systemId) throws IOException, SAXException {
         InputStream dtdStream = new AddDTDFilterInputStream(stream);
-        DocumentBuilder docBuilder = XMLHelper.getDocBuilder(entityResolver);
-        return docBuilder.parse(dtdStream, systemId);
+        return getDocBuilder(M2_ENTITY_RESOLVER).parse(dtdStream, systemId);
     }
 
     public boolean hasParent() {

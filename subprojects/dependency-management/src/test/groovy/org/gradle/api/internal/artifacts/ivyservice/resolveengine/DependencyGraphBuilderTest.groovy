@@ -247,7 +247,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         1 * conflictResolver.select(!null) >> {
             Collection<ComponentResolutionState> candidates = it[0]
-            assert candidates*.version == ['1.2', '1.1']
+            assert candidates*.version as Set == ['1.2', '1.1'] as Set
             return candidates.find { it.version == '1.2' }
         }
         0 * conflictResolver._
@@ -336,7 +336,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         1 * conflictResolver.select(!null) >> {
             Collection<ComponentResolutionState> candidates = it[0]
-            assert candidates*.version == ['1.2', '1.1']
+            assert candidates*.version as Set == ['1.2', '1.1'] as Set
             return candidates.find { it.version == '1.2' }
         }
         0 * conflictResolver._
