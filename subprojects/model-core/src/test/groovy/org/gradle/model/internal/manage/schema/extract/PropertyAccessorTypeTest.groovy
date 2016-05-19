@@ -122,5 +122,23 @@ class PropertyAccessorTypeTest extends Specification {
         bean.tingStarted == 'Getting started!'
         bean.idore == true
     }
-}
 
+    static class StaticMethods {
+        static int getStatic() {
+            0
+        }
+
+        static boolean isStatic() {
+            false
+        }
+
+        static void setStatic(int value) {}
+    }
+
+    def "static methods are not property accessors"() {
+        expect:
+        PropertyAccessorType.of(StaticMethods.getMethod("isStatic")) == null
+        PropertyAccessorType.of(StaticMethods.getMethod("getStatic")) == null
+        PropertyAccessorType.of(StaticMethods.getMethod("setStatic", int)) == null
+    }
+}

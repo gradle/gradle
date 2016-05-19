@@ -20,6 +20,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.beans.Introspector;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 
 /**
@@ -65,6 +66,9 @@ public enum PropertyAccessorType {
     abstract public ModelType<?> propertyTypeFor(Method method);
 
     public static PropertyAccessorType of(Method method) {
+        if (isStatic(method)) {
+            return null;
+        }
         String methodName = method.getName();
         if (!hasVoidReturnType(method) && takesNoParameter(method)) {
             if (isGetGetterName(methodName)) {
@@ -93,6 +97,10 @@ public enum PropertyAccessorType {
         return null;
     }
 
+    private static boolean isStatic(Method method) {
+        return Modifier.isStatic(method.getModifiers());
+    }
+
     public static boolean hasVoidReturnType(Method method) {
         return void.class.equals(method.getReturnType());
     }
@@ -103,10 +111,6 @@ public enum PropertyAccessorType {
 
     public static boolean takesSingleParameter(Method method) {
         return method.getParameterTypes().length == 1;
-    }
-
-    public static boolean isPropertyMethodName(String methodName) {
-        return isGetGetterName(methodName) || isIsGetterName(methodName) || isSetterName(methodName);
     }
 
     public static boolean isGetterName(String methodName) {
