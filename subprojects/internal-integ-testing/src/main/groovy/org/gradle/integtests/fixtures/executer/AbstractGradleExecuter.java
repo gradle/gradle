@@ -385,8 +385,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected List<String> getImplicitBuildJvmArgs() {
         List<String> buildJvmOpts = new ArrayList<String>();
         buildJvmOpts.add("-ea");
-        // Ensure that native services is alwasy initialized to a common location
-        buildJvmOpts.add("-D" + NativeServices.NATIVE_DIR_OVERRIDE + "=" + buildContext.getNativeServicesDir().getAbsolutePath());
 
         if (isDebug()) {
             buildJvmOpts.addAll(DEBUG_ARGS);
@@ -657,6 +655,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         properties.put(GradleProperties.IDLE_TIMEOUT_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
         properties.put(GradleProperties.DAEMON_BASE_DIR_PROPERTY, daemonBaseDir.getAbsolutePath());
+        properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
         properties.put(DeprecationLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, "true");
 
         if (!noExplicitTmpDir) {
