@@ -29,6 +29,7 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleInput;
 import org.gradle.model.RuleSource;
@@ -49,7 +50,6 @@ import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.manage.schema.ScalarValueSchema;
 import org.gradle.model.internal.manage.schema.StructSchema;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.RuleContext;
@@ -272,7 +272,7 @@ public class ModelRuleExtractor {
     }
 
     private void validateNonRuleMethod(Method method, RuleSourceValidationProblemCollector problems) {
-        if (!Modifier.isPrivate(method.getModifiers()) && !Modifier.isStatic(method.getModifiers()) && !method.isSynthetic() && !ModelSchemaUtils.isObjectMethod(method)) {
+        if (!Modifier.isPrivate(method.getModifiers()) && !Modifier.isStatic(method.getModifiers()) && !method.isSynthetic() && !GroovyMethods.isObjectMethod(method)) {
             problems.add(method, "A method that is not annotated as a rule must be private");
         }
     }

@@ -18,33 +18,31 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import groovy.lang.GroovyObject;
-import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.model.Managed;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
 
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
 
 public class ModelSchemaUtils {
-
-    private static final Set<Equivalence.Wrapper<Method>> IGNORED_METHODS = ImmutableSet.copyOf(
-        Iterables.transform(
-            Iterables.concat(
-                Arrays.asList(Object.class.getMethods()),
-                Arrays.asList(GroovyObject.class.getMethods())
-            ), new Function<Method, Equivalence.Wrapper<Method>>() {
-                public Equivalence.Wrapper<Method> apply(@Nullable Method input) {
-                    return SIGNATURE_EQUIVALENCE.wrap(input);
-                }
-            }
-        )
-    );
 
     /**
      * Returns all candidate methods for schema generation declared by the given type and its super-types indexed by name.
@@ -93,21 +91,14 @@ public class ModelSchemaUtils {
         return new CandidateMethods(candidatesBuilder.build());
     }
 
-    public static boolean isIgnoredMethod(Method method) {
+    private static boolean isIgnoredMethod(Method method) {
         int modifiers = method.getModifiers();
         if (method.isSynthetic() || Modifier.isStatic(modifiers)) {
             return true;
         }
 
         // Ignore overrides of Object and GroovyObject methods
-        return isObjectMethod(method);
-    }
-
-    /**
-     * Is defined by Object or GroovyObject?
-     */
-    public static boolean isObjectMethod(Method method) {
-        return IGNORED_METHODS.contains(SIGNATURE_EQUIVALENCE.wrap(method));
+        return GroovyMethods.isObjectMethod(method);
     }
 
     /**
