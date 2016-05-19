@@ -16,11 +16,10 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.internal.type.ModelType;
-
 import java.beans.Introspector;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
 import java.util.Collection;
 
 /**
@@ -29,22 +28,26 @@ import java.util.Collection;
 public enum PropertyAccessorType {
     IS_GETTER(2) {
         @Override
-        public ModelType<?> propertyTypeFor(Method method) {
-            return ModelType.returnType(method);
+        public Type propertyTypeFor(Method method) {
+            return method.getGenericReturnType();
         }
     },
 
     GET_GETTER(3) {
         @Override
-        public ModelType<?> propertyTypeFor(Method method) {
-            return ModelType.returnType(method);
+        public Type propertyTypeFor(Method method) {
+            return method.getGenericReturnType();
         }
     },
 
     SETTER(3) {
         @Override
-        public ModelType<?> propertyTypeFor(Method method) {
-            return ModelType.paramType(method, 0);
+        public Type propertyTypeFor(Method method) {
+            Type[] parameterTypes = method.getGenericParameterTypes();
+            if (parameterTypes.length != 1) {
+                throw new IllegalArgumentException("Setter method should take one parameter: " + method);
+            }
+            return parameterTypes[0];
         }
     };
 
@@ -63,7 +66,7 @@ public enum PropertyAccessorType {
         return Introspector.decapitalize(methodNamePrefixRemoved);
     }
 
-    abstract public ModelType<?> propertyTypeFor(Method method);
+    abstract public Type propertyTypeFor(Method method);
 
     public static PropertyAccessorType of(Method method) {
         if (isStatic(method)) {

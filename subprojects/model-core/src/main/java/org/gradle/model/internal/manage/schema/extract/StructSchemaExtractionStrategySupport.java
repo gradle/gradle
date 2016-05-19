@@ -137,7 +137,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
     }
 
     private static ModelType<?> determinePropertyType(PropertyAccessorExtractionContext accessor) {
-        return accessor == null ? null : accessor.getAccessorType().propertyTypeFor(accessor.getMostSpecificDeclaration());
+        return accessor == null ? null : ModelType.of(accessor.getAccessorType().propertyTypeFor(accessor.getMostSpecificDeclaration()));
     }
 
     private static <P> ModelPropertyExtractionResult<P> createProperty(ModelType<P> propertyType, ModelPropertyExtractionContext propertyContext) {
