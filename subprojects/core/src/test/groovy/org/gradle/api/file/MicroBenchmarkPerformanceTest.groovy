@@ -16,20 +16,15 @@
 
 package org.gradle.api.file
 
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.GFileUtils
-import org.gradle.util.TestUtil
-import spock.lang.Specification
 import spock.lang.Unroll
 
 /**
  * Created by Rene on 28/01/15.
  * Temporary tests for nailing down root cause of slow java 8 builds on windows
- *
  */
-class MicroBenchmarkPerformanceTest extends Specification{
-
-    final def project = TestUtil.createRootProject()
-
+class MicroBenchmarkPerformanceTest extends AbstractProjectBuilderSpec {
     @Unroll
     def "creating #number of files"() {
         expect:
@@ -39,8 +34,6 @@ class MicroBenchmarkPerformanceTest extends Specification{
         where:
         number << [10, 100, 1000]
     }
-
-
 
     def touch(String filePath) {
         GFileUtils.touch(project.file(filePath))
