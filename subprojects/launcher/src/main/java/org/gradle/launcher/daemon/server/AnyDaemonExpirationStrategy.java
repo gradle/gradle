@@ -34,6 +34,7 @@ public class AnyDaemonExpirationStrategy implements DaemonExpirationStrategy {
     public DaemonExpirationResult checkExpiration(final Daemon daemon) {
         DaemonExpirationResult expirationResult;
         boolean expired = false;
+        boolean immediate = false;
         boolean terminated = false;
         List<String> reasons = Lists.newArrayList();
 
@@ -41,11 +42,12 @@ public class AnyDaemonExpirationStrategy implements DaemonExpirationStrategy {
             expirationResult = expirationStrategy.checkExpiration(daemon);
             if (expirationResult.isExpired()) {
                 expired = true;
+                immediate = immediate || expirationResult.isImmediate();
                 terminated = terminated || expirationResult.isTerminated();
                 reasons.add(expirationResult.getReason());
             }
         }
 
-        return new DaemonExpirationResult(expired, terminated, Joiner.on(" and ").skipNulls().join(reasons));
+        return new DaemonExpirationResult(expired, immediate, terminated, Joiner.on(" and ").skipNulls().join(reasons));
     }
 }
