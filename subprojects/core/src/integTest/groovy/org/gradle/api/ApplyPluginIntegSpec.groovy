@@ -17,22 +17,17 @@
 package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
-import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.TextUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.FailsWith
 import spock.lang.Issue
-
 // TODO: This needs a better home - Possibly in the test kit package in the future
 @UsesNativeServices
 class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
-    def nativeDirPath
     def testProjectPath
 
     def setup() {
-        nativeDirPath = TextUtil.normaliseFileSeparators(NativeServicesTestFixture.nativeServicesDir.absolutePath)
         testProjectPath = TextUtil.normaliseFileSeparators(file("test-project-dir").absolutePath)
     }
 
@@ -88,9 +83,6 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
                     exclude module: 'groovy-all'
                 }
             }
-            test {
-                systemProperties = ['${NativeServices.NATIVE_DIR_OVERRIDE}' : '${nativeDirPath}']
-            }
         """
 
         expect:
@@ -99,8 +91,8 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-3068")
     def "can use gradleApi in test"() {
-        // TODO:DAZ We shouldn't require this: it forces the test to download JUnit from mavenCentral() on every run.
         requireGradleHome()
+        // TODO:DAZ We shouldn't require this: it forces the test to download JUnit from mavenCentral() on every run.
         requireOwnGradleUserHomeDir()
 
         given:
@@ -123,7 +115,6 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-            org.gradle.internal.nativeintegration.services.NativeServices.initialize(project.file('native'))
             apply plugin: 'groovy'
 
             repositories {
@@ -135,12 +126,16 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
                 compile localGroovy()
                 testCompile 'junit:junit:4.12'
             }
+            compileTestGroovy {
+                options.forkOptions.jvmArgs << '-Dorg.gradle.native.dir=' + System.getProperty('org.gradle.native.dir')
+            }
             test {
-                systemProperties = ['${NativeServices.NATIVE_DIR_OVERRIDE}' : '${nativeDirPath}']
+                systemProperties = ['org.gradle.native.dir' : System.getProperty('org.gradle.native.dir')]
             }
         """
 
         expect:
+        executer.withArgument("--info")
         succeeds("test")
     }
 }
