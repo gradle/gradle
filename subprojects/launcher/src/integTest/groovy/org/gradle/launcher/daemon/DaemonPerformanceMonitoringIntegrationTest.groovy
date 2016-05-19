@@ -19,6 +19,8 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.server.health.DaemonStatus
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.Requires
@@ -141,7 +143,7 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
         executer.withArguments("-Dorg.gradle.daemon.healthcheckinterval=1000", "--debug")
         executer.withBuildJvmOpts("-D${DaemonStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
         executer.noExtraLogging()
-        executer.start()
+        GradleHandle gradle = executer.start()
 
         then:
         ConcurrentTestUtil.poll(10) {
@@ -158,6 +160,12 @@ class DaemonPerformanceMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
         and:
         daemons.daemon.log.contains("Daemon stopping immediately because garbage collector is starting to thrash")
+
+        when:
+        ExecutionFailure failure = gradle.waitForFailure()
+
+        then:
+        failure.assertOutputContains("Gradle build daemon has been stopped: garbage collector is starting to thrash")
     }
 
     private boolean daemonIsExpiredEagerly() {

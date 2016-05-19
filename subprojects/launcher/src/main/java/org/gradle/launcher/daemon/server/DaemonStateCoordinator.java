@@ -53,6 +53,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private long lastActivityAt = -1;
     private String currentCommandExecution;
     private Object result;
+    private String stopReason;
     private volatile DefaultBuildCancellationToken cancellationToken;
 
     private final StoppableExecutor executor;
@@ -147,6 +148,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                 case Broken:
                 case StopRequested:
                     LOGGER.debug("Marking daemon stopped due to {}. The daemon is running a build: {}", reason, isBusy());
+                    stopReason = reason;
                     setState(State.Stopped);
                     break;
                 case Stopped:
@@ -266,7 +268,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             }
             switch (state) {
                 case Stopped:
-                    throw new DaemonStoppedException();
+                    throw new DaemonStoppedException(stopReason);
                 case Broken:
                     throw new DaemonUnavailableException("This daemon is broken and will stop.");
                 default:
@@ -335,6 +337,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             LOGGER.debug("Command execution: completed {}", currentCommandExecution);
             currentCommandExecution = null;
             result = null;
+            stopReason = null;
             updateActivityTimestamp();
             switch (state) {
                 case Running:

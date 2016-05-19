@@ -20,9 +20,13 @@ package org.gradle.launcher.daemon.server.api;
  * Thrown when the daemon is stopped while running a command.
  */
 public class DaemonStoppedException extends RuntimeException {
-    public static final String MESSAGE = "Gradle build daemon has been stopped.";
+    public static final String MESSAGE = "Gradle build daemon has been stopped";
 
     public DaemonStoppedException() {
         super(MESSAGE);
+    }
+
+    public DaemonStoppedException(String reason) {
+        super(MESSAGE + ": " + reason);
     }
 }
