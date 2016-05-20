@@ -60,7 +60,7 @@ public class OutputFilePropertyAnnotationHandler implements PropertyAnnotationHa
         }
     };
 
-    public void attachActions(final PropertyActionContext context) {
+    public void attachActions(final TaskPropertyActionContext context) {
         context.setValidationAction(outputDirValidation);
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, final Callable<Object> futureValue) {
