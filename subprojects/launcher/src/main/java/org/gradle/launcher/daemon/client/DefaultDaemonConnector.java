@@ -37,6 +37,7 @@ import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -220,7 +221,8 @@ public class DefaultDaemonConnector implements DaemonConnector {
 
         public boolean maybeStaleAddress(Exception failure) {
             LOGGER.info("{}{}", DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE, daemon);
-            // TODO(ew): The client is allowed to remove daemon entries when it suspects the daemon has crashed. This should be treated as a stop event and reported on.
+            final Date timestamp = new Date(System.currentTimeMillis());
+            daemonRegistry.storeStopEvent(new DaemonStopEvent(timestamp, "daemon was terminated"));
             daemonRegistry.remove(daemon.getAddress());
             return exposeAsStale;
         }

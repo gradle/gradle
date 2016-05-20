@@ -70,8 +70,8 @@ class DomainRegistryUpdater implements Stoppable {
 
     public void onExpire(String reason) {
         LOGGER.debug("Storing daemon stop event: {}", reason);
-        // TODO(ew): Switch to TimeProvider here
-        daemonRegistry.storeStopEvent(new DaemonStopEvent(new Date(System.currentTimeMillis()), reason));
+        final Date timestamp = new Date(System.currentTimeMillis());
+        daemonRegistry.storeStopEvent(new DaemonStopEvent(timestamp, reason));
     }
 
     public void stop() {
