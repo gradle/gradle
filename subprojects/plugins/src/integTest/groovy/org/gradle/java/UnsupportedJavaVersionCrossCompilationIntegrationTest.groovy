@@ -25,7 +25,7 @@ import org.gradle.util.TextUtil
 import org.junit.Assume
 
 @TargetVersions(["1.5"])
-class DeprecatedJavaVersionCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
+class UnsupportedJavaVersionCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
     JavaVersion getJavaVersion() {
         JavaVersion.toVersion(version)
     }
@@ -65,7 +65,7 @@ public class Thing { }
 """
     }
 
-    def "can compile source and run tests using target Java version"() {
+    def "test execution fails using target Java version"() {
         given:
         buildFile << """
 dependencies { testCompile 'junit:junit:4.12' }
@@ -82,10 +82,9 @@ public class ThingTest {
     }
 }
 """
-        executer.expectDeprecationWarning()
 
         expect:
-        succeeds 'test'
-        output.contains("Support for test execution using Java 5 or earlier has been deprecated and is scheduled to be removed in Gradle ")
+        fails 'test'
+        failure.assertHasCause("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.")
     }
 }

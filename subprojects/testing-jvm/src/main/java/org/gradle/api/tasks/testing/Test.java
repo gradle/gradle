@@ -56,6 +56,7 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.reflect.Instantiator;
@@ -577,7 +578,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         JavaVersion javaVersion = getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());
         if (!javaVersion.isJava6Compatible()) {
-            DeprecationLogger.nagUserOfDeprecated("Support for test execution using Java 5 or earlier");
+            throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
 
         try {

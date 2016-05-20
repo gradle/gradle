@@ -99,6 +99,10 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ## Potential breaking changes
 
+### Supported Java versions
+
+TBD - Test execution in Gradle requires Java 6 or later.
+
 ### Sonar plugin has been removed
 
 The legacy Sonar plugin has been removed from the distribution. It is superceded by the official plugin from SonarQube (http://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle).
