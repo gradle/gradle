@@ -174,4 +174,166 @@ class DefaultManifestTest extends Specification {
         then:
         fileManifest.equals(expectedManifest)
     }
+
+    def "demonstrate Java vs. Ant Manifest classes behavior wrt. blank lines"() {
+        given:
+        TestFile noBlankLinesManifestFile = tmpDir.file('noBlankLinesManifestFile')
+        TestFile blankLinesManifestFile = tmpDir.file('blankLinesManifestFile')
+        noBlankLinesManifestFile.text = '''
+            Manifest-Version: 1.0
+            Some-Main-Attribute: someValue
+            Name: someSection
+            Some-Section-Attribute: some other value
+        '''.stripIndent().trim() + '\n'
+        blankLinesManifestFile.text = '''
+            Manifest-Version: 1.0
+            Some-Main-Attribute: someValue
+
+            Name: someSection
+            Some-Section-Attribute: some other value
+        '''.stripIndent().trim() + '\n'
+
+        when:
+        def noBlankLinesJavaManifest = new java.util.jar.Manifest(noBlankLinesManifestFile.newInputStream())
+        def blankLinesJavaManifest = new java.util.jar.Manifest(blankLinesManifestFile.newInputStream())
+        def noBlankLinesAntManifest = new org.apache.tools.ant.taskdefs.Manifest(noBlankLinesManifestFile.newReader('UTF-8'))
+        def blankLinesAntManifest = new org.apache.tools.ant.taskdefs.Manifest(blankLinesManifestFile.newReader('UTF-8'))
+
+        then:
+        // Java Manifest, no blank lines
+        noBlankLinesJavaManifest.mainAttributes.size() == 4
+        noBlankLinesJavaManifest.mainAttributes.getValue('Manifest-Version') == '1.0'
+        noBlankLinesJavaManifest.mainAttributes.getValue('Some-Main-Attribute') == 'someValue'
+        noBlankLinesJavaManifest.mainAttributes.getValue('Name') == 'someSection'
+        noBlankLinesJavaManifest.mainAttributes.getValue('Some-Section-Attribute') == 'some other value'
+        noBlankLinesJavaManifest.entries.isEmpty()
+
+        and:
+        // Java Manifest, blank lines
+        blankLinesJavaManifest.mainAttributes.size() == 2
+        blankLinesJavaManifest.mainAttributes.getValue('Manifest-Version') == '1.0'
+        blankLinesJavaManifest.mainAttributes.getValue('Some-Main-Attribute') == 'someValue'
+        blankLinesJavaManifest.entries.size() == 1
+        blankLinesJavaManifest.entries.get('someSection').getValue('Some-Section-Attribute') == 'some other value'
+
+        and:
+        // Ant Manifest, no blank lines
+        Collections.list(noBlankLinesAntManifest.mainSection.attributeKeys).size() == 1
+        noBlankLinesAntManifest.mainSection.getAttributeValue('Some-Main-Attribute') == 'someValue'
+        Collections.list(noBlankLinesAntManifest.getSectionNames()).size() == 1
+        noBlankLinesAntManifest.getSection('someSection').getAttributeValue('Some-Section-Attribute') == 'some other value'
+
+        and:
+        // Ant Manifest, blank lines
+        Collections.list(blankLinesAntManifest.mainSection.attributeKeys).size() == 1
+        blankLinesAntManifest.mainSection.getAttributeValue('Some-Main-Attribute') == 'someValue'
+        Collections.list(blankLinesAntManifest.getSectionNames()).size() == 1
+        blankLinesAntManifest.getSection('someSection').getAttributeValue('Some-Section-Attribute') == 'some other value'
+    }
+
+    def "demonstrate Java vs. Ant Manifest classes behavior wrt. split multi-byte characters"() {
+        given:
+        TestFile manifestFile = tmpDir.file('someManifestFile')
+
+        and:
+        // Means 'long russian text'
+        String attributeValue = 'com.acme.example.pack.**, длинный.текст.на.русском.языке.**'
+        java.util.jar.Manifest manifest = new java.util.jar.Manifest();
+        manifest.mainAttributes.putValue('Manifest-Version', '1.0')
+        manifest.mainAttributes.putValue('Another-Looooooong-Name-Entry', attributeValue)
+        manifest.write(manifestFile.newOutputStream())
+
+        when:
+        def javaManifest = new java.util.jar.Manifest(manifestFile.newInputStream());
+        def antManifest = new org.apache.tools.ant.taskdefs.Manifest(manifestFile.newReader('UTF-8'))
+
+        then:
+        javaManifest.getMainAttributes().getValue('Another-Looooooong-Name-Entry') == attributeValue
+        antManifest.getMainSection().getAttributeValue('Another-Looooooong-Name-Entry') != attributeValue // Broken!
+    }
+
+    def "write with split multi-byte character"() {
+        given:
+        TestFile manifestFile = tmpDir.file('someManifestFile')
+        fileResolver.resolve('manifestFile') >> manifestFile
+
+        and:
+        // Means 'long russian text'
+        String attributeValue = 'com.acme.example.pack.**, длинный.текст.на.русском.языке.**'
+        DefaultManifest gradleManifest = new DefaultManifest(fileResolver);
+        gradleManifest.getAttributes().put('Looong-Name-Of-Manifest-Entry', attributeValue)
+
+        when:
+        gradleManifest.writeTo('manifestFile')
+
+        then:
+        java.util.jar.Manifest javaManifest = new java.util.jar.Manifest(manifestFile.newInputStream());
+        javaManifest.mainAttributes.getValue('Looong-Name-Of-Manifest-Entry') == attributeValue
+    }
+
+    def "merge with split multi-byte character and sections not preceded by blank lines"() {
+        given:
+        TestFile manifestFile = tmpDir.file('someManifestFile')
+        TestFile mergedFile = tmpDir.file('someMergedManifestFile')
+        fileResolver.resolve('manifestFile') >> manifestFile
+        fileResolver.resolve('mergedFile') >> mergedFile
+
+        and:
+        // Means 'long russian text'
+        String attributeValue = 'com.acme.example.pack.**, длинный.текст.на.русском.языке.**'
+        java.util.jar.Manifest javaMergedManifest = new java.util.jar.Manifest();
+        javaMergedManifest.mainAttributes.putValue('Manifest-Version', '1.0')
+        javaMergedManifest.mainAttributes.putValue('Another-Looooooong-Name-Entry', attributeValue)
+        def someSection = new java.util.jar.Attributes()
+        someSection.putValue('foo', 'bar')
+        javaMergedManifest.entries.put("SomeSection", someSection)
+        def anotherSection = new java.util.jar.Attributes()
+        anotherSection.putValue('bazar', 'cathedral')
+        javaMergedManifest.entries.put("AnotherSection", anotherSection)
+        javaMergedManifest.write(mergedFile.newOutputStream())
+
+        and:
+        // Remove blank lines to exercise Ant's Manifest interoperability
+        // Need to work at bytes level to prevent breaking split multi-bytes characters here
+        def temp = new ByteArrayOutputStream()
+        def bytes = mergedFile.bytes
+        byte carriageReturn = (byte) '\n'
+        byte lineBreak = (byte) '\r'
+        for (int idx = 0; idx < bytes.length; idx++) {
+            byte current = bytes[idx]
+            boolean skip = false;
+            if (current == carriageReturn) {
+                if (idx + 2 < bytes.length) {
+                    if (bytes[idx + 1] == lineBreak && bytes[idx + 2] == carriageReturn) {
+                        skip = true
+                    }
+                }
+            } else if (current == lineBreak) {
+                if (idx + 1 < bytes.length) {
+                    if (bytes[idx + 1] == carriageReturn) {
+                        skip = true;
+                    }
+                }
+            }
+            if (!skip) {
+                temp.write(current);
+            }
+        }
+        mergedFile.bytes = temp.toByteArray()
+
+        and:
+        DefaultManifest gradleManifest = new DefaultManifest(fileResolver);
+        gradleManifest.getAttributes().put('Looong-Name-Of-Manifest-Entry', attributeValue)
+        gradleManifest.from('mergedFile')
+
+        when:
+        gradleManifest.writeTo('manifestFile')
+
+        then:
+        java.util.jar.Manifest javaManifest = new java.util.jar.Manifest(manifestFile.newInputStream());
+        javaManifest.mainAttributes.getValue('Looong-Name-Of-Manifest-Entry') == attributeValue
+        javaManifest.mainAttributes.getValue('Another-Looooooong-Name-Entry') == attributeValue
+        javaManifest.entries.get('SomeSection').getValue('foo') == 'bar'
+        javaManifest.entries.get('AnotherSection').getValue('bazar') == 'cathedral'
+    }
 }

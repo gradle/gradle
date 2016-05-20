@@ -29,12 +29,17 @@ import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultManifestMergeSpec implements ManifestMergeSpec {
     List<Object> mergePaths = new ArrayList<Object>();
     private final List<Action<? super ManifestMergeDetails>> actions = new ArrayList<Action<? super ManifestMergeDetails>>();
-    private String contentCharset = Charset.defaultCharset().name();
+    private String contentCharset = DefaultManifest.DEFAULT_CONTENT_CHARSET;
 
     @Override
     public String getContentCharset() {

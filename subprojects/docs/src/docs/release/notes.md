@@ -351,7 +351,7 @@ Support for this system property will be dropped in Gradle 3.0. Please be sure t
 
 Previous versions of Gradle used to encode JAR/WAR/EAR files metadata and Manifests content using the platform default character set instead of UTF-8. Both are bugs and have been fixed in this release, see the related fixed issues above.
 
-In order to keep backward compatibility, merged manifests are still read using the platform default character set.
+Following this, merged manifests are now read using UTF-8 instead of the platform default charset.
 
 If necessary, convenience properties have been added to [`Jar`](dsl/org.gradle.api.tasks.bundling.Jar.html), [`War`](dsl/org.gradle.api.tasks.bundling.War.html), [`Ear`](dsl/org.gradle.plugins.ear.Ear.html) tasks and both [`Manifest`](javadoc/org/gradle/api/java/archives/Manifest.html) and [`ManifestMergeSpec`](javadoc/org/gradle/api/java/archives/ManifestMergeSpec.html) types to control which character set to use when merging manifests.
 
@@ -361,6 +361,10 @@ In order to fall back to the old behavior you can do the following:
         // JAR metadata
         metadataCharset = Charset.defaultCharset().name()
         manifest {
+            // Merged manifest content
+            from(file('path/to/some/manifest/to/merge')) {
+                contentCharset = Charset.defaultCharset().name()
+            }
             // Manifest content
             contentCharset = Charset.defaultCharset().name()
         }

@@ -21,6 +21,9 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import java.util.jar.JarFile
+import java.util.jar.Manifest
+
 class JarIntegrationTest extends AbstractIntegrationSpec {
 
     def canCreateAnEmptyJar() {
@@ -448,7 +451,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3374")
-    def "merge manifest read using platform default charset"() {
+    def "merge manifest read using UTF-8 by default"() {
         given:
         buildScript """
             task jar(type: Jar) {
@@ -456,11 +459,11 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 destinationDir = file('dest')
                 archiveName = 'test.jar'
                 manifest {
-                    from('manifest-ISO-8859-15.txt')
+                    from('manifest-UTF-8.txt')
                 }
             }
         """.stripIndent()
-        file('manifest-ISO-8859-15.txt').setText('moji: bak€', 'ISO-8859-15')
+        file('manifest-UTF-8.txt').setText('moji: bak€', 'UTF-8')
 
         when:
         executer.withDefaultCharacterEncoding('ISO-8859-15').withTasks('jar')
@@ -506,27 +509,64 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 destinationDir = file('dest')
                 archiveName = 'test.jar'
                 manifest {
-                    // Charset used to encode the generated manifest content
-                    contentCharset = 'ISO-8859-15'
                     attributes 'moji': 'bak€'
-                    from('manifest-UTF-8.txt') {
+                    from('manifest-ISO-8859-15.txt') {
                         // Charset used to decode the read manifest content
-                        contentCharset = 'UTF-8'
+                        contentCharset = 'ISO-8859-15'
                     }
                 }
             }
         """.stripIndent()
-        file('manifest-UTF-8.txt').setText('bake: moji€', 'UTF-8')
+        file('manifest-ISO-8859-15.txt').setText('bake: moji€', 'ISO-8859-15')
 
         when:
         executer.withDefaultCharacterEncoding('windows-1252').withTasks('jar')
         executer.run()
 
         then:
-        def jar = new JarTestFixture(file('dest/test.jar'), 'UTF-8', 'ISO-8859-15')
+        def jar = new JarTestFixture(file('dest/test.jar'), 'UTF-8', 'UTF-8')
         def manifest = jar.content('META-INF/MANIFEST.MF')
         manifest.contains('moji: bak€')
         manifest.contains('bake: moji€')
+    }
+
+    @Issue('GRADLE-3374')
+    def "can merge manifests containing split multi-byte chars"() {
+        // Note that there's no need to cover this case with merge read charsets
+        // other than UTF-8 because it's not supported by the JVM.
+        given:
+        def attributeNameMerged = 'Looong-Name-Of-Manifest-Entry'
+        def attributeNameWritten = 'Another-Looooooong-Name-Entry'
+        // Means 'long russian text'
+        def attributeValue = 'com.acme.example.pack.**, длинный.текст.на.русском.языке.**'
+
+        def mergedManifestFilename = 'manifest-with-split-multi-byte-char.txt'
+        def mergedManifest = new Manifest();
+        mergedManifest.mainAttributes.putValue('Manifest-Version', '1.0')
+        mergedManifest.mainAttributes.putValue(attributeNameMerged, attributeValue);
+        def mergedManifestFile = file(mergedManifestFilename)
+        mergedManifest.write(mergedManifestFile.newOutputStream())
+
+        buildScript """
+            task jar(type: Jar) {
+                from file('test')
+                destinationDir = file('dest')
+                archiveName = 'test.jar'
+                manifest {
+                    attributes '$attributeNameWritten': '$attributeValue'
+                    from file('$mergedManifestFilename')
+                }
+            }
+        """.stripIndent()
+
+        when:
+        executer.withDefaultCharacterEncoding('windows-1252').withTasks('jar')
+        executer.run()
+
+        then:
+        def manifest = new JarFile(file('dest/test.jar')).manifest
+        manifest.mainAttributes.getValue(attributeNameWritten) == attributeValue
+        manifest.mainAttributes.getValue(attributeNameMerged) == attributeValue
     }
 
     @Issue('GRADLE-3374')
