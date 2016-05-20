@@ -36,25 +36,25 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class S3Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
-    private static final Pattern FILENAME_PATTERN = Pattern.compile("[^\\/]+\\.*$");
 
+    private S3ResourceResolver resourceResolver;
     private AmazonS3Client amazonS3Client;
     private final S3ConnectionProperties s3ConnectionProperties;
 
     public S3Client(AmazonS3Client amazonS3Client, S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
         this.amazonS3Client = amazonS3Client;
+        this.resourceResolver = new S3ResourceResolver();
     }
 
     public S3Client(AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
         AWSCredentials credentials = awsCredentials == null ? null : new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
         amazonS3Client = createAmazonS3Client(credentials);
+        this.resourceResolver = new S3ResourceResolver();
     }
 
     private AmazonS3Client createAmazonS3Client(AWSCredentials credentials) {
@@ -133,37 +133,13 @@ public class S3Client {
                 .withMaxKeys(1000)
                 .withDelimiter("/");
         ObjectListing objectListing = amazonS3Client.listObjects(listObjectsRequest);
-        results.addAll(resolveResourceNames(objectListing));
+        results.addAll(resourceResolver.resolveResourceNames(objectListing));
 
         while (objectListing.isTruncated()) {
             objectListing = amazonS3Client.listNextBatchOfObjects(objectListing);
-            results.addAll(resolveResourceNames(objectListing));
+            results.addAll(resourceResolver.resolveResourceNames(objectListing));
         }
         return results;
-    }
-
-    private List<String> resolveResourceNames(ObjectListing objectListing) {
-        List<String> results = new ArrayList<String>();
-        List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
-        if (null != objectSummaries) {
-            for (S3ObjectSummary objectSummary : objectSummaries) {
-                String key = objectSummary.getKey();
-                String fileName = extractResourceName(key);
-                if (null != fileName) {
-                    results.add(fileName);
-                }
-            }
-        }
-        return results;
-    }
-
-    private String extractResourceName(String key) {
-        Matcher matcher = FILENAME_PATTERN.matcher(key);
-        if (matcher.find()) {
-            String group = matcher.group(0);
-            return group.contains(".") ? group : null;
-        }
-        return null;
     }
 
     private S3Object doGetS3Object(URI uri, boolean isLightWeight) {

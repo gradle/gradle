@@ -20,7 +20,6 @@ import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.s3.model.AmazonS3Exception
 import com.amazonaws.services.s3.model.ObjectListing
 import com.amazonaws.services.s3.model.PutObjectRequest
-import com.amazonaws.services.s3.model.S3ObjectSummary
 import com.google.common.base.Optional
 import org.gradle.api.resources.ResourceException
 import org.gradle.internal.credentials.DefaultAwsCredentials
@@ -51,40 +50,6 @@ class S3ClientTest extends Specification {
             assert putObjectRequest.key == 'maven/snapshot/myFile.txt'
             assert putObjectRequest.metadata.contentLength == 12
         }
-    }
-
-    def "should extract file name from s3 listing"() {
-        S3Client s3Client = new S3Client(Mock(AmazonS3Client), s3ConnectionProperties)
-
-        expect:
-        s3Client.extractResourceName(listing) == expected
-
-        where:
-        listing         | expected
-        '/a/b/file.pom' | 'file.pom'
-        '/file.pom'     | 'file.pom'
-        '/file.pom'     | 'file.pom'
-        '/SNAPSHOT/'    | null
-        '/SNAPSHOT/bin' | null
-        '/'             | null
-    }
-
-    def "should resolve resource names from an AWS objectlisting"() {
-        setup:
-        S3Client s3Client = new S3Client(Mock(AmazonS3Client), s3ConnectionProperties)
-        ObjectListing objectListing = Mock()
-        S3ObjectSummary objectSummary = Mock()
-        objectSummary.getKey() >> '/SNAPSHOT/some.jar'
-
-        S3ObjectSummary objectSummary2 = Mock()
-        objectSummary2.getKey() >> '/SNAPSHOT/someOther.jar'
-        objectListing.getObjectSummaries() >> [objectSummary, objectSummary2]
-
-        when:
-        def results = s3Client.resolveResourceNames(objectListing)
-
-        then:
-        results == ['some.jar', 'someOther.jar']
     }
 
     def "should make batch call when more than one object listing exists"() {
