@@ -29,6 +29,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.STARTING_DAEMON_MESSAGE;
+import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.SUBSEQUENT_BUILDS_FASTER_MESSAGE;
 import static org.gradle.util.TextUtil.normaliseLineSeparators;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -80,7 +81,15 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 // Assume you are in a cross-version integration test and want to strip this line.
                 i++;
             } else if (line.contains(STARTING_DAEMON_MESSAGE)) {
-                // Assume running using the daemon, ignore
+                // Remove the "daemon starting" message
+                i++;
+
+                // Remove daemon reporting lines
+                while (i < lines.size() && !lines.get(i).contains(SUBSEQUENT_BUILDS_FASTER_MESSAGE)) {
+                    i++;
+                }
+
+                // Remove the "subsequent builds faster" message
                 i++;
             } else if (i == lines.size() - 1 && line.matches("Total time: [\\d\\.]+ secs")) {
                 result.append("Total time: 1 secs");
