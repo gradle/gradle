@@ -520,7 +520,7 @@ public class AnnotationProcessingTasks {
         public TaskCreator(ProjectInternal project) {
             this.project = project;
             this.delegate = new StubTaskFactory();
-            this.factory = new AnnotationProcessingTaskFactory(delegate);
+            this.factory = new AnnotationProcessingTaskFactory(new DefaultTaskClassInfoStore(), delegate);
         }
 
         <T extends Task> T expectTaskCreated(final Class<T> type, final Object... params) {

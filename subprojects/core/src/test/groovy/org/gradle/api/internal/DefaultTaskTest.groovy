@@ -161,7 +161,7 @@ class DefaultTaskTest extends AbstractTaskTest {
         task.is(task.configure {
             doFirst(action1)
         })
-        1 == task.actions.size()
+        task.actions.size() == 1
     }
 
     def "doFirst() adds actions to the start of action list"() {

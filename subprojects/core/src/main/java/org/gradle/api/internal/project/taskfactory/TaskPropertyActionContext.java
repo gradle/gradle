@@ -17,7 +17,7 @@ package org.gradle.api.internal.project.taskfactory;
 
 import java.lang.reflect.AnnotatedElement;
 
-public interface PropertyActionContext {
+public interface TaskPropertyActionContext {
     /**
      * Returns the name of this property.
      */

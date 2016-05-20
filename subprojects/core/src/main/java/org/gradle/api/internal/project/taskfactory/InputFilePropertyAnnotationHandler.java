@@ -39,7 +39,7 @@ public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHan
         return InputFile.class;
     }
 
-    public void attachActions(PropertyActionContext context) {
+    public void attachActions(TaskPropertyActionContext context) {
         context.setValidationAction(inputFileValidation);
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {

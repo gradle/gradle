@@ -33,7 +33,7 @@ public class OutputDirectoryPropertyAnnotationHandler implements PropertyAnnotat
 
     private final Class<? extends Annotation> annotationType;
     private final Transformer<Iterable<File>, Object> valueTransformer;
-    
+
     public OutputDirectoryPropertyAnnotationHandler(Class<? extends Annotation> annotationType, Transformer<Iterable<File>, Object> valueTransformer) {
         this.annotationType = annotationType;
         this.valueTransformer = valueTransformer;
@@ -60,8 +60,8 @@ public class OutputDirectoryPropertyAnnotationHandler implements PropertyAnnotat
             }
         }
     };
-    
-    public void attachActions(final PropertyActionContext context) {
+
+    public void attachActions(final TaskPropertyActionContext context) {
         context.setValidationAction(outputDirValidation);
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, final Callable<Object> futureValue) {
