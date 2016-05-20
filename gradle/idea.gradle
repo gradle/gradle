@@ -5,6 +5,10 @@ allprojects {
 
     idea {
         module {
+            // Force everything to Java 6, pending detangling some int test cycles or switching to project-per-source-set mapping
+            languageLevel = new org.gradle.plugins.ide.idea.model.IdeaLanguageLevel("1.6")
+            targetBytecodeVersion = JavaVersion.VERSION_1_6
+
             iml {
                 whenMerged { module ->
                     module.dependencies.removeAll {
