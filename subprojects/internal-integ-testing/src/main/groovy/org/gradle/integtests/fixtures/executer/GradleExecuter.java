@@ -175,6 +175,11 @@ public interface GradleExecuter {
     GradleExecuter withNoExplicitTmpDir();
 
     /**
+     * Don't set native services dir explicitly.
+     */
+    GradleExecuter withNoExplicitNativeServicesDir();
+
+    /**
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for
      * the build JVM and not attempt to provide any others.
      */

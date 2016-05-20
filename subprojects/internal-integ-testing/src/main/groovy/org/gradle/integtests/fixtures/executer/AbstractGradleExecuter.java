@@ -121,6 +121,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected boolean interactive;
 
     protected boolean noExplicitTmpDir;
+    protected boolean noExplicitNativeServicesDir;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this.distribution = distribution;
@@ -244,6 +245,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (noExplicitTmpDir) {
             executer.withNoExplicitTmpDir();
+        }
+        if (noExplicitNativeServicesDir) {
+            executer.withNoExplicitNativeServicesDir();
         }
         if (defaultLocale != null) {
             executer.withDefaultLocale(defaultLocale);
@@ -655,7 +659,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         properties.put(GradleProperties.IDLE_TIMEOUT_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
         properties.put(GradleProperties.DAEMON_BASE_DIR_PROPERTY, daemonBaseDir.getAbsolutePath());
-        properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
+        if (!noExplicitNativeServicesDir) {
+            properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
+        }
         properties.put(DeprecationLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, "true");
 
         if (!noExplicitTmpDir) {
@@ -873,6 +879,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public GradleExecuter withNoExplicitTmpDir() {
         noExplicitTmpDir = true;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withNoExplicitNativeServicesDir() {
+        noExplicitNativeServicesDir = true;
         return this;
     }
 
