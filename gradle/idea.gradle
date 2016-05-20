@@ -173,6 +173,7 @@ idea {
                 </codeStyleSettings>
                 <GroovyCodeStyleSettings>
                   <option name="ALIGN_NAMED_ARGS_IN_MAP" value="false" />
+                  <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="999" />
                 </GroovyCodeStyleSettings>
               </value>
             </option>
