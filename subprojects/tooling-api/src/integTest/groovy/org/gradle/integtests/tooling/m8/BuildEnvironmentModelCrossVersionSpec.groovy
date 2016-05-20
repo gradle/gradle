@@ -33,8 +33,8 @@ class BuildEnvironmentModelCrossVersionSpec extends ToolingApiSpecification {
         !model.java.jvmArguments.empty
     }
 
-    @TargetGradleVersion("<1.0-milestone-8")
-    def "partial BuildEnvironment model for pre 1.0m8 providers"() {
+    @TargetGradleVersion("<1.2")
+    def "partial BuildEnvironment model for pre 1.2 providers"() {
         when:
         BuildEnvironment buildEnv = withConnection { it.getModel(BuildEnvironment.class) }
 
