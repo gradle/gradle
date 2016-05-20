@@ -15,8 +15,6 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.io.Files;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
@@ -34,24 +32,14 @@ import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
-import org.gradle.launcher.daemon.server.AllDaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.AnyDaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.server.DaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.GcThrashingDaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.LowTenuredSpaceDaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.DaemonIdleTimeoutExpirationStrategy;
-import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy;
+import org.gradle.launcher.daemon.server.DaemonExpirationStrategies;
 import org.gradle.launcher.daemon.server.DaemonServices;
-import org.gradle.launcher.daemon.server.LowMemoryDaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.LowPermGenDaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 import org.gradle.process.internal.streams.EncodedStream;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * The entry point for a daemon process.
@@ -123,7 +111,7 @@ public class DaemonMain extends EntryPoint {
             Long pid = daemonContext.getPid();
             daemonStarted(pid, daemon.getUid(), daemon.getAddress(), daemonLog);
 
-            daemon.stopOnExpiration(initializeExpirationStrategy(daemon, daemonServices, parameters), parameters.getPeriodicCheckIntervalMs());
+            daemon.stopOnExpiration(DaemonExpirationStrategies.getDefaultStrategy(daemon, daemonServices, parameters), parameters.getPeriodicCheckIntervalMs());
         } finally {
             daemon.stop();
         }
@@ -181,25 +169,6 @@ public class DaemonMain extends EntryPoint {
         loggingManager.setLevelInternal(LogLevel.DEBUG);
 
         loggingManager.start();
-    }
-
-    private DaemonExpirationStrategy initializeExpirationStrategy(Daemon daemon, DaemonServices daemonServices, final DaemonServerConfiguration params) {
-        Builder strategies = ImmutableList.<DaemonExpirationStrategy>builder();
-        strategies.add(new GcThrashingDaemonExpirationStrategy(daemonServices.get(DaemonHealthServices.class)));
-        strategies.add(new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout(), TimeUnit.MILLISECONDS));
-        strategies.add(new LowTenuredSpaceDaemonExpirationStrategy(daemonServices.get(DaemonHealthServices.class)));
-        strategies.add(new LowPermGenDaemonExpirationStrategy(daemonServices.get(DaemonHealthServices.class)));
-        try {
-            strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
-                new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout() / 8, TimeUnit.MILLISECONDS),
-                LowMemoryDaemonExpirationStrategy.belowFreePercentage(0.2)
-            )));
-        } catch (UnsupportedOperationException e) {
-            LOGGER.info("This JVM does not support getting free system memory, so daemons will not check for it");
-        }
-
-        strategies.add(new DaemonRegistryUnavailableExpirationStrategy(daemon));
-        return new AnyDaemonExpirationStrategy(strategies.build());
     }
 
     private void redirectOutputsAndInput(PrintStream printStream) {

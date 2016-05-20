@@ -15,20 +15,14 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.server.AnyDaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.server.DaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.DaemonIdleTimeoutExpirationStrategy;
-import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy;
+import org.gradle.launcher.daemon.server.DaemonExpirationStrategies;
 import org.gradle.launcher.daemon.server.DaemonServices;
-
-import java.util.concurrent.TimeUnit;
 
 public class ForegroundDaemonAction implements Runnable {
 
@@ -51,15 +45,9 @@ public class ForegroundDaemonAction implements Runnable {
 
         try {
             daemonServices.get(DaemonRegistry.class).markIdle(daemon.getAddress());
-            daemon.stopOnExpiration(initializeExpirationStrategy(daemon, configuration), configuration.getPeriodicCheckIntervalMs());
+            daemon.stopOnExpiration(DaemonExpirationStrategies.getDefaultStrategy(daemon, daemonServices, configuration), configuration.getPeriodicCheckIntervalMs());
         } finally {
             daemon.stop();
         }
-    }
-
-    private DaemonExpirationStrategy initializeExpirationStrategy(Daemon daemon, final DaemonServerConfiguration config) {
-        DaemonIdleTimeoutExpirationStrategy timeoutStrategy = new DaemonIdleTimeoutExpirationStrategy(daemon, config.getIdleTimeout(), TimeUnit.MILLISECONDS);
-        DaemonRegistryUnavailableExpirationStrategy registryUnavailableStrategy = new DaemonRegistryUnavailableExpirationStrategy(daemon);
-        return new AnyDaemonExpirationStrategy(ImmutableList.of(timeoutStrategy, registryUnavailableStrategy));
     }
 }
