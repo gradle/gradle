@@ -17,7 +17,8 @@
     <build-runners>
       <runner id="RUNNER_552" name="Build" type="gradle-runner">
         <parameters>
-          <param name="jvmArgs" value="-XX:MaxPermSize=128M" />
+          <param name="jvmArgs" value="-XX:MaxPermSize=256M" />
+          <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
           <param name="teamcity.coverage.emma.include.source" value="true" />
           <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
