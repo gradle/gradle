@@ -106,6 +106,12 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
     }
 
+    void waitForFileDelete(File file) {
+        run {
+            poll(10) { assert(!file.exists()) }
+        }
+    }
+
     void waitForBuildToWait(buildNum = 0) {
         run {
             poll(20) { assert builds[buildNum].standardOutput.contains("waiting for stop file"); }
@@ -345,7 +351,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     }
 
     def "starting new build recreates registry and succeeds"() {
-        def registry
+        File registry
 
         when:
         startBuild()
@@ -356,7 +362,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         daemonContext {
             registry = new DaemonDir(executer.daemonBaseDir).registry
             registry.delete()
-            assert(!registry.exists())
+            waitForFileDelete(registry)
         }
 
         when:
