@@ -37,6 +37,8 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.RemappingClassAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -56,6 +58,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 class RuntimeShadedJarCreator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RuntimeShadedJarCreator.class);
 
     private static final int BUFFER_SIZE = 8192;
     private static final String SERVICES_DIR_PREFIX = "META-INF/services/";
@@ -69,6 +72,7 @@ class RuntimeShadedJarCreator {
     }
 
     public void create(final File outputJar, final Iterable<? extends File> files) {
+        LOGGER.info("Generating gradleApi JAR file: " + outputJar.getAbsolutePath());
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(RuntimeShadedJarCreator.class);
         progressLogger.setDescription("Gradle JARs generation");
         progressLogger.setLoggingHeader("Generating JAR file '" + outputJar.getName() + "'");
