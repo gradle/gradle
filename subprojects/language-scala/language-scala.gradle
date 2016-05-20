@@ -1,5 +1,8 @@
 apply from: "$rootDir/gradle/providedConfiguration.gradle"
 
+// Compiler daemon
+sourceCompatibility = 1.6
+
 dependencies {
     compile project(":core")
     compile project(":platformJvm")

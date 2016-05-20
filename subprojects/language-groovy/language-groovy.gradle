@@ -1,3 +1,7 @@
+
+// Compiler daemon
+sourceCompatibility = 1.6
+
 dependencies {
     compile project(":platformJvm")
     compile project(":languageJava")

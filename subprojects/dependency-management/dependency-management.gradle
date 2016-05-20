@@ -1,5 +1,7 @@
 apply plugin: "groovy"
 
+sourceCompatibility = 1.6
+
 configurations {
     mvn3Input
 }
