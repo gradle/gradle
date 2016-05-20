@@ -53,7 +53,7 @@ Building against Java 5 requires that the compiler daemon and test execution inf
 - Warning when running tests on Java 5.
 - Can cross-compile and test for Java 6 with no warning
 
-## Change minimum Gradle version supported by the tooling API client to Gradle 1.2
+## Change minimum Gradle version supported by the tooling API client to Gradle 1.2 (DONE)
 
 Tooling api client no longer executes builds for Gradle versions older than 1.2. Tooling api client 2.x supports Gradle 1.0-m8 and later.
 
@@ -70,7 +70,7 @@ Tooling api client no longer executes builds for Gradle versions older than 1.2.
     - `GradleConnection`
     - `GradleRunner`
 
-## Change minimum tooling API client version supported to Gradle 2.0
+## Change minimum tooling API client version supported to Gradle 2.0 (DONE)
 
 - Update 'unsupported version' error message to mention 2.0 rather than 1.2
 
@@ -79,7 +79,7 @@ Tooling api client no longer executes builds for Gradle versions older than 1.2.
 - Warning when running a build, a build action or fetching model using tapi 1.12 or earlier
     - `ProjectConnection`
 
-## Remove Sonar plugins
+## Remove Sonar plugins (DONE)
 
 ~~Remove the Sonar plugins~~ done
 
