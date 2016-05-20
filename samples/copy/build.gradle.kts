@@ -1,5 +1,4 @@
 import org.gradle.api.tasks.*
-import org.gradle.api.tasks.wrapper.*
 import org.gradle.script.lang.kotlin.*
 import org.apache.tools.ant.filters.*
 
@@ -30,8 +29,4 @@ task<Copy>("initConfig") {
 
 task<Delete>("clean") {
     delete(buildDir)
-}
-
-tasks.withType<Wrapper> {
-    distributionUrl = "https://repo.gradle.org/gradle/repo/gradle-gsk-1.0.0-M1.zip"
 }

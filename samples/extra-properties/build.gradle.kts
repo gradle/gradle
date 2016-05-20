@@ -1,5 +1,4 @@
 import org.gradle.script.lang.kotlin.*
-import org.gradle.api.tasks.wrapper.*
 
 val myTask = task("myTask") {
 
@@ -15,7 +14,3 @@ afterEvaluate {
 }
 
 defaultTasks(myTask.name)
-
-tasks.withType<Wrapper> {
-    distributionUrl = "https://repo.gradle.org/gradle/repo/gradle-gsk-1.0.0-M1.zip"
-}
