@@ -18,11 +18,6 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Task;
-import org.gradle.api.internal.AbstractTask;
-import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
@@ -35,15 +30,11 @@ import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import static org.junit.Assert.fail;
 
@@ -506,64 +497,4 @@ public class AnnotationProcessingTasks {
         }
     }
     //CHECKSTYLE:ON
-
-    /**
-     * Being unable to figure out how to do this in Groovy, I've copped out and
-     * moved the logic to a helper-class in Java. (~ Pepper)
-     */
-    public static class TaskCreator {
-        final ProjectInternal project;
-        final StubTaskFactory delegate;
-        final AnnotationProcessingTaskFactory factory;
-        private final Map<String, ?> args = new HashMap<String, Object>();
-
-        public TaskCreator(ProjectInternal project) {
-            this.project = project;
-            this.delegate = new StubTaskFactory();
-            this.factory = new AnnotationProcessingTaskFactory(new DefaultTaskClassInfoStore(), delegate);
-        }
-
-        <T extends Task> T expectTaskCreated(final Class<T> type, final Object... params) {
-            final Class<? extends T> decorated = project.getServices().get(ClassGenerator.class).generate(type);
-            T task = AbstractTask.injectIntoNewInstance(project, "task", type, new Callable<T>() {
-                public T call() throws Exception {
-                    if (params.length > 0) {
-                        return type.cast(decorated.getConstructors()[0].newInstance(params));
-                    } else {
-                        return decorated.newInstance();
-                    }
-                }
-            });
-            return expectTaskCreated(task);
-        }
-
-        private <T extends Task> T expectTaskCreated(final T task) {
-            delegate.willYield(task);
-            assert factory.createTask(args) == task;
-            return task;
-        }
-    }
-
-    private static class StubTaskFactory implements ITaskFactory {
-        private TaskInternal toCreate;
-
-        void willYield(Task expected) {
-            toCreate = (TaskInternal) expected;
-        }
-
-        @Override
-        public TaskInternal createTask(Map<String, ?> args) {
-            return toCreate;
-        }
-
-        @Override
-        public ITaskFactory createChild(ProjectInternal project, Instantiator instantiator) {
-            return null;
-        }
-
-        @Override
-        public <S extends TaskInternal> S create(String name, Class<S> type) {
-            return null;
-        }
-    }
 }
