@@ -1,4 +1,8 @@
 import org.gradle.api.artifacts.dsl.*
+import org.gradle.api.plugins.*
+import org.gradle.api.publish.*
+import org.gradle.api.publish.maven.*
+import org.gradle.jvm.tasks.*
 import org.gradle.script.lang.kotlin.*
 
 apply {
@@ -26,4 +30,16 @@ dependencies {
     compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
     compile("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
     compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
+}
+
+tasks.withType<Jar> {
+    from(the<JavaPluginConvention>().sourceSets.getByName("main").allSource)
+}
+
+configure<PublishingExtension> {
+    publications {
+        it.create<MavenPublication>("mavenJava") {
+            from(components.getByName("java"))
+        }
+    }
 }

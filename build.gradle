@@ -13,10 +13,6 @@ buildscript {
 
 apply from: 'build.gradle.kts'
 
-jar {
-    from sourceSets.main.allSource
-}
-
 
 // --- classpath.properties --------------------------------------------
 File generatedResourcesDir = file("$buildDir/generate-resources/main")
@@ -29,14 +25,6 @@ sourceSets {
 
 
 // --- Configure publications ------------------------------------------
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
-}
-
 artifactory {
     contextUrl = "https://repo.gradle.org/gradle"
     publish {
