@@ -224,6 +224,30 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         skipped ":pluginDescriptors"
     }
 
+    def "Plugin descriptor generation clears output folder"() {
+        given:
+        buildFile()
+        goodPlugin()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    testPlugin {
+                        id = 'test-plugin'
+                        implementationClass = 'com.xxx.TestPlugin'
+                    }
+                }
+            }
+        """
+        succeeds "jar"
+        buildFile << """
+            gradlePlugin.plugins.testPlugin.id = 'test-plugin-changed'
+        """
+        expect:
+
+        succeeds "jar"
+        file("build", "pluginDescriptors").listFiles().size() == 1
+    }
+
     def buildFile() {
         buildFile << """
 apply plugin: 'java-gradle-plugin'
