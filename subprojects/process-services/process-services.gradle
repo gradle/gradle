@@ -2,6 +2,8 @@
  * Process execution abstractions.
  */
 
+sourceCompatibility = 1.5
+
 dependencies {
     compile project(':baseServices')
 

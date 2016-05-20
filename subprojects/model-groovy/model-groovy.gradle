@@ -20,6 +20,8 @@
  */
 apply plugin: "groovy"
 
+sourceCompatibility = 1.5
+
 dependencies {
     compile libraries.slf4j_api
     compile project(':baseServicesGroovy')

@@ -1,6 +1,9 @@
 /*
     This project contains various native operating system integration utilities.
 */
+
+sourceCompatibility = 1.5
+
 dependencies {
     compile project(':baseServices')
     compile libraries.commons_io

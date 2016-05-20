@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+sourceCompatibility = 1.5
+
 configurations {
     reports
 }

@@ -2,6 +2,8 @@
  * Logging infrastructure.
  */
 
+sourceCompatibility = 1.5
+
 dependencies {
     compile libraries.groovy
     compile libraries.slf4j_api

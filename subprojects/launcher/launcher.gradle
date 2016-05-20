@@ -1,5 +1,8 @@
 import org.gradle.internal.jvm.Jvm
 
+// Main entry point requires Java 5
+sourceCompatibility = 1.5
+
 configurations {
     startScriptGenerator
 }

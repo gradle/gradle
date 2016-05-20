@@ -1,3 +1,5 @@
+sourceCompatibility = 1.5
+
 dependencies {
     integTestCompile libraries.groovy
     integTestCompile libraries.slf4j_api
