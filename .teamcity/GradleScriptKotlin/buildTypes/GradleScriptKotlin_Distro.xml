@@ -32,7 +32,9 @@
     <vcs-settings>
       <vcs-entry-ref root-id="Gradle_Branches_GradleScriptKotlin" />
     </vcs-settings>
-    <requirements />
+    <requirements>
+      <contains name="teamcity.agent.jvm.os.name" value="Linux" />
+    </requirements>
     <build-triggers>
       <build-trigger id="vcsTrigger" type="vcsTrigger">
         <parameters>
