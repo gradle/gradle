@@ -35,17 +35,7 @@ class S3ResourceResolverTest extends Specification {
         S3ResourceResolver resolver = new S3ResourceResolver()
 
         when:
-        def results = resolver.resolveDirectoryResourceNames(objectListing)
-        then:
-        results == ['SNAPSHOT/', '1.0.8/']
-
-        when:
-        results = resolver.resolveFileResourceNames(objectListing)
-        then:
-        results == ['some.jar', 'someOther.jar']
-
-        when:
-        results = resolver.resolveResourceNames(objectListing)
+        def results = resolver.resolveResourceNames(objectListing)
         then:
         results == ['some.jar', 'someOther.jar', 'SNAPSHOT/', '1.0.8/']
     }

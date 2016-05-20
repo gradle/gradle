@@ -16,19 +16,15 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
-import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class S3ResourceResolver {
 
-    private S3ResourceNameExtractor nameExtractor;
-
-    public S3ResourceResolver() {
-        this.nameExtractor = new S3ResourceNameExtractor();
-    }
+    private S3ResourceNameExtractor nameExtractor = new S3ResourceNameExtractor();
 
     public List<String> resolveResourceNames(ObjectListing objectListing) {
         List<String> results = new ArrayList<String>();
@@ -39,7 +35,7 @@ public class S3ResourceResolver {
         return results;
     }
 
-    public List<String> resolveFileResourceNames(ObjectListing objectListing) {
+    private List<String> resolveFileResourceNames(ObjectListing objectListing) {
         List<String> results = new ArrayList<String>();
         List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
         if (null != objectSummaries) {
@@ -55,7 +51,7 @@ public class S3ResourceResolver {
         return results;
     }
 
-    public List<String> resolveDirectoryResourceNames(ObjectListing objectListing) {
+    private List<String> resolveDirectoryResourceNames(ObjectListing objectListing) {
         List<String> results = new ArrayList<String>();
         List<String> commonPrefixes = objectListing.getCommonPrefixes();
         if(null != commonPrefixes) {

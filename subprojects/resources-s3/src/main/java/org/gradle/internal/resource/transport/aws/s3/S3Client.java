@@ -23,7 +23,12 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
-import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ListObjectsRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import com.google.common.base.Optional;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
@@ -40,21 +45,19 @@ import java.util.List;
 public class S3Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
 
-    private S3ResourceResolver resourceResolver;
+    private S3ResourceResolver resourceResolver = new S3ResourceResolver();
     private AmazonS3Client amazonS3Client;
     private final S3ConnectionProperties s3ConnectionProperties;
 
     public S3Client(AmazonS3Client amazonS3Client, S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
         this.amazonS3Client = amazonS3Client;
-        this.resourceResolver = new S3ResourceResolver();
     }
 
     public S3Client(AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
         AWSCredentials credentials = awsCredentials == null ? null : new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
         amazonS3Client = createAmazonS3Client(credentials);
-        this.resourceResolver = new S3ResourceResolver();
     }
 
     private AmazonS3Client createAmazonS3Client(AWSCredentials credentials) {
