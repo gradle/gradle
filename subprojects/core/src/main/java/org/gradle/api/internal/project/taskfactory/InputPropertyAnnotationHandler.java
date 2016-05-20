@@ -26,7 +26,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         return Input.class;
     }
 
-    public void attachActions(final TaskPropertyActionContext context) {
+    public void attachActions(final PropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
                 task.getInputs().property(context.getName(), futureValue);

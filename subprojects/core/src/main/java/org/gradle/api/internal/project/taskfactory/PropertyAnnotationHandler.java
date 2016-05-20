@@ -31,5 +31,5 @@ public interface PropertyAnnotationHandler {
     /**
      * Attaches the actions for the given property.
      */
-    void attachActions(TaskPropertyActionContext context);
+    void attachActions(PropertyActionContext context);
 }

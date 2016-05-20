@@ -41,7 +41,7 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
         return InputDirectory.class;
     }
 
-    public void attachActions(TaskPropertyActionContext context) {
+    public void attachActions(PropertyActionContext context) {
         context.setValidationAction(inputDirValidation);
         final boolean isSourceDir = context.getTarget().getAnnotation(SkipWhenEmpty.class) != null;
         context.setConfigureAction(new UpdateAction() {
