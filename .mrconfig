@@ -1,0 +1,6 @@
+[.]
+checkout = git clone git@github.com:gradle/gradle-script-kotlin.git
+
+[wiki]
+checkout = git clone git@github.com:gradle/gradle-script-kotlin.wiki.git
+

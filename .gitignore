@@ -5,6 +5,9 @@ build
 # idea
 .idea
 
+# mr (see .mrconfig)
+wiki
+
 # vim
 *.sw?
 
