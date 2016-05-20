@@ -246,6 +246,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
 
         succeeds "jar"
         file("build", "pluginDescriptors").listFiles().size() == 1
+        file("build", "resources", "main", "META-INF", "gradle-plugins").listFiles().size() == 1
     }
 
     def buildFile() {
