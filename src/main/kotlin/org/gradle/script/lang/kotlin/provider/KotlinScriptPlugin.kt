@@ -25,6 +25,7 @@ import org.gradle.script.lang.kotlin.loggerFor
 import org.gradle.script.lang.kotlin.task
 import org.gradle.script.lang.kotlin.tasks.GenerateKtsConfig
 import org.gradle.script.lang.kotlin.tasks.PatchIdeaConfig
+import java.lang.reflect.InvocationTargetException
 
 class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<*>) : ScriptPlugin {
 
@@ -47,6 +48,10 @@ class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<
     }
 
     private fun instantiateScriptClass(target: Any) {
-        scriptClass.getConstructor(Project::class.java).newInstance(target)
+        try {
+            scriptClass.getConstructor(Project::class.java).newInstance(target)
+        } catch(e: InvocationTargetException) {
+            throw e.targetException
+        }
     }
 }
