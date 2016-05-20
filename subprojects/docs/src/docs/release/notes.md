@@ -132,6 +132,7 @@ properties have been removed from the ScalaCompile task:
 * Removed `AntScalaCompiler` in favor of `ZincScalaCompiler`.
 * Removed `EclipseClasspath.noExportConfigurations` property.
 * TestKit supports Gradle versions 1.2 or later.
+* Build comparison plugin supports Gradle versions 1.2 or later.
 
 ### Tooling API changes
 

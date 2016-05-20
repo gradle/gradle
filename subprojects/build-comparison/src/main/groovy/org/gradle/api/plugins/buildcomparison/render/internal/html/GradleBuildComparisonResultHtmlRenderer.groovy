@@ -242,15 +242,6 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
             div(id: "compared-builds") {
                 h2 "Compared builds"
 
-                // We are reaching pretty deep into the knowledge of how things were created.
-                // This is not great and should be fixed.
-                if (!sourceExecuter.canObtainProjectOutcomesModel) {
-                    inferredOutcomesWarningMessage(true, sourceExecuter, context)
-                }
-                if (!targetExecuter.canObtainProjectOutcomesModel) {
-                    inferredOutcomesWarningMessage(false, targetExecuter, context)
-                }
-
                 table {
                     tr {
                         th class: "border-right", ""
@@ -290,19 +281,6 @@ class GradleBuildComparisonResultHtmlRenderer implements BuildComparisonResultRe
                         td targetBuildArguments.join(" ")
                     }
                 }
-            }
-        }
-    }
-
-    protected void inferredOutcomesWarningMessage(boolean isSourceBuild, ComparableGradleBuildExecuter executer, HtmlRenderContext context) {
-        def inferredFor = isSourceBuild ? "source" : "target"
-        def inferredFrom = isSourceBuild ? "target" : "source"
-
-        context.render {
-            div(class: "warning inferred-outcomes para") {
-                p "Build outcomes were not able to be determined for the ${inferredFor} build as Gradle ${executer.spec.gradleVersion} does not support this feature."
-                p "The outcomes for this build have inferred from the ${inferredFrom} build. That is, it is assumed to produce the same outcomes as the ${inferredFrom} build."
-                p "This may result in a less accurate comparison."
             }
         }
     }
