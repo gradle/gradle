@@ -67,4 +67,41 @@ class ImplementationDependencyRelocator extends Remapper {
         }
     }
 
+    public ClassLiteralRemapping maybeRemap(String literal) {
+        if (literal.startsWith("class$")) {
+            String className = literal.substring(6).replace('$', '.');
+            String replacement = relocateClass(className.replace('.', '/'));
+            if (replacement == null) {
+                return null;
+            }
+            String fieldNameReplacement = "class$" + replacement.replace('/', '$');
+            return new ClassLiteralRemapping(className, replacement, fieldNameReplacement);
+        }
+        return null;
+    }
+
+    public static class ClassLiteralRemapping {
+        private final String literal;
+        private final String literalReplacement;
+        private final String fieldNameReplacement;
+
+        public ClassLiteralRemapping(String literal, String literalReplacement, String fieldNameReplacement) {
+            this.literal = literal;
+            this.literalReplacement = literalReplacement;
+            this.fieldNameReplacement = fieldNameReplacement;
+        }
+
+        public String getLiteral() {
+            return literal;
+        }
+
+        public String getLiteralReplacement() {
+            return literalReplacement;
+        }
+
+        public String getFieldNameReplacement() {
+            return fieldNameReplacement;
+        }
+    }
+
 }
