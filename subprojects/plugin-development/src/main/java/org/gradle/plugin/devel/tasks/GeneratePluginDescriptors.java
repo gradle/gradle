@@ -24,8 +24,6 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.io.IoUtils;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.util.GUtil;
 
