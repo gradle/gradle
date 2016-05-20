@@ -63,6 +63,22 @@ inline fun <reified T : Any> Project.configure(configuration: T.() -> Unit) =
 
 inline fun <T : Any> Project.configure(extensionType: KClass<T>, configuration: T.() -> Unit) =
     configuration(convention.getPlugin(extensionType.java))
+/**
+ * Returns the plugin convention or extension of the specified type.
+ */
+inline fun <reified T : Any> Project.the() =
+    the(T::class)
+
+@Suppress("nothing_to_inline") // required to avoid a ClassLoader conflict on KClass
+inline fun <T : Any> Project.the(extensionType: KClass<T>) =
+    convention.findPlugin(extensionType.java) ?: convention.getByType(extensionType.java)
+
+inline fun <reified T : Any> Convention.getPlugin() =
+    getPlugin(T::class)
+
+@Suppress("nothing_to_inline") // required to avoid a ClassLoader conflict on KClass
+inline fun <T : Any> Convention.getPlugin(conventionType: KClass<T>) =
+    getPlugin(conventionType.java)
 
 inline fun <reified T : Task> Project.task(name: String, noinline configuration: T.() -> Unit) =
     task(name, T::class, configuration)
