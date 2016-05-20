@@ -569,9 +569,14 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         executer.run()
 
         then:
-        def manifest = new JarFile(file('dest/test.jar')).manifest
-        manifest.mainAttributes.getValue(attributeNameWritten) == attributeValue
-        manifest.mainAttributes.getValue(attributeNameMerged) == attributeValue
+        def jar = new JarFile(file('dest/test.jar'))
+        try {
+            def manifest = jar.manifest
+            manifest.mainAttributes.getValue(attributeNameWritten) == attributeValue
+            manifest.mainAttributes.getValue(attributeNameMerged) == attributeValue
+        } finally {
+            jar.close()
+        }
     }
 
     @Issue('GRADLE-3374')
