@@ -17,19 +17,15 @@
 package org.gradle.launcher.daemon.server.health
 
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution
-import org.gradle.launcher.daemon.server.api.DaemonStateControl
 import spock.lang.Specification
 
 class DaemonHealthTrackerTest extends Specification {
-
-    def control = Mock(DaemonStateControl)
-    def exec = Mock(DaemonCommandExecution) {
-        getDaemonStateControl() >> control
-    }
+    def exec = Mock(DaemonCommandExecution)
     def stats = Mock(DaemonStats)
     def status = Mock(DaemonStatus)
     def logger = Mock(HealthLogger)
-    def tracker = new DaemonHealthTracker(stats, status, logger)
+    def healthCheck = Mock(DaemonHealthCheck)
+    def tracker = new DaemonHealthTracker(stats, healthCheck, logger)
 
     def "tracks start and complete events"() {
         when: tracker.execute(exec)
@@ -49,21 +45,11 @@ class DaemonHealthTrackerTest extends Specification {
         0 * _
     }
 
-    def "stops after the build when performance goes down"() {
-        1 * status.isDaemonUnhealthy() >> true
-
-        when: tracker.execute(exec)
-
-        then:
-        1 * control.requestStop()
-    }
-
-    def "does not stop after the build when performance is acceptable"() {
-        1 * status.isDaemonUnhealthy() >> false
-
-        when: tracker.execute(exec)
+    def "executes health check"() {
+        when:
+        tracker.execute(exec)
 
         then:
-        0 * control.requestStop()
+        1 * healthCheck.executeHealthCheck()
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
+import org.gradle.launcher.daemon.server.health.DaemonStatus;
 
 import java.util.concurrent.TimeUnit;
 
@@ -29,7 +30,7 @@ public class DaemonExpirationStrategies {
 
     public static DaemonExpirationStrategy getDefaultStrategy(Daemon daemon, DaemonServices daemonServices, final DaemonServerConfiguration params) {
         ImmutableList.Builder<DaemonExpirationStrategy> strategies = ImmutableList.<DaemonExpirationStrategy>builder();
-        strategies.add(getHealthStrategy(daemonServices));
+        strategies.add(getHealthStrategy(daemonServices.get(DaemonHealthServices.class).getDaemonStatus()));
         strategies.add(new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout(), TimeUnit.MILLISECONDS));
         try {
             strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
@@ -44,11 +45,11 @@ public class DaemonExpirationStrategies {
         return new AnyDaemonExpirationStrategy(strategies.build());
     }
 
-    public static DaemonExpirationStrategy getHealthStrategy(DaemonServices daemonServices) {
+    public static DaemonExpirationStrategy getHealthStrategy(DaemonStatus status) {
         return new AnyDaemonExpirationStrategy(ImmutableList.of(
-            new GcThrashingDaemonExpirationStrategy(daemonServices.get(DaemonHealthServices.class)),
-            new LowTenuredSpaceDaemonExpirationStrategy(daemonServices.get(DaemonHealthServices.class)),
-            new LowPermGenDaemonExpirationStrategy(daemonServices.get(DaemonHealthServices.class))
+            new GcThrashingDaemonExpirationStrategy(status),
+            new LowTenuredSpaceDaemonExpirationStrategy(status),
+            new LowPermGenDaemonExpirationStrategy(status)
         ));
     }
 }

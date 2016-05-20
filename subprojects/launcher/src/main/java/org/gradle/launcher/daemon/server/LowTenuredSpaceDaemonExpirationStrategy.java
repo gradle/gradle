@@ -16,20 +16,20 @@
 
 package org.gradle.launcher.daemon.server;
 
-import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
+import org.gradle.launcher.daemon.server.health.DaemonStatus;
 
 import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_EXPIRE;
 
 public class LowTenuredSpaceDaemonExpirationStrategy implements DaemonExpirationStrategy {
-    private final DaemonHealthServices healthServices;
+    private final DaemonStatus status;
 
-    public LowTenuredSpaceDaemonExpirationStrategy(DaemonHealthServices healthServices) {
-        this.healthServices = healthServices;
+    public LowTenuredSpaceDaemonExpirationStrategy(DaemonStatus status) {
+        this.status = status;
     }
 
     @Override
     public DaemonExpirationResult checkExpiration() {
-        if (healthServices.getDaemonStatus().isTenuredSpaceExhausted()) {
+        if (status.isTenuredSpaceExhausted()) {
             return new DaemonExpirationResult(GRACEFUL_EXPIRE, "JVM tenured space is exhausted");
         } else {
             return DaemonExpirationResult.NOT_TRIGGERED;

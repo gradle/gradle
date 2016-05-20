@@ -26,12 +26,12 @@ class DaemonHealthTracker implements DaemonCommandAction {
     private final static Logger LOG = Logging.getLogger(DaemonHealthTracker.class);
 
     private final DaemonStats stats;
-    private final DaemonStatus status;
+    private final DaemonHealthCheck healthCheck;
     private final HealthLogger logger;
 
-    DaemonHealthTracker(DaemonStats stats, DaemonStatus status, HealthLogger logger) {
+    public DaemonHealthTracker(DaemonStats stats, DaemonHealthCheck healthCheck, HealthLogger logger) {
         this.stats = stats;
-        this.status = status;
+        this.healthCheck = healthCheck;
         this.logger = logger;
     }
 
@@ -49,8 +49,8 @@ class DaemonHealthTracker implements DaemonCommandAction {
             stats.buildFinished();
         }
 
-        if(status.isDaemonUnhealthy()) {
-            execution.getDaemonStateControl().requestStop();
-        }
+        // Execute the health check that should send out a DaemonExpiration event
+        // if the daemon is unhealthy
+        healthCheck.executeHealthCheck();
     }
 }

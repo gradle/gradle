@@ -32,7 +32,10 @@ import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
+import org.gradle.launcher.daemon.server.health.DaemonHealthCheck;
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
+import org.gradle.launcher.daemon.server.health.DaemonStats;
+import org.gradle.launcher.daemon.server.health.DaemonStatus;
 import org.gradle.launcher.daemon.server.health.DefaultDaemonHealthServices;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -81,8 +84,11 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new File(get(DaemonDir.class).getVersionedDir(), fileName);
     }
 
-    protected DaemonHealthServices createDaemonHealthServices(ScheduledExecutorService scheduledExecutorService) {
-        return new DefaultDaemonHealthServices(scheduledExecutorService);
+    protected DaemonHealthServices createDaemonHealthServices(ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
+        DaemonStats stats = new DaemonStats(scheduledExecutorService);
+        DaemonStatus status = new DaemonStatus(stats);
+        DaemonHealthCheck healthCheck = new DefaultDaemonHealthCheck(DaemonExpirationStrategies.getHealthStrategy(status), listenerManager);
+        return new DefaultDaemonHealthServices(healthCheck, status, stats);
     }
 
     protected ScheduledExecutorService createScheduledExecutorService() {

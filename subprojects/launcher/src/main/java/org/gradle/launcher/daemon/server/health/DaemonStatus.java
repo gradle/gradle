@@ -39,10 +39,6 @@ public class DaemonStatus {
         this.stats = stats;
     }
 
-    boolean isDaemonUnhealthy() {
-        return isTenuredSpaceExhausted() || isPermGenSpaceExhausted();
-    }
-
     public boolean isTenuredSpaceExhausted() {
         if (!isEnabled()) {
             return false;

@@ -40,7 +40,7 @@ public class DaemonStats {
     private long allBuildsTime;
     private int currentPerformance;
 
-    DaemonStats(ScheduledExecutorService scheduledExecutorService) {
+    public DaemonStats(ScheduledExecutorService scheduledExecutorService) {
         this(new Clock(), new TrueTimeProvider(), new MemoryInfo(), new GarbageCollectionMonitor(scheduledExecutorService));
     }
 
