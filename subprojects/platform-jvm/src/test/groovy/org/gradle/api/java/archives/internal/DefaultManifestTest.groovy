@@ -194,10 +194,10 @@ class DefaultManifestTest extends Specification {
         '''.stripIndent().trim() + '\n'
 
         when:
-        def noBlankLinesJavaManifest = new java.util.jar.Manifest(noBlankLinesManifestFile.newInputStream())
-        def blankLinesJavaManifest = new java.util.jar.Manifest(blankLinesManifestFile.newInputStream())
-        def noBlankLinesAntManifest = new org.apache.tools.ant.taskdefs.Manifest(noBlankLinesManifestFile.newReader('UTF-8'))
-        def blankLinesAntManifest = new org.apache.tools.ant.taskdefs.Manifest(blankLinesManifestFile.newReader('UTF-8'))
+        def noBlankLinesJavaManifest = readJavaManifest(noBlankLinesManifestFile)
+        def blankLinesJavaManifest = readJavaManifest(blankLinesManifestFile)
+        def noBlankLinesAntManifest = readAntManifest(noBlankLinesManifestFile)
+        def blankLinesAntManifest = readAntManifest(blankLinesManifestFile)
 
         then:
         // Java Manifest, no blank lines
@@ -241,11 +241,11 @@ class DefaultManifestTest extends Specification {
         java.util.jar.Manifest manifest = new java.util.jar.Manifest();
         manifest.mainAttributes.putValue('Manifest-Version', '1.0')
         manifest.mainAttributes.putValue('Another-Looooooong-Name-Entry', attributeValue)
-        manifest.write(manifestFile.newOutputStream())
+        writeJavaManifest(manifest, manifestFile)
 
         when:
-        def javaManifest = new java.util.jar.Manifest(manifestFile.newInputStream());
-        def antManifest = new org.apache.tools.ant.taskdefs.Manifest(manifestFile.newReader('UTF-8'))
+        def javaManifest = readJavaManifest(manifestFile)
+        def antManifest = readAntManifest(manifestFile)
 
         then:
         javaManifest.getMainAttributes().getValue('Another-Looooooong-Name-Entry') == attributeValue
@@ -267,7 +267,7 @@ class DefaultManifestTest extends Specification {
         gradleManifest.writeTo('manifestFile')
 
         then:
-        java.util.jar.Manifest javaManifest = new java.util.jar.Manifest(manifestFile.newInputStream());
+        def javaManifest = readJavaManifest(manifestFile)
         javaManifest.mainAttributes.getValue('Looong-Name-Of-Manifest-Entry') == attributeValue
     }
 
@@ -290,7 +290,12 @@ class DefaultManifestTest extends Specification {
         def anotherSection = new java.util.jar.Attributes()
         anotherSection.putValue('bazar', 'cathedral')
         javaMergedManifest.entries.put("AnotherSection", anotherSection)
-        javaMergedManifest.write(mergedFile.newOutputStream())
+        def outputStream = mergedFile.newOutputStream()
+        try {
+            javaMergedManifest.write(outputStream)
+        } finally {
+            outputStream.close()
+        }
 
         and:
         // Remove blank lines to exercise Ant's Manifest interoperability
@@ -330,10 +335,37 @@ class DefaultManifestTest extends Specification {
         gradleManifest.writeTo('manifestFile')
 
         then:
-        java.util.jar.Manifest javaManifest = new java.util.jar.Manifest(manifestFile.newInputStream());
+        def javaManifest = readJavaManifest(manifestFile)
         javaManifest.mainAttributes.getValue('Looong-Name-Of-Manifest-Entry') == attributeValue
         javaManifest.mainAttributes.getValue('Another-Looooooong-Name-Entry') == attributeValue
         javaManifest.entries.get('SomeSection').getValue('foo') == 'bar'
         javaManifest.entries.get('AnotherSection').getValue('bazar') == 'cathedral'
+    }
+
+    private java.util.jar.Manifest readJavaManifest(File file) {
+        def inputStream = file.newInputStream()
+        try {
+            return new java.util.jar.Manifest(inputStream)
+        } finally {
+            inputStream.close()
+        }
+    }
+
+    private void writeJavaManifest(java.util.jar.Manifest manifest, File file) {
+        def outputStream = file.newOutputStream()
+        try {
+            manifest.write(outputStream)
+        } finally {
+            outputStream.close()
+        }
+    }
+
+    private org.apache.tools.ant.taskdefs.Manifest readAntManifest(File file) {
+        def reader = file.newReader('UTF-8')
+        try {
+            return new org.apache.tools.ant.taskdefs.Manifest(reader)
+        } finally {
+            reader.close()
+        }
     }
 }

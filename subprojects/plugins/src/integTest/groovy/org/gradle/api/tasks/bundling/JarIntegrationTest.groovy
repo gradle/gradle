@@ -545,7 +545,12 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         mergedManifest.mainAttributes.putValue('Manifest-Version', '1.0')
         mergedManifest.mainAttributes.putValue(attributeNameMerged, attributeValue);
         def mergedManifestFile = file(mergedManifestFilename)
-        mergedManifest.write(mergedManifestFile.newOutputStream())
+        def outputStream = mergedManifestFile.newOutputStream()
+        try {
+            mergedManifest.write(outputStream)
+        } finally {
+            outputStream.close()
+        }
 
         buildScript """
             task jar(type: Jar) {
