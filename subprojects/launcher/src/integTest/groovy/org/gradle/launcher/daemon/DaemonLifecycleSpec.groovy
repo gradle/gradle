@@ -326,6 +326,29 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
+    def "idle daemon stops immediately if registry is deleted"() {
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+
+        then:
+        completeBuild()
+
+        and:
+        idle()
+
+        when:
+        daemonContext {
+            new DaemonDir(executer.daemonBaseDir).registry.delete()
+        }
+
+        then:
+        stopped()
+    }
+
     def "daemon stops after current build if registry is deleted and recreated"() {
         when:
         startBuild()
