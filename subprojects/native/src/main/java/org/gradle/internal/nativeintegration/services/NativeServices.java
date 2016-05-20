@@ -15,8 +15,14 @@
  */
 package org.gradle.internal.nativeintegration.services;
 
-import net.rubygrapefruit.platform.*;
+import net.rubygrapefruit.platform.NativeException;
+import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
+import net.rubygrapefruit.platform.PosixFiles;
 import net.rubygrapefruit.platform.Process;
+import net.rubygrapefruit.platform.ProcessLauncher;
+import net.rubygrapefruit.platform.SystemInfo;
+import net.rubygrapefruit.platform.Terminals;
+import net.rubygrapefruit.platform.WindowsRegistry;
 import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
@@ -86,10 +92,6 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             initialized = true;
 
             LOGGER.info("Initialized native services in: " + nativeBaseDir);
-        }
-
-        if (useNativePlatform && !nativeBaseDir.exists()) {
-            throw new IllegalStateException("NativeServices initialized for directory that no longer exists: " + userHomeDir.getAbsolutePath());
         }
     }
 
