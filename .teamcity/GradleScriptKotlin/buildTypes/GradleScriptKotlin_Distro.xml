@@ -41,6 +41,12 @@
           <param name="quietPeriodMode" value="DO_NOT_USE" />
         </parameters>
       </build-trigger>
+      <build-trigger id="TRIGGER_4" type="buildDependencyTrigger">
+        <parameters>
+          <param name="afterSuccessfulBuildOnly" value="true" />
+          <param name="dependsOn" value="GradleScriptKotlin_Master" />
+        </parameters>
+      </build-trigger>
     </build-triggers>
     <dependencies>
       <depend-on sourceBuildTypeId="GradleScriptKotlin_Master">
