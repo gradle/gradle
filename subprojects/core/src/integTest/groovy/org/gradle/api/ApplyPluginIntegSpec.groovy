@@ -16,6 +16,7 @@
 
 package org.gradle.api
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TextUtil
@@ -27,9 +28,13 @@ import spock.lang.Issue
 @UsesNativeServices
 class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
     def testProjectPath
+    def gradleUserHome
+
+    def buildContext = new IntegrationTestBuildContext()
 
     def setup() {
         testProjectPath = TextUtil.normaliseFileSeparators(file("test-project-dir").absolutePath)
+        gradleUserHome = TextUtil.normaliseFileSeparators(buildContext.gradleUserHomeDir.absolutePath)
     }
 
     @Issue("GRADLE-2358")
@@ -105,7 +110,11 @@ class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
                 @Test
                 void "can evaluate ProjectBuilder"() {
                     def projectDir = new File('${testProjectPath}')
-                    def project = ProjectBuilder.builder().withProjectDir(projectDir).build()
+                    def userHome = new File('${gradleUserHome}')
+                    def project = ProjectBuilder.builder()
+                                    .withProjectDir(projectDir)
+                                    .withGradleUserHomeDir(userHome)
+                                    .build()
                     project.apply(plugin: 'groovy')
                     project.evaluate()
                 }
