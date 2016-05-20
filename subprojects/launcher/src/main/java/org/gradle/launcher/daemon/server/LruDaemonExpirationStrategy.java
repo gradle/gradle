@@ -30,7 +30,13 @@ import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.QUIET_EXP
  *
  */
 public class LruDaemonExpirationStrategy implements DaemonExpirationStrategy {
-    public DaemonExpirationResult checkExpiration(Daemon daemon) {
+    private final Daemon daemon;
+
+    public LruDaemonExpirationStrategy(Daemon daemon) {
+        this.daemon = daemon;
+    }
+
+    public DaemonExpirationResult checkExpiration() {
         DaemonRegistry registry = daemon.getDaemonRegistry();
         return registry.getAll().size() > 1 && isOldest(daemon.getDaemonContext(), registry)
             ? new DaemonExpirationResult(QUIET_EXPIRE, "This is the least recently used daemon")

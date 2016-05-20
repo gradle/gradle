@@ -24,7 +24,6 @@ import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.IMMEDIATE
 import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.QUIET_EXPIRE
 
 class AnyDaemonExpirationStrategyTest extends Specification {
-    private Daemon mockDaemon = Mock(Daemon)
     private DaemonExpirationStrategy c1;
     private DaemonExpirationStrategy c2;
 
@@ -38,11 +37,11 @@ class AnyDaemonExpirationStrategyTest extends Specification {
         AnyDaemonExpirationStrategy agg = new AnyDaemonExpirationStrategy(ImmutableList.of(c1, c2))
 
         when:
-        1 * c1.checkExpiration(_) >> { new DaemonExpirationResult(c1Status, "r1") }
-        1 * c2.checkExpiration(_) >> { new DaemonExpirationResult(c2Status, "r2") }
+        1 * c1.checkExpiration() >> { new DaemonExpirationResult(c1Status, "r1") }
+        1 * c2.checkExpiration() >> { new DaemonExpirationResult(c2Status, "r2") }
 
         then:
-        DaemonExpirationResult result = agg.checkExpiration(mockDaemon)
+        DaemonExpirationResult result = agg.checkExpiration()
         result.status == anyStatus
         result.reason == reason
 
@@ -61,11 +60,11 @@ class AnyDaemonExpirationStrategyTest extends Specification {
         AnyDaemonExpirationStrategy agg = new AnyDaemonExpirationStrategy(ImmutableList.of(c1, c2))
 
         when:
-        1 * c1.checkExpiration(_) >> { new DaemonExpirationResult(DO_NOT_EXPIRE, null) }
-        1 * c2.checkExpiration(_) >> { new DaemonExpirationResult(DO_NOT_EXPIRE, null) }
+        1 * c1.checkExpiration() >> { new DaemonExpirationResult(DO_NOT_EXPIRE, null) }
+        1 * c2.checkExpiration() >> { new DaemonExpirationResult(DO_NOT_EXPIRE, null) }
 
         then:
-        DaemonExpirationResult result = agg.checkExpiration(mockDaemon)
+        DaemonExpirationResult result = agg.checkExpiration()
         result.status == DO_NOT_EXPIRE
         result.reason == null
     }
@@ -77,7 +76,7 @@ class AnyDaemonExpirationStrategyTest extends Specification {
         AnyDaemonExpirationStrategy agg = new AnyDaemonExpirationStrategy(Collections.emptyList())
 
         then:
-        DaemonExpirationResult result = agg.checkExpiration(mockDaemon)
+        DaemonExpirationResult result = agg.checkExpiration()
         result.status == DO_NOT_EXPIRE
         result.reason == null
     }

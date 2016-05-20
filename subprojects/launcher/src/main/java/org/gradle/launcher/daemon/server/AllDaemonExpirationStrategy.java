@@ -32,7 +32,7 @@ public class AllDaemonExpirationStrategy implements DaemonExpirationStrategy {
         this.expirationStrategies = expirationStrategies;
     }
 
-    public DaemonExpirationResult checkExpiration(Daemon daemon) {
+    public DaemonExpirationResult checkExpiration() {
         // If no expiration strategies exist, the daemon will not expire.
         DaemonExpirationResult expirationResult = DaemonExpirationResult.NOT_TRIGGERED;
         DaemonExpirationStatus expirationStatus = DO_NOT_EXPIRE;
@@ -41,7 +41,7 @@ public class AllDaemonExpirationStrategy implements DaemonExpirationStrategy {
         for (DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
             // If any of the child strategies don't expire the daemon, the daemon will not expire.
             // Otherwise, the daemon will expire and aggregate the reasons together.
-            expirationResult = expirationStrategy.checkExpiration(daemon);
+            expirationResult = expirationStrategy.checkExpiration();
 
             if (expirationResult.getStatus() == DO_NOT_EXPIRE) {
                 return DaemonExpirationResult.NOT_TRIGGERED;

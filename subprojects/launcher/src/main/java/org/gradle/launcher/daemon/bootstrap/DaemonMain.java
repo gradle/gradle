@@ -123,7 +123,7 @@ public class DaemonMain extends EntryPoint {
             Long pid = daemonContext.getPid();
             daemonStarted(pid, daemon.getUid(), daemon.getAddress(), daemonLog);
 
-            daemon.stopOnExpiration(initializeExpirationStrategy(daemonServices, parameters), parameters.getPeriodicCheckIntervalMs());
+            daemon.stopOnExpiration(initializeExpirationStrategy(daemon, daemonServices, parameters), parameters.getPeriodicCheckIntervalMs());
         } finally {
             daemon.stop();
         }
@@ -183,22 +183,22 @@ public class DaemonMain extends EntryPoint {
         loggingManager.start();
     }
 
-    private DaemonExpirationStrategy initializeExpirationStrategy(DaemonServices daemonServices, final DaemonServerConfiguration params) {
+    private DaemonExpirationStrategy initializeExpirationStrategy(Daemon daemon, DaemonServices daemonServices, final DaemonServerConfiguration params) {
         Builder strategies = ImmutableList.<DaemonExpirationStrategy>builder();
         strategies.add(new GcThrashingDaemonExpirationStrategy(daemonServices.get(DaemonHealthServices.class)));
-        strategies.add(new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout(), TimeUnit.MILLISECONDS));
+        strategies.add(new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout(), TimeUnit.MILLISECONDS));
         strategies.add(new LowTenuredSpaceDaemonExpirationStrategy(daemonServices.get(DaemonHealthServices.class)));
         strategies.add(new LowPermGenDaemonExpirationStrategy(daemonServices.get(DaemonHealthServices.class)));
         try {
             strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
-                new DaemonIdleTimeoutExpirationStrategy(params.getIdleTimeout() / 8, TimeUnit.MILLISECONDS),
+                new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout() / 8, TimeUnit.MILLISECONDS),
                 LowMemoryDaemonExpirationStrategy.belowFreePercentage(0.2)
             )));
         } catch (UnsupportedOperationException e) {
             LOGGER.info("This JVM does not support getting free system memory, so daemons will not check for it");
         }
 
-        strategies.add(new DaemonRegistryUnavailableExpirationStrategy());
+        strategies.add(new DaemonRegistryUnavailableExpirationStrategy(daemon));
         return new AnyDaemonExpirationStrategy(strategies.build());
     }
 

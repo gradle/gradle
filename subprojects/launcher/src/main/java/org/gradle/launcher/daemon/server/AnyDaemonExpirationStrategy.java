@@ -31,13 +31,13 @@ public class AnyDaemonExpirationStrategy implements DaemonExpirationStrategy {
     }
 
     @Override
-    public DaemonExpirationResult checkExpiration(final Daemon daemon) {
+    public DaemonExpirationResult checkExpiration() {
         DaemonExpirationResult expirationResult;
         DaemonExpirationStatus expirationStatus = DaemonExpirationStatus.DO_NOT_EXPIRE;
         List<String> reasons = Lists.newArrayList();
 
         for (DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
-            expirationResult = expirationStrategy.checkExpiration(daemon);
+            expirationResult = expirationStrategy.checkExpiration();
             if (expirationResult.getStatus() != DaemonExpirationStatus.DO_NOT_EXPIRE) {
                 reasons.add(expirationResult.getReason());
                 if (expirationResult.getStatus().ordinal() > expirationStatus.ordinal()) {

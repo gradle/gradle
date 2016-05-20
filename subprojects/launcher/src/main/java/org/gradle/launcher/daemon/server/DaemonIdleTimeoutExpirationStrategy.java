@@ -28,17 +28,19 @@ import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.QUIET_EXP
 public class DaemonIdleTimeoutExpirationStrategy implements DaemonExpirationStrategy {
     private static final Logger LOG = Logging.getLogger(DaemonIdleTimeoutExpirationStrategy.class);
     private Function<?, Long> idleTimeout;
+    private final Daemon daemon;
 
-    public DaemonIdleTimeoutExpirationStrategy(int idleTimeout, TimeUnit timeUnit) {
-        this(Functions.constant(timeUnit.toMillis(idleTimeout)));
+    public DaemonIdleTimeoutExpirationStrategy(Daemon daemon, int idleTimeout, TimeUnit timeUnit) {
+        this(daemon, Functions.constant(timeUnit.toMillis(idleTimeout)));
     }
 
-    public DaemonIdleTimeoutExpirationStrategy(Function<?, Long> timeoutClosure) {
+    public DaemonIdleTimeoutExpirationStrategy(Daemon daemon, Function<?, Long> timeoutClosure) {
+        this.daemon = daemon;
         this.idleTimeout = Preconditions.checkNotNull(timeoutClosure);
     }
 
     @Override
-    public DaemonExpirationResult checkExpiration(Daemon daemon) {
+    public DaemonExpirationResult checkExpiration() {
         long idleMillis = daemon.getStateCoordinator().getIdleMillis(System.currentTimeMillis());
         boolean idleTimeoutExceeded = idleMillis > idleTimeout.apply(null);
         if (idleTimeoutExceeded) {

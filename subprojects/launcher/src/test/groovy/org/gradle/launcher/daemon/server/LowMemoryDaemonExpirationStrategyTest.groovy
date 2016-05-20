@@ -23,7 +23,7 @@ import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.DO_NOT_EX
 import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_EXPIRE
 
 class LowMemoryDaemonExpirationStrategyTest extends Specification {
-    private final Daemon daemon = Mock(Daemon)
+    private final Daemon daemon = Mock()
     private final MemoryInfo mockMemoryInfo = Mock(MemoryInfo)
 
     def "daemon should expire when memory falls below threshold"() {
@@ -34,7 +34,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         1 * mockMemoryInfo.getFreePhysicalMemory() >> { 2 }
 
         then:
-        DaemonExpirationResult result = expirationStrategy.checkExpiration(daemon)
+        DaemonExpirationResult result = expirationStrategy.checkExpiration()
         result.status == GRACEFUL_EXPIRE
         result.reason == "Free system memory (2 bytes) is below threshold of 5 bytes"
     }
@@ -47,7 +47,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         1 * mockMemoryInfo.getFreePhysicalMemory() >> { 10 }
 
         then:
-        DaemonExpirationResult result = expirationStrategy.checkExpiration(daemon)
+        DaemonExpirationResult result = expirationStrategy.checkExpiration()
         result.status == DO_NOT_EXPIRE
         Strings.isNullOrEmpty(result.reason)
     }

@@ -51,15 +51,15 @@ public class ForegroundDaemonAction implements Runnable {
 
         try {
             daemonServices.get(DaemonRegistry.class).markIdle(daemon.getAddress());
-            daemon.stopOnExpiration(initializeExpirationStrategy(configuration), configuration.getPeriodicCheckIntervalMs());
+            daemon.stopOnExpiration(initializeExpirationStrategy(daemon, configuration), configuration.getPeriodicCheckIntervalMs());
         } finally {
             daemon.stop();
         }
     }
 
-    private DaemonExpirationStrategy initializeExpirationStrategy(final DaemonServerConfiguration config) {
-        DaemonIdleTimeoutExpirationStrategy timeoutStrategy = new DaemonIdleTimeoutExpirationStrategy(config.getIdleTimeout(), TimeUnit.MILLISECONDS);
-        DaemonRegistryUnavailableExpirationStrategy registryUnavailableStrategy = new DaemonRegistryUnavailableExpirationStrategy();
+    private DaemonExpirationStrategy initializeExpirationStrategy(Daemon daemon, final DaemonServerConfiguration config) {
+        DaemonIdleTimeoutExpirationStrategy timeoutStrategy = new DaemonIdleTimeoutExpirationStrategy(daemon, config.getIdleTimeout(), TimeUnit.MILLISECONDS);
+        DaemonRegistryUnavailableExpirationStrategy registryUnavailableStrategy = new DaemonRegistryUnavailableExpirationStrategy(daemon);
         return new AnyDaemonExpirationStrategy(ImmutableList.of(timeoutStrategy, registryUnavailableStrategy));
     }
 }

@@ -16,5 +16,5 @@
 package org.gradle.launcher.daemon.server;
 
 public interface DaemonExpirationStrategy {
-    DaemonExpirationResult checkExpiration(Daemon daemon);
+    DaemonExpirationResult checkExpiration();
 }

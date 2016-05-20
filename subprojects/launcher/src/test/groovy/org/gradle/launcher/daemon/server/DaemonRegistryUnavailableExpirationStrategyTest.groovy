@@ -36,12 +36,12 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
 
     def "daemon should expire when registry file is unreachable"() {
         given:
-        DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy()
+        DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy(daemon)
         DaemonContext daemonContext = new DefaultDaemonContext("user", null, tempDir.file("BOGUS"), 51234L, 10000, [] as List<String>)
 
         when:
         1 * daemon.getDaemonContext() >> { daemonContext }
-        DaemonExpirationResult expirationCheck = expirationStrategy.checkExpiration(daemon)
+        DaemonExpirationResult expirationCheck = expirationStrategy.checkExpiration()
 
         then:
         expirationCheck.status == GRACEFUL_EXPIRE
@@ -60,14 +60,14 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
         DaemonRegistry registry = new EmbeddedDaemonRegistry()
         daemonDir.getRegistry().createNewFile()
         registry.store(new DaemonInfo(address, daemonContext, "password".bytes, true))
-        DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy()
+        DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy(daemon)
 
         when:
         1 * daemon.getDaemonContext() >> { daemonContext }
         1 * daemon.getDaemonRegistry() >> { registry }
 
         then:
-        DaemonExpirationResult expirationCheck = expirationStrategy.checkExpiration(daemon)
+        DaemonExpirationResult expirationCheck = expirationStrategy.checkExpiration()
         expirationCheck.status == DO_NOT_EXPIRE
         expirationCheck.reason == null
     }

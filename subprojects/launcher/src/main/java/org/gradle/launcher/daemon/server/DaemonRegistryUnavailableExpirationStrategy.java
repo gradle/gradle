@@ -30,9 +30,14 @@ import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_
 
 public class DaemonRegistryUnavailableExpirationStrategy implements DaemonExpirationStrategy {
     private static final Logger LOG = Logging.getLogger(DaemonRegistryUnavailableExpirationStrategy.class);
+    private final Daemon daemon;
+
+    public DaemonRegistryUnavailableExpirationStrategy(Daemon daemon) {
+        this.daemon = daemon;
+    }
 
     @Override
-    public DaemonExpirationResult checkExpiration(Daemon daemon) {
+    public DaemonExpirationResult checkExpiration() {
         try {
             final DaemonContext daemonContext = daemon.getDaemonContext();
             final File daemonRegistryDir = daemonContext.getDaemonRegistryDir();

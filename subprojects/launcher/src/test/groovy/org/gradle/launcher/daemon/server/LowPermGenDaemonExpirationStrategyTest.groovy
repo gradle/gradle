@@ -24,7 +24,6 @@ import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_
 
 
 class LowPermGenDaemonExpirationStrategyTest extends Specification {
-    private final Daemon daemon = Mock(Daemon)
     private final DaemonHealthServices healthServices = Mock(DaemonHealthServices)
     private final DaemonStatus status = Mock(DaemonStatus)
 
@@ -32,7 +31,7 @@ class LowPermGenDaemonExpirationStrategyTest extends Specification {
         LowPermGenDaemonExpirationStrategy strategy = new LowPermGenDaemonExpirationStrategy(healthServices)
 
         when:
-        DaemonExpirationResult result = strategy.checkExpiration(daemon)
+        DaemonExpirationResult result = strategy.checkExpiration()
 
         then:
         1 * healthServices.getDaemonStatus() >> status
@@ -47,7 +46,7 @@ class LowPermGenDaemonExpirationStrategyTest extends Specification {
         LowPermGenDaemonExpirationStrategy strategy = new LowPermGenDaemonExpirationStrategy(healthServices)
 
         when:
-        DaemonExpirationResult result = strategy.checkExpiration(daemon)
+        DaemonExpirationResult result = strategy.checkExpiration()
 
         then:
         1 * healthServices.getDaemonStatus() >> status
