@@ -5,6 +5,7 @@
   <settings>
     <options>
       <option name="allowExternalStatus" value="true" />
+      <option name="cleanBuild" value="true" />
     </options>
     <parameters />
     <build-runners>
