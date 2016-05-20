@@ -48,13 +48,6 @@
         </parameters>
       </build-trigger>
     </build-triggers>
-    <dependencies>
-      <depend-on sourceBuildTypeId="GradleScriptKotlin_Master">
-        <options>
-          <option name="run-build-if-dependency-failed" value="RUN_ADD_PROBLEM" />
-        </options>
-      </depend-on>
-    </dependencies>
     <cleanup />
   </settings>
 </build-type>
