@@ -19,6 +19,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -105,7 +106,8 @@ public class DaemonServices extends DefaultServiceRegistry {
                 get(DaemonHealthServices.class)
             ),
             get(ExecutorFactory.class),
-            get(ScheduledExecutorService.class)
+            get(ScheduledExecutorService.class),
+            get(ListenerManager.class)
         );
     }
 
