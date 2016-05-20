@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.server.health;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.specs.Spec;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 
@@ -33,96 +34,82 @@ public class DaemonStatus {
     public static final String PERMGEN_USAGE_EXPIRE_AT = "org.gradle.daemon.performance.permgen-usage-expire-at";
     public static final String THRASHING_EXPIRE_AT = "org.gradle.daemon.performance.thrashing-expire-at";
 
+    private static final String TENURED = "tenured";
+    private static final String PERMGEN = "perm gen";
+
     private final DaemonStats stats;
+    private final GarbageCollectorMonitoringStrategy strategy;
+    private final int tenuredUsageThreshold;
+    private final double tenuredRateThreshold;
+    private final int permgenUsageThreshold;
+    private final double thrashingThreshold;
 
     public DaemonStatus(DaemonStats stats) {
         this.stats = stats;
+        this.strategy = stats.getGcMonitor().getGcStrategy();
+        this.tenuredUsageThreshold = parseValue(TENURED_USAGE_EXPIRE_AT, strategy.getTenuredUsageThreshold());
+        this.tenuredRateThreshold = parseValue(TENURED_RATE_EXPIRE_AT, strategy.getGcRateThreshold());
+        this.permgenUsageThreshold = parseValue(PERMGEN_USAGE_EXPIRE_AT, strategy.getPermGenUsageThreshold());
+        this.thrashingThreshold = parseValue(THRASHING_EXPIRE_AT, strategy.getThrashingThreshold());
     }
 
     public boolean isTenuredSpaceExhausted() {
-        if (!isEnabled()) {
-            return false;
-        }
+        GarbageCollectionStats gcStats = stats.getGcMonitor().getTenuredStats();
 
-        GarbageCollectorMonitoringStrategy strategy = stats.getGcMonitor().getGcStrategy();
-        if (strategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
-            int tenuredUsageThreshold = parseValue(TENURED_USAGE_EXPIRE_AT, strategy.getTenuredUsageThreshold());
-            if (tenuredUsageThreshold == 0) {
-                return false;
+        return exceedsThreshold(TENURED, gcStats, new Spec<GarbageCollectionStats>() {
+            @Override
+            public boolean isSatisfiedBy(GarbageCollectionStats gcStats) {
+                return tenuredUsageThreshold != 0
+                    && tenuredRateThreshold != 0
+                    && gcStats.getEventCount() >= 5
+                    && gcStats.getUsage() >= tenuredUsageThreshold
+                    && gcStats.getRate() >= tenuredRateThreshold;
             }
-            double tenuredRateThreshold = parseValue(TENURED_RATE_EXPIRE_AT, strategy.getGcRateThreshold());
-            if (tenuredRateThreshold == 0) {
-                return false;
-            }
-            GarbageCollectionStats gcStats = stats.getGcMonitor().getTenuredStats();
-            if (gcStats.getEventCount() >= 5
-                && gcStats.getUsage() >= tenuredUsageThreshold
-                && gcStats.getRate() >= tenuredRateThreshold) {
-                if (gcStats.getUsage() > 0) {
-                    logger.debug(String.format("GC rate: %.2f/s tenured usage: %s%%", gcStats.getRate(), gcStats.getUsage()));
-                } else {
-                    logger.debug("GC rate: 0.0/s");
-                }
-                return true;
-            }
-        }
-        return false;
+        });
     }
 
     public boolean isPermGenSpaceExhausted() {
-        if (!isEnabled()) {
-            return false;
-        }
+        GarbageCollectionStats gcStats = stats.getGcMonitor().getPermGenStats();
 
-        GarbageCollectorMonitoringStrategy strategy = stats.getGcMonitor().getGcStrategy();
-        if (strategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
-            int permgenUsageThreshold = parseValue(PERMGEN_USAGE_EXPIRE_AT, strategy.getPermGenUsageThreshold());
-            if (permgenUsageThreshold == 0) {
-                return false;
+        return exceedsThreshold(PERMGEN, gcStats, new Spec<GarbageCollectionStats>() {
+            @Override
+            public boolean isSatisfiedBy(GarbageCollectionStats gcStats) {
+                return permgenUsageThreshold != 0
+                    && gcStats.getEventCount() >= 5
+                    && gcStats.getUsage() >= permgenUsageThreshold;
             }
-
-            GarbageCollectionStats gcStats = stats.getGcMonitor().getPermGenStats();
-            if (gcStats.getEventCount() >= 5
-                && gcStats.getUsage() >= permgenUsageThreshold) {
-                if (gcStats.getUsage() > 0) {
-                    logger.debug(String.format("GC rate: %.2f/s tenured usage: %s%%", gcStats.getRate(), gcStats.getUsage()));
-                } else {
-                    logger.debug("GC rate: 0.0/s");
-                }
-                return true;
-            }
-        }
-        return false;
+        });
     }
 
     public boolean isThrashing() {
-        if (!isEnabled()) {
-            return false;
+        GarbageCollectionStats gcStats = stats.getGcMonitor().getTenuredStats();
+
+        return exceedsThreshold(TENURED, gcStats, new Spec<GarbageCollectionStats>() {
+            @Override
+            public boolean isSatisfiedBy(GarbageCollectionStats gcStats) {
+                return tenuredUsageThreshold != 0
+                    && thrashingThreshold != 0
+                    && gcStats.getEventCount() >= 5
+                    && gcStats.getUsage() >= tenuredUsageThreshold
+                    && gcStats.getRate() >= thrashingThreshold;
+            }
+        });
+    }
+
+    private boolean exceedsThreshold(String pool, GarbageCollectionStats gcStats, Spec<GarbageCollectionStats> spec) {
+        if (isEnabled()
+            && strategy != GarbageCollectorMonitoringStrategy.UNKNOWN
+            && spec.isSatisfiedBy(gcStats)) {
+
+            if (gcStats.getUsage() > 0) {
+                logger.debug(String.format("GC rate: %.2f/s %s usage: %s%%", gcStats.getRate(), pool, gcStats.getUsage()));
+            } else {
+                logger.debug("GC rate: 0.0/s");
+            }
+
+            return true;
         }
 
-        GarbageCollectorMonitoringStrategy strategy = stats.getGcMonitor().getGcStrategy();
-        if (strategy != GarbageCollectorMonitoringStrategy.UNKNOWN) {
-            int tenuredUsageThreshold = parseValue(TENURED_USAGE_EXPIRE_AT, strategy.getTenuredUsageThreshold());
-            if (tenuredUsageThreshold == 0) {
-                return false;
-            }
-            double thrashingThreshold = parseValue(THRASHING_EXPIRE_AT, strategy.getThrashingThreshold());
-            if (thrashingThreshold == 0) {
-                return false;
-            }
-
-            GarbageCollectionStats gcStats = stats.getGcMonitor().getTenuredStats();
-            if (gcStats.getEventCount() >= 5
-                && gcStats.getRate() >= thrashingThreshold
-                && gcStats.getUsage() >= tenuredUsageThreshold) {
-                if (gcStats.getUsage() > 0) {
-                    logger.debug(String.format("GC rate: %.2f/s tenured usage: %s%%", gcStats.getRate(), gcStats.getUsage()));
-                } else {
-                    logger.debug("GC rate: 0.0/s");
-                }
-                return true;
-            }
-        }
         return false;
     }
 

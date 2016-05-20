@@ -23,7 +23,6 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStr
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Subject
 import spock.lang.Unroll
 
 import static org.gradle.launcher.daemon.server.health.DaemonStatus.PERMGEN_USAGE_EXPIRE_AT
@@ -32,17 +31,13 @@ import static org.gradle.launcher.daemon.server.health.DaemonStatus.TENURED_USAG
 import static org.gradle.launcher.daemon.server.health.DaemonStatus.THRASHING_EXPIRE_AT
 
 class DaemonStatusTest extends Specification {
-
-    def stats = Mock(DaemonStats)
-    @Subject status = new DaemonStatus(stats)
-    def gcMonitor = Mock(GarbageCollectionMonitor)
-
     @Rule SetSystemProperties props = new SetSystemProperties()
+
+    def gcMonitor = Mock(GarbageCollectionMonitor)
+    def stats = Mock(DaemonStats)
 
     def "validates supplied tenured usage threshold value"() {
         System.setProperty(TENURED_USAGE_EXPIRE_AT, "foo")
-        _ * stats.getGcMonitor() >> gcMonitor
-        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
 
         when:
         status.isTenuredSpaceExhausted()
@@ -54,8 +49,6 @@ class DaemonStatusTest extends Specification {
 
     def "validates supplied tenured rate threshold value"() {
         System.setProperty(TENURED_RATE_EXPIRE_AT, "foo")
-        _ * stats.getGcMonitor() >> gcMonitor
-        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
 
         when:
         status.isTenuredSpaceExhausted()
@@ -67,9 +60,6 @@ class DaemonStatusTest extends Specification {
 
     @Unroll
     def "knows when tenured space is exhausted (#rateThreshold <= #rate, #usageThreshold <= #used)"() {
-        _ * stats.getGcMonitor() >> gcMonitor
-        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
-
         when:
         System.setProperty(TENURED_USAGE_EXPIRE_AT, usageThreshold.toString())
         System.setProperty(TENURED_RATE_EXPIRE_AT, rateThreshold.toString())
@@ -79,9 +69,6 @@ class DaemonStatusTest extends Specification {
                 getRate() >> rate
                 getEventCount() >> 10
             }
-        }
-        gcMonitor.getPermGenStats() >> {
-            Stub(GarbageCollectionStats)
         }
 
         then:
@@ -105,14 +92,8 @@ class DaemonStatusTest extends Specification {
 
     @Unroll
     def "knows when perm gen space is exhausted (#usageThreshold <= #used, #usageThreshold <= #used)"() {
-        _ * stats.getGcMonitor() >> gcMonitor
-        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
-
         when:
         System.setProperty(PERMGEN_USAGE_EXPIRE_AT, usageThreshold.toString())
-        gcMonitor.getTenuredStats() >> {
-            Stub(GarbageCollectionStats)
-        }
         gcMonitor.getPermGenStats() >> {
             Stub(GarbageCollectionStats) {
                 getUsage() >> used
@@ -136,9 +117,6 @@ class DaemonStatusTest extends Specification {
 
     @Unroll
     def "knows when gc is thrashing (#rateThreshold <= #rate)"() {
-        _ * stats.getGcMonitor() >> gcMonitor
-        _ * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
-
         when:
         System.setProperty(TENURED_USAGE_EXPIRE_AT, usageThreshold.toString())
         System.setProperty(THRASHING_EXPIRE_AT, rateThreshold.toString())
@@ -182,5 +160,11 @@ class DaemonStatusTest extends Specification {
 
         and:
         !status.isThrashing()
+    }
+
+    DaemonStatus getStatus() {
+        1 * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
+        _ * stats.getGcMonitor() >> gcMonitor
+        return new DaemonStatus(stats)
     }
 }
