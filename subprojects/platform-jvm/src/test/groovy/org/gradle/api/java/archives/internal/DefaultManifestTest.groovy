@@ -149,14 +149,14 @@ class DefaultManifestTest extends Specification {
         when:
         gradleManifest.writeTo(stringWriter)
         Manifest actualManifest = new Manifest(new StringReader(stringWriter.toString()))
-        def actualOrderedKeys = []
+        def actualKeys = [] as Set
         actualManifest.getMainSection().getAttributeKeys().each { element ->
-            actualOrderedKeys.add(element)
+            actualKeys.add(element)
         }
 
         then:
         actualManifest == expectedManifest
-        actualOrderedKeys == testMainAttributes.keySet() as List
+        actualKeys == testMainAttributes.keySet()
     }
 
     def writeWithPath() {
