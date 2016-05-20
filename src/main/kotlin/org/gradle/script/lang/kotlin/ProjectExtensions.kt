@@ -51,7 +51,7 @@ fun Project.applyFrom(script: Any) =
 
 /**
  * Executes the given configuration block against the [plugin convention]
- * [Convention.getPlugin] of the specified type.
+ * [Convention.getPlugin] or extension of the specified type.
  *
  * @param T the plugin convention type.
  * @param configuration the configuration block.
@@ -62,7 +62,8 @@ inline fun <reified T : Any> Project.configure(configuration: T.() -> Unit) =
     configure(T::class, configuration)
 
 inline fun <T : Any> Project.configure(extensionType: KClass<T>, configuration: T.() -> Unit) =
-    configuration(convention.getPlugin(extensionType.java))
+    configuration(the(extensionType))
+
 /**
  * Returns the plugin convention or extension of the specified type.
  */
