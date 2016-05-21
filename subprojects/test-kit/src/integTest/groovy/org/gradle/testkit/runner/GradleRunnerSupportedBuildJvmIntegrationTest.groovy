@@ -17,7 +17,6 @@
 package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.internal.jvm.UnsupportedJavaRuntimeException
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.tooling.GradleConnectionException
