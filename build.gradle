@@ -112,6 +112,11 @@ buildTypes {
         tasks "java9Test", "java9IntegTest"
         projectProperties useIncomingDistributions: true
     }
+
+    soakTest {
+        tasks "soak:soakTest"
+        projectProperties useIncomingDistributions: true, testAllVersions: true
+    }
 }
 
 apply from: "gradle/testGroupings.gradle"
