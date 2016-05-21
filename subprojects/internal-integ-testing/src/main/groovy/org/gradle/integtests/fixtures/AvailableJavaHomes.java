@@ -24,7 +24,6 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.integtests.fixtures.jvm.InstalledJvmLocator;
 import org.gradle.integtests.fixtures.jvm.JvmInstallation;
 import org.gradle.internal.SystemProperties;
@@ -87,10 +86,6 @@ public abstract class AvailableJavaHomes {
                     return Jvm.forHome(input.getJavaHome());
                 }
             }).toList();
-    }
-
-    public static List<JavaInfo> getAvailableJdks() {
-        return getAvailableJdks(Specs.satisfyAll());
     }
 
     public static List<JavaInfo> getAvailableJdks(final Spec<? super JvmInstallation> filter) {
