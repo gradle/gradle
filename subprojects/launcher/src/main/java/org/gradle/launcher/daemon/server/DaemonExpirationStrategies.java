@@ -22,6 +22,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
 import org.gradle.launcher.daemon.server.health.DaemonStatus;
+import org.gradle.launcher.daemon.server.health.MemoryInfo;
 
 import java.util.concurrent.TimeUnit;
 
@@ -35,7 +36,7 @@ public class DaemonExpirationStrategies {
         try {
             strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
                 new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout() / 8, TimeUnit.MILLISECONDS),
-                LowMemoryDaemonExpirationStrategy.belowFreePercentage(0.2)
+                LowMemoryDaemonExpirationStrategy.belowFreeBytes(new MemoryInfo().getMaxMemory())
             )));
         } catch (UnsupportedOperationException e) {
             logger.info("This JVM does not support getting free system memory, so daemons will not check for it");
