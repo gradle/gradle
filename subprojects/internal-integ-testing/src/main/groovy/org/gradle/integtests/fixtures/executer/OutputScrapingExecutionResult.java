@@ -25,7 +25,12 @@ import org.hamcrest.core.StringContains;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.STARTING_DAEMON_MESSAGE;
@@ -71,16 +76,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         int i = 0;
         while (i < lines.size()) {
             String line = lines.get(i);
-            if (line.contains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")) {
-                // Assume running build on Java 6, skip over stack trace and ignore
-                i++;
-                while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
-                    i++;
-                }
-            } else if (line.contains("is deprecated and will be removed in tooling API version 3.0. You should upgrade your Gradle build to use Gradle 1.2 or later.")) {
-                // Assume you are in a cross-version integration test and want to strip this line.
-                i++;
-            } else if (line.contains(STARTING_DAEMON_MESSAGE)) {
+            if (line.contains(STARTING_DAEMON_MESSAGE)) {
                 // Remove the "daemon starting" message
                 i++;
 

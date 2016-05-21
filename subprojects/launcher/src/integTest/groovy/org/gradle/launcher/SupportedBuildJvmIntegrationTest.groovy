@@ -31,20 +31,19 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("help")
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 6 or later to run. You are currently using Java 5.")
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java 5.")
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk6 == null })
-    def "warns of deprecated java version when running under java 6"() {
+    def "provides reasonable failure message when attempting to run under java 6"() {
         def jdk = AvailableJavaHomes.jdk6
 
         given:
         executer.withJavaHome(jdk.javaHome)
-        executer.expectDeprecationWarning()
 
         expect:
-        run("help")
-        outputContains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
+        fails("help")
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java 6.")
     }
 
     @IgnoreIf({ AvailableJavaHomes.java5 == null })
@@ -54,17 +53,16 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails()
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 6 or later to run. Your build is currently configured to use Java 5.")
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java 5.")
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk6 == null })
-    def "warns of deprecate java version when build is configured to use java 6"() {
+    def "fails when build is configured to use Java 6"() {
         given:
         file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk6.javaHome.canonicalPath)
-        executer.expectDeprecationWarning()
 
         expect:
-        run("help")
-        outputContains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
+        fails()
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java 6.")
     }
 }

@@ -17,22 +17,28 @@
 package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.UnsupportedJavaRuntimeException
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
+import org.gradle.tooling.GradleConnectionException
+import org.gradle.util.GradleVersion
 import spock.lang.IgnoreIf
 
 @NonCrossVersion
 class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerIntegrationTest {
     @IgnoreIf({AvailableJavaHomes.jdk6 == null})
     @NoDebug
-    def "warns when build is configured to use Java 6"() {
+    def "fails when build is configured to use Java 6"() {
         given:
         testDirectory.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk6.javaHome.absolutePath)
 
         when:
-        def result = runner().build()
+        runner().buildAndFail()
 
         then:
-        result.output.contains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
+        IllegalStateException e = thrown()
+        e.message.startsWith("An error occurred executing build with no args in directory ")
+        e.cause instanceof GradleConnectionException
+        e.cause.cause.message == "Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java 6."
     }
 }

@@ -101,6 +101,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Supported Java versions
 
+TBD - Gradle requires Java 7 or later to run.
 TBD - Test execution in Gradle requires Java 6 or later.
 
 ### Sonar plugin has been removed

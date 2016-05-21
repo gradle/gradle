@@ -31,20 +31,19 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
 
         expect:
         def failure = wrapperExecuter.withTasks("help").runWithFailure()
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 6 or later to run. You are currently using Java 5.")
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java 5.")
     }
 
     @IgnoreIf({ AvailableJavaHomes.jdk6 == null })
-    def "warns of deprecated java version when running under java 6"() {
+    def "provides reasonable failure message when attempting to run under java 6"() {
         def jdk = AvailableJavaHomes.jdk6
 
         given:
         prepareWrapper()
         wrapperExecuter.withJavaHome(jdk.javaHome)
-        wrapperExecuter.expectDeprecationWarning()
 
         expect:
-        def result = wrapperExecuter.withTasks("help").run()
-        result.assertOutputContains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
+        def failure = wrapperExecuter.withTasks("help").runWithFailure()
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java 6.")
     }
 }

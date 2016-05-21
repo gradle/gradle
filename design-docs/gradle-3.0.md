@@ -11,12 +11,15 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 No longer support running Gradle, the wrapper or the Tooling api client on Java 6. Instead, we'd support Java source compilation and test execution on Java 6 and later, as we do for Java 1.5 now.
 
-- Update project target versions, remove customisations for IDEA project generation.
+- Update project target versions 
+- Remove customisations for IDEA project generation.
 - Remove Java 7 checks, eg from continuous build.
 - Remove `TestPrecondition.JDK6` and similar.
 - Remove deprecation warning disable from `GradleBuildComparison.createProjectConnection()`
 - Remove deprecation warning disable from `SamplesToolingApiIntegrationTest` and `SamplesCompositeBuildIntegrationTest`
 - Remove special case handling of deprecation message from test fixtures.
+- Document minimum version in user guide
+- Verify wrapper can run older versions on java 5 or java 6
 
 ### Test coverage
 
@@ -43,6 +46,7 @@ No longer support running Gradle, the wrapper or the Tooling api client on Java 
 Change cross-compilation and test execution to require Java 6 or later.
 Building against Java 5 requires that the compiler daemon and test execution infrastructure still support Java 5.
 
+- Document minimum version in user guide
 - Add samples and documentation to show how to compile, test and run using a different Java version.
 - Clean up `DefaultClassLoaderFactory`.
 - Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`.

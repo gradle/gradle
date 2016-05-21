@@ -35,8 +35,6 @@ public class JvmVersionValidator {
         }
 
         JavaVersion javaVersion = versionDetector.getJavaVersion(parameters.getEffectiveJvm());
-        if (!javaVersion.isJava6Compatible()) {
-            throw UnsupportedJavaRuntimeException.configuredWithUnsupportedVersion("Gradle", JavaVersion.VERSION_1_6, javaVersion);
-        }
+        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_7, javaVersion);
     }
 }

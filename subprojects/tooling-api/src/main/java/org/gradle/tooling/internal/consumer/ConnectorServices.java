@@ -64,10 +64,8 @@ public class ConnectorServices {
     }
 
     private static void checkJavaVersion() {
+        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle Tooling API", JavaVersion.VERSION_1_6);
         JavaVersion javaVersion = JavaVersion.current();
-        if (!javaVersion.isJava6Compatible()) {
-            throw UnsupportedJavaRuntimeException.usingUnsupportedVersion("Gradle Tooling API", JavaVersion.VERSION_1_6);
-        }
         if (javaVersion == JavaVersion.VERSION_1_6) {
             DeprecationLogger.nagUserWith("Support for using the Gradle Tooling API with Java 6 is deprecated and will be removed in Gradle 3.0");
         }
