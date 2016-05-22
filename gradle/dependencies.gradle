@@ -22,7 +22,7 @@ ext {
 
 versions.commons_io = 'commons-io:commons-io:2.2'
 
-versions.groovy = "2.4.4"
+versions.groovy = "2.4.6"
 
 versions.bouncycastle = "1.51"
 
