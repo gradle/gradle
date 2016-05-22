@@ -223,6 +223,15 @@ startScripts {
         result.assertOutputContains("App Home: ${file('build/install/sample').absolutePath}")
     }
 
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "can execute installDist if startScript skipped"() {
+        when:
+        executer.withArguments("-x", "startScript")
+
+        then:
+        executer.withTasks('installDist').run()
+    }
+
     ExecutionResult runViaStartScript() {
         OperatingSystem.current().isWindows() ? runViaWindowsStartScript() : runViaUnixStartScript()
     }
