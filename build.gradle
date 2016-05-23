@@ -188,7 +188,7 @@ allprojects {
     group = 'org.gradle'
 
     repositories {
-        maven { url 'https://repo.gradle.org/gradle/libs' }
+        maven { url 'https://repo.gradle.org/gradle/libs-releases' }
     }
 }
 
