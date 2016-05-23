@@ -31,6 +31,7 @@ import groovy.lang.ReadOnlyPropertyException;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.GroovyReflectionUtil;
 import org.gradle.internal.reflect.UnsupportedPropertyValueException;
 import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypeConverter;
@@ -188,7 +189,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         // We need to also implement all the interfaces of the delegate type because otherwise
         // BinaryContainer won't recognize managed binaries as BinarySpecInternal
         if (delegateSchema != null) {
-            ModelSchemaUtils.walkTypeHierarchy(delegateSchema.getType().getConcreteClass(), new ModelSchemaUtils.TypeVisitor<D>() {
+            GroovyReflectionUtil.walkTypeHierarchy(delegateSchema.getType().getConcreteClass(), new GroovyReflectionUtil.TypeVisitor<D>() {
                 @Override
                 public void visitType(Class<? super D> type) {
                     if (type.isInterface()) {
