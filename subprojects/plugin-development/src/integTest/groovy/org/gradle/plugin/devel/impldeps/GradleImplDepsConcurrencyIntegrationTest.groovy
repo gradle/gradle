@@ -103,7 +103,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
                 doLast {
                     def files = configurations.gradleImplDeps.resolve()
                     file('deps.txt').text = files.collect {
-                        java.security.MessageDigest.getInstance('MD5').digest(it.bytes).encodeHex().toString()
+                        org.gradle.internal.hash.HashUtil.createHash(it, 'MD5').asByteArray().encodeHex().toString()
                     }.join(',')
                 }
             }
