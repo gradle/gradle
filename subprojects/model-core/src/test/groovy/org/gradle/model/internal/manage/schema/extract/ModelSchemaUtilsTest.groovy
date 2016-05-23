@@ -21,11 +21,20 @@ import org.gradle.api.Nullable
 import org.gradle.model.Managed
 import spock.lang.Specification
 
+@SuppressWarnings("GroovyPointlessBoolean")
 class ModelSchemaUtilsTest extends Specification {
     def "base object types have no candidate methods"() {
         expect:
         ModelSchemaUtils.getCandidateMethods(Object).isEmpty()
         ModelSchemaUtils.getCandidateMethods(GroovyObject).isEmpty()
+    }
+
+    def "base object types are not visited"() {
+        when: ModelSchemaUtils.walkTypeHierarchy(Object, Mock(ModelSchemaUtils.TypeVisitor))
+        then: 0 * _
+
+        when: ModelSchemaUtils.walkTypeHierarchy(GroovyObject, Mock(ModelSchemaUtils.TypeVisitor))
+        then: 0 * _
     }
 
     class Base {
@@ -36,6 +45,18 @@ class ModelSchemaUtilsTest extends Specification {
     class Child extends Base implements Serializable {
         @Nullable
         Object doSomething() { null }
+    }
+
+    def "walking type hierarchy happens breadth-first"() {
+        def visitor = Mock(ModelSchemaUtils.TypeVisitor)
+        when:
+        ModelSchemaUtils.walkTypeHierarchy(Child, visitor)
+
+        then: 1 * visitor.visitType(Child)
+        then: 1 * visitor.visitType(Base)
+        then: 1 * visitor.visitType(Serializable)
+        then: 0 * _
+
     }
 
     def "overridden methods retain annotations"() {
@@ -57,7 +78,7 @@ class ModelSchemaUtilsTest extends Specification {
 
     def "detects managed property"() {
         expect:
-        ModelSchemaUtils.isMethodDeclaredInManagedType(ModelSchemaUtils.getCandidateMethods(ManagedType).methodsNamed("getValue").values().flatten())
+        ModelSchemaUtils.isMethodDeclaredInManagedType(ModelSchemaUtils.getCandidateMethods(ManagedType).methodsNamed("getValue").values().flatten()) == true
     }
 
     class UnmanagedType  {
@@ -66,7 +87,7 @@ class ModelSchemaUtilsTest extends Specification {
 
     def "detects unmanaged property"() {
         expect:
-        !ModelSchemaUtils.isMethodDeclaredInManagedType(ModelSchemaUtils.getCandidateMethods(UnmanagedType).methodsNamed("getValue").values().flatten())
+        ModelSchemaUtils.isMethodDeclaredInManagedType(ModelSchemaUtils.getCandidateMethods(UnmanagedType).methodsNamed("getValue").values().flatten()) == false
     }
 
     interface TypeWithOverloadedMethods {

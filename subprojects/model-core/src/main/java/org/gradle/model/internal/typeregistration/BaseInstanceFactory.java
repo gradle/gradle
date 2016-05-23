@@ -22,10 +22,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
-import org.gradle.internal.reflect.GroovyReflectionUtil.TypeVisitor;
 import org.gradle.model.Managed;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
 
@@ -34,8 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static org.gradle.internal.reflect.GroovyReflectionUtil.walkTypeHierarchy;
 
 public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
     private final ModelType<PUBLIC> baseInterface;
@@ -92,7 +90,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
             throw new IllegalArgumentException(String.format("Type '%s' is not managed", publicType));
         }
         final AtomicReference<ImplementationInfoImpl<S>> implementationInfo = new AtomicReference<ImplementationInfoImpl<S>>();
-        walkTypeHierarchy(publicType.getConcreteClass(), new RegistrationHierarchyVisitor<S>() {
+        ModelSchemaUtils.walkTypeHierarchy(publicType.getConcreteClass(), new RegistrationHierarchyVisitor<S>() {
             @Override
             protected void visitRegistration(TypeRegistration<? extends PUBLIC> registration) {
                 if (registration == null || registration.implementationRegistration == null) {
@@ -112,7 +110,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
 
     private <S extends PUBLIC> Set<ModelType<?>> getInternalViews(ModelType<S> publicType) {
         final ImmutableSet.Builder<ModelType<?>> builder = ImmutableSet.builder();
-        walkTypeHierarchy(publicType.getConcreteClass(), new RegistrationHierarchyVisitor<S>() {
+        ModelSchemaUtils.walkTypeHierarchy(publicType.getConcreteClass(), new RegistrationHierarchyVisitor<S>() {
             @Override
             protected void visitRegistration(TypeRegistration<? extends PUBLIC> registration) {
                 for (InternalViewRegistration<?> internalViewRegistration : registration.internalViewRegistrations) {
@@ -259,7 +257,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         }
 
         private <V> void validateManagedInternalView(final InternalViewRegistration<V> internalViewRegistration, final ModelType<?> delegateType) {
-            walkTypeHierarchy(internalViewRegistration.getInternalView().getConcreteClass(), new TypeVisitor<V>() {
+            ModelSchemaUtils.walkTypeHierarchy(internalViewRegistration.getInternalView().getConcreteClass(), new ModelSchemaUtils.TypeVisitor<V>() {
                 @Override
                 public void visitType(Class<? super V> type) {
                     if (!type.isAnnotationPresent(Managed.class)
@@ -390,7 +388,7 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
         }
     }
 
-    private abstract class RegistrationHierarchyVisitor<S> implements TypeVisitor<S> {
+    private abstract class RegistrationHierarchyVisitor<S> implements ModelSchemaUtils.TypeVisitor<S> {
         @Override
         public void visitType(Class<? super S> type) {
             if (!baseInterface.getConcreteClass().isAssignableFrom(type)) {
