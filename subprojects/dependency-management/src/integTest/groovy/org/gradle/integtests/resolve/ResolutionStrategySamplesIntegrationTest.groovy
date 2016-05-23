@@ -30,7 +30,7 @@ public class ResolutionStrategySamplesIntegrationTest extends AbstractIntegratio
         mavenRepo.module("org", "bar").publish()
         mavenRepo.module("org.gradle", "gradle-core", "1.4").publish()
         mavenRepo.module("org.software", "some-library", "1.2.1").publish()
-        mavenRepo.module("org.codehaus", "groovy", "2.4.4").publish()
+        mavenRepo.module("org.codehaus", "groovy", "2.4.6").publish()
         mavenRepo.module("org.slf4j", "log4j-over-slf4j", "1.7.10").publish()
 
         sample.dir.file("build.gradle") << """
@@ -41,7 +41,7 @@ public class ResolutionStrategySamplesIntegrationTest extends AbstractIntegratio
                 conf "org.gradle:gradle-core:1.0"
                 conf "org:bar:default"
                 conf "org.software:some-library:1.2"
-                conf "org.codehaus:groovy-all:2.4.4"
+                conf "org.codehaus:groovy-all:2.4.6"
                 conf "log4j:log4j:1.2"
             }
             task resolveConf << { configurations.conf.files }

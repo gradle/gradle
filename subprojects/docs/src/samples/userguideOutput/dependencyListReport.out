@@ -10,7 +10,7 @@ Project :api - The shared API for the application
 ------------------------------------------------------------
 
 compile
-\--- org.codehaus.groovy:groovy-all:2.4.4
+\--- org.codehaus.groovy:groovy-all:2.4.6
 
 testCompile
 \--- junit:junit:4.12
@@ -22,7 +22,7 @@ Project :webapp - The Web application implementation
 
 compile
 +--- project :api
-|    \--- org.codehaus.groovy:groovy-all:2.4.4
+|    \--- org.codehaus.groovy:groovy-all:2.4.6
 \--- commons-io:commons-io:1.2
 
 testCompile
