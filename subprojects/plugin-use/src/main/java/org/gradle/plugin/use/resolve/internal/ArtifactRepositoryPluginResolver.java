@@ -26,7 +26,7 @@ import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
 public class ArtifactRepositoryPluginResolver implements PluginResolver {
-    private static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
+    public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
 
     private String name;
     private final DependencyResolutionServices resolution;

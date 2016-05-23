@@ -34,8 +34,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import static org.gradle.plugin.use.resolve.internal.ArtifactRepositoryPluginResolver.PLUGIN_MARKER_SUFFIX;
+
 class MavenPluginPublishingRules extends RuleSource {
-    public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
 
     @Mutate
     public void addMainPublication(PublishingExtension publishing, GradlePluginDevelopmentExtension pluginDevelopment, ServiceRegistry services) {
