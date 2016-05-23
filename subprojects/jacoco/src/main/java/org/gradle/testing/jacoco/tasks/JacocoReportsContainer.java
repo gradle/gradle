@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.reporting.*;
+import org.gradle.api.tasks.Nested;
 
 /**
  * The reporting configuration for the {@link JacocoReport} task.
@@ -29,6 +30,7 @@ public interface JacocoReportsContainer extends ReportContainer<Report> {
      *
      * @return The JaCoCo HTML report
      */
+    @Nested
     DirectoryReport getHtml();
 
     /**
@@ -36,6 +38,7 @@ public interface JacocoReportsContainer extends ReportContainer<Report> {
      *
      * @return The JaCoCo (single file) XML report
      */
+    @Nested
     SingleFileReport getXml();
 
     /**
@@ -43,5 +46,6 @@ public interface JacocoReportsContainer extends ReportContainer<Report> {
      *
      * @return The JaCoCo (single file) CSV report
      */
+    @Nested
     SingleFileReport getCsv();
 }

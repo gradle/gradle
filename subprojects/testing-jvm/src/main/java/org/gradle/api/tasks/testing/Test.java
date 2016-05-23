@@ -145,9 +145,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestReporter testReporter;
-
-    @Nested
-    private final DefaultTestTaskReports reports;
+    private final TestTaskReports reports;
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
@@ -1151,6 +1149,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return The reports that this task potentially produces
      */
+    @Nested
     @Override
     public TestTaskReports getReports() {
         return reports;

@@ -17,17 +17,14 @@
 package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.Task;
-import org.gradle.api.plugins.quality.FindBugsReports;
 import org.gradle.api.plugins.quality.FindBugsXmlReport;
 import org.gradle.api.plugins.quality.internal.findbugs.FindBugsXmlReportImpl;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.reporting.internal.CustomizableHtmlReportImpl;
 import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.gradle.api.reporting.internal.TaskReportContainer;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Optional;
 
-public class FindBugsReportsImpl extends TaskReportContainer<SingleFileReport> implements FindBugsReports {
+public class FindBugsReportsImpl extends TaskReportContainer<SingleFileReport> implements FindBugsReportsInternal {
 
     public FindBugsReportsImpl(Task task) {
         super(SingleFileReport.class, task);
@@ -54,8 +51,7 @@ public class FindBugsReportsImpl extends TaskReportContainer<SingleFileReport> i
         return getByName("emacs");
     }
 
-    @Input
-    @Optional
+    @Override
     public Boolean getWithMessagesFlag() {
         FindBugsXmlReport report = (FindBugsXmlReport)getEnabled().findByName("xml");
         return report != null ? report.isWithMessages() : Boolean.FALSE;

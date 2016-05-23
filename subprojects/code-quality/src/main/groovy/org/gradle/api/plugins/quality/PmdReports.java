@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality;
 
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.tasks.Nested;
 
 /**
  * The reporting configuration for the {@link Pmd} task.
@@ -29,6 +30,7 @@ public interface PmdReports extends ReportContainer<SingleFileReport> {
      *
      * @return The pmd (single file) HTML report
      */
+    @Nested
     SingleFileReport getHtml();
 
     /**
@@ -36,5 +38,6 @@ public interface PmdReports extends ReportContainer<SingleFileReport> {
      *
      * @return The pmd (single file) XML report
      */
+    @Nested
     SingleFileReport getXml();
 }

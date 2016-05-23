@@ -23,12 +23,24 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileCollection
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.quality.internal.FindBugsReportsImpl
-import org.gradle.api.plugins.quality.internal.findbugs.*
+import org.gradle.api.plugins.quality.internal.FindBugsReportsInternal
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsClasspathValidator
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsResult
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpec
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsSpecBuilder
+import org.gradle.api.plugins.quality.internal.findbugs.FindBugsWorkerManager
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.resources.TextResource
-import org.gradle.api.tasks.*
-import org.gradle.internal.reflect.Instantiator
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.SkipWhenEmpty
+import org.gradle.api.tasks.SourceTask
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.VerificationTask
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.internal.worker.WorkerProcessFactory
 
 import javax.inject.Inject
@@ -156,7 +168,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
     Collection<String> extraArgs = []
 
     @Nested
-    private final FindBugsReportsImpl reports
+    private final FindBugsReportsInternal reports
 
     FindBugs() {
         reports = instantiator.newInstance(FindBugsReportsImpl, this)

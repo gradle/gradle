@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.reporting;
+package org.gradle.api.plugins.quality.internal;
 
-import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.plugins.quality.FindBugsReports;
+import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 
-import java.io.File;
+public interface FindBugsReportsInternal extends FindBugsReports {
+    SingleFileReport getFirstEnabled();
 
-/**
- * A report that is a single file.
- */
-public interface SingleFileReport extends ConfigurableReport {
-    @OutputFile
-    @Override
-    File getDestination();
-
-    /**
-     * Always returns {@link Report.OutputType#FILE}
-     *
-     * @return {@link Report.OutputType#FILE}
-     */
-    OutputType getOutputType();
-
+    @Input
+    @Optional
+    Boolean getWithMessagesFlag();
 }

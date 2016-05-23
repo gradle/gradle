@@ -44,8 +44,7 @@ import java.util.Set;
 public class GenerateBuildDashboard extends DefaultTask implements Reporting<BuildDashboardReports> {
     private Set<Reporting<? extends ReportContainer<?>>> aggregated = new LinkedHashSet<Reporting<? extends ReportContainer<?>>>();
 
-    @Nested
-    private final DefaultBuildDashboardReports reports;
+    private final BuildDashboardReports reports;
 
     public GenerateBuildDashboard() {
         reports = getInstantiator().newInstance(DefaultBuildDashboardReports.class, this);
@@ -99,6 +98,8 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
      *
      * @return The reports container
      */
+    @Nested
+    @Override
     public BuildDashboardReports getReports() {
         return reports;
     }

@@ -18,6 +18,7 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.reporting.DirectoryReport;
+import org.gradle.api.tasks.Input;
 
 /**
  * The JUnit XML files, commonly used to communicate results to CI servers.
@@ -28,6 +29,7 @@ public interface JUnitXmlReport extends DirectoryReport {
      * Should the output be associated with individual test cases instead of at the suite level.
      */
     @Incubating
+    @Input
     boolean isOutputPerTestCase();
 
     /**

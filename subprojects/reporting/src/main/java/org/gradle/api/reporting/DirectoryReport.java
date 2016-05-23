@@ -17,6 +17,7 @@
 package org.gradle.api.reporting;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.OutputDirectory;
 
 import java.io.File;
 
@@ -37,6 +38,10 @@ public interface DirectoryReport extends ConfigurableReport {
      *
       */
     File getEntryPoint();
+
+    @OutputDirectory
+    @Override
+    File getDestination();
 
     /**
      * Always returns {@link Report.OutputType#DIRECTORY}
