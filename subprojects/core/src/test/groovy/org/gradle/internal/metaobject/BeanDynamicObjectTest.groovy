@@ -21,6 +21,7 @@ import org.gradle.api.internal.BeanWithDynamicProperties
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer
 import org.gradle.api.internal.coerce.PropertySetTransformer
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class BeanDynamicObjectTest extends Specification {
     def "can get value of property of groovy object"() {
@@ -358,6 +359,10 @@ class BeanDynamicObjectTest extends Specification {
 
         expect:
         dynamicObject.invokeMethod("m", [12] as Object[]) == "[13]"
+        dynamicObject.invokeMethod("overlap", [Integer] as Object[]) == Class
+        dynamicObject.invokeMethod("overlap", [0] as Object[]) == Number
+        dynamicObject.invokeMethod("methodWithClass", [Integer] as Object[]) == Class
+        dynamicObject.invokeMethod("methodWithValue", [0] as Object[]) == Number
     }
 
     def "can check for methods of groovy object"() {
@@ -368,6 +373,12 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.hasMethod("m", [12] as Object[])
         !dynamicObject.hasMethod("m", [] as Object[])
         !dynamicObject.hasMethod("other", [12] as Object[])
+        dynamicObject.hasMethod("overlap", [Integer] as Object[])
+        dynamicObject.hasMethod("overlap", [0] as Object[])
+        !dynamicObject.hasMethod("methodWithClass", [0] as Object[])
+        dynamicObject.hasMethod("methodWithClass", [Integer] as Object[])
+        dynamicObject.hasMethod("methodWithValue", [0] as Object[])
+        !dynamicObject.hasMethod("methodWithValue", [Integer] as Object[])
     }
 
     def "coerces parameters of method of groovy object"() {
@@ -411,18 +422,29 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.invokeMethod("dyno", [12, "a"] as Object[]) == "[12, a]"
     }
 
-    def "fails when invoke unknown method of groovy object"() {
+    @Unroll
+    def "fails when invoke unknown method [#method(#arguments)] of groovy object"() {
         def bean = new Bean(prop: "value")
         def dynamicObject = new BeanDynamicObject(bean)
-
+        def args = arguments as Object[]
         when:
-        dynamicObject.invokeMethod("unknown", [12] as Object[])
+        dynamicObject.invokeMethod(method, args)
 
         then:
         def e = thrown(MissingMethodException)
-        e.method == "unknown"
-        e.type == Bean
-        e.message == "Could not find method unknown() for arguments [12] on object of type ${Bean.name}."
+        assertMethodMissing(e, method, args)
+
+        where:
+        method            | arguments
+        "unknown"         | [12]
+        "methodWithClass" | [0]
+        "methodWithValue" | [Integer]
+    }
+
+    private void assertMethodMissing(MissingMethodException e, String name, Object... arguments) {
+        assert e.method == name
+        assert e.type == Bean
+        assert e.message == "Could not find method ${name}() for arguments ${arguments} on object of type ${Bean.name}."
     }
 
     def "fails when invoke unknown method of dynamic groovy object"() {
@@ -533,6 +555,19 @@ class BeanDynamicObjectTest extends Specification {
 
         String getFieldProp() {
             return fieldProp
+        }
+
+        Class overlap(Class<? extends Number> c) {
+            return Class
+        }
+        Class overlap(Number i) {
+            return Number
+        }
+        Class methodWithClass(Class<? extends Number> c) {
+            return Class
+        }
+        Class methodWithValue(Number i) {
+            return Number
         }
     }
 
