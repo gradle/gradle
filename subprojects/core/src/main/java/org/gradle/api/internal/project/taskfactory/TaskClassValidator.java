@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
@@ -32,6 +34,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.internal.reflect.Types;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -48,6 +51,11 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 
 public class TaskClassValidator implements TaskValidator, Action<Task> {
+    // Avoid reflecting on classes we know we don't need to look at
+    private static final Collection<Class<?>> IGNORED_SUPER_CLASSES = ImmutableSet.of(
+        ConventionTask.class, DefaultTask.class, AbstractTask.class, Object.class, GroovyObject.class
+    );
+
     private final static Transformer<Iterable<File>, Object> FILE_PROPERTY_TRANSFORMER = new Transformer<Iterable<File>, Object>() {
         public Iterable<File> transform(Object original) {
             File file = (File) original;
@@ -118,40 +126,36 @@ public class TaskClassValidator implements TaskValidator, Action<Task> {
         }
     }
 
-    public void attachActions(TaskPropertyInfo parent, Class<?> type) {
-        Class<?> superclass = type.getSuperclass();
-        if (!(superclass == null
-                // Avoid reflecting on classes we know we don't need to look at
-                || superclass.equals(ConventionTask.class) || superclass.equals(DefaultTask.class)
-                || superclass.equals(AbstractTask.class) || superclass.equals(Object.class)
-        )) {
-            attachActions(parent, superclass);
-        }
+    public <T> void attachActions(final TaskPropertyInfo parent, Class<T> type) {
+        Types.walkTypeHierarchy(type, IGNORED_SUPER_CLASSES, new Types.TypeVisitor<T>() {
+            @Override
+            public void visitType(Class<? super T> type) {
+                Map<String, Field> fields = getFields(type);
+                for (Method method : type.getDeclaredMethods()) {
+                    PropertyAccessorType accessorType = PropertyAccessorType.of(method);
+                    if (accessorType == null || accessorType == PropertyAccessorType.SETTER || method.isBridge() || GroovyMethods.isObjectMethod(method)) {
+                        continue;
+                    }
 
-        Map<String, Field> fields = getFields(type);
-        for (Method method : type.getDeclaredMethods()) {
-            PropertyAccessorType accessorType = PropertyAccessorType.of(method);
-            if (accessorType == null || accessorType == PropertyAccessorType.SETTER || method.isBridge() || GroovyMethods.isObjectMethod(method)) {
-                continue;
+                    String fieldName = accessorType.propertyNameFor(method);
+                    Field field = fields.get(fieldName);
+                    String propertyName = parent != null ? parent.getName() + '.' + fieldName : fieldName;
+
+                    TaskPropertyInfo propertyInfo = new TaskPropertyInfo(TaskClassValidator.this, parent, propertyName, method, field);
+
+                    boolean annotationFound = attachValidationActions(propertyInfo, field);
+
+                    if (propertyInfo.isValidationRequired()) {
+                        validatedProperties.add(propertyInfo);
+                    }
+
+                    allPropertyNames.add(propertyName);
+                    if (annotationFound) {
+                        annotatedPropertyNames.add(propertyName);
+                    }
+                }
             }
-
-            String fieldName = accessorType.propertyNameFor(method);
-            Field field = fields.get(fieldName);
-            String propertyName = parent != null ? parent.getName() + '.' + fieldName : fieldName;
-
-            TaskPropertyInfo propertyInfo = new TaskPropertyInfo(this, parent, propertyName, method, field);
-
-            boolean annotationFound = attachValidationActions(propertyInfo, field);
-
-            if (propertyInfo.isValidationRequired()) {
-                validatedProperties.add(propertyInfo);
-            }
-
-            allPropertyNames.add(propertyName);
-            if (annotationFound) {
-                annotatedPropertyNames.add(propertyName);
-            }
-        }
+        });
     }
 
     public boolean hasAnythingToValidate() {

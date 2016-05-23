@@ -119,6 +119,10 @@ properties have been removed from the ScalaCompile task:
 1. `useAnt`
 1. `useCompileDaemon`
 
+### Task property annotations on implemented interfaces
+
+In previous versions, annotations on task properties like `@InputFile` and `@OutputDirectory` were only taken into account when they were declared on the task class itself, or one of its super-classes. Since Gradle 3.0 annotations declared on implemented interfaces are also taken into account.
+
 ### Changes to previously deprecated APIs
 
 * The `AbstractTask` methods `setName()` and `setProject()` are removed.

@@ -85,13 +85,13 @@ class DefaultTaskClassInfoStoreTest extends Specification {
         }
     }
 
-    def "implemented properties do not inherit interface annotations"() {
+    def "implemented properties inherit interface annotations"() {
         def info = taskClassInfoStore.getTaskClassInfo(InterfaceImplementingTask)
 
         expect:
         !info.incremental
-        info.validator.validatedProperties*.name as Set == [] as Set
-        info.nonAnnotatedPropertyNames == ["interfaceValue"] as Set
+        info.validator.validatedProperties*.name as Set == ["interfaceValue"] as Set
+        info.nonAnnotatedPropertyNames == [] as Set
     }
 
     private static class NonAnnotatedTask extends DefaultTask {
