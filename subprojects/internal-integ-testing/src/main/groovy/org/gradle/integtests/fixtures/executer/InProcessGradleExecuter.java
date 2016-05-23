@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
@@ -80,6 +79,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.regex.Pattern;
 
 import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
@@ -463,6 +463,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     private static class InProcessExecutionFailure extends InProcessExecutionResult implements ExecutionFailure {
+        private static final Pattern LOCATION_PATTERN = Pattern.compile("(?m)^((\\w+ )+'.+') line: (\\d+)$");
         private final OutputScrapingExecutionFailure outputFailure;
         private final GradleException failure;
         private final String fileName;
@@ -475,11 +476,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             this.outputFailure = outputFailure;
             this.failure = failure;
 
-            if (failure instanceof  LocationAwareException) {
-                LocationAwareException loe = (LocationAwareException) failure;
-                fileName = loe.getSourceDisplayName() == null ? "" : StringUtils.capitalize(loe.getSourceDisplayName());
-                lineNumber = loe.getLineNumber() == null ? "" : loe.getLineNumber().toString();
-                description = loe.getCause().getMessage().trim();
+            // Chop up the exception message into its expected parts
+            java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failure.getMessage());
+            if (matcher.find()) {
+                fileName = matcher.group(1);
+                lineNumber = matcher.group(3);
+                description = failure.getMessage().substring(matcher.end()).trim();
             } else {
                 fileName = "";
                 lineNumber = "";
