@@ -20,10 +20,6 @@ configurations {
     reports
 }
 
-classpathManifest {
-    optionalProjects = ['gradle-script-kotlin']
-}
-
 dependencies {
     compile libraries.groovy
 
