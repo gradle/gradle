@@ -31,6 +31,7 @@ import groovy.lang.ReadOnlyPropertyException;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Types.TypeVisitor;
 import org.gradle.internal.reflect.UnsupportedPropertyValueException;
 import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypeConverter;
@@ -69,6 +70,8 @@ import java.util.Set;
 
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
 import static org.gradle.internal.reflect.PropertyAccessorType.*;
+import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
+import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.IGNORED_OBJECT_TYPES;
 import static org.objectweb.asm.Opcodes.*;
 
 public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
@@ -188,7 +191,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         // We need to also implement all the interfaces of the delegate type because otherwise
         // BinaryContainer won't recognize managed binaries as BinarySpecInternal
         if (delegateSchema != null) {
-            ModelSchemaUtils.walkTypeHierarchy(delegateSchema.getType().getConcreteClass(), new ModelSchemaUtils.TypeVisitor<D>() {
+            walkTypeHierarchy(delegateSchema.getType().getConcreteClass(), IGNORED_OBJECT_TYPES, new TypeVisitor<D>() {
                 @Override
                 public void visitType(Class<? super D> type) {
                     if (type.isInterface()) {

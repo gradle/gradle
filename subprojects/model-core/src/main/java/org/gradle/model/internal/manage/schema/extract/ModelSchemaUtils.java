@@ -24,25 +24,24 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Ordering;
-import com.google.common.collect.Sets;
 import groovy.lang.GroovyObject;
-import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.GroovyMethods;
+import org.gradle.internal.reflect.Types.TypeVisitor;
 import org.gradle.model.Managed;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
-import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
 
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
+import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
 public class ModelSchemaUtils {
+    public static final List<Class<?>> IGNORED_OBJECT_TYPES = ImmutableList.of(Object.class, GroovyObject.class);
 
     /**
      * Returns all candidate methods for schema generation declared by the given type and its super-types indexed by name.
@@ -62,7 +61,7 @@ public class ModelSchemaUtils {
      */
     public static <T> CandidateMethods getCandidateMethods(Class<T> clazz) {
         final ImmutableListMultimap.Builder<String, Method> methodsByNameBuilder = ImmutableListMultimap.builder();
-        ModelSchemaUtils.walkTypeHierarchy(clazz, new ModelSchemaUtils.TypeVisitor<T>() {
+        walkTypeHierarchy(clazz, IGNORED_OBJECT_TYPES, new TypeVisitor<T>() {
             @Override
             public void visitType(Class<? super T> type) {
                 Method[] declaredMethods = type.getDeclaredMethods();
@@ -99,41 +98,6 @@ public class ModelSchemaUtils {
 
         // Ignore overrides of Object and GroovyObject methods
         return GroovyMethods.isObjectMethod(method);
-    }
-
-    /**
-     * Visits all types in a type hierarchy in breadth-first order, super-classes first and then implemented interfaces.
-     *
-     * @param clazz the type of whose type hierarchy to visit.
-     * @param visitor the visitor to call for each type in the hierarchy.
-     */
-    public static <T> void walkTypeHierarchy(Class<T> clazz, TypeVisitor<? extends T> visitor) {
-        Set<Class<?>> seenInterfaces = Sets.newHashSet();
-        Queue<Class<? super T>> queue = new ArrayDeque<Class<? super T>>();
-        queue.add(clazz);
-        Class<? super T> type;
-        while ((type = queue.poll()) != null) {
-            // Do not process Object's or GroovyObject's methods
-            if (type.equals(Object.class) || type.equals(GroovyObject.class)) {
-                continue;
-            }
-
-            visitor.visitType(type);
-
-            Class<? super T> superclass = type.getSuperclass();
-            if (superclass != null) {
-                queue.add(superclass);
-            }
-            for (Class<?> iface : type.getInterfaces()) {
-                if (seenInterfaces.add(iface)) {
-                    queue.add(Cast.<Class<? super T>>uncheckedCast(iface));
-                }
-            }
-        }
-    }
-
-    public interface TypeVisitor<T> {
-        void visitType(Class<? super T> type);
     }
 
     /**
