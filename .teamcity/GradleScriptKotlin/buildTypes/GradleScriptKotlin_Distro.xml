@@ -25,7 +25,7 @@
           <param name="teamcity.step.mode" value="default" />
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
           <param name="ui.gradleRunner.additional.gradle.cmd.params" value="--no-daemon --refresh-dependencies -PtimestampedVersion" />
-          <param name="ui.gradleRunner.gradle.tasks.names" value="clean binZip" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="clean binZip intTestImage check" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
       </runner>
