@@ -27,6 +27,7 @@ import org.gradle.internal.reflect.DirectInstantiator;
 
 import javax.tools.JavaCompiler;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -39,6 +40,7 @@ public class JdkTools {
     private static final AtomicReference<JdkTools> INSTANCE = new AtomicReference<JdkTools>();
 
     private final ClassLoader isolatedToolsLoader;
+    private final boolean isJava9Compatible;
 
     public static JdkTools current() {
         JdkTools jdkTools = INSTANCE.get();
@@ -62,19 +64,38 @@ public class JdkTools {
             }
             DefaultClassPath defaultClassPath = new DefaultClassPath(toolsJar);
             isolatedToolsLoader = new MutableURLClassLoader(filteringClassLoader, defaultClassPath.getAsURLs());
+            isJava9Compatible = false;
         } else {
             filteringClassLoader.allowPackage("com.sun.tools");
             isolatedToolsLoader = filteringClassLoader;
+            isJava9Compatible = true;
         }
     }
 
     public JavaCompiler getSystemJavaCompiler() {
-        Class<?> compilerImplClass;
+        Class<?> clazz;
         try {
-            compilerImplClass = isolatedToolsLoader.loadClass(DEFAULT_COMPILER_IMPL_NAME);
+            if (isJava9Compatible) {
+                clazz = isolatedToolsLoader.loadClass("javax.tools.ToolProvider");
+                try {
+                    return (JavaCompiler) clazz.getDeclaredMethod("getSystemJavaCompiler").invoke(null);
+                } catch (IllegalAccessException e) {
+                    cannotCreateJavaCompiler(e);
+                } catch (InvocationTargetException e) {
+                    cannotCreateJavaCompiler(e);
+                } catch (NoSuchMethodException e) {
+                    cannotCreateJavaCompiler(e);
+                }
+            } else {
+                clazz = isolatedToolsLoader.loadClass(DEFAULT_COMPILER_IMPL_NAME);
+            }
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("Could not load class '" + DEFAULT_COMPILER_IMPL_NAME);
         }
-        return DirectInstantiator.instantiate(compilerImplClass.asSubclass(JavaCompiler.class));
+        return DirectInstantiator.instantiate(clazz.asSubclass(JavaCompiler.class));
+    }
+
+    private void cannotCreateJavaCompiler(Exception e) {
+        throw new IllegalStateException("Could not create system Java compiler", e);
     }
 }
