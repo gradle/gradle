@@ -66,7 +66,6 @@ import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -850,7 +849,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return All test class directories to be used.
      */
-    @Optional @InputDirectory
+    @Internal
+    // TODO:LPTR This should be an @InputDirectory but that breaks UserGuidePlaySamplesIntegrationTest
     public File getTestClassesDir() {
         return testClassesDir;
     }

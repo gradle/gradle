@@ -199,7 +199,8 @@ test {
         !result.output.contains('output from foo')
 
         when: "run with lifecycle"
-        result = executer.noExtraLogging().withTasks('cleanTest', 'test').run()
+        run "cleanTest"
+        result = executer.noExtraLogging().withTasks("test").run()
 
         then:
         result.output.contains('output from foo')

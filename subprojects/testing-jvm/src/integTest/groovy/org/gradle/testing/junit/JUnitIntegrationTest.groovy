@@ -137,7 +137,8 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         result.assertTestClassesExecuted('Ok2')
 
         when:
-        executer.withTasks('cleanTest', 'test').withArguments('-Dtest.single=Ok').run()
+        run "cleanTest"
+        executer.withTasks("test").withArguments('-Dtest.single=Ok').run()
 
         then:
         result.assertTestClassesExecuted('Ok', 'Ok2')
