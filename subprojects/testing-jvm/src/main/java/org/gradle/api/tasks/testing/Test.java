@@ -850,7 +850,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return All test class directories to be used.
      */
-    @InputDirectory
+    @Optional @InputDirectory
     public File getTestClassesDir() {
         return testClassesDir;
     }
