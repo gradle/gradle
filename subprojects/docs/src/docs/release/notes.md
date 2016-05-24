@@ -168,6 +168,7 @@ We would like to thank the following community members for making contributions 
  - [Gregorios Leach](https://github.com/simtel12) - Include directories when using a S3Client to list objects in a prefix. (GRADLE-3453)
  - [Mahmoud  Khater](https://github.com/mahmoud-k) - Fix a problem with determining the version of Findbugs on the classpath (GRADLE-3457)
  - [Ryan Ernst](https://github.com/rjernst) - Upgrade to Groovy 2.4.6
+ - [James Ward](https://github.com/jamesward) - Fixed launching Gradle from Finder on Mac OS
   
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
