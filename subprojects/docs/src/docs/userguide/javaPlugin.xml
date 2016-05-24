@@ -881,6 +881,20 @@
                         The source directories containing the Java source files of this source set.
                     </td>
                 </tr>
+		<tr>
+                    <td>
+                        <literal>java.srcDir</literal>
+                    </td>
+                    <td>
+                        <classname>Set&lt;File></classname>. Can set using anything described in <xref linkend="sec:file_collections"/>.
+                    </td>
+                    <td>
+                        <literal>[<replaceable>projectDir</replaceable>/src/<replaceable>name</replaceable>/java]</literal>
+                    </td>
+                    <td>
+                        The source directory containing the Java source files of this source set.
+                    </td>
+                </tr>
                 <tr>
                     <td>
                         <literal>resources</literal>
