@@ -94,7 +94,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
 
     protected void configureIncrementalCompilation(ScalaCompileSpec spec) {
 
-        Map<File, File> globalAnalysisMap = getOrCreateGlobalAnalysisMap();
+        Map<File, File> globalAnalysisMap = createOrGetGlobalAnalysisMap();
         HashMap<File, File> filteredMap = filterForClasspath(globalAnalysisMap, spec.getClasspath());
         spec.setAnalysisMap(filteredMap);
 
@@ -106,7 +106,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
     }
 
     @SuppressWarnings("unchecked")
-    protected Map<File, File> getOrCreateGlobalAnalysisMap() {
+    protected Map<File, File> createOrGetGlobalAnalysisMap() {
         ExtraPropertiesExtension extraProperties = getProject().getRootProject().getExtensions().getExtraProperties();
         Map<File, File> analysisMap;
 

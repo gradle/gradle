@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
@@ -89,6 +90,7 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether to produce verbose output. Defaults to {@code false}.
      */
+    @Console
     public boolean isVerbose() {
         return verbose;
     }
@@ -103,6 +105,7 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether to log the files to be compiled. Defaults to {@code false}.
      */
+    @Console
     public boolean isListFiles() {
         return listFiles;
     }
@@ -117,6 +120,7 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether to log details of usage of deprecated members or classes. Defaults to {@code false}.
      */
+    @Console
     public boolean isDeprecation() {
         return deprecation;
     }
@@ -131,6 +135,7 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Tells whether to log warning messages. The default is {@code true}.
      */
+    @Console
     public boolean isWarnings() {
         return warnings;
     }
@@ -197,6 +202,7 @@ public class CompileOptions extends AbstractOptions {
      * not necessarily mean that a new process will be created for each compile task.
      * Defaults to {@code false}.
      */
+    @Input
     public boolean isFork() {
         return fork;
     }
@@ -230,6 +236,7 @@ public class CompileOptions extends AbstractOptions {
      * Only takes effect if {@code useAnt} is {@code true}. Defaults to
      * {@code false}.
      */
+    @Input
     public boolean isUseDepend() {
         return useDepend;
     }
@@ -246,6 +253,7 @@ public class CompileOptions extends AbstractOptions {
     /**
      * Returns options for using the Ant {@code <depend>} task.
      */
+    @Nested
     public DependOptions getDependOptions() {
         return dependOptions;
     }
@@ -385,6 +393,7 @@ public class CompileOptions extends AbstractOptions {
     /**
      * informs whether to use experimental incremental compilation feature. See {@link #setIncremental(boolean)}
      */
+    @Input
     @Incubating
     public boolean isIncremental() {
         return incremental;

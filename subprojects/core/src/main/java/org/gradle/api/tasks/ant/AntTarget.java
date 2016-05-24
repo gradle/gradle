@@ -17,6 +17,7 @@ package org.gradle.api.tasks.ant;
 
 import org.apache.tools.ant.Target;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
@@ -71,6 +72,7 @@ public class AntTarget extends ConventionTask {
     /**
      * {@inheritDoc}
      */
+    @Internal
     @Override
     public String getDescription() {
         return target == null ? null : target.getDescription();
@@ -85,5 +87,4 @@ public class AntTarget extends ConventionTask {
             target.setDescription(description);
         }
     }
-
 }

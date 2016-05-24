@@ -19,10 +19,16 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.*;
+import org.gradle.api.internal.tasks.compile.CleaningGroovyCompiler;
+import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpecFactory;
+import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
+import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
@@ -129,6 +135,7 @@ public class GroovyCompile extends AbstractCompile {
         this.groovyClasspath = groovyClasspath;
     }
 
+    @Internal
     public Compiler<GroovyJavaJointCompileSpec> getCompiler() {
         return getCompiler(createSpec());
     }

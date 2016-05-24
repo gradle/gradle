@@ -22,12 +22,18 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.play.internal.run.*;
+import org.gradle.play.internal.run.DefaultPlayRunSpec;
+import org.gradle.play.internal.run.PlayApplicationDeploymentHandle;
+import org.gradle.play.internal.run.PlayApplicationRunner;
+import org.gradle.play.internal.run.PlayApplicationRunnerToken;
+import org.gradle.play.internal.run.PlayRunSpec;
 import org.gradle.play.internal.toolchain.PlayToolProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +74,7 @@ public class PlayRun extends ConventionTask {
     /**
      * fork options for the running a Play application.
      */
+    @Nested
     public BaseForkOptions getForkOptions() {
         if (forkOptions == null) {
             forkOptions = new BaseForkOptions();
@@ -130,6 +137,7 @@ public class PlayRun extends ConventionTask {
      *
      * @return HTTP port
      */
+    @Internal
     public int getHttpPort() {
         return httpPort;
     }

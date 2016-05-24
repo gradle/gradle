@@ -79,6 +79,7 @@ public class GradleBuild extends ConventionTask {
      *
      * @return The build file. May be null.
      */
+    @Optional @InputFile
     public File getBuildFile() {
         return getStartParameter().getBuildFile();
     }
@@ -97,6 +98,7 @@ public class GradleBuild extends ConventionTask {
      *
      * @return The sequence. May be empty. Never returns null.
      */
+    @Input
     public List<String> getTasks() {
         return getStartParameter().getTaskNames();
     }

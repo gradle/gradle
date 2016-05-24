@@ -97,6 +97,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Internal
     public List<String> getArgs() {
         return execAction.getArgs();
     }
@@ -104,6 +105,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Input
     public List<String> getCommandLine() {
         return execAction.getCommandLine();
     }
@@ -125,6 +127,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Internal
     public String getExecutable() {
         return execAction.getExecutable();
     }
@@ -147,6 +150,8 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Input
+    // TODO:LPTR Should be a content-less @InputDirectory
     public File getWorkingDir() {
         return execAction.getWorkingDir();
     }
@@ -169,6 +174,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Input
     public Map<String, Object> getEnvironment() {
         return execAction.getEnvironment();
     }
@@ -215,6 +221,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Internal
     public InputStream getStandardInput() {
         return execAction.getStandardInput();
     }
@@ -230,6 +237,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Internal
     public OutputStream getStandardOutput() {
         return execAction.getStandardOutput();
     }
@@ -245,6 +253,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Internal
     public OutputStream getErrorOutput() {
         return execAction.getErrorOutput();
     }
@@ -260,6 +269,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
+    @Input
     public boolean isIgnoreExitValue() {
         return execAction.isIgnoreExitValue();
     }
@@ -273,6 +283,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      *
      * @return The result. Returns {@code null} if this task has not been executed yet.
      */
+    @Internal
     public ExecResult getExecResult() {
         return execResult;
     }
