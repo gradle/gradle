@@ -38,13 +38,24 @@ sourceSets {
 
 
 // --- Configure publications ------------------------------------------
+def buildTagFor(String version) {
+    switch (version.substring(version.lastIndexOf('-') + 1)) {
+        case 'SNAPSHOT':
+            return 'snapshot'
+        case ~/M\d+[a-z]*$/:
+            return 'milestone'
+        default:
+            return 'release'
+    }
+}
+
+def targetRepoKey = "libs-${buildTagFor(project.version)}s-local"
+
 artifactory {
     contextUrl = "https://repo.gradle.org/gradle"
     publish {
         repository {
-            repoKey = project.version.endsWith('-SNAPSHOT') ?
-                'libs-snapshots-local' :
-                'libs-releases-local'
+            repoKey = targetRepoKey
             username = project.findProperty("artifactory_user") ?: "nouser"
             password = project.findProperty("artifactory_password") ?: "nopass"
             maven = true
