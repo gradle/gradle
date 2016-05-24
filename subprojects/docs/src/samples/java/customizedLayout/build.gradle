@@ -12,19 +12,19 @@ dependencies {
 sourceSets {
     main {
         java {
-            srcDir 'src/java'
+            srcDirs 'src/java'
         }
         resources {
-            srcDir 'src/resources'
+            srcDirs 'src/resources'
         }
     }
 // END SNIPPET define-main
     test {
         java {
-            srcDir 'test/java'
+            srcDirs 'test/java'
         }
         resources {
-            srcDir 'test/resources'
+            srcDirs 'test/resources'
         }
     }
 // START SNIPPET define-main
