@@ -17,7 +17,6 @@
 package org.gradle.launcher.exec;
 
 import org.gradle.api.Action;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -33,13 +32,17 @@ import org.gradle.internal.composite.CompositeBuildActionParameters;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.filewatch.*;
+import org.gradle.internal.filewatch.ChangeReporter;
+import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
+import org.gradle.internal.filewatch.FileSystemChangeWaiter;
+import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
+import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
-import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.SingleMessageLogger;
 
@@ -50,17 +53,15 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
     private final OperatingSystem operatingSystem;
     private final FileSystemChangeWaiterFactory changeWaiterFactory;
     private final ExecutorFactory executorFactory;
-    private final JavaVersion javaVersion;
     private final StyledTextOutput logger;
 
     public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileWatcherFactory fileWatcherFactory, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory, BuildActionExecuter<CompositeBuildActionParameters> compositeDelegate) {
-        this(delegate, listenerManager, styledTextOutputFactory, JavaVersion.current(), OperatingSystem.current(), executorFactory, new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory), compositeDelegate);
+        this(delegate, listenerManager, styledTextOutputFactory, OperatingSystem.current(), executorFactory, new DefaultFileSystemChangeWaiterFactory(fileWatcherFactory), compositeDelegate);
     }
 
-    ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, JavaVersion javaVersion, OperatingSystem operatingSystem, ExecutorFactory executorFactory, FileSystemChangeWaiterFactory changeWaiterFactory, BuildActionExecuter<CompositeBuildActionParameters> compositeDelegate) {
+    ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, StyledTextOutputFactory styledTextOutputFactory, OperatingSystem operatingSystem, ExecutorFactory executorFactory, FileSystemChangeWaiterFactory changeWaiterFactory, BuildActionExecuter<CompositeBuildActionParameters> compositeDelegate) {
         this.delegate = delegate;
         this.listenerManager = listenerManager;
-        this.javaVersion = javaVersion;
         this.operatingSystem = operatingSystem;
         this.changeWaiterFactory = changeWaiterFactory;
         this.executorFactory = executorFactory;
@@ -87,9 +88,6 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
     }
 
     private Object executeMultipleBuilds(BuildAction action, BuildRequestContext requestContext, final BuildActionParameters actionParameters, ServiceRegistry buildSessionScopeServices) {
-        if (!javaVersion.isJava7Compatible()) {
-            throw new IllegalStateException("Continuous build requires Java 7 or later.");
-        }
         SingleMessageLogger.incubatingFeatureUsed("Continuous build");
 
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
