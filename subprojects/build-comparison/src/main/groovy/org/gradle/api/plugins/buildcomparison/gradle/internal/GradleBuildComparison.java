@@ -40,14 +40,12 @@ import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcom
 import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeRendererFactory;
 import org.gradle.api.plugins.buildcomparison.render.internal.html.GradleBuildComparisonResultHtmlRenderer;
 import org.gradle.api.plugins.buildcomparison.render.internal.html.HtmlRenderContext;
-import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
@@ -172,13 +170,7 @@ public class GradleBuildComparison {
     }
 
     private ProjectConnection createProjectConnection(ComparableGradleBuildExecuter executer) {
-        GradleConnector connector = DeprecationLogger.whileDisabled(new Factory<GradleConnector>() {
-            @Override
-            public GradleConnector create() {
-                // Ignore 'java 6 is deprecated' warning
-                return GradleConnector.newConnector();
-            }
-        });
+        GradleConnector connector = GradleConnector.newConnector();
         connector.forProjectDirectory(executer.getSpec().getProjectDir());
         File gradleUserHomeDir = gradle.getStartParameter().getGradleUserHomeDir();
         if (gradleUserHomeDir != null) {
