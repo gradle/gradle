@@ -267,7 +267,7 @@ integTestTasks.all { Test task ->
     classpath = sourceSets.integTest.runtimeClasspath
     testSrcDirs = []
     jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
-    if(!JavaVersion.current().isJava8Compatible()) {
+    if(!javaVersion.java8Compatible) {
         jvmArgs '-XX:MaxPermSize=768m'
     }
 

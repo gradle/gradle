@@ -334,7 +334,7 @@ task javadocAll(type: Javadoc) {
     options.encoding = 'utf-8'
     options.docEncoding = 'utf-8'
     options.charSet = 'utf-8'
-    if (JavaVersion.current().isJava8Compatible()) {
+    if (javaVersion.isJava8Compatible()) {
         options.addStringOption 'Xdoclint:none', '-quiet'
     }
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath

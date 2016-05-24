@@ -87,15 +87,6 @@ idea {
                         }
                     }
                 }
-                Collection sourceDirs = groovyProjects.collect { project -> project.sourceSets*.allSource*.srcDirs }.flatten()
-                sourceDirs.each { sourceFolder ->
-                    if (!javaVersion.java7Compatible) {
-                        excludeSource("jdk7", sourceFolder)
-                    }
-                    if (!javaVersion.java6Compatible) {
-                        excludeSource("jdk6", sourceFolder)
-                    }
-                }
 
                 // Set gradle home
                 def gradleSettings = node.appendNode('component', [name: 'GradleSettings'])

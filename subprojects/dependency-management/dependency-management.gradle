@@ -39,10 +39,6 @@ dependencies {
     testFixturesCompile project(":internalIntegTesting")
 }
 
-if (isWindows && javaVersion.java5) {
-    compileTestGroovy.options.fork(memoryMaximumSize: '512m')
-}
-
 useTestFixtures()
 useTestFixtures(project: ":messaging")
 

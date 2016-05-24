@@ -27,19 +27,6 @@ sourceSets {
     main.output.dir generatedResourcesDir, builtBy: classpathManifest
 }
 
-if (!javaVersion.java6Compatible) {
-    sourceSets.all {
-        java.exclude '**/jdk6/**'
-        groovy.exclude '**/jdk6/**'
-    }
-}
-if (!javaVersion.java7Compatible) {
-    sourceSets.all {
-        java.exclude '**/jdk7/**'
-        groovy.exclude '**/jdk7/**'
-    }
-}
-
 testTasks.all { task ->
     maxParallelForks = rootProject.maxParallelForks
     if (isCiServer) {
@@ -50,7 +37,7 @@ testTasks.all { task ->
             println "maxParallelForks for '$task.path' is $task.maxParallelForks"
         }
     }
-    if (javaVersion.java6 || javaVersion.java7) {
+    if (javaVersion.java7) {
         // enable class unloading
         task.jvmArgs '-XX:+UseConcMarkSweepGC', '-XX:+CMSClassUnloadingEnabled'
     }
