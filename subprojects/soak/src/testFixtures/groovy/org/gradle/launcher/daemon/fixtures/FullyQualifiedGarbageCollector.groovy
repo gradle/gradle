@@ -39,14 +39,24 @@ class FullyQualifiedGarbageCollector implements Comparable<FullyQualifiedGarbage
     }
 
     boolean equals(o) {
-        if (this.is(o)) return true
-        if (getClass() != o.class) return false
+        if (this.is(o)) {
+            return true
+        }
+        if (getClass() != o.class) {
+            return false
+        }
 
         FullyQualifiedGarbageCollector that = (FullyQualifiedGarbageCollector) o
 
-        if (gc != that.gc) return false
-        if (vendor != that.vendor) return false
-        if (version != that.version) return false
+        if (gc != that.gc) {
+            return false
+        }
+        if (vendor != that.vendor) {
+            return false
+        }
+        if (version != that.version) {
+            return false
+        }
 
         return true
     }

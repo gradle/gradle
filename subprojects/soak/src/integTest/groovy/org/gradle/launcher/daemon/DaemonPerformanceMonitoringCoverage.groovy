@@ -25,7 +25,7 @@ import static org.gradle.launcher.daemon.fixtures.JdkVendor.IBM
 import static org.gradle.launcher.daemon.fixtures.JdkVendor.ORACLE
 
 class DaemonPerformanceMonitoringCoverage {
-    static def ALL_VERSIONS = [
+    static final def ALL_VERSIONS = [
         new FullyQualifiedGarbageCollector(vendor: IBM, version: "1.7", gc: IBM_ALL),
         // In our testing, it seems that CMS and Serial collectors behaved the same, so omitting SERIAL here
         new FullyQualifiedGarbageCollector(vendor: ORACLE, version: "1.7", gc: ORACLE_PARALLEL_CMS),
