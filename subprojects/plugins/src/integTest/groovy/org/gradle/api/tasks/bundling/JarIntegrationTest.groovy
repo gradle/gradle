@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.IoActions
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -541,16 +542,11 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         def attributeValue = 'com.acme.example.pack.**, длинный.текст.на.русском.языке.**'
 
         def mergedManifestFilename = 'manifest-with-split-multi-byte-char.txt'
-        def mergedManifest = new Manifest();
+        def mergedManifest = new Manifest()
         mergedManifest.mainAttributes.putValue('Manifest-Version', '1.0')
-        mergedManifest.mainAttributes.putValue(attributeNameMerged, attributeValue);
+        mergedManifest.mainAttributes.putValue(attributeNameMerged, attributeValue)
         def mergedManifestFile = file(mergedManifestFilename)
-        def outputStream = mergedManifestFile.newOutputStream()
-        try {
-            mergedManifest.write(outputStream)
-        } finally {
-            outputStream.close()
-        }
+        mergedManifestFile.withOutputStream { mergedManifest.write(it) }
 
         buildScript """
             task jar(type: Jar) {
@@ -569,13 +565,10 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         executer.run()
 
         then:
-        def jar = new JarFile(file('dest/test.jar'))
-        try {
+        IoActions.withResource(new JarFile(file('dest/test.jar'))) { jar ->
             def manifest = jar.manifest
-            manifest.mainAttributes.getValue(attributeNameWritten) == attributeValue
-            manifest.mainAttributes.getValue(attributeNameMerged) == attributeValue
-        } finally {
-            jar.close()
+            assert manifest.mainAttributes.getValue(attributeNameWritten) == attributeValue
+            assert manifest.mainAttributes.getValue(attributeNameMerged) == attributeValue
         }
     }
 

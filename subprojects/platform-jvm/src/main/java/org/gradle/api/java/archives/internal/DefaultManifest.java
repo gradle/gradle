@@ -18,11 +18,12 @@ package org.gradle.api.java.archives.internal;
 
 import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.ManifestMergeSpec;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.ConfigureUtil;
 
@@ -232,13 +233,13 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
             if (parentFile != null) {
                 FileUtils.forceMkdir(parentFile);
             }
-            FileOutputStream outputStream = null;
-            try {
-                outputStream = new FileOutputStream(manifestFile);
-                return writeTo(outputStream);
-            } finally {
-                IOUtils.closeQuietly(outputStream);
-            }
+            IoActions.withResource(new FileOutputStream(manifestFile), new Action<FileOutputStream>() {
+                @Override
+                public void execute(FileOutputStream fileOutputStream) {
+                    writeTo(fileOutputStream);
+                }
+            });
+            return this;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -287,12 +288,12 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         }
     }
 
+    /**
+     * Prepare Manifest bytes for interoperability. Ant Manifest class doesn't support split multi-bytes characters, Java Manifest class does. Ant Manifest class supports manifest sections starting
+     * without prior blank lines, Java Manifest class doesn't. Ant Manifest class supports manifest without last line blank, Java Manifest class doesn't. Therefore we need to insert blank lines before
+     * entries named 'Name' and before EOF if needed. This without decoding characters as this would break split multi-bytes characters, hence working on the bytes level.
+     */
     private byte[] prepareManifestBytesForInteroperability(byte[] original) {
-        // Ant Manifest class doesn't support split multi-bytes characters, Java Manifest class does
-        // Ant Manifest class supports manifest sections starting without prior blank lines, Java Manifest class doesn't
-        // Ant Manifest class supports manifest without last line blank, Java Manifest class doesn't
-        // Therefore we need to insert blank lines before entries named 'Name' and before EOF if needed
-        // This without decoding characters as this would break split multi-bytes characters, hence working on the bytes level
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         boolean useCarriageReturns = false;
         byte carriageReturn = (byte) '\r';
