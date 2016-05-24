@@ -18,17 +18,23 @@ package org.gradle.launcher.daemon.fixtures
 
 import org.gradle.api.JavaVersion
 
-class VendorJavaVersion implements Comparable<VendorJavaVersion> {
+class FullyQualifiedGarbageCollector implements Comparable<FullyQualifiedGarbageCollector> {
     JdkVendor vendor
     String version
+    JavaGarbageCollector gc
 
     @Override
-    int compareTo(VendorJavaVersion o) {
-        int vendorComparison = vendor.compareTo(o.vendor)
-        if (vendorComparison == 0) {
-            return JavaVersion.toVersion(version).compareTo(JavaVersion.toVersion(o.version))
+    int compareTo(FullyQualifiedGarbageCollector o) {
+        int gcComparison = gc.compareTo(o.gc)
+        if (gcComparison == 0) {
+            int vendorComparison = vendor.compareTo(o.vendor)
+            if (vendorComparison == 0) {
+                return JavaVersion.toVersion(version).compareTo(JavaVersion.toVersion(o.version))
+            } else {
+                return vendorComparison
+            }
         } else {
-            return vendorComparison
+            return gcComparison
         }
     }
 
@@ -36,8 +42,9 @@ class VendorJavaVersion implements Comparable<VendorJavaVersion> {
         if (this.is(o)) return true
         if (getClass() != o.class) return false
 
-        VendorJavaVersion that = (VendorJavaVersion) o
+        FullyQualifiedGarbageCollector that = (FullyQualifiedGarbageCollector) o
 
+        if (gc != that.gc) return false
         if (vendor != that.vendor) return false
         if (version != that.version) return false
 
@@ -46,13 +53,19 @@ class VendorJavaVersion implements Comparable<VendorJavaVersion> {
 
     int hashCode() {
         int result
-        result = (vendor != null ? vendor.hashCode() : 0)
+        result = vendor.hashCode()
         result = 31 * result + version.hashCode()
+        result = 31 * result + gc.hashCode()
         return result
     }
 
+
     @Override
     public String toString() {
-        return "${vendor} ${version}";
+        return "FullyQualifiedGarbageCollector{" +
+            "vendor=" + vendor +
+            ", version='" + version + '\'' +
+            ", gc=" + gc +
+            '}';
     }
 }

@@ -20,15 +20,15 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.fixtures.DaemonMultiJdkIntegrationTest
+import org.gradle.launcher.daemon.fixtures.JdkVendor
 import org.gradle.launcher.daemon.server.health.DaemonStatus
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.experimental.categories.Category
 
-@Category(SoakTest)
+import static org.junit.Assume.assumeTrue
 
+@Category(SoakTest)
 @TargetCoverage({DaemonPerformanceMonitoringCoverage.ALL_VERSIONS})
 class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest {
     int maxBuilds
@@ -38,9 +38,18 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
 
     def setup() {
         buildFile << "${logJdk()}"
+
+        // Set Java Home to dictate version
+        file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
+
+        // Set JVM args for GC
+        String jvmArgs = file("gradle.properties").getProperties().getOrDefault("org.gradle.jvmargs", "")
+        file("gradle.properties").writeProperties("org.gradle.jvmargs": jvmArgs + " " + version.gc.jvmArgs)
     }
 
     def "when build leaks quickly daemon is expired eagerly"() {
+        assumeTrue(version.vendor != JdkVendor.IBM)
+
         when:
         setupBuildScript = tenuredHeapLeak
         maxBuilds = builds
@@ -58,7 +67,6 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
 
     def "when build leaks slowly daemon is eventually expired"() {
         when:
-        file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
         setupBuildScript = tenuredHeapLeak
         maxBuilds = builds
         heapSize = heap
@@ -124,8 +132,9 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         daemons.daemon.log.contains("Daemon stopping because JVM tenured space is exhausted")
     }
 
-    @Requires([TestPrecondition.JDK7_OR_EARLIER, TestPrecondition.NOT_JDK_IBM])
     def "when build leaks permgen space daemon is expired"() {
+        assumeTrue(version.vendor != JdkVendor.IBM && version.version == "1.7")
+
         when:
         setupBuildScript = permGenLeak
         maxBuilds = 20
