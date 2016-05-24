@@ -78,4 +78,9 @@ public class OutputDirectoryPropertyAnnotationHandler implements PropertyAnnotat
             }
         });
     }
+
+    @Override
+    public boolean isNotBeNullByDefault() {
+        return true;
+    }
 }

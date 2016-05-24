@@ -77,4 +77,9 @@ public class OutputFilePropertyAnnotationHandler implements PropertyAnnotationHa
             }
         });
     }
+
+    @Override
+    public boolean isNotBeNullByDefault() {
+        return true;
+    }
 }

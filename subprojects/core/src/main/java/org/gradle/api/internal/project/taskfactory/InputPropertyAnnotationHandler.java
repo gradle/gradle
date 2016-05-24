@@ -33,4 +33,9 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
             }
         });
     }
+
+    @Override
+    public boolean isNotBeNullByDefault() {
+        return true;
+    }
 }

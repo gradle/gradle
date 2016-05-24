@@ -16,14 +16,24 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import javax.inject.Inject;
 import java.lang.annotation.Annotation;
 
-public class InjectedPropertyAnnotationHandler implements PropertyAnnotationHandler {
+public class NoOpPropertyAnnotationHandler implements PropertyAnnotationHandler {
+    private final Class<? extends Annotation> annotationType;
+
+    public NoOpPropertyAnnotationHandler(Class<? extends Annotation> annotationType) {
+        this.annotationType = annotationType;
+    }
+
     public Class<? extends Annotation> getAnnotationType() {
-        return Inject.class;
+        return annotationType;
     }
 
     public void attachActions(final TaskPropertyActionContext context) {
+    }
+
+    @Override
+    public boolean isNotBeNullByDefault() {
+        return false;
     }
 }

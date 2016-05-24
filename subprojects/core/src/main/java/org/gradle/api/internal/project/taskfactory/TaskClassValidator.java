@@ -28,6 +28,9 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
+import org.gradle.api.tasks.Console;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
@@ -36,6 +39,7 @@ import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.Types;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -52,8 +56,8 @@ import java.util.concurrent.Callable;
 
 public class TaskClassValidator implements TaskValidator, Action<Task> {
     // Avoid reflecting on classes we know we don't need to look at
-    private static final Collection<Class<?>> IGNORED_SUPER_CLASSES = ImmutableSet.of(
-        ConventionTask.class, DefaultTask.class, AbstractTask.class, Object.class, GroovyObject.class
+    private static final Collection<Class<?>> IGNORED_SUPER_CLASSES = ImmutableSet.<Class<?>>of(
+        ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class
     );
 
     private final static Transformer<Iterable<File>, Object> FILE_PROPERTY_TRANSFORMER = new Transformer<Iterable<File>, Object>() {
@@ -88,7 +92,10 @@ public class TaskClassValidator implements TaskValidator, Action<Task> {
         new OutputDirectoryPropertyAnnotationHandler(OutputDirectories.class, ITERABLE_FILE_PROPERTY_TRANSFORMER),
         new InputPropertyAnnotationHandler(),
         new NestedBeanPropertyAnnotationHandler(),
-        new InjectedPropertyAnnotationHandler());
+        new NoOpPropertyAnnotationHandler(Inject.class),
+        new NoOpPropertyAnnotationHandler(Console.class),
+        new NoOpPropertyAnnotationHandler(Internal.class)
+    );
 
     private final Set<TaskPropertyInfo> validatedProperties = Sets.newLinkedHashSet();
     private final Set<String> allPropertyNames = Sets.newTreeSet();
@@ -200,8 +207,7 @@ public class TaskClassValidator implements TaskValidator, Action<Task> {
             return false;
         }
 
-        Annotation optional = annotationTarget.getAnnotation(org.gradle.api.tasks.Optional.class);
-        if (optional == null) {
+        if (handler.isNotBeNullByDefault() && !annotationTarget.isAnnotationPresent(Optional.class)) {
             propertyInfo.setNotNullValidator(NOT_NULL_VALIDATOR);
         }
 

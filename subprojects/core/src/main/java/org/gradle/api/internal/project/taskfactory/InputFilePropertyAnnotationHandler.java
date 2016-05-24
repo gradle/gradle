@@ -47,4 +47,9 @@ public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHan
             }
         });
     }
+
+    @Override
+    public boolean isNotBeNullByDefault() {
+        return true;
+    }
 }

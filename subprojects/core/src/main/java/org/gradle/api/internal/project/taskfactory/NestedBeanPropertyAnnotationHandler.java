@@ -44,4 +44,9 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
             }
         });
     }
+
+    @Override
+    public boolean isNotBeNullByDefault() {
+        return true;
+    }
 }

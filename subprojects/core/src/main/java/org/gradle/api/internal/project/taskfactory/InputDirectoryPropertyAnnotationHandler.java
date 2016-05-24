@@ -54,4 +54,9 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
             }
         });
     }
+
+    @Override
+    public boolean isNotBeNullByDefault() {
+        return true;
+    }
 }
