@@ -27,7 +27,6 @@ import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.jvm.InstalledJvmLocator;
 import org.gradle.integtests.fixtures.jvm.JvmInstallation;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
@@ -55,21 +54,40 @@ public abstract class AvailableJavaHomes {
     private static List<JvmInstallation> jvms;
 
     @Nullable
-    public static JavaInfo getJava5() {
+    public static Jvm getJava5() {
         return getJdk(JavaVersion.VERSION_1_5);
     }
 
     @Nullable
-    public static JavaInfo getJdk6() {
+    public static Jvm getJdk6() {
         return getJdk(JavaVersion.VERSION_1_6);
     }
 
     @Nullable
-    public static JavaInfo getJdk(final JavaVersion version) {
+    public static Jvm getJdk(final JavaVersion version) {
         return Iterables.getFirst(getAvailableJdks(version), null);
     }
 
-    public static List<JavaInfo> getAvailableJdks(final JavaVersion version) {
+    /**
+     * Returns a JDK for each of the given java versions, if available.
+     */
+    public static List<Jvm> getJdks(final String... versions) {
+        final Set<JavaVersion> remaining = new HashSet<JavaVersion>();
+        for (String version : versions) {
+            remaining.add(JavaVersion.toVersion(version));
+        }
+        return getAvailableJdks(new Spec<JvmInstallation>() {
+            @Override
+            public boolean isSatisfiedBy(JvmInstallation element) {
+                return remaining.remove(element.getJavaVersion());
+            }
+        });
+    }
+
+    /**
+     * Returns all JDKs for the given java version.
+     */
+    public static List<Jvm> getAvailableJdks(final JavaVersion version) {
         return getAvailableJdks(new Spec<JvmInstallation>() {
             @Override
             public boolean isSatisfiedBy(JvmInstallation element) {
@@ -78,17 +96,17 @@ public abstract class AvailableJavaHomes {
         });
     }
 
-    public static List<JavaInfo> getAvailableJvms() {
+    public static List<Jvm> getAvailableJvms() {
         return FluentIterable.from(getJvms())
-            .transform(new Function<JvmInstallation, JavaInfo>() {
+            .transform(new Function<JvmInstallation, Jvm>() {
                 @Override
-                public JavaInfo apply(@javax.annotation.Nullable JvmInstallation input) {
-                    return Jvm.forHome(input.getJavaHome());
+                public Jvm apply(JvmInstallation input) {
+                    return Jvm.discovered(input.getJavaHome(), input.getJavaVersion());
                 }
             }).toList();
     }
 
-    public static List<JavaInfo> getAvailableJdks(final Spec<? super JvmInstallation> filter) {
+    public static List<Jvm> getAvailableJdks(final Spec<? super JvmInstallation> filter) {
         return FluentIterable.from(getJvms())
             .filter(new Predicate<JvmInstallation>() {
                 @Override
@@ -96,30 +114,30 @@ public abstract class AvailableJavaHomes {
                     return input.isJdk() && filter.isSatisfiedBy(input);
                 }
             })
-            .transform(new Function<JvmInstallation, JavaInfo>() {
+            .transform(new Function<JvmInstallation, Jvm>() {
                 @Override
-                public JavaInfo apply(JvmInstallation input) {
-                    return Jvm.forHome(input.getJavaHome());
+                public Jvm apply(JvmInstallation input) {
+                    return Jvm.discovered(input.getJavaHome(), input.getJavaVersion());
                 }
             }).toList();
     }
 
-    public static Map<JavaInfo, JavaVersion> getAvailableJdksWithVersion() {
-        Map<JavaInfo, JavaVersion> result = new HashMap<JavaInfo, JavaVersion>();
+    public static Map<Jvm, JavaVersion> getAvailableJdksWithVersion() {
+        Map<Jvm, JavaVersion> result = new HashMap<Jvm, JavaVersion>();
         for (JavaVersion javaVersion : JavaVersion.values()) {
-            for (JavaInfo javaInfo : getAvailableJdks(javaVersion)) {
+            for (Jvm javaInfo : getAvailableJdks(javaVersion)) {
                 result.put(javaInfo, javaVersion);
             }
         }
         return result;
     }
 
-    public static JavaInfo getAvailableJdk(final Spec<? super JvmInstallation> filter) {
+    public static Jvm getAvailableJdk(final Spec<? super JvmInstallation> filter) {
         return Iterables.getFirst(getAvailableJdks(filter), null);
     }
 
     @Nullable
-    public static JavaInfo getDifferentJdk() {
+    public static Jvm getDifferentJdk() {
         return getAvailableJdk(new Spec<JvmInstallation>() {
             @Override
             public boolean isSatisfiedBy(JvmInstallation element) {
@@ -129,7 +147,7 @@ public abstract class AvailableJavaHomes {
     }
 
     @Nullable
-    public static JavaInfo getDifferentVersion() {
+    public static Jvm getDifferentVersion() {
         return getAvailableJdk(new Spec<JvmInstallation>() {
             @Override
             public boolean isSatisfiedBy(JvmInstallation element) {

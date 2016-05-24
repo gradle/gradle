@@ -89,7 +89,6 @@ class JvmTest extends Specification {
 
         then:
         jvm.javaHome == software.file('jdk')
-        jvm.runtimeJar == software.file('jdk/jre/lib/rt.jar')
         jvm.toolsJar == software.file('jdk/lib/tools.jar')
         jvm.javaExecutable == software.file('jdk/bin/java.exe')
         jvm.javacExecutable == software.file('jdk/bin/javac.exe')
@@ -123,7 +122,6 @@ class JvmTest extends Specification {
 
         then:
         jvm.javaHome == software.file('jdk')
-        jvm.runtimeJar == software.file('jdk/jre/lib/rt.jar')
         jvm.toolsJar == software.file('jdk/lib/tools.jar')
         jvm.javaExecutable == software.file('jdk/bin/java.exe')
         jvm.javacExecutable == software.file('jdk/bin/javac.exe')
@@ -147,7 +145,6 @@ class JvmTest extends Specification {
 
         then:
         jvm.javaHome == software.file('jre')
-        jvm.runtimeJar == software.file('jre/lib/rt.jar')
         jvm.toolsJar == null
         jvm.javaExecutable == software.file('jre/bin/java.exe')
         jvm.javacExecutable == new File('javac.exe')
@@ -185,7 +182,6 @@ class JvmTest extends Specification {
 
         then:
         jvm.javaHome == jdkDir
-        jvm.runtimeJar == jreDir.file("lib/rt.jar")
         jvm.toolsJar == jdkDir.file("lib/tools.jar")
         jvm.javaExecutable == jdkDir.file('bin/java.exe')
         jvm.javacExecutable == jdkDir.file('bin/javac.exe')
@@ -237,7 +233,6 @@ class JvmTest extends Specification {
 
         then:
         jvm.javaHome == jdkDir
-        jvm.runtimeJar == jdkDir.file("jre/lib/rt.jar")
         jvm.toolsJar == jdkDir.file("lib/tools.jar")
         jvm.javaExecutable == jdkDir.file('bin/java.exe')
         jvm.javacExecutable == jdkDir.file('bin/javac.exe')
@@ -264,10 +259,10 @@ class JvmTest extends Specification {
         }
 
         expect:
-        def jvm = new Jvm(os, installDir)
+        def jvm = new Jvm(os, installDir, JavaVersion.current())
         def current = Jvm.current()
 
-        Matchers.strictlyEquals(jvm, new Jvm(os, installDir))
+        Matchers.strictlyEquals(jvm, new Jvm(os, installDir, JavaVersion.current()))
         Matchers.strictlyEquals(current, Jvm.forHome(current.javaHome))
         jvm != current
     }
@@ -275,7 +270,7 @@ class JvmTest extends Specification {
     def "uses system property to determine if Sun/Oracle JVM"() {
         when:
         System.properties['java.vm.vendor'] = 'Sun'
-        def jvm = Jvm.create(null)
+        def jvm = Jvm.create()
 
         then:
         jvm.getClass() == Jvm
@@ -284,14 +279,14 @@ class JvmTest extends Specification {
     def "uses system property to determine if Apple JVM"() {
         when:
         System.properties['java.vm.vendor'] = 'Apple Inc.'
-        def jvm = Jvm.create(null)
+        def jvm = Jvm.create()
 
         then:
         jvm.getClass() == Jvm.AppleJvm
 
         when:
         System.properties['java.vm.vendor'] = 'Sun'
-        jvm = Jvm.create(null)
+        jvm = Jvm.create()
 
         then:
         jvm.getClass() == Jvm
@@ -300,7 +295,7 @@ class JvmTest extends Specification {
     def "uses system property to determine if IBM JVM"() {
         when:
         System.properties['java.vm.vendor'] = 'IBM Corporation'
-        def jvm = Jvm.create(null)
+        def jvm = Jvm.create()
 
         then:
         jvm.getClass() == Jvm.IbmJvm
@@ -407,7 +402,7 @@ class JvmTest extends Specification {
 
     def "describes accurately when created for supplied java home"() {
         when:
-        def jvm = new Jvm(theOs, new File('dummyFolder'))
+        def jvm = new Jvm(theOs, new File('dummyFolder'), JavaVersion.current())
 
         then:
         jvm.toString().contains('dummyFolder')
@@ -447,7 +442,6 @@ class JvmTest extends Specification {
         java9Vm.javacExecutable == software.file('Contents/Home/bin/javac')
         java9Vm.javadocExecutable == software.file('Contents/Home/bin/javadoc')
         java9Vm.jre == null
-        java9Vm.runtimeJar == null
         java9Vm.toolsJar == null
         java9Vm.standaloneJre == null
     }

@@ -52,54 +52,57 @@ public class Jvm implements JavaInfo {
     public static Jvm current() {
         Jvm jvm = CURRENT.get();
         if (jvm == null) {
-            CURRENT.compareAndSet(null, create(null));
+            CURRENT.compareAndSet(null, create());
             jvm = CURRENT.get();
         }
         return jvm;
     }
 
-    static Jvm create(File javaBase) {
+    static Jvm create() {
         String vendor = System.getProperty("java.vm.vendor");
         if (vendor.toLowerCase().startsWith("apple inc.")) {
-            return new AppleJvm(OperatingSystem.current(), javaBase);
+            return new AppleJvm(OperatingSystem.current());
         }
         if (vendor.toLowerCase().startsWith("ibm corporation")) {
-            return new IbmJvm(OperatingSystem.current(), javaBase);
+            return new IbmJvm(OperatingSystem.current());
         }
-        return new Jvm(OperatingSystem.current(), javaBase);
+        return new Jvm(OperatingSystem.current());
     }
 
-    Jvm(OperatingSystem os) {
-        this(os, null);
+    static Jvm create(File javaBase, @Nullable JavaVersion javaVersion) {
+        return new Jvm(OperatingSystem.current(), javaBase, javaVersion);
     }
 
     /**
-     * @param os the OS
-     * @param suppliedJavaBase initial location to discover from. May be jdk or jre.
+     * Constructs JVM details by inspecting the current JVM.
      */
-    Jvm(OperatingSystem os, File suppliedJavaBase) {
+    Jvm(OperatingSystem os) {
         this.os = os;
-        if (suppliedJavaBase == null) {
-            //discover based on what's in the sys. property
-            try {
-                this.javaBase = new File(System.getProperty("java.home")).getCanonicalFile();
-            } catch (IOException e) {
-                throw new UncheckedException(e);
-            }
-            this.javaHome = findJavaHome(javaBase);
-            this.javaVersion = JavaVersion.current();
-            this.userSupplied = false;
-        } else {
-            //precisely use what the user wants and validate strictly further on
-            this.javaBase = suppliedJavaBase;
-            this.javaHome = suppliedJavaBase;
-            this.userSupplied = true;
-            this.javaVersion = null;
+        //discover based on what's in the sys. property
+        try {
+            this.javaBase = new File(System.getProperty("java.home")).getCanonicalFile();
+        } catch (IOException e) {
+            throw new UncheckedException(e);
         }
+        this.javaHome = findJavaHome(javaBase);
+        this.javaVersion = JavaVersion.current();
+        this.userSupplied = false;
     }
 
     /**
-     * Creates jvm instance for given java home. Attempts to validate if provided javaHome is a valid jdk or jre location.
+     * Constructs JVM details from the given values
+     */
+    Jvm(OperatingSystem os, File suppliedJavaBase, JavaVersion javaVersion) {
+        this.os = os;
+        this.javaBase = suppliedJavaBase;
+        this.javaHome = suppliedJavaBase;
+        this.javaVersion = javaVersion;
+        this.userSupplied = true;
+    }
+
+    /**
+     * Creates JVM instance for given java home. Attempts to validate if provided javaHome is a valid jdk or jre location.
+     * This method is intended to be used for user supplied java homes.
      *
      * @param javaHome - location of your jdk or jre (jdk is safer), cannot be null
      * @return jvm for given java home
@@ -110,10 +113,17 @@ public class Jvm implements JavaInfo {
         if (javaHome == null || !javaHome.isDirectory()) {
             throw new IllegalArgumentException("Supplied javaHome must be a valid directory. You supplied: " + javaHome);
         }
-        Jvm jvm = create(javaHome);
+        Jvm jvm = create(javaHome, null);
         //some validation:
         jvm.getJavaExecutable();
         return jvm;
+    }
+
+    /**
+     * Creates JVM instance for given values. This method is intended to be used for discovered java homes.
+     */
+    public static Jvm discovered(File javaHome, JavaVersion javaVersion) {
+        return create(javaHome, javaVersion);
     }
 
     @Override
@@ -209,6 +219,7 @@ public class Jvm implements JavaInfo {
     /**
      * @return the {@link JavaVersion} information
      */
+    @Nullable
     public JavaVersion getJavaVersion() {
         return javaVersion;
     }
@@ -229,18 +240,6 @@ public class Jvm implements JavaInfo {
         } else {
             return javaBase;
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public File getRuntimeJar() {
-        File runtimeJar = new File(javaBase, "lib/rt.jar");
-        if (runtimeJar.exists()) {
-            return runtimeJar;
-        }
-        runtimeJar = new File(javaBase, "jre/lib/rt.jar");
-        return runtimeJar.exists() ? runtimeJar : null;
     }
 
     /**
@@ -332,8 +331,8 @@ public class Jvm implements JavaInfo {
     }
 
     static class IbmJvm extends Jvm {
-        IbmJvm(OperatingSystem os, File suppliedJavaBase) {
-            super(os, suppliedJavaBase);
+        IbmJvm(OperatingSystem os) {
+            super(os);
         }
 
         @Override
@@ -350,26 +349,12 @@ public class Jvm implements JavaInfo {
             super(os);
         }
 
-        AppleJvm(OperatingSystem current, File javaHome) {
-            super(current, javaHome);
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public File getRuntimeJar() {
-            File javaHome = super.getJavaHome();
-            File runtimeJar = new File(javaHome.getParentFile(), "Classes/classes.jar");
-            return runtimeJar.exists() ? runtimeJar : null;
-        }
-
         /**
          * {@inheritDoc}
          */
         @Override
         public File getToolsJar() {
-            return getRuntimeJar();
+            return null;
         }
 
         /**
