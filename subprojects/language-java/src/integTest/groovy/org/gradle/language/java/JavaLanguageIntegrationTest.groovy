@@ -52,7 +52,6 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         }
     }
 
-    @Requires(TestPrecondition.JDK6_OR_LATER)
     def "target should produce in the correct bytecode"() {
         when:
         app.sources*.writeToDir(file("src/myLib/java"))

@@ -16,10 +16,6 @@
 
 package org.gradle.jvm.tasks.api.internal
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-
-@Requires(TestPrecondition.JDK6_OR_LATER)
 class ApiClassExtractorAnnotationsTest extends ApiClassExtractorTestSupport {
 
     void "annotations on class are retained"() {

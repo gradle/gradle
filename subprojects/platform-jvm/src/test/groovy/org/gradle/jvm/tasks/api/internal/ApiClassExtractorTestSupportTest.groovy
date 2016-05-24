@@ -16,11 +16,8 @@
 
 package org.gradle.jvm.tasks.api.internal
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-@Requires(TestPrecondition.JDK6_OR_LATER)
 class ApiClassExtractorTestSupportTest extends ApiClassExtractorTestSupport {
 
     @Unroll
