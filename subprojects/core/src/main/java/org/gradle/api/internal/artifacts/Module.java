@@ -13,32 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.artifacts;
 
-package org.gradle.plugins.ide.eclipse.model;
-
+import org.gradle.internal.HasInternalProtocol;
 
 /**
- * For now, we only need the Project. However this class will contain more domain objects soon.
+ * <p>A {@code Module} represents the meta-information about a project which should be used when publishing the
+ * module.</p>
  */
-@Deprecated
-public class EclipseDomainModel {
+@HasInternalProtocol
+public interface Module {
+    public static final String DEFAULT_STATUS = "integration";
 
-    private Project project;
-    private Classpath classpath;
+    String getGroup();
 
-    public Project getProject() {
-        return project;
-    }
+    String getName();
 
-    public void setProject(Project project) {
-        this.project = project;
-    }
+    String getVersion();
 
-    public Classpath getClasspath() {
-        return classpath;
-    }
-
-    public void setClasspath(Classpath classpath) {
-        this.classpath = classpath;
-    }
+    String getStatus();
 }

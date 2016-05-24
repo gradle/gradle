@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher.bootstrap;
 
-import org.gradle.BuildExceptionReporter;
+import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.api.Action;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;

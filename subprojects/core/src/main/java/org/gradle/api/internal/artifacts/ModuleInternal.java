@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.Module;
 
 public interface ModuleInternal extends Module {
     @Nullable

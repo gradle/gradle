@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle
 
+package org.gradle.internal.buildevents
+
+import org.gradle.BuildResult
 import org.gradle.api.GradleException
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.configuration.LoggingConfiguration
+import org.gradle.api.logging.configuration.ShowStacktrace
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.logging.DefaultLoggingConfiguration
-import org.gradle.api.logging.configuration.LoggingConfiguration
-import org.gradle.api.logging.configuration.ShowStacktrace
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.util.TreeVisitor
@@ -38,7 +40,7 @@ class BuildExceptionReporterTest extends Specification {
 
     def setup() {
         factory.create(BuildExceptionReporter.class, LogLevel.ERROR) >> output
-        clientMetaData.describeCommand(!null, !null) >> { args -> args[0].append("[gradle ${args[1].join(' ')}]")}
+        clientMetaData.describeCommand(!null, !null) >> { args -> args[0].append("[gradle ${args[1].join(' ')}]") }
     }
 
     def doesNothingWhenBuildIsSuccessful() {
@@ -305,11 +307,11 @@ org.gradle.api.GradleException: <message>
         result.failure >> failure
         result
     }
-    
+
     def nested(String message, Throwable... causes) {
         return new TestException(message, causes)
     }
-    
+
     def exception(String location, RuntimeException target, Throwable... causes) {
         LocationAwareException exception = Mock()
         exception.location >> location
@@ -317,8 +319,8 @@ org.gradle.api.GradleException: <message>
         exception.visitReportableCauses(!null) >> { TreeVisitor visitor ->
             visitor.node(exception)
             visitor.startChildren()
-            causes.each { 
-                visitor.node(it) 
+            causes.each {
+                visitor.node(it)
                 if (it instanceof TestException) {
                     visitor.startChildren()
                     it.causes.each { child ->

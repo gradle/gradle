@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.internal.tasks.AntGroovydoc;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.Input;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle;
+package org.gradle.internal.buildevents;
 
+import org.gradle.BuildAdapter;
+import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.exceptions.FailureResolutionAware;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.logging.LoggingCommandLineConverter;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
-import org.gradle.internal.logging.LoggingCommandLineConverter;
+import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.GUtil;
 import org.gradle.util.TreeVisitor;
 
@@ -36,9 +38,8 @@ import java.util.List;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 
 /**
- * A {@link BuildListener} which reports the build exception, if any.
+ * A {@link org.gradle.BuildListener} which reports the build exception, if any.
  */
-@Deprecated
 public class BuildExceptionReporter extends BuildAdapter implements Action<Throwable> {
     private enum ExceptionStyle {
         NONE, FULL

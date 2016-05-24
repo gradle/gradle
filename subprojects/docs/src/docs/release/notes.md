@@ -141,6 +141,16 @@ In previous versions, annotations on task properties like `@InputFile` and `@Out
   If you were using this method to expose Ant logging messages, please use `AntBuilder.setLifecycleLogLevel()` instead.
 * Removed `AntScalaCompiler` in favor of `ZincScalaCompiler`.
 * Removed `EclipseClasspath.noExportConfigurations` property.
+* Removed `BuildExceptionReporter`.
+* Removed `BuildLogger`.
+* Removed `BuildResultLogger`.
+* Removed `TaskExecutionLogger`.
+* Removed `ConflictResolution`.
+* Removed `Module`.
+* Removed `DeleteAction`.
+* Removed `EclipseDomainModel`.
+* Removed `AntGroovydoc`.
+* Removed `AntScalaDoc`.
 * TestKit supports Gradle versions 1.2 or later.
 * Build comparison plugin supports Gradle versions 1.2 or later.
 

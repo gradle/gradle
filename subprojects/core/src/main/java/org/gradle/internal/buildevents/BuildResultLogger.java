@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle;
+package org.gradle.internal.buildevents;
 
+import org.gradle.BuildAdapter;
+import org.gradle.BuildResult;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -24,9 +26,8 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Failure;
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Success;
 
 /**
- * A {@link BuildListener} which logs the final result of the build.
+ * A {@link org.gradle.BuildListener} which logs the final result of the build.
  */
-@Deprecated
 public class BuildResultLogger extends BuildAdapter {
     private final StyledTextOutputFactory textOutputFactory;
     private final Clock buildTimeClock;

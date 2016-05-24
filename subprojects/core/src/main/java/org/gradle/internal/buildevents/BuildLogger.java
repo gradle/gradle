@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle;
+package org.gradle.internal.buildevents;
 
+import org.gradle.BuildListener;
+import org.gradle.BuildResult;
+import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.initialization.Settings;
@@ -31,7 +34,6 @@ import java.util.List;
 /**
  * A {@link org.gradle.BuildListener} which logs the build progress.
  */
-@Deprecated
 public class BuildLogger implements BuildListener, TaskExecutionGraphListener {
     private final Logger logger;
     private final List<BuildListener> resultLoggers = new ArrayList<BuildListener>();

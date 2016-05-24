@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.apache.tools.ant.Task;
-import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;

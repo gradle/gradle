@@ -17,6 +17,7 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.internal.tasks.scala.AntScalaDoc;
 import org.gradle.api.tasks.*;
 import org.gradle.util.GUtil;
 

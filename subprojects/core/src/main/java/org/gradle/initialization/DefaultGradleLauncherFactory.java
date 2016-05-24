@@ -16,9 +16,9 @@
 
 package org.gradle.initialization;
 
-import org.gradle.BuildLogger;
+import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.StartParameter;
-import org.gradle.TaskExecutionLogger;
+import org.gradle.internal.buildevents.TaskExecutionLogger;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logging;

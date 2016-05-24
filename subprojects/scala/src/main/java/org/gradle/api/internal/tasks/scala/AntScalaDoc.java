@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.scala;
+
+package org.gradle.api.internal.tasks.scala;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -21,6 +22,7 @@ import groovy.lang.Closure;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
+import org.gradle.api.tasks.scala.ScalaDocOptions;
 
 import java.io.File;
 import java.util.Collections;
@@ -29,7 +31,6 @@ import java.util.List;
 /**
  * Ant-based Scaladoc.
  */
-@Deprecated
 public class AntScalaDoc {
     private final IsolatedAntBuilder antBuilder;
     private final List<File> bootclasspathFiles;

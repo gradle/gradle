@@ -17,7 +17,7 @@ package org.gradle.launcher.cli;
 
 import groovy.lang.GroovySystem;
 import org.apache.tools.ant.Main;
-import org.gradle.BuildExceptionReporter;
+import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;

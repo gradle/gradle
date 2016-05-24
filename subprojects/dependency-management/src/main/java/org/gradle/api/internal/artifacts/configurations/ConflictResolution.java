@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts;
-
-import org.gradle.internal.HasInternalProtocol;
+package org.gradle.api.internal.artifacts.configurations;
 
 /**
- * <p>A {@code Module} represents the meta-information about a project which should be used when publishing the
- * module.</p>
+ * The conflict resolution
  */
-@HasInternalProtocol @Deprecated
-public interface Module {
-    public static final String DEFAULT_STATUS = "integration";
-
-    String getGroup();
-
-    String getName();
-
-    String getVersion();
-
-    String getStatus();
-}
+public interface ConflictResolution {}
