@@ -25,7 +25,6 @@ import org.gradle.integtests.tooling.r18.BrokenAction
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
-import spock.lang.IgnoreIf
 
 @TargetGradleVersion("current")
 class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecification {
@@ -33,10 +32,9 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         toolingApi.requireDaemons()
     }
 
-    @IgnoreIf({AvailableJavaHomes.java5 == null})
-    def "cannot run a build when build is configured to use Java 5"() {
+    def "cannot run a build when build is configured to use Java 6 or earlier"() {
         given:
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.java5.javaHome.absolutePath)
+        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
 
         when:
         toolingApi.withConnection { ProjectConnection connection ->
@@ -46,29 +44,15 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         then:
         GradleConnectionException e = thrown()
         e.message.startsWith("Could not execute build using Gradle ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java 5."
+        e.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
 
-    @IgnoreIf({AvailableJavaHomes.jdk6 == null})
-    def "cannot run a build when build is configured to use Java 6"() {
+    def "cannot fetch model when build is configured to use Java 6 or earlier"() {
         given:
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk6.javaHome.absolutePath)
-
-        when:
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.newBuild().run()
-        }
-
-        then:
-        GradleConnectionException e = thrown()
-        e.message.startsWith("Could not execute build using Gradle ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java 6."
-    }
-
-    @IgnoreIf({AvailableJavaHomes.java5 == null})
-    def "cannot fetch model when build is configured to use Java 5"() {
-        given:
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.java5.javaHome.absolutePath)
+        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
 
         when:
         toolingApi.withConnection { ProjectConnection connection ->
@@ -78,29 +62,15 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         then:
         GradleConnectionException e = thrown()
         e.message.startsWith("Could not fetch model of type 'GradleProject' using Gradle ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java 5."
+        e.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
 
-    @IgnoreIf({AvailableJavaHomes.jdk6 == null})
-    def "cannot fetch model when build is configured to use Java 6"() {
+    def "cannot run action when build is configured to use Java 6 or earlier"() {
         given:
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk6.javaHome.absolutePath)
-
-        when:
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.model(GradleProject).get()
-        }
-
-        then:
-        GradleConnectionException e = thrown()
-        e.message.startsWith("Could not fetch model of type 'GradleProject' using Gradle ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java 6."
-    }
-
-    @IgnoreIf({AvailableJavaHomes.java5 == null})
-    def "cannot run action when build is configured to use Java 5"() {
-        given:
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.java5.javaHome.absolutePath)
+        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
 
         when:
         toolingApi.withConnection { ProjectConnection connection ->
@@ -110,30 +80,16 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         then:
         GradleConnectionException e = thrown()
         e.message.startsWith("Could not run build action using Gradle ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java 5."
+        e.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
 
-    @IgnoreIf({AvailableJavaHomes.jdk6 == null})
-    def "cannot run action when build is configured to use Java 6"() {
-        given:
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk6.javaHome.absolutePath)
-
-        when:
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.action(new BrokenAction()).run()
-        }
-
-        then:
-        GradleConnectionException e = thrown()
-        e.message.startsWith("Could not run build action using Gradle ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java 6."
-    }
-
-    @IgnoreIf({AvailableJavaHomes.java5 == null})
     @ToolingApiVersion(">=2.6")
-    def "cannot run tests when build is configured to use Java 5"() {
+    def "cannot run tests when build is configured to use Java 6 or earlier"() {
         given:
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.java5.javaHome.absolutePath)
+        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
 
         when:
         toolingApi.withConnection { ProjectConnection connection ->
@@ -143,23 +99,9 @@ class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecificat
         then:
         GradleConnectionException e = thrown()
         e.message.startsWith("Could not execute tests using Gradle ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java 5."
-    }
+        e.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 
-    @IgnoreIf({AvailableJavaHomes.jdk6 == null})
-    @ToolingApiVersion(">=2.6")
-    def "cannot run tests when build is configured to use Java 6"() {
-        given:
-        projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk6.javaHome.absolutePath)
-
-        when:
-        toolingApi.withConnection { ProjectConnection connection ->
-            connection.newTestLauncher().withJvmTestClasses("SomeTest").run()
-        }
-
-        then:
-        GradleConnectionException e = thrown()
-        e.message.startsWith("Could not execute tests using Gradle ")
-        e.cause.message == "Gradle ${targetDist.version.version} requires Java 7 or later to run. Your build is currently configured to use Java 6."
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
 }

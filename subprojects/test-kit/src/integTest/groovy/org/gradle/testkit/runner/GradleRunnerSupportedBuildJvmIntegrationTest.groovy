@@ -21,15 +21,13 @@ import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
-import spock.lang.IgnoreIf
 
 @NonCrossVersion
 class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerIntegrationTest {
-    @IgnoreIf({AvailableJavaHomes.jdk6 == null})
     @NoDebug
-    def "fails when build is configured to use Java 6"() {
+    def "fails when build is configured to use Java 6 or earlier"() {
         given:
-        testDirectory.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk6.javaHome.absolutePath)
+        testDirectory.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
 
         when:
         runner().buildAndFail()
@@ -38,6 +36,9 @@ class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerInteg
         IllegalStateException e = thrown()
         e.message.startsWith("An error occurred executing build with no args in directory ")
         e.cause instanceof GradleConnectionException
-        e.cause.cause.message == "Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java 6."
+        e.cause.cause.message == "Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
+
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
 }

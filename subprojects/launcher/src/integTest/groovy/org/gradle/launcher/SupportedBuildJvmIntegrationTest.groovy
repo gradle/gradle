@@ -19,50 +19,32 @@ package org.gradle.launcher
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.GradleVersion
-import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
-    @IgnoreIf({ AvailableJavaHomes.java5 == null })
-    def "provides reasonable failure message when attempting to run under java 5"() {
-        def jdk = AvailableJavaHomes.java5
-
+    @Unroll
+    def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
         executer.withJavaHome(jdk.javaHome)
 
         expect:
         fails("help")
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java 5.")
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
+
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
 
-    @IgnoreIf({ AvailableJavaHomes.jdk6 == null })
-    def "provides reasonable failure message when attempting to run under java 6"() {
-        def jdk = AvailableJavaHomes.jdk6
-
+    @Unroll
+    def "fails when build is configured to use Java #jdk.javaVersion"() {
         given:
-        executer.withJavaHome(jdk.javaHome)
+        file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.canonicalPath)
 
         expect:
         fails("help")
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java 6.")
-    }
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}.")
 
-    @IgnoreIf({ AvailableJavaHomes.java5 == null })
-    def "fails when build is configured to use Java 5"() {
-        given:
-        file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.java5.javaHome.canonicalPath)
-
-        expect:
-        fails()
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java 5.")
-    }
-
-    @IgnoreIf({ AvailableJavaHomes.jdk6 == null })
-    def "fails when build is configured to use Java 6"() {
-        given:
-        file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk6.javaHome.canonicalPath)
-
-        expect:
-        fails()
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java 6.")
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
 }

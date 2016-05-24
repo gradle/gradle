@@ -18,32 +18,20 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.GradleVersion
-import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegrationSpec {
-    @IgnoreIf({ AvailableJavaHomes.java5 == null })
-    def "provides reasonable failure message when attempting to run under java 5"() {
-        def jdk = AvailableJavaHomes.java5
-
+    @Unroll
+    def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
         prepareWrapper()
         wrapperExecuter.withJavaHome(jdk.javaHome)
 
         expect:
         def failure = wrapperExecuter.withTasks("help").runWithFailure()
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java 5.")
-    }
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
 
-    @IgnoreIf({ AvailableJavaHomes.jdk6 == null })
-    def "provides reasonable failure message when attempting to run under java 6"() {
-        def jdk = AvailableJavaHomes.jdk6
-
-        given:
-        prepareWrapper()
-        wrapperExecuter.withJavaHome(jdk.javaHome)
-
-        expect:
-        def failure = wrapperExecuter.withTasks("help").runWithFailure()
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java 6.")
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
 }
