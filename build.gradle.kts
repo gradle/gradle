@@ -25,7 +25,7 @@ fun DependencyHandler.compile(descriptor: Any) = add("compile", descriptor)
 dependencies {
     compileOnly("org.gradle:gradle-core:3+")
     compileOnly("org.gradle:gradle-process-services:3+")
-    compile("org.codehaus.groovy:groovy-all:2.4.4")
+    compile("org.codehaus.groovy:groovy-all:2.4.6")
     compile("org.slf4j:slf4j-api:1.7.10")
     compile("javax.inject:javax.inject:1")
     compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
