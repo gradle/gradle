@@ -18,6 +18,7 @@ package org.gradle.internal.jvm;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Nullable;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.os.OperatingSystem;
@@ -77,27 +78,22 @@ public class Jvm implements JavaInfo {
      * Constructs JVM details by inspecting the current JVM.
      */
     Jvm(OperatingSystem os) {
-        this.os = os;
-        //discover based on what's in the sys. property
-        try {
-            this.javaBase = new File(System.getProperty("java.home")).getCanonicalFile();
-        } catch (IOException e) {
-            throw new UncheckedException(e);
-        }
-        this.javaHome = findJavaHome(javaBase);
-        this.javaVersion = JavaVersion.current();
-        this.userSupplied = false;
+        this(os, FileUtils.canonicalize(new File(System.getProperty("java.home"))), JavaVersion.current(), false);
     }
 
     /**
      * Constructs JVM details from the given values
      */
     Jvm(OperatingSystem os, File suppliedJavaBase, JavaVersion javaVersion) {
+        this(os, suppliedJavaBase, javaVersion, true);
+    }
+
+    private Jvm(OperatingSystem os, File suppliedJavaBase, JavaVersion javaVersion, boolean userSupplied) {
         this.os = os;
         this.javaBase = suppliedJavaBase;
-        this.javaHome = suppliedJavaBase;
+        this.javaHome = findJavaHome(suppliedJavaBase);
         this.javaVersion = javaVersion;
-        this.userSupplied = true;
+        this.userSupplied = userSupplied;
     }
 
     /**

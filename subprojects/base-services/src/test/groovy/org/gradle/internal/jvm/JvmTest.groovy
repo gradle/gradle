@@ -97,6 +97,40 @@ class JvmTest extends Specification {
         jvm.standaloneJre == null
     }
 
+    def "locates JDK and JRE installs when user-specified java.home points to a typical JRE installation embedded in a JDK installation"() {
+        given:
+        TestFile software = tmpDir.createDir('software')
+        software.create {
+            jdk {
+                lib {
+                    file 'tools.jar'
+                }
+                bin {
+                    file 'java.exe'
+                    file 'javac.exe'
+                    file 'javadoc.exe'
+                }
+                jre {
+                    lib { file 'rt.jar' }
+                    bin { file 'java.exe' }
+                }
+            }
+        }
+
+        when:
+        System.properties['java.home'] = software.file('jdk/jre').absolutePath
+
+        then:
+        def jvm = new Jvm(os, software.file('jdk/jre'), JavaVersion.current());
+        jvm.javaHome == software.file('jdk')
+        jvm.toolsJar == software.file('jdk/lib/tools.jar')
+        jvm.javaExecutable == software.file('jdk/bin/java.exe')
+        jvm.javacExecutable == software.file('jdk/bin/javac.exe')
+        jvm.javadocExecutable == software.file('jdk/bin/javadoc.exe')
+        jvm.jre.homeDir == software.file('jdk/jre')
+        jvm.standaloneJre == null
+    }
+
     def "locates JDK and JRE installs when java.home points to a typical JDK installation"() {
         given:
         TestFile software = tmpDir.createDir('software')
