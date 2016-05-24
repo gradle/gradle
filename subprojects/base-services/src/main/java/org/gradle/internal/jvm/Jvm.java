@@ -20,13 +20,11 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.Nullable;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
