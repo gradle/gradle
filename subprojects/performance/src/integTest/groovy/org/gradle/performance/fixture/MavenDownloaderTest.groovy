@@ -28,7 +28,7 @@ class MavenDownloaderTest extends Specification {
     @Rule
     TemporaryFolder tmpDir = new TemporaryFolder()
 
-    @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK7_OR_LATER])
+    @Requires([TestPrecondition.ONLINE])
     @Unroll
     def "can download maven #mavenVersion"() {
         given:

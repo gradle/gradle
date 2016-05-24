@@ -17,8 +17,6 @@ package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 
@@ -145,7 +143,6 @@ model {
         "group 'group-without-a-module'" | 'A module dependency must have at least a group and a module name specified.'
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "can build JAR from multiple source sets"() {
         given:
         file("src/main/java/Main.java") << "public class Main {}"

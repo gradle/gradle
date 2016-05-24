@@ -21,12 +21,9 @@ import org.gradle.integtests.tooling.fixture.ContinuousBuildToolingApiSpecificat
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersions
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Timeout
 
 @Timeout(120)
-@Requires(TestPrecondition.JDK7_OR_LATER)
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_RICH_PROGRESS_EVENTS)
 @TargetGradleVersion(GradleVersions.SUPPORTS_DEPLOYMENT_REGISTRY)
 class DeploymentHandleContinuousBuildCrossVersionSpec extends ContinuousBuildToolingApiSpecification {

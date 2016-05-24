@@ -16,15 +16,12 @@
 
 package org.gradle.language.java
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 
 class SingleBinaryTypeWithVariantsTest extends VariantAwareDependencyResolutionSpec {
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     @Unroll("matching {jdk #jdk1, flavors #flavors1, builtTypes #buildTypes1} with {jdk #jdk2, flavors #flavors2, buildTypes #buildTypes2} #outcome")
     def "check resolution of a custom component onto a component of the same type (same class, same variant dimensions)"() {
         given:
@@ -141,7 +138,6 @@ model {
         outcome = errors ? 'fails' : 'succeeds'
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     @Unroll("matching custom {jdk #jdk1, flavors #flavors1, builtTypes #buildTypes1} with Java {jdk #jdk2} #outcome")
     def "building a custom binary type and resolving against a library with standard JarBinarySpec instances"() {
         given:
@@ -220,7 +216,6 @@ model {
         outcome = errors ? 'fails' : 'succeeds'
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     @Unroll("matching Java #jdk1 with custom {jdk #jdk2, flavors #flavors2, builtTypes #buildTypes2} #outcome")
     def "building a standard JarBinarySpec instance and resolving against a library with custom binary types. "() {
         given:
@@ -301,7 +296,6 @@ model {
         outcome = errors ? 'fails' : 'succeeds'
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     @Unroll("matching custom1 {jdk #jdk1, flavors #flavors) with custom2 {jdk #jdk2, builtTypes #buildTypes} #outcome")
     def "building a custom JarBinarySpec type and resolving against a library with a different custom JarBinarySpec type"() {
         given:

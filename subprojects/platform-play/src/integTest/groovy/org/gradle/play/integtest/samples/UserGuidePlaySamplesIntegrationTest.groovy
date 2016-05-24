@@ -26,7 +26,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
-@Requires(TestPrecondition.JDK7_OR_LATER)
 class UserGuidePlaySamplesIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample sourceSetsPlaySample = new Sample(temporaryFolder, "play/sourcesets")
     @Rule Sample compilerPlaySample = new Sample(temporaryFolder, "play/configure-compiler")

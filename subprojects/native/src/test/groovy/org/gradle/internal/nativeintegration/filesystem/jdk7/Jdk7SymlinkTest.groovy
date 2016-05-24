@@ -22,7 +22,6 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
 
-@Requires(TestPrecondition.JDK7_OR_LATER)
 class Jdk7SymlinkTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder

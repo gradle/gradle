@@ -17,8 +17,6 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import spock.lang.Unroll
 
@@ -138,7 +136,6 @@ model {
         dependency << ["project ':sub' library 'zdep'", "project ':sub'"]
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "can depend on a custom component producing a JVM library with corresponding platform"() {
         given:
         theModel '''
@@ -196,7 +193,6 @@ model {
         executedAndNotSkipped ':zdep7ApiJar', ':mainJava7Jar'
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should fail resolving dependencies only for the missing dependency variant"() {
         given:
         theModel '''
@@ -249,7 +245,6 @@ model {
         failure.assertHasCause(TextUtil.normaliseLineSeparators("Cannot find a compatible variant for library 'zdep'.\n    Required platform 'java6', available: 'java7'"))
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should choose the highest compatible platform variant of the target binary when dependency is a JVM component"() {
         given:
         theModel '''
@@ -292,7 +287,6 @@ model {
         executedAndNotSkipped ':zdepJava7ApiJar', ':mainJar'
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should choose the highest compatible platform variant of the target binary when dependency is a custom component"() {
         given:
         theModel '''
@@ -478,7 +472,6 @@ model {
         executedAndNotSkipped ':secondApiJar', ':thirdApiJar', ':mainJar'
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "Cannot build all variants of main component because of missing dependency variant"() {
         given:
         theModel '''
@@ -540,7 +533,6 @@ model {
         failure.assertHasCause(TextUtil.normaliseLineSeparators("Cannot find a compatible variant for library 'second'.\n    Required platform 'java6', available: 'java7'"))
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "Not all components target the same Java platforms"() {
         given:
         theModel '''
@@ -618,7 +610,6 @@ model {
         succeeds ':thirdJar'
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "All components should depend on the corresponding variants"() {
         given:
         theModel '''
@@ -757,7 +748,6 @@ model {
         failure.assertHasDescription 'Circular dependency between the following tasks:'
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "Fails if one of the dependencies provides more than one binary for the selected variant"() {
         given:
         theModel '''

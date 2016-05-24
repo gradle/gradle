@@ -20,12 +20,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
 import org.junit.Rule
 
 import java.util.jar.Manifest
 
-import static org.gradle.util.TestPrecondition.JDK7_OR_LATER
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
@@ -34,7 +32,6 @@ class SamplesJavaQuickstartIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final Sample sample = new Sample(testDirectoryProvider, 'java/quickstart')
 
-    @Requires(JDK7_OR_LATER)
     public void canBuildAndUploadJar() {
         given:
         TestFile javaprojectDir = sample.dir

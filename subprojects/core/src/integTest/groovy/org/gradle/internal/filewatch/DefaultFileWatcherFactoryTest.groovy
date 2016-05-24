@@ -22,15 +22,12 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Pair
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.Stoppable
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
 
 @UsesNativeServices
-@Requires(TestPrecondition.JDK7_OR_LATER)
 class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
     FileWatcher fileWatcher
     FileWatcherFactory fileWatcherFactory

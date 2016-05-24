@@ -18,10 +18,7 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.JDK7_OR_LATER)
 class FindBugsPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
     String getPluginName() {

@@ -17,8 +17,6 @@
 package org.gradle.jvm.test
 
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class JUnitTestSuiteComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
     def setup() {
@@ -196,7 +194,6 @@ Binaries
 """
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "shows details of test suite with component under test with multiple variants"() {
         given:
         buildFile << '''

@@ -16,13 +16,12 @@
 
 package org.gradle.internal.nativeintegration.filesystem.jdk7
 
-import java.nio.file.attribute.PosixFilePermission
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Specification
+
+import java.nio.file.attribute.PosixFilePermission
+
 import static java.nio.file.attribute.PosixFilePermission.*
 
-@Requires(TestPrecondition.JDK7_OR_LATER)
 class PosixFilePermissionConverterTest extends Specification {
     def "converts Set<PosixFilePermission to int representation"() {
 

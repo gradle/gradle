@@ -16,14 +16,9 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.util.Requires
 import org.junit.runner.RunWith
 
-import static org.gradle.util.TestPrecondition.JDK7_OR_LATER
-
-//TODO remove 'Requires' once we've updated CI
 @RunWith(UserGuideSamplesRunner.class)
-@Requires(JDK7_OR_LATER)
 class UserGuideSamplesIntegrationTest {
     /*
     Important info:

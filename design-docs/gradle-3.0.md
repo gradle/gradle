@@ -11,6 +11,7 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 No longer support running Gradle, the wrapper or the Tooling api client on Java 6. Instead, we'd support Java source compilation and test execution on Java 6 and later, as we do for Java 1.5 now.
 
+- Allow Java 6 to be used for findbugs execution?
 - Update project target versions 
 - Remove customisations for IDEA project generation.
 - Remove Java 7 checks, eg from continuous build.
@@ -96,7 +97,7 @@ TestNG dropped support for this in 5.12, in early 2010. Supporting these old sty
 - Remove reflective code from `TestNGTestClassProcessor` and properties from `TestNGSpec`
 - Remove test coverage and samples
 
-# Candidates for Gradle 3.0 and later
+# Candidates for Gradle .0 and later
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 

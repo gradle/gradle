@@ -89,9 +89,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK6({
         JavaVersion.current() == JavaVersion.VERSION_1_6
     }),
-    JDK7_OR_LATER({
-        JavaVersion.current() >= JavaVersion.VERSION_1_7
-    }),
     JDK7_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_1_7
     }),
@@ -102,7 +99,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         JavaVersion.current() <= JavaVersion.VERSION_1_8
     }),
     JDK7_POSIX({
-        JDK7_OR_LATER.fulfilled && NOT_WINDOWS.fulfilled
+        NOT_WINDOWS.fulfilled
     }),
     NOT_JDK_IBM({
         System.getProperty('java.vm.vendor') != 'IBM Corporation'

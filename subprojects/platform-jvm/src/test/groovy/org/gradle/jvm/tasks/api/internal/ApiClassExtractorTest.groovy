@@ -16,8 +16,6 @@
 
 package org.gradle.jvm.tasks.api.internal
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
@@ -281,7 +279,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         'boolean' | 'true'         | false
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     void "target binary compatibility is maintained"() {
         given:
         def api = toApi(target, [A: 'public class A {}'])

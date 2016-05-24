@@ -20,11 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
 import org.junit.Rule
 import org.junit.Test
-
-import static org.gradle.util.TestPrecondition.JDK7_OR_LATER
 
 class SamplesJavaBaseIntegrationTest extends AbstractIntegrationTest {
 
@@ -32,7 +29,6 @@ class SamplesJavaBaseIntegrationTest extends AbstractIntegrationTest {
     public final Sample sample = new Sample(testDirectoryProvider, 'java/base')
 
     @Test
-    @Requires(JDK7_OR_LATER)
     public void canBuildAndUploadJar() {
         TestFile javaprojectDir = sample.dir
 

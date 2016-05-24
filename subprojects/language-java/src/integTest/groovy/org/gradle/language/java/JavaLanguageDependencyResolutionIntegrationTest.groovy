@@ -892,7 +892,6 @@ model {
     }
 
     @Unroll
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should choose appropriate Java variants for #scope level dependency"() {
         given:
         applyJavaPlugin(buildFile)
@@ -1082,7 +1081,6 @@ model {
     }
 
     @Unroll
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should choose matching variants from #scope level dependency"() {
         given:
         applyJavaPlugin(buildFile)
@@ -1181,7 +1179,6 @@ model {
         succeeds 'mainJava7Jar'
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "should display candidate platforms if no one matches"() {
         given:
         applyJavaPlugin(buildFile)
