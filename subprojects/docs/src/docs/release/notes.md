@@ -1,12 +1,12 @@
-The Gradle team is pleased to announce Gradle 2.14-RC1.
+The Gradle team is pleased to announce Gradle 2.14.
 
-The team is always working to improve the overall performance of Gradle, and this release does not disappoint. Gradle's configuration time has dropped considerably through the application of some careful optimizations. The Gradle build itself has seen a **50% reduction in configuration time**. You'll see the biggest impact on multi-project builds and Android builds amongst others, but everyone will benefit to some degree. This is reason enough to upgrade.
+The team is always working to improve the overall performance of Gradle, and this release does not disappoint. Gradle's configuration time has dropped considerably through the application of some careful optimizations. The Gradle build itself has seen a **50% reduction in configuration time**. You'll see the biggest impact on multi-project builds, but everyone will benefit to some degree. This is reason enough to upgrade.
 
-In other news, the Gradle daemon has become self-aware. Not in the AI sense, sadly, but you will find the daemon to be much more **robust and resource-efficient** now because it monitors its memory usage. It's much less likely that you will need to manually kill daemons, which means you can more reliably **use the daemon on your continuous integration servers**.
+In other news, the [Gradle daemon](userguide/gradle_daemon.html) has become self-aware. Not in the AI sense, sadly, but you will find the daemon to be much more **robust and resource-efficient** now because it monitors its memory usage. It's much less likely that you will need to manually kill daemons.
 
 There are several other quality-of-life improvements for various users, including **IntelliJ IDEA support for Play framework projects**, and a fix that makes authoring plugins easier. In addition, we mentioned in our 2.13 release notes that **composite build support** is coming in Buildship 2.0. This amazing new feature will require Gradle 2.14 as a minimum version.
 
-Finally, it's time to start preparing for the departure of an old friend. Gradle 2.14 sees the **deprecation of Java 6**. It has been with us a long time now, reaching its official End of Life in 2013. You will still be able to use Java 6 with Gradle 2.14, but you won't be able to run Gradle 3 on it.
+Finally, it's time to start preparing for the departure of an old friend. Gradle 2.14 sees the **deprecation of Java 6**. It has been with us a long time now, reaching its official End of Life in 2013. You will still be able to use Java 6 with Gradle 2.14 and future versions, but you won't be able to run Gradle 3.0 on it.
 
 Enjoy the new version and let us know what you think!
 
@@ -29,7 +29,7 @@ If you're interested in how this was done, here are some of the optimizations th
 - Made the services and dependency injection infrastructure more efficient, so that applying plugins takes less time
 - Improved memory usage, resulting in less garbage collection
 - More efficient dynamic property and method lookup
-- Removed dynamic code constructs in a lot of places in favor of static ones, so that configuration time is reduced
+- Removed dynamic code constructs in a lot of places in favor of static ones
 
 ### More robust and memory-efficient Daemon
 
@@ -245,7 +245,7 @@ The `StartParameter.consoleOutput` property has been promoted and is now stable.
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
 in the next major Gradle version (Gradle 3.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
-The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
+The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
 ### Setting the log level from build logic
 
@@ -257,7 +257,7 @@ tasks, please use the [AntBuilder.setLifecycleLogLevel()](javadoc/org/gradle/api
 
 Running Gradle using Java 6 is now deprecated, and support will be removed in Gradle 3.0.
 
-It will continue to be possible to build JVM based projects for Java 6 using Gradle 3.0, by running Gradle using Java 7 and configuring your build to use Java 6 to compile, test and run your code.
+It will continue to be possible to build JVM based projects for Java 6 using Gradle 3.0, by running Gradle using Java 7 or newer and configuring your build to use Java 6 to compile, test and run your code.
 
 Using the Gradle Tooling API and TestKit on Java 6 is also deprecated, and support will be removed in Gradle 3.0.
 
@@ -415,22 +415,22 @@ Should be changed to:
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-- [Igor Melnichenko](https://github.com/Myllyenko) - fixed Groovydoc up-to-date checks ([GRADLE-3349](https://issues.gradle.org/browse/GRADLE-3349))
-- [Sandu Turcan](https://github.com/idlsoft) - add wildcard exclusion for non-transitive dependencies in POM ([GRADLE-1574](https://issues.gradle.org/browse/GRADLE-1574))
-- [Jean-Baptiste Nizet](https://github.com/jnizet) - add `filteringCharset` property to `CopySpec` ([GRADLE-1267](https://issues.gradle.org/browse/GRADLE-1267))
-- [Simon Herter](https://github.com/sherter) - add thrown exception to Javadocs for `ExtensionContainer`
-- [Raymond Navarette](https://github.com/rnavarette) - add classifiers for project dependencies in generated POM files ([GRADLE-3030](https://issues.gradle.org/browse/GRADLE-3030))
-- [Armin Groll](https://github.com/arming9) - Make Gradle source code compile inside Eclipse
+- [Alex Afanasyev](https://github.com/cawka) - Support java.util.logging config files during tests. ([GRADLE-2524](https://issues.gradle.org/browse/GRADLE-2524))
 - [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - fix NPE when configuring FileTree's builtBy by map ([GRADLE-3444](https://issues.gradle.org/browse/GRADLE-3444))
 - [Ryan Ernst](https://github.com/rjernst) - always use -source/-target for the forked Java compiler 
+- [Armin Groll](https://github.com/arming9) - Make Gradle source code compile inside Eclipse
+- [Simon Herter](https://github.com/sherter) - add thrown exception to Javadocs for `ExtensionContainer`
 - [Quinten Krijger](https://github.com/Krijger) - Fix description of leftShift task in error message
-- [Alex Afanasyev](https://github.com/cawka) - Support java.util.logging config files during tests. ([GRADLE-2524](https://issues.gradle.org/browse/GRADLE-2524))
+- [Igor Melnichenko](https://github.com/Myllyenko) - fixed Groovydoc up-to-date checks ([GRADLE-3349](https://issues.gradle.org/browse/GRADLE-3349))
+- [Raymond Navarette](https://github.com/rnavarette) - add classifiers for project dependencies in generated POM files ([GRADLE-3030](https://issues.gradle.org/browse/GRADLE-3030))
+- [Jean-Baptiste Nizet](https://github.com/jnizet) - add `filteringCharset` property to `CopySpec` ([GRADLE-1267](https://issues.gradle.org/browse/GRADLE-1267))
+- [Sandu Turcan](https://github.com/idlsoft) - add wildcard exclusion for non-transitive dependencies in POM ([GRADLE-1574](https://issues.gradle.org/browse/GRADLE-1574))
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->
 
-We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
+We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
 ## Known issues
 
