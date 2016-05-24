@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.IoActions
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -565,10 +564,13 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         executer.run()
 
         then:
-        IoActions.withResource(new JarFile(file('dest/test.jar'))) { jar ->
+        def jar = new JarFile(file('dest/test.jar'))
+        try {
             def manifest = jar.manifest
             assert manifest.mainAttributes.getValue(attributeNameWritten) == attributeValue
             assert manifest.mainAttributes.getValue(attributeNameMerged) == attributeValue
+        } finally {
+            jar.close();
         }
     }
 
