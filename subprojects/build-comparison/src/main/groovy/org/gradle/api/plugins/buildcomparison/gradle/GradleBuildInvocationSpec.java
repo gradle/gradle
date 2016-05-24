@@ -18,7 +18,7 @@ package org.gradle.api.plugins.buildcomparison.gradle;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.Internal;
 
 import java.io.File;
 import java.util.List;
@@ -36,7 +36,7 @@ public interface GradleBuildInvocationSpec {
      *
      * @return The “root” project directory of the build. Never null.
      */
-    @InputDirectory
+    @Internal
     File getProjectDir();
 
     /**
