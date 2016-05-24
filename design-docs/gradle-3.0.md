@@ -108,6 +108,18 @@ TestNG dropped support for this in 5.12, in early 2010. Supporting these old sty
 - Remove reflective code from `TestNGTestClassProcessor` and properties from `TestNGSpec`
 - Remove test coverage and samples
 
+## Fix the delegate and parameter for named container configuration closure
+
+Currently, a `ConfigureDelegate` instances is made visible to the closure as its parameter (eg `it`) and its delegate. This is not the case for other configuration closures.
+
+## Test output directories
+
+The current defaults for the outputs of tasks of type `Test` conflict with each other:
+
+* Change the default result and report directory for the `Test` type to include the task's name, so that the default
+  does not conflict with the default for any other `Test` task.
+* Change the default TestNG output directory.
+
 # Candidates for Gradle 3.0 and later
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
@@ -122,18 +134,6 @@ The following stories are candidates to be included in a major release of Gradle
 - Wrapper does not support downloading versions earlier than 1.0
 - Remove old unused types that are baked into the bytecode of tasks compiled against older versions (eg `ConventionValue`). Fail with a reasonable
 error message for these task types.
-
-## Fix the delegate and parameter for named container configuration closure
-
-Currently, a `ConfigureDelegate` instances is made visible to the closure as its parameter (eg `it`) and its delegate. This is not the case for other configuration closures.
-
-## Test output directories
-
-The current defaults for the outputs of tasks of type `Test` conflict with each other:
-
-* Change the default result and report directory for the `Test` type to include the task's name, so that the default
-  does not conflict with the default for any other `Test` task.
-* Change the default TestNG output directory.
 
 ## Logging changes
 
@@ -221,7 +221,6 @@ types and to offer a more consistent DSL.
 ## Tooling API clean ups
 
 * `LongRunningOperation.withArguments()` should be called `setArguments()` for consistency.
-* Remove support for consumers older than 1.6, will allow the provider to drop support for `BuildActionRunner` protocol.
 * Remove the old `ProgressListener` interfaces and methods. These are superseded by the new interfaces. However, the new interfaces are supported only
   by Gradle 2.5 and later, so might need to defer the removal until 4.0.
 * Move `UnsupportedBuildArgumentException` and `UnsupportedOperationConfigurationException` up to `org.gradle.tooling`, to remove
