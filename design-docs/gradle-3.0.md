@@ -7,6 +7,17 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 # Stories
 
+## Remove deprecated elements
+
+- Move `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER` from public API.
+- Move internal types `org.gradle.logging.StandardOutputCapture` and `org.gradle.logging.LoggingManagerInternal` into an internal package.
+- Merge `Module` and `ModuleInternal`, now that `Module` is internal
+
+## Simplify definition of public API
+
+- Ensure all internal packages have `internal` in their name
+- Remove `org.gradle.util` from default imports.
+
 ## Change minimum version for running Gradle to Java 7
 
 No longer support running Gradle, the wrapper or the Tooling api client on Java 6. Instead, we'd support Java source compilation and test execution on Java 6 and later, as we do for Java 1.5 now.
@@ -97,7 +108,7 @@ TestNG dropped support for this in 5.12, in early 2010. Supporting these old sty
 - Remove reflective code from `TestNGTestClassProcessor` and properties from `TestNGSpec`
 - Remove test coverage and samples
 
-# Candidates for Gradle .0 and later
+# Candidates for Gradle 3.0 and later
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
@@ -124,13 +135,9 @@ The current defaults for the outputs of tasks of type `Test` conflict with each 
   does not conflict with the default for any other `Test` task.
 * Change the default TestNG output directory.
 
-## Log changes
+## Logging changes
 
-* Remove `--no-color` command-line option.
-* Remove `LoggingConfiguration.colorOutput` property.
-* Remove `LoggingManager.logLevel` property. Managing the log level should not be a concern of the build logic.
 * Remove `Project.getLogging()` method. Would be replaced by the existing `logging` property on `Script` and `Task`.
-* Move internal types `StandardOutputCapture`, `StandardOutputRedirector` and `LoggingManagerInternal` into an internal package.
 
 ## Archive tasks + base plugin
 
@@ -231,12 +238,6 @@ types and to offer a more consistent DSL.
 
 * Remove `Configurable` from public API types.
 * Remove `PomFilterContainer.getActivePomFilters()`.
-* Change `StartParameter` so that it no longer extends `LoggingConfiguration`.
-* Move `ConflictResolution` from public API (it's only used internally).
-* Move `Module` from public API (it's only used internally).
-* Move `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER` from public API.
-* Move `AntGroovydoc` and `AntScalaDoc` from public API.
-* Move `BuildExceptionReporter`, `BuildResultLogger`, `TaskExecutionLogger` and `BuildLogger` out of the public API.
 
 ## Remove support for convention objects
 
@@ -281,9 +282,7 @@ Extension objects have been available for over 2 years and are now an establishe
 * Rename `IllegalDependencyNotation` to add `Exception` to the end of its name.
 * Remove `ConventionProperty`, replace it with documentation.
 * Remove `Settings.startParameter`. Can use `gradle.startParameter` instead.
-* Remove `org.gradle.util` from default imports.
 * Remove `AbstractOptions`.
-* Remove unused `EclipseDomainModel`.
 * Replace `ShowStacktrace.INTERNAL_EXCEPTIONS` with `NONE`.
 
 ## Signing plugin tidy-ups
