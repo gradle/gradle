@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.internal.jvm.JavaInfo
 import org.gradle.util.GradleVersion
 
 class ToolingApiUnsupportedClientJvmCrossVersionSpec extends ToolingApiSpecification {
@@ -86,7 +85,7 @@ public class TestClient {
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
 
-    def runScript(JavaInfo jdk) {
+    def runScript(def jdk) {
         def outStr = new ByteArrayOutputStream()
         def executer = new ScriptExecuter()
         executer.environment(JAVA_HOME: jdk.javaHome)
