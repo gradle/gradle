@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.jvm;
+package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.jvm.JavaInfo;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.reflect.DirectInstantiator;
 
 import javax.tools.JavaCompiler;
