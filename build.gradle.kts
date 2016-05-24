@@ -15,7 +15,7 @@ group = "org.gradle"
 
 version = "1.0.0-SNAPSHOT"
 
-val kotlinVersion = extra["kotlinVersion"]
+val kotlinVersion = extra["kotlinVersion"] as String
 
 fun DependencyHandler.compileOnly(descriptor: Any) = add("compileOnly", descriptor)
 
@@ -29,7 +29,7 @@ dependencies {
     compile("javax.inject:javax.inject:1")
     compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
     compile("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
-    compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
+    compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinVersion}a")
 }
 
 tasks.withType<Jar> {
