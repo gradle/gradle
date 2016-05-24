@@ -18,28 +18,24 @@ package org.gradle.api.internal.file.collections;
 
 import com.google.common.base.Charsets;
 import org.gradle.api.JavaVersion;
-import org.gradle.internal.Cast;
+import org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
-import org.gradle.internal.reflect.DirectInstantiator;
 
 import java.nio.charset.Charset;
 
 public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
-    private final ClassLoader classLoader;
     private final JavaVersion javaVersion;
     private DirectoryWalker instance;
 
-    DefaultDirectoryWalkerFactory(ClassLoader classLoader, JavaVersion javaVersion) {
+    DefaultDirectoryWalkerFactory(JavaVersion javaVersion) {
         this.javaVersion = javaVersion;
-        this.classLoader = classLoader;
         reset();
     }
 
     DefaultDirectoryWalkerFactory() {
-        this(DefaultDirectoryWalkerFactory.class.getClassLoader(), JavaVersion.current());
+        this(JavaVersion.current());
     }
 
     public DirectoryWalker create() {
@@ -53,12 +49,7 @@ public class DefaultDirectoryWalkerFactory implements Factory<DirectoryWalker> {
     private DirectoryWalker createInstance() {
         FileSystem fileSystem = FileSystems.getDefault();
         if (javaVersion.isJava8Compatible() || (javaVersion.isJava7Compatible() && defaultEncodingContainsPlatformEncoding())) {
-            try {
-                Class clazz = classLoader.loadClass("org.gradle.api.internal.file.collections.jdk7.Jdk7DirectoryWalker");
-                return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz, fileSystem));
-            } catch (ClassNotFoundException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+            return new Jdk7DirectoryWalker(fileSystem);
         } else {
             return new DefaultDirectoryWalker(fileSystem);
         }
