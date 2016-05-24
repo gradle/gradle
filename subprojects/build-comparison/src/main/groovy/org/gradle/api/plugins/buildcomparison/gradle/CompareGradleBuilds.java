@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult;
@@ -203,7 +202,7 @@ public class CompareGradleBuilds extends DefaultTask implements VerificationTask
     /**
      * Sets the directory that will contain the HTML comparison report and any other report files.
      *
-     * The value will be evaluated by {@link Project#file(Object) project.file()}.
+     * The value will be evaluated by {@link org.gradle.api.Project#file(Object) project.file()}.
      *
      * @param reportDir The directory that will contain the HTML comparison report and any other report files.
      */
