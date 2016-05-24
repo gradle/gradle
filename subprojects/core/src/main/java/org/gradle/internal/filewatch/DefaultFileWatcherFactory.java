@@ -17,13 +17,10 @@
 package org.gradle.internal.filewatch;
 
 import org.gradle.api.Action;
-import org.gradle.api.JavaVersion;
-import org.gradle.internal.Cast;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.internal.reflect.DirectInstantiator;
+import org.gradle.internal.filewatch.jdk7.Jdk7FileWatcherFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,32 +31,15 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
 
     private static final int STOP_TIMEOUT_SECONDS = 10;
     private final StoppableExecutor executor;
-    private final JavaVersion javaVersion;
-    private final ClassLoader classLoader;
 
     private FileWatcherFactory fileWatcherFactory;
 
     public DefaultFileWatcherFactory(ExecutorFactory executorFactory) {
-        this(JavaVersion.current(), DefaultFileWatcherFactory.class.getClassLoader(), executorFactory);
-    }
-
-    DefaultFileWatcherFactory(JavaVersion javaVersion, ClassLoader classLoader, ExecutorFactory executorFactory) {
-        this.javaVersion = javaVersion;
-        this.classLoader = classLoader;
         this.executor = executorFactory.create("filewatcher");
     }
 
     protected FileWatcherFactory createFileWatcherFactory() {
-        if (javaVersion.isJava7Compatible()) {
-            try {
-                Class clazz = classLoader.loadClass("org.gradle.internal.filewatch.jdk7.Jdk7FileWatcherFactory");
-                return Cast.uncheckedCast(DirectInstantiator.instantiate(clazz, executor));
-            } catch (ClassNotFoundException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        } else {
-            throw new UnsupportedOperationException("File watching requires Java 7 or later.");
-        }
+        return new Jdk7FileWatcherFactory(executor);
     }
 
     @Override
