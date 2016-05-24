@@ -13,7 +13,7 @@ apply {
 
 group = "org.gradle"
 
-version = "1.0.0-M1a"
+version = "1.0.0-SNAPSHOT"
 
 val kotlinVersion = extra["kotlinVersion"] as String
 
@@ -22,8 +22,8 @@ fun DependencyHandler.compileOnly(descriptor: Any) = add("compileOnly", descript
 fun DependencyHandler.compile(descriptor: Any) = add("compile", descriptor)
 
 dependencies {
-    compileOnly("org.gradle:gradle-core:3.0-20160524000017+0000")
-    compileOnly("org.gradle:gradle-process-services:3.0-20160524000017+0000")
+    compileOnly("org.gradle:gradle-core:3+")
+    compileOnly("org.gradle:gradle-process-services:3+")
     compile("org.codehaus.groovy:groovy-all:2.4.6")
     compile("org.slf4j:slf4j-api:1.7.10")
     compile("javax.inject:javax.inject:1")
