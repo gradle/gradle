@@ -16,12 +16,9 @@
 
 package org.gradle.external.javadoc;
 
-import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.process.ExecSpec;
 
 import java.io.File;
@@ -75,7 +72,6 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions source(String source);
 
-    @InputFiles
     List<File> getClasspath();
 
     void setClasspath(List<File> classpath);
@@ -98,14 +94,12 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions extDirs(File ... extDirs);
 
-    @Console
     JavadocOutputLevel getOutputLevel();
 
     void setOutputLevel(JavadocOutputLevel outputLevel);
 
     MinimalJavadocOptions verbose();
 
-    @Internal
     boolean isVerbose();
 
     MinimalJavadocOptions quiet();
@@ -133,21 +127,18 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions encoding(String encoding);
 
-    @Input
     List<String> getJFlags();
 
     void setJFlags(List<String> jFlags);
 
     MinimalJavadocOptions jFlags(String ... jFlags);
 
-    @InputFiles
     List<File> getOptionFiles();
 
     void setOptionFiles(List<File> optionFiles);
 
     MinimalJavadocOptions optionFiles(File ... argumentFiles);
 
-    @OutputDirectory
     File getDestinationDirectory();
 
     void setDestinationDirectory(File directory);
@@ -170,7 +161,6 @@ public interface MinimalJavadocOptions {
 
     void write(File outputFile) throws IOException;
 
-    @Input
     List<String> getSourceNames();
 
     void setSourceNames(List<String> sourceNames);

@@ -18,7 +18,6 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 
 import java.io.File;
 import java.io.Serializable;
@@ -39,7 +38,6 @@ public class IncrementalCompileOptions implements Serializable {
      * @return the file path where which results of code analysis are to be stored
      */
     @Input
-    // TODO:LPTR Shouldn't this be an @OutputFile instead?
     public File getAnalysisFile() {
         return analysisFile;
     }
@@ -59,7 +57,6 @@ public class IncrementalCompileOptions implements Serializable {
      * is published to other {@code ScalaCompile} tasks
      */
     // only an input for other task instances
-    @Internal
     public File getPublishedCode() {
         return publishedCode;
     }

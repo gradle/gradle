@@ -20,11 +20,9 @@ import com.google.common.collect.Lists;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.nativeplatform.toolchain.internal.PCHUtils;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 
@@ -33,23 +31,18 @@ import java.io.File;
  */
 @Incubating
 public class PrefixHeaderFileGenerateTask extends DefaultTask {
-    private String header;
-    private File prefixHeaderFile;
+    @Input
+    String header;
+
+    @OutputFile
+    File prefixHeaderFile;
 
     @TaskAction
     void generatePrefixHeaderFile() {
         PCHUtils.generatePCHFile(Lists.newArrayList(header), prefixHeaderFile);
     }
 
-    @Internal
-    @Deprecated
     public String getHeaders() {
-        DeprecationLogger.nagUserOfReplacedMethod("PrefixHeaderFileGenerateTask.getHeaders", "getHeader");
-        return header;
-    }
-
-    @Input
-    public String getHeader() {
         return header;
     }
 
@@ -57,7 +50,6 @@ public class PrefixHeaderFileGenerateTask extends DefaultTask {
         this.header = header;
     }
 
-    @OutputFile
     public File getPrefixHeaderFile() {
         return prefixHeaderFile;
     }

@@ -24,16 +24,9 @@ import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.resources.TextResource
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.SourceTask
-import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.VerificationTask
-import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.api.tasks.*
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.logging.ConsoleRenderer
 
 import javax.inject.Inject
 
@@ -66,7 +59,6 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
     /**
      * The Checkstyle configuration file to use.
      */
-    @Internal
     File getConfigFile() {
         getConfig()?.asFile()
     }
@@ -131,13 +123,11 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
     /**
      * Whether or not this task will ignore failures and continue running the build.
      */
-    @Input
     boolean ignoreFailures
 
     /**
      * Whether or not rule violations are to be displayed on the console.
      */
-    @Input
     boolean showViolations = true
 
     @CompileStatic(TypeCheckingMode.SKIP)

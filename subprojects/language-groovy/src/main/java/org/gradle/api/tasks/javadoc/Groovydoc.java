@@ -25,7 +25,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
@@ -151,7 +150,6 @@ public class Groovydoc extends SourceTask {
         this.classpath = classpath;
     }
 
-    @Internal
     public AntGroovydoc getAntGroovydoc() {
         if (antGroovydoc == null) {
             IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);

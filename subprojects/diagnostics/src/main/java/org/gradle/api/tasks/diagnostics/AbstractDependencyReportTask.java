@@ -19,17 +19,12 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.tasks.options.Option;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Displays the dependency tree for a configuration.
@@ -67,7 +62,6 @@ public abstract class AbstractDependencyReportTask extends AbstractReportTask {
         }
     }
 
-    @Internal
     private Set<Configuration> getReportConfigurations() {
         return configurations != null ? configurations : getTaskConfigurations();
     }
@@ -78,7 +72,6 @@ public abstract class AbstractDependencyReportTask extends AbstractReportTask {
      *
      * @return the configurations.
      */
-    @Internal
     public Set<Configuration> getConfigurations() {
         return configurations;
     }
@@ -102,6 +95,5 @@ public abstract class AbstractDependencyReportTask extends AbstractReportTask {
         this.configurations = Collections.singleton(getTaskConfigurations().getByName(configurationName));
     }
 
-    @Internal
     abstract public ConfigurationContainer getTaskConfigurations();
 }

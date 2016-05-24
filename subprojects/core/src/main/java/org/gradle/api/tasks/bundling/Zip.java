@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.DefaultZipCompressor;
 import org.gradle.api.internal.file.copy.ZipCompressor;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 
 import java.nio.charset.Charset;
@@ -45,7 +44,6 @@ public class Zip extends AbstractArchiveTask {
         allowZip64 = false;
     }
 
-    @Internal
     protected ZipCompressor getCompressor() {
         switch (entryCompression) {
             case DEFLATED:
@@ -69,7 +67,6 @@ public class Zip extends AbstractArchiveTask {
      *
      * @return the compression level of the archive contents.
      */
-    @Input
     public ZipEntryCompression getEntryCompression() {
         return entryCompression;
     }
@@ -105,7 +102,6 @@ public class Zip extends AbstractArchiveTask {
      * Notably, the {@link java.util.zip.ZipInputStream} JDK class does not support Zip64 for versions earlier than Java 7.
      * This means you should not enable this property if you are building JARs to be used with Java 6 and earlier runtimes.
      */
-    @Input
     @Incubating
     public boolean isZip64() {
         return allowZip64;

@@ -17,7 +17,6 @@
 package org.gradle.api.reporting;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 
 import java.io.File;
@@ -38,8 +37,6 @@ public interface DirectoryReport extends ConfigurableReport {
      * if no entry point defined
      *
       */
-    @Internal
-    // TODO:LPTR This should be handled as a relative path
     File getEntryPoint();
 
     @OutputDirectory
@@ -51,6 +48,5 @@ public interface DirectoryReport extends ConfigurableReport {
      *
      * @return {@link Report.OutputType#DIRECTORY}
      */
-    @Override
     OutputType getOutputType();
 }

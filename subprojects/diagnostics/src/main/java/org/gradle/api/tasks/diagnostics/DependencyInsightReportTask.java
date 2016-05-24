@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionC
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.dsl.DependencyResultSpecNotationConverter;
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer;
@@ -83,7 +82,6 @@ public class DependencyInsightReportTask extends DefaultTask {
     /**
      * Selects the dependency (or dependencies if multiple matches found) to show the report for.
      */
-    @Internal
     public Spec<DependencyResult> getDependencySpec() {
         return dependencySpec;
     }
@@ -116,7 +114,6 @@ public class DependencyInsightReportTask extends DefaultTask {
     /**
      * Configuration to look the dependency in
      */
-    @Internal
     public Configuration getConfiguration() {
         return configuration;
     }

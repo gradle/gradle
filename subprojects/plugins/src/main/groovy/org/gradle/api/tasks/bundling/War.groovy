@@ -21,7 +21,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.util.ConfigureUtil
 
@@ -64,7 +63,6 @@ class War extends Jar {
         }
     }
 
-    @Internal
     CopySpec getWebInf() {
         return webInf.addChild()
     }

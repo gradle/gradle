@@ -19,14 +19,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Rule;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.tasks.options.Option;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.diagnostics.internal.AggregateMultiProjectTaskReportModel;
-import org.gradle.api.tasks.diagnostics.internal.DefaultGroupTaskReportModel;
-import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
-import org.gradle.api.tasks.diagnostics.internal.SingleProjectTaskReportModel;
-import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
-import org.gradle.api.tasks.diagnostics.internal.TaskDetailsFactory;
-import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.*;
 
 import javax.inject.Inject;
 import java.io.IOException;
@@ -54,7 +47,6 @@ public class TaskReportTask extends AbstractReportTask {
         this.detail = detail;
     }
 
-    @Input
     public boolean isDetail() {
         return detail;
     }

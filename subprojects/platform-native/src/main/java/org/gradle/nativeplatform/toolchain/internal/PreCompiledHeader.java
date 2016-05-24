@@ -16,15 +16,9 @@
 
 package org.gradle.nativeplatform.toolchain.internal;
 
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractBuildableComponentSpec;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 import java.io.File;
@@ -38,7 +32,6 @@ public class PreCompiledHeader extends AbstractBuildableComponentSpec {
         super(identifier, PreCompiledHeader.class);
     }
 
-    @Optional @InputFile
     public File getObjectFile() {
         return pchObjects == null ? null : pchObjects.getSingleFile();
     }
@@ -47,12 +40,11 @@ public class PreCompiledHeader extends AbstractBuildableComponentSpec {
         this.pchObjects = pchObjects;
     }
 
-    @Optional @InputFiles
+    @InputFiles
     public FileCollection getPchObjects() {
         return pchObjects;
     }
 
-    @Optional @InputFile
     public File getPrefixHeaderFile() {
         return prefixHeaderFile;
     }
@@ -61,54 +53,11 @@ public class PreCompiledHeader extends AbstractBuildableComponentSpec {
         this.prefixHeaderFile = prefixHeaderFile;
     }
 
-    @Optional @Input
     public String getIncludeString() {
         return includeString;
     }
 
     public void setIncludeString(String includeString) {
         this.includeString = includeString;
-    }
-
-    @Internal
-    @Override
-    public ComponentSpecIdentifier getIdentifier() {
-        return super.getIdentifier();
-    }
-
-    @Input
-    @Override
-    public String getName() {
-        return super.getName();
-    }
-
-    @Input
-    @Override
-    public String getProjectPath() {
-        return super.getProjectPath();
-    }
-
-    @Input
-    @Override
-    protected String getTypeName() {
-        return super.getTypeName();
-    }
-
-    @Internal
-    @Override
-    public String getDisplayName() {
-        return super.getDisplayName();
-    }
-
-    @Internal
-    @Override
-    public Task getBuildTask() {
-        return super.getBuildTask();
-    }
-
-    @Internal
-    @Override
-    public TaskDependency getBuildDependencies() {
-        return super.getBuildDependencies();
     }
 }

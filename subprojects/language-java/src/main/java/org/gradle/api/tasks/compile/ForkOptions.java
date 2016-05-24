@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 
 /**
@@ -55,7 +54,6 @@ public class ForkOptions extends BaseForkOptions {
      * command line arguments to the compiler process. Defaults to {@code null},
      * in which case the directory will be chosen automatically.
      */
-    @Internal
     public String getTempDir() {
         return tempDir;
     }

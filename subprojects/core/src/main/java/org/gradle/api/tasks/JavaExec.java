@@ -77,7 +77,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Internal
     public List<String> getAllJvmArgs() {
         return javaExecHandleBuilder.getAllJvmArgs();
     }
@@ -92,7 +91,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Input
     public List<String> getJvmArgs() {
         return javaExecHandleBuilder.getJvmArgs();
     }
@@ -123,7 +121,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Input
     public Map<String, Object> getSystemProperties() {
         return javaExecHandleBuilder.getSystemProperties();
     }
@@ -177,7 +174,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Input
     public String getMinHeapSize() {
         return javaExecHandleBuilder.getMinHeapSize();
     }
@@ -192,7 +188,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Input
     public String getDefaultCharacterEncoding() {
         return javaExecHandleBuilder.getDefaultCharacterEncoding();
     }
@@ -207,7 +202,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Input
     public String getMaxHeapSize() {
         return javaExecHandleBuilder.getMaxHeapSize();
     }
@@ -222,7 +216,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Input
     public boolean getEnableAssertions() {
         return javaExecHandleBuilder.getEnableAssertions();
     }
@@ -237,7 +230,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Input
     public boolean getDebug() {
         return javaExecHandleBuilder.getDebug();
     }
@@ -253,7 +245,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Input
     public String getMain() {
         return javaExecHandleBuilder.getMain();
     }
@@ -269,7 +260,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Input
     public List<String> getArgs() {
         return javaExecHandleBuilder.getArgs();
     }
@@ -333,7 +323,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Input
     public String getExecutable() {
         return javaExecHandleBuilder.getExecutable();
     }
@@ -356,7 +345,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Internal
     public File getWorkingDir() {
         return javaExecHandleBuilder.getWorkingDir();
     }
@@ -379,7 +367,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Input
     public Map<String, Object> getEnvironment() {
         return javaExecHandleBuilder.getEnvironment();
     }
@@ -426,7 +413,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Internal
     public InputStream getStandardInput() {
         return javaExecHandleBuilder.getStandardInput();
     }
@@ -442,7 +428,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Internal
     public OutputStream getStandardOutput() {
         return javaExecHandleBuilder.getStandardOutput();
     }
@@ -458,7 +443,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Internal
     public OutputStream getErrorOutput() {
         return javaExecHandleBuilder.getErrorOutput();
     }
@@ -474,7 +458,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Input
     public boolean isIgnoreExitValue() {
         return javaExecHandleBuilder.isIgnoreExitValue();
     }
@@ -482,7 +465,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    @Internal
     public List<String> getCommandLine() {
         return javaExecHandleBuilder.getCommandLine();
     }

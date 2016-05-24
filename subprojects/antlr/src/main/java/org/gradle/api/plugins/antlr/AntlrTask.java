@@ -20,18 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
-import org.gradle.api.plugins.antlr.internal.AntlrResult;
-import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
-import org.gradle.api.plugins.antlr.internal.AntlrSpec;
-import org.gradle.api.plugins.antlr.internal.AntlrSpecFactory;
-import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SkipWhenEmpty;
-import org.gradle.api.tasks.SourceTask;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.plugins.antlr.internal.*;
+import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
@@ -65,7 +55,6 @@ public class AntlrTask extends SourceTask {
     /**
      * Specifies that all rules call {@code traceIn}/{@code traceOut}.
      */
-    @Input
     public boolean isTrace() {
         return trace;
     }
@@ -77,7 +66,6 @@ public class AntlrTask extends SourceTask {
     /**
      * Specifies that all lexer rules call {@code traceIn}/{@code traceOut}.
      */
-    @Input
     public boolean isTraceLexer() {
         return traceLexer;
     }
@@ -89,7 +77,6 @@ public class AntlrTask extends SourceTask {
     /**
      * Specifies that all parser rules call {@code traceIn}/{@code traceOut}.
      */
-    @Input
     public boolean isTraceParser() {
         return traceParser;
     }
@@ -101,7 +88,6 @@ public class AntlrTask extends SourceTask {
     /**
      * Specifies that all tree walker rules call {@code traceIn}/{@code traceOut}.
      */
-    @Input
     public boolean isTraceTreeWalker() {
         return traceTreeWalker;
     }
@@ -113,7 +99,6 @@ public class AntlrTask extends SourceTask {
     /**
      * The maximum heap size for the forked antlr process (ex: '1g').
      */
-    @Optional @Input
     public String getMaxHeapSize() {
         return maxHeapSize;
     }

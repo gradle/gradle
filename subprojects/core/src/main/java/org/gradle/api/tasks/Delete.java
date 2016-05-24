@@ -77,7 +77,6 @@ public class Delete extends ConventionTask implements DeleteSpec {
      *
      * @return The files. Never returns null.
      */
-    @InputFiles @SkipWhenEmpty
     public FileCollection getTargetFiles() {
         return getProject().files(delete);
     }
@@ -87,7 +86,6 @@ public class Delete extends ConventionTask implements DeleteSpec {
      *
      * @return The files. Never returns null.
      */
-    @Internal
     public Set<Object> getDelete() {
         return delete;
     }
@@ -108,7 +106,6 @@ public class Delete extends ConventionTask implements DeleteSpec {
      * @return true if symlinks will be followed.
      */
     @Incubating
-    @Input
     public boolean isFollowSymlinks() {
         return followSymlinks;
     }

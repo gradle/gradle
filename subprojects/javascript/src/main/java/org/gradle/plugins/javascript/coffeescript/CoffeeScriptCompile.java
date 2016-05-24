@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
@@ -73,7 +72,6 @@ public class CoffeeScriptCompile extends SourceTask {
         this.destinationDir = destinationDir;
     }
 
-    @Nested
     public CoffeeScriptCompileOptions getOptions() {
         return options;
     }

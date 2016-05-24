@@ -38,7 +38,6 @@ public class BaseForkOptions extends AbstractOptions {
      * Returns the initial heap size for the compiler process.
      * Defaults to {@code null}, in which case the JVM's default will be used.
      */
-    @Optional @Input
     public String getMemoryInitialSize() {
         return memoryInitialSize;
     }
@@ -55,7 +54,6 @@ public class BaseForkOptions extends AbstractOptions {
      * Returns the maximum heap size for the compiler process.
      * Defaults to {@code null}, in which case the JVM's default will be used.
      */
-    @Optional @Input
     public String getMemoryMaximumSize() {
         return memoryMaximumSize;
     }

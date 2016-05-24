@@ -24,8 +24,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.TaskAction;
@@ -71,7 +69,6 @@ public class InstallExecutable extends DefaultTask {
     /**
      * The platform describing the install target.
      */
-    @Nested
     public NativePlatform getPlatform() {
         return platform;
     }
@@ -126,7 +123,6 @@ public class InstallExecutable extends DefaultTask {
     /**
      * Returns the script file that can be used to run the install image.
      */
-    @Internal
     public File getRunScript() {
         OperatingSystem operatingSystem = OperatingSystem.forName(platform.getOperatingSystem().getName());
         return new File(getDestinationDir(), operatingSystem.getScriptName(getExecutable().getName()));

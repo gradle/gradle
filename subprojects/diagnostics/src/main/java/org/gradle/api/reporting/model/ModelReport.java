@@ -22,7 +22,6 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.reporting.model.internal.ModelNodeRenderer;
 import org.gradle.api.reporting.model.internal.TextModelReportRenderer;
-import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -59,7 +58,6 @@ public class ModelReport extends DefaultTask {
         this.showHidden = showHidden;
     }
 
-    @Console
     public boolean isShowHidden() {
         return showHidden;
     }
@@ -69,7 +67,6 @@ public class ModelReport extends DefaultTask {
         this.format = Format.valueOf(format.toUpperCase());
     }
 
-    @Console
     public Format getFormat() {
         return format;
     }

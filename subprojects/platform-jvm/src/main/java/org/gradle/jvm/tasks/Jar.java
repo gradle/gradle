@@ -27,7 +27,7 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
-import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.util.ConfigureUtil;
@@ -85,6 +85,7 @@ public class Jar extends Zip {
      * @return the character set used to encode JAR metadata like file names
      * @since 2.14
      */
+    @Input
     @Override
     public String getMetadataCharset() {
         return super.getMetadataCharset();
@@ -108,7 +109,6 @@ public class Jar extends Zip {
      *
      * @return The manifest
      */
-    @Internal
     public Manifest getManifest() {
         return manifest;
     }
@@ -139,7 +139,6 @@ public class Jar extends Zip {
         return this;
     }
 
-    @Internal
     public CopySpec getMetaInf() {
         return metaInf.addChild();
     }

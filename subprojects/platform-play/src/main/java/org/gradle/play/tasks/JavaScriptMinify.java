@@ -26,13 +26,10 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.RelativeFile;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
-import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 import org.gradle.platform.base.internal.toolchain.ToolProvider;
@@ -41,6 +38,7 @@ import org.gradle.play.internal.javascript.JavaScriptCompileSpec;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.toolchain.PlayToolChain;
+import org.gradle.language.base.internal.compile.Compiler;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -102,7 +100,6 @@ public class JavaScriptMinify extends SourceTask {
         this.playPlatform = playPlatform;
     }
 
-    @Internal
     private Compiler<JavaScriptCompileSpec> getCompiler() {
         ToolProvider select = ((PlayToolChainInternal) getToolChain()).select(playPlatform);
         return select.newCompiler(JavaScriptCompileSpec.class);
@@ -113,7 +110,6 @@ public class JavaScriptMinify extends SourceTask {
      *
      * @return The fork options for the JavaScript compiler.
      */
-    @Nested
     public BaseForkOptions getForkOptions() {
         if (forkOptions == null) {
             forkOptions = new BaseForkOptions();

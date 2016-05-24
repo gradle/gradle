@@ -15,14 +15,10 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -35,7 +31,6 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
@@ -83,7 +78,6 @@ public abstract class AbstractReportTask extends ConventionTask {
         reportGenerator.generateReport(new TreeSet<Project>(getProjects()));
     }
 
-    @Internal
     protected abstract ReportRenderer getRenderer();
 
     protected abstract void generate(Project project) throws IOException;
@@ -115,7 +109,6 @@ public abstract class AbstractReportTask extends ConventionTask {
      *
      * @return The set of files.
      */
-    @Internal
     public Set<Project> getProjects() {
         return projects;
     }
@@ -127,15 +120,5 @@ public abstract class AbstractReportTask extends ConventionTask {
      */
     public void setProjects(Set<Project> projects) {
         this.projects = projects;
-    }
-
-    @Input
-    protected Collection<String> getProjectPaths() {
-        return Collections2.transform(projects, new Function<Project, String>() {
-            @Override
-            public String apply(Project project) {
-                return project.getPath();
-            }
-        });
     }
 }

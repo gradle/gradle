@@ -18,14 +18,7 @@ package org.gradle.api.reporting;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.NamedDomainObjectSet;
-import org.gradle.api.Namer;
-import org.gradle.api.Rule;
-import org.gradle.api.tasks.Internal;
 import org.gradle.util.Configurable;
-
-import java.util.List;
-import java.util.SortedMap;
-import java.util.SortedSet;
 
 /**
  * A container of {@link Report} objects, that represent potential reports.
@@ -37,7 +30,7 @@ import java.util.SortedSet;
  * {@code ReportContainer} implementations are <b>immutable</b> in that standard collection methods such as {@code add()}, {@code remove()}
  * and {@code clear()} will throw an {@link ImmutableViolationException}. However, implementations may provide new methods that allow
  * the addition of new report object and/or the removal of existing report objects.
- *
+ * 
  * @param <T> The base report type for reports of this container.
  */
 public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<T>, Configurable<ReportContainer<T>> {
@@ -48,7 +41,7 @@ public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<
      * This applies to the standard {@link java.util.Collection} methods such as {@code add()}, {@code remove()}
      * and {@code clear()}.
      */
-    class ImmutableViolationException extends GradleException {
+    public static class ImmutableViolationException extends GradleException {
         public ImmutableViolationException() {
             super("ReportContainer objects are immutable");
         }
@@ -62,26 +55,6 @@ public interface ReportContainer<T extends Report> extends NamedDomainObjectSet<
      *
      * @return The enabled reports.
      */
-    @Internal
     NamedDomainObjectSet<T> getEnabled();
 
-    @Override
-    @Internal
-    Namer<T> getNamer();
-
-    @Override
-    @Internal
-    SortedMap<String, T> getAsMap();
-
-    @Override
-    @Internal
-    SortedSet<String> getNames();
-
-    @Override
-    @Internal
-    List<Rule> getRules();
-
-    @Override
-    @Internal
-    boolean isEmpty();
 }

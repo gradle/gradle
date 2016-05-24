@@ -17,9 +17,6 @@ package org.gradle.api.tasks.bundling;
 
 import groovy.lang.Closure;
 import org.gradle.api.tasks.AbstractCopyTask;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.util.GUtil;
 
@@ -43,7 +40,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      *
      * @return the archive name.
      */
-    @Input
     public String getArchiveName() {
         if (customName != null) {
             return customName;
@@ -90,7 +86,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      *
      * @return the directory
      */
-    @Internal
     public File getDestinationDir() {
         return destinationDir;
     }
@@ -104,7 +99,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      *
      * @return the base name.
      */
-    @Optional @Input
     public String getBaseName() {
         return baseName;
     }
@@ -118,7 +112,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      *
      * @return the appendix. May be null
      */
-    @Optional @Input
     public String getAppendix() {
         return appendix;
     }
@@ -132,7 +125,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      *
      * @return the version. May be null.
      */
-    @Optional @Input
     public String getVersion() {
         return version;
     }
@@ -144,7 +136,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     /**
      * Returns the extension part of the archive name.
      */
-    @Input
     public String getExtension() {
         return extension;
     }
@@ -158,7 +149,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      *
      * @return The classifier. May be null.
      */
-    @Optional @Input
     public String getClassifier() {
         return classifier;
     }
