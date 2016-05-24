@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,24 @@
 
 package org.gradle.launcher.daemon.server.health;
 
-import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
-
-public interface DaemonHealthServices {
+public interface DaemonInformation {
+    /**
+     * @return the number of builds that the daemon has run
+     */
+    int getNumberOfBuilds();
 
     /**
-     * gets the action that can perform gc hint after the build
+     * @return The time (milliseconds) since epoch at which the daemon was started
      */
-    DaemonCommandAction getGCHintAction();
+    long getStartedAt();
 
     /**
-     * gets the action that tracks daemon's health
+     * @return The idle timeout (milliseconds) of the daemon
      */
-    DaemonCommandAction getHealthTrackerAction();
+    long getIdleTimeout();
 
     /**
-     * gets the status of the daemon
+     * @return The number of running daemons
      */
-    DaemonStatus getDaemonStatus();
-
-    DaemonInformation getDaemonInformation();
+    int getNumberOfRunningDaemons();
 }

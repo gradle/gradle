@@ -23,7 +23,7 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
 class DaemonHealthTracker implements DaemonCommandAction {
 
-    private final static Logger LOG = Logging.getLogger(DaemonHealthTracker.class);
+    private static final Logger LOG = Logging.getLogger(DaemonHealthTracker.class);
 
     private final DaemonStats stats;
     private final DaemonHealthCheck healthCheck;
@@ -35,6 +35,7 @@ class DaemonHealthTracker implements DaemonCommandAction {
         this.logger = logger;
     }
 
+    @Override
     public void execute(DaemonCommandExecution execution) {
         if (execution.isSingleUseDaemon()) {
             execution.proceed();

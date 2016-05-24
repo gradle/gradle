@@ -32,7 +32,7 @@ class DaemonStatsTest extends Specification {
     def gcMonitor = Stub(GarbageCollectionMonitor)
 
     def "consumes first build"() {
-        def stats = new DaemonStats(clock, Stub(TimeProvider), memory, gcMonitor)
+        def stats = new DaemonStats(clock, Stub(TimeProvider), memory, gcMonitor, 0)
         memory.getCommittedMemory() >> 5000000
         memory.getMaxMemory() >> 10000000
 
@@ -59,7 +59,7 @@ class DaemonStatsTest extends Specification {
             }
         }
 
-        def stats = new DaemonStats(clock, time, memory, gcMonitor)
+        def stats = new DaemonStats(clock, time, memory, gcMonitor, 0)
 
         when:
         stats.buildStarted()
@@ -86,7 +86,7 @@ class DaemonStatsTest extends Specification {
             }
         }
 
-        def stats = new DaemonStats(clock, time, memory, gcMonitor)
+        def stats = new DaemonStats(clock, time, memory, gcMonitor, 0)
 
         when:
         stats.buildStarted()
@@ -108,7 +108,7 @@ class DaemonStatsTest extends Specification {
         memory.getCommittedMemory() >> 5000000
         memory.getMaxMemory() >> 10000000
 
-        def stats = new DaemonStats(clock, time, memory, gcMonitor)
+        def stats = new DaemonStats(clock, time, memory, gcMonitor, 0)
 
         when:
         stats.buildStarted()

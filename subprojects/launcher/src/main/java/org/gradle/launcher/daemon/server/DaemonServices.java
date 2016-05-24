@@ -20,8 +20,11 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.remote.internal.inet.InetAddressFactory;
+import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -34,13 +37,12 @@ import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.health.DaemonHealthCheck;
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
+import org.gradle.launcher.daemon.server.health.DaemonInformation;
 import org.gradle.launcher.daemon.server.health.DaemonStats;
 import org.gradle.launcher.daemon.server.health.DaemonStatus;
 import org.gradle.launcher.daemon.server.health.DefaultDaemonHealthServices;
+import org.gradle.launcher.daemon.server.health.DefaultDaemonInformation;
 import org.gradle.launcher.exec.BuildExecuter;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.remote.services.MessagingServices;
-import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 
 import java.io.File;
 import java.util.UUID;
@@ -53,12 +55,14 @@ import java.util.concurrent.ScheduledExecutorService;
 public class DaemonServices extends DefaultServiceRegistry {
     private final DaemonServerConfiguration configuration;
     private final LoggingManagerInternal loggingManager;
-    private final static Logger LOGGER = Logging.getLogger(DaemonServices.class);
+    private final long startTime;
+    private static final Logger LOGGER = Logging.getLogger(DaemonServices.class);
 
-    public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath) {
+    public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath, long startTime) {
         super(NativeServices.getInstance(), loggingServices);
         this.configuration = configuration;
         this.loggingManager = loggingManager;
+        this.startTime = startTime;
 
         addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
         addProvider(new GlobalScopeServices(true, additionalModuleClassPath));
@@ -84,11 +88,12 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new File(get(DaemonDir.class).getVersionedDir(), fileName);
     }
 
-    protected DaemonHealthServices createDaemonHealthServices(ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
-        DaemonStats stats = new DaemonStats(scheduledExecutorService);
+    protected DefaultDaemonHealthServices createDaemonHealthServices(ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
+        DaemonStats stats = DaemonStats.of(scheduledExecutorService, startTime);
         DaemonStatus status = new DaemonStatus(stats);
         DaemonHealthCheck healthCheck = new DefaultDaemonHealthCheck(DaemonExpirationStrategies.getHealthStrategy(status), listenerManager);
-        return new DefaultDaemonHealthServices(healthCheck, status, stats);
+        DaemonInformation daemonInformation = DefaultDaemonInformation.of(stats, configuration.getIdleTimeout(), get(DaemonRegistry.class));
+        return new DefaultDaemonHealthServices(healthCheck, status, stats, daemonInformation);
     }
 
     protected ScheduledExecutorService createScheduledExecutorService() {

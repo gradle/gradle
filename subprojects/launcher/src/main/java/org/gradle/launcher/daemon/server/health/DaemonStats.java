@@ -34,21 +34,23 @@ public class DaemonStats {
     private final TimeProvider timeProvider;
     private final MemoryInfo memory;
     private final GarbageCollectionMonitor gcMonitor;
+    private final long startTime;
 
     private int buildCount;
     private long currentBuildStart;
     private long allBuildsTime;
     private int currentPerformance;
 
-    public DaemonStats(ScheduledExecutorService scheduledExecutorService) {
-        this(new Clock(), new TrueTimeProvider(), new MemoryInfo(), new GarbageCollectionMonitor(scheduledExecutorService));
+    public static DaemonStats of(ScheduledExecutorService scheduledExecutorService, long startTime) {
+        return new DaemonStats(new Clock(), new TrueTimeProvider(), new MemoryInfo(), new GarbageCollectionMonitor(scheduledExecutorService), startTime);
     }
 
-    public DaemonStats(Clock totalTime, TimeProvider timeProvider, MemoryInfo memory, GarbageCollectionMonitor gcMonitor) {
+    public DaemonStats(Clock totalTime, TimeProvider timeProvider, MemoryInfo memory, GarbageCollectionMonitor gcMonitor, long startTime) {
         this.totalTime = totalTime;
         this.timeProvider = timeProvider;
         this.memory = memory;
         this.gcMonitor = gcMonitor;
+        this.startTime = startTime;
     }
 
     /**
@@ -116,5 +118,13 @@ public class DaemonStats {
 
     GarbageCollectionMonitor getGcMonitor() {
         return gcMonitor;
+    }
+
+    public int getBuildCount() {
+        return buildCount;
+    }
+
+    public long getStartTime() {
+        return startTime;
     }
 }

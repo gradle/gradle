@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.server
 
+import org.gradle.internal.TrueTimeProvider
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration
@@ -32,7 +33,7 @@ import static java.util.Arrays.asList
 class DaemonServicesTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
     final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, 50, asList()),
-            LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath))
+        LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath), new TrueTimeProvider().getCurrentTime())
 
     def "makes a DaemonDir available"() {
         expect:

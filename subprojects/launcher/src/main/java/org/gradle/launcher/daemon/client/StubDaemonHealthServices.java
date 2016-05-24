@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.launcher.daemon.server.health.DaemonInformation;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.exec.NoOpDaemonCommandAction;
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
@@ -25,16 +26,23 @@ public class StubDaemonHealthServices implements DaemonHealthServices {
 
     private final NoOpDaemonCommandAction noOp = new NoOpDaemonCommandAction();
 
+    @Override
     public DaemonCommandAction getGCHintAction() {
         return noOp;
     }
 
+    @Override
     public DaemonCommandAction getHealthTrackerAction() {
         return noOp;
     }
 
     @Override
     public DaemonStatus getDaemonStatus() {
+        return null;
+    }
+
+    @Override
+    public DaemonInformation getDaemonInformation() {
         return null;
     }
 }
