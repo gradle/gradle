@@ -31,7 +31,7 @@ public interface PropertyAnnotationHandler {
     /**
      * Attaches the actions for the given property.
      */
-    void attachActions(TaskPropertyActionContext context);
+    boolean attachActions(TaskPropertyActionContext context);
 
     /**
      * Returns whether the property must not be {@code null} unless {@literal @}{@link org.gradle.api.tasks.Optional Optional} is specified.

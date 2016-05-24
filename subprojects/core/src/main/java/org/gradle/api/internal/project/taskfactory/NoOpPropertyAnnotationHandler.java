@@ -29,7 +29,8 @@ public class NoOpPropertyAnnotationHandler implements PropertyAnnotationHandler 
         return annotationType;
     }
 
-    public void attachActions(final TaskPropertyActionContext context) {
+    public boolean attachActions(final TaskPropertyActionContext context) {
+        return false;
     }
 
     @Override

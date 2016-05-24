@@ -114,8 +114,9 @@ public class TaskPropertyInfo implements TaskPropertyActionContext {
     }
 
     public void attachActions(PropertyAnnotationHandler handler) {
-        handler.attachActions(this);
-        validationRequired = true;
+        if (handler.attachActions(this)) {
+            validationRequired = true;
+        }
     }
 
     public boolean isValidationRequired() {
