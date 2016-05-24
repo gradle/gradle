@@ -17,7 +17,16 @@
 package org.gradle.api.internal.project.taskfactory
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Console
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputDirectories
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.OutputFiles
 import spock.lang.Specification
 
 import javax.inject.Inject
@@ -35,6 +44,8 @@ class DefaultTaskClassInfoStoreTest extends Specification {
         @OutputDirectory File outputDirectory
         @OutputDirectories Set<File> outputDirectories
         @Inject Object injectedService
+        @Internal Object internal
+        @Console boolean console
     }
 
     def "can get annotated properties of simple task"() {
@@ -42,7 +53,7 @@ class DefaultTaskClassInfoStoreTest extends Specification {
 
         expect:
         !info.incremental
-        info.validator.validatedProperties*.name as Set == ["inputString", "inputFile", "inputDirectory", "inputFiles", "outputFile", "outputFiles", "outputDirectory", "outputDirectories", "injectedService"] as Set
+        info.validator.validatedProperties*.name as Set == ["inputString", "inputFile", "inputDirectory", "inputFiles", "outputFile", "outputFiles", "outputDirectory", "outputDirectories"] as Set
         info.nonAnnotatedPropertyNames.empty
     }
 

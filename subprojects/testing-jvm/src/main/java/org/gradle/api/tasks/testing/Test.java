@@ -21,7 +21,11 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.file.*;
+import org.gradle.api.file.EmptyFileVisitor;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
@@ -39,8 +43,20 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junit.report.DefaultTestReport;
 import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
-import org.gradle.api.internal.tasks.testing.junit.result.*;
-import org.gradle.api.internal.tasks.testing.logging.*;
+import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
+import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
+import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
+import org.gradle.api.internal.tasks.testing.junit.result.TestOutputAssociation;
+import org.gradle.api.internal.tasks.testing.junit.result.TestOutputStore;
+import org.gradle.api.internal.tasks.testing.junit.result.TestReportDataCollector;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
+import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
+import org.gradle.api.internal.tasks.testing.logging.DefaultTestLoggingContainer;
+import org.gradle.api.internal.tasks.testing.logging.FullExceptionFormatter;
+import org.gradle.api.internal.tasks.testing.logging.ShortExceptionFormatter;
+import org.gradle.api.internal.tasks.testing.logging.TestCountLogger;
+import org.gradle.api.internal.tasks.testing.logging.TestEventLogger;
+import org.gradle.api.internal.tasks.testing.logging.TestExceptionFormatter;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
@@ -49,22 +65,31 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.ParallelizableTask;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.VerificationTask;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
-import org.gradle.internal.operations.BuildOperationProcessor;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
@@ -74,7 +99,13 @@ import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 
 /**
@@ -228,14 +259,17 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         this.testExecuter = testExecuter;
     }
 
+    @Internal
     ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
         return testListenerBroadcaster;
     }
 
+    @Internal
     ListenerBroadcast<TestListenerInternal> getTestListenerInternalBroadcaster() {
         return testListenerInternalBroadcaster;
     }
 
+    @Internal
     ListenerBroadcast<TestOutputListener> getTestOutputListenerBroadcaster() {
         return testOutputListenerBroadcaster;
     }
@@ -244,6 +278,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Override
+    // TODO:LPTR This should be handled as a directory
     @Input
     public File getWorkingDir() {
         return forkOptions.getWorkingDir();
@@ -296,7 +331,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Override
-    @Input
     public Map<String, Object> getSystemProperties() {
         return forkOptions.getSystemProperties();
     }
@@ -331,7 +365,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Override
-    @Input
     public FileCollection getBootstrapClasspath() {
         return forkOptions.getBootstrapClasspath();
     }
@@ -405,7 +438,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Override
-    @Input
     public List<String> getJvmArgs() {
         return forkOptions.getJvmArgs();
     }
@@ -440,7 +472,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Override
-    @Input
     public boolean getEnableAssertions() {
         return forkOptions.getEnableAssertions();
     }
@@ -490,6 +521,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Override
+    @Optional @Input
     public Map<String, Object> getEnvironment() {
         return forkOptions.getEnvironment();
     }
@@ -540,7 +572,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     @TaskAction
     public void executeTests() {
-        LogLevel currentLevel = getCurrentLogLevel();
+        LogLevel currentLevel = determineCurrentLogLevel();
         TestLogging levelLogging = testLogging.get(currentLevel);
         TestExceptionFormatter exceptionFormatter = getExceptionFormatter(levelLogging);
         TestEventLogger eventLogger = new TestEventLogger(getTextOutputFactory(), currentLevel, levelLogging, exceptionFormatter);
@@ -818,6 +850,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return All test class directories to be used.
      */
+    @InputDirectory
     public File getTestClassesDir() {
         return testClassesDir;
     }
@@ -858,6 +891,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @see #include(String...)
      */
     @Override
+    @Internal
     public Set<String> getIncludes() {
         return patternSet.getIncludes();
     }
@@ -880,6 +914,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @see #exclude(String...)
      */
     @Override
+    @Internal
     public Set<String> getExcludes() {
         return patternSet.getExcludes();
     }
@@ -913,6 +948,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         this.ignoreFailures = ignoreFailures;
     }
 
+    @Internal
     public TestFramework getTestFramework() {
         return testFramework(null);
     }
@@ -931,6 +967,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * @return The test framework options.
      */
     @Nested
+    // TODO:LPTR This doesn't resolve any of the nested options for the concrete subtypes
     public TestFrameworkOptions getOptions() {
         return options(null);
     }
@@ -1046,6 +1083,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return The maximum number of test classes. Returns 0 when there is no maximum.
      */
+    @Input
     public long getForkEvery() {
         return forkEvery;
     }
@@ -1067,6 +1105,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return The maximum number of forked test processes.
      */
+    @Input
     public int getMaxParallelForks() {
         return getDebug() ? 1 : maxParallelForks;
     }
@@ -1088,6 +1127,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return The candidate class files.
      */
+    @InputFiles
     public FileTree getCandidateClassFiles() {
         return getProject().fileTree(getTestClassesDir()).matching(patternSet);
     }
@@ -1129,6 +1169,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return this
      */
+    @Internal
+    // TODO:LPTR Should be @Nested with @Console inside
     public TestLoggingContainer getTestLogging() {
         return testLogging;
     }
@@ -1191,7 +1233,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     // only way I know of to determine current log level
-    private LogLevel getCurrentLogLevel() {
+    private LogLevel determineCurrentLogLevel() {
         for (LogLevel level : LogLevel.values()) {
             if (getLogger().isEnabled(level)) {
                 return level;

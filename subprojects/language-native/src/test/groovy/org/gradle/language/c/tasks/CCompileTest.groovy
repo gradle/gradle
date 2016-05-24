@@ -15,6 +15,7 @@
  */
 
 package org.gradle.language.c.tasks
+
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
@@ -57,14 +58,17 @@ class CCompileTest extends Specification {
 
         then:
         _ * toolChain.outputType >> "c"
+        platform.getName() >> "testPlatform"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({CCompileSpec.class.isAssignableFrom(it)}) >> cCompiler
-        1 * pch.objectFile >> testDir.file("pchObjectFile").createFile()
-        1 * pch.includeString >> "header"
-        2 * pch.prefixHeaderFile >> testDir.file("prefixHeader").createFile()
-        2 * pch.pchObjects >> new SimpleFileCollection()
+        pch.objectFile >> testDir.file("pchObjectFile").createFile()
+        pch.name >> "testPch"
+        pch.projectPath >> ":"
+        pch.includeString >> "header"
+        pch.prefixHeaderFile >> testDir.file("prefixHeader").createFile()
+        pch.pchObjects >> new SimpleFileCollection()
         1 * cCompiler.execute({ CCompileSpec spec ->
             assert spec.sourceFiles*.name== ["sourceFile"]
             assert spec.args == ['arg']

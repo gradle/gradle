@@ -56,14 +56,15 @@ class ObjectiveCppCompileTest extends Specification {
 
         then:
         _ * toolChain.outputType >> "objcpp"
+        platform.getName() >> "testPlatform"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({ ObjectiveCppCompileSpec.class.isAssignableFrom(it) }) >> objCppCompiler
-        1 * pch.includeString >> "header"
-        2 * pch.prefixHeaderFile >> testDir.file("prefixHeader").createFile()
-        1 * pch.objectFile >> testDir.file("pchObjectFile").createFile()
-        2 * pch.pchObjects >> new SimpleFileCollection()
+        pch.includeString >> "header"
+        pch.prefixHeaderFile >> testDir.file("prefixHeader").createFile()
+        pch.objectFile >> testDir.file("pchObjectFile").createFile()
+        pch.pchObjects >> new SimpleFileCollection()
         1 * objCppCompiler.execute({ ObjectiveCppCompileSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']

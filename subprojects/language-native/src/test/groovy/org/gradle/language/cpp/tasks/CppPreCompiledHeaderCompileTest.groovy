@@ -52,6 +52,7 @@ class CppPreCompiledHeaderCompileTest extends Specification {
 
         then:
         _ * toolChain.outputType >> "cpp"
+        platform.getName() >> "testPlatform"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain

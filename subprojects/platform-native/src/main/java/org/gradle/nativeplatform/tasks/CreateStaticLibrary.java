@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -119,6 +120,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
     /**
       * The platform being targeted.
       */
+    @Nested
     public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }

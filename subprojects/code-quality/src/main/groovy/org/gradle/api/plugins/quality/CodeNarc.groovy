@@ -26,10 +26,16 @@ import org.gradle.api.plugins.quality.internal.CodeNarcReportsImpl
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.reporting.SingleFileReport
 import org.gradle.api.resources.TextResource
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.SourceTask
+import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.VerificationTask
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.internal.reflect.Instantiator
 
 import javax.inject.Inject
 
@@ -80,6 +86,7 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
     /**
      * Whether or not the build should break when the verifications performed by this task fail.
      */
+    @Input
     boolean ignoreFailures
 
     CodeNarc() {
@@ -89,6 +96,7 @@ class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNar
     /**
      * The CodeNarc configuration file to use.
      */
+    @Internal
     File getConfigFile() {
         getConfig()?.asFile()
     }

@@ -16,6 +16,9 @@
 package org.gradle.process;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
 
 import java.util.List;
 
@@ -26,6 +29,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     /**
      * Returns the fully qualified name of the Main class to be executed.
      */
+    @Optional @Input
     String getMain();
 
     /**
@@ -40,6 +44,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     /**
      * Returns the arguments passed to the main class to be executed.
      */
+    @Optional @Input
     List<String> getArgs();
 
     /**
@@ -81,6 +86,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     /**
      * Returns the classpath for executing the main class.
      */
+    @InputFiles
     FileCollection getClasspath();
 
     /**

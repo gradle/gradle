@@ -27,6 +27,7 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.SourceSet;
@@ -233,6 +234,7 @@ public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsC
      *
      * @return class dirs to report coverage of
      */
+    @Internal
     public FileCollection getAllClassDirs() {
         FileCollection additionalDirs = getAdditionalClassDirs();
         if (additionalDirs == null) {
@@ -247,6 +249,7 @@ public class JacocoReport extends JacocoBase implements Reporting<JacocoReportsC
      * @return source directories for the classes reported on
      * @see #getAllClassDirs()
      */
+    @Internal
     public FileCollection getAllSourceDirs() {
         FileCollection additionalDirs = getAdditionalSourceDirs();
         if (additionalDirs == null) {
