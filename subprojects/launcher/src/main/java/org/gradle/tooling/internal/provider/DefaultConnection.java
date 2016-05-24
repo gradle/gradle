@@ -245,7 +245,7 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
 
     private ProviderOperationParameters validateAndConvert(BuildParameters buildParameters) {
         LOGGER.info("Tooling API is using target Gradle version: {}.", GradleVersion.current().getVersion());
-        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_6);
+        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_7);
         if (!supportedConsumerVersion) {
             throw unsupportedConnectionException();
         }

@@ -20,10 +20,9 @@ import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.internal.jvm.JavaInfo
 import org.gradle.util.GradleVersion
-import spock.lang.IgnoreIf
 
-@IgnoreIf({ AvailableJavaHomes.java5 == null })
 class ToolingApiUnsupportedClientJvmCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -76,18 +75,21 @@ public class TestClient {
 
     @TargetGradleVersion("current")
     @ToolingApiVersion("current")
-    def "cannot use tooling API from Java 5"() {
+    def "cannot use tooling API from Java 6 or earlier"() {
         when:
-        def out = runScript()
+        def out = runScript(jdk)
 
         then:
-        out.contains("Gradle Tooling API ${targetDist.version.version} requires Java 6 or later to run. You are currently using Java 5.")
+        out.contains("Gradle Tooling API ${targetDist.version.version} requires Java 7 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
+
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
 
-    def runScript() {
+    def runScript(JavaInfo jdk) {
         def outStr = new ByteArrayOutputStream()
         def executer = new ScriptExecuter()
-        executer.environment(JAVA_HOME: AvailableJavaHomes.java5.javaHome)
+        executer.environment(JAVA_HOME: jdk.javaHome)
         executer.workingDir(projectDir)
         executer.standardOutput = outStr
         executer.commandLine("build/install/test/bin/test")

@@ -113,6 +113,6 @@
 
         <para>The current Gradle version can be used from Tooling API versions 2.0 or later.</para>
 
-        <para>The Tooling API requires Java 6 or later. Support for Java 6 is currently deprecated and will be removed in Gradle 3.0.</para>
+        <para>The Tooling API requires Java 7 or later. The Gradle version used by builds may have additional Java version requirements.</para>
     </section>
 </chapter>

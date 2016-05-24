@@ -71,7 +71,7 @@ import java.net.URI;
  *
  * <h2>Java version compatibility</h2>
  *
- * <p>The Tooling API requires Java 6 or later. Support for Java 6 is currently deprecated and will be removed in Gradle 3.0.</p>
+ * <p>The Tooling API requires Java 7 or later. The Gradle version used by builds may have additional Java version requirements.</p>
  *
  * @since 1.0-milestone-3
  */

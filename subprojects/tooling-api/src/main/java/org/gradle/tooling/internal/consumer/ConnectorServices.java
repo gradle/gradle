@@ -30,7 +30,6 @@ import org.gradle.tooling.internal.consumer.loader.CachingToolingImplementationL
 import org.gradle.tooling.internal.consumer.loader.DefaultToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.SynchronizedToolingImplementationLoader;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
-import org.gradle.util.DeprecationLogger;
 
 public class ConnectorServices {
     private static DefaultServiceRegistry singletonRegistry = new ConnectorServiceRegistry();
@@ -64,11 +63,7 @@ public class ConnectorServices {
     }
 
     private static void checkJavaVersion() {
-        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle Tooling API", JavaVersion.VERSION_1_6);
-        JavaVersion javaVersion = JavaVersion.current();
-        if (javaVersion == JavaVersion.VERSION_1_6) {
-            DeprecationLogger.nagUserWith("Support for using the Gradle Tooling API with Java 6 is deprecated and will be removed in Gradle 3.0");
-        }
+        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle Tooling API", JavaVersion.VERSION_1_7);
     }
 
     private static class ConnectorServiceRegistry extends DefaultServiceRegistry {
