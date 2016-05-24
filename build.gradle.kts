@@ -2,7 +2,8 @@ import org.gradle.api.artifacts.dsl.*
 import org.gradle.api.plugins.*
 import org.gradle.api.publish.*
 import org.gradle.api.publish.maven.*
-import org.gradle.jvm.tasks.*
+import org.gradle.jvm.tasks.Jar
+import org.gradle.api.tasks.bundling.Zip
 import org.gradle.script.lang.kotlin.*
 
 apply {
@@ -40,6 +41,14 @@ configure<PublishingExtension> {
     publications {
         it.create<MavenPublication>("mavenJava") {
             from(components.getByName("java"))
+        }
+
+        val kotlinCompilerTask = tasks.getByName("repackageKotlinCompilerEmbeddable") as Zip
+        it.create<MavenPublication>(kotlinCompilerTask.baseName) {
+            groupId = "org.jetbrains.kotlin"
+            artifactId = name
+            version = kotlinCompilerTask.version
+            artifact(kotlinCompilerTask)
         }
     }
 }
