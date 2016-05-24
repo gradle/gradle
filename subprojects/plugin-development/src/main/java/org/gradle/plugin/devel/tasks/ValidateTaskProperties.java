@@ -36,13 +36,7 @@ import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskPropertyValidationAccess;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.OutputDirectories;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.OutputFiles;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskValidationException;
@@ -76,14 +70,27 @@ import java.util.Map;
  * <p><b>Properties taken into account during up-to-date checks:</b></p>
  *
  * <ul>
- *     <li>{@literal @}{@link Input}, {@literal @}{@link Nested}, {@literal @}{@link InputFile}, {@literal @}{@link InputDirectory}, {@literal @}{@link InputFiles} to mark it as an input to the task.</li>
- *     <li>{@literal @}{@link OutputFile}, {@literal @}{@link OutputDirectory}, {@literal @}{@link OutputFiles}, {@literal @}{@link OutputDirectories} to mark it as an output of the task.</li>
+ *     <li>
+ *         {@literal @}{@link org.gradle.api.tasks.Input},
+ *         {@literal @}{@link org.gradle.api.tasks.Nested},
+ *         {@literal @}{@link org.gradle.api.tasks.InputFile},
+ *         {@literal @}{@link org.gradle.api.tasks.InputDirectory},
+ *         {@literal @}{@link org.gradle.api.tasks.InputFiles}
+ *         to mark it as an input to the task.
+ *     </li>
+ *     <li>
+ *         {@literal @}{@link org.gradle.api.tasks.OutputFile},
+ *         {@literal @}{@link org.gradle.api.tasks.OutputDirectory},
+ *         {@literal @}{@link org.gradle.api.tasks.OutputFiles},
+ *         {@literal @}{@link org.gradle.api.tasks.OutputDirectories}
+ *         to mark it as an output of the task.
+ *     </li>
  * </ul>
  *
  * <p><b>Properties ignored during up-to-date checks:</b></p>
  *
  * <ul>
- *     <li>{@literal @}{@link Inject} marks a Gradle service used by the task.</li>
+ *     <li>{@literal @}{@link javax.inject.Inject} marks a Gradle service used by the task.</li>
  *     <li>{@literal @}{@link org.gradle.api.tasks.Console Console} marks a property that only influences the console output of the task.</li>
  *     <li>{@literal @}{@link org.gradle.api.tasks.Internal Internal} mark an internal property of the task.</li>
  * </ul>
@@ -175,8 +182,7 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
                 } else {
                     throw new TaskValidationException("Task property validation failed", toExceptionList(problemMessages));
                 }
-            }
-            else {
+            } else {
                 getLogger().warn("Task property validation finished with warnings:{}", toMessageList(problemMessages));
             }
         }
