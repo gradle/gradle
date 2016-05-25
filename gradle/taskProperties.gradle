@@ -1,0 +1,7 @@
+afterEvaluate {
+    task validateTaskProperties(type: org.gradle.plugin.devel.tasks.ValidateTaskProperties) { validator ->
+        validator.dependsOn sourceSets.main.output
+        validator.classesDir = sourceSets.main.output.classesDir
+        validator.classpath = sourceSets.main.compileClasspath
+    }
+}
