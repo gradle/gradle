@@ -35,8 +35,6 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 
-import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.Callable;
@@ -133,12 +131,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                 test.getConventionMapping().map("classpath", new Callable<Object>() {
                     public Object call() throws Exception {
                         return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
-                    }
-                });
-                test.getConventionMapping().map("testSrcDirs", new Callable<Object>() {
-                    public Object call() throws Exception {
-                        return new ArrayList<File>(pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME)
-                                .getJava().getSrcDirs());
                     }
                 });
             }

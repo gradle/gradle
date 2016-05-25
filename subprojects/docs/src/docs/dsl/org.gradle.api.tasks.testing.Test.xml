@@ -25,10 +25,6 @@
                 <td><literal>project.sourceSets.test.runtimeClasspath</literal></td>
             </tr>
             <tr>
-                <td>testSrcDirs</td>
-                <td><literal>project.sourceSets.test.java.srcDirs</literal></td>
-            </tr>
-            <tr>
                 <td>workingDir</td>
                 <td><literal>project.projectDir</literal></td>
             </tr>

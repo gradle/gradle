@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.testing.testng
 
-import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptionsTest
 import org.junit.Before
@@ -39,11 +38,6 @@ public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTe
 
     @Test public void verifyDefaults()
     {
-        assertFalse(testngOptions.javadocAnnotations)
-        assertEquals(TestNGOptions.JDK_ANNOTATIONS, testngOptions.annotations)
-
-        assertNull(testngOptions.testResources)
-
         assertNotNull(testngOptions.includeGroups)
         assertTrue(testngOptions.includeGroups.empty)
 
@@ -66,24 +60,6 @@ public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTe
         assertFalse(testngOptions.preserveOrder)
 
         assertFalse(testngOptions.groupByInstances)
-    }
-
-    @Test public void jdk14SourceCompatibilityAnnotationsDefaulting()
-    {
-        testngOptions.setAnnotationsOnSourceCompatibility(JavaVersion.VERSION_1_4)
-        assertEquals(testngOptions.annotations, TestNGOptions.JAVADOC_ANNOTATIONS)
-    }
-
-    @Test public void jdk15SourceCompatibilityAnnotationsDefaulting()
-    {
-        testngOptions.setAnnotationsOnSourceCompatibility(JavaVersion.VERSION_1_5)
-        assertEquals(testngOptions.annotations, TestNGOptions.JDK_ANNOTATIONS)
-    }
-
-    @Test public void jdk16SourceCompatibilityAnnotationsDefaulting()
-    {
-        testngOptions.setAnnotationsOnSourceCompatibility(JavaVersion.VERSION_1_6)
-        assertEquals(testngOptions.annotations, TestNGOptions.JDK_ANNOTATIONS)
     }
 
     @Test public void testIncludeGroups()

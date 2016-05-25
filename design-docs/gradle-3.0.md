@@ -111,7 +111,7 @@ Tooling api client no longer executes builds for Gradle versions older than 1.2.
 
 ~~Remove the Sonar plugins~~ done
 
-## Remove support for TestNG source annotations
+## Remove support for TestNG source annotations (DONE)
 
 TestNG dropped support for this in 5.12, in early 2010. Supporting these old style annotations means we need to attach the test source files as an input to the `Test` task, which means there's an up-to-date check cost for this.
 

@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing.testng;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.testing.TestClassLoaderFactory;
@@ -33,10 +32,10 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
+import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.actor.ActorFactory;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import org.gradle.util.DeprecationLogger;
 
@@ -56,12 +55,6 @@ public class TestNGTestFramework implements TestFramework {
         this.testTask = testTask;
         this.filter = filter;
         options = instantiator.newInstance(TestNGOptions.class, testTask.getProject().getProjectDir());
-        DeprecationLogger.whileDisabled(new Runnable() {
-            @Override
-            public void run() {
-                options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property("sourceCompatibility")));
-            }
-        });
         conventionMapOutputDirectory(options, testTask.getReports().getHtml());
         detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
         classLoaderFactory = new TestClassLoaderFactory(classLoaderCache, testTask);
@@ -80,12 +73,6 @@ public class TestNGTestFramework implements TestFramework {
         verifyConfigFailurePolicy();
         verifyPreserveOrder();
         verifyGroupByInstances();
-        DeprecationLogger.whileDisabled(new Runnable() {
-            @Override
-            public void run() {
-                options.setTestResources(testTask.getTestSrcDirs());
-            }
-        });
         List<File> suiteFiles = options.getSuites(testTask.getTemporaryDir());
         TestNGSpec spec = DeprecationLogger.whileDisabled(new Factory<TestNGSpec>() {
             @Override
