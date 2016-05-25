@@ -14,13 +14,15 @@ private openCompositeConnection() {
     builder.addParticipant(projectC).useInstallation(gradleHome)
     builder.useInstallation(gradleHome)
 
-    // Switch to enable (experimental) dependency substitution
-    builder.integratedComposite(project.hasProperty("integrated"))
+    // Switch to disable (experimental) dependency substitution
+    def integrated = project.hasProperty('integrated') ? Boolean.valueOf(project.property("integrated") as String) : true
+    builder.integratedComposite(integrated)
 
     return builder.build()
 }
 
 private executeTask(GradleConnection connection, String participant, String... tasks) {
+    logger.lifecycle("Running tasks ${tasks} in participant: ${participant}")
     def rootDir = file("projects/${participant}")
     def buildLauncher = connection.newBuild()
     buildLauncher.forTasks(rootDir, tasks)

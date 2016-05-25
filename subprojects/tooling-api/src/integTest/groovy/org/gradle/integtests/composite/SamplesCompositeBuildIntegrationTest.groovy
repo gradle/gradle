@@ -37,6 +37,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.inDirectory(sample.dir)
+        executer.withArgument("-Pintegrated=false")
         succeeds('publishAll')
 
         then:
@@ -46,6 +47,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.inDirectory(sample.dir)
+        executer.withArgument("-Pintegrated=false")
         succeeds('showDependencies')
 
         then:
@@ -64,7 +66,6 @@ compile - Dependencies for source set 'main'.
 
         when:
         executer.inDirectory(sample.dir)
-        executer.withArgument("-Pintegrated")
         succeeds('showDependencies')
 
         then:
@@ -83,7 +84,6 @@ compile - Dependencies for source set 'main'.
 
         when:
         executer.inDirectory(sample.dir)
-        executer.withArgument("-Pintegrated")
         succeeds('build')
 
         then:
