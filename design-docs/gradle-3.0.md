@@ -17,7 +17,7 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
     - EclipseClasspath (Done)
     - org.gradle.plugins.ide.eclipse.model.ProjectDependency (Done)
     - org.gradle.tooling.model.Task
-    - PrefixHeaderFileGenerateTask
+    - PrefixHeaderFileGenerateTask (Done)
 - Remove deprecated:
     - `--parallel-threads` command-line option (Done)
     - old wrapper properties from `WrapperExecutor`, remove generation of these properties from `Wrapper` task

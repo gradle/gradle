@@ -168,6 +168,7 @@ In previous versions, annotations on task properties like `@InputFile` and `@Out
 * Build comparison plugin supports Gradle versions 1.2 or later.
 * Removed `Specs.and()`, `Specs.or()` and `Specs.not()`
 * Removed `StartParameter.getParallelThreadCount()` and `StartParameter.setParallelThreadCount()`
+* Removed `PrefixHeaderFileGenerateTask.getHeaders()`
 
 ### Tooling API changes
 
