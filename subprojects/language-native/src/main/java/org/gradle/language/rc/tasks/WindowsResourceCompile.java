@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.ParallelizableTask;
@@ -118,6 +119,7 @@ public class WindowsResourceCompile extends DefaultTask {
     /**
      * The tool chain used for compilation.
      */
+    @Internal
     public NativeToolChain getToolChain() {
         return toolChain;
     }

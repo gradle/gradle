@@ -18,6 +18,7 @@ package org.gradle.ide.visualstudio.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Internal;
 import org.gradle.ide.visualstudio.TextProvider;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.VisualStudioSolution;
@@ -53,6 +54,7 @@ public class GenerateSolutionFileTask extends GeneratorTask<VisualStudioSolution
         });
     }
 
+    @Internal
     public VisualStudioSolution getSolution() {
         return solution;
     }

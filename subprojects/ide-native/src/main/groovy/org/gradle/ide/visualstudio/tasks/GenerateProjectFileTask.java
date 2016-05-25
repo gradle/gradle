@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject;
@@ -61,6 +62,7 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
         });
     }
 
+    @Internal
     public Transformer<String, File> getTransformer() {
         return RelativeFileNameTransformer.forFile(getProject().getRootDir(), visualStudioProject.getProjectFile().getLocation());
     }
@@ -69,6 +71,7 @@ public class GenerateProjectFileTask extends XmlGeneratorTask<VisualStudioProjec
         this.visualStudioProject = (DefaultVisualStudioProject) vsProject;
     }
 
+    @Internal
     public VisualStudioProject getVisualStudioProject() {
         return visualStudioProject;
     }

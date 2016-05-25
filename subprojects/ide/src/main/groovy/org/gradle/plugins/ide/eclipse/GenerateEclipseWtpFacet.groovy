@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import groovy.transform.CompileStatic
+import org.gradle.api.tasks.Internal
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpFacet
@@ -32,6 +33,7 @@ class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
     /**
      * The Eclipse WTP facet model containing the details required to generate the settings file.
      */
+    @Internal
     EclipseWtpFacet facet
 
     GenerateEclipseWtpFacet() {

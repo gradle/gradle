@@ -17,6 +17,7 @@ package org.gradle.ide.cdt.tasks
 
 import org.gradle.api.Incubating
 import org.gradle.api.internal.ClosureBackedAction
+import org.gradle.api.tasks.Internal
 import org.gradle.internal.Factory
 import org.gradle.listener.ActionBroadcast
 import org.gradle.ide.cdt.model.CprojectSettings
@@ -27,8 +28,13 @@ import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurat
 @Incubating
 class GenerateMetadataFileTask<T extends PersistableConfigurationObject> extends GeneratorTask<T> {
 
+    @Internal
     Factory<T> factory
+
+    @Internal
     ActionBroadcast<T> configures = new ActionBroadcast<T>()
+
+    @Internal
     CprojectSettings settings
 
     GenerateMetadataFileTask() {

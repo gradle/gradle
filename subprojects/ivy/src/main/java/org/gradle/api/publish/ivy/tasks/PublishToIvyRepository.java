@@ -27,6 +27,7 @@ import org.gradle.api.publish.ivy.IvyPublication;
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Cast;
 
@@ -66,6 +67,7 @@ public class PublishToIvyRepository extends DefaultTask {
      *
      * @return The publication to be published
      */
+    @Internal
     public IvyPublication getPublication() {
         return publication;
     }
@@ -79,6 +81,7 @@ public class PublishToIvyRepository extends DefaultTask {
         this.publication = toPublicationInternal(publication);
     }
 
+    @Internal
     private IvyPublicationInternal getPublicationInternal() {
         return toPublicationInternal(getPublication());
     }
@@ -104,6 +107,7 @@ public class PublishToIvyRepository extends DefaultTask {
      *
      * @return The repository to publish to
      */
+    @Internal
     public IvyArtifactRepository getRepository() {
         return repository;
     }

@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import groovy.transform.CompileStatic
+import org.gradle.api.tasks.Internal
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.plugins.ide.api.PropertiesGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt
@@ -32,6 +33,7 @@ class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
     /**
      * Eclipse JDT model that contains information needed to generate the JDT file.
      */
+    @Internal
     EclipseJdt jdt
 
     GenerateEclipseJdt() {

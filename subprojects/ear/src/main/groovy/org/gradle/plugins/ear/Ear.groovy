@@ -24,6 +24,8 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
 import org.gradle.api.internal.file.copy.CopySpecInternal
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
@@ -51,6 +53,7 @@ class Ear extends Jar {
     /**
      * The deployment descriptor configuration.
      */
+    @Internal
     DeploymentDescriptor deploymentDescriptor
 
     private CopySpec lib
@@ -130,6 +133,7 @@ class Ear extends Jar {
     /**
      * A location for dependency libraries to include in the 'lib' directory of the EAR archive.
      */
+    @Internal
     public CopySpec getLib() {
         return ((CopySpecInternal) lib).addChild()
     }

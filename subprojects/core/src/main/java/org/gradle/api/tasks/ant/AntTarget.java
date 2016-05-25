@@ -44,6 +44,7 @@ public class AntTarget extends ConventionTask {
     /**
      * Returns the Ant target to execute.
      */
+    @Internal
     public Target getTarget() {
         return target;
     }
@@ -58,6 +59,7 @@ public class AntTarget extends ConventionTask {
     /**
      * Returns the Ant project base directory to use when executing the target.
      */
+    @Internal
     public File getBaseDir() {
         return baseDir;
     }

@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.ParallelizableTask;
@@ -120,6 +121,7 @@ public class Assemble extends DefaultTask {
     /**
      * The tool chain being used to build.
      */
+    @Internal
     public NativeToolChain getToolChain() {
         return toolChain;
     }

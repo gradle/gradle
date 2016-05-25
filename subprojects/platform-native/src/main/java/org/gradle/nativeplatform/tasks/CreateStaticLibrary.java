@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.ParallelizableTask;
@@ -109,6 +110,7 @@ public class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBin
     /**
      * The tool chain used for creating the static library.
      */
+    @Internal
     public NativeToolChain getToolChain() {
         return toolChain;
     }

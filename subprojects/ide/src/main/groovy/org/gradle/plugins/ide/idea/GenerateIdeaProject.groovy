@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.idea
 
 import groovy.transform.CompileStatic
+import org.gradle.api.tasks.Internal
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.gradle.plugins.ide.idea.model.Project
@@ -31,6 +32,7 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     /**
      * The Idea project model containing the details required to generate the project file.
      */
+    @Internal
     IdeaProject ideaProject;
 
     @Override protected void configure(Project xmlModule) {

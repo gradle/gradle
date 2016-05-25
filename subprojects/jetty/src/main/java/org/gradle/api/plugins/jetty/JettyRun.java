@@ -25,6 +25,7 @@ import org.gradle.api.plugins.jetty.internal.JettyPluginServer;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
@@ -247,6 +248,7 @@ public class JettyRun extends AbstractJettyRunTask {
         LOGGER.info("Restart completed at " + new Date().toString());
     }
 
+    @Internal
     private Set<File> getDependencyFiles() {
         List<Resource> overlays = new ArrayList<Resource>();
 
@@ -370,6 +372,9 @@ public class JettyRun extends AbstractJettyRunTask {
     /**
      * Returns the {@code web.xml} file to use. When {@code null}, no {@code web.xml} file is used.
      */
+//    @InputFile
+//    @Optional
+    @Internal
     public File getWebXml() {
         return webXml;
     }
@@ -390,6 +395,7 @@ public class JettyRun extends AbstractJettyRunTask {
         this.webAppSourceDirectory = webAppSourceDirectory;
     }
 
+    @Internal
     public File[] getScanTargets() {
         return scanTargets;
     }
@@ -398,6 +404,7 @@ public class JettyRun extends AbstractJettyRunTask {
         this.scanTargets = scanTargets;
     }
 
+    @Internal
     public Set<File> getExtraScanTargets() {
         return extraScanTargets;
     }
@@ -416,6 +423,7 @@ public class JettyRun extends AbstractJettyRunTask {
         this.jettyEnvXmlFile = jettyEnvXmlFile;
     }
 
+    @Internal
     public List<File> getClassPathFiles() {
         return classPathFiles;
     }
@@ -424,6 +432,7 @@ public class JettyRun extends AbstractJettyRunTask {
         this.classPathFiles = classPathFiles;
     }
 
+    @Internal
     public ScanTargetPattern[] getScanTargetPatterns() {
         return scanTargetPatterns;
     }
@@ -432,6 +441,7 @@ public class JettyRun extends AbstractJettyRunTask {
         this.scanTargetPatterns = scanTargetPatterns;
     }
 
+    @Internal
     public ContextHandler[] getConfiguredContextHandlers() {
         return this.contextHandlers;
     }

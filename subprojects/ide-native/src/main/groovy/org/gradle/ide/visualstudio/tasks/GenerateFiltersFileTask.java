@@ -19,6 +19,7 @@ package org.gradle.ide.visualstudio.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.tasks.Internal;
 import org.gradle.ide.visualstudio.VisualStudioProject;
 import org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject;
 import org.gradle.ide.visualstudio.tasks.internal.RelativeFileNameTransformer;
@@ -38,6 +39,7 @@ public class GenerateFiltersFileTask extends XmlGeneratorTask<VisualStudioFilter
         this.visualStudioProject = (DefaultVisualStudioProject) vsProject;
     }
 
+    @Internal
     public VisualStudioProject getVisualStudioProject() {
         return visualStudioProject;
     }

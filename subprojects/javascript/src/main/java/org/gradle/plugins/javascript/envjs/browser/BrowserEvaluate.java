@@ -62,6 +62,7 @@ public class BrowserEvaluate extends DefaultTask {
     }
 
     //@Input
+    @Internal
     public BrowserEvaluator getEvaluator() {
         return evaluator;
     }

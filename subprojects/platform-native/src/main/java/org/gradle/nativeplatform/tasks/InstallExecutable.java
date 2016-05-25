@@ -60,6 +60,7 @@ public class InstallExecutable extends DefaultTask {
     /**
      * The tool chain used for linking.
      */
+    @Internal
     public ToolChain getToolChain() {
         return toolChain;
     }

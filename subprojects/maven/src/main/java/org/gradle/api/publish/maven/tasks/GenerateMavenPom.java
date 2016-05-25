@@ -25,6 +25,7 @@ import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInterna
 import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
@@ -62,6 +63,7 @@ public class GenerateMavenPom extends DefaultTask {
      *
      * @return The Maven POM.
      */
+    @Internal
     public MavenPom getPom() {
         return pom;
     }

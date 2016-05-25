@@ -95,6 +95,7 @@ public class Upload extends ConventionTask {
     /**
      * Returns the repositories to upload to.
      */
+    @Internal
     public RepositoryHandler getRepositories() {
         if (repositories == null) {
             repositories = getPublicationServices().createRepositoryHandler();
@@ -105,6 +106,7 @@ public class Upload extends ConventionTask {
     /**
      * Returns the configuration to upload.
      */
+    @Internal
     public Configuration getConfiguration() {
         return configuration;
     }
