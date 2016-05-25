@@ -215,3 +215,4 @@ Some basic daemon status information is made, internally, available via the serv
 - A DaemonIntegrationSpec which verifies all 4 data points 
 - The number of builds is correctly incremented when a daemon runs more than one build
 - The number of running builds is backed by the `org.gradle.launcher.daemon.registry.DaemonRegistry#getAll`
+- Works when the daemon is ran in the foreground `--foreground`
