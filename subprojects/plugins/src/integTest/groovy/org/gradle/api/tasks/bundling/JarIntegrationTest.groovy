@@ -483,8 +483,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 from file('test')
                 destinationDir = file('dest')
                 archiveName = 'test.jar'
+                manifestContentCharset = 'ISO-8859-15'
                 manifest {
-                    contentCharset = 'ISO-8859-15'
                     attributes 'moji': 'bak€'
                 }
             }
@@ -584,8 +584,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 from file('test')
                 destinationDir = file('dest')
                 archiveName = 'test.jar'
+                manifestContentCharset = $writeCharset
                 manifest {
-                    contentCharset = $writeCharset
                     from('manifest-to-merge.txt') {
                         contentCharset = $readCharset
                     }
@@ -603,9 +603,9 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         writeCharset    | readCharset     | cause
-        "'UNSUPPORTED'" | "'UTF-8'"       | "Charset for contentCharset 'UNSUPPORTED' is not supported by your JVM"
+        "'UNSUPPORTED'" | "'UTF-8'"       | "Charset for manifestContentCharset 'UNSUPPORTED' is not supported by your JVM"
         "'UTF-8'"       | "'UNSUPPORTED'" | "Charset for contentCharset 'UNSUPPORTED' is not supported by your JVM"
-        null            | "'UTF-8'"       | "contentCharset must not be null"
+        null            | "'UTF-8'"       | "manifestContentCharset must not be null"
         "'UTF-8'"       | null            | "contentCharset must not be null"
     }
 }

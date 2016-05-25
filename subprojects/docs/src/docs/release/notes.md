@@ -360,13 +360,13 @@ In order to fall back to the old behavior you can do the following:
     jar {
         // JAR metadata
         metadataCharset = Charset.defaultCharset().name()
+        // Manifest content
+        manifestContentCharset = Charset.defaultCharset().name()
         manifest {
             // Merged manifest content
             from(file('path/to/some/manifest/to/merge')) {
                 contentCharset = Charset.defaultCharset().name()
             }
-            // Manifest content
-            contentCharset = Charset.defaultCharset().name()
         }
     }
 

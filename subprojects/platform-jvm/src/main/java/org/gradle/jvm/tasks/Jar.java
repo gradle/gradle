@@ -19,6 +19,8 @@ package org.gradle.jvm.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
@@ -27,12 +29,16 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
+import org.gradle.api.java.archives.internal.ManifestInternal;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
 
 /**
@@ -43,6 +49,7 @@ import java.util.concurrent.Callable;
 public class Jar extends Zip {
 
     public static final String DEFAULT_EXTENSION = "jar";
+    private String manifestContentCharset = DefaultManifest.DEFAULT_CONTENT_CHARSET;
     private Manifest manifest;
     private final CopySpecInternal metaInf;
 
@@ -62,7 +69,19 @@ public class Jar extends Zip {
                         if (manifest == null) {
                             manifest = new DefaultManifest(null);
                         }
-                        manifest.writeTo(outputStream);
+                        if (manifest instanceof ManifestInternal) {
+                            ManifestInternal manifestInternal = (ManifestInternal) manifest;
+                            manifestInternal.setContentCharset(manifestContentCharset);
+                            manifestInternal.writeTo(outputStream);
+                        } else {
+                            // Fallback on wrong Writer based method
+                            // This will break split multi-byte characters
+                            try {
+                                manifest.writeTo(new OutputStreamWriter(outputStream, manifestContentCharset));
+                            } catch (UnsupportedEncodingException e) {
+                                throw new UncheckedIOException(e);
+                            }
+                        }
                     }
                 });
                 return new FileTreeAdapter(manifestSource);
@@ -102,6 +121,38 @@ public class Jar extends Zip {
     @Override
     public void setMetadataCharset(String metadataCharset) {
         super.setMetadataCharset(metadataCharset);
+    }
+
+    /**
+     * The character set used to encode the manifest content.
+     * Defaults to UTF-8.
+     * You can change this property but it is not recommended as JVMs expect manifests content to be encoded using UTF-8.
+     *
+     * @return the character set used to encode the manifest content
+     * @since 2.14
+     */
+    @Input
+    @Incubating
+    public String getManifestContentCharset() {
+        return manifestContentCharset;
+    }
+
+    /**
+     * The character set used to encode the manifest content.
+     *
+     * @param manifestContentCharset the character set used to encode the manifest content
+     * @since 2.14
+     * @see #getManifestContentCharset()
+     */
+    @Incubating
+    public void setManifestContentCharset(String manifestContentCharset) {
+        if (manifestContentCharset == null) {
+            throw new InvalidUserDataException("manifestContentCharset must not be null");
+        }
+        if (!Charset.isSupported(manifestContentCharset)) {
+            throw new InvalidUserDataException(String.format("Charset for manifestContentCharset '%s' is not supported by your JVM", manifestContentCharset));
+        }
+        this.manifestContentCharset = manifestContentCharset;
     }
 
     /**

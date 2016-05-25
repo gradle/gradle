@@ -41,8 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.Manifest;
 
-public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
-    static final String DEFAULT_CONTENT_CHARSET = "UTF-8";
+public class DefaultManifest implements ManifestInternal {
+    public static final String DEFAULT_CONTENT_CHARSET = "UTF-8";
 
     private List<ManifestMergeSpec> manifestMergeSpecs = new ArrayList<ManifestMergeSpec>();
 
@@ -199,6 +199,7 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
                 manifestContent = new String(manifestContent.getBytes(contentCharset), contentCharset);
             }
             writer.write(manifestContent);
+            writer.flush();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
