@@ -307,7 +307,7 @@ Extension objects have been available for over 5 years and are now an establishe
 * Replace `ShowStacktrace.INTERNAL_EXCEPTIONS` with `NONE`.
 
 ## Deprecate and remove unintended behaviour for container configuration closures
-When the configuration closure for an element of a container fails with any MethodMissingException, currently we attempt to invoke the method on the owner of the closure (eg the Project).
+When the configuration closure for an element of a container fails with any MethodMissingException, we attempt to invoke the method on the owner of the closure (e.g. the Project).
 This allows for the following constructs to work:
 ```
 configurations {
@@ -320,7 +320,7 @@ configurations {
 }
 ```
 
-The corresponding code can is in ConfigureDelegate and has been reintroduced for backwards compatibility (https://github.com/gradle/gradle/commit/79d084e16050b02cc566f71df3c3ad7a342b9c5a).
+The corresponding code is in ConfigureDelegate and has been reintroduced for backwards compatibility (https://github.com/gradle/gradle/commit/79d084e16050b02cc566f71df3c3ad7a342b9c5a ).
 
 This behaviour should be deprecated and then removed in 4.0.
 
