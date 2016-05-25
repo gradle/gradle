@@ -146,6 +146,8 @@ In previous versions, annotations on task properties like `@InputFile` and `@Out
   If you were using this method to expose Ant logging messages, please use `AntBuilder.setLifecycleLogLevel()` instead.
 * Removed `AntScalaCompiler` in favor of `ZincScalaCompiler`.
 * Removed `EclipseClasspath.noExportConfigurations` property.
+* Removed `ProjectDependency.declaredConfigurationName` property.
+* Removed `EclipseExternalDependency.declaredConfigurationName` property.
 * Removed `BuildExceptionReporter`.
 * Removed `BuildLogger`.
 * Removed `BuildResultLogger`.
