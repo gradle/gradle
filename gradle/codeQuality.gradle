@@ -36,7 +36,7 @@ plugins.withType(GroovyBasePlugin) {
 }
 
 def codeQualityTasks = tasks.matching { task ->
-    [org.gradle.api.plugins.quality.CodeNarc, org.gradle.api.plugins.quality.Checkstyle].any { it.isInstance(task) }
+    [org.gradle.api.plugins.quality.CodeNarc, org.gradle.api.plugins.quality.Checkstyle, org.gradle.plugin.devel.tasks.ValidateTaskProperties].any { it.isInstance(task) }
 }
 
 task codeQuality {

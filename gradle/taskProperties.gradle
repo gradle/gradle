@@ -3,5 +3,6 @@ afterEvaluate {
         validator.dependsOn sourceSets.main.output
         validator.classesDir = sourceSets.main.output.classesDir
         validator.classpath = sourceSets.main.compileClasspath
+        validator.failOnWarning = true
     }
 }
