@@ -165,6 +165,7 @@ In previous versions, annotations on task properties like `@InputFile` and `@Out
 * Removed `org.gradle.platform.base.test.TestSuiteSpec` replaced by `org.gradle.testing.base.TestSuiteSpec`
 * TestKit supports Gradle versions 1.2 or later.
 * Build comparison plugin supports Gradle versions 1.2 or later.
+* Removed `Specs.and()`, `Specs.or()` and `Specs.not()`
 
 ### Tooling API changes
 
