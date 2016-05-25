@@ -34,6 +34,10 @@ dependencies {
 
 tasks.withType<Jar> {
     from(the<JavaPluginConvention>().sourceSets.getByName("main").allSource)
+    manifest.attributes.apply {
+        put("Implementation-Title", "Gradle Script Kotlin")
+        put("Implementation-Version", version)
+    }
 }
 
 configure<PublishingExtension> {
