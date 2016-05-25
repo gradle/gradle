@@ -281,7 +281,7 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
 """
         buildB.buildFile << """
             dependencies {
-                it.'default' "org.test:buildC:1.0"
+                compile "org.test:buildC:1.0"
             }
 """
         def buildC = singleProjectBuild("buildC") {
