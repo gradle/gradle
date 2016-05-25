@@ -10,16 +10,16 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 ## Remove deprecated elements
 
 - Remove deprecated methods from:
-    - Specs
-    - StartParameter
+    - Specs (Done)
+    - StartParameter (Done)
     - ArtifactRepository, plus special case handling to 'lock' this when added to a repository container
-    - AbstractLibrary
-    - EclipseClasspath
-    - org.gradle.plugins.ide.eclipse.model.ProjectDependency
+    - AbstractLibrary (Done)
+    - EclipseClasspath (Done)
+    - org.gradle.plugins.ide.eclipse.model.ProjectDependency (Done)
     - org.gradle.tooling.model.Task
     - PrefixHeaderFileGenerateTask
 - Remove deprecated:
-    - `--parallel-threads` command-line option
+    - `--parallel-threads` command-line option (Done)
     - old wrapper properties from `WrapperExecutor`, remove generation of these properties from `Wrapper` task
 - Move `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER` from public API.
 - Move internal types `org.gradle.logging.StandardOutputCapture` and `org.gradle.logging.LoggingManagerInternal` into an internal package.
