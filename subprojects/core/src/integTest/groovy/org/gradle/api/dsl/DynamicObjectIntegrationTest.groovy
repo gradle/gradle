@@ -488,6 +488,55 @@ assert 'overridden value' == global
         succeeds("run")
     }
 
+    def canCallMethodWithClassArgumentType() {
+        buildFile << """
+interface Transformer {}
+
+class Impl implements Transformer {}
+
+class MyTask extends DefaultTask {
+    public void transform(Class<? extends Transformer> c) {
+        logger.lifecycle("transform(Class)")
+    }
+
+    public void transform(Transformer t) {
+        logger.lifecycle("transform(Transformer)")
+    }
+}
+
+task print(type: MyTask) {
+    transform(Impl) // should call transform(Class)
+}
+        """
+
+        expect:
+        succeeds("print")
+        result.output.contains("transform(Class)")
+    }
+
+    def failsWhenTryingToCallMethodWithClassValue() {
+        buildFile << """
+interface Transformer {}
+
+class Impl implements Transformer {}
+
+class MyTask extends DefaultTask {
+    public void transform(Transformer t) {
+        logger.lifecycle("transform(Transformer)")
+    }
+}
+
+task print(type: MyTask) {
+    transform(Impl) // should fail since transform(Class) does not exist
+}
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(13)
+        failure.assertHasCause("Could not find method transform() for arguments [class Impl] on task ':print' of type MyTask.")
+    }
+
     def failsWhenGettingUnknownPropertyOnProject() {
         buildFile << """
             assert !hasProperty("p1")
