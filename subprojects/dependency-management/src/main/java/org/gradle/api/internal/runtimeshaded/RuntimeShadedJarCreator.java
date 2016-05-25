@@ -261,7 +261,7 @@ class RuntimeShadedJarCreator {
         String remappedResourceName = path != null ? REMAPPER.maybeRelocateResource(path) : null;
         if (remappedResourceName != null) {
             String newFileName = remappedResourceName + originalName.substring(i);
-            writeResourceEntry(outputStream, inputStream, buffer, newFileName);
+            writeResourceEntry(outputStream, new ByteArrayInputStream(resource), buffer, newFileName);
         }
     }
 

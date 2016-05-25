@@ -81,6 +81,11 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
                     assert ivy.getResource('m2-entities.ent')
                     assert ivy.getResource('/org/apache/ivy/plugins/parser/m2/m2-entities.ent')
                     assert ivy.getResource('/org/gradle/internal/impldep/org/apache/ivy/plugins/parser/m2/m2-entities.ent')
+
+                    byte[] original = ivy.getResourceAsStream('/org/apache/ivy/plugins/parser/m2/m2-entities.ent').bytes
+                    byte[] relocated = ivy.getResourceAsStream('/org/gradle/internal/impldep/org/apache/ivy/plugins/parser/m2/m2-entities.ent').bytes
+                    assert original.length > 0
+                    assert Arrays.equals(original, relocated)
                 }
             }
         '''
