@@ -9,25 +9,49 @@
     </options>
     <parameters />
     <build-runners>
-      <runner id="RUNNER_719" name="check" type="gradle-runner">
+      <runner id="RUNNER_719" name="prepare" type="gradle-runner">
         <parameters>
+          <param name="jvmArgs" value="-XX:MaxPermSize=128M" />
+          <param name="org.jfrog.artifactory.selectedDeployableServer.buildDependencies" value="Requires Artifactory Pro." />
           <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
           <param name="org.jfrog.artifactory.selectedDeployableServer.envVarsExcludePatterns" value="*password*,*secret*" />
-          <param name="org.jfrog.artifactory.selectedDeployableServer.resolvingRepo" value="repo" />
-          <param name="org.jfrog.artifactory.selectedDeployableServer.targetRepo" value="dist-snapshots" />
-          <param name="org.jfrog.artifactory.selectedDeployableServer.urlId" value="0" />
+          <param name="org.jfrog.artifactory.selectedDeployableServer.publishBuildInfo" value="true" />
+          <param name="org.jfrog.artifactory.selectedDeployableServer.publishIvyDescriptors" value="true" />
+          <param name="org.jfrog.artifactory.selectedDeployableServer.publishMavenDescriptors" value="true" />
+          <param name="org.jfrog.artifactory.selectedDeployableServer.useM2CompatiblePatterns" value="true" />
           <param name="teamcity.coverage.emma.include.source" value="true" />
           <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
           <param name="teamcity.coverage.idea.includePatterns" value="*" />
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="--no-daemon --refresh-dependencies -PtimestampedVersion --continue" />
-          <param name="ui.gradleRunner.gradle.tasks.names" value="clean intTestImage quickTest4" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="--no-daemon --refresh-dependencies -PtimestampedVersion" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="clean intTestImage" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
       </runner>
-      <runner id="RUNNER_87" name="binZip" type="gradle-runner">
+      <runner id="RUNNER_748" name="check" type="gradle-runner">
+        <parameters>
+          <param name="jvmArgs" value="-XX:MaxPermSize=128M" />
+          <param name="org.jfrog.artifactory.selectedDeployableServer.buildDependencies" value="Requires Artifactory Pro." />
+          <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
+          <param name="org.jfrog.artifactory.selectedDeployableServer.envVarsExcludePatterns" value="*password*,*secret*" />
+          <param name="org.jfrog.artifactory.selectedDeployableServer.publishBuildInfo" value="true" />
+          <param name="org.jfrog.artifactory.selectedDeployableServer.publishIvyDescriptors" value="true" />
+          <param name="org.jfrog.artifactory.selectedDeployableServer.publishMavenDescriptors" value="true" />
+          <param name="org.jfrog.artifactory.selectedDeployableServer.useM2CompatiblePatterns" value="true" />
+          <param name="teamcity.coverage.emma.include.source" value="true" />
+          <param name="teamcity.coverage.emma.instr.parameters" value="-ix -*Test*" />
+          <param name="teamcity.coverage.idea.includePatterns" value="*" />
+          <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
+          <param name="teamcity.step.mode" value="default" />
+          <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="--no-daemon -PtimestampedVersion --continue --parallel" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="runtimeTests runtimeIntegTests" />
+          <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
+        </parameters>
+      </runner>
+      <runner id="RUNNER_87" name="publish" type="gradle-runner">
         <parameters>
           <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
           <param name="org.jfrog.artifactory.selectedDeployableServer.envVarsExcludePatterns" value="*password*,*secret*" />
@@ -42,8 +66,8 @@
           <param name="teamcity.coverage.jacoco.patterns" value="+:*" />
           <param name="teamcity.step.mode" value="default" />
           <param name="ui.gradleRUnner.gradle.build.file" value="build.gradle" />
-          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="--no-daemon --refresh-dependencies -PtimestampedVersion" />
-          <param name="ui.gradleRunner.gradle.tasks.names" value="clean binZip" />
+          <param name="ui.gradleRunner.additional.gradle.cmd.params" value="--no-daemon -PtimestampedVersion" />
+          <param name="ui.gradleRunner.gradle.tasks.names" value="binZip" />
           <param name="ui.gradleRunner.gradle.wrapper.useWrapper" value="true" />
         </parameters>
       </runner>
