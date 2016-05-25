@@ -16,7 +16,9 @@
 
 package org.gradle.plugin.devel.tasks;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -37,6 +39,8 @@ import org.gradle.api.internal.project.taskfactory.TaskPropertyValidationAccess;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
@@ -101,11 +105,12 @@ import java.util.Map;
 public class ValidateTaskProperties extends DefaultTask implements VerificationTask {
     private File classesDir;
     private FileCollection classpath;
+    private Object outputFile;
     private boolean ignoreFailures;
     private boolean failOnWarning;
 
     @TaskAction
-    public void validateTaskClasses() {
+    public void validateTaskClasses() throws IOException {
         final Map<String, Boolean> taskValidationProblems = Maps.newTreeMap();
         final ClassLoader classLoader = getClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(Iterables.concat(Collections.singleton(getClassesDir()), getClasspath())));
         final Class<?> taskInterface;
@@ -169,16 +174,24 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
                 }
             }
         });
-        communicateResult(taskValidationProblems);
+        List<String> problemMessages = toProblemMessages(taskValidationProblems);
+        storeResults(problemMessages, getOutputFile());
+        communicateResult(problemMessages, taskValidationProblems.values().contains(Boolean.TRUE));
     }
 
-    private void communicateResult(Map<String, Boolean> taskValidationProblems) {
-        if (taskValidationProblems.isEmpty()) {
+    private void storeResults(List<String> problemMessages, File outputFile) throws IOException {
+        if (outputFile != null) {
+            //noinspection ResultOfMethodCallIgnored
+            outputFile.createNewFile();
+            Files.asCharSink(outputFile, Charsets.UTF_8).write(Joiner.on('\n').join(problemMessages));
+        }
+    }
+
+    private void communicateResult(List<String> problemMessages, boolean hasErrors) {
+        if (problemMessages.isEmpty()) {
             getLogger().info("Task property validation finished without warnings.");
         } else {
-            List<String> problemMessages = toProblemMessages(taskValidationProblems);
-            boolean foundError = taskValidationProblems.values().contains(Boolean.TRUE);
-            if (foundError || getFailOnWarning()) {
+            if (hasErrors || getFailOnWarning()) {
                 if (getIgnoreFailures()) {
                     getLogger().warn("Task property validation finished with errors:{}", toMessageList(problemMessages));
                 } else {
@@ -274,6 +287,21 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
     @Input
     public boolean getFailOnWarning() {
         return failOnWarning;
+    }
+
+    /**
+     * Returns the output file to store the report in.
+     */
+    @Optional @OutputFile
+    public File getOutputFile() {
+        return getProject().file(outputFile);
+    }
+
+    /**
+     * Sets the output file to store the report in.
+     */
+    public void setOutputFile(Object outputFile) {
+        this.outputFile = outputFile;
     }
 
     /**
