@@ -380,7 +380,11 @@ The following plugins were fully converted to Java: `jacoco`, `scala`, `osgi`, `
 
 Some other plugins were partially converted to Java, keeping tasks types as Groovy classes: `init`, `checkstyle`, `codenarc`, `findbugs`, `pmd`, `jdepend`, `java`, `war`, `ear`, `application`, `signing`, `comparison`, `idea` and `eclipse`. For the latter two, plugin types have also been kept in Groovy.
 
-As a result, existing builds that use converted types as base types might see different behaviour.
+As a result, existing builds that use converted types as base types might see different behavior.
+
+### `org.gradle.plugins.javascript.rhino.worker` changes and deprecation
+
+The method for creating a handle to a Rhino-backed worker has changed in `RhinoWorkerHandleFactory`.  All classes in this package have been deprecated and will be moved to an internal package.
 
 ### Source and target compatibility options are always passed to the Java compiler
 
