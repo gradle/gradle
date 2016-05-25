@@ -22,12 +22,35 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactStateRepository;
-import org.gradle.api.internal.changedetection.state.*;
+import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepository;
+import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository;
+import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
+import org.gradle.api.internal.changedetection.state.CachingTreeVisitor;
+import org.gradle.api.internal.changedetection.state.CachingTreeVisitorCleaner;
+import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.DefaultTaskArtifactStateCacheAccess;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.FileSnapshotter;
+import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
+import org.gradle.api.internal.changedetection.state.MinimalFileSetSnapshotter;
+import org.gradle.api.internal.changedetection.state.NoOpDecorator;
+import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
+import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
+import org.gradle.api.internal.changedetection.state.TreeSnapshotRepository;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.execution.*;
+import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
+import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
+import org.gradle.api.internal.tasks.execution.PostExecutionAnalysisTaskExecuter;
+import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
+import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
+import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
+import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
+import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheDecorator;
@@ -137,7 +160,8 @@ public class TaskExecutionServices {
     }
 
     TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, ExecutorFactory executorFactory) {
-        return new TaskPlanExecutorFactory(startParameter.getParallelThreadCount(), executorFactory).create();
+        int parallelThreads = startParameter.isParallelProjectExecutionEnabled() ? startParameter.getMaxWorkerCount() : 0;
+        return new TaskPlanExecutorFactory(parallelThreads, executorFactory).create();
     }
 
     BuildOperationProcessor createBuildOperationProcessor(StartParameter startParameter, ExecutorFactory executorFactory) {

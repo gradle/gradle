@@ -18,8 +18,14 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.BasicFileResolver;
-import org.gradle.cli.*;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.cli.AbstractCommandLineConverter;
+import org.gradle.cli.CommandLineArgumentException;
+import org.gradle.cli.CommandLineConverter;
+import org.gradle.cli.CommandLineParser;
+import org.gradle.cli.ParsedCommandLine;
+import org.gradle.cli.ProjectPropertiesCommandLineConverter;
+import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
 
 import java.io.File;
@@ -167,17 +173,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setRefreshDependencies(true);
         }
 
-        if (options.hasOption(PARALLEL) || options.hadOptionRemoved(PARALLEL_THREADS)) {
+        if (options.hasOption(PARALLEL)) {
             startParameter.setParallelProjectExecutionEnabled(true);
-        }
-
-        if (options.hasOption(PARALLEL_THREADS)) {
-            try {
-                int parallelThreads = Integer.parseInt(options.option(PARALLEL_THREADS).getValue());
-                startParameter.setParallelThreadCount(parallelThreads);
-            } catch (NumberFormatException e) {
-                throw new CommandLineArgumentException(String.format("Not a numeric argument for %s", PARALLEL_THREADS));
-            }
         }
 
         if (options.hasOption(MAX_WORKERS)) {

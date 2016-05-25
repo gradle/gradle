@@ -138,6 +138,7 @@ In previous versions, annotations on task properties like `@InputFile` and `@Out
 * Declaring custom `check`, `clean`, `build` or `assemble` tasks is not allowed anymore when using the lifecycle plugin.
 * Configuring the Eclipse project name during `beforeMerged` or `whenMerged` is not allowed anymore.
 * Removed `--no-color` command-line option (use `--console=plain` instead).
+* Removed `--parallel-threads` command-line option (use `--parallel` + `--max-workers` instead).
 * Removed `Zip.encoding` (use `Zip.metadataCharset` instead).
 * Removed `DistributionPlugin.addZipTask()` and `addTarTask()`.
 * The `installApp` task is no longer created by the `application` plugin (use `installDist` instead).

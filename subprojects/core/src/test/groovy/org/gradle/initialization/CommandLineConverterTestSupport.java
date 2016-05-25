@@ -55,7 +55,6 @@ public class CommandLineConverterTestSupport {
     protected boolean expectedOffline;
     protected boolean expectedRecompileScripts;
     protected boolean expectedParallelProjectExecution;
-    protected int expectedParallelExecutorCount;
     protected int expectedMaxWorkersCount = Runtime.getRuntime().availableProcessors();
     protected boolean expectedConfigureOnDemand;
     protected boolean expectedContinuous;
@@ -93,7 +92,6 @@ public class CommandLineConverterTestSupport {
         assertEquals(expectedRerunTasks, startParameter.isRerunTasks());
         assertEquals(expectedRefreshDependencies, startParameter.isRefreshDependencies());
         assertEquals(expectedProjectCacheDir, startParameter.getProjectCacheDir());
-        assertEquals(expectedParallelExecutorCount, startParameter.getParallelThreadCount());
         assertEquals(expectedConfigureOnDemand, startParameter.isConfigureOnDemand());
         assertEquals(expectedMaxWorkersCount, startParameter.getMaxWorkerCount());
         assertEquals(expectedContinuous, startParameter.isContinuous());
