@@ -45,13 +45,5 @@ configure<PublishingExtension> {
         it.create<MavenPublication>("mavenJava") {
             from(components.getByName("java"))
         }
-
-        // val kotlinCompilerEmbeddable = tasks.getByName("repackageKotlinCompilerEmbeddable") as Zip
-        // it.create<MavenPublication>(kotlinCompilerEmbeddable.baseName) {
-        //     groupId = "org.jetbrains.kotlin"
-        //     artifactId = name
-        //     version = kotlinCompilerEmbeddable.version
-        //     artifact(kotlinCompilerEmbeddable)
-        // }
     }
 }
