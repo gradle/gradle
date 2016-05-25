@@ -18,19 +18,16 @@ package org.gradle.launcher.daemon
 
 import org.gradle.launcher.daemon.fixtures.FullyQualifiedGarbageCollector
 
-import static org.gradle.launcher.daemon.fixtures.JavaGarbageCollector.IBM_ALL
-import static org.gradle.launcher.daemon.fixtures.JavaGarbageCollector.ORACLE_G1
 import static org.gradle.launcher.daemon.fixtures.JavaGarbageCollector.ORACLE_PARALLEL_CMS
-import static org.gradle.launcher.daemon.fixtures.JdkVendor.IBM
 import static org.gradle.launcher.daemon.fixtures.JdkVendor.ORACLE
 
 class DaemonPerformanceMonitoringCoverage {
     static final def ALL_VERSIONS = [
-        new FullyQualifiedGarbageCollector(vendor: IBM, version: "1.7", gc: IBM_ALL),
+//        new FullyQualifiedGarbageCollector(vendor: IBM, version: "1.7", gc: IBM_ALL),
         // In our testing, it seems that CMS and Serial collectors behaved the same, so omitting SERIAL here
-        new FullyQualifiedGarbageCollector(vendor: ORACLE, version: "1.7", gc: ORACLE_PARALLEL_CMS),
-        new FullyQualifiedGarbageCollector(vendor: ORACLE, version: "1.7", gc: ORACLE_G1),
-        new FullyQualifiedGarbageCollector(vendor: ORACLE, version: "1.8", gc: ORACLE_PARALLEL_CMS),
-        new FullyQualifiedGarbageCollector(vendor: ORACLE, version: "1.8", gc: ORACLE_G1)
+        new FullyQualifiedGarbageCollector(vendor: ORACLE, version: "1.7", gc: ORACLE_PARALLEL_CMS)
+//        new FullyQualifiedGarbageCollector(vendor: ORACLE, version: "1.7", gc: ORACLE_G1),
+//        new FullyQualifiedGarbageCollector(vendor: ORACLE, version: "1.8", gc: ORACLE_PARALLEL_CMS),
+//        new FullyQualifiedGarbageCollector(vendor: ORACLE, version: "1.8", gc: ORACLE_G1)
     ]
 }

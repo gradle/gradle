@@ -328,6 +328,6 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
     }
 
     String logJdk() {
-        return """logger.warn("Build is running with JDK: ${System.properties['java.home']}")"""
+        return """logger.warn("Build is running with JDK: ${jdk.javaHome.absolutePath}")"""
     }
 }
