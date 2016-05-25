@@ -667,8 +667,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * <li>A {@link org.gradle.api.tasks.TaskOutputs}. Converted to the output files the related task.</li>
      *
-     * <li>An Object. Its {@code toString()} value is treated the same way as a String, as per {@link #file(Object)}.
-     * This has been deprecated and will be removed in the next version of Gradle.</li>
+     * <li>Anything else is treated as a failure.</li>
      *
      * </ul>
      *
