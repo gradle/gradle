@@ -122,7 +122,7 @@ properties have been removed from the ScalaCompile task:
 
 ### Support for TestNG javadoc annotations has been removed
 
-The support declaring TestNG tests via javadoc annotations has been removed. The `Test.testSrcDirs` and the methods on `TestNGOptions` where removed, too,
+The support for declaring TestNG tests via javadoc annotations has been removed. The `Test.testSrcDirs` and the methods on `TestNGOptions` were removed, too,
 since they are not needed any more.
 
 ### Task property annotations on implemented interfaces

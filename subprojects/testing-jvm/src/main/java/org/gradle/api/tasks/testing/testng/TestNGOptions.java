@@ -41,8 +41,6 @@ import java.util.Set;
  * The TestNG specific test options.
  */
 public class TestNGOptions extends TestFrameworkOptions {
-    private static final String JDK_ANNOTATIONS = "JDK";
-    private static final String JAVADOC_ANNOTATIONS = "Javadoc";
     public static final String DEFAULT_CONFIG_FAILURE_POLICY = "skip";
 
     private File outputDirectory;
