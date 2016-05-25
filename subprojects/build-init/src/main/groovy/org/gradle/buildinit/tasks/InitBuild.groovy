@@ -22,11 +22,15 @@ import org.gradle.api.GradleException
 import org.gradle.api.Incubating
 import org.gradle.api.internal.tasks.options.Option
 import org.gradle.api.internal.tasks.options.OptionValues
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.buildinit.plugins.internal.BuildInitTestFramework
 import org.gradle.buildinit.plugins.internal.BuildInitTypeIds
 import org.gradle.buildinit.plugins.internal.ProjectInitDescriptor
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
+
+import javax.inject.Inject
 
 import static BuildInitTestFramework.NONE
 
@@ -39,14 +43,13 @@ class InitBuild extends DefaultTask {
     private String type
     private String testFramework
 
-    ProjectLayoutSetupRegistry projectLayoutRegistry
-
     /**
      * The desired type of build to create, defaults to 'pom' if 'pom.xml' is found in project root
      * if no pom.xml is found, it defaults to 'basic'.
      *
      * This property can be set via command-line option '--type'.
      */
+    @Input
     String getType() {
         type ?: project.file("pom.xml").exists() ? BuildInitTypeIds.POM : BuildInitTypeIds.BASIC
     }
@@ -56,15 +59,9 @@ class InitBuild extends DefaultTask {
      *
      * This property can be set via command-line option '--test-framework'
      */
+    @Optional @Input
     String getTestFramework() {
         testFramework
-    }
-
-    ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
-        if (projectLayoutRegistry == null) {
-            projectLayoutRegistry = services.get(ProjectLayoutSetupRegistry)
-        }
-        return projectLayoutRegistry
     }
 
     @TaskAction
@@ -102,5 +99,11 @@ class InitBuild extends DefaultTask {
     @SuppressWarnings(["GrMethodMayBeStatic", "GroovyUnusedDeclaration"])
     List<String> getAvailableTestFrameworks() {
         return BuildInitTestFramework.listSupported();
+    }
+
+    @Inject
+    @SuppressWarnings("GrMethodMayBeStatic")
+    ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
+        throw new UnsupportedOperationException()
     }
 }
