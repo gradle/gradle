@@ -34,8 +34,8 @@ public class DaemonExpirationStrategies {
         strategies.add(new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout(), TimeUnit.MILLISECONDS));
         try {
             strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
-                new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout() / 8, TimeUnit.MILLISECONDS),
-                LowMemoryDaemonExpirationStrategy.belowFreeBytes(1024 * 1024 * 1024)
+                LowMemoryDaemonExpirationStrategy.belowFreeBytes(1024 * 1024 * 1024),
+                new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout() / 8, TimeUnit.MILLISECONDS)
             )));
         } catch (UnsupportedOperationException e) {
             logger.info("This JVM does not support getting free system memory, so daemons will not check for it");

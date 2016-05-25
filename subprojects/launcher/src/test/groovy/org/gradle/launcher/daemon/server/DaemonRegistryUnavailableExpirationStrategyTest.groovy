@@ -45,7 +45,7 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
 
         then:
         expirationCheck.status == GRACEFUL_EXPIRE
-        expirationCheck.reason == "daemon registry became unreadable"
+        expirationCheck.reason == "because registry became unreadable"
     }
 
     def "daemon should not expire given readable registry with it's PID"() {

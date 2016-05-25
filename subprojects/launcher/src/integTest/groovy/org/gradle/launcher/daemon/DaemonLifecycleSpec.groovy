@@ -258,7 +258,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         busy 2
-        waitForStartupMessageToContain(1, '1 is busy')
+        waitForStartupMessageToContain(1, '1 Gradle Daemon is busy')
     }
 
     def "sending stop to idle daemons causes them to terminate immediately"() {
@@ -305,7 +305,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         startBuild()
 
         then:
-        waitForStartupMessageToContain(1, '1 was stopped because daemon registry became unreadable')
+        waitForStartupMessageToContain(1, 'A Gradle Daemon was stopped because registry became unreadable')
     }
 
     def "daemon stops after current build if registry is deleted"() {
@@ -451,7 +451,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         when:
         startBuild(null, "UTF-8")
-        waitForStartupMessageToContain(1, '1 is incompatible')
+        waitForStartupMessageToContain(1, '1 Gradle Daemon is incompatible')
         waitForBuildToWait()
 
         then:

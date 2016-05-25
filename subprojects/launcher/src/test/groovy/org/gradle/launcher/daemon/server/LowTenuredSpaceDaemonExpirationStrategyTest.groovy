@@ -35,7 +35,7 @@ class LowTenuredSpaceDaemonExpirationStrategyTest extends Specification {
 
         and:
         result.status == GRACEFUL_EXPIRE
-        result.reason == "JVM tenured space is exhausted"
+        result.reason == "because JVM tenured space was exhausted"
     }
 
     def "daemon is not expired when tenured space is fine" () {

@@ -29,16 +29,16 @@ class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
 
     def "daemon should expire when its idle time exceeds idleTimeout"() {
         given:
-        DaemonIdleTimeoutExpirationStrategy expirationStrategy = new DaemonIdleTimeoutExpirationStrategy(daemon, 100, TimeUnit.MILLISECONDS)
+        DaemonIdleTimeoutExpirationStrategy expirationStrategy = new DaemonIdleTimeoutExpirationStrategy(daemon, 1000000, TimeUnit.MILLISECONDS)
 
         when:
         1 * daemon.getStateCoordinator() >> { daemonStateCoordinator }
-        1 * daemonStateCoordinator.getIdleMillis(_) >> { 101L }
+        1 * daemonStateCoordinator.getIdleMillis(_) >> { 1000001L }
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
         result.status == QUIET_EXPIRE
-        result.reason == "daemon has been idle for 101 milliseconds"
+        result.reason == "to reclaim system memory after being idle for 16 minutes"
     }
 
     def "daemon accepts idle timeout closure"() {
@@ -59,7 +59,7 @@ class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
         then:
         DaemonExpirationResult firstResult = expirationStrategy.checkExpiration()
         firstResult.status == QUIET_EXPIRE
-        firstResult.reason == "daemon has been idle for 2 milliseconds"
+        firstResult.reason == "to reclaim system memory after being idle for 0 minutes"
 
         DaemonExpirationResult secondResult = expirationStrategy.checkExpiration()
         secondResult.status == DO_NOT_EXPIRE

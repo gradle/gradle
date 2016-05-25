@@ -38,10 +38,8 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Provides the mechanics of connecting to a daemon, starting one via a given runnable if no suitable daemons are already available.
@@ -110,24 +108,15 @@ public class DefaultDaemonConnector implements DaemonConnector {
     String generateStartingMessage(final int numBusy, final int numIncompatible, final List<DaemonStopEvent> stopEvents) {
         final List<String> reasons = Lists.newArrayList(STARTING_DAEMON_MESSAGE);
         if (numBusy > 0) {
-            reasons.add(numBusy + " " + (numBusy > 1 ? "are" : "is") + " busy");
+            reasons.add(numBusy + " Gradle Daemon" + (numBusy > 1 ? "s are" : " is") + " busy");
         }
         if (numIncompatible > 0) {
-            reasons.add(numIncompatible + " " + (numIncompatible > 1 ? "are" : "is") + " incompatible");
+            reasons.add(numIncompatible + " Gradle Daemon" + (numIncompatible > 1 ? "s are" : " is") + " incompatible");
         }
 
         if (stopEvents.size() > 0) {
-            // REVIEWME: seems like this should be more concise/elegant
-            Map<String, Integer> countByReason = new HashMap<String, Integer>();
             for (DaemonStopEvent event : stopEvents) {
-                final String reason = event.getReason();
-                Integer count = countByReason.get(reason) == null ? 0 : countByReason.get(reason);
-                countByReason.put(reason, count + 1);
-            }
-
-            for (Map.Entry<String, Integer> entry : countByReason.entrySet()) {
-                Integer numStopped = entry.getValue();
-                reasons.add(numStopped + " " + (numStopped > 1 ? "were" : "was") + " stopped because " + entry.getKey());
+                reasons.add("A Gradle Daemon was stopped " + event.getReason());
             }
         }
 

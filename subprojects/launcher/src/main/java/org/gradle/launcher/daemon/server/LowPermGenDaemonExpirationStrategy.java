@@ -30,7 +30,7 @@ public class LowPermGenDaemonExpirationStrategy implements DaemonExpirationStrat
     @Override
     public DaemonExpirationResult checkExpiration() {
         if (status.isPermGenSpaceExhausted()) {
-            return new DaemonExpirationResult(GRACEFUL_EXPIRE, "JVM perm gen space is exhausted");
+            return new DaemonExpirationResult(GRACEFUL_EXPIRE, "because JVM perm gen space was exhausted");
         } else {
             return DaemonExpirationResult.NOT_TRIGGERED;
         }

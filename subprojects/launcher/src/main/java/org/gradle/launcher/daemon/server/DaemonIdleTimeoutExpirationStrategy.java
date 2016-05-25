@@ -45,7 +45,7 @@ public class DaemonIdleTimeoutExpirationStrategy implements DaemonExpirationStra
         boolean idleTimeoutExceeded = idleMillis > idleTimeout.apply(null);
         if (idleTimeoutExceeded) {
             LOG.info("Idle timeout: daemon has been idle for {} milliseconds. Expiring.", idleMillis);
-            return new DaemonExpirationResult(QUIET_EXPIRE, "daemon has been idle for " + idleMillis + " milliseconds");
+            return new DaemonExpirationResult(QUIET_EXPIRE, "to reclaim system memory after being idle for " + (idleMillis / 60000) + " minutes");
         }
         return DaemonExpirationResult.NOT_TRIGGERED;
     }

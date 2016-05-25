@@ -200,22 +200,21 @@ class DefaultDaemonConnectorTest extends Specification {
 
         expect:
         message.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE)
-        message.contains("- 2 are busy")
-        message.contains("- 1 is incompatible")
+        message.contains("- 2 Gradle Daemons are busy")
+        message.contains("- 1 Gradle Daemon is incompatible")
         message.contains(DefaultDaemonConnector.SUBSEQUENT_BUILDS_FASTER_MESSAGE)
     }
 
-    def "starting message contains grouped stoppage reasons"() {
+    def "starting message contains stoppage reasons"() {
         given:
         def stopEvent = new DaemonStopEvent(new Date(System.currentTimeMillis()), "REASON")
-        def stopEvent2 = new DaemonStopEvent(new Date(System.currentTimeMillis()), "REASON")
-        def stopEvent3 = new DaemonStopEvent(new Date(System.currentTimeMillis()), "OTHER_REASON")
-        def message = getConnector().generateStartingMessage(0, 0, Lists.newArrayList(stopEvent, stopEvent2, stopEvent3))
+        def stopEvent2 = new DaemonStopEvent(new Date(System.currentTimeMillis()), "OTHER_REASON")
+        def message = getConnector().generateStartingMessage(0, 0, Lists.newArrayList(stopEvent, stopEvent2))
 
         expect:
         message.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE)
-        message.contains("- 2 were stopped because REASON")
-        message.contains("- 1 was stopped because OTHER_REASON")
+        message.contains("- A Gradle Daemon was stopped REASON")
+        message.contains("- A Gradle Daemon was stopped OTHER_REASON")
         message.contains(DefaultDaemonConnector.SUBSEQUENT_BUILDS_FASTER_MESSAGE)
     }
 }
