@@ -255,10 +255,11 @@ types and to offer a more consistent DSL.
 * Remove `Task.dependsOnTaskDidWork()`.
 * Mix `TaskInternal` in during decoration and remove references to internal types from `DefaultTask` and `AbstractTask`
 
-## Remove references to internal classes from API
+## Remove references to internal classes from public API
 
 * Remove `Configurable` from public API types.
 * Remove `PomFilterContainer.getActivePomFilters()`.
+* Move rhino worker classes off public API
 
 ## Remove support for convention objects
 
@@ -307,6 +308,7 @@ Extension objects have been available for over 5 years and are now an establishe
 * Replace `ShowStacktrace.INTERNAL_EXCEPTIONS` with `NONE`.
 
 ## Deprecate and remove unintended behaviour for container configuration closures
+
 When the configuration closure for an element of a container fails with any MethodMissingException, we attempt to invoke the method on the owner of the closure (e.g. the Project).
 This allows for the following constructs to work:
 ```
