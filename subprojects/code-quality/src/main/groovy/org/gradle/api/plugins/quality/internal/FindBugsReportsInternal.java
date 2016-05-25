@@ -19,9 +19,11 @@ package org.gradle.api.plugins.quality.internal;
 import org.gradle.api.plugins.quality.FindBugsReports;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 
 public interface FindBugsReportsInternal extends FindBugsReports {
+    @Internal
     SingleFileReport getFirstEnabled();
 
     @Input
