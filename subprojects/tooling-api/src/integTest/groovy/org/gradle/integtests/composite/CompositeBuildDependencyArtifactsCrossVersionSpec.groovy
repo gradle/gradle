@@ -16,32 +16,17 @@
 
 package org.gradle.integtests.composite
 import groovy.transform.NotYetImplemented
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.RequiresIntegratedComposite
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.tooling.BuildException
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
- * Note that this test should be migrated to use the command-line entry point for composite build, when this is developed.
- * This is distinct from the specific test coverage for Tooling API access to a composite build.
  */
-@TargetGradleVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
-@RequiresIntegratedComposite
-class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeToolingApiSpecification {
-    def stdOut = new ByteArrayOutputStream()
-    def stdErr = new ByteArrayOutputStream()
+class CompositeBuildDependencyArtifactsCrossVersionSpec extends AbstractCompositeBuildIntegrationTest {
     TestFile buildA
     TestFile buildB
     MavenModule publishedModuleB
-    List builds
     List arguments = []
     MavenFileRepository mavenRepo
 
@@ -450,7 +435,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
     }
 
     private void resolveArtifacts() {
-        execute(buildA, ":resolve")
+        execute(buildA, ":resolve", arguments)
     }
 
     private void assertResolved(TestFile... files) {
@@ -480,24 +465,5 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends CompositeTooling
             beforeTask = task
 //            assert executedTasks.findAll({ it == task }).size() == 1
         }
-    }
-
-    private void execute(File build, String... tasks) {
-        stdOut.reset()
-        stdErr.reset()
-        withCompositeConnection(builds) { connection ->
-            def buildLauncher = connection.newBuild()
-            buildLauncher.setStandardOutput(stdOut)
-            buildLauncher.setStandardError(stdErr)
-            buildLauncher.forTasks(build, tasks)
-            buildLauncher.withArguments(arguments)
-            buildLauncher.run()
-        }
-        println stdOut
-        println stdErr
-    }
-
-    private ExecutionResult getResult() {
-        return new OutputScrapingExecutionResult(stdOut.toString(), stdErr.toString())
     }
 }

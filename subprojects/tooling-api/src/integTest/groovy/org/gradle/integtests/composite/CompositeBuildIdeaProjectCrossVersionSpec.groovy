@@ -15,28 +15,17 @@
  */
 
 package org.gradle.integtests.composite
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.RequiresIntegratedComposite
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersions
+
 import org.gradle.plugins.ide.idea.IdeaFixtures
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
+
 /**
  * Tests for generating IDEA metadata for projects within a composite build.
- *
- * Note that this test should be migrated to use the command-line entry point for composite build, when this is developed.
  */
-@TargetGradleVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
-@RequiresIntegratedComposite
-class CompositeBuildIdeaProjectCrossVersionSpec extends CompositeToolingApiSpecification {
-    def stdOut = new ByteArrayOutputStream()
-    def stdErr = new ByteArrayOutputStream()
+class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIntegrationTest {
     TestFile buildA
     TestFile buildB
-    List builds
     MavenFileRepository mavenRepo
 
     def setup() {
@@ -268,32 +257,13 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends CompositeToolingApiSpeci
         imlA.assertHasModule('buildC')
     }
 
-    def dependency(TestFile buildRoot, String notation) {
+    def dependency(TestFile buildRoot = buildA, String notation) {
         buildRoot.buildFile << """
             dependencies {
                 compile '${notation}'
             }
 """
     }
-
-    def dependency(String notation) {
-        dependency(buildA, notation)
-    }
-
-    private void execute(File build, String... tasks) {
-        stdOut.reset()
-        stdErr.reset()
-        withCompositeConnection(builds) { connection ->
-            def buildLauncher = connection.newBuild()
-            buildLauncher.setStandardOutput(stdOut)
-            buildLauncher.setStandardError(stdErr)
-            buildLauncher.forTasks(build, tasks)
-            buildLauncher.run()
-        }
-        println stdOut
-        println stdErr
-    }
-
 
     def idea(TestFile projectDir = buildA) {
         execute(projectDir, ":idea")
