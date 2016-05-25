@@ -294,7 +294,7 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
      */
     @Optional @OutputFile
     public File getOutputFile() {
-        return getProject().file(outputFile);
+        return outputFile == null ? null : getProject().file(outputFile);
     }
 
     /**
