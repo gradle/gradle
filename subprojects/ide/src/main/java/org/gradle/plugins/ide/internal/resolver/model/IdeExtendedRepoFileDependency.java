@@ -27,8 +27,8 @@ public class IdeExtendedRepoFileDependency extends IdeRepoFileDependency {
     private final SortedSet<File> sourceFiles = new TreeSet<File>(FILE_COMPARATOR);
     private final SortedSet<File> javadocFiles = new TreeSet<File>(FILE_COMPARATOR);
 
-    public IdeExtendedRepoFileDependency(String declaredConfiguration, File file) {
-        super(declaredConfiguration, file);
+    public IdeExtendedRepoFileDependency(File file) {
+        super(file);
     }
 
     public File getSourceFile() {

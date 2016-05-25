@@ -69,9 +69,9 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
             }
             Project resolvedProject = project.findProject(resolvedProjectPath);
             if (resolvedProject == null) {
-                ideProjectDependencies.add(new IdeProjectDependency(configuration.getName(), resolvedProjectPath));
+                ideProjectDependencies.add(new IdeProjectDependency(resolvedProjectPath));
             } else {
-                ideProjectDependencies.add(new IdeProjectDependency(configuration.getName(), resolvedProject));
+                ideProjectDependencies.add(new IdeProjectDependency(resolvedProject));
             }
         }
         return ideProjectDependencies;
@@ -94,7 +94,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
 
             String displayName = componentSelector.getDisplayName();
             File file = new File(unresolvedFileName(componentSelector));
-            unresolvedIdeRepoFileDependencies.add(new UnresolvedIdeRepoFileDependency(configuration.getName(), file, failure, displayName));
+            unresolvedIdeRepoFileDependencies.add(new UnresolvedIdeRepoFileDependency(file, failure, displayName));
         }
 
         return unresolvedIdeRepoFileDependencies;
@@ -129,7 +129,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         List<IdeExtendedRepoFileDependency> externalDependencies = new ArrayList<IdeExtendedRepoFileDependency>();
         for (ResolvedArtifact artifact : artifacts) {
             if (mappedResolvedDependencies.contains(artifact.getModuleVersion().getId())) {
-                IdeExtendedRepoFileDependency ideRepoFileDependency = new IdeExtendedRepoFileDependency(configuration.getName(), artifact.getFile());
+                IdeExtendedRepoFileDependency ideRepoFileDependency = new IdeExtendedRepoFileDependency(artifact.getFile());
                 ideRepoFileDependency.setId(artifact.getModuleVersion().getId());
                 externalDependencies.add(ideRepoFileDependency);
             }
@@ -167,7 +167,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
             Set<File> resolvedFiles = externalDependency.resolve();
 
             for (File resolvedFile : resolvedFiles) {
-                IdeLocalFileDependency ideLocalFileDependency = new IdeLocalFileDependency(configuration.getName(), resolvedFile);
+                IdeLocalFileDependency ideLocalFileDependency = new IdeLocalFileDependency(resolvedFile);
                 ideLocalFileDependencies.add(ideLocalFileDependency);
             }
         }

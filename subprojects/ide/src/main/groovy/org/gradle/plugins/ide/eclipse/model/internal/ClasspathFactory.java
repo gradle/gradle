@@ -31,7 +31,6 @@ import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDepende
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDependency;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.Collection;
@@ -76,12 +75,12 @@ public class ClasspathFactory {
             Collection<IdeExtendedRepoFileDependency> repoFileDependencies = dependenciesExtractor.extractRepoFileDependencies(
                 classpath.getProject().getDependencies(), classpath.getPlusConfigurations(), classpath.getMinusConfigurations(), classpath.isDownloadSources(), classpath.isDownloadJavadoc());
             for (IdeExtendedRepoFileDependency dependency : repoFileDependencies) {
-                entries.add(ClasspathFactory.createLibraryEntry(dependency.getFile(), dependency.getSourceFile(), dependency.getJavadocFile(), dependency.getDeclaredConfiguration(), classpath, dependency.getId()));
+                entries.add(ClasspathFactory.createLibraryEntry(dependency.getFile(), dependency.getSourceFile(), dependency.getJavadocFile(), classpath, dependency.getId()));
             }
 
             Collection<IdeLocalFileDependency> localFileDependencies = dependenciesExtractor.extractLocalFileDependencies(classpath.getPlusConfigurations(), classpath.getMinusConfigurations());
             for (IdeLocalFileDependency it : localFileDependencies) {
-                entries.add(ClasspathFactory.createLibraryEntry(it.getFile(), null, null, it.getDeclaredConfiguration(), classpath, null));
+                entries.add(ClasspathFactory.createLibraryEntry(it.getFile(), null, null, classpath, null));
             }
         }
     };
@@ -110,7 +109,7 @@ public class ClasspathFactory {
         return dependenciesExtractor.unresolvedExternalDependencies(classpath.getPlusConfigurations(), classpath.getMinusConfigurations());
     }
 
-    private static AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, final String declaredConfigurationName, EclipseClasspath classpath, ModuleVersionIdentifier id) {
+    private static AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, EclipseClasspath classpath, ModuleVersionIdentifier id) {
         FileReferenceFactory referenceFactory = classpath.getFileReferenceFactory();
 
         FileReference binaryRef = referenceFactory.fromFile(binary);
@@ -122,12 +121,6 @@ public class ClasspathFactory {
         out.setJavadocPath(javadocRef);
         out.setSourcePath(sourceRef);
         out.setExported(false);
-        DeprecationLogger.whileDisabled(new Runnable() {
-            @Override
-            public void run() {
-                out.setDeclaredConfigurationName(declaredConfigurationName);
-            }
-        });
         out.setModuleVersion(id);
         return out;
     }

@@ -21,8 +21,8 @@ import java.io.File;
 public class IdeLocalFileDependency extends IdeDependency {
     private final File file;
 
-    public IdeLocalFileDependency(String declaredConfiguration, File file) {
-        super(declaredConfiguration);
+    public IdeLocalFileDependency(File file) {
+        super();
         this.file = file;
     }
 

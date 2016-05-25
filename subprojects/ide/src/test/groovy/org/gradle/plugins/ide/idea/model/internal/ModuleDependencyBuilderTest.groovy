@@ -23,7 +23,7 @@ import spock.lang.Specification
 class ModuleDependencyBuilderTest extends Specification {
 
     def project = TestUtil.createRootProject()
-    def ideDependency = new IdeProjectDependency('other', project)
+    def ideDependency = new IdeProjectDependency(project)
     def builder = new ModuleDependencyBuilder()
 
     def "builds dependency for nonIdea project"() {

@@ -22,14 +22,14 @@ public class IdeProjectDependency extends IdeDependency {
     private final Project project;
     private final String projectPath;
 
-    public IdeProjectDependency(String declaredConfiguration, Project project) {
-        super(declaredConfiguration);
+    public IdeProjectDependency(Project project) {
+        super();
         this.project = project;
         this.projectPath = project.getPath();
     }
 
-    public IdeProjectDependency(String declaredConfiguration, String projectPath) {
-        super(declaredConfiguration);
+    public IdeProjectDependency(String projectPath) {
+        super();
         this.project = null;
         this.projectPath = projectPath;
     }

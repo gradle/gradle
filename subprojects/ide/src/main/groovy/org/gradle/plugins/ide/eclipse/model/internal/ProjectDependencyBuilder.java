@@ -21,11 +21,10 @@ import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
-import org.gradle.util.DeprecationLogger;
 
 public class ProjectDependencyBuilder {
     public ProjectDependency build(IdeProjectDependency dependency) {
-        return buildProjectDependency(determineProjectName(dependency), dependency.getProjectPath(), dependency.getDeclaredConfiguration());
+        return buildProjectDependency(determineProjectName(dependency), dependency.getProjectPath());
     }
 
     private String determineProjectName(IdeProjectDependency dependency) {
@@ -39,16 +38,9 @@ public class ProjectDependencyBuilder {
         }
     }
 
-    private ProjectDependency buildProjectDependency(String name, String projectPath, final String declaredConfigurationName) {
+    private ProjectDependency buildProjectDependency(String name, String projectPath) {
         final ProjectDependency out = new ProjectDependency("/" + name, projectPath);
         out.setExported(false);
-        DeprecationLogger.whileDisabled(new Runnable() {
-            @Override
-            public void run() {
-                out.setDeclaredConfigurationName(declaredConfigurationName);
-            }
-
-        });
         return out;
     }
 }

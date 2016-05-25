@@ -22,7 +22,6 @@ import groovy.util.Node;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.Map;
 
@@ -31,12 +30,9 @@ import java.util.Map;
  */
 public abstract class AbstractLibrary extends AbstractClasspathEntry {
 
-    private static final String DEPRECATED_DECLAREDCONFIGNAME_FIELD = "AbstractLibrary.declaredConfigurationName";
-
     private FileReference sourcePath;
     private FileReference javadocPath;
     private FileReference library;
-    private String declaredConfigurationName;
     private ModuleVersionIdentifier moduleVersion;
 
     public AbstractLibrary(Node node, FileReferenceFactory fileReferenceFactory) {
@@ -75,18 +71,6 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
     public void setLibrary(FileReference library) {
         this.library = library;
         setPath(library.getPath());
-    }
-
-    @Deprecated
-    public String getDeclaredConfigurationName() {
-        DeprecationLogger.nagUserOfDeprecated(DEPRECATED_DECLAREDCONFIGNAME_FIELD);
-        return declaredConfigurationName;
-    }
-
-    @Deprecated
-    public void setDeclaredConfigurationName(String declaredConfigurationName) {
-        DeprecationLogger.nagUserOfDeprecated(DEPRECATED_DECLAREDCONFIGNAME_FIELD);
-        this.declaredConfigurationName = declaredConfigurationName;
     }
 
     @Nullable

@@ -121,9 +121,6 @@ public class EclipseClasspath {
 
     private Collection<Configuration> minusConfigurations = new ArrayList<Configuration>();
 
-    @Deprecated
-    private Collection<Configuration> noExportConfigurations = new ArrayList<Configuration>();
-
     private Set<String> containers = new LinkedHashSet<String>();
 
     private File defaultOutputDir;

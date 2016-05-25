@@ -23,7 +23,7 @@ class ProjectDependencyBuilderTest extends Specification {
 
     def Project project = TestUtil.createRootProject()
     def ProjectDependencyBuilder builder = new ProjectDependencyBuilder()
-    def IdeProjectDependency ideProjectDependency = new IdeProjectDependency("compile", project)
+    def IdeProjectDependency ideProjectDependency = new IdeProjectDependency(project)
 
     def "should create dependency using project name"() {
         when:
@@ -31,7 +31,6 @@ class ProjectDependencyBuilderTest extends Specification {
 
         then:
         dependency.path == "/" + project.name
-        dependency.declaredConfigurationName == 'compile'
     }
 
     def "should create dependency using eclipse projectName"() {

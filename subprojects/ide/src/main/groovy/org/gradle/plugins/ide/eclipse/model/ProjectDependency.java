@@ -18,18 +18,13 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.util.Node;
-import org.gradle.util.DeprecationLogger;
 
 /**
  * A classpath entry representing a project dependency.
  */
 public class ProjectDependency extends AbstractClasspathEntry {
 
-    private static final String DEPRECATED_DECLAREDCONFIGNAME_FIELD = "ProjectDependency.declaredConfigurationName";
-
     private String gradlePath;
-
-    private String declaredConfigurationName;
 
     public ProjectDependency(Node node) {
         super(node);
@@ -50,16 +45,6 @@ public class ProjectDependency extends AbstractClasspathEntry {
         this.gradlePath = gradlePath;
     }
 
-    @Deprecated
-    public String getDeclaredConfigurationName() {
-        DeprecationLogger.nagUserOfDeprecated(DEPRECATED_DECLAREDCONFIGNAME_FIELD);
-        return declaredConfigurationName;
-    }
-
-    public void setDeclaredConfigurationName(String declaredConfigurationName) {
-        DeprecationLogger.nagUserOfDeprecated(DEPRECATED_DECLAREDCONFIGNAME_FIELD);
-        this.declaredConfigurationName = declaredConfigurationName;
-    }
 
     private void assertPathIsValid() {
         Preconditions.checkArgument(path.startsWith("/"));
