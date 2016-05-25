@@ -110,8 +110,10 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         contentsDir.file('LICENSE').assertIsFile()
 
         // Core libs
-        def coreLibs = contentsDir.file("lib").listFiles().findAll { it.name.startsWith("gradle-") }
-        assert coreLibs.size() == 20
+        def coreLibs = contentsDir.file("lib").listFiles().findAll {
+            it.name.startsWith("gradle-") && !it.name.startsWith("gradle-script-kotlin")
+        }
+        assert coreLibs.size() == 19
         coreLibs.each { assertIsGradleJar(it) }
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${version}.jar")
