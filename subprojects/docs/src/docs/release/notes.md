@@ -151,6 +151,11 @@ In previous versions, annotations on task properties like `@InputFile` and `@Out
 * Removed `EclipseDomainModel`.
 * Removed `AntGroovydoc`.
 * Removed `AntScalaDoc`.
+* Removed `BinaryType`.
+* Removed `LanguageType`.
+* Removed `org.gradle.platform.base.test.TestSuiteBinarySpec` replaced by `org.gradle.testing.base.TestSuiteBinarySpec`
+* Removed `org.gradle.platform.base.test.TestSuiteContainer` replaced by `org.gradle.testing.base.TestSuiteContainer`
+* Removed `org.gradle.platform.base.test.TestSuiteSpec` replaced by `org.gradle.testing.base.TestSuiteSpec`
 * TestKit supports Gradle versions 1.2 or later.
 * Build comparison plugin supports Gradle versions 1.2 or later.
 
