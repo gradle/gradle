@@ -20,6 +20,7 @@ import groovy.transform.stc.SimpleType
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.RetryRule
@@ -44,6 +45,7 @@ import static org.gradle.testing.internal.util.RetryRule.retryIf
  *     <li>{@link TargetGradleVersion} - specifies the tooling API testDirectoryProvider versions that the test is compatible with.
  * </ul>
  */
+@CleanupTestDirectory
 abstract class AbstractToolingApiSpecification extends Specification {
 
     @Rule
