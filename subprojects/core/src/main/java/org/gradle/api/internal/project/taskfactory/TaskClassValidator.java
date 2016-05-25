@@ -28,6 +28,7 @@ import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
+import org.gradle.api.internal.tasks.options.OptionValues;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -94,7 +95,8 @@ public class TaskClassValidator implements TaskValidator, Action<Task> {
         new NestedBeanPropertyAnnotationHandler(),
         new NoOpPropertyAnnotationHandler(Inject.class),
         new NoOpPropertyAnnotationHandler(Console.class),
-        new NoOpPropertyAnnotationHandler(Internal.class)
+        new NoOpPropertyAnnotationHandler(Internal.class),
+        new NoOpPropertyAnnotationHandler(OptionValues.class)
     );
 
     private final Set<TaskPropertyInfo> validatedProperties = Sets.newLinkedHashSet();
