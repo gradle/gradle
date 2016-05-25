@@ -35,6 +35,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.Copy;
@@ -46,6 +47,7 @@ import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
+import org.gradle.plugin.devel.tasks.ValidateTaskProperties;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -83,6 +85,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String EXTENSION_NAME = "gradlePlugin";
     static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
     static final String GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME = "pluginDescriptors";
+    static final String VALIDATE_TASK_PROPERTIES_TASK_NAME = "validateTaskProperties";
 
     public void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
@@ -93,6 +96,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         configurePublishing(project);
         configureDescriptorGeneration(project, extension);
         validatePluginDeclarations(project, extension);
+        configureTaskPropertiesValidation(project);
     }
 
     private void applyDependencies(Project project) {
@@ -204,6 +208,21 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
                 }
             }
         });
+    }
+
+    private void configureTaskPropertiesValidation(Project project) {
+        ValidateTaskProperties validator = project.getTasks().create(VALIDATE_TASK_PROPERTIES_TASK_NAME, ValidateTaskProperties.class);
+
+        File reportsDir = new File(project.getBuildDir(), "reports");
+        File validatorReportsDir = new File(reportsDir, "task-properties");
+        validator.setOutputFile(new File(validatorReportsDir, "report.txt"));
+
+        SourceSet mainSourceSet = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        validator.setClasspath(mainSourceSet.getCompileClasspath());
+        validator.setClassesDir(mainSourceSet.getOutput().getClassesDir());
+        validator.dependsOn(mainSourceSet.getOutput());
+
+        project.getTasks().getByName(JavaBasePlugin.CHECK_TASK_NAME).dependsOn(validator);
     }
 
     /**
