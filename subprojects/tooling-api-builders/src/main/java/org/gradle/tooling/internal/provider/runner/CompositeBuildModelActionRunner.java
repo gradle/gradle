@@ -183,10 +183,10 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             StartParameter startParameter = modelAction.getStartParameter().newInstance();
             startParameter.setProjectDir(participant.getProjectDir());
             startParameter.setConfigureOnDemand(false);
-//            if (startParameter.getLogLevel() == LogLevel.LIFECYCLE) {
-//                startParameter.setLogLevel(LogLevel.QUIET);
-//                LOGGER.lifecycle("[composite-build] Configuring participant: " + participant.getProjectDir());
-//            }
+            if (startParameter.getLogLevel() == LogLevel.LIFECYCLE) {
+                startParameter.setLogLevel(LogLevel.QUIET);
+                LOGGER.lifecycle("[composite-build] Configuring participant: " + participant.getProjectDir());
+            }
 
             BuildModelAction configureAction = new BuildModelAction(startParameter, ModelIdentifier.NULL_MODEL, false, modelAction.getClientSubscriptions());
             buildActionExecuter.execute(configureAction, buildRequestContext, null, sharedServices);
