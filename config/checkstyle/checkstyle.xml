@@ -108,6 +108,9 @@
 
         <!-- to enable SuppressionCommentFilter -->
         <module name="FileContentsHolder"/>
+    <module name="IllegalImport">
+        <property name="illegalPkgs" value="com.beust,org.testng.collections"/>
+    </module>
     </module>
     <module name="RegexpHeader">
         <property name="headerFile" value="${checkstyleConfigDir}/required-header.txt"/>
