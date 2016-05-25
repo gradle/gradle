@@ -21,6 +21,10 @@
                 <td><literal>zip</literal></td>
             </tr>
             <tr>
+                <td>metadataCharset</td>
+                <td>Platform default encoding</td>
+            </tr>
+            <tr>
                 <td>zip64</td>
                 <td><literal>false</literal></td>
             </tr>
