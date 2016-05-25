@@ -70,6 +70,7 @@ public class Upload extends ConventionTask {
     /**
      * Specifies whether the dependency descriptor should be uploaded.
      */
+    @Input
     public boolean isUploadDescriptor() {
         return uploadDescriptor;
     }
@@ -81,6 +82,7 @@ public class Upload extends ConventionTask {
     /**
      * Returns the path to generate the dependency descriptor to.
      */
+    @Optional @OutputFile
     public File getDescriptorDestination() {
         return descriptorDestination;
     }
