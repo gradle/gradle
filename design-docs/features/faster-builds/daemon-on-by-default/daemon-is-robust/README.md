@@ -168,3 +168,50 @@ This can ensure stability in serving builds and avoid stalled build due to exhau
 #### Coverage
 
 - integration test that contains a leaky build. The build fails with OOME if the feature is turned off.
+
+### Story - Internally Expose Basic Daemon Information
+Some basic daemon status information is made, internally, available via the service registry. 
+
+1. The number of builds executed by the daemon
+1. The idle timeout of the daemon
+1. The number of running daemons
+1. The time at which the daemon was started
+
+#### Implementation
+
+1. Introduce the following interface
+  ```java
+  package org.gradle.launcher.daemon.server.health;
+
+  public interface DaemonInformation {
+      int getNumberOfBuilds();
+      long getStartedAt();
+      long getIdleTimeout();
+      int getNumberOfRunningDaemons();
+  }
+  ```
+  With a default implementation with references to `org.gradle.launcher.daemon.server.health.DaemonStats` and `org.gradle.launcher.daemon.registry.DaemonRegistry`
+1. Add `DaemonInformation` as a member of `org.gradle.launcher.daemon.server.health.DefaultDaemonHealthServices#DefaultDaemonHealthServices`
+1. `org.gradle.launcher.daemon.server.health.DaemonStats` provides getters for `buildCount` and an new attribute `startTime` (the time the daemon was started)
+1. `org.gradle.launcher.daemon.bootstrap.DaemonMain` passes the daemon start time to `DaemonServices`. This is not quite exactly the point in time that the daemon starts 
+ but may be close enough.
+1. `DaemonServices` is responsible for instantiating `org.gradle.launcher.daemon.server.health.DaemonInformation` e.g.
+  ```java
+    protected DefaultDaemonHealthServices createDaemonHealthServices(ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
+        DaemonStats stats = DaemonStats.of(scheduledExecutorService, startTime);
+        DaemonStatus status = new DaemonStatus(stats);
+        DaemonHealthCheck healthCheck = new DefaultDaemonHealthCheck(DaemonExpirationStrategies.getHealthStrategy(status), listenerManager);
+        DaemonInformation daemonInformation = DefaultDaemonInformation.of(stats, configuration.getIdleTimeout(), get(DaemonRegistry.class));
+        return new DefaultDaemonHealthServices(healthCheck, status, stats, daemonInformation);
+    }
+  ```
+1. `DaemonInformation` can be accessed via the service registry 
+  ```groovy
+     def healthService = project.getServices().get(org.gradle.launcher.daemon.server.health.DaemonHealthServices)
+     org.gradle.launcher.daemon.server.health.DaemonInformation info = healthService.getDaemonInformation()
+  ```
+
+#### Coverage
+- A DaemonIntegrationSpec which verifies all 4 data points 
+- The number of builds is correctly incremented when a daemon runs more than one build
+- The number of running builds is backed by the `org.gradle.launcher.daemon.registry.DaemonRegistry#getAll`
