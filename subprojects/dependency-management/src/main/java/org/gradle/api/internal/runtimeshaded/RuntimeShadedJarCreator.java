@@ -42,6 +42,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.ClassRemapper;
 
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -213,7 +214,7 @@ class RuntimeShadedJarCreator {
     private void processServiceDescriptor(InputStream inputStream, ZipEntry zipEntry, byte[] buffer, Map<String, List<String>> services) throws IOException {
         String descriptorName = zipEntry.getName().substring(SERVICES_DIR_PREFIX.length());
         String descriptorApiClass = periodsToSlashes(descriptorName);
-        String relocatedApiClassName = REMAPPER.relocateClass(descriptorApiClass);
+        String relocatedApiClassName = REMAPPER.maybeRelocateResource(descriptorApiClass);
         if (relocatedApiClassName == null) {
             relocatedApiClassName = descriptorApiClass;
         }
@@ -221,7 +222,7 @@ class RuntimeShadedJarCreator {
         byte[] bytes = readEntry(inputStream, zipEntry, buffer);
         String entry = new String(bytes, Charsets.UTF_8).replaceAll("(?m)^#.*", "").trim(); // clean up comments and new lines
         String descriptorImplClass = periodsToSlashes(entry);
-        String relocatedImplClassName = REMAPPER.relocateClass(descriptorImplClass);
+        String relocatedImplClassName = REMAPPER.maybeRelocateResource(descriptorImplClass);
         if (relocatedImplClassName == null) {
             relocatedImplClassName = descriptorImplClass;
         }
@@ -246,13 +247,26 @@ class RuntimeShadedJarCreator {
     }
 
     private void copyEntry(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
-        String name = zipEntry.getName();
-        int i = name.contains("META-INF") ? -1 : name.lastIndexOf("/");
-        String path = i == -1 ? name : name.substring(0, i);
-        String remappedClassName = i == -1 ? null : REMAPPER.relocateClass(path);
-        String newFileName = remappedClassName == null ? name : remappedClassName + name.substring(i);
+        ByteArrayOutputStream bos = new ByteArrayOutputStream(1024);
+        pipe(inputStream, bos, buffer);
+        String originalName = zipEntry.getName();
+        byte[] resource = bos.toByteArray();
 
-        outputStream.putNextEntry(new ZipEntry(newFileName));
+        // we're writing 2 copies of the resource: one relocated, the other not, in order to support `getResource/getResourceAsStream` with
+        // both absolute and relative paths
+        writeResourceEntry(outputStream, new ByteArrayInputStream(resource), buffer, zipEntry.getName());
+
+        int i = originalName.lastIndexOf("/");
+        String path = i == -1 ? null : originalName.substring(0, i);
+        String remappedResourceName = path != null ? REMAPPER.maybeRelocateResource(path) : null;
+        if (remappedResourceName != null) {
+            String newFileName = remappedResourceName + originalName.substring(i);
+            writeResourceEntry(outputStream, inputStream, buffer, newFileName);
+        }
+    }
+
+    private void writeResourceEntry(ZipOutputStream outputStream, InputStream inputStream, byte[] buffer, String resourceFileName) throws IOException {
+        outputStream.putNextEntry(new ZipEntry(resourceFileName));
         pipe(inputStream, outputStream, buffer);
         outputStream.closeEntry();
     }
@@ -269,7 +283,7 @@ class RuntimeShadedJarCreator {
         byte[] bytes = readEntry(inputStream, zipEntry, buffer);
         byte[] remappedClass = remapClass(className, bytes);
 
-        String remappedClassName = REMAPPER.relocateClass(className);
+        String remappedClassName = REMAPPER.maybeRelocateResource(className);
         String newFileName = (remappedClassName == null ? className : remappedClassName).concat(".class");
 
         writeEntry(outputStream, newFileName, remappedClass);

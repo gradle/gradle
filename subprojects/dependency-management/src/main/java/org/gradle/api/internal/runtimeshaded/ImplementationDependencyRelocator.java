@@ -36,7 +36,7 @@ class ImplementationDependencyRelocator extends Remapper {
             name = m.group(2);
         }
 
-        String relocated = relocateClass(name);
+        String relocated = maybeRelocateResource(name);
         if (relocated == null) {
             return value;
         } else {
@@ -44,33 +44,34 @@ class ImplementationDependencyRelocator extends Remapper {
         }
     }
 
-    public String relocateClass(String clazz) {
+    public String maybeRelocateResource(String resource) {
         if (
-            clazz.startsWith("org/gradle")
-                || clazz.startsWith("java")
-                || clazz.startsWith("javax")
-                || clazz.startsWith("groovy")
-                || clazz.startsWith("groovyjarjarantlr")
-                || clazz.startsWith("net/rubygrapefruit")
-                || clazz.startsWith("org/codehaus/groovy")
-                || clazz.startsWith("org/apache/tools/ant")
-                || clazz.startsWith("org/apache/commons/logging")
-                || clazz.startsWith("org/slf4j")
-                || clazz.startsWith("org/apache/log4j")
-                || clazz.startsWith("org/apache/xerces")
-                || clazz.startsWith("org/w3c/dom")
-                || clazz.startsWith("org/xml/sax")
+            resource.startsWith("META-INF")
+                || resource.startsWith("org/gradle")
+                || resource.startsWith("java")
+                || resource.startsWith("javax")
+                || resource.startsWith("groovy")
+                || resource.startsWith("groovyjarjarantlr")
+                || resource.startsWith("net/rubygrapefruit")
+                || resource.startsWith("org/codehaus/groovy")
+                || resource.startsWith("org/apache/tools/ant")
+                || resource.startsWith("org/apache/commons/logging")
+                || resource.startsWith("org/slf4j")
+                || resource.startsWith("org/apache/log4j")
+                || resource.startsWith("org/apache/xerces")
+                || resource.startsWith("org/w3c/dom")
+                || resource.startsWith("org/xml/sax")
             ) {
             return null;
         } else {
-            return "org/gradle/internal/impldep/".concat(clazz);
+            return "org/gradle/internal/impldep/" + resource;
         }
     }
 
     public ClassLiteralRemapping maybeRemap(String literal) {
         if (literal.startsWith("class$")) {
             String className = literal.substring(6).replace('$', '.');
-            String replacement = relocateClass(className.replace('.', '/'));
+            String replacement = maybeRelocateResource(className.replace('.', '/'));
             if (replacement == null) {
                 return null;
             }

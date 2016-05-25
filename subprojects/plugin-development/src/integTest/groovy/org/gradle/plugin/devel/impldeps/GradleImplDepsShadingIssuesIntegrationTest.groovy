@@ -46,7 +46,14 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
                 }
             }
         '''
-        file('src/test/groovy/MyPluginTest.groovy') << """
+        file('src/test/groovy/MyPluginTest.groovy') << pluginTest()
+
+        then:
+        succeeds 'test'
+    }
+
+    private static String pluginTest() {
+        """
             class MyPluginTest extends groovy.util.GroovyTestCase {
 
                 void testCanUseProjectBuilder() {
@@ -56,6 +63,28 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
                 }
             }
         """
+    }
+
+    def "can read resources both with relative and absolute path in relocated and original path"() {
+
+        when:
+        buildFile << testableGroovyProject()
+        file('src/main/groovy/MyPlugin.groovy') << '''
+            import org.gradle.api.Plugin
+            import org.gradle.api.Project
+
+            @groovy.transform.CompileStatic
+            class MyPlugin implements Plugin<Project> {
+
+                void apply(Project project) {
+                    Class ivy = Class.forName('org.gradle.internal.impldep.org.apache.ivy.plugins.parser.m2.PomReader')
+                    assert ivy.getResource('m2-entities.ent')
+                    assert ivy.getResource('/org/apache/ivy/plugins/parser/m2/m2-entities.ent')
+                    assert ivy.getResource('/org/gradle/internal/impldep/org/apache/ivy/plugins/parser/m2/m2-entities.ent')
+                }
+            }
+        '''
+        file('src/test/groovy/MyPluginTest.groovy') << pluginTest()
 
         then:
         succeeds 'test'
