@@ -43,7 +43,7 @@ public class DaemonRegistryUnavailableExpirationStrategy implements DaemonExpira
             final File daemonRegistryDir = daemonContext.getDaemonRegistryDir();
             if (!new DaemonDir(daemonRegistryDir).getRegistry().canRead()) {
                 LOG.warn("Daemon registry {} became unreadable. Expiring daemon.", daemonRegistryDir);
-                return new DaemonExpirationResult(GRACEFUL_EXPIRE, "because registry became unreadable");
+                return new DaemonExpirationResult(GRACEFUL_EXPIRE, "because daemon registry became unreadable");
             } else {
                 // Check that given daemon still exists in registry - a daemon registry could be removed and recreated between checks
                 List<Long> allDaemonPids = Lists.transform(daemon.getDaemonRegistry().getAll(), new Function<DaemonInfo, Long>() {
@@ -52,12 +52,12 @@ public class DaemonRegistryUnavailableExpirationStrategy implements DaemonExpira
                     }
                 });
                 if (!allDaemonPids.contains(daemonContext.getPid())) {
-                    return new DaemonExpirationResult(GRACEFUL_EXPIRE, "because registry entry unexpectedly lost");
+                    return new DaemonExpirationResult(GRACEFUL_EXPIRE, "because daemon registry entry unexpectedly lost");
                 }
             }
         } catch (SecurityException se) {
             LOG.warn("Daemon registry became inaccessible. Expiring daemon. Error message is '{}'", se.getMessage());
-            return new DaemonExpirationResult(GRACEFUL_EXPIRE, "because registry became inaccessible");
+            return new DaemonExpirationResult(GRACEFUL_EXPIRE, "because daemon registry became inaccessible");
         }
         return DaemonExpirationResult.NOT_TRIGGERED;
     }

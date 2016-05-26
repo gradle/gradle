@@ -48,6 +48,10 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
     public static final int DEFAULT_CONNECT_TIMEOUT = 30000;
     public static final String STARTING_DAEMON_MESSAGE = "Starting a new Gradle Daemon for this build.";
+    public static final String ONE_BUSY_DAEMON_MESSAGE = "Another Gradle Daemon is busy.";
+    public static final String MULTIPLE_BUSY_DAEMONS_MESSAGE = "Multiple Gradle Daemons are busy.";
+    public static final String ONE_INCOMPATIBLE_DAEMON_MESSAGE = "An idle Gradle Daemon with different constraints could not be reused.";
+    public static final String MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE = "Multiple idle Gradle Daemons with different constraints could not be reused.";
     public static final String SUBSEQUENT_BUILDS_FASTER_MESSAGE = "Subsequent builds will be faster.";
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
     private final DaemonRegistry daemonRegistry;
@@ -106,22 +110,21 @@ public class DefaultDaemonConnector implements DaemonConnector {
 
     @VisibleForTesting
     String generateStartingMessage(final int numBusy, final int numIncompatible, final List<DaemonStopEvent> stopEvents) {
-        final List<String> reasons = Lists.newArrayList(STARTING_DAEMON_MESSAGE);
+        final List<String> messages = Lists.newArrayList(STARTING_DAEMON_MESSAGE);
         if (numBusy > 0) {
-            reasons.add(numBusy + " Gradle Daemon" + (numBusy > 1 ? "s are" : " is") + " busy");
+            messages.add(numBusy > 1 ? MULTIPLE_BUSY_DAEMONS_MESSAGE : ONE_BUSY_DAEMON_MESSAGE);
         }
         if (numIncompatible > 0) {
-            reasons.add(numIncompatible + " Gradle Daemon" + (numIncompatible > 1 ? "s are" : " is") + " incompatible");
+            messages.add(numIncompatible > 1 ? MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE : ONE_INCOMPATIBLE_DAEMON_MESSAGE);
         }
-
         if (stopEvents.size() > 0) {
             for (DaemonStopEvent event : stopEvents) {
-                reasons.add("A Gradle Daemon was stopped " + event.getReason());
+                messages.add("A Gradle Daemon was stopped " + event.getReason() + ".");
             }
         }
+        messages.add(SUBSEQUENT_BUILDS_FASTER_MESSAGE);
 
-        final String startingDaemonMessage = Joiner.on(LINE_SEPARATOR + " - ").skipNulls().join(reasons);
-        return startingDaemonMessage + LINE_SEPARATOR + SUBSEQUENT_BUILDS_FASTER_MESSAGE;
+        return Joiner.on(LINE_SEPARATOR + "   ").skipNulls().join(messages);
     }
 
     private List<DaemonInfo> getCompatibleDaemons(List<DaemonInfo> daemons, ExplainingSpec<DaemonContext> constraint) {

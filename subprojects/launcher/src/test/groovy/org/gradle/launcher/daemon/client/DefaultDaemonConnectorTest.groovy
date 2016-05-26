@@ -196,12 +196,12 @@ class DefaultDaemonConnectorTest extends Specification {
 
     def "starting message contains number of busy and incompatible daemons if > 0"() {
         given:
-        def message = getConnector().generateStartingMessage(2, 1, Lists.newArrayList())
+        def message = getConnector().generateStartingMessage(2, 2, Lists.newArrayList())
 
         expect:
         message.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE)
-        message.contains("- 2 Gradle Daemons are busy")
-        message.contains("- 1 Gradle Daemon is incompatible")
+        message.contains(DefaultDaemonConnector.MULTIPLE_BUSY_DAEMONS_MESSAGE)
+        message.contains(DefaultDaemonConnector.MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE)
         message.contains(DefaultDaemonConnector.SUBSEQUENT_BUILDS_FASTER_MESSAGE)
     }
 
@@ -213,8 +213,8 @@ class DefaultDaemonConnectorTest extends Specification {
 
         expect:
         message.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE)
-        message.contains("- A Gradle Daemon was stopped REASON")
-        message.contains("- A Gradle Daemon was stopped OTHER_REASON")
+        message.contains("   A Gradle Daemon was stopped REASON.")
+        message.contains("   A Gradle Daemon was stopped OTHER_REASON.")
         message.contains(DefaultDaemonConnector.SUBSEQUENT_BUILDS_FASTER_MESSAGE)
     }
 }
