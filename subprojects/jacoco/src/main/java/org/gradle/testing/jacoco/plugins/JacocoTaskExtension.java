@@ -261,6 +261,7 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
     }
 
     /**
+     * agent
      * @deprecated Agent should be considered final.
      */
     @Deprecated
@@ -269,6 +270,7 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
     }
 
     /**
+     * agent
      * @deprecated Agent should be considered final.
      */
     @Deprecated

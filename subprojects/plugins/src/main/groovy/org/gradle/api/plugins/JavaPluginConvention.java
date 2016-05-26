@@ -225,6 +225,7 @@ public class JavaPluginConvention extends GroovyObjectSupport {
     }
 
     /**
+     * project
      * @deprecated Project should be considered final.
      */
     @Deprecated

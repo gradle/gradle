@@ -123,6 +123,7 @@ public class JacocoPluginExtension extends GroovyObjectSupport {
     }
 
     /**
+     * Logger
      * @deprecated logger should be considered final.
      */
     @Deprecated
@@ -131,6 +132,7 @@ public class JacocoPluginExtension extends GroovyObjectSupport {
     }
 
     /**
+     * Logger
      * @deprecated logger should be considered final.
      */
     @Deprecated
