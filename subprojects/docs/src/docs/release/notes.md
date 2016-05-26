@@ -10,6 +10,10 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Delayed configuration of task inputs and outputs
+
+A `configure(Action)` method was added to both `TaskInputs` and `TaskOutputs` to allow configuring the task's inputs and outputs directly before the task is to be executed.
+
 ### Improvements since Gradle 2.0
 
 - Performance improvements, faster builds and reduced memory usage
@@ -83,12 +87,6 @@ The following are the features that have been promoted in this Gradle release.
 <!--
 ### Example promoted
 -->
-
-## New and noteworthy
-
-### Delayed configuration of task inputs and outputs
-
-A `configure(Action)` method was added to both `TaskInputs` and `TaskOutputs` to allow configuring the task's inputs and outputs directly before the task is to be executed.
 
 ## Fixed issues
 
