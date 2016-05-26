@@ -45,7 +45,7 @@ class DefaultTaskOutputsTest extends Specification {
 
     public void canRegisterOutputFiles() {
         when:
-        outputs.files('a')
+        outputs.file('a')
 
         then:
         outputs.files.files == [new File('a')] as Set
@@ -61,7 +61,7 @@ class DefaultTaskOutputsTest extends Specification {
 
     public void hasOutputsWhenNonEmptyOutputFilesRegistered() {
         when:
-        outputs.files('a')
+        outputs.file('a')
 
         then:
         outputs.hasOutput
