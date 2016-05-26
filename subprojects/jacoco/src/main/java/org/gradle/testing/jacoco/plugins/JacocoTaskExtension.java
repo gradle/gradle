@@ -39,7 +39,7 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
     /**
      * The types of output that the agent can use for execution data.
      */
-    enum Output {
+    public enum Output {
         FILE,
         TCP_SERVER,
         TCP_CLIENT,
@@ -48,7 +48,7 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
         /**
          * Gets type in format of agent argument.
          */
-        String getAsArg() {
+        public String getAsArg() {
             return toString().toLowerCase().replaceAll("_", "");
         }
     }
