@@ -25,7 +25,7 @@ class ParallelOptionsCommandLineConverterTest extends Specification {
     final static int N = 3
 
     @Unroll("check combinations using #args")
-    public void checkCombinationsOfWorkersAndParallelOptions(List args, int maxWorkers, int parallelThreads, boolean isParallel) {
+    public void checkCombinationsOfWorkersAndParallelOptions(List args, int maxWorkers, boolean isParallel) {
         given:
         CommandLineConverterTestSupport commandLineTester = new CommandLineConverterTestSupport()
 
@@ -36,12 +36,12 @@ class ParallelOptionsCommandLineConverterTest extends Specification {
         commandLineTester.checkConversion(*args)
 
         where:
-        args                                          | maxWorkers   | parallelThreads | isParallel
-        []                                            | NUM_OF_PROCS | 0               | false
-        ["--parallel"]                                | NUM_OF_PROCS | NUM_OF_PROCS    | true
-        ["--max-workers=$N"]                          | N            | 0               | false
-        ["--parallel", "--max-workers=$N"]            | N            | N               | true
-        ["--parallel", "--max-workers=1"]             | 1            | 1               | true
+        args                                          | maxWorkers   | isParallel
+        []                                            | NUM_OF_PROCS | false
+        ["--parallel"]                                | NUM_OF_PROCS | true
+        ["--max-workers=$N"]                          | N            | false
+        ["--parallel", "--max-workers=$N"]            | N            | true
+        ["--parallel", "--max-workers=1"]             | 1            | true
     }
 
 }
