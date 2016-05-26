@@ -100,4 +100,12 @@ public interface TaskOutputs {
      * @return this
      */
     TaskOutputs configure(Action<? super TaskOutputs> action);
+
+    /**
+     * Executes the given configuration action on the {@code TaskOutputs}. The action is executed before the task is executed.
+     *
+     * @param action the configuration action to execute.
+     * @return this
+     */
+    TaskOutputs configure(Closure action);
 }

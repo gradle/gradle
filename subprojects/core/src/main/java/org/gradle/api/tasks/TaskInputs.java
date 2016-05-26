@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks;
 
+import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.HasInternalProtocol;
@@ -146,4 +147,12 @@ public interface TaskInputs {
      * @return this
      */
     TaskInputs configure(Action<? super TaskInputs> action);
+
+    /**
+     * Executes the given configuration action on the {@code TaskInputs}. The action is executed before the task is executed.
+     *
+     * @param action the configuration action to execute.
+     * @return this
+     */
+    TaskInputs configure(Closure action);
 }
