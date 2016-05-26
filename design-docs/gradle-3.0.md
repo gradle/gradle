@@ -21,7 +21,7 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 - Remove deprecated:
     - `--parallel-threads` command-line option (Done)
     - old wrapper properties from `WrapperExecutor`, remove generation of these properties from `Wrapper` task
-- Move `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER` from public API.
+- Move `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER` from public API. (Done)
 - Move internal types `org.gradle.logging.StandardOutputCapture` and `org.gradle.logging.LoggingManagerInternal` into an internal package.
 - Merge `Module` and `ModuleInternal`, now that `Module` is internal (Done)
 

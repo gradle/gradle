@@ -171,6 +171,7 @@ In previous versions, annotations on task properties like `@InputFile` and `@Out
 * Removed `StartParameter.getParallelThreadCount()` and `StartParameter.setParallelThreadCount()`
 * Removed `PrefixHeaderFileGenerateTask.getHeaders()`
 * Removed `org.gradle.tooling.model.Task.getProject()`
+* Removed `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER`
 
 ### Tooling API changes
 
