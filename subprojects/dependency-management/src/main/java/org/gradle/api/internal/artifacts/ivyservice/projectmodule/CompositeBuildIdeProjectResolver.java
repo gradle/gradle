@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
@@ -27,6 +29,7 @@ import java.util.Set;
 
 public class CompositeBuildIdeProjectResolver {
     private final CompositeProjectComponentRegistry discovered;
+    private final List<ProjectArtifactBuilder> artifactBuilders;
 
     public CompositeBuildIdeProjectResolver(ServiceRegistry services) {
         List<CompositeProjectComponentRegistry> registries = services.getAll(CompositeProjectComponentRegistry.class);
@@ -35,6 +38,7 @@ public class CompositeBuildIdeProjectResolver {
         } else {
             discovered = null;
         }
+        artifactBuilders = services.getAll(ProjectArtifactBuilder.class);
     }
 
     public File getProjectDirectory(String projectPath) {
@@ -47,6 +51,27 @@ public class CompositeBuildIdeProjectResolver {
             return Collections.emptySet();
         }
         return getRegistry().getAllProjects();
+    }
+
+    // TODO:DAZ Push this into dependency resolution, getting artifact by type
+    public File getImlArtifact(ProjectComponentIdentifier project) {
+        String rootProjectPath = project.getProjectPath().split("::")[0] + "::";
+        File buildDir = getProjectDirectory(rootProjectPath);
+        File projectDir = getProjectDirectory(project.getProjectPath());
+
+        // TODO:DAZ This isn't good: doesn't take into account project configuration. Need this to be "published" by project.
+        String name = projectDir.getName();
+        File imlFile = new File(projectDir, name + ".iml");
+        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(name, "iml", "iml", null);
+        String taskPath = project.getProjectPath().equals(rootProjectPath) ? ":ideaModule" : project.getProjectPath().substring(rootProjectPath.length() - 1) + ":ideaModule";
+        CompositeProjectComponentArtifactMetaData artifactMetaData =
+            new CompositeProjectComponentArtifactMetaData(project, ivyArtifactName, imlFile, buildDir, Collections.singleton(taskPath));
+
+        for (ProjectArtifactBuilder artifactBuilder : artifactBuilders) {
+            artifactBuilder.build(artifactMetaData);
+        }
+
+        return imlFile;
     }
 
     private CompositeProjectComponentRegistry getRegistry() {

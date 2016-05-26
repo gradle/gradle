@@ -446,14 +446,6 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends AbstractComposit
         }
     }
 
-    private void executed(String... tasks) {
-        def executedTasks = result.executedTasks
-        for (String task : tasks) {
-            assert executedTasks.contains(task)
-//            assert executedTasks.findAll({ it == task }).size() == 1
-        }
-    }
-
     private void executedInOrder(String... tasks) {
         def executedTasks = result.executedTasks
         def beforeTask

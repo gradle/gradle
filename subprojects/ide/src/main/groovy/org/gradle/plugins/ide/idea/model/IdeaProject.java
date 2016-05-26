@@ -305,11 +305,8 @@ public class IdeaProject {
         PathFactory pathFactory = getPathFactory();
         Set<ProjectComponentIdentifier> projectsInComposite = moduleToProjectMapper.getProjectsInComposite();
         for (ProjectComponentIdentifier project : projectsInComposite) {
-            File projectDir = moduleToProjectMapper.getProjectDirectory(project.getProjectPath());
-            // TODO:DAZ This isn't good: need the external project to export this artifact
-            File imlFile = new File(projectDir, projectDir.getName() + ".iml");
+            File imlFile = moduleToProjectMapper.getImlArtifact(project);
             xmlProject.getModulePaths().add(pathFactory.relativePath("PROJECT_DIR", imlFile));
         }
-
     }
 }

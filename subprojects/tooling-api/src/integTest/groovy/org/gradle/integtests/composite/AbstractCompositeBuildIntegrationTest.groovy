@@ -56,4 +56,12 @@ abstract class AbstractCompositeBuildIntegrationTest extends CompositeToolingApi
         return new OutputScrapingExecutionResult(stdOut.toString(), stdErr.toString())
     }
 
+    protected void executed(String... tasks) {
+        def executedTasks = result.executedTasks
+        for (String task : tasks) {
+            assert executedTasks.contains(task)
+//            assert executedTasks.findAll({ it == task }).size() == 1
+        }
+    }
+
 }

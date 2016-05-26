@@ -65,6 +65,12 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         then:
         iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
         imlHasDependencies "buildB"
+
+        and:
+        executed ":ideaModule", ":buildB:ideaModule", ":buildB:b1:ideaModule", ":buildB:b2:ideaModule"
+        imlHasNoDependencies(buildB)
+        imlHasNoDependencies(buildB.file("b1"))
+        imlHasNoDependencies(buildB.file("b2"))
     }
 
     def "builds IDEA metadata with substituted subproject dependencies"() {
@@ -246,10 +252,14 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
 
         then:
         iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml", "../buildC/buildC.iml"
-        imlHasDependencies(buildA, [], [])
-        // TODO:DAZ Don't yet build all of the referenced idea modules
-//        imlHasDependencies(buildB, [], [])
-//        imlHasDependencies(buildC, [], [])
+
+        and:
+        executed ":ideaModule", ":buildB:ideaModule", ":buildB:b1:ideaModule", ":buildB:b2:ideaModule", ":buildC:ideaModule"
+        imlHasNoDependencies(buildA)
+        imlHasNoDependencies(buildB)
+        imlHasNoDependencies(buildB.file("b1"))
+        imlHasNoDependencies(buildB.file("b2"))
+        imlHasNoDependencies(buildC)
     }
 
     def dependency(TestFile buildRoot = buildA, String notation) {
@@ -288,6 +298,10 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
 
     private void imlHasDependencies(TestFile projectDir = buildA, String... expectedModules) {
         imlHasDependencies(projectDir, expectedModules as List<String>, [])
+    }
+
+    private void imlHasNoDependencies(TestFile projectDir = buildA) {
+        imlHasDependencies(projectDir, [], [])
     }
 
     private void imlHasDependencies(TestFile projectDir = buildA, List<String> expectedModules, List<String> expectedLibraries) {
