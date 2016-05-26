@@ -27,7 +27,7 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GFileUtils
-import spock.lang.Issue
+import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
@@ -38,6 +38,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private ITaskFactory delegate
     private Map args = new HashMap()
 
+    private String inputValue = "value"
     private File testDir
     private File existingFile
     private File missingFile
@@ -56,18 +57,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         missingDir2 = testDir.file("missing-dir2")
     }
 
-    def attachesAnActionToTaskForMethodMarkedWithTaskActionAnnotation() {
-        given:
-        def action = Mock(Runnable)
-        def task = expectTaskCreated(TestTask, action)
-
-        when:
-        task.execute()
-
-        then:
-        1 * action.run()
-    }
-
     def doesNothingToTaskWithNoTaskActionAnnotations() {
         given:
         def task = expectTaskCreated(DefaultTask)
@@ -78,7 +67,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     def propagatesExceptionThrownByTaskActionMethod() {
         given:
-        def action = Mock(Runnable, {
+        def action = Stub(Runnable, {
             run() >> {
                 throw new RuntimeException()
             }
@@ -90,18 +79,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         thrown(RuntimeException)
-    }
-
-    def canHaveMultipleMethodsWithTaskActionAnnotation() {
-        given:
-        def action = Mock(Runnable)
-        def task = expectTaskCreated(TaskWithMultipleMethods, action)
-
-        when:
-        task.execute()
-
-        then:
-        3 * action.run()
     }
 
     def createsContextualActionFoIncrementalTaskAction() {
@@ -125,155 +102,93 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         task.actions[0].action.is(task2.actions[0].action)
     }
 
-    def failsWhenMultipleActionsAreIncremental() {
+    @Unroll
+    def "fails for #type.simpleName"() {
         when:
-        expectTaskCreated(TaskWithMultipleIncrementalActions)
+        expectTaskCreated(type)
 
         then:
         GradleException e = thrown()
-        e.getMessage().equals("Cannot have multiple @TaskAction methods accepting an IncrementalTaskInputs parameter.")
+        e.message == failureMessage
+
+        where:
+        type                               | failureMessage
+        TaskWithMultipleIncrementalActions | "Cannot have multiple @TaskAction methods accepting an IncrementalTaskInputs parameter."
+        TaskWithStaticMethod               | "Cannot use @TaskAction annotation on static method TaskWithStaticMethod.doStuff()."
+        TaskWithMultiParamAction           | "Cannot use @TaskAction annotation on method TaskWithMultiParamAction.doStuff() as this method takes multiple parameters."
+        TaskWithSingleParamAction          | "Cannot use @TaskAction annotation on method TaskWithSingleParamAction.doStuff() because int is not a valid parameter to an action method."
     }
 
-    def failsWhenStaticMethodHasTaskActionAnnotation() {
-        when:
-        expectTaskCreated(TaskWithStaticMethod)
-
-        then:
-        GradleException e = thrown()
-        e.getMessage().equals("Cannot use @TaskAction annotation on static method TaskWithStaticMethod.doStuff().")
-    }
-
-    def failsWhenMethodWithParametersHasTaskActionAnnotation() {
-        when:
-        expectTaskCreated(TaskWithMultiParamAction)
-
-        then:
-        GradleException e = thrown()
-        e.getMessage().equals("Cannot use @TaskAction annotation on method TaskWithMultiParamAction.doStuff() as this method takes multiple parameters.")
-    }
-
-    def failsWhenMethodWithInvalidParameterHasTaskActionAnnotation() {
-        when:
-        expectTaskCreated(TaskWithSingleParamAction)
-
-        then:
-        GradleException e = thrown()
-        e.getMessage().equals("Cannot use @TaskAction annotation on method TaskWithSingleParamAction.doStuff() because int is not a valid parameter to an action method.")
-    }
-
-    def taskActionWorksForInheritedMethods() {
+    @Unroll
+    def "works for #type.simpleName"() {
         given:
         def action = Mock(Runnable)
-        def task = expectTaskCreated(TaskWithInheritedMethod, action)
+        def task = expectTaskCreated(type, action)
 
         when:
         task.execute()
 
         then:
-        1 * action.run()
+        times * action.run()
+
+        where:
+        type                     | times
+        TestTask                 | 1
+        TaskWithInheritedMethod  | 1
+        TaskWithOverriddenMethod | 1
+        TaskWithProtectedMethod  | 1
+        TaskWithMultipleMethods  | 3
     }
 
-    def taskActionWorksForOverriddenMethods() {
+    @Unroll
+    def "validation succeeds when #property #value on #type.simpleName"() {
         given:
-        def action = Mock(Runnable)
-        def task = expectTaskCreated(TaskWithOverriddenMethod, action)
-
-        when:
-        task.execute()
-
-        then:
-        1 * action.run()
-    }
-
-    def taskActionWorksForProtectedMethods() {
-        given:
-        def action = Mock(Runnable)
-        def task = expectTaskCreated(TaskWithProtectedMethod, action)
-
-        when:
-        task.execute()
-
-        then:
-        1 * action.run()
-    }
-
-    def validationActionSucceedsWhenSpecifiedInputFileExists() {
-        given:
-        def task = expectTaskCreated(TaskWithInputFile, existingFile)
+        def task = expectTaskCreated(type, this[value])
 
         expect:
         task.execute()
+
+        where:
+        type                | property       | value
+        TaskWithInputFile   | 'input-file'   | 'existingFile'
+        TaskWithOutputFile  | 'output-file'  | 'existingFile'
+        TaskWithOutputDir   | 'output-dir'   | 'existingDir'
+        TaskWithInputDir    | 'input-dir'    | 'existingDir'
+        TaskWithInput       | 'input'        | 'inputValue'
     }
 
-    def validationActionFailsWhenInputFileNotSpecified() {
+    @Unroll
+    def "validation succeeds when list #property contains #value on #type.simpleName"() {
         given:
-        def task = expectTaskCreated(TaskWithInputFile, [null] as Object[])
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["No value has been specified for property 'inputFile'."] as Set
-    }
-
-    def validationActionFailsWhenInputFileDoesNotExist() {
-        given:
-        def task = expectTaskCreated(TaskWithInputFile, missingFile)
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["File '$task.inputFile' specified for property 'inputFile' does not exist.".toString()] as Set
-    }
-
-    def validationActionFailsWhenInputFileIsADirectory() {
-        given:
-        def task = expectTaskCreated(TaskWithInputFile, existingDir)
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["File '$task.inputFile' specified for property 'inputFile' is not a file.".toString()] as Set
-    }
-
-    def registersSpecifiedInputFile() {
-        given:
-        def task = expectTaskCreated(TaskWithInputFile, existingFile)
-
-        expect:
-        task.inputs.files.files == [existingFile] as Set
-    }
-
-    def doesNotRegistersInputFileWhenNoneSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithInputFile, [null] as Object[])
-
-        expect:
-        task.inputs.files.files.isEmpty()
-    }
-
-    def validationActionSucceedsWhenSpecifiedOutputFileIsAFile() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputFile, existingFile)
+        def task = expectTaskCreated(type, [this[value]] as List)
 
         expect:
         task.execute()
+
+        where:
+        type                | property       | value
+        TaskWithInputFiles  | 'input-files'  | 'testDir'
+        TaskWithOutputFiles | 'output-files' | 'existingFile'
+        TaskWithOutputDirs  | 'output-dirs'  | 'existingDir'
     }
 
-    def validationActionSucceedsWhenSpecifiedOutputFilesIsAFile() {
+    @Unroll
+    def "validation succeeds when optional #property is omitted on #type.simpleName"() {
         given:
-        def task = expectTaskCreated(TaskWithOutputFiles, Collections.singletonList(existingFile))
+        def task = expectTaskCreated(type)
 
         expect:
         task.execute()
+
+        where:
+        type                                      | property
+        TaskWithOptionalInputFile                 | 'input-file'
+        TaskWithOptionalOutputFile                | 'output-file'
+        TaskWithOptionalOutputFiles               | 'output-files'
+        TaskWithOptionalOutputDir                 | 'output-dir'
+        TaskWithOptionalOutputDirs                | 'output-dirs'
+        TaskWithOptionalNestedBean                | 'bean'
+        TaskWithOptionalNestedBeanWithPrivateType | 'private-bean'
     }
 
     def validationActionSucceedsWhenSpecifiedOutputFileDoesNotExist() {
@@ -289,7 +204,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     def validationActionSucceedsWhenSpecifiedOutputFilesDoesNotExist() {
         given:
-        def task = expectTaskCreated(TaskWithOutputFiles, Arrays.asList(new File(testDir, "subdir/output.txt"), new File(testDir, "subdir2/output.txt")))
+        def task = expectTaskCreated(TaskWithOutputFiles, [new File(testDir, "subdir/output.txt"), new File(testDir, "subdir2/output.txt")] as List)
 
         when:
         task.execute()
@@ -297,188 +212,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         then:
         new File(testDir, "subdir").isDirectory()
         new File(testDir, "subdir2").isDirectory()
-    }
-
-    def validationActionSucceedsWhenOptionalOutputFileNotSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithOptionalOutputFile)
-
-        expect:
-        task.execute()
-    }
-
-    def validationActionSucceedsWhenOptionalOutputFilesNotSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithOptionalOutputFiles)
-
-        expect:
-        task.execute()
-    }
-
-    def validationActionFailsWhenOutputFileNotSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputFile, [null] as Object[])
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["No value has been specified for property 'outputFile'."] as Set
-    }
-
-    def validationActionFailsWhenOutputFilesNotSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputFiles, [null] as Object[])
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["No value has been specified for property 'outputFiles'."] as Set
-    }
-
-    def validationActionFailsWhenSpecifiedOutputFileIsADirectory() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputFile, existingDir)
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["Cannot write to file '${task.outputFile}' specified for property 'outputFile' as it is a directory.".toString()] as Set
-    }
-
-    def validationActionFailsWhenSpecifiedOutputFilesIsADirectory() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputFiles, Collections.singletonList(existingDir))
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["Cannot write to file '${task.outputFiles[0]}' specified for property 'outputFiles' as it is a directory.".toString()] as Set
-    }
-
-    def validationActionFailsWhenSpecifiedOutputFileParentIsAFile() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputFile, new File(testDir, "subdir/output.txt"))
-        GFileUtils.touch(task.outputFile.getParentFile())
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == [
-            "Cannot write to file '${task.outputFile}' specified for property 'outputFile', as ancestor '${task.outputFile.parentFile}' is not a directory.".toString()] as Set
-    }
-
-    def validationActionFailsWhenSpecifiedOutputFilesParentIsAFile() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputFiles, Collections.singletonList(new File(testDir, "subdir/output.txt")))
-        GFileUtils.touch(task.outputFiles.get(0).getParentFile())
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == [
-            "Cannot write to file '${task.outputFiles[0]}' specified for property 'outputFiles', as ancestor '${task.outputFiles[0].parentFile}' is not a directory.".toString()] as Set
-    }
-
-    def registersSpecifiedOutputFile() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputFile, existingFile)
-
-        expect:
-        task.outputs.files.files == [existingFile] as Set
-    }
-
-    def registersSpecifiedOutputFiles() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputFiles, Collections.singletonList(existingFile))
-
-        expect:
-        task.outputs.files.files == [existingFile] as Set
-    }
-
-    def doesNotRegisterOutputFileWhenNoneSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputFile, [null] as Object[])
-
-        expect:
-        task.outputs.files.files.isEmpty()
-    }
-
-    def doesNotRegisterOutputFilesWhenNoneSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputFiles, [null] as Object[])
-
-        expect:
-        task.outputs.files.files.isEmpty()
-
-        when:
-        task = expectTaskCreated(TaskWithOutputFiles, Collections.<File>emptyList())
-
-        then:
-        task.outputs.files.files.isEmpty()
-    }
-
-    def validationActionSucceedsWhenInputFilesSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithInputFiles, [testDir] as List)
-
-        expect:
-        task.execute()
-    }
-
-    def validationActionFailsWhenInputFilesNotSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithInputFiles, [null] as Object[])
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["No value has been specified for property 'input'."] as Set
-    }
-
-    def registersSpecifiedInputFiles() {
-        given:
-        def task = expectTaskCreated(TaskWithInputFiles, [testDir, missingFile] as List)
-
-        expect:
-        task.inputs.files.files == [testDir, missingFile] as Set
-    }
-
-    def doesNotRegisterInputFilesWhenNoneSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithInputFiles, [null] as Object[])
-
-        expect:
-        task.inputs.files.files.isEmpty()
-    }
-
-    def skipsTaskWhenInputFileCollectionIsEmpty() {
-        given:
-        def inputFiles = new ArrayList<File>()
-        BrokenTaskWithInputFiles task = expectTaskCreated(BrokenTaskWithInputFiles, inputFiles)
-
-        expect:
-        task.execute()
     }
 
     def validationActionSucceedsWhenSpecifiedOutputDirectoryDoesNotExist() {
@@ -494,7 +227,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     def validationActionSucceedsWhenSpecifiedOutputDirectoriesDoesNotExist() {
         given:
-        def task = expectTaskCreated(TaskWithOutputDirs, Collections.singletonList(missingDir))
+        def task = expectTaskCreated(TaskWithOutputDirs, [missingDir] as List)
 
         when:
         task.execute()
@@ -503,62 +236,79 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         task.outputDirs.get(0).isDirectory()
     }
 
-    def validationActionSucceedsWhenSpecifiedOutputDirectoryIsDirectory() {
+    @Unroll
+    def "validation fails for unspecified #property for #type.simpleName"() {
         given:
-        def task = expectTaskCreated(TaskWithOutputDir, existingDir)
-
-        expect:
-        task.execute()
-    }
-
-    def validationActionSucceedsWhenSpecifiedOutputDirectoriesAreDirectories() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputDirs, Collections.singletonList(existingDir))
-
-        expect:
-        task.execute()
-    }
-
-    def validationActionSucceedsWhenOptionalOutputDirectoryNotSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithOptionalOutputDir)
-
-        expect:
-        task.execute()
-    }
-
-    def validationActionSucceedsWhenOptionalOutputDirectoriesNotSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithOptionalOutputDirs)
-
-        expect:
-        task.execute()
-    }
-
-    def validationActionFailsWhenOutputDirectoryNotSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputDir, [null] as Object[])
+        def task = expectTaskCreated(type, [null] as Object[])
 
         when:
         task.execute()
 
         then:
         TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["No value has been specified for property 'outputDir'."] as Set
+        validateException(task, e, "No value has been specified for property '$property'.")
+
+        where:
+        type                | property
+        TaskWithInputFile   | 'inputFile'
+        TaskWithOutputFile  | 'outputFile'
+        TaskWithOutputFiles | 'outputFiles'
+        TaskWithInputFiles  | 'input'
+        TaskWithOutputDir   | 'outputDir'
+        TaskWithOutputDirs  | 'outputDirs'
+        TaskWithInputDir    | 'inputDir'
+        TaskWithInput       | 'inputValue'
+        TaskWithNestedBean  | 'bean.inputFile'
     }
 
-    def validationActionFailsWhenOutputDirectoriesNotSpecified() {
+    def validationActionFailsWhenSpecifiedOutputFileIsADirectory() {
         given:
-        def task = expectTaskCreated(TaskWithOutputDirs, [null] as Object[])
+        def task = expectTaskCreated(TaskWithOutputFile, existingDir)
 
         when:
         task.execute()
 
         then:
         TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["No value has been specified for property 'outputDirs'."] as Set
+        validateException(task, e, "Cannot write to file '$task.outputFile' specified for property 'outputFile' as it is a directory.")
+    }
+
+    def validationActionFailsWhenSpecifiedOutputFilesIsADirectory() {
+        given:
+        def task = expectTaskCreated(TaskWithOutputFiles, [existingDir] as List)
+
+        when:
+        task.execute()
+
+        then:
+        TaskValidationException e = thrown()
+        validateException(task, e, "Cannot write to file '${task.outputFiles[0]}' specified for property 'outputFiles' as it is a directory.")
+    }
+
+    def validationActionFailsWhenSpecifiedOutputFileParentIsAFile() {
+        given:
+        def task = expectTaskCreated(TaskWithOutputFile, new File(testDir, "subdir/output.txt"))
+        GFileUtils.touch(task.outputFile.getParentFile())
+
+        when:
+        task.execute()
+
+        then:
+        TaskValidationException e = thrown()
+        validateException(task, e, "Cannot write to file '$task.outputFile' specified for property 'outputFile', as ancestor '$task.outputFile.parentFile' is not a directory.")
+    }
+
+    def validationActionFailsWhenSpecifiedOutputFilesParentIsAFile() {
+        given:
+        def task = expectTaskCreated(TaskWithOutputFiles, [new File(testDir, "subdir/output.txt")] as List)
+        GFileUtils.touch(task.outputFiles.get(0).getParentFile())
+
+        when:
+        task.execute()
+
+        then:
+        TaskValidationException e = thrown()
+        validateException(task, e, "Cannot write to file '${task.outputFiles[0]}' specified for property 'outputFiles', as ancestor '${task.outputFiles[0].parentFile}' is not a directory.")
     }
 
     def validationActionFailsWhenOutputDirectoryIsAFile() {
@@ -570,21 +320,19 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["Directory '${task.outputDir}' specified for property 'outputDir' is not a directory.".toString()] as Set
+        validateException(task, e, "Directory '$task.outputDir' specified for property 'outputDir' is not a directory.")
     }
 
     def validationActionFailsWhenOutputDirectoriesIsAFile() {
         given:
-        def task = expectTaskCreated(TaskWithOutputDirs, Collections.singletonList(existingFile))
+        def task = expectTaskCreated(TaskWithOutputDirs, [existingFile] as List)
 
         when:
         task.execute()
 
         then:
         TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["Directory '${task.outputDirs[0]}' specified for property 'outputDirs' is not a directory.".toString()] as Set
+        validateException(task, e, "Directory '${task.outputDirs[0]}' specified for property 'outputDirs' is not a directory.")
     }
 
     def validationActionFailsWhenParentOfOutputDirectoryIsAFile() {
@@ -597,14 +345,12 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == [
-            "Cannot write to directory '${task.outputDir}' specified for property 'outputDir', as ancestor '${task.outputDir.parentFile}' is not a directory.".toString()] as Set
+        validateException(task, e, "Cannot write to directory '$task.outputDir' specified for property 'outputDir', as ancestor '$task.outputDir.parentFile' is not a directory.")
     }
 
     def validationActionFailsWhenParentOfOutputDirectoriesIsAFile() {
         given:
-        def task = expectTaskCreated(TaskWithOutputDirs, Collections.singletonList(new File(testDir, "subdir/output")))
+        def task = expectTaskCreated(TaskWithOutputDirs, [new File(testDir, "subdir/output")])
         GFileUtils.touch(task.outputDirs.get(0).getParentFile())
 
         when:
@@ -612,68 +358,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == [
-            "Cannot write to directory '${task.outputDirs[0]}' specified for property 'outputDirs', as ancestor '${task.outputDirs[0].parentFile}' is not a directory.".toString()] as Set
-    }
-
-    def registersSpecifiedOutputDirectory() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputDir, missingDir)
-
-        expect:
-        task.outputs.files.files == [missingDir] as Set
-    }
-
-    def registersSpecifiedOutputDirectories() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputDirs, Arrays.<File>asList(missingDir, missingDir2))
-
-        expect:
-        task.outputs.files.files == [missingDir, missingDir2] as Set
-    }
-
-    def doesNotRegisterOutputDirectoryWhenNoneSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputDir, [null] as Object[])
-
-        expect:
-        task.outputs.files.files.isEmpty()
-    }
-
-    def doesNotRegisterOutputDirectoriesWhenNoneSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputDirs, [null] as Object[])
-
-        expect:
-        task.outputs.files.files.isEmpty()
-
-        when:
-        task = expectTaskCreated(TaskWithOutputDirs, Collections.<File>emptyList())
-
-        then:
-        task.outputs.files.files.isEmpty()
-    }
-
-    def validationActionSucceedsWhenSpecifiedInputDirectoryIsDirectory() {
-        given:
-        def task = expectTaskCreated(TaskWithInputDir, existingDir)
-
-        expect:
-        task.execute()
-    }
-
-    def validationActionFailsWhenInputDirectoryNotSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithInputDir, [null] as Object[])
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["No value has been specified for property 'inputDir'."] as Set
+        validateException(task, e, "Cannot write to directory '${task.outputDirs[0]}' specified for property 'outputDirs', as ancestor '${task.outputDirs[0].parentFile}' is not a directory.")
     }
 
     def validationActionFailsWhenInputDirectoryDoesNotExist() {
@@ -685,8 +370,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["Directory '${task.inputDir}' specified for property 'inputDir' does not exist.".toString()] as Set
+        validateException(task, e, "Directory '$task.inputDir' specified for property 'inputDir' does not exist.")
     }
 
     def validationActionFailsWhenInputDirectoryIsAFile() {
@@ -699,92 +383,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["Directory '${task.inputDir}' specified for property 'inputDir' is not a directory.".toString()] as Set
-    }
-
-    def registersSpecifiedInputDirectory() {
-        given:
-        def task = expectTaskCreated(TaskWithInputDir, existingDir)
-        File file = existingDir.file("some-file").createFile()
-
-        expect:
-        task.inputs.files.files == [file] as Set
-    }
-
-    def doesNotRegisterInputDirectoryWhenNoneSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithInputDir, [null] as Object[])
-
-        expect:
-        task.inputs.files.files.isEmpty()
-    }
-
-    def skipsTaskWhenInputDirectoryIsEmptyAndSkipWhenEmpty() {
-        given:
-        def task = expectTaskCreated(BrokenTaskWithInputDir, existingDir)
-
-        expect:
-        task.execute()
-    }
-
-    def validationActionSucceedsWhenInputValueSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithInput, "value")
-
-        expect:
-        task.execute()
-    }
-
-    def validationActionFailsWhenInputValueNotSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithInput, [null] as Object[])
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["No value has been specified for property 'inputValue'."] as Set
-    }
-
-    def registersSpecifiedInputValue() {
-        given:
-        def task = expectTaskCreated(TaskWithInput, "value")
-
-        expect:
-        task.inputs.properties["inputValue"] == "value"
-    }
-
-    @Issue("https://issues.gradle.org/Browse/GRADLE-2815")
-    def registersSpecifiedBooleanInputValue() {
-        given:
-        def task = expectTaskCreated(TaskWithBooleanInput, true)
-
-        expect:
-        task.inputs.properties["inputValue"]
-    }
-
-    def validationActionSucceedsWhenPropertyMarkedWithOptionalAnnotationNotSpecified() {
-        given:
-        def task = expectTaskCreated(TaskWithOptionalInputFile.class)
-
-        expect:
-        task.execute()
-    }
-
-    def validatesNestedBeans() {
-        given:
-        def task = expectTaskCreated(TaskWithNestedBean, [null] as Object[])
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["No value has been specified for property 'bean.inputFile'."] as Set
+        validateException(task, e, "Directory '$task.inputDir' specified for property 'inputDir' is not a directory.")
     }
 
     def validatesNestedBeansWithPrivateType() {
@@ -796,40 +395,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["No value has been specified for property 'bean.inputFile'."] as Set
-    }
-
-    def registersInputPropertyForNestedBeanClass() {
-        given:
-        def task = expectTaskCreated(TaskWithNestedBean, [null] as Object[])
-
-        expect:
-        task.inputs.properties["bean.class"] == Bean.class.getName()
-    }
-
-    def registersInputPropertyForNestedBeanClassWithPrivateType() {
-        given:
-        def task = expectTaskCreated(TaskWithNestedBeanWithPrivateClass, [null, null] as Object[])
-
-        expect:
-        task.inputs.properties["bean.class"] == Bean2.class.getName()
-    }
-
-    def doesNotRegisterInputPropertyWhenNestedBeanIsNull() {
-        given:
-        def task = expectTaskCreated(TaskWithOptionalNestedBean)
-
-        expect:
-        task.inputs.properties["bean.class"] == null
-    }
-
-    def doesNotRegisterInputPropertyWhenNestedBeanWithPrivateTypeIsNull() {
-        given:
-        def task = expectTaskCreated(TaskWithOptionalNestedBeanWithPrivateType)
-
-        expect:
-        task.inputs.properties["bean.class"] == null
+        validateException(task, e, "No value has been specified for property 'bean.inputFile'.")
     }
 
     def validationFailsWhenNestedBeanIsNull() {
@@ -842,8 +408,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["No value has been specified for property 'bean'."] as Set
+        validateException(task, e, "No value has been specified for property 'bean'.")
     }
 
     def validationFailsWhenNestedBeanWithPrivateTypeIsNull() {
@@ -856,24 +421,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["No value has been specified for property 'bean'."] as Set
-    }
-
-    def validationSucceedsWhenNestedBeanIsNullAndMarkedOptional() {
-        given:
-        def task = expectTaskCreated(TaskWithOptionalNestedBean)
-
-        expect:
-        task.execute()
-    }
-
-    def validationSucceedsWhenNestedBeanWithPrivateTypeIsNullAndMarkedOptional() {
-        given:
-        def task = expectTaskCreated(TaskWithOptionalNestedBeanWithPrivateType)
-
-        expect:
-        task.execute()
+        validateException(task, e, "No value has been specified for property 'bean'.")
     }
 
     def canAttachAnnotationToGroovyProperty() {
@@ -885,8 +433,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         TaskValidationException e = thrown()
-        e.message.contains("A problem was found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == ["No value has been specified for property 'srcFile'."] as Set
+        validateException(task, e, "No value has been specified for property 'srcFile'.")
     }
 
     def validationFailureListsViolationsForAllProperties() {
@@ -898,42 +445,151 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
         then:
         TaskValidationException e = thrown()
-        e.message.contains("Some problems were found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == [
+        validateException(task, e,
             "No value has been specified for property 'outputFile'.",
-            "No value has been specified for property 'bean.inputFile'."] as Set
+            "No value has been specified for property 'bean.inputFile'.")
     }
 
-    def taskActionsRegisteredByProcessingAnnotationsAreNotConsideredCustom() {
+    def propertyValidationJavaBeanSpecCase() {
         given:
-        def task = expectTaskCreated(TestTask, [null] as Object[])
+        def task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties, [null, null, null, null, "a", "b"] as Object[])
+
+        when:
+        task.execute()
+
+        then:
+        TaskValidationException e = thrown()
+        validateException(task, e,
+            "No value has been specified for property 'cCompiler'.",
+            "No value has been specified for property 'CFlags'.",
+            "No value has been specified for property 'dns'.",
+            "No value has been specified for property 'URL'.")
+    }
+
+    def propertyValidationJavaBeanSpecSingleChar() {
+        given:
+        def task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties, ["c", "C", "d", "U", null, null] as Object[])
+
+        when:
+        task.execute()
+
+        then:
+        TaskValidationException e = thrown()
+        validateException(task, e,
+            "No value has been specified for property 'a'.",
+            "No value has been specified for property 'b'.")
+    }
+
+    @Unroll
+    def "registers specified #target for #value on #type.simpleName"() {
+        given:
+        def task = expectTaskCreated(type, this[value])
+
+        expect:
+        task[target].files.files == [this[value]] as Set
+
+        where:
+        type               | target    | value
+        TaskWithInputFile  | 'inputs'  | 'existingFile'
+        TaskWithOutputFile | 'outputs' | 'existingFile'
+        TaskWithOutputDir  | 'outputs' | 'missingDir'
+    }
+
+    @Unroll
+    def "registers specified list of #target for #value on #type.simpleName"() {
+        given:
+        def values = value.collect({ this[it] })
+        def task = expectTaskCreated(type, values as List)
+
+        expect:
+        task[target].files.files == values as Set
+
+        where:
+        type                | target    | value
+        TaskWithOutputFiles | 'outputs' | ['existingFile']
+        TaskWithInputFiles  | 'inputs'  | ['testDir', 'missingFile']
+        TaskWithOutputDirs  | 'outputs' | ['missingDir', 'missingDir2']
+    }
+
+    def registersSpecifiedInputDirectory() {
+        given:
+        def task = expectTaskCreated(TaskWithInputDir, existingDir)
+        File file = existingDir.file("some-file").createFile()
+
+        expect:
+        task.inputs.files.files == [file] as Set
+    }
+
+    @Unroll
+    def "registers input property for #prop on #type.simpleName"() {
+        given:
+        def task = (value == null) ? expectTaskCreated(type) : expectTaskCreated(type, value)
+
+        expect:
+        task.inputs.properties[prop] == expected
+
+        where:
+        type                                      | prop         | value                    | expected
+        TaskWithNestedBean                        | "bean.class" | [null] as Object[]       | Bean.class.getName()
+        TaskWithNestedBeanWithPrivateClass        | "bean.class" | [null, null] as Object[] | Bean2.class.getName()
+        TaskWithOptionalNestedBean                | "bean.class" | null                     | null
+        TaskWithOptionalNestedBeanWithPrivateType | "bean.class" | null                     | null
+        TaskWithInput                             | "inputValue" | "value"                  | "value"
+        TaskWithBooleanInput                      | "inputValue" | true                     | true           // https://issues.gradle.org/Browse/GRADLE-2815
+    }
+
+    @Unroll
+    def "does not register #target for #type when not specified"() {
+        given:
+        def task = expectTaskCreated(type, value)
+
+        expect:
+        task[target].files.files.isEmpty()
+
+        where:
+        type                | target    | value
+        TaskWithInputFile   | 'inputs'  | [null] as Object[]
+        TaskWithOutputFile  | 'outputs' | [null] as Object[]
+        TaskWithOutputFiles | 'outputs' | [null] as Object[]
+        TaskWithOutputFiles | 'outputs' | [] as List
+        TaskWithInputFiles  | 'inputs'  | [null] as Object[]
+        TaskWithOutputDir   | 'outputs' | [null] as Object[]
+        TaskWithOutputDirs  | 'outputs' | [null] as Object[]
+        TaskWithOutputDirs  | 'outputs' | [] as List
+        TaskWithInputDir    | 'inputs'  | [null] as Object[]
+    }
+
+    def skipsTaskWhenInputDirectoryIsEmptyAndSkipWhenEmpty() {
+        given:
+        def task = expectTaskCreated(BrokenTaskWithInputDir, existingDir)
+
+        expect:
+        task.execute()
+    }
+
+    def skipsTaskWhenInputFileCollectionIsEmpty() {
+        given:
+        def inputFiles = new ArrayList<File>()
+        BrokenTaskWithInputFiles task = expectTaskCreated(BrokenTaskWithInputFiles, inputFiles)
+
+        expect:
+        task.execute()
+    }
+
+    @Unroll
+    def "#description are not custom actions"() {
+        given:
+        def task = expectTaskCreated(type, [null] as Object[])
 
         expect:
         !task.hasCustomActions
-    }
 
-    def validationActionsAreNotConsideredCustom() {
-        given:
-        def task = expectTaskCreated(TaskWithInputFile, [null] as Object[])
-
-        expect:
-        !task.hasCustomActions
-    }
-
-    def directoryCreationActionsAreNotConsideredCustom() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputDir, [null] as Object[])
-
-        expect:
-        !task.hasCustomActions
-    }
-
-    def fileCreationActionsAreNotConsideredCustom() {
-        given:
-        def task = expectTaskCreated(TaskWithOutputFile, [null] as Object[])
-
-        expect:
-        !task.hasCustomActions
+        where:
+        description                                         | type
+        "task actions registered by processing annotations" | TestTask
+        "validation actions"                                | TaskWithInputFile
+        "directory creation actions"                        | TaskWithOutputDir
+        "file creation actions"                             | TaskWithOutputFile
     }
 
     def ignoresBridgeMethods() {
@@ -960,38 +616,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         task.inputs.properties["b"] != null
     }
 
-    def propertyValidationJavaBeanSpecCase() {
-        given:
-        def task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties, [null, null, null, null, "a", "b"] as Object[])
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("Some problems were found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == [
-            "No value has been specified for property 'cCompiler'.",
-            "No value has been specified for property 'CFlags'.",
-            "No value has been specified for property 'dns'.",
-            "No value has been specified for property 'URL'."] as Set
-    }
-
-    def propertyValidationJavaBeanSpecSingleChar() {
-        given:
-        def task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties, ["c", "C", "d", "U", null, null] as Object[])
-
-        when:
-        task.execute()
-
-        then:
-        TaskValidationException e = thrown()
-        e.message.contains("Some problems were found with the configuration of $task")
-        e.causes.collect({ it.message }) as Set == [
-            "No value has been specified for property 'a'.",
-            "No value has been specified for property 'b'."] as Set
-    }
-
     private TaskInternal expectTaskCreated(final Class type, final Object... params) {
         final Class decorated = project.getServices().get(ClassGenerator).generate(type)
         TaskInternal task = (TaskInternal) AbstractTask.injectIntoNewInstance(project, "task", type, new Callable<TaskInternal>() {
@@ -1011,5 +635,10 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         1 * delegate.createTask(args) >> task
         assert factory.createTask(args).is(task)
         return task
+    }
+
+    private static validateException(TaskInternal task, TaskValidationException exception, String... causes) {
+        def expectedMessage = causes.length > 1 ? "Some problems were found with the configuration of $task" : "A problem was found with the configuration of $task"
+        exception.message.contains(expectedMessage) && exception.causes.collect({ it.message }) as Set == causes as Set
     }
 }
