@@ -17,8 +17,8 @@
 package org.gradle.api.publish.maven.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;

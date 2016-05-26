@@ -29,7 +29,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
-import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.changedetection.state.CacheAccessingFileSnapshotter;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -404,7 +404,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-        public ModuleInternal getModule() {
+        public Module getModule() {
             return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }
     }

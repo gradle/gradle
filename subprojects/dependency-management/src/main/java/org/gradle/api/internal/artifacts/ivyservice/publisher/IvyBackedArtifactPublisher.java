@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
-import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
@@ -48,7 +48,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         this.ivyModuleDescriptorWriter = ivyModuleDescriptorWriter;
     }
 
-    public void publish(final Iterable<? extends PublicationAwareRepository> repositories, final ModuleInternal module, final Configuration configuration, final File descriptor) throws PublishException {
+    public void publish(final Iterable<? extends PublicationAwareRepository> repositories, final Module module, final Configuration configuration, final File descriptor) throws PublishException {
         Set<Configuration> allConfigurations = configuration.getAll();
         Set<Configuration> configurationsToPublish = configuration.getHierarchy();
 
@@ -74,7 +74,7 @@ public class IvyBackedArtifactPublisher implements ArtifactPublisher {
         dependencyPublisher.publish(publishResolvers, publishMetaData);
     }
 
-    private BuildableIvyModulePublishMetaData toPublishMetaData(ModuleInternal module, Set<? extends Configuration> configurations) {
+    private BuildableIvyModulePublishMetaData toPublishMetaData(Module module, Set<? extends Configuration> configurations) {
         ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(module.getGroup(), module.getName(), module.getVersion());
         DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(id, module.getStatus());
         configurationComponentMetaDataBuilder.addConfigurations(publishMetaData, configurations);

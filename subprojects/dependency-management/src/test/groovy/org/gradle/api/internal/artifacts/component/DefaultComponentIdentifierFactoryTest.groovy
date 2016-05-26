@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.component
 import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModule
-import org.gradle.api.internal.artifacts.ModuleInternal
+import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
@@ -32,7 +32,7 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
     def "can create project component identifier"() {
         given:
         Project project = Mock(ProjectInternal)
-        ModuleInternal module = new ProjectBackedModule(project)
+        Module module = new ProjectBackedModule(project)
 
         when:
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module)
@@ -44,7 +44,7 @@ class DefaultComponentIdentifierFactoryTest extends Specification {
 
     def "can create module component identifier"() {
         given:
-        ModuleInternal module = new DefaultModule('some-group', 'some-name', '1.0')
+        Module module = new DefaultModule('some-group', 'some-name', '1.0')
 
         when:
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module)

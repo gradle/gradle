@@ -42,7 +42,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
     @Override
     public void resolve(ConfigurationInternal configuration, ResolverResults results) throws ResolveException {
         if (configuration.getAllDependencies().isEmpty()) {
-            ModuleInternal module = configuration.getModule();
+            Module module = configuration.getModule();
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(module);
             ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
             ResolutionResult emptyResult = new DefaultResolutionResultBuilder().start(id, componentIdentifier).complete();

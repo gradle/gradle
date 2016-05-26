@@ -44,7 +44,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
-import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -196,7 +196,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolvedState;
     }
 
-    public ModuleInternal getModule() {
+    public Module getModule() {
         return metaDataProvider.getModule();
     }
 
@@ -570,7 +570,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public ComponentResolveMetaData toRootComponentMetaData() {
-        ModuleInternal module = getModule();
+        Module module = getModule();
         Set<? extends Configuration> configurations = getAll();
         ComponentIdentifier componentIdentifier = new DefaultComponentIdentifierFactory().createComponentIdentifier(module);
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);

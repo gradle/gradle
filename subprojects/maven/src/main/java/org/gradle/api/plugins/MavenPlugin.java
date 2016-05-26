@@ -28,7 +28,7 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
@@ -137,7 +137,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
                 }
 
                 ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
-                ModuleInternal module = configuration.getModule();
+                Module module = configuration.getModule();
                 for (MavenResolver resolver : uploadArchives.getRepositories().withType(MavenResolver.class)) {
                     MavenPom pom = resolver.getPom();
                     ModuleVersionIdentifier publicationId = new DefaultModuleVersionIdentifier(

@@ -49,7 +49,7 @@ import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ProcessOperations;
-import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
@@ -895,7 +895,7 @@ public abstract class AbstractProject extends AbstractPluginAware implements Pro
         return services.get(ServiceRegistryFactory.class);
     }
 
-    public ModuleInternal getModule() {
+    public Module getModule() {
         return services.get(DependencyMetaDataProvider.class).getModule();
     }
 

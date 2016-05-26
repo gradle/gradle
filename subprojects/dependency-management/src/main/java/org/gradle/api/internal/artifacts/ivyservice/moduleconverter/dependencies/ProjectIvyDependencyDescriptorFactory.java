@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.project.ProjectInternal;
