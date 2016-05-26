@@ -203,6 +203,10 @@ You can now control the level of Ant logging by changing the message priority th
 
 This causes any Ant messages logged at the specified priority - "info" in this case - to be logged at Gradle's LIFECYCLE logging level. Any messages logged at a higher priority than "info" will also be logged at LIFECYCLE level. Messages logged at a lower priority than the specified priority will be logged at INFO level or below.
 
+### JAR metadata and manifest content written with UTF-8
+
+Previous versions of Gradle used to encode JAR/WAR/EAR files metadata and Manifests content using the platform default character set instead of UTF-8. Both are bugs and have been fixed in this release.
+
 ## New for plugin authors
 
 There is only one change that directly impacts plugin authors, but it's an important one.
@@ -353,7 +357,7 @@ Previous versions of Gradle used to encode JAR/WAR/EAR files metadata and Manife
 
 Following this, merged manifests are now read using UTF-8 instead of the platform default charset.
 
-If necessary, convenience properties have been added to [`Jar`](dsl/org.gradle.api.tasks.bundling.Jar.html), [`War`](dsl/org.gradle.api.tasks.bundling.War.html), [`Ear`](dsl/org.gradle.plugins.ear.Ear.html) tasks and both [`Manifest`](javadoc/org/gradle/api/java/archives/Manifest.html) and [`ManifestMergeSpec`](javadoc/org/gradle/api/java/archives/ManifestMergeSpec.html) types to control which character set to use when merging manifests.
+If necessary, convenience properties have been added to [`Jar`](dsl/org.gradle.api.tasks.bundling.Jar.html), [`War`](dsl/org.gradle.api.tasks.bundling.War.html), [`Ear`](dsl/org.gradle.plugins.ear.Ear.html) tasks and [`ManifestMergeSpec`](javadoc/org/gradle/api/java/archives/ManifestMergeSpec.html) to control which character set to use when merging manifests.
 
 In order to fall back to the old behavior you can do the following:
 
@@ -382,8 +386,35 @@ The following plugins were fully converted to Java: `jacoco`, `scala`, `osgi`, `
 
 Some other plugins were partially converted to Java, keeping tasks types as Groovy classes: `init`, `checkstyle`, `codenarc`, `findbugs`, `pmd`, `jdepend`, `java`, `war`, `ear`, `application`, `signing`, `comparison`, `idea` and `eclipse`. For the latter two, plugin types have also been kept in Groovy.
 
-As a result, existing builds that use converted types as base types might see different behavior.
+Existing builds should continue to work; however, some methods may have changed signatures to be more correct.
 
+### Refined method return types, signatures and other changes to existing API classes
+
+When converting code from Groovy to Java, some code was updated to better reflect its original intent. Some methods have been updated to have more specific return types or more specific type signatures.
+
+* `org.gradle.api.artifacts.DependencyArtifact` has setters for all properties to make it clearer that this type is mutable.
+* `org.gradle.plugins.ide.eclipse.model.Classpath.configure()` signature changed to take and return `List<ClasspathEntry>` (was `Object`).
+* `org.gradle.plugins.ide.eclipse.model.EclipseProject.DeprecationWarningDecoratedProject.configure()` now returns `void` (was `Object`).
+* `org.gradle.plugins.ide.eclipse.model.EclipseProject.DeprecationWarningDecoratedProject()` now takes only `Project`.
+* `org.gradle.plugins.ide.eclipse.model.Facet.FacetType` is no longer decorated with Groovy enum extensions.
+* `org.gradle.plugins.ide.eclipse.model.Project.configure()` now returns `void` (was `Object`).
+* `org.gradle.plugins.ide.idea.model.Module.configure()` signature has changed to specific generic types and return `void` (was `Object`).
+* `org.gradle.api.plugins.JavaPluginConvention.sourceSets()` now returns `NamedDomainObjectContainer<SourceSet>` (was `Object`).
+* `org.gradle.testing.jacoco.plugins.JacocoTaskExtension.Output` is no longer decorated with Groovy enum extensions.
+* `org.gradle.api.java.archives.ManifestMergeSpec` now has `setContentCharset()` and `getContentCharset()` methods.
+* `org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppPlugin` has been renamed to `org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppCompilerPlugin`.
+* `org.gradle.plugins.signing.signatory.pgp.PgpSignatoryFactory.getQualifiedPropertyName()` now returns `String` (was `Object`).
+* `org.gradle.plugins.signing.SigningExtension.addSignaturesToConfiguration()` now returns `void` (was `Object`).
+* `org.gradle.plugins.signing.signatory.pgp.Dsl` was renamed to `PgpSignatoryProviderDsl`.
+* `org.gradle.testing.jacoco.plugins.JacocoPluginExtension.applyTo(JavaForkOptions)` signature changed to make it clear this method accepts types that extend `Task` and `JavaForkOptions`.
+* Methods for accessing static final fields (like `ApplicationPlugin.getTASK_RUN_NAME()`) have been removed from the following classes:
+    * `org.gradle.api.plugins.ApplicationPlugin`
+    * `org.gradle.testing.jacoco.plugins.JacocoPlugin`
+    * `org.gradle.testing.jacoco.plugins.JacocoPluginExtension`
+    * `org.gradle.plugins.ide.idea.model.Module`
+    * `org.gradle.api.plugins.scala.ScalaBasePlugin`
+    * `org.gradle.plugins.signing.SigningExtension`
+    
 ### `org.gradle.plugins.javascript.rhino.worker` changes and deprecation
 
 The method for creating a handle to a Rhino-backed worker has changed in `RhinoWorkerHandleFactory`.  All classes in this package have been deprecated and will be moved to an internal package.
