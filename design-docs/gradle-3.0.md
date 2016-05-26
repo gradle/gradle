@@ -23,7 +23,7 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
     - old wrapper properties from `WrapperExecutor`, remove generation of these properties from `Wrapper` task
 - Move `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER` from public API.
 - Move internal types `org.gradle.logging.StandardOutputCapture` and `org.gradle.logging.LoggingManagerInternal` into an internal package.
-- Merge `Module` and `ModuleInternal`, now that `Module` is internal
+- Merge `Module` and `ModuleInternal`, now that `Module` is internal (Done)
 
 ## Simplify definition of public API
 
