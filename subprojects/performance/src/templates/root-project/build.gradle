@@ -1,16 +1,29 @@
-<% if (buildReceiptsPluginVersion != null) {%>
+<% if (buildReceiptsPluginVersion || binding.hasVariable("springDmPluginVersion")) {%>
 
 buildscript {
     repositories {
+<% if(binding.hasVariable("springDmPluginVersion")) { %>
+        mavenLocal()
+        jcenter()
+<% } %>
+<% if (buildReceiptsPluginVersion) { %>
         maven {
             url 'https://repo.gradle.org/gradle/gradlecom-libs-snapshots-local'
         }
+<% } %>
     }
 
     dependencies {
+<% if (buildReceiptsPluginVersion) { %>
         classpath "com.gradle:build-receipt-plugin:${buildReceiptsPluginVersion}"
+<% }%>
+<% if(binding.hasVariable("springDmPluginVersion")) { %>
+        classpath "io.spring.gradle:dependency-management-plugin:$springDmPluginVersion"
+<% }%>
     }
 }
+<% if (buildReceiptsPluginVersion) { %>
 apply plugin: 'com.gradle.build-receipt'
 buildReceiptLicense { agreementUrl = 'https://gradle.com/terms-of-service'; agree = 'yes' }
+<% }%>
 <% } %>
