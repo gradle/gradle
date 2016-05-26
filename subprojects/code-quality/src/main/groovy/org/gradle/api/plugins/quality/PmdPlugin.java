@@ -78,7 +78,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         return extension;
     }
 
-    private static TargetJdk getDefaultTargetJdk(JavaVersion javaVersion) {
+    public TargetJdk getDefaultTargetJdk(JavaVersion javaVersion) {
         try {
             return TargetJdk.toVersion(javaVersion.toString());
         } catch (IllegalArgumentException ignored) {
