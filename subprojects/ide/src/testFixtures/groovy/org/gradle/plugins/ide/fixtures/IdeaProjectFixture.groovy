@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.idea
+package org.gradle.plugins.ide.fixtures
 
 import groovy.util.slurpersupport.GPathResult
 

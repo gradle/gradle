@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.idea
+package org.gradle.plugins.ide.fixtures
 
 import groovy.transform.ToString
 import groovy.util.slurpersupport.GPathResult

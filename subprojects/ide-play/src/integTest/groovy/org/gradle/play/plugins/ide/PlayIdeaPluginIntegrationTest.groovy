@@ -16,10 +16,10 @@
 
 package org.gradle.play.plugins.ide
 
-import org.gradle.plugins.ide.idea.IdeaModuleFixture
+import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
 
-import static org.gradle.plugins.ide.idea.IdeaFixtures.parseIml
-import static org.gradle.plugins.ide.idea.IdeaFixtures.parseIpr
+import static org.gradle.plugins.ide.fixtures.IdeaFixtures.parseIml
+import static org.gradle.plugins.ide.fixtures.IdeaFixtures.parseIpr
 
 abstract class PlayIdeaPluginIntegrationTest extends PlayIdePluginIntegrationTest {
 

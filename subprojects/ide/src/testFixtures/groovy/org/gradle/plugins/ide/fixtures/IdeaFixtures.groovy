@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.idea
+package org.gradle.plugins.ide.fixtures
 
 class IdeaFixtures {
     static parseFile(File file) {

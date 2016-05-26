@@ -17,8 +17,8 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.plugins.ide.idea.IdeaFixtures
-import org.gradle.plugins.ide.idea.IdeaModuleFixture
+import org.gradle.plugins.ide.fixtures.IdeaFixtures
+import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
 
 abstract class AbstractIdeIntegrationSpec extends AbstractIntegrationSpec {
     protected IdeaModuleFixture parseIml(String moduleFile) {

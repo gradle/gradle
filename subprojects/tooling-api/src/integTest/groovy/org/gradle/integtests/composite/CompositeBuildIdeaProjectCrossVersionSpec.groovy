@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.plugins.ide.idea.IdeaFixtures
+import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Ignore

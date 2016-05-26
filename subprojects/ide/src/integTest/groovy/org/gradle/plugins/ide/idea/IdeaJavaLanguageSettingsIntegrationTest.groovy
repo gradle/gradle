@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.idea
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
+import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.junit.Rule
 
 class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec {
