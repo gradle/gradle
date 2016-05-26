@@ -225,16 +225,16 @@ Some basic daemon status information is made, internally, available via the serv
 1. Add `DaemonExpirationListenerRegistry` as a service via `org.gradle.launcher.daemon.server.DaemonServices`
 2. `DaemonExpirationListenerRegistry` takes the same `Listenermanager` used by `DaemonHealthCheck`
 1. Clients can register a listener as follows: 
-    ```groovy
-     def registry = project.getServices().get(org.gradle.launcher.daemon.server.DaemonExpirationListenerRegistry)
-     registry.register(new DaemonExpirationListener() {
-          @Override
-          public void onExpirationEvent(org.gradle.launcher.daemon.server.DaemonExpirationResult result) {
-              println "onExpirationEvent fired with: \${result.getReason()}"
-          }
-      })
-    ```
-    
+  ```groovy
+   def registry = project.getServices().get(org.gradle.launcher.daemon.server.DaemonExpirationListenerRegistry)
+   registry.register(new DaemonExpirationListener() {
+      @Override
+      public void onExpirationEvent(org.gradle.launcher.daemon.server.DaemonExpirationResult result) {
+          println "onExpirationEvent fired with: \${result.getReason()}"
+      }
+  })
+  ```
+
 #### Coverage
 - An integration test which:
    - Registers a dummy `org.gradle.launcher.daemon.server.DaemonExpirationStrategy` which aways returns a `DaemonExpirationResult`
