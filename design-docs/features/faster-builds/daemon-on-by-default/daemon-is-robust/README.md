@@ -221,21 +221,20 @@ Some basic daemon status information is made, internally, available via the serv
 ### Story - Internally register a listener for daemon expiration events
 
 #### Implementation
-1. Add `registerListener(DaemonExpirationListener daemonExpirationListener);` to `org.gradle.launcher.daemon.server.health.DaemonHealthServices`
-1. `org.gradle.launcher.daemon.server.DaemonServices.createDaemonHealthServices` will pass the `org.gradle.internal.event.ListenerManager` to  `DefaultDaemonHealthServices` 
+
+1. Add `DaemonExpirationListenerRegistry` as a service via `org.gradle.launcher.daemon.server.DaemonServices`
+2. `DaemonExpirationListenerRegistry` takes the same `Listenermanager` used by `DaemonHealthCheck`
 1. Clients can register a listener as follows: 
-  ``` groovy
-   import org.gradle.launcher.daemon.server.DaemonExpirationListener
-
-   def healthService = project.getServices().get(org.gradle.launcher.daemon.server.health.DaemonHealthServices)
-   healthService.registerListener(new DaemonExpirationListener() {
-        @Override
-        public void onExpirationEvent(org.gradle.launcher.daemon.server.DaemonExpirationResult result) {
-            println "Daemon expired with \${result.getReason()}"
-        }
-    });
-  ```
-
+    ```groovy
+     def registry = project.getServices().get(org.gradle.launcher.daemon.server.DaemonExpirationListenerRegistry)
+     registry.register(new DaemonExpirationListener() {
+          @Override
+          public void onExpirationEvent(org.gradle.launcher.daemon.server.DaemonExpirationResult result) {
+              println "onExpirationEvent fired with: \${result.getReason()}"
+          }
+      })
+    ```
+    
 #### Coverage
 - An integration test which:
    - Registers a dummy `org.gradle.launcher.daemon.server.DaemonExpirationStrategy` which aways returns a `DaemonExpirationResult`
