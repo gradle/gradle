@@ -195,12 +195,12 @@ public class EclipseClasspath extends GroovyObjectSupport {
      * <p>
      * See {@link EclipseClasspath} for an example.
      */
-    Collection<Configuration> getNoExportConfigurations() {
+    public Collection<Configuration> getNoExportConfigurations() {
         DeprecationLogger.nagUserOfDeprecated(DEPRECATED_NOEXPORTCONFIGURATION_FIELD);
         return noExportConfigurations;
     }
 
-    void setNoExportConfigurations(Collection<Configuration> noExportConfigurations) {
+    public void setNoExportConfigurations(Collection<Configuration> noExportConfigurations) {
         DeprecationLogger.nagUserOfDeprecated(DEPRECATED_NOEXPORTCONFIGURATION_FIELD);
         this.noExportConfigurations = noExportConfigurations;
     }
