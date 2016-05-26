@@ -353,6 +353,45 @@ class BeanDynamicObjectTest extends Specification {
         e.message == "Could not set unknown property 'unknown' for ${bean} of type ${bean.getClass().name}."
     }
 
+    def "can get properties of map"() {
+        def bean = [:]
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.hasProperty("empty")
+        dynamicObject.getProperty("empty")
+    }
+
+    def "can get and set entries of map as property"() {
+        def bean = [:]
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.getProperty("prop") == null
+        dynamicObject.setProperty("prop", "ok")
+        dynamicObject.getProperty("prop") == "ok"
+    }
+
+    def "can query existence of property of map"() {
+        def bean = [:]
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        !dynamicObject.hasProperty("prop")
+        dynamicObject.setProperty("prop", "ok")
+        dynamicObject.hasProperty("prop")
+    }
+
+    def "can get entries of map as properties"() {
+        def bean = [prop: 12]
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.properties.keySet() == ['class', 'empty', 'prop'] as Set
+        dynamicObject.properties['empty'] == false
+        dynamicObject.properties.prop == 12
+    }
+
     def "can invoke method of groovy object"() {
         def bean = new Bean()
         def dynamicObject = new BeanDynamicObject(bean)

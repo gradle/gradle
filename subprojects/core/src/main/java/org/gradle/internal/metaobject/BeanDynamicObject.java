@@ -96,12 +96,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         this.delegate = determineDelegate(bean);
     }
 
-    public MetaClassAdapter determineDelegate(Object bean) {
+    private MetaClassAdapter determineDelegate(Object bean) {
+        if (bean instanceof Map) {
+            return new MapAdapter();
+        }
         if (bean instanceof DynamicObject || bean instanceof DynamicObjectAware || !(bean instanceof GroovyObject)) {
             return new MetaClassAdapter();
-        } else {
-            return new GroovyObjectAdapter();
         }
+        return new GroovyObjectAdapter();
     }
 
     public BeanDynamicObject withNoProperties() {
@@ -214,15 +216,18 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                         throw e;
                     }
                 }
-            } else if (bean instanceof GroovyObject && !(bean instanceof DynamicObjectAware)) {
-                try {
-                    result.result(((GroovyObject) bean).getProperty(name));
-                } catch (MissingPropertyException e) {
-                    if (!name.equals(e.getProperty())) {
-                        throw e;
-                    }
+            }
+
+            try {
+                getOpaqueProperty(name, result);
+            } catch (MissingPropertyException e) {
+                if (!name.equals(e.getProperty())) {
+                    throw e;
                 }
             }
+        }
+
+        protected void getOpaqueProperty(String name, GetPropertyResult result) {
         }
 
         @Nullable
@@ -341,7 +346,11 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 }
                 properties.put(metaProperty.getName(), metaProperty.getProperty(bean));
             }
+            getOpaqueProperties(properties);
             return properties;
+        }
+
+        protected void getOpaqueProperties(Map<String, Object> properties) {
         }
 
         public boolean hasMethod(final String name, final Object... arguments) {
@@ -427,6 +436,11 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         private final GroovyObject groovyObject = (GroovyObject) bean;
 
         @Override
+        protected void getOpaqueProperty(String name, GetPropertyResult result) {
+            result.result(groovyObject.getProperty(name));
+        }
+
+        @Override
         protected void setOpaqueProperty(MetaClass metaClass, String name, Object value) {
             groovyObject.setProperty(name, value);
         }
@@ -434,6 +448,30 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         @Override
         protected Object invokeOpaqueMethod(MetaClass metaClass, String name, Object[] arguments) {
             return groovyObject.invokeMethod(name, arguments);
+        }
+    }
+
+    private class MapAdapter extends MetaClassAdapter {
+        Map<String, Object> map = (Map<String, Object>) bean;
+
+        @Override
+        public boolean hasProperty(String name) {
+            return map.containsKey(name) || super.hasProperty(name);
+        }
+
+        @Override
+        protected void getOpaqueProperty(String name, GetPropertyResult result) {
+            result.result(map.get(name));
+        }
+
+        @Override
+        protected void getOpaqueProperties(Map<String, Object> properties) {
+            properties.putAll(map);
+        }
+
+        @Override
+        protected void setOpaqueProperty(MetaClass metaClass, String name, Object value) {
+            map.put(name, value);
         }
     }
 }
