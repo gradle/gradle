@@ -28,6 +28,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.TaskOutputs
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.plugins.signing.signatory.Signatory
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatory
@@ -75,7 +76,9 @@ class Sign extends DefaultTask implements SignatureSpec {
         inputs.property("signatory") { (getSignatory() as PgpSignatory)?.keyId?.asHex }
 
         inputs.files { getSignatures()*.toSign }
-        outputs.files { getSignatures()*.toSign }
+        outputs.configure { TaskOutputs outputs ->
+            getSignatures().each { outputs.file it.toSign }
+        }
     }
 
     /**
