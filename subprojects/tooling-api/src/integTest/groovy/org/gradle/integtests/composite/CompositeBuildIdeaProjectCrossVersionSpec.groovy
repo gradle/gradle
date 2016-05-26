@@ -63,10 +63,8 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         idea()
 
         then:
-        def imlA = iml(buildA)
-        imlA.dependencies.modules.size() == 1
-        imlA.dependencies.assertHasModule('buildB')
-        imlA.dependencies.libraries.empty
+        iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
+        imlHasDependencies "buildB"
     }
 
     def "builds IDEA metadata with substituted subproject dependencies"() {
@@ -78,11 +76,8 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         idea()
 
         then:
-        def imlA = iml(buildA)
-        imlA.dependencies.modules.size() == 2
-        imlA.dependencies.assertHasModule('b1')
-        imlA.dependencies.assertHasModule('b2')
-        imlA.dependencies.libraries.empty
+        iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
+        imlHasDependencies "b1", "b2"
     }
 
     def "builds IDEA metadata with substituted dependency from same build"() {
@@ -93,10 +88,8 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         idea(buildB)
 
         then:
-        def imlB = iml(buildB)
-        imlB.dependencies.modules.size() == 1
-        imlB.dependencies.assertHasModule('b1')
-        imlB.dependencies.libraries.empty
+        iprHasModules(buildB, "buildB.iml", "b1/b1.iml", "b2/b2.iml", "../buildA/buildA.iml")
+        imlHasDependencies(buildB, "b1")
     }
 
     def "builds IDEA metadata with substituted subproject dependency that has transitive dependencies"() {
@@ -111,12 +104,8 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         idea()
 
         then:
-        def imlA = iml(buildA).dependencies
-        imlA.modules.size() == 1
-        imlA.assertHasModule('buildB')
-        imlA.libraries.size() == 2
-        imlA.assertHasLibrary('transitive1-1.0.jar')
-        imlA.assertHasLibrary('transitive2-1.0.jar')
+        iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
+        imlHasDependencies(["buildB"], ["transitive1-1.0.jar", "transitive2-1.0.jar"])
     }
 
     def "builds IDEA metadata with substituted subproject dependency that has transitive project dependency"() {
@@ -132,11 +121,8 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         idea()
 
         then:
-        def imlA = iml(buildA).dependencies
-        imlA.modules.size() == 2
-        imlA.assertHasModule('buildB')
-        imlA.assertHasModule('b1')
-        imlA.libraries.empty
+        iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
+        imlHasDependencies "buildB", "b1"
     }
 
     def "builds IDEA metadata with transitive substitutions"() {
@@ -156,11 +142,8 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         idea()
 
         then:
-        def imlA = iml(buildA).dependencies
-        imlA.modules.size() == 2
-        imlA.assertHasModule('buildB')
-        imlA.assertHasModule('buildC')
-        imlA.libraries.empty
+        iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml", "../buildC/buildC.iml"
+        imlHasDependencies "buildB", "buildC"
     }
 
     def "builds IDEA metadata with substituted transitive dependency"() {
@@ -172,11 +155,8 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         idea()
 
         then:
-        def imlA = iml(buildA).dependencies
-        imlA.libraries.size() == 1
-        imlA.assertHasLibrary("external-dep-1.0.jar")
-        imlA.modules.size() == 1
-        imlA.assertHasModule('buildB')
+        iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
+        imlHasDependencies(["buildB"], ["external-dep-1.0.jar"])
     }
 
     def "builds IDEA metadata with dependency cycle between substituted projects in a multiproject build"() {
@@ -205,12 +185,8 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         idea()
 
         then:
-        def imlA = iml(buildA).dependencies
-        imlA.libraries.empty
-        imlA.modules.size() == 3
-        imlA.assertHasModule('buildB')
-        imlA.assertHasModule('b1')
-        imlA.assertHasModule('b2')
+        iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
+        imlHasDependencies "buildB", "b1", "b2"
     }
 
     def "builds IDEA metadata with dependency cycle between substituted participants in a composite build"() {
@@ -222,10 +198,8 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         idea()
 
         then:
-        def imlA = iml(buildA).dependencies
-        imlA.libraries.empty
-        imlA.modules.size() == 1
-        imlA.assertHasModule('buildB')
+        iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
+        imlHasDependencies "buildB"
     }
 
     def "builds IDEA metadata in composite containing participants with same root directory name"() {
@@ -250,11 +224,32 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         idea()
 
         then:
-        def imlA = iml(buildA).dependencies
-        imlA.libraries.empty
-        imlA.modules.size() == 2
-        imlA.assertHasModule('buildB')
-        imlA.assertHasModule('buildC')
+        // TODO:DAZ .ipr generation does not yet respect Gradle project name (or `ideaModule` configuration)
+//        assertIprHasModules("buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml", "../hierarchy/buildB/buildC.iml")
+
+        imlHasDependencies "buildB", "buildC"
+    }
+
+    def "generated IDEA project references modules for all projects in composite"() {
+        given:
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+                apply plugin: 'idea'
+"""
+        }
+        builds << buildC
+
+        when:
+        idea()
+
+        then:
+        iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml", "../buildC/buildC.iml"
+        imlHasDependencies(buildA, [], [])
+        // TODO:DAZ Don't yet build all of the referenced idea modules
+//        imlHasDependencies(buildB, [], [])
+//        imlHasDependencies(buildC, [], [])
     }
 
     def dependency(TestFile buildRoot = buildA, String notation) {
@@ -269,15 +264,41 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         execute(projectDir, ":idea")
     }
 
-    def getIpr() {
-        return IdeaFixtures.parseIpr(file("root.ipr"))
+    def ipr(TestFile projectDir = buildA) {
+        def iprFile = projectDir.file(projectDir.name + ".ipr")
+        assert iprFile.exists()
+//        println iprFile.text
+        return IdeaFixtures.parseIpr(iprFile)
     }
 
     def iml(TestFile projectDir = buildA) {
         def imlFile = projectDir.file(projectDir.name + ".iml")
         assert imlFile.exists()
-        println imlFile.text
+//        println imlFile.text
         return IdeaFixtures.parseIml(imlFile)
     }
 
+    private void iprHasModules(TestFile projectDir = buildA, String... expected) {
+        def modules = ipr(projectDir).modules
+        assert modules.modules.size() == expected.length
+        expected.each {
+            modules.assertHasModule(it)
+        }
+    }
+
+    private void imlHasDependencies(TestFile projectDir = buildA, String... expectedModules) {
+        imlHasDependencies(projectDir, expectedModules as List<String>, [])
+    }
+
+    private void imlHasDependencies(TestFile projectDir = buildA, List<String> expectedModules, List<String> expectedLibraries) {
+        def dependencies = iml(projectDir).dependencies
+        assert dependencies.modules.size() == expectedModules.size()
+        expectedModules.each {
+            dependencies.assertHasModule(it)
+        }
+        assert dependencies.libraries.size() == expectedLibraries.size()
+        expectedLibraries.each {
+            dependencies.assertHasLibrary(it)
+        }
+    }
 }

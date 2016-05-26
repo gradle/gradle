@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 
 public class DefaultCompositeBuildContext implements CompositeBuildContext {
@@ -92,6 +93,11 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
             throw new ReportedException(new GradleException(failureMessage));
         }
         projectMetadata.put(project, new RegisteredProject(localComponentMetaData, projectDirectory));
+    }
+
+    @Override
+    public Set<ProjectComponentIdentifier> getAllProjects() {
+        return projectMetadata.keySet();
     }
 
     private static class RegisteredProject {

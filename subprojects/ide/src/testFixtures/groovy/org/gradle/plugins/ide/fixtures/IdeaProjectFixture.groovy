@@ -50,4 +50,27 @@ class IdeaProjectFixture {
         }
     }
 
+    ProjectModules getModules() {
+        def projectModuleManager = ipr.component.find { it.@name == "ProjectModuleManager" }
+        def moduleNames = projectModuleManager.modules.module.@filepath.collect {it.text()}
+        return new ProjectModules(moduleNames)
+    }
+
+
+    static class ProjectModules {
+        List<String> modules
+
+        private ProjectModules(List<String> modules) {
+            this.modules = modules
+        }
+
+        int size() {
+            return modules.size()
+        }
+
+        void assertHasModule(String name) {
+            assert modules.any { it.endsWith(name)}
+        }
+    }
+
 }

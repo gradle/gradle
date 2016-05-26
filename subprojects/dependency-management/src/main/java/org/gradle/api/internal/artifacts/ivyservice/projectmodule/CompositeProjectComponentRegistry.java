@@ -20,8 +20,10 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
 import java.io.File;
+import java.util.Set;
 
 public interface CompositeProjectComponentRegistry extends ProjectComponentProvider {
     ProjectComponentIdentifier getReplacementProject(ModuleComponentSelector selector);
     File getProjectDirectory(ProjectComponentIdentifier project);
+    Set<ProjectComponentIdentifier> getAllProjects();
 }

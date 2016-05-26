@@ -19,6 +19,9 @@ import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeProjectDirectoryMapper;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.ConfigureUtil;
 
@@ -103,6 +106,7 @@ public class IdeaProject {
 
     private final org.gradle.api.Project project;
     private final XmlFileContentMerger ipr;
+    private final CompositeProjectDirectoryMapper moduleToProjectMapper;
 
     private List<IdeaModule> modules;
     private String jdkName;
@@ -117,6 +121,7 @@ public class IdeaProject {
     public IdeaProject(org.gradle.api.Project project, XmlFileContentMerger ipr) {
         this.project = project;
         this.ipr = ipr;
+        this.moduleToProjectMapper = new CompositeProjectDirectoryMapper(((ProjectInternal) project).getServices());
     }
 
     /**
@@ -291,6 +296,20 @@ public class IdeaProject {
     public void mergeXmlProject(Project xmlProject) {
         ipr.getBeforeMerged().execute(xmlProject);
         xmlProject.configure(getModules(), getJdkName(), getLanguageLevel(), getTargetBytecodeVersion(), getWildcards(), getProjectLibraries(), getVcs());
+        includeModulesFromComposite(xmlProject);
         ipr.getWhenMerged().execute(xmlProject);
+    }
+
+    // TODO:DAZ Make this a `whenMerged` hook registered by composite build?
+    private void includeModulesFromComposite(Project xmlProject) {
+        PathFactory pathFactory = getPathFactory();
+        Set<ProjectComponentIdentifier> projectsInComposite = moduleToProjectMapper.getProjectsInComposite();
+        for (ProjectComponentIdentifier project : projectsInComposite) {
+            File projectDir = moduleToProjectMapper.transform(project.getProjectPath());
+            // TODO:DAZ This isn't good: need the external project to export this artifact
+            File imlFile = new File(projectDir, projectDir.getName() + ".iml");
+            xmlProject.getModulePaths().add(pathFactory.relativePath("PROJECT_DIR", imlFile));
+        }
+
     }
 }

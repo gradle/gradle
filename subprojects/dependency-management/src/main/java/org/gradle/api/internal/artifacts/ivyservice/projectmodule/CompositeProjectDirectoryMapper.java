@@ -22,7 +22,9 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifi
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class CompositeProjectDirectoryMapper implements Transformer<File, String> {
     private final CompositeProjectComponentRegistry discovered;
@@ -38,10 +40,22 @@ public class CompositeProjectDirectoryMapper implements Transformer<File, String
 
     @Override
     public File transform(String projectPath) {
+        ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newId(projectPath);
+        return getRegistry().getProjectDirectory(projectComponentIdentifier);
+    }
+
+    public Set<ProjectComponentIdentifier> getProjectsInComposite() {
+        if (discovered == null) {
+            return Collections.emptySet();
+        }
+        return getRegistry().getAllProjects();
+    }
+
+    private CompositeProjectComponentRegistry getRegistry() {
         if (discovered == null) {
             throw new IllegalStateException("Not a composite");
         }
-        ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newId(projectPath);
-        return discovered.getProjectDirectory(projectComponentIdentifier);
+        return discovered;
     }
+
 }
