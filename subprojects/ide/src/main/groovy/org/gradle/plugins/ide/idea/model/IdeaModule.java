@@ -275,6 +275,10 @@ public class IdeaModule extends GroovyObjectSupport {
         return downloadSources;
     }
 
+    public boolean getDownloadSources() {
+        return downloadSources;
+    }
+
     public void setDownloadSources(boolean downloadSources) {
         this.downloadSources = downloadSources;
     }
@@ -283,6 +287,10 @@ public class IdeaModule extends GroovyObjectSupport {
      * Whether to download and add javadoc associated with the dependency jars. <p> For example see docs for {@link IdeaModule}
      */
     public boolean isDownloadJavadoc() {
+        return downloadJavadoc;
+    }
+
+    public boolean getDownloadJavadoc() {
         return downloadJavadoc;
     }
 
@@ -325,11 +333,11 @@ public class IdeaModule extends GroovyObjectSupport {
 
     /**
      * If true, output directories for this module will be located below the output directory for the project;
-     * otherwise, they will be set to the directories specified by #outputDir and #testOutputDir.
+     * otherwise, they will be set to the directories specified by {@link #getOutputDir()} and {@link #getTestOutputDir()}.
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    public Boolean isInheritOutputDirs() {
+    public Boolean getInheritOutputDirs() {
         return inheritOutputDirs;
     }
 
@@ -472,6 +480,10 @@ public class IdeaModule extends GroovyObjectSupport {
         return offline;
     }
 
+    public boolean getOffline() {
+        return offline;
+    }
+
     public void setOffline(boolean offline) {
         this.offline = offline;
     }
@@ -537,7 +549,7 @@ public class IdeaModule extends GroovyObjectSupport {
         xmlModule.configure(
             contentRoot,
             sourceFolders, testSourceFolders, generatedSourceFolders, excludeFolders,
-            isInheritOutputDirs(), outputDir, testOutputDir,
+            getInheritOutputDirs(), outputDir, testOutputDir,
             dependencies,
             getJdkName(), level
         );

@@ -149,8 +149,8 @@ public class JacocoPlugin extends GroovyObjectSupport implements Plugin<ProjectI
         });
     }
 
-    private void configureDefaultOutputPathForJacocoMerge() {
-        project.getTasks().withType(JacocoMerge.class, new Action<JacocoMerge>() {
+    public Object configureDefaultOutputPathForJacocoMerge() {
+        return project.getTasks().withType(JacocoMerge.class, new Action<JacocoMerge>() {
             @Override
             public void execute(final JacocoMerge task) {
                 ConventionMapping mapping = ((IConventionAware) task).getConventionMapping();

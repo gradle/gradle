@@ -39,8 +39,8 @@ public class JacocoPluginExtension extends GroovyObjectSupport {
 
     public static final String TASK_EXTENSION_NAME = "jacoco";
 
-    private final Logger logger = Logging.getLogger(getClass());
-    private final Project project;
+    private Logger logger = Logging.getLogger(getClass());
+    protected final Project project;
     private final JacocoAgentJar agent;
 
     private String toolVersion = "0.7.6.201602180812";
@@ -120,5 +120,21 @@ public class JacocoPluginExtension extends GroovyObjectSupport {
                 applyTo(Cast.<T>uncheckedCast(task));
             }
         });
+    }
+
+    /**
+     * @deprecated logger should be considered final.
+     */
+    @Deprecated
+    public Logger getLogger() {
+        return logger;
+    }
+
+    /**
+     * @deprecated logger should be considered final.
+     */
+    @Deprecated
+    public void setLogger(Logger logger) {
+        this.logger = logger;
     }
 }

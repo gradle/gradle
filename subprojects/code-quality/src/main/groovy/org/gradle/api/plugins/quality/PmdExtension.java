@@ -157,6 +157,12 @@ public class PmdExtension extends CodeQualityExtension {
         return consoleOutput;
     }
 
+    @Incubating
+    public boolean getConsoleOutput() {
+        return consoleOutput;
+    }
+
+    @Incubating
     public void setConsoleOutput(boolean consoleOutput) {
         this.consoleOutput = consoleOutput;
     }

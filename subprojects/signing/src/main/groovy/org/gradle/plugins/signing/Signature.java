@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.signing;
 
+import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.MetaClass;
 import org.codehaus.groovy.runtime.InvokerHelper;
@@ -178,7 +179,7 @@ public class Signature extends AbstractPublishArtifact implements GroovyObject {
      * @param signatureSpec The specification of how the artifact is to be signed
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
-    public Signature(Callable<File> toSign, Callable<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
+    public Signature(Closure<File> toSign, Closure<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
         super(tasks);
         this.toSignGenerator = toSign;
         this.classifierGenerator = classifier;

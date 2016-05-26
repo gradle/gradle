@@ -53,7 +53,7 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
         }
     }
 
-    private final JacocoAgentJar agent;
+    private JacocoAgentJar agent;
     private final JavaForkOptions task;
 
     private boolean enabled = true;
@@ -89,6 +89,10 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
         return enabled;
     }
 
+    public boolean getEnabled() {
+        return enabled;
+    }
+
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
@@ -108,6 +112,10 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
      * Whether or not data should be appended if the {@code destinationFile} already exists. Defaults to {@code true}.
      */
     public boolean isAppend() {
+        return append;
+    }
+
+    public boolean getAppend() {
         return append;
     }
 
@@ -157,6 +165,10 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
         return includeNoLocationClasses;
     }
 
+    public boolean getIncludeNoLocationClasses() {
+        return includeNoLocationClasses;
+    }
+
     public void setIncludeNoLocationClasses(boolean includeNoLocationClasses) {
         this.includeNoLocationClasses = includeNoLocationClasses;
     }
@@ -176,6 +188,10 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
      * Whether or not to dump the coverage data at VM shutdown. Defaults to {@code true}.
      */
     public boolean isDumpOnExit() {
+        return dumpOnExit;
+    }
+
+    public boolean getDumpOnExit() {
         return dumpOnExit;
     }
 
@@ -208,11 +224,11 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
     /**
      * Port to bind to for {@link Output#TCP_SERVER} or {@link Output#TCP_CLIENT}. Defaults to 6300.
      */
-    public Integer getPort() {
+    public int getPort() {
         return port;
     }
 
-    public void setPort(Integer port) {
+    public void setPort(int port) {
         this.port = port;
     }
 
@@ -236,8 +252,28 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
         return jmx;
     }
 
+    public boolean getJmx() {
+        return jmx;
+    }
+
     public void setJmx(boolean jmx) {
         this.jmx = jmx;
+    }
+
+    /**
+     * @deprecated Agent should be considered final.
+     */
+    @Deprecated
+    public JacocoAgentJar getAgent() {
+        return agent;
+    }
+
+    /**
+     * @deprecated Agent should be considered final.
+     */
+    @Deprecated
+    public void setAgent(JacocoAgentJar agent) {
+        this.agent = agent;
     }
 
     /**

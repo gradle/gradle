@@ -240,6 +240,10 @@ public class EclipseClasspath extends GroovyObjectSupport {
         return downloadSources;
     }
 
+    public boolean getDownloadSources() {
+        return downloadSources;
+    }
+
     public void setDownloadSources(boolean downloadSources) {
         this.downloadSources = downloadSources;
     }
@@ -250,6 +254,10 @@ public class EclipseClasspath extends GroovyObjectSupport {
      * See {@link EclipseClasspath} for an example.
      */
     public boolean isDownloadJavadoc() {
+        return downloadJavadoc;
+    }
+
+    public boolean getDownloadJavadoc() {
         return downloadJavadoc;
     }
 
@@ -277,6 +285,10 @@ public class EclipseClasspath extends GroovyObjectSupport {
     }
 
     public boolean isProjectDependenciesOnly() {
+        return projectDependenciesOnly;
+    }
+
+    public boolean getProjectDependenciesOnly() {
         return projectDependenciesOnly;
     }
 

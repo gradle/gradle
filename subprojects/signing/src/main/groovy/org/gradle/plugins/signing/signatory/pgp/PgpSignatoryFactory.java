@@ -79,7 +79,7 @@ public class PgpSignatoryFactory extends GroovyObjectSupport {
     protected PgpSignatory readProperties(Project project, String prefix, String name, boolean required) {
         ArrayList<Object> values = new ArrayList<Object>();
         for (String property : PROPERTIES) {
-            String qualifiedProperty = getQualifiedPropertyName(prefix, property);
+            String qualifiedProperty = (String)getQualifiedPropertyName(prefix, property);
             if (project.hasProperty(qualifiedProperty)) {
                 values.add(
                     project.property(qualifiedProperty));
@@ -98,7 +98,7 @@ public class PgpSignatoryFactory extends GroovyObjectSupport {
         return createSignatory(name, keyId, keyRing, password);
     }
 
-    protected String getQualifiedPropertyName(final String propertyPrefix, final String name) {
+    protected Object getQualifiedPropertyName(final String propertyPrefix, final String name) {
         return "signing." + (propertyPrefix != null ? propertyPrefix + "." : "") + name;
     }
 

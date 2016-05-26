@@ -168,7 +168,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
             .setGradleProject(rootGradleProject.findByPath(ideaModule.getProject().getPath()))
             .setContentRoots(Collections.singletonList(contentRoot))
             .setCompilerOutput(new DefaultIdeaCompilerOutput()
-                .setInheritOutputDirs(ideaModule.isInheritOutputDirs() != null ? ideaModule.isInheritOutputDirs() : false)
+                .setInheritOutputDirs(ideaModule.getInheritOutputDirs() != null ? ideaModule.getInheritOutputDirs() : false)
                 .setOutputDir(ideaModule.getOutputDir())
                 .setTestOutputDir(ideaModule.getTestOutputDir()));
         JavaPluginConvention javaPluginConvention = project.getConvention().findPlugin(JavaPluginConvention.class);

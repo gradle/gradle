@@ -88,6 +88,10 @@ public class CheckstyleExtension extends CodeQualityExtension {
         return showViolations;
     }
 
+    public boolean getShowViolations() {
+        return isShowViolations();
+    }
+
     public void setShowViolations(boolean showViolations) {
         this.showViolations = showViolations;
     }

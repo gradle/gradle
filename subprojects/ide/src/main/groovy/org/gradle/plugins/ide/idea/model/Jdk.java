@@ -59,11 +59,19 @@ public class Jdk extends GroovyObjectSupport {
         return assertKeyword;
     }
 
+    public boolean getAssertKeyword() {
+        return assertKeyword;
+    }
+
     public void setAssertKeyword(boolean assertKeyword) {
         this.assertKeyword = assertKeyword;
     }
 
     public boolean isJdk15() {
+        return jdk15;
+    }
+
+    public boolean getJdk15() {
         return jdk15;
     }
 

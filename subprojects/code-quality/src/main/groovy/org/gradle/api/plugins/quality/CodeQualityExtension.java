@@ -62,6 +62,10 @@ public abstract class CodeQualityExtension extends GroovyObjectSupport {
         return ignoreFailures;
     }
 
+    public boolean getIgnoreFailures() {
+        return isIgnoreFailures();
+    }
+
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
