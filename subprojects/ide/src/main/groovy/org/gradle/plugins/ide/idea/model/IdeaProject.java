@@ -51,7 +51,7 @@ import java.util.Set;
  *     vcs = 'Git'
  *
  *     //you can change the modules of the *.ipr
- *     modules = project(':someProject').idea.module
+ *     //modules = project(':someProject').idea.module
  *
  *     //you can change the output file
  *     outputFile = new File(outputFile.parentFile, 'someBetterName.ipr')
