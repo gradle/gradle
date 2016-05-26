@@ -62,13 +62,13 @@ public class S3Client {
 
     private AmazonS3Client createAmazonS3Client(AWSCredentials credentials) {
         AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, createConnectionProperties());
-        S3ClientOptions clientOptions = new S3ClientOptions();
+        S3ClientOptions.Builder clientOptionsBuilder = S3ClientOptions.builder();
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
         if (endpoint.isPresent()) {
             amazonS3Client.setEndpoint(endpoint.get().toString());
-            clientOptions.withPathStyleAccess(true);
+            clientOptionsBuilder.setPathStyleAccess(true);
         }
-        amazonS3Client.setS3ClientOptions(clientOptions);
+        amazonS3Client.setS3ClientOptions(clientOptionsBuilder.build());
         return amazonS3Client;
     }
 
