@@ -16,23 +16,22 @@
 
 package org.gradle.api.reporting.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.Report;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.OutputDirectories;
-import org.gradle.api.tasks.OutputFiles;
+import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.internal.FileUtils;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.Collection;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 
 public abstract class TaskReportContainer<T extends Report> extends DefaultReportContainer<T> {
 
@@ -42,45 +41,55 @@ public abstract class TaskReportContainer<T extends Report> extends DefaultRepor
         }
     };
 
-
-    private final static Transformer<File, Report> TO_FILE = new Transformer<File, Report>() {
-        public File transform(Report original) {
-            return original.getDestination();
-        }
-    };
-
-    private static final Spec<Report> IS_DIRECTORY_OUTPUT_TYPE = new Spec<Report>() {
-        public boolean isSatisfiedBy(Report report) {
-            return report.getOutputType() == Report.OutputType.DIRECTORY;
-        }
-    };
-
-    private static final Spec<Report> IS_FILE_OUTPUT_TYPE = Specs.negate(IS_DIRECTORY_OUTPUT_TYPE);
-
-    private final TaskInternal task;
-
-
     public TaskReportContainer(Class<? extends T> type, final Task task) {
         super(type, ((ProjectInternal) task.getProject()).getServices().get(Instantiator.class));
-        this.task = (TaskInternal) task;
-    }
-
-    protected Task getTask() {
-        return task;
-    }
-
-    @OutputDirectories
-    public Set<File> getEnabledDirectoryReportDestinations() {
-        return CollectionUtils.collect(CollectionUtils.filter(getEnabled(), IS_DIRECTORY_OUTPUT_TYPE), TO_FILE);
-    }
-
-    @OutputFiles
-    public Set<File> getEnabledFileReportDestinations() {
-        return CollectionUtils.collect(CollectionUtils.filter(getEnabled(), IS_FILE_OUTPUT_TYPE), TO_FILE);
-    }
-
-    @Input
-    public SortedSet<String> getEnabledReportNames() {
-        return CollectionUtils.collect(getEnabled(), new TreeSet<String>(), REPORT_NAME);
+        task.getInputs().property("reports.enabledReportNames", new Callable<Collection<String>>() {
+            @Override
+            public Collection<String> call() throws Exception {
+                return CollectionUtils.collect(getEnabled(), new TreeSet<String>(), REPORT_NAME);
+            }
+        });
+        task.getOutputs().configure(new Action<TaskOutputs>() {
+            @Override
+            public void execute(TaskOutputs taskOutputs) {
+                for (final Report report : getEnabled()) {
+                    Callable<File> futureFile = new Callable<File>() {
+                        @Override
+                        public File call() throws Exception {
+                            return report.getDestination();
+                        }
+                    };
+                    switch (report.getOutputType()) {
+                        case FILE:
+                            taskOutputs.file(futureFile);
+                            break;
+                        case DIRECTORY:
+                            taskOutputs.dir(futureFile);
+                            break;
+                        default:
+                            throw new AssertionError();
+                    }
+                }
+                ((TaskInternal) task).prependParallelSafeAction(new Action<Task>() {
+                    @Override
+                    public void execute(Task task) {
+                        for (Report report : getEnabled()) {
+                            switch (report.getOutputType()) {
+                                case FILE:
+                                    File file = FileUtils.canonicalize(report.getDestination());
+                                    GFileUtils.mkdirs(file.getParentFile());
+                                    break;
+                                case DIRECTORY:
+                                    file = FileUtils.canonicalize(report.getDestination());
+                                    GFileUtils.mkdirs(file);
+                                    break;
+                                default:
+                                    throw new AssertionError();
+                            }
+                        }
+                    }
+                });
+            }
+        });
     }
 }
