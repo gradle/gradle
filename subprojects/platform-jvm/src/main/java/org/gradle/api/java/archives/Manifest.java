@@ -16,6 +16,7 @@
 package org.gradle.api.java.archives;
 
 import groovy.lang.Closure;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.io.Writer;
 import java.util.Map;
@@ -23,6 +24,7 @@ import java.util.Map;
 /**
  * Represents the manifest file of a JAR file.
  */
+@HasInternalProtocol
 public interface Manifest {
     /**
      * Returns the main attributes of the manifest.
@@ -79,6 +81,7 @@ public interface Manifest {
      * @param writer The writer to write the manifest to
      * @return this
      */
+    @Deprecated
     Manifest writeTo(Writer writer);
 
     /**

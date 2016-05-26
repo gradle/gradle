@@ -21,6 +21,9 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
+import java.util.jar.JarFile
+import java.util.jar.Manifest
+
 class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2237")
@@ -100,5 +103,53 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         ":jar" in nonSkippedTasks
+    }
+
+    @Issue('GRADLE-3374')
+    def "can merge manifests containing split multi-byte chars"() {
+        given:
+        def attributeNameMerged = 'Looong-Name-Of-Manifest-Entry'
+        def attributeNameWritten = 'Another-Looooooong-Name-Entry'
+        // Means 'long russian text'
+        def attributeValue = 'com.acme.example.pack.**, длинный.текст.на.русском.языке.**'
+
+        def mergedManifestFilename = 'manifest-with-split-multi-byte-char.txt'
+        def mergedManifest = new Manifest()
+        mergedManifest.mainAttributes.putValue('Manifest-Version', '1.0')
+        mergedManifest.mainAttributes.putValue(attributeNameMerged, attributeValue)
+        def mergedManifestFile = file(mergedManifestFilename)
+        mergedManifestFile.withOutputStream { mergedManifest.write(it) }
+
+        buildScript """
+            apply plugin: 'java'
+            apply plugin: 'osgi'
+
+            jar {
+                destinationDir = file('dest')
+                archiveName = 'test.jar'
+                manifest {
+                    version = '3.0'
+                    instruction 'Bnd-$attributeNameWritten', '$attributeValue'
+                    attributes '$attributeNameWritten': '$attributeValue'
+                    from file('$mergedManifestFilename')
+                }
+            }
+        """.stripIndent()
+        file("src/main/java/Thing.java") << "public class Thing {}"
+
+        when:
+        executer.withDefaultCharacterEncoding('windows-1252').withTasks('jar')
+        executer.run()
+
+        then:
+        def jar = new JarFile(file('dest/test.jar'))
+        try {
+            def manifest = jar.manifest
+            assert manifest.mainAttributes.getValue("Bnd-$attributeNameWritten") == attributeValue
+            assert manifest.mainAttributes.getValue(attributeNameWritten) == attributeValue
+            assert manifest.mainAttributes.getValue(attributeNameMerged) == attributeValue
+        } finally {
+            jar.close();
+        }
     }
 }

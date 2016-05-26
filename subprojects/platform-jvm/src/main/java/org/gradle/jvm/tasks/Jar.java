@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
@@ -28,6 +27,7 @@ import org.gradle.api.internal.file.collections.MapFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
+import org.gradle.api.java.archives.internal.CustomManifestInternalWrapper;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.java.archives.internal.ManifestInternal;
 import org.gradle.api.tasks.Input;
@@ -36,8 +36,6 @@ import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
 
@@ -69,19 +67,14 @@ public class Jar extends Zip {
                         if (manifest == null) {
                             manifest = new DefaultManifest(null);
                         }
+                        ManifestInternal manifestInternal;
                         if (manifest instanceof ManifestInternal) {
-                            ManifestInternal manifestInternal = (ManifestInternal) manifest;
-                            manifestInternal.setContentCharset(manifestContentCharset);
-                            manifestInternal.writeTo(outputStream);
+                            manifestInternal = (ManifestInternal) manifest;
                         } else {
-                            // Fallback on wrong Writer based method
-                            // This will break split multi-byte characters
-                            try {
-                                manifest.writeTo(new OutputStreamWriter(outputStream, manifestContentCharset));
-                            } catch (UnsupportedEncodingException e) {
-                                throw new UncheckedIOException(e);
-                            }
+                            manifestInternal = new CustomManifestInternalWrapper(manifest);
                         }
+                        manifestInternal.setContentCharset(manifestContentCharset);
+                        manifestInternal.writeTo(outputStream);
                     }
                 });
                 return new FileTreeAdapter(manifestSource);
