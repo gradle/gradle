@@ -280,7 +280,7 @@ class JvmTest extends Specification {
         '1.5.0_22' | 'jre1.5.0_22' | 'jdk1.5.0_22'
     }
 
-    def "JVMs are equal when their Java home dirs are the same"() {
+    def "JVM are equal when their Java home dirs are the same"() {
         given:
         TestFile installDir = tmpDir.createDir('software')
         installDir.create {
@@ -293,12 +293,24 @@ class JvmTest extends Specification {
         }
 
         expect:
-        def jvm = new Jvm(os, installDir, JavaVersion.current())
-        def current = Jvm.current()
+        def jvm = Jvm.forHome(installDir)
+        Matchers.strictlyEquals(jvm, Jvm.forHome(installDir))
+    }
 
-        Matchers.strictlyEquals(jvm, new Jvm(os, installDir, JavaVersion.current()))
-        Matchers.strictlyEquals(current, Jvm.forHome(current.javaHome))
-        jvm != current
+    def "Returns current JVM when located using Java home dir"() {
+        expect:
+        def current = Jvm.current()
+        def jvm = Jvm.forHome(current.javaHome)
+
+        jvm.is(current)
+    }
+
+    def "Returns current JVM when located using java.home dir"() {
+        expect:
+        def current = Jvm.current()
+        def jvm = Jvm.forHome(new File(System.getProperty("java.home")))
+
+        jvm.is(current)
     }
 
     def "uses system property to determine if Sun/Oracle JVM"() {
@@ -307,7 +319,7 @@ class JvmTest extends Specification {
         def jvm = Jvm.create()
 
         then:
-        jvm.getClass() == Jvm
+        jvm.getClass() == Jvm.JvmImplementation
     }
 
     def "uses system property to determine if Apple JVM"() {
@@ -323,7 +335,7 @@ class JvmTest extends Specification {
         jvm = Jvm.create()
 
         then:
-        jvm.getClass() == Jvm
+        jvm.getClass() == Jvm.JvmImplementation
     }
 
     def "uses system property to determine if IBM JVM"() {

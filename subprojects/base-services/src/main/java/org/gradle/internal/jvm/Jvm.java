@@ -40,7 +40,7 @@ public class Jvm implements JavaInfo {
     private final File javaHome;
     private final boolean userSupplied;
     private final JavaVersion javaVersion;
-    private static final AtomicReference<Jvm> CURRENT = new AtomicReference<Jvm>();
+    private static final AtomicReference<JvmImplementation> CURRENT = new AtomicReference<JvmImplementation>();
 
     // Cached resolved executables
     private File javaExecutable;
@@ -57,7 +57,7 @@ public class Jvm implements JavaInfo {
         return jvm;
     }
 
-    static Jvm create() {
+    private static JvmImplementation create() {
         String vendor = System.getProperty("java.vm.vendor");
         if (vendor.toLowerCase().startsWith("apple inc.")) {
             return new AppleJvm(OperatingSystem.current());
@@ -65,11 +65,13 @@ public class Jvm implements JavaInfo {
         if (vendor.toLowerCase().startsWith("ibm corporation")) {
             return new IbmJvm(OperatingSystem.current());
         }
-        return new Jvm(OperatingSystem.current());
+        return new JvmImplementation(OperatingSystem.current());
     }
 
     static Jvm create(File javaBase, @Nullable JavaVersion javaVersion) {
-        return new Jvm(OperatingSystem.current(), javaBase, javaVersion);
+        Jvm jvm = new Jvm(OperatingSystem.current(), javaBase, javaVersion);
+        Jvm current = current();
+        return jvm.getJavaHome().equals(current.getJavaHome()) ? current : jvm;
     }
 
     /**
@@ -324,7 +326,16 @@ public class Jvm implements JavaInfo {
         return false;
     }
 
-    static class IbmJvm extends Jvm {
+    /**
+     * Details about a known JVM implementation.
+     */
+    static class JvmImplementation extends Jvm {
+        JvmImplementation(OperatingSystem os) {
+            super(os);
+        }
+    }
+
+    static class IbmJvm extends JvmImplementation {
         IbmJvm(OperatingSystem os) {
             super(os);
         }
@@ -338,7 +349,7 @@ public class Jvm implements JavaInfo {
     /**
      * Note: Implementation assumes that an Apple JVM always comes with a JDK rather than a JRE, but this is likely an over-simplification.
      */
-    static class AppleJvm extends Jvm {
+    static class AppleJvm extends JvmImplementation {
         AppleJvm(OperatingSystem os) {
             super(os);
         }
