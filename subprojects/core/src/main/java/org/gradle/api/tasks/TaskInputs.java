@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
 
@@ -25,6 +26,7 @@ import java.util.Map;
  *
  * <p>You can obtain a {@code TaskInputs} instance using {@link org.gradle.api.Task#getInputs()}.</p>
  */
+@HasInternalProtocol
 public interface TaskInputs {
     /**
      * Returns true if this task has declared the inputs that it consumes.

@@ -20,12 +20,14 @@ import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * <p>A {@code TaskOutputs} represents the outputs of a task.</p>
  *
  * <p>You can obtain a {@code TaskOutputs} instance using {@link org.gradle.api.Task#getOutputs()}.</p>
  */
+@HasInternalProtocol
 public interface TaskOutputs {
     /**
      * <p>Adds a predicate to determine whether the outputs of this task are up-to-date. The given closure is executed

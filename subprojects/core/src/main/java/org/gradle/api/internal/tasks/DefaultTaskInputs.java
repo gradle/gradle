@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.GString;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.UnionFileCollection;
@@ -29,7 +30,7 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.util.GUtil.uncheckedCall;
 
-public class DefaultTaskInputs implements TaskInputs {
+public class DefaultTaskInputs implements TaskInputsInternal {
     private final DefaultConfigurableFileCollection inputFiles;
     private final DefaultConfigurableFileCollection sourceFiles;
     private final FileResolver resolver;

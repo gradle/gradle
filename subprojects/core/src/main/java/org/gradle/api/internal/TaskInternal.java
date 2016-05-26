@@ -46,6 +46,10 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     void setExecuter(TaskExecuter executer);
 
+    @Override
+    TaskInputsInternal getInputs();
+
+    @Override
     TaskOutputsInternal getOutputs();
 
     List<TaskValidator> getValidators();

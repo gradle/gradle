@@ -16,8 +16,8 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.tasks.TaskInputs;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -37,7 +37,7 @@ public class DependencyAutoWireTaskFactoryTest {
     @Test
     public void addsDependencyOnInputFiles() {
         final TaskInternal task = context.mock(TaskInternal.class);
-        final TaskInputs taskInputs = context.mock(TaskInputs.class);
+        final TaskInputsInternal taskInputs = context.mock(TaskInputsInternal.class);
         final FileCollection inputFiles = context.mock(FileCollection.class);
 
         context.checking(new Expectations() {{

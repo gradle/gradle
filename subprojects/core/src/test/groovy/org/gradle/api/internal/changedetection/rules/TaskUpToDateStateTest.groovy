@@ -17,11 +17,15 @@
 package org.gradle.api.internal.changedetection.rules
 
 import org.gradle.api.UncheckedIOException
+import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.changedetection.state.*
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
+import org.gradle.api.internal.changedetection.state.FilesSnapshotSet
+import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
+import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.tasks.TaskInputs
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -34,8 +38,8 @@ class TaskUpToDateStateTest extends Specification {
     private FileCollectionFactory fileCollectionFactory = Mock(FileCollectionFactory)
 
     def setup() {
-        TaskInputs stubInputs = Stub(TaskInputs)
-        TaskOutputsInternal stubOutputs = Stub(TaskOutputsInternal)
+        def stubInputs = Stub(TaskInputsInternal)
+        def stubOutputs = Stub(TaskOutputsInternal)
         this.stubTask = Stub(TaskInternal) {
             _ * getName() >> { "testTask" }
             _ * getInputs() >> stubInputs
