@@ -40,10 +40,6 @@ public abstract class JacocoBase extends DefaultTask implements GroovyObject {
         return getMetaClass().getProperty(this, property);
     }
 
-    public void setProperty(String property, Object newValue) {
-        getMetaClass().setProperty(this, property, newValue);
-    }
-
     public Object invokeMethod(String name, Object args) {
         return getMetaClass().invokeMethod(this, name, args);
     }
