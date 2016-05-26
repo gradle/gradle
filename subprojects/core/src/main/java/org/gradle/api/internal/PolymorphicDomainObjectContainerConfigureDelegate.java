@@ -20,6 +20,7 @@ import org.gradle.api.PolymorphicDomainObjectContainer;
 import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.GetPropertyResult;
 import org.gradle.internal.metaobject.InvokeMethodResult;
+import org.gradle.util.ConfigureUtil;
 
 public class PolymorphicDomainObjectContainerConfigureDelegate extends ConfigureDelegate {
     private final PolymorphicDomainObjectContainer _container;
@@ -41,7 +42,7 @@ public class PolymorphicDomainObjectContainerConfigureDelegate extends Configure
         } else if (params.length == 1 && params[0] instanceof Class) {
             result.result(_container.create(name, (Class) params[0]));
         } else if (params.length == 2 && params[0] instanceof Class && params[1] instanceof Closure){
-            result.result(_container.create(name, (Class) params[0], new ClosureBackedAction((Closure) params[1])));
+            result.result(_container.create(name, (Class) params[0], ConfigureUtil.configureUsing((Closure) params[1])));
         }
     }
 }

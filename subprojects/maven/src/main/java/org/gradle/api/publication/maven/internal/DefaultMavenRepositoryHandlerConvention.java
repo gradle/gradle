@@ -18,11 +18,11 @@ package org.gradle.api.publication.maven.internal;
 import groovy.lang.Closure;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.internal.Actions;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConfigureByMapAction;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.plugins.MavenRepositoryHandlerConvention;
+import org.gradle.internal.Actions;
+import org.gradle.util.ConfigureUtil;
 
 import java.util.Map;
 
@@ -40,7 +40,7 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
     }
 
     public GroovyMavenDeployer mavenDeployer(Closure configureClosure) {
-        return container.addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME, new ClosureBackedAction<GroovyMavenDeployer>(configureClosure));
+        return container.addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME, ConfigureUtil.configureUsing(configureClosure));
     }
 
     public GroovyMavenDeployer mavenDeployer(Map<String, ?> args) {
@@ -50,7 +50,7 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
     public GroovyMavenDeployer mavenDeployer(Map<String, ?> args, Closure configureClosure) {
         //noinspection unchecked
         return container.addRepository(createMavenDeployer(), DEFAULT_MAVEN_DEPLOYER_NAME, Actions.<GroovyMavenDeployer>composite(
-                new ConfigureByMapAction<GroovyMavenDeployer>(args), new ClosureBackedAction<GroovyMavenDeployer>(configureClosure)
+                new ConfigureByMapAction<GroovyMavenDeployer>(args), ConfigureUtil.configureUsing(configureClosure)
         ));
     }
 
@@ -63,7 +63,7 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
     }
 
     public MavenResolver mavenInstaller(Closure configureClosure) {
-        return container.addRepository(createMavenInstaller(), DEFAULT_MAVEN_INSTALLER_NAME, new ClosureBackedAction<MavenResolver>(configureClosure));
+        return container.addRepository(createMavenInstaller(), DEFAULT_MAVEN_INSTALLER_NAME, ConfigureUtil.configureUsing(configureClosure));
     }
 
     public MavenResolver mavenInstaller(Map<String, ?> args) {
@@ -73,7 +73,7 @@ public class DefaultMavenRepositoryHandlerConvention implements MavenRepositoryH
     public MavenResolver mavenInstaller(Map<String, ?> args, Closure configureClosure) {
         //noinspection unchecked
         return container.addRepository(createMavenInstaller(), DEFAULT_MAVEN_INSTALLER_NAME, Actions.<MavenResolver>composite(
-                new ConfigureByMapAction<MavenResolver>(args), new ClosureBackedAction<MavenResolver>(configureClosure)
+                new ConfigureByMapAction<MavenResolver>(args), ConfigureUtil.configureUsing(configureClosure)
         ));
     }
 

@@ -23,8 +23,8 @@ import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.internal.Actions;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Factory;
+import org.gradle.util.ConfigureUtil;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -58,7 +58,7 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     public void allDependencies(final Closure closure) {
-        allDependencies(new ClosureBackedAction<DependencyResult>(closure));
+        allDependencies(ConfigureUtil.configureUsing(closure));
     }
 
     private void eachElement(ResolvedComponentResult node,
@@ -87,7 +87,7 @@ public class DefaultResolutionResult implements ResolutionResult {
     }
 
     public void allComponents(final Closure closure) {
-        allComponents(new ClosureBackedAction<ResolvedComponentResult>(closure));
+        allComponents(ConfigureUtil.configureUsing(closure));
     }
 
 }

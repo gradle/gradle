@@ -19,12 +19,12 @@ import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.ManifestMergeDetails;
 import org.gradle.api.java.archives.ManifestMergeSpec;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
@@ -71,7 +71,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
 
     @Override
     public ManifestMergeSpec eachEntry(Closure<?> mergeAction) {
-        return eachEntry(new ClosureBackedAction<ManifestMergeDetails>(mergeAction));
+        return eachEntry(ConfigureUtil.configureUsing(mergeAction));
     }
 
     public DefaultManifest merge(Manifest baseManifest, PathToFileResolver fileResolver) {

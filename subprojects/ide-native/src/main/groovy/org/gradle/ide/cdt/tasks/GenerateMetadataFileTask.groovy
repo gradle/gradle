@@ -16,14 +16,14 @@
 package org.gradle.ide.cdt.tasks
 
 import org.gradle.api.Incubating
-import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.api.tasks.Internal
+import org.gradle.ide.cdt.model.CprojectSettings
 import org.gradle.internal.Factory
 import org.gradle.listener.ActionBroadcast
-import org.gradle.ide.cdt.model.CprojectSettings
 import org.gradle.plugins.ide.api.GeneratorTask
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator
+import org.gradle.util.ConfigureUtil
 
 @Incubating
 class GenerateMetadataFileTask<T extends PersistableConfigurationObject> extends GeneratorTask<T> {
@@ -54,6 +54,6 @@ class GenerateMetadataFileTask<T extends PersistableConfigurationObject> extends
     }
 
     void onConfigure(Closure configure) {
-        configures.add(new ClosureBackedAction(configure))
+        configures.add(ConfigureUtil.configureUsing(configure))
     }
 }

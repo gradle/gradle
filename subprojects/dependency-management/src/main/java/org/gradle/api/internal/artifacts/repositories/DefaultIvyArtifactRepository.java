@@ -18,15 +18,19 @@ package org.gradle.api.internal.artifacts.repositories;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepositoryMetaDataProvider;
 import org.gradle.api.artifacts.repositories.RepositoryLayout;
-import org.gradle.api.artifacts.repositories.AuthenticationContainer;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
-import org.gradle.api.internal.artifacts.repositories.layout.*;
+import org.gradle.api.internal.artifacts.repositories.layout.AbstractRepositoryLayout;
+import org.gradle.api.internal.artifacts.repositories.layout.DefaultIvyPatternRepositoryLayout;
+import org.gradle.api.internal.artifacts.repositories.layout.GradleRepositoryLayout;
+import org.gradle.api.internal.artifacts.repositories.layout.IvyRepositoryLayout;
+import org.gradle.api.internal.artifacts.repositories.layout.MavenRepositoryLayout;
+import org.gradle.api.internal.artifacts.repositories.layout.ResolvedPattern;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.PatternBasedResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
@@ -36,6 +40,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaD
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.util.ConfigureUtil;
 
 import java.net.URI;
 import java.util.LinkedHashSet;
@@ -135,7 +140,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     public void layout(String layoutName, Closure config) {
-        layout(layoutName, new ClosureBackedAction<RepositoryLayout>(config));
+        layout(layoutName, ConfigureUtil.<RepositoryLayout>configureUsing(config));
     }
 
     public void layout(String layoutName, Action<? extends RepositoryLayout> config) {
