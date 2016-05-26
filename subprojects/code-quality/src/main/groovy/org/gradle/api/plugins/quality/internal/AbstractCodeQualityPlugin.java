@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-public abstract class AbstractCodeQualityPlugin<T extends Task> extends GroovyObjectSupport implements Plugin<ProjectInternal> {
+public abstract class AbstractCodeQualityPlugin<T> extends GroovyObjectSupport implements Plugin<ProjectInternal> {
 
     protected static ConventionMapping conventionMappingOf(Object object) {
         return ((IConventionAware) object).getConventionMapping();
@@ -66,6 +66,10 @@ public abstract class AbstractCodeQualityPlugin<T extends Task> extends GroovyOb
     protected abstract String getToolName();
 
     protected abstract Class<T> getTaskType();
+
+    private Class<? extends Task> getCastedTaskType() {
+        return (Class<? extends Task>) getTaskType();
+    }
 
     protected String getTaskBaseName() {
         return getToolName().toLowerCase();
@@ -134,15 +138,15 @@ public abstract class AbstractCodeQualityPlugin<T extends Task> extends GroovyOb
     }
 
     private void configureTaskRule() {
-        project.getTasks().withType(getTaskType(), new Action<T>() {
+        project.getTasks().withType(getCastedTaskType(), new Action<Task>() {
             @Override
-            public void execute(T task) {
+            public void execute(Task task) {
                 String prunedName = task.getName().replaceFirst(getTaskBaseName(), "");
                 if (prunedName.isEmpty()) {
                     prunedName = task.getName();
                 }
                 prunedName = ("" + prunedName.charAt(0)).toLowerCase() + prunedName.substring(1);
-                configureTaskDefaults(task, prunedName);
+                configureTaskDefaults((T) task, prunedName);
             }
         });
     }
@@ -163,8 +167,8 @@ public abstract class AbstractCodeQualityPlugin<T extends Task> extends GroovyOb
         sourceSets.all(new Action<SourceSet>() {
             @Override
             public void execute(SourceSet sourceSet) {
-                T task = project.getTasks().create(sourceSet.getTaskName(getTaskBaseName(), null), getTaskType());
-                configureForSourceSet(sourceSet, task);
+                Task task = project.getTasks().create(sourceSet.getTaskName(getTaskBaseName(), null), getCastedTaskType());
+                configureForSourceSet(sourceSet, (T)task);
             }
         });
     }
