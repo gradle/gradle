@@ -61,8 +61,8 @@ class MyTaskClass extends DefaultTask {
     @InputFiles
     FileCollection input
 
-    @OutputFiles
-    FileCollection output
+    @OutputDirectory
+    File output
 
     @Input
     boolean flag
