@@ -17,22 +17,34 @@
 package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Nullable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.resources.TextResource;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.SourceTask;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 // This import must be here due to a clash in Java 8 between this and java.util.Optional.
 // Be careful running “Optimize Imports” as it will wipe this out.
 // If there's no import below this comment, this has happened.
-import org.gradle.api.tasks.Optional;
-import org.gradle.util.SingleMessageLogger;
 
 /**
  * <p>Generates HTML API documentation for Groovy source, and optionally, Java source.
@@ -78,8 +90,17 @@ public class Groovydoc extends SourceTask {
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
         getAntGroovydoc().execute(getSource(), getDestinationDir(), isUse(), isNoTimestamp(), isNoVersionStamp(), getWindowTitle(),
-                getDocTitle(), getHeader(), getFooter(), getOverviewText(), isIncludePrivate(), getLinks(), getGroovyClasspath(),
+                getDocTitle(), getHeader(), getFooter(), getPathToOverview(), isIncludePrivate(), getLinks(), getGroovyClasspath(),
                 getClasspath(), getProject());
+    }
+
+    @Nullable
+    private String getPathToOverview() {
+        TextResource overview = getOverviewText();
+        if (overview!=null) {
+            return overview.asFile().getAbsolutePath();
+        }
+        return null;
     }
 
     private void checkGroovyClasspathNonEmpty(Collection<File> classpath) {
