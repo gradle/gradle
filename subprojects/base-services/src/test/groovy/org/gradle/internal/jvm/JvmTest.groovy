@@ -293,8 +293,9 @@ class JvmTest extends Specification {
         }
 
         expect:
-        def jvm = Jvm.forHome(installDir)
-        Matchers.strictlyEquals(jvm, Jvm.forHome(installDir))
+        def jvm = new Jvm(os, installDir, JavaVersion.current())
+        def jvm2 = new Jvm(os, installDir, JavaVersion.current())
+        Matchers.strictlyEquals(jvm, jvm2)
     }
 
     def "Returns current JVM when located using Java home dir"() {
