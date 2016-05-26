@@ -16,7 +16,7 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
     - AbstractLibrary (Done)
     - EclipseClasspath (Done)
     - org.gradle.plugins.ide.eclipse.model.ProjectDependency (Done)
-    - org.gradle.tooling.model.Task
+    - org.gradle.tooling.model.Task (Done)
     - PrefixHeaderFileGenerateTask (Done)
 - Remove deprecated:
     - `--parallel-threads` command-line option (Done)
