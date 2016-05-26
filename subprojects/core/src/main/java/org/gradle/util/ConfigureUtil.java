@@ -151,6 +151,6 @@ public class ConfigureUtil {
     private static <T> void configureTarget(Closure configureClosure, T target, ConfigureDelegate closureDelegate) {
         // Hackery to make closure execution faster, by short-circuiting the expensive property and method lookup on Closure
         Closure withNewOwner = configureClosure.rehydrate(target, closureDelegate, configureClosure.getThisObject());
-`        new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false).execute(target);
+        new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false).execute(target);
     }
 }
