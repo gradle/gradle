@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.Lists;
 import groovy.lang.GString;
+import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
@@ -26,6 +28,7 @@ import org.gradle.api.tasks.TaskInputs;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.Callable;
 
 import static org.gradle.util.GUtil.uncheckedCall;
@@ -36,6 +39,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileResolver resolver;
     private final TaskMutator taskMutator;
     private final Map<String, Object> properties = new HashMap<String, Object>();
+    private Queue<Action<? super TaskInputs>> configureActions;
 
     public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
         this.resolver = resolver;
@@ -157,5 +161,24 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             }
         });
         return this;
+    }
+
+    @Override
+    public TaskInputs configure(Action<? super TaskInputs> action) {
+        if (configureActions == null) {
+            configureActions = Lists.newLinkedList();
+        }
+        configureActions.add(action);
+        return this;
+    }
+
+    @Override
+    public void ensureConfigured() {
+        if (configureActions != null) {
+            while (!configureActions.isEmpty()) {
+                configureActions.remove().execute(this);
+            }
+            configureActions = null;
+        }
     }
 }

@@ -19,4 +19,5 @@ package org.gradle.api.internal;
 import org.gradle.api.tasks.TaskInputs;
 
 public interface TaskInputsInternal extends TaskInputs {
+    void ensureConfigured();
 }

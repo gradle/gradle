@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
@@ -91,4 +92,12 @@ public interface TaskOutputs {
      * @return this
      */
     TaskOutputs dir(Object path);
+
+    /**
+     * Executes the given configuration action on the {@code TaskOutputs}. The action is executed before the task is executed.
+     *
+     * @param action the configuration action to execute.
+     * @return this
+     */
+    TaskOutputs configure(Action<? super TaskOutputs> action);
 }

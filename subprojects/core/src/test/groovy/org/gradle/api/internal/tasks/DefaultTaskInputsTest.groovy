@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.Action
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
@@ -198,5 +199,35 @@ class DefaultTaskInputsTest extends Specification {
         then:
         inputs.hasInputs
         inputs.hasSourceFiles
+    }
+
+    def "configuration actions are delayed"() {
+        def action = Mock(Action)
+        when:
+        inputs.configure(action)
+
+        then:
+        0 * action.execute(_)
+
+        when:
+        inputs.ensureConfigured()
+        then:
+        1 * action.execute(inputs)
+    }
+
+    def "configuration actions can call configure"() {
+        def action = Mock(Action)
+        when:
+        inputs.configure {
+            it.configure(action)
+        }
+
+        then:
+        0 * action.execute(_)
+
+        when:
+        inputs.ensureConfigured()
+        then:
+        1 * action.execute(inputs)
     }
 }

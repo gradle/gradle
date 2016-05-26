@@ -45,6 +45,7 @@ import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
+import org.gradle.api.internal.tasks.execution.InputOutputEnsuringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.PostExecutionAnalysisTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
@@ -81,14 +82,16 @@ public class TaskExecutionServices {
         return new ExecuteAtMostOnceTaskExecuter(
             new SkipOnlyIfTaskExecuter(
                 new SkipTaskWithNoActionsExecuter(
-                    new SkipEmptySourceFilesTaskExecuter(
-                        taskInputsListener,
-                        new ValidatingTaskExecuter(
-                            new SkipUpToDateTaskExecuter(
-                                repository,
-                                new PostExecutionAnalysisTaskExecuter(
-                                    new ExecuteActionsTaskExecuter(
-                                        listenerManager.getBroadcaster(TaskActionListener.class)
+                    new InputOutputEnsuringTaskExecuter(
+                        new SkipEmptySourceFilesTaskExecuter(
+                            taskInputsListener,
+                            new ValidatingTaskExecuter(
+                                new SkipUpToDateTaskExecuter(
+                                    repository,
+                                    new PostExecutionAnalysisTaskExecuter(
+                                        new ExecuteActionsTaskExecuter(
+                                            listenerManager.getBroadcaster(TaskActionListener.class)
+                                        )
                                     )
                                 )
                             )
