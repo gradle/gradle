@@ -52,9 +52,7 @@ task build << {
 task idea << {
     def connection = openCompositeConnection()
     try {
-        executeTask(connection, "projectC", ":ideaModule")
-        executeTask(connection, "projectB", ":b1:ideaModule", ":b2:ideaModule", ":ideaModule")
-        executeTask(connection, "projectA", ":ideaModule")
+        executeTask(connection, "projectA", ":idea")
     } finally {
         connection.close()
     }
