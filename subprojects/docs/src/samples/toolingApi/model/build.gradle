@@ -4,10 +4,7 @@ apply plugin: 'application'
 def toolingApiVersion = gradle.gradleVersion
 
 repositories {
-    maven {
-        url 'https://repo.gradle.org/gradle/libs-releases-local'
-    }
-    mavenCentral()
+    maven { url 'https://repo.gradle.org/gradle/libs-releases' }
 }
 
 dependencies {

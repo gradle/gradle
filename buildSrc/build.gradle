@@ -21,8 +21,7 @@ apply plugin: 'idea'
 apply plugin: 'eclipse'
 
 repositories {
-    maven { url 'https://repo.gradle.org/gradle/libs' }
-    mavenCentral()
+    maven { url 'https://repo.gradle.org/gradle/libs-releases' }
 }
 
 dependencies {
