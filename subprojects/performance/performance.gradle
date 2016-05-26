@@ -601,9 +601,12 @@ configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic,
     additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
 }
 
-if(project.hasProperty("springDmPluginVersion")) {
-    configure(tasks.withType(JvmProjectGeneratorTask)) {
-        templateArgs += [springDmPluginVersion: springDmPluginVersion]
+configure(tasks.withType(JvmProjectGeneratorTask)) {
+    if(project.hasProperty("springDmPluginVersion")) {
+        templateArgs['springDmPluginVersion'] = springDmPluginVersion
+    }
+    if(project.hasProperty("maxProjects")) {
+        projects = maxProjects as Integer
     }
 }
 
