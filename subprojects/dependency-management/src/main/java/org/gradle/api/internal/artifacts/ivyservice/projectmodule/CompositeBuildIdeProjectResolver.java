@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.service.ServiceRegistry;
@@ -26,10 +25,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class CompositeProjectDirectoryMapper implements Transformer<File, String> {
+public class CompositeBuildIdeProjectResolver {
     private final CompositeProjectComponentRegistry discovered;
 
-    public CompositeProjectDirectoryMapper(ServiceRegistry services) {
+    public CompositeBuildIdeProjectResolver(ServiceRegistry services) {
         List<CompositeProjectComponentRegistry> registries = services.getAll(CompositeProjectComponentRegistry.class);
         if (!registries.isEmpty()) {
             discovered = registries.iterator().next();
@@ -38,8 +37,7 @@ public class CompositeProjectDirectoryMapper implements Transformer<File, String
         }
     }
 
-    @Override
-    public File transform(String projectPath) {
+    public File getProjectDirectory(String projectPath) {
         ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newId(projectPath);
         return getRegistry().getProjectDirectory(projectComponentIdentifier);
     }

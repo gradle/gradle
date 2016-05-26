@@ -19,8 +19,7 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeProjectDirectoryMapper;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
@@ -58,7 +57,7 @@ import java.util.Set;
 
 public class EclipseModelBuilder implements ProjectToolingModelBuilder {
     private final GradleProjectBuilder gradleProjectBuilder;
-    private final Transformer<File, String> compositeProjectMapper;
+    private final CompositeBuildIdeProjectResolver compositeProjectMapper;
 
     private boolean projectDependenciesOnly;
     private DefaultEclipseProject result;
@@ -69,7 +68,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
 
     public EclipseModelBuilder(GradleProjectBuilder gradleProjectBuilder, ServiceRegistry services) {
         this.gradleProjectBuilder = gradleProjectBuilder;
-        compositeProjectMapper = new CompositeProjectDirectoryMapper(services);
+        compositeProjectMapper = new CompositeBuildIdeProjectResolver(services);
     }
 
     @Override
@@ -170,7 +169,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
                 DefaultEclipseProject targetProject = projectMapping.get(projectDependency.getGradlePath());
                 DefaultEclipseProjectDependency dependency;
                 if (targetProject == null) {
-                    File projectDirectory = compositeProjectMapper.transform(projectDependency.getGradlePath());
+                    File projectDirectory = compositeProjectMapper.getProjectDirectory(projectDependency.getGradlePath());
                     dependency = new DefaultEclipseProjectDependency(path, projectDirectory, projectDependency.isExported());
                 } else {
                     dependency = new DefaultEclipseProjectDependency(path, targetProject, projectDependency.isExported());

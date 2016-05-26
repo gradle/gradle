@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeProjectDirectoryMapper;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
@@ -57,13 +57,13 @@ import java.util.Set;
 
 public class IdeaModelBuilder implements ToolingModelBuilder {
     private final GradleProjectBuilder gradleProjectBuilder;
-    private final CompositeProjectDirectoryMapper compositeProjectMapper;
+    private final CompositeBuildIdeProjectResolver compositeProjectMapper;
 
     private boolean offlineDependencyResolution;
 
     public IdeaModelBuilder(GradleProjectBuilder gradleProjectBuilder, ServiceRegistry services) {
         this.gradleProjectBuilder = gradleProjectBuilder;
-        compositeProjectMapper = new CompositeProjectDirectoryMapper(services);
+        compositeProjectMapper = new CompositeBuildIdeProjectResolver(services);
     }
 
     @Override
@@ -140,7 +140,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 ModuleDependency d = (ModuleDependency) dependency;
                 DefaultIdeaModule targetModule = modules.get(d.getName());
                 File targetProjectDirectory = targetModule == null
-                    ? compositeProjectMapper.transform(d.getGradlePath())
+                    ? compositeProjectMapper.getProjectDirectory(d.getGradlePath())
                     : targetModule.getGradleProject().getProjectDirectory();
                 DefaultIdeaModuleDependency defaultDependency = new org.gradle.tooling.internal.idea.DefaultIdeaModuleDependency()
                     .setExported(d.isExported())
