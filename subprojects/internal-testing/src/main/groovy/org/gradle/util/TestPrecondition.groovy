@@ -108,10 +108,16 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         JDK7_OR_LATER.fulfilled && NOT_WINDOWS.fulfilled
     }),
     NOT_JDK_IBM({
-        System.getProperty('java.vm.vendor') != 'IBM Corporation'
+        !JDK_IBM.fulfilled
+    }),
+    NOT_JDK_IBM_6({
+        !JDK_IBM_6.fulfilled
+    }),
+    JDK_IBM_6({
+        JDK_IBM.fulfilled && JDK6.fulfilled
     }),
     JDK_IBM({
-        !NOT_JDK_IBM.fulfilled
+        System.getProperty('java.vm.vendor') == 'IBM Corporation'
     }),
     JDK_ORACLE({
         System.getProperty('java.vm.vendor') == 'Oracle Corporation'

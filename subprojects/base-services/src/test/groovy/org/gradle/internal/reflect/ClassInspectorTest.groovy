@@ -371,14 +371,14 @@ class ClassInspectorTest extends Specification {
         ClassInspector.inspect(List).superTypes.toList() == [Collection, Iterable]
     }
 
-    @Requires(TestPrecondition.NOT_JDK_IBM)
+    @Requires(TestPrecondition.NOT_JDK_IBM_6)
     def "super types ordered by their distance"() {
         expect:
         ClassInspector.inspect(ArrayList).superTypes.toList() == [AbstractList, AbstractCollection, List, RandomAccess, Cloneable, Serializable, Collection, Iterable]
     }
 
-    @Requires(TestPrecondition.JDK_IBM)
-    def "super types ordered by their distance on IBMs jdk"() {
+    @Requires(TestPrecondition.JDK_IBM_6)
+    def "super types ordered by their distance on IBMs jdk 6"() {
         expect:
         ClassInspector.inspect(ArrayList).superTypes.toList() == [AbstractList, AbstractCollection, List, Cloneable, Serializable, RandomAccess, Collection, Iterable]
     }
