@@ -85,11 +85,21 @@ public class GarbageCollectionMonitor {
     }
 
     public GarbageCollectionStats getTenuredStats() {
-        return new GarbageCollectionStats(events.get(gcStrategy.getTenuredPoolName()).snapshot());
+        return getGarbageCollectionStatsWithEmptyDefault(gcStrategy.getTenuredPoolName());
     }
 
     public GarbageCollectionStats getPermGenStats() {
-        return new GarbageCollectionStats(events.get(gcStrategy.getPermGenPoolName()).snapshot());
+        return getGarbageCollectionStatsWithEmptyDefault(gcStrategy.getPermGenPoolName());
+    }
+
+    private GarbageCollectionStats getGarbageCollectionStatsWithEmptyDefault(final String memoryPoolName) {
+        SlidingWindow<GarbageCollectionEvent> slidingWindow;
+        if ((memoryPoolName == null) || events.get(memoryPoolName) == null) { // events has no entries on UNKNOWN
+            slidingWindow = new DefaultSlidingWindow<GarbageCollectionEvent>(EVENT_WINDOW);
+        } else {
+            slidingWindow = events.get(memoryPoolName);
+        }
+        return new GarbageCollectionStats(slidingWindow.snapshot());
     }
 
     public GarbageCollectorMonitoringStrategy getGcStrategy() {
