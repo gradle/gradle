@@ -217,3 +217,29 @@ Some basic daemon status information is made, internally, available via the serv
 - The number of running builds is backed by the `org.gradle.launcher.daemon.registry.DaemonRegistry#getAll`
 - Works when the daemon is ran in the foreground `--foreground`
 - Works when the daemon is run with `--continuous`
+
+### Story - Internally register a listener for daemon expiration events
+
+#### Implementation
+1. Add `registerListener(DaemonExpirationListener daemonExpirationListener);` to `org.gradle.launcher.daemon.server.health.DaemonHealthServices`
+1. `org.gradle.launcher.daemon.server.DaemonServices.createDaemonHealthServices` will pass the `org.gradle.internal.event.ListenerManager` to  `DefaultDaemonHealthServices` 
+1. Clients can register a listener as follows: 
+  ``` groovy
+   import org.gradle.launcher.daemon.server.DaemonExpirationListener
+
+   def healthService = project.getServices().get(org.gradle.launcher.daemon.server.health.DaemonHealthServices)
+   healthService.registerListener(new DaemonExpirationListener() {
+        @Override
+        public void onExpirationEvent(org.gradle.launcher.daemon.server.DaemonExpirationResult result) {
+            println "Daemon expired with \${result.getReason()}"
+        }
+    });
+  ```
+
+#### Coverage
+- An integration test which:
+   - Registers a dummy `org.gradle.launcher.daemon.server.DaemonExpirationStrategy` which aways returns a `DaemonExpirationResult`
+   - Registers a `DaemonExpirationListener` which prints the `result` of `DaemonExpirationResult`
+   - Verifies the console output by the above `DaemonExpirationListener`
+- Works when the daemon is ran in the foreground `--foreground`
+- Works when the daemon is run with `--continuous`
