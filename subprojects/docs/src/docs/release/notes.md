@@ -161,6 +161,7 @@ In previous versions, annotations on task properties like `@InputFile` and `@Out
 * Removed `AntScalaDoc`.
 * Removed `BinaryType`.
 * Removed `LanguageType`.
+* Removed `ConventionValue`.
 * Removed `org.gradle.platform.base.test.TestSuiteBinarySpec` replaced by `org.gradle.testing.base.TestSuiteBinarySpec`
 * Removed `org.gradle.platform.base.test.TestSuiteContainer` replaced by `org.gradle.testing.base.TestSuiteContainer`
 * Removed `org.gradle.platform.base.test.TestSuiteSpec` replaced by `org.gradle.testing.base.TestSuiteSpec`
