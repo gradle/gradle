@@ -20,7 +20,6 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
 import org.gradle.api.internal.file.copy.CopySpecInternal
@@ -101,11 +100,6 @@ class Ear extends Jar {
 
     @Inject
     protected Instantiator getInstantiator() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected FileResolver getFileResolver() {
         throw new UnsupportedOperationException();
     }
 
