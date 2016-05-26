@@ -79,15 +79,15 @@ public class CheckstyleExtension extends CodeQualityExtension {
         this.configProperties = configProperties;
     }
 
+    public boolean isShowViolations() {
+        return showViolations;
+    }
+
     /**
      * Whether or not rule violations are to be displayed on the console. Defaults to <tt>true</tt>.
      *
      * Example: showViolations = false
      */
-    public boolean isShowViolations() {
-        return showViolations;
-    }
-
     public boolean getShowViolations() {
         return isShowViolations();
     }

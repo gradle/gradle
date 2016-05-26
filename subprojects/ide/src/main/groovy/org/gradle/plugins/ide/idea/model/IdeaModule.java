@@ -268,13 +268,13 @@ public class IdeaModule extends GroovyObjectSupport {
         this.scopes = scopes;
     }
 
-    /**
-     * Whether to download and add sources associated with the dependency jars. <p> For example see docs for {@link IdeaModule}
-     */
     public boolean isDownloadSources() {
         return downloadSources;
     }
 
+    /**
+     * Whether to download and add sources associated with the dependency jars. <p> For example see docs for {@link IdeaModule}
+     */
     public boolean getDownloadSources() {
         return downloadSources;
     }
@@ -283,13 +283,13 @@ public class IdeaModule extends GroovyObjectSupport {
         this.downloadSources = downloadSources;
     }
 
-    /**
-     * Whether to download and add javadoc associated with the dependency jars. <p> For example see docs for {@link IdeaModule}
-     */
     public boolean isDownloadJavadoc() {
         return downloadJavadoc;
     }
 
+    /**
+     * Whether to download and add javadoc associated with the dependency jars. <p> For example see docs for {@link IdeaModule}
+     */
     public boolean getDownloadJavadoc() {
         return downloadJavadoc;
     }
@@ -473,13 +473,13 @@ public class IdeaModule extends GroovyObjectSupport {
         this.pathFactory = pathFactory;
     }
 
-    /**
-     * If true then external artifacts (e.g. those found in repositories) will not be included in the resulting classpath (only project and local file dependencies will be included).
-     */
     public boolean isOffline() {
         return offline;
     }
 
+    /**
+     * If true then external artifacts (e.g. those found in repositories) will not be included in the resulting classpath (only project and local file dependencies will be included).
+     */
     public boolean getOffline() {
         return offline;
     }

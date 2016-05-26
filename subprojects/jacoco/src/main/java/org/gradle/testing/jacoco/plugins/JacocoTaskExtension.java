@@ -82,13 +82,13 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
         this.task = task;
     }
 
-    /**
-     * Whether or not the task should generate execution data. Defaults to {@code true}.
-     */
     public boolean isEnabled() {
         return enabled;
     }
 
+    /**
+     * Whether or not the task should generate execution data. Defaults to {@code true}.
+     */
     public boolean getEnabled() {
         return enabled;
     }
@@ -108,13 +108,13 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
         this.destinationFile = destinationFile;
     }
 
-    /**
-     * Whether or not data should be appended if the {@code destinationFile} already exists. Defaults to {@code true}.
-     */
     public boolean isAppend() {
         return append;
     }
 
+    /**
+     * Whether or not data should be appended if the {@code destinationFile} already exists. Defaults to {@code true}.
+     */
     public boolean getAppend() {
         return append;
     }
@@ -156,15 +156,15 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
         this.excludeClassLoaders = excludeClassLoaders;
     }
 
+    public boolean isIncludeNoLocationClasses() {
+        return includeNoLocationClasses;
+    }
+
     /**
      * Whether or not classes without source location should be instrumented. Defaults to {@code false}.
      *
      * This property is only taken into account if the used JaCoCo version supports this option (JaCoCo version >= 0.7.6)
      */
-    public boolean isIncludeNoLocationClasses() {
-        return includeNoLocationClasses;
-    }
-
     public boolean getIncludeNoLocationClasses() {
         return includeNoLocationClasses;
     }
@@ -184,13 +184,13 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
         this.sessionId = sessionId;
     }
 
-    /**
-     * Whether or not to dump the coverage data at VM shutdown. Defaults to {@code true}.
-     */
     public boolean isDumpOnExit() {
         return dumpOnExit;
     }
 
+    /**
+     * Whether or not to dump the coverage data at VM shutdown. Defaults to {@code true}.
+     */
     public boolean getDumpOnExit() {
         return dumpOnExit;
     }
@@ -243,15 +243,15 @@ public class JacocoTaskExtension extends GroovyObjectSupport {
         this.classDumpFile = classDumpFile;
     }
 
+    public boolean isJmx() {
+        return jmx;
+    }
+
     /**
      * Whether or not to expose functionality via JMX under {@code org.jacoco:type=Runtime}. Defaults to {@code false}.
      *
      * The configuration of the jmx property is only taken into account if the used JaCoCo version supports this option (JaCoCo version >= 0.6.2)
      */
-    public boolean isJmx() {
-        return jmx;
-    }
-
     public boolean getJmx() {
         return jmx;
     }

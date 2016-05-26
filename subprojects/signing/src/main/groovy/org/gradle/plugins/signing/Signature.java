@@ -92,9 +92,9 @@ public class Signature extends AbstractPublishArtifact implements GroovyObject {
      */
     private File file;
 
-    private final Callable<File> toSignGenerator;
+    private Callable<File> toSignGenerator;
 
-    private final Callable<String> classifierGenerator;
+    private Callable<String> classifierGenerator;
 
     // ----- backwards compatibility section, implements the GroovyObject interface
     private transient MetaClass metaClass = InvokerHelper.getMetaClass(this.getClass());
@@ -134,7 +134,8 @@ public class Signature extends AbstractPublishArtifact implements GroovyObject {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     public Signature(final PublishArtifact toSign, SignatureSpec signatureSpec, Object... tasks) {
-        this(new Callable<File>() {
+        super(tasks);
+        init(new Callable<File>() {
             public File call() {
                 return toSign.getFile();
             }
@@ -142,7 +143,7 @@ public class Signature extends AbstractPublishArtifact implements GroovyObject {
             public String call() {
                 return toSign.getClassifier();
             }
-        }, signatureSpec, tasks);
+        }, signatureSpec);
         this.toSignArtifact = toSign;
     }
 
@@ -154,7 +155,8 @@ public class Signature extends AbstractPublishArtifact implements GroovyObject {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     public Signature(final File toSign, SignatureSpec signatureSpec, Object... tasks) {
-        this(returning(toSign), null, signatureSpec, tasks);
+        super(tasks);
+        init(returning(toSign), null, signatureSpec);
     }
 
     /**
@@ -166,7 +168,8 @@ public class Signature extends AbstractPublishArtifact implements GroovyObject {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     public Signature(final File toSign, final String classifier, SignatureSpec signatureSpec, Object... tasks) {
-        this(returning(toSign), returning(classifier), signatureSpec, tasks);
+        super(tasks);
+        init(returning(toSign), returning(classifier), signatureSpec);
     }
 
     /**
@@ -181,6 +184,12 @@ public class Signature extends AbstractPublishArtifact implements GroovyObject {
      */
     public Signature(Closure<File> toSign, Closure<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
         super(tasks);
+        this.toSignGenerator = toSign;
+        this.classifierGenerator = classifier;
+        this.signatureSpec = signatureSpec;
+    }
+
+    private void init(Callable<File> toSign, Callable<String> classifier, SignatureSpec signatureSpec) {
         this.toSignGenerator = toSign;
         this.classifierGenerator = classifier;
         this.signatureSpec = signatureSpec;
