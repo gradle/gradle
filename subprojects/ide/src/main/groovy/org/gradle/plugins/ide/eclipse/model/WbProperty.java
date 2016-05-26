@@ -35,6 +35,11 @@ public class WbProperty extends GroovyObjectSupport implements WbModuleEntry {
         this((String) node.attribute("name"), (String) node.attribute("value"));
     }
 
+    @Deprecated
+    public WbProperty(Object node) {
+        this((Node)node);
+    }
+
     public WbProperty(String name, String value) {
         this.name = Preconditions.checkNotNull(name);
         this.value = Preconditions.checkNotNull(value);

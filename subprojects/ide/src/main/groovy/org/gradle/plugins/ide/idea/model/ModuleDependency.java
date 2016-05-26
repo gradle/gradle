@@ -41,6 +41,11 @@ public class ModuleDependency extends GroovyObjectSupport implements Dependency 
         this.exported = false;
     }
 
+    @Deprecated
+    public ModuleDependency(Object name, Object scope) {
+        this((String)name, (String)scope);
+    }
+
     /**
      * The name of the module the module depends on.
      * Must not be null.

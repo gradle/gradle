@@ -50,6 +50,11 @@ public class Jdk extends GroovyObjectSupport {
         this.projectJdkName = projectJdkName;
     }
 
+    @Deprecated
+    public Jdk(Object assertKeyword, Object jdk15, Object languageLevel, Object projectJdkName) {
+        this(((Boolean)assertKeyword).booleanValue(), ((Boolean)jdk15).booleanValue(), (String)languageLevel, (String)projectJdkName);
+    }
+
     public boolean isAssertKeyword() {
         return assertKeyword;
     }

@@ -32,6 +32,11 @@ public class AccessRule extends GroovyObjectSupport {
         this.pattern = Preconditions.checkNotNull(pattern);
     }
 
+    @Deprecated
+    public AccessRule(Object kind, Object pattern) {
+        this((String)kind, (String)pattern);
+    }
+
     public String getKind() {
         return kind;
     }
