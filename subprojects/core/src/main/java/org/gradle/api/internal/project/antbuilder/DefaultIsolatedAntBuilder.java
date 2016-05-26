@@ -29,7 +29,11 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.*;
+import org.gradle.internal.classloader.CachingClassLoader;
+import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.MultiParentClassLoader;
+import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.Stoppable;
@@ -142,8 +146,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
                         // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
                         // because they are not an instanceof its Closure class.
                         Object delegate = new AntBuilderDelegate(antBuilder, classLoader);
-                        new ClosureBackedAction<Object>(antClosure).execute(delegate);
-
+                        ClosureBackedAction.execute(delegate, antClosure);
                     } finally {
                         Thread.currentThread().setContextClassLoader(originalLoader);
                         disposeBuilder(antBuilder, antLogger);

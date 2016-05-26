@@ -376,7 +376,7 @@ class CollectionUtilsTest extends Specification {
     }
 
     Action action(Closure c) {
-        new ClosureBackedAction(c)
+        ClosureBackedAction.of(c)
     }
 
 }
