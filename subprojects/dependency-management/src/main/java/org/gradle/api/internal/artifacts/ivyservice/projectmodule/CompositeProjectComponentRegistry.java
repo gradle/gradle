@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
 
 import java.io.File;
 import java.util.Set;
@@ -26,4 +27,5 @@ public interface CompositeProjectComponentRegistry extends ProjectComponentProvi
     ProjectComponentIdentifier getReplacementProject(ModuleComponentSelector selector);
     File getProjectDirectory(ProjectComponentIdentifier project);
     Set<ProjectComponentIdentifier> getAllProjects();
+    ComponentArtifactMetaData getImlArtifact(ProjectComponentIdentifier project);
 }

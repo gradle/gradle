@@ -232,9 +232,7 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         idea()
 
         then:
-        // TODO:DAZ .ipr generation does not yet respect Gradle project name (or `ideaModule` configuration)
-//        assertIprHasModules("buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml", "../hierarchy/buildB/buildC.iml")
-
+        iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml", "../hierarchy/buildB/buildC.iml"
         imlHasDependencies "buildB", "buildC"
     }
 

@@ -27,7 +27,11 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.initialization.ReportedException;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -35,12 +39,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
 public class DefaultCompositeBuildContext implements CompositeBuildContext {
-    // TODO:DAZ Reduce the verbosity of composite build
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCompositeBuildContext.class);
 
     private final Multimap<ModuleIdentifier, ProjectComponentIdentifier> replacementProjects = ArrayListMultimap.create();
@@ -98,6 +102,25 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
     @Override
     public Set<ProjectComponentIdentifier> getAllProjects() {
         return projectMetadata.keySet();
+    }
+
+    @Override
+    public ComponentArtifactMetaData getImlArtifact(ProjectComponentIdentifier project) {
+        File projectDir = getProjectDirectory(project);
+
+        // TODO:DAZ This isn't good: doesn't take into account `idea` configuration of the project. Need this to be "published" by project.
+        String name = getProject(project).getId().getName();
+        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(name, "iml", "iml", null);
+
+        File imlFile = new File(projectDir, name + ".iml");
+
+        String rootProjectPath = project.getProjectPath().split("::")[0] + "::";
+        ProjectComponentIdentifier rootProjectIdentifier = DefaultProjectComponentIdentifier.newId(rootProjectPath);
+        File buildDir = getProjectDirectory(rootProjectIdentifier);
+
+        String taskPath = project.getProjectPath().equals(rootProjectPath) ? ":ideaModule" : project.getProjectPath().substring(rootProjectPath.length() - 1) + ":ideaModule";
+
+        return new CompositeProjectComponentArtifactMetaData(project, ivyArtifactName, imlFile, buildDir, Collections.singleton(taskPath));
     }
 
     private static class RegisteredProject {

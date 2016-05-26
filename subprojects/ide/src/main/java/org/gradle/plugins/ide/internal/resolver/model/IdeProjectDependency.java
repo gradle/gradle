@@ -41,6 +41,7 @@ public class IdeProjectDependency extends IdeDependency {
     }
 
     public String getModuleName() {
+        // TODO:DAZ Implement this properly, or get rid of it
         // This is just a hack to allow 'idea' task to function reasonably in a composite
         // This will be addressed when we add support for IDE project file generation for a composite build
         if (projectPath.endsWith("::")) {
