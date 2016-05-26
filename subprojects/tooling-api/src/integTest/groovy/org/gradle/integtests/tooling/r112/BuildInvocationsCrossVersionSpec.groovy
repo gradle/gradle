@@ -174,13 +174,6 @@ project(':b:c') {
         tasks*.name as Set == projectBExpectedTasks
 
         when:
-        tasks[0].project
-
-        then:
-        UnsupportedMethodException e = thrown()
-        e != null
-
-        when:
         tasks = withConnection { connection ->
             connection.action(new FetchTasksBuildAction(':')).run()
         }
@@ -188,12 +181,6 @@ project(':b:c') {
         then:
         tasks.size() == rootProjectExpectedTasks.size()
         tasks*.name as Set == rootProjectExpectedTasks
-
-        when:
-        tasks[0].project
-        then:
-        e = thrown()
-        e != null
     }
 
     @TargetGradleVersion(">=1.12")
@@ -342,11 +329,5 @@ project(':b:c') {
         task != null
         task.name == 't1'
         task.path == ':t1'
-
-        when:
-        task.project
-
-        then:
-        UnsupportedMethodException e = thrown()
     }
 }
