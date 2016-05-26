@@ -23,7 +23,6 @@ import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.TaskInternal;
@@ -32,16 +31,11 @@ import org.gradle.api.internal.tasks.options.OptionValues;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputDirectories;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.OutputFiles;
 import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.Types;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
@@ -49,7 +43,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,20 +54,6 @@ public class TaskClassValidator implements TaskValidator, Action<Task> {
         ConventionTask.class, DefaultTask.class, AbstractTask.class, Task.class, Object.class, GroovyObject.class
     );
 
-    private final static Transformer<Iterable<File>, Object> FILE_PROPERTY_TRANSFORMER = new Transformer<Iterable<File>, Object>() {
-        public Iterable<File> transform(Object original) {
-            File file = (File) original;
-            return file == null ? Collections.<File>emptyList() : Collections.singleton(file);
-        }
-    };
-
-    private final static Transformer<Iterable<File>, Object> ITERABLE_FILE_PROPERTY_TRANSFORMER = new Transformer<Iterable<File>, Object>() {
-        @SuppressWarnings("unchecked")
-        public Iterable<File> transform(Object original) {
-            return original != null ? (Iterable<File>) original : Collections.<File>emptyList();
-        }
-    };
-
     private final static ValidationAction NOT_NULL_VALIDATOR = new ValidationAction() {
         public void validate(String propertyName, Object value, Collection<String> messages) {
             if (value == null) {
@@ -83,14 +62,15 @@ public class TaskClassValidator implements TaskValidator, Action<Task> {
         }
     };
 
+    @SuppressWarnings("deprecation")
     private final static List<? extends PropertyAnnotationHandler> HANDLERS = Arrays.asList(
         new InputFilePropertyAnnotationHandler(),
         new InputDirectoryPropertyAnnotationHandler(),
         new InputFilesPropertyAnnotationHandler(),
-        new OutputFilePropertyAnnotationHandler(OutputFile.class, FILE_PROPERTY_TRANSFORMER),
-        new OutputFilePropertyAnnotationHandler(OutputFiles.class, ITERABLE_FILE_PROPERTY_TRANSFORMER),
-        new OutputDirectoryPropertyAnnotationHandler(OutputDirectory.class, FILE_PROPERTY_TRANSFORMER),
-        new OutputDirectoryPropertyAnnotationHandler(OutputDirectories.class, ITERABLE_FILE_PROPERTY_TRANSFORMER),
+        new OutputFilePropertyAnnotationHandler(),
+        new OutputFilesPropertyAnnotationHandler(),
+        new OutputDirectoryPropertyAnnotationHandler(),
+        new OutputDirectoriesPropertyAnnotationHandler(),
         new InputPropertyAnnotationHandler(),
         new NestedBeanPropertyAnnotationHandler(),
         new NoOpPropertyAnnotationHandler(Inject.class),

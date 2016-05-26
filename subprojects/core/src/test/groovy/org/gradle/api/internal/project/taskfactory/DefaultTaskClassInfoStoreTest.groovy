@@ -34,6 +34,7 @@ import javax.inject.Inject
 class DefaultTaskClassInfoStoreTest extends Specification {
     def taskClassInfoStore = new DefaultTaskClassInfoStore()
 
+    @SuppressWarnings("GrDeprecatedAPIUsage")
     private static class SimpleTask extends DefaultTask {
         @Input String inputString
         @InputFile File inputFile

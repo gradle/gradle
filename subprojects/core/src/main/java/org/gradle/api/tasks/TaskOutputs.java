@@ -74,7 +74,10 @@ public interface TaskOutputs {
      *
      * @param paths The output files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
+     *
+     * @deprecated Use {@link #file(Object)} or {@link #dir(Object)} instead.
      */
+    @Deprecated
     TaskOutputs files(Object... paths);
 
     /**

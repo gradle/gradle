@@ -101,6 +101,14 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Plural task output registration APIs
+
+The following APIs have been deprecated:
+
+* `@OutputFiles` annotation – use multiple `@OutputFile` properties instead
+* `@OutputDirectories` annotation – use multiple `@OutputDirectory` properties instead
+* `TaskOutputs.files()` method – call `TaskOutputs.file()` with each file separately instead
+
 ## Potential breaking changes
 
 ### Supported Java versions

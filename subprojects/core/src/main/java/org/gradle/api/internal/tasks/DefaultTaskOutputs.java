@@ -30,6 +30,7 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.Queue;
 
@@ -75,6 +76,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public TaskOutputs files(final Object... paths) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskOutputs.files()", "Please use the TaskOutputs.file() or the TaskOutputs.dir() method instead.");
         taskMutator.mutate("TaskOutputs.files(Object...)", new Runnable() {
             public void run() {
                 outputFiles.from(paths);

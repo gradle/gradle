@@ -205,6 +205,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionSucceedsWhenSpecifiedOutputFilesDoesNotExist() {
         given:
         def task = expectTaskCreated(TaskWithOutputFiles, [new File(testDir, "subdir/output.txt"), new File(testDir, "subdir2/output.txt")] as List)
+        task.getInputs().ensureConfigured()
+        task.getOutputs().ensureConfigured()
 
         when:
         task.execute()

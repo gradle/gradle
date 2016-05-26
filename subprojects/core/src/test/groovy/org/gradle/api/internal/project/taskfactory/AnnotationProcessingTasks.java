@@ -236,6 +236,7 @@ public class AnnotationProcessingTasks {
             this.outputFiles = outputFiles;
         }
 
+        @SuppressWarnings("deprecation")
         @OutputFiles
         public List<File> getOutputFiles() {
             return outputFiles;
@@ -276,6 +277,7 @@ public class AnnotationProcessingTasks {
     }
 
     public static class TaskWithOptionalOutputFiles extends DefaultTask {
+        @SuppressWarnings("deprecation")
         @OutputFiles
         @org.gradle.api.tasks.Optional
         public List<File> getOutputFiles() {
@@ -303,6 +305,7 @@ public class AnnotationProcessingTasks {
             this.outputDirs = outputDirs;
         }
 
+        @SuppressWarnings("deprecation")
         @OutputDirectories
         public List<File> getOutputDirs() {
             return outputDirs;
@@ -318,6 +321,7 @@ public class AnnotationProcessingTasks {
     }
 
     public static class TaskWithOptionalOutputDirs extends DefaultTask {
+        @SuppressWarnings("deprecation")
         @OutputDirectories
         @org.gradle.api.tasks.Optional
         public File getOutputDirs() {

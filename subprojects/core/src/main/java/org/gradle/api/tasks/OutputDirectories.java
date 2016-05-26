@@ -16,7 +16,11 @@
 
 package org.gradle.api.tasks;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * <p>Marks a property as specifying one or more output directories for a task.</p>
@@ -25,7 +29,11 @@ import java.lang.annotation.*;
  *
  * <p>This will cause the task to be considered out-of-date when the directory paths or task
  * output to those directories have been modified since the task was last run.</p>
+ *
+ * @deprecated Use separate properties annotated with {@literal @}{@link OutputDirectory} instead, or
+ * reorganize outputs under a single output directory.
  */
+@Deprecated
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

@@ -23,15 +23,16 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.tasks.TaskOutputs;
-import org.gradle.internal.FileUtils;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
+
+import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureDirectoryExists;
+import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureParentDirectoryExists;
 
 public abstract class TaskReportContainer<T extends Report> extends DefaultReportContainer<T> {
 
@@ -76,12 +77,10 @@ public abstract class TaskReportContainer<T extends Report> extends DefaultRepor
                         for (Report report : getEnabled()) {
                             switch (report.getOutputType()) {
                                 case FILE:
-                                    File file = FileUtils.canonicalize(report.getDestination());
-                                    GFileUtils.mkdirs(file.getParentFile());
+                                    ensureParentDirectoryExists(report.getDestination());
                                     break;
                                 case DIRECTORY:
-                                    file = FileUtils.canonicalize(report.getDestination());
-                                    GFileUtils.mkdirs(file);
+                                    ensureDirectoryExists(report.getDestination());
                                     break;
                                 default:
                                     throw new AssertionError();
