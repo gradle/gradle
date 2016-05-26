@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Formatter;
 import java.util.Properties;
 
 public class WrapperExecutor {
@@ -33,24 +32,22 @@ public class WrapperExecutor {
     public static final String ZIP_STORE_PATH_PROPERTY = "zipStorePath";
     private final Properties properties;
     private final File propertiesFile;
-    private final Appendable warningOutput;
     private final WrapperConfiguration config = new WrapperConfiguration();
 
-    public static WrapperExecutor forProjectDirectory(File projectDir, Appendable warningOutput) {
-        return new WrapperExecutor(new File(projectDir, "gradle/wrapper/gradle-wrapper.properties"), new Properties(), warningOutput);
+    public static WrapperExecutor forProjectDirectory(File projectDir) {
+        return new WrapperExecutor(new File(projectDir, "gradle/wrapper/gradle-wrapper.properties"), new Properties());
     }
 
-    public static WrapperExecutor forWrapperPropertiesFile(File propertiesFile, Appendable warningOutput) {
+    public static WrapperExecutor forWrapperPropertiesFile(File propertiesFile) {
         if (!propertiesFile.exists()) {
             throw new RuntimeException(String.format("Wrapper properties file '%s' does not exist.", propertiesFile));
         }
-        return new WrapperExecutor(propertiesFile, new Properties(), warningOutput);
+        return new WrapperExecutor(propertiesFile, new Properties());
     }
 
-    WrapperExecutor(File propertiesFile, Properties properties, Appendable warningOutput) {
+    WrapperExecutor(File propertiesFile, Properties properties) {
         this.properties = properties;
         this.propertiesFile = propertiesFile;
-        this.warningOutput = warningOutput;
         if (propertiesFile.exists()) {
             try {
                 loadProperties(propertiesFile, properties);
@@ -77,28 +74,10 @@ public class WrapperExecutor {
     }
 
     private URI readDistroUrl() throws URISyntaxException {
-        if (properties.getProperty(DISTRIBUTION_URL_PROPERTY) != null) {
-            return new URI(getProperty(DISTRIBUTION_URL_PROPERTY));
-        }
-        //try the deprecated way:
-        return readDistroUrlDeprecatedWay();
-    }
-
-    private URI readDistroUrlDeprecatedWay() throws URISyntaxException {
-        String distroUrl = null;
-        try {
-            distroUrl = getProperty("urlRoot") + "/"
-                    + getProperty("distributionName") + "-"
-                    + getProperty("distributionVersion") + "-"
-                    + getProperty("distributionClassifier") + ".zip";
-            Formatter formatter = new Formatter();
-            formatter.format("Wrapper properties file '%s' contains deprecated entries 'urlRoot', 'distributionName', 'distributionVersion' and 'distributionClassifier'. These will be removed soon. Please use '%s' instead.%n", propertiesFile, DISTRIBUTION_URL_PROPERTY);
-            warningOutput.append(formatter.toString());
-        } catch (Exception e) {
-            //even the deprecated properties are not provided, report error:
+        if (properties.getProperty(DISTRIBUTION_URL_PROPERTY) == null) {
             reportMissingProperty(DISTRIBUTION_URL_PROPERTY);
         }
-        return new URI(distroUrl);
+        return new URI(getProperty(DISTRIBUTION_URL_PROPERTY));
     }
 
     private static void loadProperties(File propertiesFile, Properties properties) throws IOException {

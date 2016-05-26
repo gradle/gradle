@@ -30,7 +30,14 @@ import org.gradle.tooling.BuildCancelledException;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.util.DistributionLocator;
 import org.gradle.util.GradleVersion;
-import org.gradle.wrapper.*;
+import org.gradle.wrapper.Download;
+import org.gradle.wrapper.GradleUserHomeLookup;
+import org.gradle.wrapper.IDownload;
+import org.gradle.wrapper.Install;
+import org.gradle.wrapper.Logger;
+import org.gradle.wrapper.PathAssembler;
+import org.gradle.wrapper.WrapperConfiguration;
+import org.gradle.wrapper.WrapperExecutor;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -61,7 +68,7 @@ public class DistributionFactory {
      */
     public Distribution getDefaultDistribution(File projectDir, boolean searchUpwards) {
         BuildLayout layout = new BuildLayoutFactory().getLayoutFor(projectDir, searchUpwards);
-        WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory(), System.out);
+        WrapperExecutor wrapper = WrapperExecutor.forProjectDirectory(layout.getRootDirectory());
         if (wrapper.getDistribution() != null) {
             return new ZippedDistribution(wrapper.getConfiguration(), executorFactory, distributionBaseDir);
         }
