@@ -226,7 +226,7 @@
                 The <literal>--stop</literal> switch causes Gradle to request that <emphasis>all</emphasis> running Daemon processes, <emphasis>of the same Gradle version used to run the command</emphasis>, terminate themselves.
             </para>
         </section>
-        <section>
+        <section id="what_can_go_wrong_with_daemon">
             <title>What can go wrong with Daemon?</title>
             <para>
                 Considerable engineering effort has gone into making the Daemon robust, transparent and unobtrusive during day to day development.

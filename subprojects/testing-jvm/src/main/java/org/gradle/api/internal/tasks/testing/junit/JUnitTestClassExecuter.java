@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
@@ -65,6 +66,7 @@ public class JUnitTestClassExecuter {
         final Class<?> testClass = Class.forName(testClassName, false, applicationClassLoader);
         List<Filter> filters = new ArrayList<Filter>();
         if (options.hasCategoryConfiguration()) {
+            verifyJUnitCategorySupport();
             Transformer<Class<?>, String> transformer = new Transformer<Class<?>, String>() {
                 public Class<?> transform(final String original) {
                     try {
@@ -110,6 +112,14 @@ public class JUnitTestClassExecuter {
         RunNotifier notifier = new RunNotifier();
         notifier.addListener(listener);
         runner.run(notifier);
+    }
+
+    private void verifyJUnitCategorySupport() {
+        try {
+            applicationClassLoader.loadClass("org.junit.experimental.categories.Category");
+        } catch (ClassNotFoundException e) {
+            throw new GradleException("JUnit Categories defined but declared JUnit version does not support Categories.");
+        }
     }
 
     private boolean allTestsFiltered(Runner runner, List<Filter> filters) {

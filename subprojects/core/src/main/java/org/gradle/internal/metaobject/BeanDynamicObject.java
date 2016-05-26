@@ -15,8 +15,17 @@
  */
 package org.gradle.internal.metaobject;
 
-import groovy.lang.*;
+import groovy.lang.GroovyObject;
+import groovy.lang.GroovySystem;
+import groovy.lang.MetaBeanProperty;
+import groovy.lang.MetaClass;
+import groovy.lang.MetaClassImpl;
+import groovy.lang.MetaMethod;
+import groovy.lang.MetaProperty;
+import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
+import org.codehaus.groovy.runtime.MetaClassHelper;
 import org.codehaus.groovy.runtime.metaclass.MultipleSetterProperty;
 import org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation;
 import org.gradle.api.Nullable;
@@ -29,7 +38,11 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A {@link DynamicObject} which uses groovy reflection to provide access to the properties and methods of a bean.
@@ -332,12 +345,28 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         public boolean hasMethod(final String name, final Object... arguments) {
-            return lookupMethod(getMetaClass(), name, arguments) != null;
+            return lookupMethod(getMetaClass(), name, inferTypes(arguments)) != null;
+        }
+
+        private Class[] inferTypes(Object... arguments) {
+            if (arguments == null || arguments.length == 0) {
+                return MetaClassHelper.EMPTY_CLASS_ARRAY;
+            }
+            Class[] classes = new Class[arguments.length];
+            for (int i = 0; i < arguments.length; i++) {
+                Object argType = arguments[i];
+                if (argType == null) {
+                    classes[i] = null;
+                } else {
+                    classes[i] = argType.getClass();
+                }
+            }
+            return classes;
         }
 
         public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
             MetaClass metaClass = getMetaClass();
-            MetaMethod metaMethod = lookupMethod(metaClass, name, arguments);
+            MetaMethod metaMethod = lookupMethod(metaClass, name, inferTypes(arguments));
             if (metaMethod != null) {
                 result.result(metaMethod.doMethodInvoke(bean, arguments));
                 return;
@@ -377,7 +406,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
         }
 
-        private MetaMethod lookupMethod(MetaClass metaClass, String name, Object[] arguments) {
+        private MetaMethod lookupMethod(MetaClass metaClass, String name, Class[] arguments) {
             return metaClass.getMetaMethod(name, arguments);
         }
 

@@ -154,6 +154,53 @@ assert tasks.help.description == "some help"
         succeeds()
     }
 
+    def "can configure named container when script level configure method with same name exists"() {
+        buildFile << """
+configurations {
+    repositories {
+    }
+}
+assert configurations.names as List == ['repositories']
+assert repositories.empty
+"""
+
+        expect:
+        succeeds()
+    }
+
+    // NOTE: Documents actual behaviour, for backwards compatibility purposes, not desired behaviour
+    def "can reference script level configure method from named container configure closure when that closure would fail with MME if applied to a new element"() {
+        buildFile << """
+configurations {
+    repositories {
+        mavenCentral()
+    }
+    someConf {
+        allprojects { }
+    }
+}
+assert configurations.names as List == ['repositories', 'someConf'] // side effect is that the configuration is actually created
+assert repositories.size() == 1
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "reports missing method from inside configure closure"() {
+        buildFile << """
+configurations {
+    broken {
+        noExist(12)
+    }
+}
+"""
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not find method noExist() for arguments [12] on configuration ':broken' of type org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.")
+    }
+
     def "reports set unknown property from polymorphic container configure closure"() {
         buildFile << """
 tasks.configure {

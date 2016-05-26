@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;

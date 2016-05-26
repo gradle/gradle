@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.tasks;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ConventionTask;
@@ -47,16 +48,29 @@ public class GeneratePluginDescriptors extends ConventionTask {
 
     @TaskAction
     public void generatePluginDescriptors() {
+        clearOutputDirectory();
         for (PluginDeclaration declaration : getDeclarations()) {
             File descriptorFile = new File(getOutputDirectory(), declaration.getId() + ".properties");
             Properties properties = new Properties();
             properties.setProperty("implementation-class", declaration.getImplementationClass());
-            try {
-                OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(descriptorFile));
-                GUtil.savePropertiesNoDateComment(properties, outputStream);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            writePropertiesTo(properties, descriptorFile);
+        }
+    }
+
+    private void clearOutputDirectory() {
+        try {
+            FileUtils.cleanDirectory(getOutputDirectory());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    private void writePropertiesTo(Properties properties, File descriptorFile) {
+        try {
+            OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(descriptorFile));
+            GUtil.savePropertiesNoDateComment(properties, outputStream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
