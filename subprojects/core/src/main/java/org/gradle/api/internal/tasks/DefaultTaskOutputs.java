@@ -115,11 +115,15 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public TaskOutputs configure(Action<? super TaskOutputs> action) {
-        if (configureActions == null) {
-            configureActions = Lists.newLinkedList();
-        }
-        configureActions.add(action);
+    public TaskOutputs configure(final Action<? super TaskOutputs> action) {
+        taskMutator.mutate("TaskOutputs.configure(Action)", new Runnable() {
+            public void run() {
+                if (configureActions == null) {
+                    configureActions = Lists.newLinkedList();
+                }
+                configureActions.add(action);
+            }
+        });
         return this;
     }
 

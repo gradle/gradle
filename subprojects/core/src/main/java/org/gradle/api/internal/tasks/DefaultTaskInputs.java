@@ -166,11 +166,15 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public TaskInputs configure(Action<? super TaskInputs> action) {
-        if (configureActions == null) {
-            configureActions = Lists.newLinkedList();
-        }
-        configureActions.add(action);
+    public TaskInputs configure(final Action<? super TaskInputs> action) {
+        taskMutator.mutate("TaskInputs.configure(Action)", new Runnable() {
+            public void run() {
+                if (configureActions == null) {
+                    configureActions = Lists.newLinkedList();
+                }
+                configureActions.add(action);
+            }
+        });
         return this;
     }
 
