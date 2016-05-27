@@ -101,8 +101,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         daemonArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getAsFiles()));
 
         if (Boolean.getBoolean("org.gradle.daemon.debug")) {
-            daemonArgs.add("-Xdebug");
-            daemonArgs.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
+            daemonArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
         }
         LOGGER.debug("Using daemon args: {}", daemonArgs);
 

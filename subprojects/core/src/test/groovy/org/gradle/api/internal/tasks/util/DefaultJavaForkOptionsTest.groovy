@@ -184,12 +184,12 @@ public class DefaultJavaForkOptionsTest {
     public void allJvmArgsIncludeDebugArgs() {
         assert options.allJvmArgs == [fileEncodingProperty(), *localeProperties()]
         options.debug = true
-        assert options.allJvmArgs  == [fileEncodingProperty(), *localeProperties(), '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']
+        assert options.allJvmArgs  == [fileEncodingProperty(), *localeProperties(), '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
     }
 
     @Test
     public void debugIsEnabledWhenSetUsingJvmArgs() {
-        options.jvmArgs('-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005')
+        options.jvmArgs('-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005')
         assertTrue(options.debug)
         assertThat(options.jvmArgs, equalTo([]))
 
@@ -214,7 +214,13 @@ public class DefaultJavaForkOptionsTest {
         assertFalse(options.debug)
         assertThat(options.jvmArgs, equalTo(['-Xdebug', '-Xrunjdwp:transport=other']))
 
+        options.debug = false
         options.allJvmArgs = ['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005', '-Xdebug']
+        assertTrue(options.debug)
+        assertThat(options.jvmArgs, equalTo([]))
+
+        options.debug = false
+        options.allJvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
         assertTrue(options.debug)
         assertThat(options.jvmArgs, equalTo([]))
     }

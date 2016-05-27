@@ -79,7 +79,7 @@ class JvmOptionsTest extends Specification {
         def opts = createOpts()
 
         when:
-        opts.allJvmArgs = ['-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']
+        opts.allJvmArgs = ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005']
         then:
         opts.debug
 
@@ -203,7 +203,7 @@ class JvmOptionsTest extends Specification {
         opts.jvmArgs(fromString('-Xmx1G -Xms1G'))
         opts.debug = true
         then:
-        opts.allJvmArgs.containsAll(['-Xmx1G', '-Xms1G', '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'])
+        opts.allJvmArgs.containsAll(['-Xmx1G', '-Xms1G', '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005'])
     }
 
     def "can enter debug mode before setting other options"() {
@@ -212,7 +212,7 @@ class JvmOptionsTest extends Specification {
         when:
         opts.jvmArgs(fromString('-Xmx1G -Xms1G'))
         then:
-        opts.allJvmArgs.containsAll(['-Xmx1G', '-Xms1G', '-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'])
+        opts.allJvmArgs.containsAll(['-Xmx1G', '-Xms1G', '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005'])
     }
 
     def "options with newlines are parsed correctly"() {

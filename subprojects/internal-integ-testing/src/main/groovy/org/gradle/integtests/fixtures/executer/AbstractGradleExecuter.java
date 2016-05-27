@@ -82,8 +82,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
 
     protected static final List<String> DEBUG_ARGS = ImmutableList.of(
-        "-Xdebug",
-        "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
+        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
     );
 
     private final Logger logger;

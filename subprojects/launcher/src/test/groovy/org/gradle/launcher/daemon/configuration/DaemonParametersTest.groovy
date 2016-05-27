@@ -98,8 +98,7 @@ class DaemonParametersTest extends Specification {
         parameters.setDebug(parseBoolean(flag))
 
         then:
-        parameters.effectiveJvmArgs.contains("-Xdebug") == parseBoolean(flag)
-        parameters.effectiveJvmArgs.contains("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005") == parseBoolean(flag)
+        parameters.effectiveJvmArgs.contains("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005") == parseBoolean(flag)
 
         where:
         flag << ["true", "false"]
@@ -111,8 +110,7 @@ class DaemonParametersTest extends Specification {
         parameters.applyDefaultsFor(jvmDefault)
 
         then:
-        parameters.effectiveJvmArgs.contains("-Xdebug")
-        parameters.effectiveJvmArgs.contains("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")
+        parameters.effectiveJvmArgs.contains("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")
 
         where:
         jvmDefault << [JavaVersion.VERSION_1_8, JavaVersion.VERSION_1_9]

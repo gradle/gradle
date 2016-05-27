@@ -79,7 +79,7 @@
             <varlistentry>
                 <term><literal>org.gradle.debug</literal></term>
                 <listitem><para>When set to true, Gradle will run the build with remote debugging enabled, listening on port 5005.
-                    Note that this is the equivalent of adding <literal>-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005</literal> to
+                    Note that this is the equivalent of adding <literal>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005</literal> to
                     the JVM command line and will suspend the virtual machine until a debugger is attached.</para>
                 </listitem>
             </varlistentry>
