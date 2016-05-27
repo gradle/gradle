@@ -106,7 +106,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     protected List<String> getAllArgs() {
         List<String> args = new ArrayList<String>();
         args.addAll(super.getAllArgs());
-        args.add("--no-daemon");
         args.add("--stacktrace");
         addPropagatedSystemProperties(args);
         return args;

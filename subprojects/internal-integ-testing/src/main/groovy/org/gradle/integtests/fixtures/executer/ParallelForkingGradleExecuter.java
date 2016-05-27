@@ -41,7 +41,6 @@ class ParallelForkingGradleExecuter extends ForkingGradleExecuter {
             args.add("--parallel");
             args.add("--max-workers=4");
         }
-        args.add("--no-daemon");
         args.add("-D" + DefaultTaskExecutionPlan.INTRA_PROJECT_TOGGLE + "=true");
         return args;
     }
