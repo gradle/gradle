@@ -127,6 +127,10 @@ public class Module extends XmlPersistableConfigurationObject {
         return inheritOutputDirs;
     }
 
+    public boolean getInheritOutputDirs() {
+        return inheritOutputDirs;
+    }
+
     public void setInheritOutputDirs(boolean inheritOutputDirs) {
         this.inheritOutputDirs = inheritOutputDirs;
     }
@@ -401,8 +405,8 @@ public class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    private boolean isDependencyOrderEntry(Node orderEntry) {
-        return Arrays.asList("module-library", "module").contains(orderEntry.attribute("type"));
+    protected boolean isDependencyOrderEntry(Object orderEntry) {
+        return Arrays.asList("module-library", "module").contains(((Node)orderEntry).attribute("type"));
     }
 
     private void addDependenciesToXml() {

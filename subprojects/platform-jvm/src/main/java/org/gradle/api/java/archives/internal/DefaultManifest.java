@@ -26,6 +26,7 @@ import org.gradle.api.java.archives.ManifestMergeSpec;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -131,23 +132,23 @@ public class DefaultManifest implements ManifestInternal {
         return this;
     }
 
-    private Manifest generateJavaManifest() {
+    static Manifest generateJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest) {
         Manifest javaManifest = new Manifest();
-        addMainAttributesToJavaManifest(javaManifest);
-        addSectionAttributesToJavaManifest(javaManifest);
+        addMainAttributesToJavaManifest(gradleManifest, javaManifest);
+        addSectionAttributesToJavaManifest(gradleManifest, javaManifest);
         return javaManifest;
     }
 
-    private void addMainAttributesToJavaManifest(Manifest javaManifest) {
-        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+    private static void addMainAttributesToJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
+        for (Map.Entry<String, Object> entry : gradleManifest.getAttributes().entrySet()) {
             String mainAttributeName = entry.getKey();
             String mainAttributeValue = entry.getValue().toString();
             javaManifest.getMainAttributes().putValue(mainAttributeName, mainAttributeValue);
         }
     }
 
-    private void addSectionAttributesToJavaManifest(Manifest javaManifest) {
-        for (Map.Entry<String, Attributes> entry : sections.entrySet()) {
+    private static void addSectionAttributesToJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
+        for (Map.Entry<String, Attributes> entry : gradleManifest.getSections().entrySet()) {
             String sectionName = entry.getKey();
             java.util.jar.Attributes sectionAttributes = new java.util.jar.Attributes();
             for (Map.Entry<String, Object> attribute : entry.getValue().entrySet()) {
@@ -187,10 +188,12 @@ public class DefaultManifest implements ManifestInternal {
         return resultManifest;
     }
 
+    @Deprecated
     @Override
     public DefaultManifest writeTo(Writer writer) {
+        SingleMessageLogger.nagUserOfDeprecated("Manifest.writeTo(Writer)", "Please use Manifest.writeTo(Object) instead");
         try {
-            Manifest javaManifest = getEffectiveManifest().generateJavaManifest();
+            Manifest javaManifest = generateJavaManifest(getEffectiveManifest());
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             javaManifest.write(buffer);
             String manifestContent = buffer.toString(DEFAULT_CONTENT_CHARSET);
@@ -208,8 +211,13 @@ public class DefaultManifest implements ManifestInternal {
 
     @Override
     public org.gradle.api.java.archives.Manifest writeTo(OutputStream outputStream) {
+        writeTo(this, outputStream, contentCharset);
+        return this;
+    }
+
+    static void writeTo(org.gradle.api.java.archives.Manifest manifest, OutputStream outputStream, String contentCharset) {
         try {
-            Manifest javaManifest = getEffectiveManifest().generateJavaManifest();
+            Manifest javaManifest = generateJavaManifest(manifest.getEffectiveManifest());
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             javaManifest.write(buffer);
             byte[] manifestBytes;
@@ -223,7 +231,6 @@ public class DefaultManifest implements ManifestInternal {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return this;
     }
 
     @Override

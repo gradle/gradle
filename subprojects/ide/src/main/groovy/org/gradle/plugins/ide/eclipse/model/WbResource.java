@@ -35,6 +35,11 @@ public class WbResource implements WbModuleEntry {
         this((String) node.attribute("deploy-path"), (String) node.attribute("source-path"));
     }
 
+    @Deprecated
+    public WbResource(Object node) {
+        this((Node)node);
+    }
+
     public WbResource(String deployPath, String sourcePath) {
         Preconditions.checkNotNull(deployPath);
         Preconditions.checkNotNull(sourcePath);

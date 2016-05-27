@@ -38,8 +38,8 @@ public class JacocoPluginExtension {
 
     public static final String TASK_EXTENSION_NAME = "jacoco";
 
-    private final Logger logger = Logging.getLogger(getClass());
-    private final Project project;
+    private Logger logger = Logging.getLogger(getClass());
+    protected final Project project;
     private final JacocoAgentJar agent;
 
     private String toolVersion = "0.7.6.201602180812";
@@ -119,5 +119,23 @@ public class JacocoPluginExtension {
                 applyTo(Cast.<T>uncheckedCast(task));
             }
         });
+    }
+
+    /**
+     * Logger
+     * @deprecated logger should be considered final.
+     */
+    @Deprecated
+    public Logger getLogger() {
+        return logger;
+    }
+
+    /**
+     * Logger
+     * @deprecated logger should be considered final.
+     */
+    @Deprecated
+    public void setLogger(Logger logger) {
+        this.logger = logger;
     }
 }

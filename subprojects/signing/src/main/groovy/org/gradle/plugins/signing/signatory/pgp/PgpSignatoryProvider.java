@@ -46,7 +46,7 @@ public class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
     }
 
     @SuppressWarnings("unused") // invoked by Groovy
-    protected PgpSignatory propertyMissing(String signatoryName) {
+    public PgpSignatory propertyMissing(String signatoryName) {
         return getSignatory(signatoryName);
     }
 }

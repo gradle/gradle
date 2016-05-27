@@ -267,10 +267,14 @@ public class IdeaModule {
         this.scopes = scopes;
     }
 
+    public boolean isDownloadSources() {
+        return downloadSources;
+    }
+
     /**
      * Whether to download and add sources associated with the dependency jars. <p> For example see docs for {@link IdeaModule}
      */
-    public boolean isDownloadSources() {
+    public boolean getDownloadSources() {
         return downloadSources;
     }
 
@@ -278,10 +282,14 @@ public class IdeaModule {
         this.downloadSources = downloadSources;
     }
 
+    public boolean isDownloadJavadoc() {
+        return downloadJavadoc;
+    }
+
     /**
      * Whether to download and add javadoc associated with the dependency jars. <p> For example see docs for {@link IdeaModule}
      */
-    public boolean isDownloadJavadoc() {
+    public boolean getDownloadJavadoc() {
         return downloadJavadoc;
     }
 
@@ -324,11 +332,11 @@ public class IdeaModule {
 
     /**
      * If true, output directories for this module will be located below the output directory for the project;
-     * otherwise, they will be set to the directories specified by #outputDir and #testOutputDir.
+     * otherwise, they will be set to the directories specified by {@link #getOutputDir()} and {@link #getTestOutputDir()}.
      * <p>
      * For example see docs for {@link IdeaModule}
      */
-    public Boolean isInheritOutputDirs() {
+    public Boolean getInheritOutputDirs() {
         return inheritOutputDirs;
     }
 
@@ -464,10 +472,14 @@ public class IdeaModule {
         this.pathFactory = pathFactory;
     }
 
+    public boolean isOffline() {
+        return offline;
+    }
+
     /**
      * If true then external artifacts (e.g. those found in repositories) will not be included in the resulting classpath (only project and local file dependencies will be included).
      */
-    public boolean isOffline() {
+    public boolean getOffline() {
         return offline;
     }
 
@@ -536,7 +548,7 @@ public class IdeaModule {
         xmlModule.configure(
             contentRoot,
             sourceFolders, testSourceFolders, generatedSourceFolders, excludeFolders,
-            isInheritOutputDirs(), outputDir, testOutputDir,
+            getInheritOutputDirs(), outputDir, testOutputDir,
             dependencies,
             getJdkName(), level
         );

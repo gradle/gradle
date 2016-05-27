@@ -27,6 +27,10 @@ import java.io.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * This should have originally been an internal API.
+ */
+@Deprecated
 public abstract class RhinoWorkerUtils {
 
     public interface ScopeOperation<T> {

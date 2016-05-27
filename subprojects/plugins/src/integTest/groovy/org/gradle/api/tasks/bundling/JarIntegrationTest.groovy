@@ -531,7 +531,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('GRADLE-3374')
-    def "can merge manifests containing split multi-byte chars"() {
+    @Unroll
+    def "can merge manifests containing split multi-byte chars using #taskType task"() {
         // Note that there's no need to cover this case with merge read charsets
         // other than UTF-8 because it's not supported by the JVM.
         given:
@@ -548,7 +549,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         mergedManifestFile.withOutputStream { mergedManifest.write(it) }
 
         buildScript """
-            task jar(type: Jar) {
+            $taskTypeDeclaration
+            task jar(type: $taskType) {
                 from file('test')
                 destinationDir = file('dest')
                 archiveName = 'test.jar'
@@ -572,6 +574,11 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         } finally {
             jar.close();
         }
+
+        where:
+        taskType            | taskTypeDeclaration
+        'Jar'               | ''
+        'CustomJarManifest' | customJarManifestTask()
     }
 
     @Issue('GRADLE-3374')
@@ -607,5 +614,24 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         "'UTF-8'"       | "'UNSUPPORTED'" | "Charset for contentCharset 'UNSUPPORTED' is not supported by your JVM"
         null            | "'UTF-8'"       | "manifestContentCharset must not be null"
         "'UTF-8'"       | null            | "contentCharset must not be null"
+    }
+
+    private static String customJarManifestTask() {
+        return '''
+            class CustomJarManifest extends org.gradle.jvm.tasks.Jar {
+                CustomJarManifest() {
+                    super();
+                    setManifest(new CustomManifest(getFileResolver()))
+                }
+            }
+
+            class CustomManifest implements org.gradle.api.java.archives.Manifest {
+                @Delegate org.gradle.api.java.archives.Manifest delegate
+
+                CustomManifest(fileResolver) {
+                    this.delegate = new org.gradle.api.java.archives.internal.DefaultManifest(fileResolver)
+                }
+            }
+        '''.stripIndent()
     }
 }

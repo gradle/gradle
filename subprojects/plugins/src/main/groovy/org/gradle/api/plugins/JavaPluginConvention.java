@@ -222,4 +222,13 @@ public class JavaPluginConvention {
     public ProjectInternal getProject() {
         return project;
     }
+
+    /**
+     * project
+     * @deprecated Project should be considered final.
+     */
+    @Deprecated
+    public void setProject(ProjectInternal project) {
+        this.project = project;
+    }
 }

@@ -30,12 +30,18 @@ import java.io.File;
  */
 public class EarPluginConvention {
 
-    private final FileResolver fileResolver;
+    private FileResolver fileResolver;
     private final Instantiator instantiator;
 
     private DeploymentDescriptor deploymentDescriptor;
     private String appDirName;
     private String libDirName;
+
+    @Deprecated
+    @Inject
+    public EarPluginConvention(Instantiator instantiator) {
+        this.instantiator = instantiator;
+    }
 
     @Inject
     public EarPluginConvention(FileResolver fileResolver, Instantiator instantiator) {
