@@ -44,7 +44,7 @@ import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public abstract class AbstractDependencyDescriptorFactoryInternalTest {
-    private JUnit4Mockery context = new JUnit4Mockery();
+    protected JUnit4Mockery context = new JUnit4Mockery();
 
     protected static final String TEST_CONF = "conf";
     protected static final String TEST_DEP_CONF = "depconf1";

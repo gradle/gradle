@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
 import org.hamcrest.Matchers;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -30,11 +29,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
-    private JUnit4Mockery context = new JUnit4Mockery();
 
     ExternalModuleIvyDependencyDescriptorFactory externalModuleDependencyDescriptorFactory =
             new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverterStub);
-    
+
     @Test
     public void canConvert() {
         assertThat(externalModuleDependencyDescriptorFactory.canConvert(context.mock(ProjectDependency.class)), Matchers.equalTo(false));

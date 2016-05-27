@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
+
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
@@ -22,14 +23,12 @@ import org.gradle.api.internal.project.AbstractProject
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData
 import org.gradle.util.TestUtil
-import org.jmock.integration.junit4.JUnit4Mockery
 import org.junit.Test
 
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.*
 
 public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
-    private JUnit4Mockery context = new JUnit4Mockery();
 
     private ProjectIvyDependencyDescriptorFactory projectDependencyDescriptorFactory =
             new ProjectIvyDependencyDescriptorFactory(excludeRuleConverterStub);
