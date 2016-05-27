@@ -25,6 +25,8 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.client.DefaultDaemonConnector
 import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -210,6 +212,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         DaemonContextParser.parseFromString(gradleHandle.standardOutput).with(assertions)
     }
 
+    @Requires(TestPrecondition.NOT_JDK_IBM)
     def "daemons do some work - sit idle - then timeout and die"() {
         //in this particular test we need to make the daemon timeout
         //shorter than the state transition timeout so that
@@ -282,6 +285,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
+    @Requires(TestPrecondition.NOT_JDK_IBM)
     def "daemon start message contains stop reasons"() {
         when:
         startBuild()
