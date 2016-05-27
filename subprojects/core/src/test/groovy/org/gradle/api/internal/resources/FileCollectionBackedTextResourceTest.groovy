@@ -18,11 +18,9 @@ package org.gradle.api.internal.resources
 
 import com.google.common.base.Charsets
 import org.gradle.api.internal.file.TemporaryFileProvider
-import org.gradle.util.TestUtil
 
 class FileCollectionBackedTextResourceTest extends AbstractTextResourceTest {
     def setup() {
-        def project = TestUtil.createRootProject()
         def file = project.file("file.txt")
         file.text = "contents"
         resource = new FileCollectionBackedTextResource(project.services.get(TemporaryFileProvider), project.files(file), Charsets.UTF_8)

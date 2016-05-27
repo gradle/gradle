@@ -17,12 +17,10 @@
 package org.gradle.api.internal.resources
 
 import com.google.common.base.Charsets
-
 import org.gradle.api.resources.TextResource
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-import spock.lang.Specification
-
-abstract class AbstractTextResourceTest extends Specification {
+abstract class AbstractTextResourceTest extends AbstractProjectBuilderSpec {
     TextResource resource
 
     def "read as string"() {

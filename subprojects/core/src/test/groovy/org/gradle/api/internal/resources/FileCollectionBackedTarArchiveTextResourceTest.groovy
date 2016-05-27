@@ -19,11 +19,9 @@ package org.gradle.api.internal.resources
 import com.google.common.base.Charsets
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TemporaryFileProvider
-import org.gradle.util.TestUtil
 
 class FileCollectionBackedTarArchiveTextResourceTest extends AbstractTextResourceTest {
     def setup() {
-        def project = TestUtil.createRootProject()
         def archive = project.file("archive.tar.gz")
         def archiveEntry = project.file("archive/path/to/text")
         archiveEntry.parentFile.mkdirs()

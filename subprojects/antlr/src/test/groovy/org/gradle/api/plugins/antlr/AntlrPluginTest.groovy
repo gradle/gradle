@@ -16,20 +16,9 @@
 
 package org.gradle.api.plugins.antlr
 
-import org.gradle.api.Project
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-@UsesNativeServices
-class AntlrPluginTest extends Specification {
-
-    @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-
-    private final Project project = TestUtil.createRootProject(temporaryFolder.testDirectory)
+class AntlrPluginTest extends AbstractProjectBuilderSpec {
 
     def addsAntlrPropertiesToEachSourceSet() {
         when:

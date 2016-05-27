@@ -17,25 +17,16 @@ package org.gradle.api.plugins.osgi
 
 import org.gradle.api.internal.plugins.osgi.DefaultOsgiManifest
 import org.gradle.api.internal.plugins.osgi.OsgiHelper
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
-import spock.lang.Specification
 
-@UsesNativeServices
-class OsgiPluginConventionTest extends Specification {
+class OsgiPluginConventionTest extends AbstractProjectBuilderSpec {
 
-    @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-
-    DefaultProject project = TestUtil.createRootProject(temporaryFolder.testDirectory)
-    OsgiPluginConvention osgiPluginConvention = new OsgiPluginConvention(project)
+    OsgiPluginConvention osgiPluginConvention
 
     def setup() {
+        osgiPluginConvention = new OsgiPluginConvention(project)
         project.pluginManager.apply(JavaBasePlugin)
     }
 
