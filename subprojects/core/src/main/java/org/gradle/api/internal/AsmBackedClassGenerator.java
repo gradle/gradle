@@ -22,6 +22,7 @@ import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
+import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.plugins.Convention;
@@ -34,6 +35,7 @@ import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.ConfigureUtil;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
@@ -87,7 +89,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private final static Type EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE = Type.getType(MixInExtensibleDynamicObject.class);
         private final static Type NON_EXTENSIBLE_DYNAMIC_OBJECT_HELPER_TYPE = Type.getType(BeanDynamicObject.class);
         private static final String JAVA_REFLECT_TYPE_DESCRIPTOR = Type.getDescriptor(java.lang.reflect.Type.class);
-        private static final Type CLOSURE_BACKED_ACTION_TYPE = Type.getType(ClosureBackedAction.class);
+        private static final Type CONFIGURE_UTIL_TYPE = Type.getType(ConfigureUtil.class);
         private static final Type CLOSURE_TYPE = Type.getType(Closure.class);
         private static final Type SERVICE_REGISTRY_TYPE = Type.getType(ServiceRegistry.class);
         private static final Type JAVA_LANG_REFLECT_TYPE = Type.getType(java.lang.reflect.Type.class);
@@ -834,24 +836,21 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             String methodDescriptor = Type.getMethodDescriptor(returnType, closurisedParameterTypes);
 
-            // GENERATE public <return type> <method>(Closure v) { return <method>(…, new ClosureBackedAction(v)); }
+            // GENERATE public <return type> <method>(Closure v) { return <method>(…, ConfigureUtil.configureUsing(v)); }
             MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), methodDescriptor, null, new String[0]);
             methodVisitor.visitCode();
 
-            // GENERATE <method>(…, new ClosureBackedAction(v));
+            // GENERATE <method>(…, ConfigureUtil.configureUsing(v));
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
 
             for (int stackVar = 1; stackVar < numParams; ++stackVar) {
                 methodVisitor.visitVarInsn(closurisedParameterTypes[stackVar - 1].getOpcode(Opcodes.ILOAD), stackVar);
             }
 
-            // GENERATE new ClosureBackedAction(v);
-            methodVisitor.visitTypeInsn(Opcodes.NEW, CLOSURE_BACKED_ACTION_TYPE.getInternalName());
-            methodVisitor.visitInsn(Opcodes.DUP);
+            // GENERATE ConfigureUtil.configureUsing(v);
             methodVisitor.visitVarInsn(Opcodes.ALOAD, numParams);
-            String constuctorDescriptor = Type.getMethodDescriptor(Type.VOID_TYPE, CLOSURE_TYPE);
-            methodVisitor.visitMethodInsn(Opcodes.INVOKESPECIAL, CLOSURE_BACKED_ACTION_TYPE.getInternalName(), "<init>", constuctorDescriptor);
-
+            methodDescriptor = Type.getMethodDescriptor(Type.getType(Action.class), CLOSURE_TYPE);
+            methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, CONFIGURE_UTIL_TYPE.getInternalName(), "configureUsing", methodDescriptor);
 
             methodDescriptor = Type.getMethodDescriptor(Type.getType(method.getReturnType()), originalParameterTypes);
             methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(), method.getName(), methodDescriptor);
