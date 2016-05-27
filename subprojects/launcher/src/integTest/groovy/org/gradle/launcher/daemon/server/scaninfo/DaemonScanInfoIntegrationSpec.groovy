@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server
+package org.gradle.launcher.daemon.server.scaninfo
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 
-class DaemonInformationIntegrationSpec extends DaemonIntegrationSpec {
+class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
     def "should capture basic data via the service registry"() {
         given:
