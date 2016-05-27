@@ -12,7 +12,7 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 - Remove deprecated methods from:
     - Specs (Done)
     - StartParameter (Done)
-    - ArtifactRepository, plus special case handling to 'lock' this when added to a repository container
+    - ArtifactRepository, plus special case handling to 'lock' this when added to a repository container (Done)
     - AbstractLibrary (Done)
     - EclipseClasspath (Done)
     - org.gradle.plugins.ide.eclipse.model.ProjectDependency (Done)
