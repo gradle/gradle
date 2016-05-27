@@ -15,10 +15,8 @@
  */
 
 package org.gradle.launcher.daemon
-
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -202,7 +200,7 @@ task verify << {
     }
 
     String tempFolder(String folderName) {
-        def dir = new TestNameTestDirectoryProvider().createDir(folderName)
+        def dir = temporaryFolder.createDir(folderName)
         dir.mkdirs();
         dir.absolutePath
     }
