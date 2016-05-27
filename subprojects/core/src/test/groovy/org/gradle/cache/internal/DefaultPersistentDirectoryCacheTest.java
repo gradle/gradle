@@ -70,7 +70,7 @@ public class DefaultPersistentDirectoryCacheTest {
         emptyDir.assertDoesNotExist();
 
         context.checking(new Expectations() {{
-            one(action).execute(with(notNullValue(PersistentCache.class)));
+            oneOf(action).execute(with(notNullValue(PersistentCache.class)));
         }});
 
         DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(emptyDir, "<display-name>", validator, properties, mode(LockMode.Shared), action, lockManager);
@@ -83,7 +83,7 @@ public class DefaultPersistentDirectoryCacheTest {
         TestFile dir = tmpDir.getTestDirectory().file("dir").createDir();
 
         context.checking(new Expectations() {{
-            one(action).execute(with(notNullValue(PersistentCache.class)));
+            oneOf(action).execute(with(notNullValue(PersistentCache.class)));
         }});
 
         DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, mode(LockMode.Shared), action, lockManager);
@@ -96,7 +96,7 @@ public class DefaultPersistentDirectoryCacheTest {
         TestFile dir = createCacheDir("prop", "other-value");
 
         context.checking(new Expectations() {{
-            one(action).execute(with(notNullValue(PersistentCache.class)));
+            oneOf(action).execute(with(notNullValue(PersistentCache.class)));
         }});
 
         DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, mode(LockMode.Shared), action, lockManager);
@@ -110,7 +110,7 @@ public class DefaultPersistentDirectoryCacheTest {
         final CacheValidator invalidator = context.mock(CacheValidator.class);
 
         context.checking(new Expectations() {{
-            one(action).execute(with(notNullValue(PersistentCache.class)));
+            oneOf(action).execute(with(notNullValue(PersistentCache.class)));
             exactly(2).of(invalidator).isValid();
             will(returnValue(false));
             allowing(invalidator).isValid();
@@ -129,7 +129,7 @@ public class DefaultPersistentDirectoryCacheTest {
         final RuntimeException failure = new RuntimeException();
 
         context.checking(new Expectations() {{
-            one(action).execute(with(notNullValue(PersistentCache.class)));
+            oneOf(action).execute(with(notNullValue(PersistentCache.class)));
             will(throwException(failure));
         }});
 
@@ -141,14 +141,14 @@ public class DefaultPersistentDirectoryCacheTest {
         }
 
         context.checking(new Expectations() {{
-            one(action).execute(with(notNullValue(PersistentCache.class)));
+            oneOf(action).execute(with(notNullValue(PersistentCache.class)));
         }});
 
         DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, mode(LockMode.Shared), action, lockManager);
         cache.open();
         assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
     }
-    
+
     @Test
     public void doesNotInitializeCacheWhenCacheDirExistsAndIsNotInvalid() {
         TestFile dir = createCacheDir();

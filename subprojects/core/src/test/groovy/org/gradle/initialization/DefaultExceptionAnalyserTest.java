@@ -16,13 +16,13 @@
 package org.gradle.initialization;
 
 import org.gradle.api.GradleScriptException;
-import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.LocationAwareException;
+import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -168,7 +168,7 @@ public class DefaultExceptionAnalyserTest {
 
         DefaultExceptionAnalyser analyser = analyser();
         notifyAnalyser(analyser, source);
-        
+
         assertThat(analyser.transform(failure), sameInstance(failure));
     }
 
@@ -250,7 +250,7 @@ public class DefaultExceptionAnalyserTest {
 
     private DefaultExceptionAnalyser analyser() {
         context.checking(new Expectations() {{
-            one(listenerManager).addListener(with(notNullValue(DefaultExceptionAnalyser.class)));
+            oneOf(listenerManager).addListener(with(notNullValue(DefaultExceptionAnalyser.class)));
         }});
         return new DefaultExceptionAnalyser(listenerManager);
     }

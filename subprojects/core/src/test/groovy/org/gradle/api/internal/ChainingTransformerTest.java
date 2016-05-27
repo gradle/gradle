@@ -44,10 +44,10 @@ public class ChainingTransformerTest {
         final Transformer<String, String> transformerB = context.mock(Transformer.class, "transformerB");
 
         context.checking(new Expectations(){{
-            one(transformerA).transform("original");
+            oneOf(transformerA).transform("original");
             will(returnValue("a"));
 
-            one(transformerB).transform("a");
+            oneOf(transformerB).transform("a");
             will(returnValue("b"));
         }});
 
@@ -92,7 +92,7 @@ public class ChainingTransformerTest {
 
         assertThat(transformer.transform("original"), equalTo("ri"));
     }
-    
+
     @Test
     public void closureCanTransformAStringIntoAGString() {
         Closure closure = TestUtil.toClosure("{ \"[$it]\" }");

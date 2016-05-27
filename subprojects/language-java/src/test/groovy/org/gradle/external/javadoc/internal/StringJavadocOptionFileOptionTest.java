@@ -51,7 +51,7 @@ public class StringJavadocOptionFileOptionTest {
         stringOption.setValue(testValue);
 
         context.checking(new Expectations() {{
-            one(writerContextMock).writeValueOption(optionName, testValue);
+            oneOf(writerContextMock).writeValueOption(optionName, testValue);
         }});
 
         stringOption.write(writerContextMock);

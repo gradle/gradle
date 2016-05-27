@@ -54,11 +54,11 @@ public class GroupsJavadocOptionFileOptionTest {
         groupsFile.getValue().put(groupName, groupElements);
 
         context.checking(new Expectations() {{
-            one(writerContextMock).writeOptionHeader(optionName);
-            one(writerContextMock).write("\"testGroup\"");
-            one(writerContextMock).write(" ");
-            one(writerContextMock).write("\"java.lang:java.util*\"");
-            one(writerContextMock).newLine();
+            oneOf(writerContextMock).writeOptionHeader(optionName);
+            oneOf(writerContextMock).write("\"testGroup\"");
+            oneOf(writerContextMock).write(" ");
+            oneOf(writerContextMock).write("\"java.lang:java.util*\"");
+            oneOf(writerContextMock).newLine();
         }});
 
         groupsFile.write(writerContextMock);

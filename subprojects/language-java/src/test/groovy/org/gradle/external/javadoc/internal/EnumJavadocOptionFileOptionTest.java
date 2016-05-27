@@ -49,7 +49,7 @@ public class EnumJavadocOptionFileOptionTest {
         enumOption.setValue(JavadocMemberLevel.PUBLIC);
 
         context.checking(new Expectations() {{
-            one(writerContextMock).writeOption("public");
+            oneOf(writerContextMock).writeOption("public");
         }});
 
         enumOption.write(writerContextMock);
