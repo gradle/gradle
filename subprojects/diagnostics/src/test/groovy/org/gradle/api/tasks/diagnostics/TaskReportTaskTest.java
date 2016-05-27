@@ -17,7 +17,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Rule;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.AbstractProject;
+import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
@@ -49,7 +49,7 @@ import static org.gradle.util.WrapUtil.*;
 public class TaskReportTaskTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final TaskReportRenderer renderer = context.mock(TaskReportRenderer.class);
-    private final ProjectInternal project = context.mock(AbstractProject.class);
+    private final ProjectInternal project = context.mock(DefaultProject.class);
     private final TaskContainerInternal taskContainer = context.mock(TaskContainerInternal.class);
     private final TaskContainerInternal implicitTasks = context.mock(TaskContainerInternal.class);
     private TaskReportTask task;

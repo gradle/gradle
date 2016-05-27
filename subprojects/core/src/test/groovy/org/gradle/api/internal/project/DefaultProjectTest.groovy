@@ -208,7 +208,7 @@ class DefaultProjectTest {
     }
 
     Type getProjectRegistryType() {
-        return AbstractProject.class.getDeclaredMethod("getProjectRegistry").getGenericReturnType()
+        return DefaultProject.class.getDeclaredMethod("getProjectRegistry").getGenericReturnType()
     }
 
     //TODO please move more coverage to NewDefaultProjectTest
