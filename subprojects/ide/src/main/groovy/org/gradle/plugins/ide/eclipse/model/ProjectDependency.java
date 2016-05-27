@@ -45,7 +45,6 @@ public class ProjectDependency extends AbstractClasspathEntry {
         this.gradlePath = gradlePath;
     }
 
-
     private void assertPathIsValid() {
         Preconditions.checkArgument(path.startsWith("/"));
     }

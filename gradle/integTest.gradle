@@ -95,10 +95,12 @@ def removeCachedScripts(File cachesDir) {
     if (cachesDir.directory) {
         for (File cacheDir : cachesDir.listFiles()) {
             if(cacheDir.directory) {
-                File scriptsCacheDir = new File(cacheDir, "scripts")
-                if(scriptsCacheDir.directory) {
-                    println "Removing scripts cache directory : ${scriptsCacheDir}"
-                    delete(scriptsCacheDir)
+                ["scripts", "scripts-remapped"].each {
+                    File scriptsCacheDir = new File(cacheDir, it)
+                    if(scriptsCacheDir.directory) {
+                        println "Removing scripts cache directory : ${scriptsCacheDir}"
+                        delete(scriptsCacheDir)
+                    }
                 }
             }
         }
@@ -124,8 +126,9 @@ project(":") {
             }
 
             // Expire intTestImage cache snapshots that are older than the tested version
+            // Also expire version-specific cache snapshots when they can't be re-used (for 'snapshot-1' developer builds)
             def expireIntegTestCache = { def candidateVersion ->
-                return candidateVersion.snapshot && candidateVersion < testedVersion
+                return (candidateVersion.snapshot && candidateVersion < testedVersion) || candidateVersion.version.endsWith('-snapshot-1')
             }
 
             // Remove state for old versions of Gradle that we're unlikely to ever require again

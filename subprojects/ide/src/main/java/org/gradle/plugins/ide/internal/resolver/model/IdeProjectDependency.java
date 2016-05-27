@@ -23,13 +23,11 @@ public class IdeProjectDependency extends IdeDependency {
     private final String projectPath;
 
     public IdeProjectDependency(Project project) {
-        super();
         this.project = project;
         this.projectPath = project.getPath();
     }
 
     public IdeProjectDependency(String projectPath) {
-        super();
         this.project = null;
         this.projectPath = projectPath;
     }

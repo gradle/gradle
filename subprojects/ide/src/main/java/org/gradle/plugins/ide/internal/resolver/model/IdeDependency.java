@@ -18,7 +18,4 @@ package org.gradle.plugins.ide.internal.resolver.model;
 
 public class IdeDependency {
 
-    public IdeDependency() {
-    }
-
 }
