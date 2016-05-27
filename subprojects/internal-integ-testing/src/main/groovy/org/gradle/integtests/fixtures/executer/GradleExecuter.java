@@ -222,6 +222,11 @@ public interface GradleExecuter {
     GradleExecuter withDaemonBaseDir(File baseDir);
 
     /**
+     * Returns the working space for any daemons used by the builds.
+     */
+    File getDaemonBaseDir();
+
+    /**
      * Requires that the build run in a separate daemon process.
      */
     GradleExecuter requireDaemon();

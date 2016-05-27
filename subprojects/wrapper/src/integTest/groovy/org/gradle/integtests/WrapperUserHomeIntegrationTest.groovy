@@ -16,10 +16,8 @@
 
 package org.gradle.integtests
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
-@LeaksFileHandles
 class WrapperUserHomeIntegrationTest extends AbstractWrapperIntegrationSpec {
     void 'uses gradle user home set by -Dgradle.user.home'() {
         given:

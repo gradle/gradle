@@ -16,9 +16,6 @@
 
 package org.gradle.integtests
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
-@LeaksFileHandles
 class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "wrapper does not output anything when executed in quiet mode"() {
         given:

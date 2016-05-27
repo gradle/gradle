@@ -16,29 +16,41 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Assume
 
-@LeaksFileHandles
 class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     def setup() {
         requireOwnGradleUserHomeDir()
     }
 
     public void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
-        expect:
-        checkWrapperWorksWith(previous, current)
+        when:
+        GradleExecuter executer = prepareWrapperExecuter(previous, current)
+
+        then:
+        checkWrapperWorksWith(executer, current)
+
+        cleanup:
+        cleanupDaemons(executer, current)
     }
 
     public void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
-        expect:
-        checkWrapperWorksWith(current, previous)
+        when:
+        GradleExecuter executer = prepareWrapperExecuter(current, previous)
+
+        then:
+        checkWrapperWorksWith(executer, previous)
+
+        cleanup:
+        cleanupDaemons(executer, previous)
     }
 
-    void checkWrapperWorksWith(GradleDistribution wrapperVersion, GradleDistribution executionVersion) {
+    private GradleExecuter prepareWrapperExecuter(GradleDistribution wrapperVersion, GradleDistribution executionVersion) {
         Assume.assumeTrue("skipping $wrapperVersion as its wrapper cannot execute version ${executionVersion.version.version}", wrapperVersion.wrapperCanExecute(executionVersion.version))
 
         println "use wrapper from $wrapperVersion to build using $executionVersion"
@@ -62,15 +74,11 @@ task hello {
 """
         version(wrapperVersion).withTasks('wrapper').run()
 
-        def executer = version(executionVersion, wrapperVersion)
-        def result = executer.usingExecutable('gradlew').withTasks('hello').run()
-
-        assert result.output.contains("hello from $executionVersion.version.version")
-        assert result.output.contains("using distribution at ${executer.gradleUserHomeDir.file("wrapper/dists")}")
-        assert result.output.contains("using Gradle user home at $executer.gradleUserHomeDir")
+        def executer = wrapperExecuter(wrapperVersion)
+        executer
     }
 
-    GradleExecuter version(GradleDistribution runtime, GradleDistribution wrapper) {
+    GradleExecuter wrapperExecuter(GradleDistribution wrapper) {
         def executer = super.version(wrapper)
 
         if (!wrapper.supportsSpacesInGradleAndJavaOpts) {
@@ -91,6 +99,20 @@ task hello {
         // the installed distro is deleted at the end of this test
         executer.requireIsolatedDaemons()
         return executer
+    }
+
+    void checkWrapperWorksWith(GradleExecuter executer, GradleDistribution executionVersion) {
+        def result = executer.usingExecutable('gradlew').withTasks('hello').run()
+
+        assert result.output.contains("hello from $executionVersion.version.version")
+        assert result.output.contains("using distribution at ${executer.gradleUserHomeDir.file("wrapper/dists")}")
+        assert result.output.contains("using Gradle user home at $executer.gradleUserHomeDir")
+    }
+
+    static void cleanupDaemons(GradleExecuter executer, GradleDistribution executionVersion) {
+        if (GradleContextualExecuter.daemon) {
+            new DaemonLogsAnalyzer(executer.daemonBaseDir, executionVersion.version.version).killAll()
+        }
     }
 }
 

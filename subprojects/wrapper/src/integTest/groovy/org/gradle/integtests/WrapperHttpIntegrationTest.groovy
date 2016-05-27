@@ -15,9 +15,7 @@
  */
 
 package org.gradle.integtests
-
 import org.gradle.api.JavaVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.GradleVersion
@@ -27,7 +25,6 @@ import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
 
-@LeaksFileHandles
 class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Rule HttpServer server = new HttpServer()
     @Rule TestProxyServer proxyServer = new TestProxyServer()
