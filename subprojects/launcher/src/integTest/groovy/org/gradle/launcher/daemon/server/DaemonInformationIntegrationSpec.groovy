@@ -23,8 +23,8 @@ class DaemonInformationIntegrationSpec extends DaemonIntegrationSpec {
     def "should capture basic data via the service registry"() {
         given:
         buildFile << """
-           def healthService = project.getServices().get(org.gradle.launcher.daemon.server.health.DaemonHealthServices)
-           org.gradle.launcher.daemon.server.health.DaemonInformation info = healthService.getDaemonInformation()
+           import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo
+           DaemonScanInfo info = project.getServices().get(DaemonScanInfo)
 
            assert info.getNumberOfBuilds() == 1
            assert info.getIdleTimeout() == 120000

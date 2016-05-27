@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health;
+package org.gradle.launcher.daemon.server.scaninfo;
 
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.server.health.DaemonStats;
 
-public class DefaultDaemonInformation implements DaemonInformation {
+public class DefaultDaemonScanInfo implements DaemonScanInfo {
     private final DaemonStats stats;
     private final long idleTimeout;
     private final DaemonRegistry daemonRegistry;
 
-    public static DefaultDaemonInformation of(DaemonStats stats, int idleTimeout, DaemonRegistry daemonRegistry) {
-        return new DefaultDaemonInformation(stats, (long) idleTimeout, daemonRegistry);
+    public static DefaultDaemonScanInfo of(DaemonStats stats, int idleTimeout, DaemonRegistry daemonRegistry) {
+        return new DefaultDaemonScanInfo(stats, (long) idleTimeout, daemonRegistry);
     }
 
-    private DefaultDaemonInformation(DaemonStats stats, long idleTimeout, DaemonRegistry daemonRegistry) {
+    private DefaultDaemonScanInfo(DaemonStats stats, long idleTimeout, DaemonRegistry daemonRegistry) {
         this.stats = stats;
         this.idleTimeout = idleTimeout;
         this.daemonRegistry = daemonRegistry;

@@ -21,13 +21,11 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 public class DefaultDaemonHealthServices implements DaemonHealthServices {
     private final HintGCAfterBuild hygieneAction = new HintGCAfterBuild();
     private final DaemonStatus status;
-    private final DaemonInformation daemonInformation;
     private final HealthLogger logger = new HealthLogger();
     private final DaemonHealthTracker tracker;
 
-    public DefaultDaemonHealthServices(DaemonHealthCheck healthCheck, DaemonStatus status, DaemonStats stats, DaemonInformation daemonInformation) {
+    public DefaultDaemonHealthServices(DaemonHealthCheck healthCheck, DaemonStatus status, DaemonStats stats) {
         this.status = status;
-        this.daemonInformation = daemonInformation;
         this.tracker = new DaemonHealthTracker(stats, healthCheck, logger);
     }
 
@@ -46,8 +44,4 @@ public class DefaultDaemonHealthServices implements DaemonHealthServices {
         return status;
     }
 
-    @Override
-    public DaemonInformation getDaemonInformation() {
-        return daemonInformation;
-    }
 }

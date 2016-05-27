@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health;
+package org.gradle.launcher.daemon.server.scaninfo;
 
-public interface DaemonInformation {
+/**
+ * A means to expose daemon specific information to the Build Receipt plugin.
+ * Effectively, forms a not-quite-public contract with the Build Receipt plugin.
+ */
+public interface DaemonScanInfo {
     /**
      * @return the number of builds that the daemon has run
      */

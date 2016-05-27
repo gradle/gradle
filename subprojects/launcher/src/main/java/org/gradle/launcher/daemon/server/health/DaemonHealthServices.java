@@ -34,6 +34,4 @@ public interface DaemonHealthServices {
      * gets the status of the daemon
      */
     DaemonStatus getDaemonStatus();
-
-    DaemonInformation getDaemonInformation();
 }

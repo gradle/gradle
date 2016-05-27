@@ -37,11 +37,11 @@ import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.health.DaemonHealthCheck;
 import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
-import org.gradle.launcher.daemon.server.health.DaemonInformation;
+import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
 import org.gradle.launcher.daemon.server.health.DaemonStats;
 import org.gradle.launcher.daemon.server.health.DaemonStatus;
 import org.gradle.launcher.daemon.server.health.DefaultDaemonHealthServices;
-import org.gradle.launcher.daemon.server.health.DefaultDaemonInformation;
+import org.gradle.launcher.daemon.server.scaninfo.DefaultDaemonScanInfo;
 import org.gradle.launcher.exec.BuildExecuter;
 
 import java.io.File;
@@ -88,12 +88,18 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new File(get(DaemonDir.class).getVersionedDir(), fileName);
     }
 
-    protected DefaultDaemonHealthServices createDaemonHealthServices(ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
-        DaemonStats stats = DaemonStats.of(scheduledExecutorService, startTime);
-        DaemonStatus status = new DaemonStatus(stats);
-        DaemonHealthCheck healthCheck = new DefaultDaemonHealthCheck(DaemonExpirationStrategies.getHealthStrategy(status), listenerManager);
-        DaemonInformation daemonInformation = DefaultDaemonInformation.of(stats, configuration.getIdleTimeout(), get(DaemonRegistry.class));
-        return new DefaultDaemonHealthServices(healthCheck, status, stats, daemonInformation);
+    protected DefaultDaemonHealthServices createDaemonHealthServices(ListenerManager listenerManager, DaemonStats daemonStats) {
+        DaemonStatus daemonStatus = new DaemonStatus(daemonStats);
+        DaemonHealthCheck healthCheck = new DefaultDaemonHealthCheck(DaemonExpirationStrategies.getHealthStrategy(daemonStatus), listenerManager);
+        return new DefaultDaemonHealthServices(healthCheck, daemonStatus, daemonStats);
+    }
+
+    protected DaemonStats createDaemonStats(ScheduledExecutorService scheduledExecutorService) {
+        return DaemonStats.of(scheduledExecutorService, startTime);
+    }
+
+    protected DaemonScanInfo createDaemonInformation(DaemonStats daemonStats) {
+        return DefaultDaemonScanInfo.of(daemonStats, configuration.getIdleTimeout(), get(DaemonRegistry.class));
     }
 
     protected ScheduledExecutorService createScheduledExecutorService() {
