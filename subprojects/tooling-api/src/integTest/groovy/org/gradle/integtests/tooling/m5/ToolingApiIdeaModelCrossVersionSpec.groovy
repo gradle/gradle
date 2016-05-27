@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 package org.gradle.integtests.tooling.m5
+
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.tooling.model.idea.*
+import org.gradle.tooling.model.idea.BasicIdeaProject
+import org.gradle.tooling.model.idea.IdeaContentRoot
+import org.gradle.tooling.model.idea.IdeaModule
+import org.gradle.tooling.model.idea.IdeaModuleDependency
+import org.gradle.tooling.model.idea.IdeaProject
+import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 

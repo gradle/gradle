@@ -18,9 +18,11 @@ package org.gradle.plugins.ide.internal.tooling.idea;
 
 import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
+import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
 
 import java.io.File;
 
+@LegacyConsumerInterface("org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency")
 public class DefaultIdeaSingleEntryLibraryDependency extends DefaultIdeaDependency {
     private File file;
     private File source;
