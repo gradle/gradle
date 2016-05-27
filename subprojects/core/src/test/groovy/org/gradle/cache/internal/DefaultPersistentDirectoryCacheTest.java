@@ -74,8 +74,13 @@ public class DefaultPersistentDirectoryCacheTest {
         }});
 
         DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(emptyDir, "<display-name>", validator, properties, mode(LockMode.Shared), action, lockManager);
-        cache.open();
-        assertThat(loadProperties(emptyDir.file("cache.properties")), equalTo(properties));
+
+        try {
+            cache.open();
+            assertThat(loadProperties(emptyDir.file("cache.properties")), equalTo(properties));
+        } finally {
+            cache.close();
+        }
     }
 
     @Test
@@ -87,8 +92,13 @@ public class DefaultPersistentDirectoryCacheTest {
         }});
 
         DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, mode(LockMode.Shared), action, lockManager);
-        cache.open();
-        assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
+
+        try {
+            cache.open();
+            assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
+        } finally {
+            cache.close();
+        }
     }
 
     @Test
@@ -100,8 +110,13 @@ public class DefaultPersistentDirectoryCacheTest {
         }});
 
         DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, mode(LockMode.Shared), action, lockManager);
-        cache.open();
-        assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
+
+        try {
+            cache.open();
+            assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
+        } finally {
+            cache.close();
+        }
     }
 
     @Test
@@ -119,8 +134,13 @@ public class DefaultPersistentDirectoryCacheTest {
         }});
 
         DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", invalidator, properties, mode(LockMode.Shared), action, lockManager);
-        cache.open();
-        assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
+
+        try {
+            cache.open();
+            assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
+        } finally {
+            cache.close();
+        }
     }
 
     @Test
@@ -145,8 +165,13 @@ public class DefaultPersistentDirectoryCacheTest {
         }});
 
         DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, mode(LockMode.Shared), action, lockManager);
-        cache.open();
-        assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
+
+        try {
+            cache.open();
+            assertThat(loadProperties(dir.file("cache.properties")), equalTo(properties));
+        } finally {
+            cache.close();
+        }
     }
 
     @Test
@@ -154,9 +179,14 @@ public class DefaultPersistentDirectoryCacheTest {
         TestFile dir = createCacheDir();
 
         DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, mode(LockMode.Shared), action, lockManager);
-        cache.open();
-        dir.file("cache.properties").assertIsFile();
-        dir.file("some-file").assertIsFile();
+
+        try {
+            cache.open();
+            dir.file("cache.properties").assertIsFile();
+            dir.file("some-file").assertIsFile();
+        } finally {
+            cache.close();
+        }
     }
 
     private Map<String, String> loadProperties(TestFile file) {
@@ -176,9 +206,13 @@ public class DefaultPersistentDirectoryCacheTest {
         properties.putAll(GUtil.map((Object[]) extraProps));
 
         DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, "<display-name>", validator, properties, mode(LockMode.Shared), null, lockManager);
-        cache.open();
-        dir.file("some-file").touch();
-        cache.close();
+
+        try {
+            cache.open();
+            dir.file("some-file").touch();
+        } finally {
+            cache.close();
+        }
 
         return dir;
     }
