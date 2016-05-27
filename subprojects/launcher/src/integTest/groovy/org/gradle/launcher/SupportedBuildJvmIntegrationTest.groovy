@@ -19,8 +19,10 @@ package org.gradle.launcher
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
 import spock.lang.Unroll
 
+@Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })
 class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {

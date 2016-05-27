@@ -25,7 +25,9 @@ import org.gradle.integtests.tooling.r18.BrokenAction
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
+import org.gradle.util.Requires
 
+@Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })
 @TargetGradleVersion("current")
 class ToolingApiUnsupportedBuildJvmCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
