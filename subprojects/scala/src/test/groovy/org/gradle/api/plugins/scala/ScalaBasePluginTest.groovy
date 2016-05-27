@@ -17,7 +17,7 @@ package org.gradle.api.plugins.scala
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.artifacts.configurations.Configurations
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.bundling.Jar
@@ -35,7 +35,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 public class ScalaBasePluginTest {
-    private final DefaultProject project = TestUtil.createRootProject()
+    private final ProjectInternal project = TestUtil.createRootProject()
 
     @Before
     void before() {

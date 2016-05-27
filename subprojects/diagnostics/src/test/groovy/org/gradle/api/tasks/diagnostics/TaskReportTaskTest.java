@@ -23,9 +23,9 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
-import org.gradle.util.TestUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.Path;
+import org.gradle.util.TestUtil;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -193,7 +193,7 @@ public class TaskReportTaskTest {
     private Task task(String name) {
         return task(name, null);
     }
-    
+
     private Task task(final String name, final String taskGroup, final Task... dependencies) {
         final Task task = context.mock(Task.class);
         context.checking(new Expectations() {{
@@ -218,7 +218,7 @@ public class TaskReportTaskTest {
                     description.appendText("compare to");
                 }
             });
-            
+
             TaskDependency dependency = context.mock(TaskDependency.class);
             allowing(task).getTaskDependencies();
             will(returnValue(dependency));

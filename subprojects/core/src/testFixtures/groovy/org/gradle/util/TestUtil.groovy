@@ -21,7 +21,6 @@ import org.apache.ivy.core.module.id.ModuleId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.api.Task
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.groovy.scripts.DefaultScript
@@ -129,23 +128,23 @@ class TestUtil {
      *     {@link #createRootProject(java.io.File)}
      */
     @Deprecated
-    static DefaultProject createRootProject() {
+    static ProjectInternal createRootProject() {
         NativeServicesTestFixture.initialize()
         createRootProject(TestNameTestDirectoryProvider.newInstance().testDirectory)
     }
 
-    DefaultProject rootProject() {
+    ProjectInternal rootProject() {
         createRootProject(rootDir)
     }
 
-    static DefaultProject createRootProject(File rootDir) {
+    static ProjectInternal createRootProject(File rootDir) {
         return ProjectBuilder
             .builder()
             .withProjectDir(rootDir)
             .build()
     }
 
-    static DefaultProject createChildProject(DefaultProject parent, String name, File projectDir = null) {
+    static ProjectInternal createChildProject(ProjectInternal parent, String name, File projectDir = null) {
         return ProjectBuilder
             .builder()
             .withName(name)

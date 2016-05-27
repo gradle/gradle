@@ -16,7 +16,7 @@
 
 package org.gradle.test.fixtures
 
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -40,7 +40,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
     // @CleanupTestDirectory annotation.
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
-    DefaultProject project
+    ProjectInternal project
 
     def setup() {
         project = TestUtil.createRootProject(temporaryFolder.testDirectory)

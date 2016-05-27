@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
@@ -29,7 +29,7 @@ import spock.lang.Unroll
 
 class EclipseWtpPluginTest extends Specification {
 
-    private final DefaultProject project = TestUtil.createRootProject()
+    private final ProjectInternal project = TestUtil.createRootProject()
     private final EclipseWtpPlugin wtpPlugin = new EclipseWtpPlugin(project.services.get(Instantiator))
 
     def "has description"() {

@@ -21,7 +21,7 @@ import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
@@ -40,7 +40,7 @@ import static org.gradle.util.WrapUtil.toList
 public class DefaultTaskExecutionPlanTest extends Specification {
 
     DefaultTaskExecutionPlan executionPlan
-    DefaultProject root;
+    ProjectInternal root;
     def cancellationHandler = Mock(BuildCancellationToken)
 
     def setup() {

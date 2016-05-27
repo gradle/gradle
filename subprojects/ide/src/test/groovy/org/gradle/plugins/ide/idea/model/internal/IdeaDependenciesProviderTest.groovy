@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.idea.model.internal
 
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.Dependency
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
@@ -25,8 +25,8 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 public class IdeaDependenciesProviderTest extends Specification {
-    private final DefaultProject project = TestUtil.createRootProject()
-    private final DefaultProject childProject = TestUtil.createChildProject(project, "child", new File("."))
+    private final ProjectInternal project = TestUtil.createRootProject()
+    private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
 
     def "no dependencies test"() {
         applyPluginToProjects()

@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 
+import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
-import org.gradle.api.internal.project.AbstractProject
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.component.local.model.DslOriginDependencyMetaData
 import org.gradle.util.TestUtil
@@ -53,7 +53,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
     }
 
     private ProjectDependency createProjectDependency(String dependencyConfiguration) {
-        AbstractProject dependencyProject = TestUtil.createRootProject();
+        Project dependencyProject = TestUtil.createRootProject();
         dependencyProject.setGroup("someGroup");
         dependencyProject.setVersion("someVersion");
         dependencyProject.configurations.create(dependencyConfiguration)
