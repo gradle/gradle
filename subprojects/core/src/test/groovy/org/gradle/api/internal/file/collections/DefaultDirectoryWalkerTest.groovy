@@ -67,7 +67,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
     def walkSingleFile() {
         given:
         def root = temporaryFolder.createDir("root")
-        def fileToCopy = temporaryFolder.createFile(root, "file.txt")
+        def fileToCopy = root.createFile("file.txt")
         def fileTree = new DirectoryFileTree(fileToCopy, new PatternSet(), directoryWalkerFactory)
 
         when:
