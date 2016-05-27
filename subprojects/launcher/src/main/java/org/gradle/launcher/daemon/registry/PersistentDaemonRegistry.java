@@ -198,10 +198,14 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         lock.lock();
         LOGGER.info("Clearing daemon stop events");
         try {
-            DaemonRegistryContent content = cache.get();
-            if (content != null) { // no daemon process has started yet
-                content.clearStopEvents();
-            }
+            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
+                public DaemonRegistryContent update(DaemonRegistryContent content) {
+                    if (content != null) { // no daemon process has started yet
+                        content.clearStopEvents();
+                    }
+                    return content;
+                }
+            });
         } finally {
             lock.unlock();
         }
