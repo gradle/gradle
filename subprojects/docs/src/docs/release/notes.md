@@ -317,6 +317,15 @@ As a result of this deprecation, the following methods are also deprecated and w
 
 The `setName()` and `setProject()` methods in `AbstractTask` have been deprecated and will be removed in Gradle 3.0.
 
+### Deprecated internal methods
+
+The internal methods `has()`, `get()` and `set()` were unintentionally visible from Groovy for several types such as `Project` and `Task. This meant that they could be used in Gradle build scripts and plugins implemented in Groovy. These methods have been deprecated and will be removed in Gradle 3.0
+
+These methods can be replaced with calls to either:
+
+- `getProperty()`, `setProperty()` or `hasProperty()` methods. These act on all the properties of the object.
+- `ext.get()`, `ext.set()` or `ext.has()` methods. These act only on the 'extra' properties of this object. 
+
 ## Potential breaking changes
 
 ### Gradle implementation dependencies are not visible to plugins at development time
