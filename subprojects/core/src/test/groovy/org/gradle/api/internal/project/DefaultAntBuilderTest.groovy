@@ -31,7 +31,11 @@ import static org.junit.Assert.assertThat
 
 class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
     private final AntLoggingAdapter loggingAdapter = Mock(AntLoggingAdapter)
-    private final def ant = new DefaultAntBuilder(project, loggingAdapter)
+    def ant
+
+    def setup() {
+        ant = new DefaultAntBuilder(project, loggingAdapter)
+    }
 
     def "ant properties are available as properties of builder"() {
         when:
