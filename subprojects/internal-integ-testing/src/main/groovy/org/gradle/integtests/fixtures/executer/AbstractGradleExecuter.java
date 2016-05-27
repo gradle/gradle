@@ -21,6 +21,7 @@ import com.google.common.io.CharSource;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -44,9 +45,21 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.util.CollectionUtils.collect;
@@ -577,6 +590,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected boolean isUseDaemon() {
+        Boolean daemonOrNoDaemon = findDaemonOrNoDaemonArgument();
+        if (daemonOrNoDaemon != null) {
+            return daemonOrNoDaemon;
+        }
+        return requireDaemon;
+    }
+
+    @Nullable
+    private Boolean findDaemonOrNoDaemonArgument() {
         for (int i = args.size() - 1; i >= 0; i--) {
             if (args.get(i).equals("--daemon")) {
                 return true;
@@ -585,7 +607,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                 return false;
             }
         }
-        return requireDaemon;
+        return null;
+    }
+
+    private boolean noDaemonArgumentGiven() {
+        return findDaemonOrNoDaemonArgument() == null;
     }
 
     protected List<String> getAllArgs() {
@@ -609,8 +635,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (quiet) {
             allArgs.add("--quiet");
         }
-        if (isUseDaemon()) {
-            allArgs.add("--daemon");
+        if (noDaemonArgumentGiven()) {
+            if (isUseDaemon()) {
+                allArgs.add("--daemon");
+            } else {
+                allArgs.add("--no-daemon");
+            }
         }
         allArgs.add("--stacktrace");
         if (taskList) {
