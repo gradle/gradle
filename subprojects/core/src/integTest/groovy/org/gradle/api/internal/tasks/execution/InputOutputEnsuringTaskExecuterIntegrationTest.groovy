@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.execution
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class InputOutputEnsuringTaskExecuterIntegrationTest extends AbstractIntegrationSpec {
-    def "config action is executed"() {
+    def "config action is executed immediately before task"() {
         file("input.txt") << "Text"
         buildFile << """
             task myTask {
