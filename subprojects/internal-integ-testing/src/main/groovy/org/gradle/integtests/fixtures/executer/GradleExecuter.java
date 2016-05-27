@@ -303,6 +303,11 @@ public interface GradleExecuter {
     GradleExecuter requireIsolatedDaemons();
 
     /**
+     * Returns true if this executer will share daemons with other executers.
+     */
+    boolean usesSharedDaemons();
+
+    /**
      * Configures a unique gradle user home dir for the test.
      *
      * The gradle user home dir used will be underneath the {@link #getTestDirectoryProvider()} directory.

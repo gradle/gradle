@@ -16,12 +16,12 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.junit.Assume
+
+import static org.gradle.integtests.fixtures.daemon.DaemonTestFixture.killIsolatedDaemons
 
 class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     def setup() {
@@ -110,9 +110,7 @@ task hello {
     }
 
     static void cleanupDaemons(GradleExecuter executer, GradleDistribution executionVersion) {
-        if (GradleContextualExecuter.daemon) {
-            new DaemonLogsAnalyzer(executer.daemonBaseDir, executionVersion.version.version).killAll()
-        }
+        killIsolatedDaemons(executer, executionVersion.version)
     }
 }
 

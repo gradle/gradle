@@ -558,6 +558,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return withDaemonBaseDir(testDirectoryProvider.getTestDirectory().file("daemon"));
     }
 
+    public boolean usesSharedDaemons() {
+        return isSharedDaemons();
+    }
+
     public File getDaemonBaseDir() {
         return daemonBaseDir;
     }
