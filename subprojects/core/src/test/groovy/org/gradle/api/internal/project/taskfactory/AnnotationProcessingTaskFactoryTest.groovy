@@ -497,20 +497,29 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithOutputDir  | 'outputs' | 'missingDir'
     }
 
+    def "registers specified list of inputs on TaskWithInputFiles"() {
+        given:
+        def values = ['testDir', 'missingFile'].collect({ this[it] })
+        def task = expectTaskCreated(TaskWithInputFiles, values as List)
+
+        expect:
+        task.inputs.files.files == values as Set
+    }
+
     @Unroll
-    def "registers specified list of #target for #value on #type.simpleName"() {
+    def "registers specified list of outputs for #value on #type.simpleName"() {
         given:
         def values = value.collect({ this[it] })
         def task = expectTaskCreated(type, values as List)
+        task.outputs.ensureConfigured()
 
         expect:
-        task[target].files.files == values as Set
+        task.outputs.files.files == values as Set
 
         where:
-        type                | target    | value
-        TaskWithOutputFiles | 'outputs' | ['existingFile']
-        TaskWithInputFiles  | 'inputs'  | ['testDir', 'missingFile']
-        TaskWithOutputDirs  | 'outputs' | ['missingDir', 'missingDir2']
+        type                | value
+        TaskWithOutputFiles | ['existingFile']
+        TaskWithOutputDirs  | ['missingDir', 'missingDir2']
     }
 
     def registersSpecifiedInputDirectory() {
