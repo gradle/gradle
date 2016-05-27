@@ -50,5 +50,3 @@ useClassycle(exclude: [
 ])
 strictCompileIgnoreDeprecations()
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
-
