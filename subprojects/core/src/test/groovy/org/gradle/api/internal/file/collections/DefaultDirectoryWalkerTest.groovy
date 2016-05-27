@@ -40,7 +40,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
 
     def rootDirEmpty() {
         given:
-        def root = temporaryFolder.createDir("root")
+        def root = StableTestFile.root(temporaryFolder.createDir("root"))
         def fileTree = new DirectoryFileTree(root, new PatternSet(), directoryWalkerFactory)
 
         when:
@@ -66,7 +66,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
 
     def walkSingleFile() {
         given:
-        def root = temporaryFolder.createDir("root")
+        def root = StableTestFile.root(temporaryFolder.createDir("root"))
         def fileToCopy = root.createFile("file.txt")
         def fileTree = new DirectoryFileTree(fileToCopy, new PatternSet(), directoryWalkerFactory)
 
@@ -91,7 +91,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
      */
     def walkBreadthFirst() {
         given:
-        def root = temporaryFolder.createDir("root")
+        def root = StableTestFile.root(temporaryFolder.createDir("root"))
         def rootFile1 = root.createFile("rootFile1")
         def dir1 = root.createDir("dir1")
         def dirFile1 = dir1.createFile("dirFile1")
@@ -110,7 +110,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
 
     def walkDepthFirst() {
         given:
-        def root = temporaryFolder.createDir("root")
+        def root = StableTestFile.root(temporaryFolder.createDir("root"))
         def rootFile1 = root.createFile("rootFile1")
         def dir1 = root.createDir("dir1")
         def dirFile1 = dir1.createFile("dirFile1")
@@ -129,7 +129,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
 
     def canApplyFilter() {
         given:
-        def root = temporaryFolder.createDir("root")
+        def root = StableTestFile.root(temporaryFolder.createDir("root"))
         root.createFile("rootFile1")
         def dir1 = root.createDir("dir1")
         dir1.createFile("dirFile1")
@@ -155,7 +155,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
 
     def visitorCanStopVisit() {
         given:
-        def root = temporaryFolder.createDir("root")
+        def root = StableTestFile.root(temporaryFolder.createDir("root"))
         def rootFile1 = root.createFile("rootFile1")
         def dir1 = root.createDir("dir1")
         def dirFile1 = dir1.createFile("dirFile1")
@@ -185,7 +185,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
 
     def canTestForFileMembership() {
         given:
-        def rootDir = temporaryFolder.createDir("root")
+        def rootDir = StableTestFile.root(temporaryFolder.createDir("root"))
         def rootTextFile = rootDir.file("a.txt").createFile()
         def nestedTextFile = rootDir.file("a/b/c.txt").createFile()
         def notTextFile = rootDir.file("a/b/c.html").createFile()
