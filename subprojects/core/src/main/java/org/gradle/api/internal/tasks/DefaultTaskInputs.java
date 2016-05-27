@@ -20,13 +20,13 @@ import groovy.lang.Closure;
 import groovy.lang.GString;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.util.ConfigureUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -180,7 +180,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public TaskInputs configure(Closure action) {
-        return configure(ClosureBackedAction.of((Closure<?>) action));
+        return configure(ConfigureUtil.configureUsing(action));
     }
 
     @Override

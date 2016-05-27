@@ -21,7 +21,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
@@ -30,6 +29,7 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.Queue;
@@ -129,7 +129,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public TaskOutputs configure(Closure action) {
-        return configure(ClosureBackedAction.of((Closure<?>) action));
+        return configure(ConfigureUtil.configureUsing(action));
     }
 
     @Override
