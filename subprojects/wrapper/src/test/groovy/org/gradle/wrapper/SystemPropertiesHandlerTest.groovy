@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.wrapper
-import org.apache.commons.io.IOUtils
+
 import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -26,16 +27,13 @@ class SystemPropertiesHandlerTest extends Specification {
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def parsesPropertiesFile() {
-        File propFile = temporaryFolder.file('props')
-        Properties props = new Properties()
-        props.putAll a: 'b', 'systemProp.c': 'd', 'systemProp.': 'e'
-
-        def stream = new FileOutputStream(propFile)
-        try {
-            props.store(stream, "")
-        } finally {
-            IOUtils.closeQuietly(stream)
-        }
+        TestFile propFile = temporaryFolder.file('props')
+        propFile << """
+a=b
+systemProp.c=d
+systemProp.=e
+systemProp=f
+"""
 
         expect:
         [c: 'd'] == SystemPropertiesHandler.getSystemProperties(propFile)
