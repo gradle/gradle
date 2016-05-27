@@ -249,6 +249,10 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
+    public boolean isStopping() {
+        return state == State.StopRequested || state == State.Stopped;
+    }
+
     private void waitForCommandCompletion() {
         lock.lock();
         try {
