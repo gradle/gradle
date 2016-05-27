@@ -16,6 +16,7 @@
 package org.gradle.util
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.os.OperatingSystem
 
 enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
@@ -97,6 +98,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     JDK8_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_1_8
+    }),
+    OLD_JDK_INSTALLED({
+        !AvailableJavaHomes.getJdks("1.5", "1.6").empty
     }),
     JDK7_POSIX({
         NOT_WINDOWS.fulfilled
