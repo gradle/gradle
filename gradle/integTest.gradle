@@ -95,10 +95,12 @@ def removeCachedScripts(File cachesDir) {
     if (cachesDir.directory) {
         for (File cacheDir : cachesDir.listFiles()) {
             if(cacheDir.directory) {
-                File scriptsCacheDir = new File(cacheDir, "scripts")
-                if(scriptsCacheDir.directory) {
-                    println "Removing scripts cache directory : ${scriptsCacheDir}"
-                    delete(scriptsCacheDir)
+                ["scripts", "scripts-remapped"].each {
+                    File scriptsCacheDir = new File(cacheDir, it)
+                    if(scriptsCacheDir.directory) {
+                        println "Removing scripts cache directory : ${scriptsCacheDir}"
+                        delete(scriptsCacheDir)
+                    }
                 }
             }
         }
