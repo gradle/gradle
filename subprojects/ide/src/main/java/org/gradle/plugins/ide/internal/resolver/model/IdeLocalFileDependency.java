@@ -22,7 +22,6 @@ public class IdeLocalFileDependency extends IdeDependency {
     private final File file;
 
     public IdeLocalFileDependency(File file) {
-        super();
         this.file = file;
     }
 
