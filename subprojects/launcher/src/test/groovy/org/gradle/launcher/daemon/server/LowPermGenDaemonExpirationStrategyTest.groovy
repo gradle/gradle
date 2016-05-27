@@ -36,7 +36,7 @@ class LowPermGenDaemonExpirationStrategyTest extends Specification {
 
         and:
         result.status == GRACEFUL_EXPIRE
-        result.reason == "because the JVM's permanent generation space was exhausted"
+        result.reason == "ran out of memory and was stopped"
     }
 
     def "daemon is not expired when tenured space is fine" () {
