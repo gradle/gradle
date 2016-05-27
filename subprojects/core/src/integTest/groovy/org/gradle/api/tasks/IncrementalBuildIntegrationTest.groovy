@@ -384,7 +384,7 @@ task b(type: DirTransformerTask) {
         testFile('build.gradle') << '''
 task inputsAndOutputs {
     inputs.files 'src.txt'
-    outputs.files 'src.a.txt'
+    outputs.file 'src.a.txt'
     outputs.upToDateWhen { project.hasProperty('uptodate') }
     doFirst {
         outputs.files.singleFile.text = "[${inputs.files.singleFile.text}]"
