@@ -17,19 +17,22 @@ version = "1.0.0-SNAPSHOT"
 
 val kotlinVersion = extra["kotlinVersion"] as String
 
-fun DependencyHandler.compileOnly(descriptor: Any) = add("compileOnly", descriptor)
-
-fun DependencyHandler.compile(descriptor: Any) = add("compile", descriptor)
-
 dependencies {
-    compileOnly("org.gradle:gradle-core:3+")
-    compileOnly("org.gradle:gradle-process-services:3+")
+    compileOnly(gradle("core"))
+    compileOnly(gradle("process-services"))
+
     compile("org.codehaus.groovy:groovy-all:2.4.6")
     compile("org.slf4j:slf4j-api:1.7.10")
     compile("javax.inject:javax.inject:1")
     compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
     compile("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
     compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinVersion}a")
+
+    testRuntime("org.slf4j:slf4j-simple:1.7.10")
+    testCompile(gradle("core"))
+    testCompile(gradle("process-services"))
+    testCompile("junit:junit:4.12")
+    testCompile("com.nhaarman:mockito-kotlin:0.4.1")
 }
 
 tasks.withType<Jar> {
@@ -47,3 +50,13 @@ configure<PublishingExtension> {
         }
     }
 }
+
+fun DependencyHandler.compileOnly(descriptor: Any) = add("compileOnly", descriptor)
+
+fun DependencyHandler.compile(descriptor: Any) = add("compile", descriptor)
+
+fun DependencyHandler.testCompile(descriptor: Any) = add("testCompile", descriptor)
+
+fun DependencyHandler.testRuntime(descriptor: Any) = add("testRuntime", descriptor)
+
+fun gradle(module: String) = "org.gradle:gradle-$module:3.+"

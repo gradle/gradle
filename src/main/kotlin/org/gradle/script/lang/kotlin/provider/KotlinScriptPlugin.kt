@@ -47,7 +47,7 @@ class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<
         target.task<PatchIdeaConfig>("patchIdeaConfig")
     }
 
-    private fun instantiateScriptClass(target: Any) {
+    fun instantiateScriptClass(target: Any) {
         try {
             scriptClass.getConstructor(Project::class.java).newInstance(target)
         } catch(e: InvocationTargetException) {

@@ -51,9 +51,10 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
         return compileKotlinScript(scriptFile, scriptDef, classLoader, logger)
     }
 
-    private fun classLoaderFor(classPath: List<File>, scriptHandler: ScriptHandlerInternal,
+    private fun classLoaderFor(classPath: List<File>,
+                               scriptHandler: ScriptHandlerInternal,
                                targetScope: ClassLoaderScope): ClassLoader {
-        scriptHandler.dependencies.add(ScriptHandler.CLASSPATH_CONFIGURATION, SimpleFileCollection(classPath))
+        scriptHandler.addScriptClassPathDependency(SimpleFileCollection(classPath))
         targetScope.export(scriptHandler.scriptClassPath)
         targetScope.export(KotlinBuildScript::class.java.classLoader)
         targetScope.lock()
