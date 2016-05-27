@@ -30,7 +30,13 @@ abstract class AbstractTextResourceTest extends AbstractProjectBuilderSpec {
 
     def "read as reader"() {
         expect:
-        resource.asReader().readLine() == "contents"
+        def reader = resource.asReader()
+
+        try {
+            reader.readLine() == "contents"
+        } finally {
+            reader.close()
+        }
     }
 
     def "read as file"() {
