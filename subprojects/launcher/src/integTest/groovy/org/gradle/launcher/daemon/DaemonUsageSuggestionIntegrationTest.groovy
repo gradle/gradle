@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.Requires
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 import static org.gradle.util.TestPrecondition.WINDOWS
@@ -31,7 +32,8 @@ class DaemonUsageSuggestionIntegrationTest extends AbstractIntegrationSpec {
         executer.withEnvironmentVars("CI": false)
     }
 
-    @IgnoreIf({ GradleContextualExecuter.longLivingProcess || WINDOWS.fulfilled })
+    @Ignore // No longer relevant with daemon-by-default : TODO:DAZ Ensure that this is cleaned up
+//    @IgnoreIf({ GradleContextualExecuter.longLivingProcess || WINDOWS.fulfilled })
     def "prints a suggestion to use the daemon when daemon usage has not been explicitly configured"() {
         when:
         succeeds()
