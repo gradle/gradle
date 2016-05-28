@@ -29,7 +29,6 @@ public class DaemonRunningStats {
     private long allBuildsTime;
 
     public DaemonRunningStats(TimeProvider timeProvider, long startAt) {
-        System.out.println("create");
         this.runningClock = new Clock(startAt);
         this.timeProvider = timeProvider;
     }
