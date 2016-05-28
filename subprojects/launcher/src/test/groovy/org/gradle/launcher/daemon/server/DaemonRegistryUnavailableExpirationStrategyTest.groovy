@@ -25,13 +25,15 @@ import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Subject
 
 import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.DO_NOT_EXPIRE
 import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_EXPIRE
 
 class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
     Daemon daemon = Mock(Daemon)
+    @Subject DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy(daemon)
+    @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
     File daemonDir = tempDir.createDir("test_daemon_dir")
 
     def "daemon should expire when registry file is unreachable"() {
@@ -45,7 +47,7 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
 
         then:
         expirationCheck.status == GRACEFUL_EXPIRE
-        expirationCheck.reason == "because daemon registry became unreadable"
+        expirationCheck.reason == DaemonRegistryUnavailableExpirationStrategy.REGISTRY_BECAME_UNREADABLE
     }
 
     def "daemon should not expire given readable registry with it's PID"() {
@@ -60,7 +62,6 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
         DaemonRegistry registry = new EmbeddedDaemonRegistry()
         daemonDir.getRegistry().createNewFile()
         registry.store(new DaemonInfo(address, daemonContext, "password".bytes, true))
-        DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy(daemon)
 
         when:
         1 * daemon.getDaemonContext() >> { daemonContext }

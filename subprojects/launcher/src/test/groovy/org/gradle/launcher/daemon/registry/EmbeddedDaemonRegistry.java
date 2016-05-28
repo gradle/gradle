@@ -103,8 +103,8 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
     }
 
     @Override
-    public void clearStopEvents() {
-        stopEvents.clear();
+    public void removeStopEvents(final List<DaemonStopEvent> events) {
+        stopEvents.removeAll(events);
     }
 
     private List<DaemonInfo> daemonInfosOfEntriesMatching(Spec<DaemonInfo> spec) {

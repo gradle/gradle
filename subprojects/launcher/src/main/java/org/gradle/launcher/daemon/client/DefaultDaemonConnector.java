@@ -21,6 +21,8 @@ import com.google.common.collect.Lists;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.Pair;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.remote.internal.ConnectException;
@@ -36,7 +38,9 @@ import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
+import org.gradle.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -47,12 +51,13 @@ import java.util.List;
 public class DefaultDaemonConnector implements DaemonConnector {
     private static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
     public static final int DEFAULT_CONNECT_TIMEOUT = 30000;
-    public static final String STARTING_DAEMON_MESSAGE = "Starting a new Gradle Daemon for this build.";
-    public static final String ONE_BUSY_DAEMON_MESSAGE = "Another Gradle Daemon is busy.";
-    public static final String MULTIPLE_BUSY_DAEMONS_MESSAGE = "Multiple Gradle Daemons are busy.";
-    public static final String ONE_INCOMPATIBLE_DAEMON_MESSAGE = "An idle Gradle Daemon with different constraints could not be reused.";
-    public static final String MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE = "Multiple idle Gradle Daemons with different constraints could not be reused.";
-    public static final String SUBSEQUENT_BUILDS_FASTER_MESSAGE = "Subsequent builds will be faster.";
+    public static final String STARTING_DAEMON_MESSAGE = "Starting a new Gradle Daemon because";
+    public static final String ONE_BUSY_DAEMON_MESSAGE = "Another daemon is busy";
+    public static final String MULTIPLE_BUSY_DAEMONS_MESSAGE = "Multiple daemons are busy";
+    public static final String ONE_INCOMPATIBLE_DAEMON_MESSAGE = "An idle daemon with different constraints could not be used";
+    public static final String MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE = "Multiple idle daemons with different constraints could not be used";
+    public static final String SUBSEQUENT_BUILDS_FASTER_MESSAGE = "Subsequent builds will be faster";
+    public static final String DAEMON_WAS_STOPPED_PREFIX = "A daemon was stopped ";
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
     private final DaemonRegistry daemonRegistry;
     protected final OutgoingConnector connector;
@@ -93,33 +98,48 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     public DaemonClientConnection connect(ExplainingSpec<DaemonContext> constraint) {
-        List<DaemonInfo> compatibleIdleDaemons = getCompatibleDaemons(daemonRegistry.getIdle(), constraint);
+        final Collection<DaemonInfo> allDaemons = daemonRegistry.getAll();
+        final Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> idleBusy = CollectionUtils.partition(allDaemons, new Spec<DaemonInfo>() {
+            public boolean isSatisfiedBy(DaemonInfo element) {
+                return element.isIdle();
+            }
+        });
+        final Collection<DaemonInfo> idleDaemons = idleBusy.getLeft();
+        final Collection<DaemonInfo> busyDaemons = idleBusy.getRight();
+
+        final List<DaemonInfo> compatibleIdleDaemons = getCompatibleDaemons(idleDaemons, constraint);
         DaemonClientConnection connection = findConnection(compatibleIdleDaemons);
         if (connection != null) {
             return connection;
         }
 
-        final int numBusy = daemonRegistry.getBusy().size();
-        final int numIncompatible = daemonRegistry.getIdle().size();
+        // Remove the stop events we're about to display
         final List<DaemonStopEvent> stopEvents = daemonRegistry.getStopEvents();
-        LOGGER.lifecycle(generateStartingMessage(numBusy, numIncompatible, stopEvents));
-        daemonRegistry.clearStopEvents();
+        daemonRegistry.removeStopEvents(stopEvents);
+
+        LOGGER.lifecycle(generateStartingMessage(busyDaemons.size(), idleDaemons.size(), stopEvents));
 
         return startDaemon(constraint);
     }
 
     @VisibleForTesting
     String generateStartingMessage(final int numBusy, final int numIncompatible, final List<DaemonStopEvent> stopEvents) {
-        final List<String> messages = Lists.newArrayList(STARTING_DAEMON_MESSAGE);
-        if (numBusy > 0) {
-            messages.add(numBusy > 1 ? MULTIPLE_BUSY_DAEMONS_MESSAGE : ONE_BUSY_DAEMON_MESSAGE);
+        final List<String> messages = Lists.newArrayList();
+        if (numBusy + numIncompatible == 0) {
+            messages.add(STARTING_DAEMON_MESSAGE + " none are running");
+        } else {
+            messages.add(STARTING_DAEMON_MESSAGE);
+            if (numBusy > 0) {
+                messages.add(numBusy > 1 ? MULTIPLE_BUSY_DAEMONS_MESSAGE : ONE_BUSY_DAEMON_MESSAGE);
+            }
+            if (numIncompatible > 0) {
+                messages.add(numIncompatible > 1 ? MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE : ONE_INCOMPATIBLE_DAEMON_MESSAGE);
+            }
         }
-        if (numIncompatible > 0) {
-            messages.add(numIncompatible > 1 ? MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE : ONE_INCOMPATIBLE_DAEMON_MESSAGE);
-        }
+
         if (stopEvents.size() > 0) {
             for (DaemonStopEvent event : stopEvents) {
-                messages.add("A Gradle Daemon was stopped " + event.getReason() + ".");
+                messages.add(DAEMON_WAS_STOPPED_PREFIX + event.getReason());
             }
         }
         messages.add(SUBSEQUENT_BUILDS_FASTER_MESSAGE);
@@ -127,7 +147,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         return Joiner.on(LINE_SEPARATOR + "   ").skipNulls().join(messages);
     }
 
-    private List<DaemonInfo> getCompatibleDaemons(List<DaemonInfo> daemons, ExplainingSpec<DaemonContext> constraint) {
+    private List<DaemonInfo> getCompatibleDaemons(Iterable<DaemonInfo> daemons, ExplainingSpec<DaemonContext> constraint) {
         List<DaemonInfo> compatibleDaemons = new LinkedList<DaemonInfo>();
         for (DaemonInfo daemon : daemons) {
             if (constraint.isSatisfiedBy(daemon.getContext())) {

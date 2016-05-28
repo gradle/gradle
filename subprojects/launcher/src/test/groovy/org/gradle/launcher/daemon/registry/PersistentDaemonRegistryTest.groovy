@@ -101,9 +101,9 @@ class PersistentDaemonRegistryTest extends Specification {
         registry.all.empty
     }
 
-    def "safely clears stop events when empty"() {
+    def "safely removes stop events when empty"() {
         when:
-        registry.clearStopEvents()
+        registry.removeStopEvents([])
 
         then:
         registry.stopEvents.empty
@@ -111,10 +111,11 @@ class PersistentDaemonRegistryTest extends Specification {
 
     def "clears stop events when non-empty"() {
         given:
-        registry.storeStopEvent(new DaemonStopEvent(new Date(System.currentTimeMillis()), "STOP_REASON"))
+        def stopEvent = new DaemonStopEvent(new Date(System.currentTimeMillis()), "STOP_REASON")
+        registry.storeStopEvent(stopEvent)
 
         when:
-        registry.clearStopEvents()
+        registry.removeStopEvents([stopEvent])
 
         then:
         registry.stopEvents.empty

@@ -194,14 +194,14 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     }
 
     @Override
-    public void clearStopEvents() {
+    public void removeStopEvents(final List<DaemonStopEvent> events) {
         lock.lock();
-        LOGGER.info("Clearing daemon stop events");
+        LOGGER.info("Removing {} daemon stop events from registry", events.size());
         try {
             cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
                 public DaemonRegistryContent update(DaemonRegistryContent content) {
                     if (content != null) { // no daemon process has started yet
-                        content.clearStopEvents();
+                        content.removeStopEvents(events);
                     }
                     return content;
                 }

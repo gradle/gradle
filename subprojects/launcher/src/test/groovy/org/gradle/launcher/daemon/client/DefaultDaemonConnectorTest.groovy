@@ -212,9 +212,9 @@ class DefaultDaemonConnectorTest extends Specification {
         def message = getConnector().generateStartingMessage(0, 0, Lists.newArrayList(stopEvent, stopEvent2))
 
         expect:
-        message.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE)
-        message.contains("   A Gradle Daemon was stopped REASON.")
-        message.contains("   A Gradle Daemon was stopped OTHER_REASON.")
+        message.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE + " none are running")
+        message.contains(DefaultDaemonConnector.DAEMON_WAS_STOPPED_PREFIX + "REASON")
+        message.contains(DefaultDaemonConnector.DAEMON_WAS_STOPPED_PREFIX + "OTHER_REASON")
         message.contains(DefaultDaemonConnector.SUBSEQUENT_BUILDS_FASTER_MESSAGE)
     }
 }

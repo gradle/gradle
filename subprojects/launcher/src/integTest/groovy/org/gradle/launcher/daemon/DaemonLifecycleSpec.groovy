@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.client.DefaultDaemonConnector
 import org.gradle.launcher.daemon.registry.DaemonDir
+import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -310,7 +311,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         startBuild()
 
         then:
-        waitForStartupMessageToContain(1, 'A Gradle Daemon was stopped because daemon registry became unreadable.')
+        waitForStartupMessageToContain(1, DefaultDaemonConnector.DAEMON_WAS_STOPPED_PREFIX + DaemonRegistryUnavailableExpirationStrategy.REGISTRY_BECAME_UNREADABLE)
     }
 
     def "daemon stops after current build if registry is deleted"() {

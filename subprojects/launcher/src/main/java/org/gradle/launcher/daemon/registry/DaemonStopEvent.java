@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.registry;
 
+import org.gradle.api.Nullable;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -26,7 +28,7 @@ public class DaemonStopEvent implements Serializable {
     private final Date timestamp;
     private final String reason;
 
-    public DaemonStopEvent(Date timestamp, String reason) {
+    public DaemonStopEvent(Date timestamp, @Nullable String reason) {
         this.timestamp = timestamp;
         this.reason = reason;
     }
@@ -37,5 +39,26 @@ public class DaemonStopEvent implements Serializable {
 
     public String getReason() {
         return reason;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DaemonStopEvent stopEvent = (DaemonStopEvent) o;
+        return timestamp.equals(stopEvent.timestamp)
+            && (reason != null ? reason.equals(stopEvent.reason) : stopEvent.reason == null);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = timestamp.hashCode();
+        result = 31 * result + (reason != null ? reason.hashCode() : 0);
+        return result;
     }
 }

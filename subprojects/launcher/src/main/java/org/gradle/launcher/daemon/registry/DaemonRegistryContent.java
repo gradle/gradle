@@ -20,6 +20,7 @@ import org.gradle.internal.remote.Address;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -68,8 +69,8 @@ public class DaemonRegistryContent implements Serializable {
     /**
      * Removes all stop events.
      */
-    public void clearStopEvents() {
-        stopEvents.clear();
+    public void removeStopEvents(Collection<DaemonStopEvent> events) {
+        stopEvents.removeAll(events);
     }
 
     /**

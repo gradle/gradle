@@ -40,7 +40,7 @@ public interface DaemonRegistry {
 
     void storeStopEvent(DaemonStopEvent stopEvent);
     List<DaemonStopEvent> getStopEvents();
-    void clearStopEvents();
+    void removeStopEvents(List<DaemonStopEvent> stopEvents);
 
     static class EmptyRegistryException extends RuntimeException {
         public EmptyRegistryException(String message) {
