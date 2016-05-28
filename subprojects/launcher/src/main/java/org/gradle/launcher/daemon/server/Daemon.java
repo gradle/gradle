@@ -120,6 +120,7 @@ public class Daemon implements Stoppable {
             registryUpdater = new DomainRegistryUpdater(daemonRegistry, daemonContext, token);
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
                 public void run() {
                     try {
                         daemonRegistry.remove(connectorAddress);
@@ -130,12 +131,14 @@ public class Daemon implements Stoppable {
             });
 
             Runnable onStartCommand = new Runnable() {
+                @Override
                 public void run() {
                     registryUpdater.onStartActivity();
                 }
             };
 
             Runnable onFinishCommand = new Runnable() {
+                @Override
                 public void run() {
                     registryUpdater.onCompleteActivity();
                 }
@@ -178,6 +181,7 @@ public class Daemon implements Stoppable {
      * What will happen though is that the daemon will immediately disconnect from any clients and remove itself
      * from the registry.
      */
+    @Override
     public void stop() {
         LOGGER.debug("stop() called on daemon");
         lifecycleLock.lock();
@@ -208,12 +212,14 @@ public class Daemon implements Stoppable {
      */
     public void stopOnExpiration(DaemonExpirationStrategy expirationStrategy, int checkIntervalMills) {
         LOGGER.debug("stopOnExpiration() called on daemon");
+        scheduleExpirationChecks(expirationStrategy, checkIntervalMills);
+        awaitExpiration();
+    }
 
+    private void scheduleExpirationChecks(DaemonExpirationStrategy expirationStrategy, int checkIntervalMills) {
         DaemonExpirationPeriodicCheck periodicCheck = new DaemonExpirationPeriodicCheck(expirationStrategy, listenerManager);
         listenerManager.addListener(new DefaultDaemonExpirationListener(stateCoordinator, registryUpdater));
         scheduledExecutorService.scheduleAtFixedRate(periodicCheck, checkIntervalMills, checkIntervalMills, TimeUnit.MILLISECONDS);
-
-        awaitExpiration();
     }
 
     /**

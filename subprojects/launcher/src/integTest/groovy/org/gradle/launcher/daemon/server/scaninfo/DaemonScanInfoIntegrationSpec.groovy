@@ -37,7 +37,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         expect:
         executer.withArguments('help', '--continuous', '-i').run().getExecutedTasks().contains(':help')
     }
-    
+
     def "should capture basic data via when there are multiple daemons running in the foreground"() {
         given:
         buildFile << """

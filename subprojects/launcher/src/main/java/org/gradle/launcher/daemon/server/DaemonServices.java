@@ -52,6 +52,8 @@ import org.gradle.launcher.daemon.server.exec.ResetDeprecationLogger;
 import org.gradle.launcher.daemon.server.exec.ReturnResult;
 import org.gradle.launcher.daemon.server.exec.StartBuildOrRespondWithBusy;
 import org.gradle.launcher.daemon.server.exec.WatchForDisconnection;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListenerRegistry;
+import org.gradle.launcher.daemon.server.expiry.DefaultDaemonExpirationListenerRegistry;
 import org.gradle.launcher.daemon.server.health.DaemonHealthCheck;
 import org.gradle.launcher.daemon.server.health.DaemonHealthStats;
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus;
@@ -171,6 +173,10 @@ public class DaemonServices extends DefaultServiceRegistry {
             get(ScheduledExecutorService.class),
             get(ListenerManager.class)
         );
+    }
+
+    protected DaemonExpirationListenerRegistry createDaemonExpirationListenerRegistry(ListenerManager listenerManager) {
+        return DefaultDaemonExpirationListenerRegistry.of(listenerManager);
     }
 
 }
