@@ -229,6 +229,7 @@ public class DefaultCopySpecTest {
         assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/folder/abc')))
         assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/abc')))
         assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/notRoot/abc')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/not/root/abc')))
         assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/bbc')))
         assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/notRoot/bbc')))
     }
@@ -316,7 +317,7 @@ public class DefaultCopySpecTest {
     }
 
     @Test
-    void "Add spec in between two child specs if given child does not exist"() {
+    void "Append spec after two child specs if given child does not exist"() {
         DefaultCopySpec child1 = spec.addChild()
         DefaultCopySpec child2 = spec.addChild()
         assert child1 != null
@@ -334,7 +335,7 @@ public class DefaultCopySpecTest {
     }
 
     @Test
-    void "Add spec in between two child specs if given child is null"() {
+    void "Append spec after two child specs if given child is null"() {
         DefaultCopySpec child1 = spec.addChild()
         DefaultCopySpec child2 = spec.addChild()
         assert child1 != null
@@ -373,7 +374,6 @@ public class DefaultCopySpecTest {
         assert spec.fileMode == 1
         assert spec.dirMode == 2
         assert spec.filteringCharset == "UTF8"
-
     }
 
     @Test

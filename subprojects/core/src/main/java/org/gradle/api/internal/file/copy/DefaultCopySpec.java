@@ -180,8 +180,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     public CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action) {
         Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
-        return eachFile(
-            new MatchingCopyAction(matcher, action));
+        return eachFile(new MatchingCopyAction(matcher, action));
     }
 
     public CopySpec filesMatching(String[] patterns, Action<? super FileCopyDetails> action) {
