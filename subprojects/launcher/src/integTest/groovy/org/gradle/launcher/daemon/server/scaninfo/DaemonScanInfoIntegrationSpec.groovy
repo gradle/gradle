@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.server.scaninfo
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import spock.lang.Ignore
+import org.gradle.test.fixtures.ConcurrentTestUtil
 
 class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
@@ -38,11 +38,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         executer.withArguments('help', '--continuous', '-i').run().getExecutedTasks().contains(':help')
     }
 
-    /**
-     * TODO - AK - why is the DaemonRegistry sometimes reporting that there are 3 daemons as opposed to 2
-     * org.gradle.launcher.daemon.registry.PersistentDaemonRegistry#store(org.gradle.launcher.daemon.registry.DaemonInfo) is definitely only being called twice during this test
-     */
-    @Ignore
     def "should capture basic data via when there are multiple daemons running in the foreground"() {
         given:
         buildFile << """
@@ -57,9 +52,11 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
 
         when:
-        daemons.killAll()
         executer.withArguments("--foreground").start()
         executer.withArguments("--foreground").start()
+
+        // Wait for daemons to be ready
+        ConcurrentTestUtil.poll(5000) { daemons.visible.size() == 2 }
 
         def result = executer.withTasks('capture').run()
 
