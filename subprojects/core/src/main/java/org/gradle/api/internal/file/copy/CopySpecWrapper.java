@@ -77,8 +77,28 @@ public class CopySpecWrapper implements CopySpec {
         return this;
     }
 
+    public CopySpec filesMatching(String[] patterns, Action<? super FileCopyDetails> action) {
+        delegate.filesMatching(patterns, action);
+        return this;
+    }
+
+    public CopySpec filesMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        delegate.filesMatching(patterns, action);
+        return this;
+    }
+
     public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
         delegate.filesNotMatching(pattern, action);
+        return this;
+    }
+
+    public CopySpec filesNotMatching(String[] patterns, Action<? super FileCopyDetails> action) {
+        delegate.filesNotMatching(patterns, action);
+        return this;
+    }
+
+    public CopySpec filesNotMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        delegate.filesNotMatching(patterns, action);
         return this;
     }
 

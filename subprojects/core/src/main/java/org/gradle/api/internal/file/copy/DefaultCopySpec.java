@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.FilterReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -197,9 +198,35 @@ public class DefaultCopySpec implements CopySpecInternal {
             new MatchingCopyAction(matcher, action));
     }
 
+    public CopySpec filesMatching(String[] patterns, Action<? super FileCopyDetails> action) {
+        return filesMatching(Arrays.asList(patterns), action);
+    }
+
+    public CopySpec filesMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        List<Spec> matchers = new ArrayList<Spec>();
+        for (String pattern : patterns) {
+            matchers.add(PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern));
+        }
+        Spec unionMatcher = Specs.union(matchers.toArray(new Spec[matchers.size()]));
+        return eachFile(new MatchingCopyAction(unionMatcher, action));
+    }
+
     public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
         Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
         return eachFile(new MatchingCopyAction(Specs.<RelativePath>negate(matcher), action));
+    }
+
+    public CopySpec filesNotMatching(String[] patterns, Action<? super FileCopyDetails> action) {
+        return filesNotMatching(Arrays.asList(patterns), action);
+    }
+
+    public CopySpec filesNotMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        List<Spec> matchers = new ArrayList<Spec>();
+        for (String pattern : patterns) {
+            matchers.add(PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern));
+        }
+        Spec unionMatcher = Specs.union(matchers.toArray(new Spec[matchers.size()]));
+        return eachFile(new MatchingCopyAction(Specs.<RelativePath>negate(unionMatcher), action));
     }
 
     public CopySpec include(String... includes) {
