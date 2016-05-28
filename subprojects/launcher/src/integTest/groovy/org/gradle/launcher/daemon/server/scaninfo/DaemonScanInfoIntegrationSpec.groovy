@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.server.scaninfo
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import spock.lang.Ignore
 
 class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
