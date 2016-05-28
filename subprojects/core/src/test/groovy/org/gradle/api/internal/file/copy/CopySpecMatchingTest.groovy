@@ -20,8 +20,8 @@ import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
-import org.gradle.internal.Actions
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.Actions
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -38,7 +38,7 @@ class CopySpecMatchingTest extends Specification {
         FileCopyDetails details1 = Mock()
         FileCopyDetails details2 = Mock()
 
-        details1.relativeSourcePath >>  RelativePath.parse(true, 'path/abc.txt')
+        details1.relativeSourcePath >> RelativePath.parse(true, 'path/abc.txt')
         details2.relativeSourcePath >> RelativePath.parse(true, 'path/bcd.txt')
 
         Action matchingAction = Mock()
@@ -52,6 +52,7 @@ class CopySpecMatchingTest extends Specification {
 
         then:
         1 * matchingAction.execute(details1)
+        0 * matchingAction.execute(details2)
     }
 
     @Unroll
@@ -95,7 +96,7 @@ class CopySpecMatchingTest extends Specification {
         FileCopyDetails details1 = Mock()
         FileCopyDetails details2 = Mock()
 
-        details1.relativeSourcePath >>  RelativePath.parse(true, 'path/abc.txt')
+        details1.relativeSourcePath >> RelativePath.parse(true, 'path/abc.txt')
         details2.relativeSourcePath >> RelativePath.parse(true, 'path/bcd.txt')
 
         Action matchingAction = Mock()
@@ -108,6 +109,7 @@ class CopySpecMatchingTest extends Specification {
         }
 
         then:
+        0 * matchingAction.execute(details1)
         1 * matchingAction.execute(details2)
     }
 
@@ -149,8 +151,10 @@ class CopySpecMatchingTest extends Specification {
         given:
         DefaultCopySpec childSpec = new DefaultCopySpec(TestFiles.resolver(), DirectInstantiator.INSTANCE)
         CopySpecResolver childResolver = childSpec.buildResolverRelativeToParent(copySpec.buildRootResolver())
+
         when:
         copySpec.filesMatching("**/*.java", Actions.doNothing())
+
         then:
         1 == childResolver.allCopyActions.size()
         childResolver.allCopyActions[0] instanceof MatchingCopyAction
