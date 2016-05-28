@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,88 +16,61 @@
 
 package org.gradle.launcher.daemon.server.health;
 
-import org.gradle.internal.TimeProvider;
-import org.gradle.internal.TrueTimeProvider;
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.util.NumberUtil;
+import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
-import org.gradle.util.Clock;
 
 import java.util.concurrent.ScheduledExecutorService;
 
 import static java.lang.String.format;
 
-public class DaemonStats {
+public class DaemonHealthStats {
 
-    private final Clock totalTime;
-    private final TimeProvider timeProvider;
+    private final DaemonRunningStats runningStats;
     private final MemoryInfo memory;
     private final GarbageCollectionMonitor gcMonitor;
-    private final long startTime;
 
-    private int buildCount;
-    private long currentBuildStart;
-    private long allBuildsTime;
-    private int currentPerformance;
-
-    public static DaemonStats of(ScheduledExecutorService scheduledExecutorService, long startTime) {
-        return new DaemonStats(new Clock(), new TrueTimeProvider(), new MemoryInfo(), new GarbageCollectionMonitor(scheduledExecutorService), startTime);
+    public DaemonHealthStats(DaemonRunningStats runningStats, ScheduledExecutorService scheduledExecutorService) {
+        this(runningStats, new MemoryInfo(), new GarbageCollectionMonitor(scheduledExecutorService));
     }
 
-    public DaemonStats(Clock totalTime, TimeProvider timeProvider, MemoryInfo memory, GarbageCollectionMonitor gcMonitor, long startTime) {
-        this.totalTime = totalTime;
-        this.timeProvider = timeProvider;
+    @VisibleForTesting
+    DaemonHealthStats(DaemonRunningStats runningStats, MemoryInfo memory, GarbageCollectionMonitor gcMonitor) {
+        this.runningStats = runningStats;
         this.memory = memory;
         this.gcMonitor = gcMonitor;
-        this.startTime = startTime;
-    }
-
-    /**
-     * Informs the stats that build started
-     */
-    void buildStarted() {
-        ++buildCount;
-        currentBuildStart = timeProvider.getCurrentTime();
-    }
-
-    /**
-     * Informs the stats that the build finished
-     */
-    void buildFinished() {
-        long buildTime = Math.max(timeProvider.getCurrentTime() - currentBuildStart, 1);
-        allBuildsTime += buildTime;
-        currentPerformance = performance(allBuildsTime, memory);
-    }
-
-    private static int performance(long totalTime, MemoryInfo memoryInfo) {
-        //TODO SF consider not showing (or show '-') when getCollectionTime() returns 0
-        if (memoryInfo.getCollectionTime() > 0 && memoryInfo.getCollectionTime() < totalTime) {
-            return 100 - NumberUtil.percentOf(memoryInfo.getCollectionTime(), totalTime);
-        } else {
-            return 100;
-        }
     }
 
     /**
      * 0-100, the percentage of time spent on doing the work vs time spent in gc
      */
     int getCurrentPerformance() {
-        return currentPerformance;
+        long collectionTime = memory.getCollectionTime();
+        long allBuildsTime = runningStats.getAllBuildsTime();
+
+        if (collectionTime > 0 && collectionTime < allBuildsTime) {
+            return 100 - NumberUtil.percentOf(collectionTime, allBuildsTime);
+        } else {
+            return 100;
+        }
     }
 
     /**
      * elegant description of daemon's health
      */
     String getHealthInfo() {
-        if (buildCount == 1) {
+        int nextBuildNum = runningStats.getBuildCount() + 1;
+        if (nextBuildNum == 1) {
             return format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(memory.getMaxMemory()));
         } else {
             if (gcMonitor.getGcStrategy() != GarbageCollectorMonitoringStrategy.UNKNOWN) {
                 GarbageCollectionStats tenuredStats = gcMonitor.getTenuredStats();
                 GarbageCollectionStats permgenStats = gcMonitor.getPermGenStats();
                 String message = format("Starting %s build in daemon [uptime: %s, performance: %s%%",
-                    NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance());
+                    NumberUtil.ordinal(nextBuildNum), runningStats.getPrettyUpTime(), getCurrentPerformance());
                 if (tenuredStats.getUsage() > 0) {
                     message += format(", GC rate: %.2f/s, tenured heap usage: %s%% of %s", tenuredStats.getRate(), tenuredStats.getUsage(), NumberUtil.formatBytes(tenuredStats.getMax()));
                     if (permgenStats.getUsage() > 0) {
@@ -111,7 +84,7 @@ public class DaemonStats {
                 return message;
             } else {
                 return format("Starting %s build in daemon [uptime: %s, performance: %s%%]",
-                    NumberUtil.ordinal(buildCount), totalTime.getTime(), getCurrentPerformance());
+                    NumberUtil.ordinal(nextBuildNum), runningStats.getPrettyUpTime(), getCurrentPerformance());
             }
         }
     }
@@ -120,11 +93,4 @@ public class DaemonStats {
         return gcMonitor;
     }
 
-    public int getBuildCount() {
-        return buildCount;
-    }
-
-    public long getStartTime() {
-        return startTime;
-    }
 }

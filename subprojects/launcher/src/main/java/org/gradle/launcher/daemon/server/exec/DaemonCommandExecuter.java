@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.launcher.daemon.server.exec;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Command;
+import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
+import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.api.DaemonConnection;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 
-/**
- * An object capable of responding to commands sent to a daemon.
- * <p>
- * Daemons use implementations of this interface to do the heavy lifting of
- * actual performing commands.
- */
-public interface DaemonCommandExecuter {
+public class DaemonCommandExecuter {
+
+    private final ImmutableList<DaemonCommandAction> actions;
+
+    public DaemonCommandExecuter(ImmutableList<DaemonCommandAction> actions) {
+        this.actions = actions;
+    }
 
     /**
      * Handle the given command, and communicate as necessary with the client over the given connection.
      * <p>
-     * If an error occurs during the action of the command that is to be reasonably expected 
+     * If an error occurs during the action of the command that is to be reasonably expected
      * (e.g. a failure in actually running the build for a Build command), the exception should be
      * reported to the client and <b>NOT</b> thrown from this method.
      * <p>
      * The {@code command} param may be {@code null}, which means the client disconnected before sending a command.
      */
-    void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl);
+    public void executeCommand(DaemonConnection connection, Command command, DaemonContext daemonContext, DaemonStateControl daemonStateControl) {
+        new DaemonCommandExecution(
+            connection,
+            command,
+            daemonContext,
+            daemonStateControl,
+            actions
+        ).proceed();
+    }
+
 }

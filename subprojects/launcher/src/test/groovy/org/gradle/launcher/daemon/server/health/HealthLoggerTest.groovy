@@ -26,7 +26,7 @@ class HealthLoggerTest extends Specification {
 
     @Rule SetSystemProperties props = new SetSystemProperties()
     @Subject healthLogger = new HealthLogger()
-    def stats = Mock(DaemonStats)
+    def stats = Mock(DaemonHealthStats)
     def logger = Mock(Logger)
 
     def "logs at info level by default"() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health;
+package org.gradle.launcher.daemon.server.expiry;
 
-import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
-
-public interface DaemonHealthServices {
-
-    /**
-     * gets the action that can perform gc hint after the build
-     */
-    DaemonCommandAction getGCHintAction();
-
-    /**
-     * gets the action that tracks daemon's health
-     */
-    DaemonCommandAction getHealthTrackerAction();
-
-    /**
-     * gets the status of the daemon
-     */
-    DaemonStatus getDaemonStatus();
+/**
+ * Expiration status for daemon expiration check results.  Note that order here is important, higher ordinal statuses take precedent over lower ordinal statuses when aggregating results in {@link
+ * AllDaemonExpirationStrategy}.
+ */
+public enum DaemonExpirationStatus {
+    DO_NOT_EXPIRE,
+    QUIET_EXPIRE,
+    GRACEFUL_EXPIRE,
+    IMMEDIATE_EXPIRE
 }

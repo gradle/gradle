@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server;
+package org.gradle.launcher.daemon.server.health;
 
-import org.gradle.launcher.daemon.server.health.DaemonStatus;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.IMMEDIATE_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.IMMEDIATE_EXPIRE;
 
 public class GcThrashingDaemonExpirationStrategy implements DaemonExpirationStrategy {
-    private final DaemonStatus status;
+    private final DaemonMemoryStatus status;
 
-    public GcThrashingDaemonExpirationStrategy(DaemonStatus status) {
+    public GcThrashingDaemonExpirationStrategy(DaemonMemoryStatus status) {
         this.status = status;
     }
 

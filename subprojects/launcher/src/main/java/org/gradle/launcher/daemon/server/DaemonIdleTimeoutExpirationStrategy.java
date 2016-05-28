@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.launcher.daemon.server;
 
 import com.google.common.base.Function;
@@ -20,10 +21,12 @@ import com.google.common.base.Functions;
 import com.google.common.base.Preconditions;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.QUIET_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE;
 
 public class DaemonIdleTimeoutExpirationStrategy implements DaemonExpirationStrategy {
     private static final Logger LOG = Logging.getLogger(DaemonIdleTimeoutExpirationStrategy.class);

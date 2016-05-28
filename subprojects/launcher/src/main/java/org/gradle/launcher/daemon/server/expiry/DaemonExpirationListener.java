@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server;
+package org.gradle.launcher.daemon.server.expiry;
 
 /**
  * Represents an event where a daemon expiration condition was detected and the daemon
@@ -26,5 +26,5 @@ public interface DaemonExpirationListener {
      *
      * @param result The result object from the triggered condition
      */
-    public void onExpirationEvent(DaemonExpirationResult result);
+    void onExpirationEvent(DaemonExpirationResult result);
 }

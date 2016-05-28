@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server
+package org.gradle.launcher.daemon.server.health
 
-import org.gradle.launcher.daemon.server.health.DaemonStatus
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_EXPIRE
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE
 
-class LowTenuredSpaceDaemonExpirationStrategyTest extends Specification {
-    private final DaemonStatus status = Mock(DaemonStatus)
+class LowPermGenDaemonExpirationStrategyTest extends Specification {
+    private final DaemonMemoryStatus status = Mock(DaemonMemoryStatus)
 
-    def "daemon is expired when tenured space is low" () {
-        LowTenuredSpaceDaemonExpirationStrategy strategy = new LowTenuredSpaceDaemonExpirationStrategy(status)
+    def "daemon is expired when perm gen space is low" () {
+        LowPermGenDaemonExpirationStrategy strategy = new LowPermGenDaemonExpirationStrategy(status)
 
         when:
         DaemonExpirationResult result = strategy.checkExpiration()
 
         then:
-        1 * status.isTenuredSpaceExhausted() >> true
+        1 * status.isPermGenSpaceExhausted() >> true
 
         and:
         result.status == GRACEFUL_EXPIRE
@@ -39,13 +39,13 @@ class LowTenuredSpaceDaemonExpirationStrategyTest extends Specification {
     }
 
     def "daemon is not expired when tenured space is fine" () {
-        LowTenuredSpaceDaemonExpirationStrategy strategy = new LowTenuredSpaceDaemonExpirationStrategy(status)
+        LowPermGenDaemonExpirationStrategy strategy = new LowPermGenDaemonExpirationStrategy(status)
 
         when:
         DaemonExpirationResult result = strategy.checkExpiration()
 
         then:
-        1 * status.isTenuredSpaceExhausted() >> false
+        1 * status.isPermGenSpaceExhausted() >> false
 
         and:
         result == DaemonExpirationResult.NOT_TRIGGERED

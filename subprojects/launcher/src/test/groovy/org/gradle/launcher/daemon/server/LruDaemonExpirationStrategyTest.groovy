@@ -22,7 +22,7 @@ import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import org.gradle.util.MockTimeProvider
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.QUIET_EXPIRE
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE
 
 class LruDaemonExpirationStrategyTest extends Specification {
     private EmbeddedDaemonRegistry registry

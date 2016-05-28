@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.launcher.daemon.server;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
 import java.util.Date;
 
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.QUIET_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE;
 
 /**
  * This strategy expires the daemon if it's been idle for the longest consecutive period of time.

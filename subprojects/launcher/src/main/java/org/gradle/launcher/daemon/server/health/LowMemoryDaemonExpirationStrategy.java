@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server;
+package org.gradle.launcher.daemon.server.health;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import org.gradle.launcher.daemon.server.health.MemoryInfo;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.QUIET_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE;
 
 /** An expiry strategy which only triggers when system memory falls below a threshold. */
 public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrategy {

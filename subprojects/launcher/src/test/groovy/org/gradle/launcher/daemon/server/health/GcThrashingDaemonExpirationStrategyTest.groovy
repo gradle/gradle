@@ -14,39 +14,38 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server
+package org.gradle.launcher.daemon.server.health
 
-import org.gradle.launcher.daemon.server.health.DaemonStatus
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_EXPIRE
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.IMMEDIATE_EXPIRE
 
+class GcThrashingDaemonExpirationStrategyTest extends Specification {
+    private final DaemonMemoryStatus status = Mock(DaemonMemoryStatus)
 
-class LowPermGenDaemonExpirationStrategyTest extends Specification {
-    private final DaemonStatus status = Mock(DaemonStatus)
-
-    def "daemon is expired when perm gen space is low" () {
-        LowPermGenDaemonExpirationStrategy strategy = new LowPermGenDaemonExpirationStrategy(status)
+    def "daemon is expired when garbage collector is thrashing" () {
+        GcThrashingDaemonExpirationStrategy strategy = new GcThrashingDaemonExpirationStrategy(status)
 
         when:
         DaemonExpirationResult result = strategy.checkExpiration()
 
         then:
-        1 * status.isPermGenSpaceExhausted() >> true
+        1 * status.isThrashing() >> true
 
         and:
-        result.status == GRACEFUL_EXPIRE
-        result.reason == "ran out of memory and was stopped"
+        result.status == IMMEDIATE_EXPIRE
+        result.reason == "due to JVM garbage collector thrashing"
     }
 
-    def "daemon is not expired when tenured space is fine" () {
-        LowPermGenDaemonExpirationStrategy strategy = new LowPermGenDaemonExpirationStrategy(status)
+    def "daemon is not expired when garbage collector is fine" () {
+        GcThrashingDaemonExpirationStrategy strategy = new GcThrashingDaemonExpirationStrategy(status)
 
         when:
         DaemonExpirationResult result = strategy.checkExpiration()
 
         then:
-        1 * status.isPermGenSpaceExhausted() >> false
+        1 * status.isThrashing() >> false
 
         and:
         result == DaemonExpirationResult.NOT_TRIGGERED

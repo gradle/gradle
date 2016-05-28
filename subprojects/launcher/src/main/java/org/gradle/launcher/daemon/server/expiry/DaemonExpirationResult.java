@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server;
+package org.gradle.launcher.daemon.server.expiry;
 
 import org.gradle.api.Nullable;
 

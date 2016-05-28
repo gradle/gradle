@@ -28,6 +28,9 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
 import java.security.SecureRandom;
 import java.util.Date;
@@ -36,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.DO_NOT_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE;
 
 /**
  * A long-lived build server that accepts commands via a communication channel.
@@ -206,7 +209,7 @@ public class Daemon implements Stoppable {
     public void stopOnExpiration(DaemonExpirationStrategy expirationStrategy, int checkIntervalMills) {
         LOGGER.debug("stopOnExpiration() called on daemon");
 
-        DaemonExpirationPeriodicCheck periodicCheck = new DaemonExpirationPeriodicCheck(this, expirationStrategy, listenerManager);
+        DaemonExpirationPeriodicCheck periodicCheck = new DaemonExpirationPeriodicCheck(expirationStrategy, listenerManager);
         listenerManager.addListener(new DefaultDaemonExpirationListener(stateCoordinator, registryUpdater));
         scheduledExecutorService.scheduleAtFixedRate(periodicCheck, checkIntervalMills, checkIntervalMills, TimeUnit.MILLISECONDS);
 
@@ -233,17 +236,15 @@ public class Daemon implements Stoppable {
         stateCoordinator.awaitStop();
     }
 
-    DaemonStateCoordinator getStateCoordinator() {
+    public DaemonStateCoordinator getStateCoordinator() {
         return stateCoordinator;
     }
 
     private static class DaemonExpirationPeriodicCheck implements Runnable {
-        private final Daemon daemon;
         private final DaemonExpirationStrategy expirationStrategy;
         private final ListenerBroadcast<DaemonExpirationListener> listenerBroadcast;
 
-        DaemonExpirationPeriodicCheck(Daemon daemon, DaemonExpirationStrategy expirationStrategy, ListenerManager listenerManager) {
-            this.daemon = daemon;
+        DaemonExpirationPeriodicCheck(DaemonExpirationStrategy expirationStrategy, ListenerManager listenerManager) {
             this.expirationStrategy = expirationStrategy;
             this.listenerBroadcast = listenerManager.createAnonymousBroadcaster(DaemonExpirationListener.class);
         }
@@ -270,7 +271,7 @@ public class Daemon implements Stoppable {
         @Override
         public void onExpirationEvent(DaemonExpirationResult result) {
             if (!stateControl.isStopping()) {
-                switch(result.getStatus()) {
+                switch (result.getStatus()) {
                     case DO_NOT_EXPIRE:
                         break;
                     case QUIET_EXPIRE:

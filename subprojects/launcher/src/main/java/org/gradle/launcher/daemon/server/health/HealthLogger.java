@@ -17,14 +17,13 @@
 package org.gradle.launcher.daemon.server.health;
 
 import org.gradle.api.logging.Logger;
-import org.gradle.launcher.daemon.configuration.GradleProperties;
 
-class HealthLogger {
+public class HealthLogger {
 
     static final String HEALTH_MESSAGE_PROPERTY = "org.gradle.daemon.performance.logging";
 
-    void logHealth(DaemonStats stats, Logger logger) {
-        if (GradleProperties.isTrue(System.getProperty(HEALTH_MESSAGE_PROPERTY))) {
+    public void logHealth(DaemonHealthStats stats, Logger logger) {
+        if (Boolean.getBoolean(HEALTH_MESSAGE_PROPERTY)) {
             logger.lifecycle(stats.getHealthInfo());
         } else {
             //the default

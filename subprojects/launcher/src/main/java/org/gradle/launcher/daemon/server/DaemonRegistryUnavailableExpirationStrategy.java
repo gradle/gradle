@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.launcher.daemon.server;
 
 import com.google.common.base.Function;
@@ -22,13 +23,16 @@ import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
 import java.io.File;
 import java.util.List;
 
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE;
 
 public class DaemonRegistryUnavailableExpirationStrategy implements DaemonExpirationStrategy {
+
     private static final Logger LOG = Logging.getLogger(DaemonRegistryUnavailableExpirationStrategy.class);
     public static final String REGISTRY_BECAME_UNREADABLE = "because daemon registry became unreadable";
     public static final String REGISTRY_ENTRY_UNEXPECTEDLY_LOST = "because daemon registry entry unexpectedly lost";

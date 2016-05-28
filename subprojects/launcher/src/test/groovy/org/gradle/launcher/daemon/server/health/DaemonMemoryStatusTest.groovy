@@ -25,16 +25,16 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.launcher.daemon.server.health.DaemonStatus.PERMGEN_USAGE_EXPIRE_AT
-import static org.gradle.launcher.daemon.server.health.DaemonStatus.TENURED_RATE_EXPIRE_AT
-import static org.gradle.launcher.daemon.server.health.DaemonStatus.TENURED_USAGE_EXPIRE_AT
-import static org.gradle.launcher.daemon.server.health.DaemonStatus.THRASHING_EXPIRE_AT
+import static DaemonMemoryStatus.PERMGEN_USAGE_EXPIRE_AT
+import static DaemonMemoryStatus.TENURED_RATE_EXPIRE_AT
+import static DaemonMemoryStatus.TENURED_USAGE_EXPIRE_AT
+import static DaemonMemoryStatus.THRASHING_EXPIRE_AT
 
-class DaemonStatusTest extends Specification {
+class DaemonMemoryStatusTest extends Specification {
     @Rule SetSystemProperties props = new SetSystemProperties()
 
     def gcMonitor = Mock(GarbageCollectionMonitor)
-    def stats = Mock(DaemonStats)
+    def stats = Mock(DaemonHealthStats)
 
     def "validates supplied tenured usage threshold value"() {
         System.setProperty(TENURED_USAGE_EXPIRE_AT, "foo")
@@ -150,7 +150,7 @@ class DaemonStatusTest extends Specification {
 
     def "can disable daemon performance monitoring"() {
         when:
-        System.setProperty(DaemonStatus.ENABLE_PERFORMANCE_MONITORING, "false")
+        System.setProperty(DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING, "false")
 
         then:
         !status.isTenuredSpaceExhausted()
@@ -162,9 +162,9 @@ class DaemonStatusTest extends Specification {
         !status.isThrashing()
     }
 
-    DaemonStatus getStatus() {
+    DaemonMemoryStatus getStatus() {
         1 * gcMonitor.gcStrategy >> GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS
         _ * stats.getGcMonitor() >> gcMonitor
-        return new DaemonStatus(stats)
+        return new DaemonMemoryStatus(stats)
     }
 }

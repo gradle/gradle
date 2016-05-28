@@ -20,36 +20,43 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
-import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
-import org.gradle.launcher.daemon.server.health.DaemonStatus;
+import org.gradle.launcher.daemon.server.expiry.AllDaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.expiry.AnyDaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy;
+import org.gradle.launcher.daemon.server.health.LowMemoryDaemonExpirationStrategy;
 
 import java.util.concurrent.TimeUnit;
 
-public class DaemonExpirationStrategies {
-    private static Logger logger = Logging.getLogger(DaemonExpirationStrategies.class);
+public class MasterExpirationStrategy implements DaemonExpirationStrategy {
 
-    public static DaemonExpirationStrategy getDefaultStrategy(Daemon daemon, DaemonServices daemonServices, final DaemonServerConfiguration params) {
+    private static final Logger LOGGER = Logging.getLogger(MasterExpirationStrategy.class);
+
+    private final DaemonExpirationStrategy strategy;
+
+    public MasterExpirationStrategy(Daemon daemon, DaemonServerConfiguration params, HealthExpirationStrategy healthExpirationStrategy) {
         ImmutableList.Builder<DaemonExpirationStrategy> strategies = ImmutableList.<DaemonExpirationStrategy>builder();
-        strategies.add(getHealthStrategy(daemonServices.get(DaemonHealthServices.class).getDaemonStatus()));
+
+        strategies.add(healthExpirationStrategy);
         strategies.add(new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout(), TimeUnit.MILLISECONDS));
+
         try {
             strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
                 LowMemoryDaemonExpirationStrategy.belowFreeBytes(1024 * 1024 * 1024),
                 new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout() / 8, TimeUnit.MILLISECONDS)
             )));
         } catch (UnsupportedOperationException e) {
-            logger.info("This JVM does not support getting free system memory, so daemons will not check for it");
+            LOGGER.info("This JVM does not support getting free system memory, so daemons will not check for it");
         }
 
         strategies.add(new DaemonRegistryUnavailableExpirationStrategy(daemon));
-        return new AnyDaemonExpirationStrategy(strategies.build());
+
+        this.strategy = new AnyDaemonExpirationStrategy(strategies.build());
     }
 
-    public static DaemonExpirationStrategy getHealthStrategy(DaemonStatus status) {
-        return new AnyDaemonExpirationStrategy(ImmutableList.of(
-            new GcThrashingDaemonExpirationStrategy(status),
-            new LowTenuredSpaceDaemonExpirationStrategy(status),
-            new LowPermGenDaemonExpirationStrategy(status)
-        ));
+    @Override
+    public DaemonExpirationResult checkExpiration() {
+        return strategy.checkExpiration();
     }
 }

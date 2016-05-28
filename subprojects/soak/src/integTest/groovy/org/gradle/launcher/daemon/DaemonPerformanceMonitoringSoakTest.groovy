@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.fixtures.DaemonMultiJdkIntegrationTest
 import org.gradle.launcher.daemon.fixtures.JdkVendor
-import org.gradle.launcher.daemon.server.health.DaemonStatus
+import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.experimental.categories.Category
@@ -113,7 +113,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         when:
         leaksWhenIdle()
         executer.withArguments("-Dorg.gradle.daemon.healthcheckinterval=1000")
-        executer.withBuildJvmOpts("-D${DaemonStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
+        executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
         executer.noExtraLogging()
         run()
 
@@ -155,7 +155,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         when:
         leaksWithinOneBuild()
         executer.withArguments("-Dorg.gradle.daemon.healthcheckinterval=1000", "--debug")
-        executer.withBuildJvmOpts("-D${DaemonStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
+        executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
         executer.noExtraLogging()
         GradleHandle gradle = executer.start()
 
@@ -189,7 +189,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         try {
             for (int i = 0; i < maxBuilds; i++) {
                 executer.noExtraLogging()
-                executer.withBuildJvmOpts("-D${DaemonStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
+                executer.withBuildJvmOpts("-D${DaemonMemoryStatus.ENABLE_PERFORMANCE_MONITORING}=true", "-Xmx${heapSize}", "-Dorg.gradle.daemon.performance.logging=true")
                 def r = run()
                 if (r.output.contains("Starting build in new daemon [memory: ")) {
                     newDaemons++;

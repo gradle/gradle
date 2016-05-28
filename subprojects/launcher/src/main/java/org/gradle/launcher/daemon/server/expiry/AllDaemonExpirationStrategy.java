@@ -13,32 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.server;
+
+package org.gradle.launcher.daemon.server.expiry;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
 import java.util.List;
 
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE;
+
 /**
- * Expires the daemon if any of the children would expire the daemon.
+ * Expires the daemon only if all children would expire the daemon.
  */
-public class AnyDaemonExpirationStrategy implements DaemonExpirationStrategy {
+public class AllDaemonExpirationStrategy implements DaemonExpirationStrategy {
     private Iterable<DaemonExpirationStrategy> expirationStrategies;
 
-    public AnyDaemonExpirationStrategy(List<DaemonExpirationStrategy> expirationStrategies) {
+    public AllDaemonExpirationStrategy(List<DaemonExpirationStrategy> expirationStrategies) {
         this.expirationStrategies = expirationStrategies;
     }
 
-    @Override
     public DaemonExpirationResult checkExpiration() {
-        DaemonExpirationResult expirationResult;
-        DaemonExpirationStatus expirationStatus = DaemonExpirationStatus.DO_NOT_EXPIRE;
-        List<String> reasons = Lists.newArrayList();
+        // If no expiration strategies exist, the daemon will not expire.
+        DaemonExpirationResult expirationResult = DaemonExpirationResult.NOT_TRIGGERED;
+        DaemonExpirationStatus expirationStatus = DO_NOT_EXPIRE;
 
+        List<String> reasons = Lists.newArrayList();
         for (DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
+            // If any of the child strategies don't expire the daemon, the daemon will not expire.
+            // Otherwise, the daemon will expire and aggregate the reasons together.
             expirationResult = expirationStrategy.checkExpiration();
-            if (expirationResult.getStatus() != DaemonExpirationStatus.DO_NOT_EXPIRE) {
+
+            if (expirationResult.getStatus() == DO_NOT_EXPIRE) {
+                return DaemonExpirationResult.NOT_TRIGGERED;
+            } else {
                 reasons.add(expirationResult.getReason());
                 if (expirationResult.getStatus().ordinal() > expirationStatus.ordinal()) {
                     expirationStatus = expirationResult.getStatus();
@@ -46,7 +54,7 @@ public class AnyDaemonExpirationStrategy implements DaemonExpirationStrategy {
             }
         }
 
-        if (expirationStatus == DaemonExpirationStatus.DO_NOT_EXPIRE) {
+        if (expirationResult.getStatus() == DO_NOT_EXPIRE) {
             return DaemonExpirationResult.NOT_TRIGGERED;
         } else {
             return new DaemonExpirationResult(expirationStatus, Joiner.on(" and ").skipNulls().join(reasons));

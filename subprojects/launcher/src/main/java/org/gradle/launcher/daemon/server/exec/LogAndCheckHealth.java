@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health;
+package org.gradle.launcher.daemon.server.exec;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
+import org.gradle.launcher.daemon.server.health.DaemonHealthCheck;
+import org.gradle.launcher.daemon.server.health.DaemonHealthStats;
+import org.gradle.launcher.daemon.server.health.HealthLogger;
 
-class DaemonHealthTracker implements DaemonCommandAction {
+public class LogAndCheckHealth implements DaemonCommandAction {
 
-    private static final Logger LOG = Logging.getLogger(DaemonHealthTracker.class);
+    private static final Logger LOG = Logging.getLogger(LogAndCheckHealth.class);
 
-    private final DaemonStats stats;
+    private final DaemonHealthStats stats;
     private final DaemonHealthCheck healthCheck;
     private final HealthLogger logger;
 
-    public DaemonHealthTracker(DaemonStats stats, DaemonHealthCheck healthCheck, HealthLogger logger) {
+    public LogAndCheckHealth(DaemonHealthStats stats, DaemonHealthCheck healthCheck) {
+        this(stats, healthCheck, new HealthLogger());
+    }
+
+    @VisibleForTesting
+    LogAndCheckHealth(DaemonHealthStats stats, DaemonHealthCheck healthCheck, HealthLogger logger) {
         this.stats = stats;
         this.healthCheck = healthCheck;
         this.logger = logger;
@@ -42,13 +51,8 @@ class DaemonHealthTracker implements DaemonCommandAction {
             return;
         }
 
-        stats.buildStarted();
         logger.logHealth(stats, LOG);
-        try {
-            execution.proceed();
-        } finally {
-            stats.buildFinished();
-        }
+        execution.proceed();
 
         // Execute the health check that should send out a DaemonExpiration event
         // if the daemon is unhealthy

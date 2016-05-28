@@ -22,13 +22,14 @@ import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.DO_NOT_EXPIRE
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_EXPIRE
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE
 
 class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
     Daemon daemon = Mock(Daemon)

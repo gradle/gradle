@@ -16,12 +16,13 @@
 package org.gradle.launcher.daemon.server
 
 import com.google.common.base.Function
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
 import spock.lang.Specification
 
 import javax.annotation.Nullable
 import java.util.concurrent.TimeUnit
 
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.*
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.*
 
 class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
     final Daemon daemon = Mock(Daemon)

@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.server
+
+
+package org.gradle.launcher.daemon.server.expiry
 
 import com.google.common.collect.ImmutableList
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.DO_NOT_EXPIRE
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_EXPIRE
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.IMMEDIATE_EXPIRE
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.QUIET_EXPIRE
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.*
 
 class AllDaemonExpirationStrategyTest extends Specification {
     private DaemonExpirationStrategy c1;

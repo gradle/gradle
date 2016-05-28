@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.daemon.server
+
+
+package org.gradle.launcher.daemon.server.health
 
 import com.google.common.base.Strings
-import org.gradle.launcher.daemon.server.health.MemoryInfo
+import org.gradle.launcher.daemon.server.Daemon
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
 import spock.lang.Specification
 
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.DO_NOT_EXPIRE
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.QUIET_EXPIRE
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE
 
 class LowMemoryDaemonExpirationStrategyTest extends Specification {
     private final Daemon daemon = Mock()

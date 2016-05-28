@@ -107,7 +107,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    long getIdleMillis(long currentTimeMillis) {
+    public long getIdleMillis(long currentTimeMillis) {
         if (isIdle()) {
             return currentTimeMillis - lastActivityAt;
         } else {

@@ -17,8 +17,12 @@
 package org.gradle.launcher.daemon.server.scaninfo;
 
 /**
- * A means to expose daemon specific information to the Build Receipt plugin.
- * Effectively, forms a not-quite-public contract with the Build Receipt plugin.
+ * A means to expose Daemon information _specifically_ for the purpose of build scans.
+ * The associated plugin obtains this via the service registry and queries all values
+ * when it is applied.
+ *
+ * This API is a contract with the plugin.
+ * Any binary incompatible changes will require changes to the plugin.
  */
 public interface DaemonScanInfo {
     /**

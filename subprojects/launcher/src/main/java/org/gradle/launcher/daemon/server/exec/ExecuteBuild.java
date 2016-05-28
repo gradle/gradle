@@ -17,14 +17,18 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.*;
+import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.DefaultBuildRequestContext;
+import org.gradle.initialization.ReportedException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
+import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.initialization.ReportedException;
 
 /**
  * Actually executes the build.
@@ -36,16 +40,19 @@ public class ExecuteBuild extends BuildCommandOnly {
     private static final Logger LOGGER = Logging.getLogger(ExecuteBuild.class);
 
     final private BuildActionExecuter<BuildActionParameters> actionExecuter;
+    private final DaemonRunningStats runningStats;
     final private ServiceRegistry contextServices;
 
-    public ExecuteBuild(BuildActionExecuter<BuildActionParameters> actionExecuter, ServiceRegistry contextServices) {
+    public ExecuteBuild(BuildActionExecuter<BuildActionParameters> actionExecuter, DaemonRunningStats runningStats, ServiceRegistry contextServices) {
         this.actionExecuter = actionExecuter;
+        this.runningStats = runningStats;
         this.contextServices = contextServices;
     }
 
     protected void doBuild(final DaemonCommandExecution execution, Build build) {
         LOGGER.debug(DaemonMessages.STARTED_BUILD);
         LOGGER.info("Executing build with daemon context: {}", execution.getDaemonContext());
+        runningStats.buildStarted();
         try {
             BuildCancellationToken cancellationToken = execution.getDaemonStateControl().getCancellationToken();
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(build.getBuildRequestMetaData(), cancellationToken, new DaemonConnectionBackedEventConsumer(execution));
@@ -61,6 +68,7 @@ public class ExecuteBuild extends BuildCommandOnly {
             */
             execution.setException(e);
         } finally {
+            runningStats.buildFinished();
             LOGGER.debug(DaemonMessages.FINISHED_BUILD);
         }
 

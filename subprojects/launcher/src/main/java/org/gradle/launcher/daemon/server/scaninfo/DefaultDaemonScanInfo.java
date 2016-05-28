@@ -17,18 +17,15 @@
 package org.gradle.launcher.daemon.server.scaninfo;
 
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.server.health.DaemonStats;
+import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 
 public class DefaultDaemonScanInfo implements DaemonScanInfo {
-    private final DaemonStats stats;
+
+    private final DaemonRunningStats stats;
     private final long idleTimeout;
     private final DaemonRegistry daemonRegistry;
 
-    public static DefaultDaemonScanInfo of(DaemonStats stats, int idleTimeout, DaemonRegistry daemonRegistry) {
-        return new DefaultDaemonScanInfo(stats, (long) idleTimeout, daemonRegistry);
-    }
-
-    private DefaultDaemonScanInfo(DaemonStats stats, long idleTimeout, DaemonRegistry daemonRegistry) {
+    public DefaultDaemonScanInfo(DaemonRunningStats stats, long idleTimeout, DaemonRegistry daemonRegistry) {
         this.stats = stats;
         this.idleTimeout = idleTimeout;
         this.daemonRegistry = daemonRegistry;

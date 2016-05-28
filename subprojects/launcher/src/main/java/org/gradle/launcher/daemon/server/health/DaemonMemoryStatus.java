@@ -25,8 +25,9 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStr
 
 import static java.lang.String.format;
 
-public class DaemonStatus {
-    Logger logger = Logging.getLogger(DaemonStatus.class);
+public class DaemonMemoryStatus {
+
+    private static final Logger LOGGER = Logging.getLogger(DaemonMemoryStatus.class);
 
     public static final String ENABLE_PERFORMANCE_MONITORING = "org.gradle.daemon.performance.enable-monitoring";
     public static final String TENURED_USAGE_EXPIRE_AT = "org.gradle.daemon.performance.tenured-usage-expire-at";
@@ -37,14 +38,14 @@ public class DaemonStatus {
     private static final String TENURED = "tenured";
     private static final String PERMGEN = "perm gen";
 
-    private final DaemonStats stats;
+    private final DaemonHealthStats stats;
     private final GarbageCollectorMonitoringStrategy strategy;
     private final int tenuredUsageThreshold;
     private final double tenuredRateThreshold;
     private final int permgenUsageThreshold;
     private final double thrashingThreshold;
 
-    public DaemonStatus(DaemonStats stats) {
+    public DaemonMemoryStatus(DaemonHealthStats stats) {
         this.stats = stats;
         this.strategy = stats.getGcMonitor().getGcStrategy();
         this.tenuredUsageThreshold = parseValue(TENURED_USAGE_EXPIRE_AT, strategy.getTenuredUsageThreshold());
@@ -102,9 +103,9 @@ public class DaemonStatus {
             && spec.isSatisfiedBy(gcStats)) {
 
             if (gcStats.getUsage() > 0) {
-                logger.debug(String.format("GC rate: %.2f/s %s usage: %s%%", gcStats.getRate(), pool, gcStats.getUsage()));
+                LOGGER.debug(String.format("GC rate: %.2f/s %s usage: %s%%", gcStats.getRate(), pool, gcStats.getUsage()));
             } else {
-                logger.debug("GC rate: 0.0/s");
+                LOGGER.debug("GC rate: 0.0/s");
             }
 
             return true;
@@ -128,7 +129,7 @@ public class DaemonStatus {
             return Integer.parseInt(expireAt);
         } catch (Exception e) {
             throw new GradleException(format(
-                    "System property '%s' has incorrect value: '%s'. The value needs to be an integer.",
+                "System property '%s' has incorrect value: '%s'. The value needs to be an integer.",
                 property, expireAt));
         }
     }

@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server;
+package org.gradle.launcher.daemon.server.health;
 
-import org.gradle.launcher.daemon.server.health.DaemonStatus;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
-import static org.gradle.launcher.daemon.server.DaemonExpirationStatus.GRACEFUL_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE;
 
-public class LowTenuredSpaceDaemonExpirationStrategy implements DaemonExpirationStrategy {
-    private final DaemonStatus status;
+public class LowPermGenDaemonExpirationStrategy implements DaemonExpirationStrategy {
+    private final DaemonMemoryStatus status;
 
-    public LowTenuredSpaceDaemonExpirationStrategy(DaemonStatus status) {
+    public LowPermGenDaemonExpirationStrategy(DaemonMemoryStatus status) {
         this.status = status;
     }
 
     @Override
     public DaemonExpirationResult checkExpiration() {
-        if (status.isTenuredSpaceExhausted()) {
+        if (status.isPermGenSpaceExhausted()) {
             return new DaemonExpirationResult(GRACEFUL_EXPIRE, "ran out of memory and was stopped");
         } else {
             return DaemonExpirationResult.NOT_TRIGGERED;
