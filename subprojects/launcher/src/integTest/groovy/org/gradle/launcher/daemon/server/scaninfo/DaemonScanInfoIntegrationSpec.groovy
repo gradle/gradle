@@ -56,7 +56,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         executer.withArguments("--foreground").start()
 
         // Wait for daemons to be ready
-        ConcurrentTestUtil.poll(5000) { daemons.visible.size() == 2 }
+        ConcurrentTestUtil.poll(5) { daemons.visible.size() == 2 }
 
         def result = executer.withTasks('capture').run()
 
