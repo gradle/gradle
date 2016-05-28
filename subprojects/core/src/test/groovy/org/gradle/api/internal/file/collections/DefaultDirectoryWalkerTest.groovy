@@ -22,7 +22,9 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import spock.lang.Ignore
 
+@Ignore // Test is flaky on Linux JDK 1.8, and fails consistently on IBM JDK 1.7
 class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
     def directoryWalkerFactory = new Factory<DirectoryWalker>() {
         def directoryWalker = new DefaultDirectoryWalker(TestFiles.fileSystem())
