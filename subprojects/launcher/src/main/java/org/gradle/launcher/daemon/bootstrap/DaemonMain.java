@@ -98,8 +98,6 @@ public class DaemonMain extends EntryPoint {
             throw new UncheckedIOException(e);
         }
 
-        LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
-
         NativeServices.initialize(gradleHomeDir);
         DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, startupOpts);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
@@ -109,7 +107,11 @@ public class DaemonMain extends EntryPoint {
         DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager, new DefaultClassPath(additionalClassPath), timeProvider.getCurrentTime());
         File daemonLog = daemonServices.getDaemonLogFile();
 
+        // Any logging prior to this point will not end up in the daemon log file.
         initialiseLogging(loggingManager, daemonLog);
+
+        LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
+
         Daemon daemon = daemonServices.get(Daemon.class);
         daemon.start();
 
