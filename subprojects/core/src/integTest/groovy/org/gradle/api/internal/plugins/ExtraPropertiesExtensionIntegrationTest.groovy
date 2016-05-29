@@ -16,13 +16,11 @@
 
 package org.gradle.api.internal.plugins
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
 class ExtraPropertiesExtensionIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-3460")
-    @NotYetImplemented
     def "configures extension when extra property Closure has same name"() {
         given:
         buildFile << """
