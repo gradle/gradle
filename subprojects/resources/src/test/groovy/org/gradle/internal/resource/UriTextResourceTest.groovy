@@ -17,7 +17,6 @@
 
 package org.gradle.internal.resource
 import org.gradle.api.resources.MissingResourceException
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
@@ -197,7 +196,6 @@ class UriTextResourceTest extends Specification {
         }
     }
 
-    @LeaksFileHandles
     def readsFileContentUsingJarUriWhenFileExists() {
         when:
         file.text = '<content>'
@@ -209,7 +207,6 @@ class UriTextResourceTest extends Specification {
         resource.text == "<content>"
     }
 
-    @LeaksFileHandles
     def hasNoContentWhenUsingJarUriAndFileDoesNotExistInJar() {
         when:
         URI jarUri = createJar()
