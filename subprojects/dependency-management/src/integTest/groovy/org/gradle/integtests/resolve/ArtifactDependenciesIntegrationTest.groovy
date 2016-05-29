@@ -37,7 +37,6 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Before
     public void setup() {
         executer.requireOwnGradleUserHomeDir()
-        executer.withArgument("--info")
     }
 
     @Test

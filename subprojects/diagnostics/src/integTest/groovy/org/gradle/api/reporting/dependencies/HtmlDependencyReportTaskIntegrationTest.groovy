@@ -54,7 +54,6 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withArgument("--info")
         run "htmlDependencyReport"
         def json = readGeneratedJson("root")
 
