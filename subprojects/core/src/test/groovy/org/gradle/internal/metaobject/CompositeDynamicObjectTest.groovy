@@ -119,55 +119,8 @@ class CompositeDynamicObjectTest extends Specification {
 
         and:
         1 * obj1.invokeMethod("m", _, ["value"] as Object[])
-        1 * obj1.getProperty("m", _)
         1 * obj2.invokeMethod("m", _, ["value"] as Object[]) >> { String name, InvokeMethodResult r, def args -> r.result("result") }
         0 * _
-    }
-
-    def "invokes method on first delegate that has a property with closure value"() {
-        def obj1 = Mock(DynamicObject)
-        def obj2 = Mock(DynamicObject)
-        def obj3 = Mock(DynamicObject)
-        obj.setObjects(obj1, obj2, obj3)
-
-        when:
-        def result = obj.invokeMethod("m", ["value"] as Object[])
-
-        then:
-        result == "result"
-
-        and:
-        1 * obj1.invokeMethod("m", _, ["value"] as Object[])
-        1 * obj1.getProperty("m", _)
-        1 * obj2.invokeMethod("m", _, ["value"] as Object[])
-        1 * obj2.getProperty("m", _) >> { String name, GetPropertyResult r -> r.result({ it -> "result" }) }
-        0 * _
-    }
-
-    def "does not use property with closure value as method with closure does not accept given args"() {
-        def obj1 = Mock(DynamicObject)
-        def obj2 = Mock(DynamicObject)
-        def obj3 = Mock(DynamicObject)
-        obj.setObjects(obj1, obj2, obj3)
-
-        given:
-        obj1.getProperty("m", _) >> { String name, GetPropertyResult r -> r.result({ -> "result 1" }) }
-        obj2.getProperty("m", _) >> { String name, GetPropertyResult r -> r.result({ String[] it -> "result 2" }) }
-        obj3.getProperty("m", _) >> { String name, GetPropertyResult r -> r.result({ Number a -> "result 3" }) }
-
-        expect:
-        obj.invokeMethod("m", [] as Object[]) == "result 1"
-        obj.invokeMethod("m", ["a"] as Object[]) == "result 2"
-        obj.invokeMethod("m", ["a", "b"] as Object[]) == "result 2"
-        obj.invokeMethod("m", [["a", "b"] as String[]] as Object[]) == "result 2"
-        obj.invokeMethod("m", [12] as Object[]) == "result 3"
-
-        when:
-        obj.invokeMethod("m", [new Date()] as Object[])
-
-        then:
-        MissingMethodException e = thrown()
-        e.method == "m"
     }
 
     def "method may have null return value"() {
@@ -184,7 +137,6 @@ class CompositeDynamicObjectTest extends Specification {
 
         and:
         1 * obj1.invokeMethod("m", _, _)
-        1 * obj1.getProperty("m", _)
         1 * obj2.invokeMethod("m", _, _) >> { String name, InvokeMethodResult r, def args -> r.result(null) }
         0 * _
     }

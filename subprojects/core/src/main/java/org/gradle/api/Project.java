@@ -194,6 +194,8 @@ import java.util.Set;
  *
  * <li>The methods of the parent project, recursively up to the root project.</li>
  *
+ * <li>A property of the project whose value is a closure. The closure is treated as a method and called with the provided parameters.</li>
+ *
  * </ul>
  */
 @HasInternalProtocol
