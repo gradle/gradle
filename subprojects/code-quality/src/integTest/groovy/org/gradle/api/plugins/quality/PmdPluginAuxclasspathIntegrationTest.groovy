@@ -114,10 +114,12 @@ project("rule-using") {
             public class AuxclasspathRule extends AbstractJavaRule {
 
                 private static final String JUNIT_TEST = "junit.framework.TestCase";
+                private static final String CLASS1 = "org.gradle.ruleusing.Class1";
 
                 @Override
                 public Object visit(final ASTCompilationUnit node, final Object data) {
-                    if (node.getClassTypeResolver().classNameExists(JUNIT_TEST)) {
+                    if (node.getClassTypeResolver().classNameExists(JUNIT_TEST)
+                        && node.getClassTypeResolver().classNameExists(CLASS1)) {
                         addViolationWithMessage(data, node, "auxclasspath configured.");
                     } else {
                         addViolationWithMessage(data, node, "auxclasspath not configured.");

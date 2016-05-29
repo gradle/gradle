@@ -221,6 +221,7 @@ class PmdPluginTest extends Specification {
             main
         }
         expect:
-        project.tasks.getByName("pmdMain").classpath == project.sourceSets.main.compileClasspath
+        project.tasks.getByName("pmdMain").classpath.getFiles() ==
+            project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath).getFiles()
     }
 }

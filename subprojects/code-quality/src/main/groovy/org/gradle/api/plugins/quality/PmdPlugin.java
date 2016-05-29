@@ -180,14 +180,14 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
     }
 
     @Override
-    protected void configureForSourceSet(final SourceSet sourceSet, Pmd task) {
+    protected void configureForSourceSet(final SourceSet sourceSet, final Pmd task) {
         task.setDescription("Run PMD analysis for " + sourceSet.getName() + " classes");
         task.setSource(sourceSet.getAllJava());
         ConventionMapping taskMapping = task.getConventionMapping();
         taskMapping.map("classpath", new Callable<FileCollection>() {
             @Override
             public FileCollection call() throws Exception {
-                return sourceSet.getCompileClasspath();
+                return task.getProject().files(sourceSet.getOutput(), sourceSet.getCompileClasspath());
             }
         });
     }
