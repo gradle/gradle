@@ -18,8 +18,10 @@ package org.gradle.launcher.daemon.server.expiry
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import spock.lang.Ignore
 import spock.lang.Unroll
 
+@Ignore("Test is flaky")
 class DaemonExpirationListenerRegistryIntegrationSpec extends DaemonIntegrationSpec {
 
     @Unroll
