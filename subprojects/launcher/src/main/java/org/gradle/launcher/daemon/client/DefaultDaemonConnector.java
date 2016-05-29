@@ -153,7 +153,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             if (constraint.isSatisfiedBy(daemon.getContext())) {
                 compatibleDaemons.add(daemon);
             } else {
-                LOGGER.debug("Found daemon {} however its context does not match the desired criteria.\n"
+                LOGGER.info("Found daemon {} however its context does not match the desired criteria.\n"
                     + constraint.whyUnsatisfied(daemon.getContext()) + "\n"
                     + "  Looking for a different daemon...", daemon);
             }
