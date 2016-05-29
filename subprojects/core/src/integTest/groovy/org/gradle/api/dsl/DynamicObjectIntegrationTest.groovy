@@ -430,18 +430,19 @@ assert 'overridden value' == global
 
     def canInjectMethodsFromParentProject() {
 
-        file("settings.gradle").writelns("include 'child'");
-        file("build.gradle").writelns(
-                "subprojects {",
-                "  ext.injectedMethod = { project.name }",
-                "}"
-        );
-        file("child/build.gradle").writelns(
-                "task testTask << {",
-                "   assert injectedMethod() == 'child'",
-                "}"
-        );
-
+        file("settings.gradle").writelns("include 'child1', 'child2'");
+        file("build.gradle") << """
+            subprojects {
+                ext.useSomeProperty = { project.name }
+                ext.useSomeMethod = { file(it) }
+            }
+        """
+        file("child1/build.gradle") << """
+            task testTask << {
+               assert useSomeProperty() == 'child1'
+               assert useSomeMethod('f') == file('f')
+            }
+        """
 
         expect:
         succeeds("testTask")
