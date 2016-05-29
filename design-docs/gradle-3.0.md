@@ -24,6 +24,8 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 - Move `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER` from public API. (Done)
 - Move internal types `org.gradle.logging.StandardOutputCapture` and `org.gradle.logging.LoggingManagerInternal` into an internal package.
 - Merge `Module` and `ModuleInternal`, now that `Module` is internal (Done)
+- Internal `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter`
+- Constructor on `DefaultSourceDirectorySet`
 
 ## Simplify definition of public API
 
@@ -136,6 +138,13 @@ The current defaults for the outputs of tasks of type `Test` conflict with each 
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
+## Address issues in ordering of dynamic method lookup
+
+Currently, we look first for a method and if not found, look for a property with the given name and if the value is a closure, treat it as a method.
+
+- Methods inherited from an ancestor project can silently shadow these properties.
+- Method matching is inconsistent with how methods are matched on POJO/POGO objects, where a method is selected only when the args can be coerced to those accepted by the method, and if not, searching continues with the next object. Should do something similar for property-as-a-method matching.
+
 ## Remove Gradle GUI
 
 It is now straight forward to implement a rich UI using the Gradle tooling API.
@@ -189,7 +198,9 @@ Alternatively, default the group to `null` and status to `integration`.
 
 Currently required for in-process Ant-based compilation on Java 5. Dropping support for one of (in-process, ant-based, java 5) would allow us to remove this.
 
-## Decouple publishing DSL from Maven classes
+## Stable Maven plugin
+
+Ideally, replace with new publishing plugin. In the meantime:
 
 * Change the old publishing DSL to use the Maven 3 classes instead of Maven 2 classes. This affects:
     * `MavenResolver.settings`
@@ -197,6 +208,7 @@ Currently required for in-process Ant-based compilation on Java 5. Dropping supp
     * `MavenPom.dependencies`.
 * Remove `MavenDeployer.addProtocolProviderJars()`.
 * Change `PublishFilter` so that it accepts a `PublishArtifact` instead of an `Artifact`.
+* Change `MavenDeployer.repository {... }` DSL to use the same configuration DSL as everywhere else, rather than custom owner-first DSL.
 
 ## Decouple file and resource APIs from project and task APIs
 
