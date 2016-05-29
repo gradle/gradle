@@ -42,9 +42,11 @@ contacts {
     assert delegate instanceof ContactExtension
 }
 
+assert contacts() == []
+assert contacts("a") == [ "a" ]
 assert contacts("a", "b", "c") == [ "a", "b", "c" ]
 """
         expect:
-        succeeds("tasks")
+        succeeds()
     }
 }
