@@ -29,7 +29,6 @@ import spock.lang.Issue
 import static org.hamcrest.Matchers.containsString
 
 @RunWith(FluidDependenciesResolveRunner)
-@LeaksFileHandles
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
