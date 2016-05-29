@@ -43,7 +43,7 @@ public abstract class TransformingClassLoader extends MutableURLClassLoader {
         byte[] bytes;
         try {
             bytes = loadBytecode(resource);
-            bytes = transform(bytes);
+            bytes = transform(name, bytes);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not load class '%s' from %s.", name, resource), e);
         }
@@ -59,5 +59,5 @@ public abstract class TransformingClassLoader extends MutableURLClassLoader {
         }
     }
 
-    protected abstract byte[] transform(byte[] bytes);
+    protected abstract byte[] transform(String className, byte[] bytes);
 }

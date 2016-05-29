@@ -52,7 +52,7 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
         }
 
         @Override
-        protected byte[] transform(byte[] bytes) {
+        protected byte[] transform(String className, byte[] bytes) {
             // First scan for annotation, and short circuit transformation if not present
             ClassReader classReader = new ClassReader(bytes);
 

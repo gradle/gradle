@@ -20,7 +20,6 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classloader.MutableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
@@ -36,7 +35,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         apiOnlyClassLoader = restrictToGradleApi(runtimeClassLoader);
 
         ClassPath pluginsClassPath = classPathRegistry.getClassPath("GRADLE_EXTENSIONS");
-        extensionsClassLoader = new MutableURLClassLoader(runtimeClassLoader, pluginsClassPath);
+        extensionsClassLoader = new MixInLegacyTypesClassLoader(runtimeClassLoader, pluginsClassPath);
 
         this.apiAndPluginsClassLoader = restrictToGradleApi(extensionsClassLoader);
     }

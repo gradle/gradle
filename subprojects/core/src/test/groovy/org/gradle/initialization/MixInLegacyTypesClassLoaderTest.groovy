@@ -1,0 +1,88 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.initialization
+
+import org.gradle.internal.classloader.FilteringClassLoader
+import org.gradle.internal.classloader.MutableURLClassLoader
+import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
+import spock.lang.Specification
+
+import javax.tools.ToolProvider
+
+class MixInLegacyTypesClassLoaderTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def classesDir = tmpDir.file("classes")
+    def srcDir = tmpDir.file("source")
+
+    def "mixes GroovyObject into JavaPluginConvention"() {
+        given:
+        def className = "org.gradle.api.plugins.JavaPluginConvention"
+
+        def original = compileJavaToDir(className, """
+            package org.gradle.api.plugins;
+            class JavaPluginConvention {
+                String _prop;
+                String getProp() { return _prop; }
+                void setProp(String value) { _prop = value; }
+                String doSomething(String arg) { return arg; }
+            }
+        """)
+        assert !(original instanceof GroovyObject)
+
+        expect:
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
+
+        def cl = loader.loadClass(className)
+        cl.classLoader.is(loader)
+
+        def obj = cl.newInstance()
+        obj instanceof GroovyObject
+        obj.getMetaClass()
+        obj.metaClass
+        obj.setProperty("prop", "value")
+        obj.getProperty("prop") == "value"
+        obj.invokeMethod("doSomething", "arg") == "arg"
+
+        def newMetaClass = new MetaClassImpl(cl)
+        newMetaClass.initialize()
+        obj.setMetaClass(newMetaClass) == null
+    }
+
+    ClassLoader getGroovyClassLoader() {
+        def filter = new FilteringClassLoader(getClass().classLoader)
+        filter.allowPackage("groovy")
+        filter
+    }
+
+    def compileJavaToDir(String className, String text) {
+        srcDir.createDir()
+        def srcFile = srcDir.file(className + ".java")
+        srcFile.text = text
+
+        def compiler = ToolProvider.systemJavaCompiler
+        classesDir.createDir()
+
+        def fileManager = compiler.getStandardFileManager(null, null, null)
+        def task = compiler.getTask(null, fileManager, null, ["-d", classesDir.path], null, fileManager.getJavaFileObjects(srcFile))
+        task.call()
+        def cl = new MutableURLClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
+        cl.loadClass(className)
+    }
+}
