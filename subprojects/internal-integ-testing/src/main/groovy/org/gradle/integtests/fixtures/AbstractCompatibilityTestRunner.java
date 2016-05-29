@@ -57,8 +57,8 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
             implicitVersion = true;
         } else if (versionStr.equals("all")) {
             implicitVersion = true;
-            List<GradleDistribution> all = previousVersions.getAll();
-            for (GradleDistribution previous : all) {
+            List<GradleDistribution> allSupported = previousVersions.getSupported();
+            for (GradleDistribution previous : allSupported) {
                 if (!previous.worksWith(Jvm.current())) {
                     add(new IgnoredVersion(previous, "does not work with current JVM"));
                     continue;

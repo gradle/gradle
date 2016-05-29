@@ -62,10 +62,18 @@ class ReleasedVersionDistributionsTest extends Specification {
 
     def "get all final does that"() {
         when:
-        props.versions = "1.3-rc-1 1.2"
+        props.versions = "1.3-rc-1 1.2 0.8"
 
         then:
-        versions().all*.version == [version("1.3-rc-1"), version("1.2")]
+        versions().all*.version == [version("1.3-rc-1"), version("1.2"), version("0.8")]
+    }
+
+    def "get supported does that"() {
+        when:
+        props.versions = "1.3-rc-1 1.2 0.8"
+
+        then:
+        versions().supported*.version == [version("1.3-rc-1"), version("1.2")]
     }
 
     @Unroll
