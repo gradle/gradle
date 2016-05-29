@@ -18,10 +18,9 @@ package org.gradle.internal.operations.logging;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.UncheckedException;
 import org.gradle.util.GFileUtils;
 
-import java.io.*;
+import java.io.File;
 
 public class DefaultBuildOperationLoggerFactory implements BuildOperationLoggerFactory {
     private static final int MAX_FAILURES = 10;
@@ -40,24 +39,13 @@ public class DefaultBuildOperationLoggerFactory implements BuildOperationLoggerF
     @Override
     public BuildOperationLogger newOperationLogger(String taskName, File outputDir) {
         final File outputFile = createOutputFile(outputDir);
-        final PrintWriter logWriter = createWriter(outputFile);
         final BuildOperationLogInfo configuration = createLogInfo(taskName, outputFile, MAX_FAILURES);
-        return new DefaultBuildOperationLogger(configuration, logger, logWriter);
+        return new DefaultBuildOperationLogger(configuration, logger, outputFile);
     }
 
     protected File createOutputFile(File outputDir) {
         GFileUtils.mkdirs(outputDir);
         return new File(outputDir, "output.txt");
-    }
-
-    protected PrintWriter createWriter(File outputFile) {
-        PrintWriter logWriter = null;
-        try {
-            logWriter = new PrintWriter(new FileWriter(outputFile), true);
-        } catch (IOException e) {
-            UncheckedException.throwAsUncheckedException(e);
-        }
-        return logWriter;
     }
 
     protected BuildOperationLogInfo createLogInfo(String taskName, File outputFile, int maximumFailures) {
