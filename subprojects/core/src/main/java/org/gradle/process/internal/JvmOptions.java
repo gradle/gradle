@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.GUtil;
 import org.gradle.util.internal.ArgumentsSplitter;
@@ -54,7 +53,7 @@ public class JvmOptions {
     public static final String JAVA_IO_TMPDIR_KEY = "java.io.tmpdir";
 
     public static final Set<String> IMMUTABLE_SYSTEM_PROPERTIES = ImmutableSet.of(
-        FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY, NativeServices.NATIVE_DIR_OVERRIDE
+        FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY
     );
 
     // Store this because Locale.default is mutable and we want the unchanged default
