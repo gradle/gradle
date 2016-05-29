@@ -428,6 +428,44 @@ assert 'overridden value' == global
         succeeds("test")
     }
 
+    def canAddMethodsUsingAPropertyWhoseValueIsAClosure() {
+        file("settings.gradle").writelns("include 'child1', 'child2'");
+        file("build.gradle") << """
+            class Thing {
+                def prop1 = { it }
+            }
+            convention.plugins.thing = new Thing()
+            ext.prop2 = { it / 2 }
+
+            assert prop1(12) == 12
+            assert prop2(12) == 6
+        """
+        file("child1/build.gradle") << """
+            ext.prop3 = { it * 2 }
+            assert prop1(12) == 12
+            assert prop2(12) == 6
+            assert prop3(12) == 24
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def appliesTypeConversionForClosureParameters() {
+        file('build.gradle') << '''
+            enum Letter { A, B, C }
+            ext.letter = null
+            ext.m = { Letter l -> letter = l }
+            m("A")
+            assert letter == Letter.A
+            m(Letter.B)
+            assert letter == Letter.B
+'''
+
+        expect:
+        succeeds()
+    }
+
     def canInjectMethodsFromParentProject() {
 
         file("settings.gradle").writelns("include 'child1', 'child2'");
@@ -901,7 +939,7 @@ task print(type: MyTask) {
         succeeds()
     }
 
-    def dynamicPropertiesTakePrecedenceOverDecorations() {
+    def dynamicPropertiesOfDecoratedObjectTakePrecedenceOverDecorations() {
         buildFile << """
             class DynamicTask extends DefaultTask {
                 def props = [:]
