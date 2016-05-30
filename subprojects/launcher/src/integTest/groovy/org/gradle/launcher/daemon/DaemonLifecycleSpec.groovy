@@ -72,8 +72,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     void startBuild(String javaHome = null, String buildEncoding = null) {
         run {
             executer.withTasks("watch")
+            executer.withDaemonIdleTimeoutSecs(daemonIdleTimeout)
             executer.withArguments(
-                    "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}",
                     "-Dorg.gradle.daemon.healthcheckinterval=${periodicCheckInterval * 1000}",
                     "--info",
                     "-Dorg.gradle.jvmargs=-ea")
