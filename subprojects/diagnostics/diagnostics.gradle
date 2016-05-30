@@ -32,5 +32,3 @@ useTestFixtures(project: ':dependencyManagement')
 useTestFixtures(project: ':platformNative', sourceSet: 'testFixtures')
 useTestFixtures(project: ":logging")
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
-
