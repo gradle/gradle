@@ -184,7 +184,7 @@ public class Module extends XmlPersistableConfigurationObject {
         return "defaultModule.xml";
     }
 
-    protected void configure(Path contentPath,
+    protected Object configure(Path contentPath,
                                Set<Path> sourceFolders, Set<Path> testSourceFolders, Set<Path> generatedSourceFolders, Set<Path> excludeFolders,
                                Boolean inheritOutputDirs, Path outputDir, Path testOutputDir,
                                Set<Dependency> dependencies, String jdkName, String languageLevel) {
@@ -209,6 +209,7 @@ public class Module extends XmlPersistableConfigurationObject {
         } else {
             this.jdkName = Module.INHERITED;
         }
+        return this.jdkName;
     }
 
     @Override
@@ -515,5 +516,9 @@ public class Module extends XmlPersistableConfigurationObject {
         result = 31 * result + testOutputDir.hashCode();
         result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
         return result;
+    }
+
+    public static String getINHERITED() {
+        return INHERITED;
     }
 }

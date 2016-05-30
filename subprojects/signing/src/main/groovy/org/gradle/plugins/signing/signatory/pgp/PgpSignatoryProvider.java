@@ -34,7 +34,7 @@ public class PgpSignatoryProvider implements SignatoryProvider<PgpSignatory> {
     private final Map<String, PgpSignatory> signatories = new LinkedHashMap<String, PgpSignatory>();
 
     public void configure(SigningExtension settings, Closure closure) {
-        ConfigureUtil.configure(closure, new PgpSignatoryProviderDsl(settings.getProject(), signatories, factory));
+        ConfigureUtil.configure(closure, new Dsl(settings.getProject(), signatories, factory));
     }
 
     public PgpSignatory getDefaultSignatory(Project project) {

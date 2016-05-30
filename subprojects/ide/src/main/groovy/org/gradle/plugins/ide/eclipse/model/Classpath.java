@@ -78,7 +78,8 @@ public class Classpath extends XmlPersistableConfigurationObject {
         }
     }
 
-    public List<ClasspathEntry> configure(List<ClasspathEntry> newEntries) {
+    // TODO: Change this signature once we can break compatibility
+    public Object configure(List newEntries) {
         Set<ClasspathEntry> updatedEntries = Sets.newLinkedHashSet();
         for (ClasspathEntry entry : entries) {
             if (!isDependency(entry) && !isJreContainer(entry)) {
@@ -86,7 +87,7 @@ public class Classpath extends XmlPersistableConfigurationObject {
             }
         }
         updatedEntries.addAll(newEntries);
-        return entries =  Lists.newArrayList(updatedEntries);
+        return entries = Lists.newArrayList(updatedEntries);
     }
 
     @Override

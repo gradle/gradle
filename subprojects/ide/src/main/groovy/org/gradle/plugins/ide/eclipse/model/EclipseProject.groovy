@@ -268,7 +268,7 @@ class EclipseProject {
     }
 
     @CompileStatic(TypeCheckingMode.SKIP)
-    static class DeprecationWarningDecoratedProject {
+    class DeprecationWarningDecoratedProject {
         @Delegate private Project delegate
 
         DeprecationWarningDecoratedProject(Project delegate) {

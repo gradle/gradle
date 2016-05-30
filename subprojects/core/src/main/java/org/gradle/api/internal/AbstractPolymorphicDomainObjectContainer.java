@@ -87,7 +87,7 @@ public abstract class AbstractPolymorphicDomainObjectContainer<T>
         return new PolymorphicDomainObjectContainerConfigureDelegate(configureClosure, this);
     }
 
-    private class ContainerDynamicObject extends CompositeDynamicObject {
+    private class ContainerDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject {
         private ContainerDynamicObject(ContainerElementsDynamicObject elementsDynamicObject) {
             setObjects(new BeanDynamicObject(AbstractPolymorphicDomainObjectContainer.this), elementsDynamicObject, getConvention().getExtensionsAsDynamicObject());
         }
