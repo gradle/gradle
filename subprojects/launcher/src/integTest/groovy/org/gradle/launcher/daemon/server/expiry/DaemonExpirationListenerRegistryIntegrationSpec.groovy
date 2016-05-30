@@ -17,11 +17,8 @@
 package org.gradle.launcher.daemon.server.expiry
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.test.fixtures.ConcurrentTestUtil
-import spock.lang.Ignore
 import spock.lang.Unroll
 
-@Ignore("Test is flaky")
 class DaemonExpirationListenerRegistryIntegrationSpec extends DaemonIntegrationSpec {
 
     @Unroll
@@ -37,10 +34,10 @@ class DaemonExpirationListenerRegistryIntegrationSpec extends DaemonIntegrationS
         """
 
         when:
-        def result = executer.withArguments(continuous ? ['delay', '--continuous'] : ['delay']).run()
+        def delayResult = executer.withArguments(continuous ? ['delay', '--continuous'] : ['delay']).run()
 
         then:
-        result.assertOutputContains('onExpirationEvent fired with: expiring daemon with TestExpirationStrategy')
+        delayResult.assertOutputContains('onExpirationEvent fired with: expiring daemon with TestExpirationStrategy')
 
         where:
         continuous << [true, false]
@@ -59,15 +56,11 @@ class DaemonExpirationListenerRegistryIntegrationSpec extends DaemonIntegrationS
         """
 
         when:
-        executer.withArguments("--foreground").start()
-        executer.withArguments("--foreground").start()
-
-        // Wait for daemons to be ready
-        ConcurrentTestUtil.poll() { assert daemons.getRegistry().getAll().size() == 2 }
-        def result = executer.withTasks('delay').run()
+        startAForegroundDaemon()
+        def delayResult = executer.withTasks('delay').run()
 
         then:
-        result.assertOutputContains("onExpirationEvent fired with: expiring daemon with TestExpirationStrategy")
+        delayResult.assertOutputContains("onExpirationEvent fired with: expiring daemon with TestExpirationStrategy")
 
     }
 
@@ -116,4 +109,6 @@ class DaemonExpirationListenerRegistryIntegrationSpec extends DaemonIntegrationS
         daemon.scheduleExpirationChecks(new AllDaemonExpirationStrategy([new TestExpirationStrategy(project)]), $frequency)
         """
     }
+
+
 }

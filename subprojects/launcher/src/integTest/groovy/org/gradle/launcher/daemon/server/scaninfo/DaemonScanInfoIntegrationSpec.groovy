@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.server.scaninfo
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
@@ -38,50 +38,51 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         executer.withArguments('help', '--continuous', '-i').run().getExecutedTasks().contains(':help')
     }
 
-    def "should capture basic data via when there are multiple daemons running in the foreground"() {
+    def "should capture basic data when a foreground daemon runs multiple builds"() {
         given:
         buildFile << """
         import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo
 
-        task capture {
-            doLast {
-                 DaemonScanInfo info = project.getServices().get(DaemonScanInfo)
-                 ${assertInfo(2)}
-            }
-        }
+        ${captureTask("capture1", 1, 1)}
+        ${captureTask("capture2", 2, 1)}
         """
 
         when:
-        executer.withArguments("--foreground").start()
-        executer.withArguments("--foreground").start()
+        startAForegroundDaemon()
 
-        // Wait for daemons to be ready
-        ConcurrentTestUtil.poll() { assert daemons.getRegistry().getAll().size() == 2 }
-
-        def result = executer.withTasks('capture').run()
+        List<ExecutionResult> captureResults = []
+        captureResults << executer.withTasks('capture1').run()
+        captureResults << executer.withTasks('capture2').run()
 
         then:
-        result.getExecutedTasks().contains(':capture')
+        captureResults[0].getExecutedTasks().contains(':capture1')
+        captureResults[1].getExecutedTasks().contains(':capture2')
     }
 
-
-    def "info is updated to reflect a second run"() {
-        expect: true
+    static String captureTask(String name, int buildCount, int daemonCount) {
+        """
+    task $name {
+        doLast {
+            DaemonScanInfo info = project.getServices().get(DaemonScanInfo)
+            ${assertInfo(buildCount, daemonCount)}
+        }
+    }
+    """
     }
 
     static String captureAndAssert() {
         return """
            import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo
            DaemonScanInfo info = project.getServices().get(DaemonScanInfo)
-           ${assertInfo()}
+           ${assertInfo(1, 1)}
            """
     }
 
-    static String assertInfo(int numDaemons = 1) {
+    static String assertInfo(int numberOfBuilds, int numDaemons) {
         return """
-           assert info.getNumberOfBuilds() == 1
-           assert info.getIdleTimeout() == 120000
+           assert info.getNumberOfBuilds() == ${numberOfBuilds}
            assert info.getNumberOfRunningDaemons() == ${numDaemons}
+           assert info.getIdleTimeout() == 120000
            assert info.getStartedAt() <= System.currentTimeMillis()
         """
     }
