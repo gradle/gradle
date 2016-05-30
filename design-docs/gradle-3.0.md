@@ -138,6 +138,10 @@ The current defaults for the outputs of tasks of type `Test` conflict with each 
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
+## Remove support for using the project build script classloader before it has been configured
+
+Would have to tackle implicit usage, eg `evaluationDependsOn(child-of-some-project)`, which implicitly queries the classloader of `some-project`. Similar problems when using configure on demand.
+
 ## Address issues in ordering of dynamic method lookup
 
 Currently, we look first for a method and if not found, look for a property with the given name and if the value is a closure, treat it as a method.
