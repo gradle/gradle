@@ -15,7 +15,6 @@
  */
 
 package org.gradle.launcher.daemon.server.scaninfo
-
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 
@@ -48,7 +47,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
 
         when:
-        startAForegroundDaemon()
+        def daemon = startAForegroundDaemon()
 
         List<ExecutionResult> captureResults = []
         captureResults << executer.withTasks('capture1').run()
@@ -57,6 +56,9 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         then:
         captureResults[0].getExecutedTasks().contains(':capture1')
         captureResults[1].getExecutedTasks().contains(':capture2')
+
+        cleanup:
+        daemon?.abort()
     }
 
     static String captureTask(String name, int buildCount, int daemonCount) {
