@@ -30,14 +30,12 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
-import org.gradle.internal.Factory;
 import org.gradle.internal.TimeProvider;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.io.Serializable;
@@ -74,12 +72,7 @@ public class TestNGTestFramework implements TestFramework {
         verifyPreserveOrder();
         verifyGroupByInstances();
         List<File> suiteFiles = options.getSuites(testTask.getTemporaryDir());
-        TestNGSpec spec = DeprecationLogger.whileDisabled(new Factory<TestNGSpec>() {
-            @Override
-            public TestNGSpec create() {
-                return new TestNGSpec(options, filter);
-            }
-        });
+        TestNGSpec spec = new TestNGSpec(options, filter);
         return new TestClassProcessorFactoryImpl(this.options.getOutputDirectory(), spec, suiteFiles);
     }
 
