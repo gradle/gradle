@@ -249,6 +249,7 @@ public class Daemon implements Stoppable {
     private static class DaemonExpirationPeriodicCheck implements Runnable {
         private final DaemonExpirationStrategy expirationStrategy;
         private final ListenerBroadcast<DaemonExpirationListener> listenerBroadcast;
+        private final Lock lock = new ReentrantLock();
 
         DaemonExpirationPeriodicCheck(DaemonExpirationStrategy expirationStrategy, ListenerManager listenerManager) {
             this.expirationStrategy = expirationStrategy;
@@ -257,10 +258,18 @@ public class Daemon implements Stoppable {
 
         @Override
         public void run() {
-            LOGGER.debug("DaemonExpirationPeriodicCheck running");
-            final DaemonExpirationResult result = expirationStrategy.checkExpiration();
-            if (result.getStatus() != DO_NOT_EXPIRE) {
-                listenerBroadcast.getSource().onExpirationEvent(result);
+            if (lock.tryLock()) {
+                try {
+                    LOGGER.debug("DaemonExpirationPeriodicCheck running");
+                    final DaemonExpirationResult result = expirationStrategy.checkExpiration();
+                    if (result.getStatus() != DO_NOT_EXPIRE) {
+                        listenerBroadcast.getSource().onExpirationEvent(result);
+                    }
+                } finally {
+                    lock.unlock();
+                }
+            } else {
+                LOGGER.warn("Previous DaemonExpirationPeriodicCheck was still running when the next run was scheduled.");
             }
         }
     }
