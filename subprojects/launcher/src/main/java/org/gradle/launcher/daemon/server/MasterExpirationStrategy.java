@@ -41,18 +41,25 @@ public class MasterExpirationStrategy implements DaemonExpirationStrategy {
         strategies.add(healthExpirationStrategy);
         strategies.add(new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout(), TimeUnit.MILLISECONDS));
 
-        try {
-            strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
-                LowMemoryDaemonExpirationStrategy.belowFreeBytes(1024 * 1024 * 1024),
-                new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout() / 8, TimeUnit.MILLISECONDS)
-            )));
-        } catch (UnsupportedOperationException e) {
-            LOGGER.info("This JVM does not support getting free system memory, so daemons will not check for it");
-        }
+        addLowMemoryDaemonExpirationStrategyWhenSupported(daemon, params.getIdleTimeout(), strategies);
 
         strategies.add(new DaemonRegistryUnavailableExpirationStrategy(daemon));
 
         this.strategy = new AnyDaemonExpirationStrategy(strategies.build());
+    }
+
+    private void addLowMemoryDaemonExpirationStrategyWhenSupported(Daemon daemon, int idleTimeout, ImmutableList.Builder<DaemonExpirationStrategy> strategies) {
+        try {
+            final LowMemoryDaemonExpirationStrategy lowMemoryDaemonExpirationStrategy = LowMemoryDaemonExpirationStrategy.belowFreeBytes(1024 * 1024 * 1024);
+            // this is to check that the JVM supports calling MemoryInfo.getFreePhysicalMemory
+            lowMemoryDaemonExpirationStrategy.checkExpiration();
+            strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
+                lowMemoryDaemonExpirationStrategy,
+                new DaemonIdleTimeoutExpirationStrategy(daemon, idleTimeout / 8, TimeUnit.MILLISECONDS)
+            )));
+        } catch (UnsupportedOperationException e) {
+            LOGGER.info("This JVM does not support getting free system memory, so daemons will not check for it");
+        }
     }
 
     @Override
