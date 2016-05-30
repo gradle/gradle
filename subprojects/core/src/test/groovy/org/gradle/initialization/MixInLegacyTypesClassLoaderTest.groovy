@@ -89,9 +89,9 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
     }
 
     ClassLoader getGroovyClassLoader() {
-        def filter = new FilteringClassLoader(getClass().classLoader)
-        filter.allowPackage("groovy")
-        filter
+        def spec = new FilteringClassLoader.Spec()
+        spec.allowPackage("groovy")
+        return new FilteringClassLoader(getClass().classLoader, spec)
     }
 
     def compileJavaToDir(String className, String text) {

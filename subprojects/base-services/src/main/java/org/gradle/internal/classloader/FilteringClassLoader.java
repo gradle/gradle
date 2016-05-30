@@ -16,12 +16,18 @@
 
 package org.gradle.internal.classloader;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A ClassLoader which hides all non-system classes, packages and resources. Allows certain non-system packages and classes to be declared as visible. By default, only the Java system classes,
@@ -30,13 +36,13 @@ import java.util.*;
 public class FilteringClassLoader extends ClassLoader implements ClassLoaderHierarchy {
     private static final ClassLoader EXT_CLASS_LOADER;
     private static final Set<String> SYSTEM_PACKAGES = new HashSet<String>();
-    private final Set<String> packageNames = new HashSet<String>();
-    private final Set<String> packagePrefixes = new HashSet<String>();
-    private final Set<String> resourcePrefixes = new HashSet<String>();
-    private final Set<String> resourceNames = new HashSet<String>();
-    private final Set<String> classNames = new HashSet<String>();
-    private final Set<String> disallowedClassNames = new HashSet<String>();
-    private final Set<String> disallowedPackagePrefixes = new HashSet<String>();
+    private final Set<String> packageNames;
+    private final Set<String> packagePrefixes;
+    private final Set<String> resourcePrefixes;
+    private final Set<String> resourceNames;
+    private final Set<String> classNames;
+    private final Set<String> disallowedClassNames;
+    private final Set<String> disallowedPackagePrefixes;
 
     static {
         EXT_CLASS_LOADER = ClassLoader.getSystemClassLoader().getParent();
@@ -47,19 +53,15 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         }
     }
 
-    public FilteringClassLoader(ClassLoader parent) {
-        super(parent);
-    }
-
     public FilteringClassLoader(ClassLoader parent, Spec spec) {
         super(parent);
-        packageNames.addAll(spec.packageNames);
-        packagePrefixes.addAll(spec.packagePrefixes);
-        resourceNames.addAll(spec.resourceNames);
-        resourcePrefixes.addAll(spec.resourcePrefixes);
-        classNames.addAll(spec.classNames);
-        disallowedClassNames.addAll(spec.disallowedClassNames);
-        disallowedPackagePrefixes.addAll(spec.disallowedPackagePrefixes);
+        this.packageNames = ImmutableSet.copyOf(spec.packageNames);
+        this.packagePrefixes = ImmutableSet.copyOf(spec.packagePrefixes);
+        this.resourceNames = ImmutableSet.copyOf(spec.resourceNames);
+        this.resourcePrefixes = ImmutableSet.copyOf(spec.resourcePrefixes);
+        this.classNames = ImmutableSet.copyOf(spec.classNames);
+        this.disallowedClassNames = ImmutableSet.copyOf(spec.disallowedClassNames);
+        this.disallowedPackagePrefixes = ImmutableSet.copyOf(spec.disallowedPackagePrefixes);
     }
 
     public void visit(ClassLoaderVisitor visitor) {
@@ -177,62 +179,6 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         return false;
     }
 
-    /**
-     * Marks a package and all its sub-packages as visible. Also makes resources in those packages visible.
-     *
-     * @param packageName the package name
-     */
-    public void allowPackage(String packageName) {
-        packageNames.add(packageName);
-        packagePrefixes.add(packageName + ".");
-        resourcePrefixes.add(packageName.replace('.', '/') + '/');
-    }
-
-    /**
-     * Marks a single class as visible.
-     *
-     * @param clazz the class
-     */
-    public void allowClass(Class<?> clazz) {
-        classNames.add(clazz.getName());
-    }
-
-    /**
-     * Marks a single class as not visible.
-     *
-     * @param className the class name
-     */
-    public void disallowClass(String className) {
-        disallowedClassNames.add(className);
-    }
-
-    /**
-     * Marks a package and all its sub-packages as not visible. Does not affect resources in those packages.
-     *
-     * @param packagePrefix the package prefix
-     */
-    public void disallowPackage(String packagePrefix) {
-        disallowedPackagePrefixes.add(packagePrefix + ".");
-    }
-
-    /**
-     * Marks all resources with the given prefix as visible.
-     *
-     * @param resourcePrefix the resource prefix
-     */
-    public void allowResources(String resourcePrefix) {
-        resourcePrefixes.add(resourcePrefix + "/");
-    }
-
-    /**
-     * Marks a single resource as visible.
-     *
-     * @param resourceName the resource name
-     */
-    public void allowResource(String resourceName) {
-        resourceNames.add(resourceName);
-    }
-
     public static class Spec extends ClassLoaderSpec {
 
         final Set<String> packageNames;
@@ -243,6 +189,27 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         final Set<String> disallowedClassNames;
         final Set<String> disallowedPackagePrefixes;
 
+        public Spec() {
+            this.classNames = new HashSet<String>();
+            this.packageNames = new HashSet<String>();
+            this.packagePrefixes = new HashSet<String>();
+            this.resourcePrefixes = new HashSet<String>();
+            this.resourceNames = new HashSet<String>();
+            this.disallowedClassNames = new HashSet<String>();
+            this.disallowedPackagePrefixes = new HashSet<String>();
+        }
+
+        public Spec(Spec spec) {
+            this(
+                spec.classNames,
+                spec.packageNames,
+                spec.packagePrefixes,
+                spec.resourcePrefixes,
+                spec.resourceNames,
+                spec.disallowedClassNames,
+                spec.disallowedPackagePrefixes
+            );
+        }
 
         public Spec(Collection<String> classNames, Collection<String> packageNames, Collection<String> packagePrefixes, Collection<String> resourcePrefixes, Collection<String> resourceNames, Collection<String> disallowedClassNames, Collection<String> disallowedPackagePrefixes) {
             this.classNames = new HashSet<String>(classNames);
@@ -252,6 +219,62 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             this.resourceNames = new HashSet<String>(resourceNames);
             this.disallowedClassNames = new HashSet<String>(disallowedClassNames);
             this.disallowedPackagePrefixes = new HashSet<String>(disallowedPackagePrefixes);
+        }
+
+        /**
+         * Marks a package and all its sub-packages as visible. Also makes resources in those packages visible.
+         *
+         * @param packageName the package name
+         */
+        public void allowPackage(String packageName) {
+            packageNames.add(packageName);
+            packagePrefixes.add(packageName + ".");
+            resourcePrefixes.add(packageName.replace('.', '/') + '/');
+        }
+
+        /**
+         * Marks a single class as visible.
+         *
+         * @param clazz the class
+         */
+        public void allowClass(Class<?> clazz) {
+            classNames.add(clazz.getName());
+        }
+
+        /**
+         * Marks a single class as not visible.
+         *
+         * @param className the class name
+         */
+        public void disallowClass(String className) {
+            disallowedClassNames.add(className);
+        }
+
+        /**
+         * Marks a package and all its sub-packages as not visible. Does not affect resources in those packages.
+         *
+         * @param packagePrefix the package prefix
+         */
+        public void disallowPackage(String packagePrefix) {
+            disallowedPackagePrefixes.add(packagePrefix + ".");
+        }
+
+        /**
+         * Marks all resources with the given prefix as visible.
+         *
+         * @param resourcePrefix the resource prefix
+         */
+        public void allowResources(String resourcePrefix) {
+            resourcePrefixes.add(resourcePrefix + "/");
+        }
+
+        /**
+         * Marks a single resource as visible.
+         *
+         * @param resourceName the resource name
+         */
+        public void allowResource(String resourceName) {
+            resourceNames.add(resourceName);
         }
 
         @Override

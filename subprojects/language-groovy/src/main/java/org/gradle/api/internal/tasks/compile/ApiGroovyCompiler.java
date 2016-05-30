@@ -47,7 +47,12 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -94,14 +99,15 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         GroovyClassLoader compileClasspathClassLoader = new GroovyClassLoader(classPathLoader, null);
         GroovySystemLoader compileClasspathLoader = groovySystemLoaderFactory.forClassLoader(classPathLoader);
 
-        FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(GroovyClassLoader.class.getClassLoader());
-        groovyCompilerClassLoader.allowPackage("org.codehaus.groovy");
-        groovyCompilerClassLoader.allowPackage("groovy");
+        FilteringClassLoader.Spec groovyCompilerClassLoaderSpec = new FilteringClassLoader.Spec();
+        groovyCompilerClassLoaderSpec.allowPackage("org.codehaus.groovy");
+        groovyCompilerClassLoaderSpec.allowPackage("groovy");
         // Disallow classes from Groovy Jar that reference external classes. Such classes must be loaded from astTransformClassLoader,
         // or a NoClassDefFoundError will occur. Essentially this is drawing a line between the Groovy compiler and the Groovy
         // library, albeit only for selected classes that run a high risk of being statically referenced from a transform.
-        groovyCompilerClassLoader.disallowClass("groovy.util.GroovyTestCase");
-        groovyCompilerClassLoader.disallowPackage("groovy.servlet");
+        groovyCompilerClassLoaderSpec.disallowClass("groovy.util.GroovyTestCase");
+        groovyCompilerClassLoaderSpec.disallowPackage("groovy.servlet");
+        FilteringClassLoader groovyCompilerClassLoader = new FilteringClassLoader(GroovyClassLoader.class.getClassLoader(), groovyCompilerClassLoaderSpec);
 
         // AST transforms need their own class loader that shares compiler classes with the compiler itself
         final GroovyClassLoader astTransformClassLoader = new GroovyClassLoader(groovyCompilerClassLoader, null);

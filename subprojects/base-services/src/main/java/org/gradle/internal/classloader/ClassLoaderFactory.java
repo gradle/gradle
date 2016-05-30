@@ -40,14 +40,13 @@ public interface ClassLoaderFactory {
      * Creates a ClassLoader implementation which has, by default, only the classes from the Java API visible, but which can allow access to selected classes from the given parent ClassLoader.
      *
      * @param parent the parent ClassLoader
+     * @param spec the filtering spec for the classloader
      * @return The ClassLoader
      */
-    FilteringClassLoader createFilteringClassLoader(ClassLoader parent);
+    FilteringClassLoader createFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec);
 
     /**
      * Creates a ClassLoader from its spec.
      */
     ClassLoader createClassLoader(ClassLoaderSpec spec, List<? extends ClassLoader> parents);
-
-    FilteringClassLoader createSystemFilteringClassLoader();
 }
