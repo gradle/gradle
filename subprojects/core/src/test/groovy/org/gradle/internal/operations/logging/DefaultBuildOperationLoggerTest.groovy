@@ -51,6 +51,8 @@ class DefaultBuildOperationLoggerTest extends Specification {
         then:
         logOutput() == """See $pathToLogStr for all output for <testTask>.
 """
+        cleanup:
+        log.done()
     }
 
     def "logs completion of operation"() {
@@ -65,6 +67,8 @@ class DefaultBuildOperationLoggerTest extends Specification {
 <operation> successful.
 <output>
 """
+        cleanup:
+        log.done()
     }
 
     def "logs failure of operation"() {
@@ -79,7 +83,10 @@ class DefaultBuildOperationLoggerTest extends Specification {
 <operation> failed.
 <output>
 """
+        cleanup:
+        log.done()
     }
+
     def "logs output from multiple operations"() {
         when:
         log.start()
