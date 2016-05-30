@@ -185,7 +185,7 @@ In previous versions, annotations on task properties like `@InputFile` and `@Out
 * Removed `org.gradle.tooling.model.Task.getProject()`
 * Removed `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER`
 * Removed old wrapper properties `urlRoot`, `distributionName`, `distributionVersion` and `distributionClassifier`
-* Remove deprecated `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter`
+* Removed deprecated `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter`
 * Removed deprecated constructor `DefaultSourceDirectorySet(String name, FileResolver fileResolver)`
 
 ### Tooling API changes
