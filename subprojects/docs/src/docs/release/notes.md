@@ -395,34 +395,16 @@ The following plugins were fully converted to Java: `jacoco`, `scala`, `osgi`, `
 
 Some other plugins were partially converted to Java, keeping tasks types as Groovy classes: `init`, `checkstyle`, `codenarc`, `findbugs`, `pmd`, `jdepend`, `java`, `war`, `ear`, `application`, `signing`, `comparison`, `idea` and `eclipse`. For the latter two, plugin types have also been kept in Groovy.
 
-Existing builds should continue to work; however, some methods may have changed signatures to be more correct.
+Existing builds and plugins should continue to work.
 
-### Refined method return types, signatures and other changes to existing API classes
-
-When converting code from Groovy to Java, some code was updated to better reflect its original intent. Some methods have been updated to have more specific return types or more specific type signatures.
+### API method changes
 
 * `org.gradle.api.artifacts.DependencyArtifact` has setters for all properties to make it clearer that this type is mutable.
-* `org.gradle.plugins.ide.eclipse.model.Classpath.configure()` signature changed to take and return `List<ClasspathEntry>` (was `Object`).
-* `org.gradle.plugins.ide.eclipse.model.EclipseProject.DeprecationWarningDecoratedProject.configure()` now returns `void` (was `Object`).
-* `org.gradle.plugins.ide.eclipse.model.EclipseProject.DeprecationWarningDecoratedProject()` now takes only `Project`.
-* `org.gradle.plugins.ide.eclipse.model.Facet.FacetType` is no longer decorated with Groovy enum extensions.
-* `org.gradle.plugins.ide.eclipse.model.Project.configure()` now returns `void` (was `Object`).
-* `org.gradle.plugins.ide.idea.model.Module.configure()` signature has changed to specific generic types and return `void` (was `Object`).
-* `org.gradle.api.plugins.JavaPluginConvention.sourceSets()` now returns `NamedDomainObjectContainer<SourceSet>` (was `Object`).
-* `org.gradle.testing.jacoco.plugins.JacocoTaskExtension.Output` is no longer decorated with Groovy enum extensions.
 * `org.gradle.api.java.archives.ManifestMergeSpec` now has `setContentCharset()` and `getContentCharset()` methods.
+* `org.gradle.plugins.ide.eclipse.model.Facet.FacetType` is no longer decorated with Groovy enum extensions.
+* `org.gradle.testing.jacoco.plugins.JacocoTaskExtension.Output` is no longer decorated with Groovy enum extensions.
 * `org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppPlugin` has been renamed to `org.gradle.nativeplatform.toolchain.plugins.MicrosoftVisualCppCompilerPlugin`.
-* `org.gradle.plugins.signing.signatory.pgp.PgpSignatoryFactory.getQualifiedPropertyName()` now returns `String` (was `Object`).
-* `org.gradle.plugins.signing.SigningExtension.addSignaturesToConfiguration()` now returns `void` (was `Object`).
-* `org.gradle.plugins.signing.signatory.pgp.Dsl` was renamed to `PgpSignatoryProviderDsl`.
 * `org.gradle.testing.jacoco.plugins.JacocoPluginExtension.applyTo(JavaForkOptions)` signature changed to make it clear this method accepts types that extend `Task` and `JavaForkOptions`.
-* Methods for accessing static final fields (like `ApplicationPlugin.getTASK_RUN_NAME()`) have been removed from the following classes:
-    * `org.gradle.api.plugins.ApplicationPlugin`
-    * `org.gradle.testing.jacoco.plugins.JacocoPlugin`
-    * `org.gradle.testing.jacoco.plugins.JacocoPluginExtension`
-    * `org.gradle.plugins.ide.idea.model.Module`
-    * `org.gradle.api.plugins.scala.ScalaBasePlugin`
-    * `org.gradle.plugins.signing.SigningExtension`
     
 ### `org.gradle.plugins.javascript.rhino.worker` changes and deprecation
 

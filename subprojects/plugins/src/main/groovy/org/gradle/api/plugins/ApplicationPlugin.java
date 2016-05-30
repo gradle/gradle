@@ -215,4 +215,26 @@ public class ApplicationPlugin extends GroovyObjectSupport implements Plugin<Pro
         distSpec.with(pluginConvention.getApplicationDistribution());
         return distSpec;
     }
+
+    public static String getAPPLICATION_PLUGIN_NAME() {
+        return APPLICATION_PLUGIN_NAME;
+    }
+    public static String getAPPLICATION_GROUP() {
+        return APPLICATION_GROUP;
+    }
+    public static String getTASK_RUN_NAME() {
+        return TASK_RUN_NAME;
+    }
+    public static String getTASK_START_SCRIPTS_NAME() {
+        return TASK_START_SCRIPTS_NAME;
+    }
+    public static String getTASK_INSTALL_NAME() {
+        return TASK_INSTALL_NAME;
+    }
+    public static String getTASK_DIST_ZIP_NAME() {
+        return TASK_DIST_ZIP_NAME;
+    }
+    public static String getTASK_DIST_TAR_NAME() {
+        return TASK_DIST_TAR_NAME;
+    }
 }

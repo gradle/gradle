@@ -270,14 +270,14 @@ class EclipseProject {
     }
 
     @CompileStatic(TypeCheckingMode.SKIP)
-    static class DeprecationWarningDecoratedProject {
+    class DeprecationWarningDecoratedProject {
         @Delegate private Project delegate
 
         DeprecationWarningDecoratedProject(Project delegate) {
             this.delegate = delegate
         }
 
-        void setName(String name){
+        void setName(String name) {
             DeprecationLogger.nagUserOfDeprecated("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook")
             this.delegate.setName(name)
         }

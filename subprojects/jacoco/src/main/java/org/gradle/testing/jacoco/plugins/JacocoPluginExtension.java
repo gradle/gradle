@@ -139,4 +139,8 @@ public class JacocoPluginExtension extends GroovyObjectSupport {
     public void setLogger(Logger logger) {
         this.logger = logger;
     }
+
+    public static String getTASK_EXTENSION_NAME() {
+        return TASK_EXTENSION_NAME;
+    }
 }

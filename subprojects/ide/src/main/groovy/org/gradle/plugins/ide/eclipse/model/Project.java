@@ -120,7 +120,7 @@ public class Project extends XmlPersistableConfigurationObject {
         this.linkedResources = linkedResources;
     }
 
-    public void configure(EclipseProject eclipseProject) {
+    public Object configure(EclipseProject eclipseProject) {
         name = nullToEmpty(eclipseProject.getName());
         comment = nullToEmpty(eclipseProject.getComment());
         referencedProjects.addAll(eclipseProject.getReferencedProjects());
@@ -128,7 +128,7 @@ public class Project extends XmlPersistableConfigurationObject {
         natures = Lists.newArrayList(Sets.newLinkedHashSet(natures));
         buildCommands.addAll(eclipseProject.getBuildCommands());
         buildCommands = Lists.newArrayList(Sets.newLinkedHashSet(buildCommands));
-        linkedResources.addAll(eclipseProject.getLinkedResources());
+        return linkedResources.addAll(eclipseProject.getLinkedResources());
     }
 
     @Override

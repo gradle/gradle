@@ -53,8 +53,8 @@ import java.util.concurrent.Callable;
 public class ScalaBasePlugin extends GroovyObjectSupport implements Plugin<Project> {
 
     @VisibleForTesting
-    static final String ZINC_CONFIGURATION_NAME = "zinc";
-    private static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime";
+    public static final String ZINC_CONFIGURATION_NAME = "zinc";
+    public static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime";
     private final SourceDirectorySetFactory sourceDirectorySetFactory;
 
     @Inject
@@ -190,5 +190,13 @@ public class ScalaBasePlugin extends GroovyObjectSupport implements Plugin<Proje
                 });
             }
         });
+    }
+
+    public static String getZINC_CONFIGURATION_NAME() {
+        return ZINC_CONFIGURATION_NAME;
+    }
+
+    public static String getSCALA_RUNTIME_EXTENSION_NAME() {
+        return SCALA_RUNTIME_EXTENSION_NAME;
     }
 }

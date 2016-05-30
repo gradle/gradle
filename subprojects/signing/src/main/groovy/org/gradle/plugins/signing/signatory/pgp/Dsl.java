@@ -26,20 +26,20 @@ import static org.codehaus.groovy.runtime.DefaultGroovyMethods.asType;
 /**
  * Configuration dsl for {@link PgpSignatoryProvider}.
  */
-class PgpSignatoryProviderDsl extends GroovyObjectSupport {
+class Dsl extends GroovyObjectSupport {
 
     private final Project project;
     private final Map<String, PgpSignatory> signatories;
     private final PgpSignatoryFactory factory;
 
-    public PgpSignatoryProviderDsl(Project project, Map<String, PgpSignatory> signatories, PgpSignatoryFactory factory) {
+    public Dsl(Project project, Map<String, PgpSignatory> signatories, PgpSignatoryFactory factory) {
         this.project = project;
         this.signatories = signatories;
         this.factory = factory;
     }
 
     @SuppressWarnings("unused") // invoked by Groovy
-    protected PgpSignatory methodMissing(String name, Object args) {
+    public PgpSignatory methodMissing(String name, Object args) {
         PgpSignatory signatory = signatoryFor(name, asType(args, Object[].class));
         signatories.put(signatory.getName(), signatory);
         return signatory;

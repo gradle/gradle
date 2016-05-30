@@ -19,7 +19,6 @@ package org.gradle.api.plugins;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -86,8 +85,9 @@ public class JavaPluginConvention extends GroovyObjectSupport {
      * </pre>
      *
      * @param closure The closure to execute.
+     * @return NamedDomainObjectContainer<SourceSet>
      */
-    public NamedDomainObjectContainer<SourceSet> sourceSets(Closure closure) {
+    public Object sourceSets(Closure closure) {
         return sourceSets.configure(closure);
     }
 
