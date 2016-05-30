@@ -412,10 +412,10 @@ The method for creating a handle to a Rhino-backed worker has changed in `RhinoW
 
 ### Source and target compatibility options are always passed to the Java compiler
 
-The target/sourceCompatibility option for the Java Plugin defaults to the version of Java used to start Gradle.
+The target-/sourceCompatibility options for the Java Plugin default to the version of Java used to start Gradle.
 
-Before this version, if the target/sourceCompatibility is the same as the version of Java used to start Gradle,
-no -source/-target options have been passed to the compiler process.
+Before this version, if the target-/sourceCompatibility options were the same as the version of Java used to start Gradle,
+no -source/-target options have been passed to the compiler, even if running in forked mode.
 
 Beginning from this version the -source/-target options are always passed to the compiler.
 
