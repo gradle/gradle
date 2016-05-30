@@ -25,7 +25,7 @@ class ReleasedVersions {
     private static final Logger LOGGER = Logging.getLogger(ReleasedVersions.class)
     private static final int MILLIS_PER_DAY = 24 * 60 * 60 * 1000
 
-    private lowestInterestingVersion = GradleVersion.version("0.8")
+    private lowestInterestingVersion = GradleVersion.version("1.0")
     private def versions
     private def snapshots
 
