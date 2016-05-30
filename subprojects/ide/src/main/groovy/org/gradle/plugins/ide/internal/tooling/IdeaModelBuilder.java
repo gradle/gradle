@@ -125,7 +125,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         for (Dependency dependency : resolved) {
             if (dependency instanceof SingleEntryModuleLibrary) {
                 SingleEntryModuleLibrary d = (SingleEntryModuleLibrary) dependency;
-                DefaultIdeaSingleEntryLibraryDependency defaultDependency = new org.gradle.tooling.internal.idea.DefaultIdeaSingleEntryLibraryDependency()
+                DefaultIdeaSingleEntryLibraryDependency defaultDependency = new DefaultIdeaSingleEntryLibraryDependency()
                     .setFile(d.getLibraryFile())
                     .setSource(d.getSourceFile())
                     .setJavadoc(d.getJavadocFile())
@@ -142,7 +142,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 File targetProjectDirectory = targetModule == null
                     ? compositeProjectMapper.getProjectDirectory(d.getGradlePath())
                     : targetModule.getGradleProject().getProjectDirectory();
-                DefaultIdeaModuleDependency defaultDependency = new org.gradle.tooling.internal.idea.DefaultIdeaModuleDependency()
+                DefaultIdeaModuleDependency defaultDependency = new DefaultIdeaModuleDependency()
                     .setExported(d.isExported())
                     .setScope(new DefaultIdeaDependencyScope(d.getScope()))
                     .setDependencyModule(targetModule)
