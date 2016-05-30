@@ -355,7 +355,7 @@ task crossVersionIntegTest {
     description "Runs the cross version tests against all Gradle versions"
 }
 
-releasedVersions.allVersions.each { targetVersion ->
+releasedVersions.testedVersions.each { targetVersion ->
     tasks.create("gradle${targetVersion}IntegTest", Test).configure {
         crossVersionIntegTest.dependsOn path
         description "Runs the cross version tests against Gradle ${targetVersion}"
