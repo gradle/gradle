@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform
+
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-@LeaksFileHandles
 class PrebuiltLibrariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     final app = new CppHelloWorldApp()
 

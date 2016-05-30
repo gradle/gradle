@@ -29,7 +29,6 @@ import org.junit.Rule
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-@LeaksFileHandles
 class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider()
     @Rule public final Sample cppLib = sample(testDirProvider, 'cpp-lib')

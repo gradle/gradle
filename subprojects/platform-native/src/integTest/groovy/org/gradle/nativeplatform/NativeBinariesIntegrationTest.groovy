@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform
-
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.Matchers
@@ -28,7 +26,6 @@ import spock.lang.Ignore
 
 import static org.gradle.util.Matchers.containsText
 
-@LeaksFileHandles
 class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppCallingCHelloWorldApp()
 
