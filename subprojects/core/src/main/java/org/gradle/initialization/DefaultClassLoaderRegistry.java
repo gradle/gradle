@@ -41,17 +41,18 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     }
 
     private ClassLoader restrictToGradleApi(ClassLoader classLoader) {
-        FilteringClassLoader rootClassLoader = classLoaderFactory.createFilteringClassLoader(classLoader);
-        rootClassLoader.allowPackage("org.gradle");
-        rootClassLoader.allowResources("META-INF/gradle-plugins");
-        rootClassLoader.allowPackage("org.apache.tools.ant");
-        rootClassLoader.allowPackage("groovy");
-        rootClassLoader.allowPackage("org.codehaus.groovy");
-        rootClassLoader.allowPackage("groovyjarjarantlr");
-        rootClassLoader.allowPackage("org.slf4j");
-        rootClassLoader.allowPackage("org.apache.commons.logging");
-        rootClassLoader.allowPackage("org.apache.log4j");
-        rootClassLoader.allowPackage("javax.inject");
+        FilteringClassLoader.Spec rootSpec = new FilteringClassLoader.Spec();
+        rootSpec.allowPackage("org.gradle");
+        rootSpec.allowResources("META-INF/gradle-plugins");
+        rootSpec.allowPackage("org.apache.tools.ant");
+        rootSpec.allowPackage("groovy");
+        rootSpec.allowPackage("org.codehaus.groovy");
+        rootSpec.allowPackage("groovyjarjarantlr");
+        rootSpec.allowPackage("org.slf4j");
+        rootSpec.allowPackage("org.apache.commons.logging");
+        rootSpec.allowPackage("org.apache.log4j");
+        rootSpec.allowPackage("javax.inject");
+        FilteringClassLoader rootClassLoader = classLoaderFactory.createFilteringClassLoader(classLoader, rootSpec);
         return new CachingClassLoader(rootClassLoader);
     }
 

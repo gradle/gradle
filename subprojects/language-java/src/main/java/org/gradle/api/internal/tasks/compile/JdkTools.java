@@ -30,6 +30,8 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.lang.ClassLoader.getSystemClassLoader;
+
 /**
  * Subset replacement for {@link javax.tools.ToolProvider} that avoids the application class loader.
  */
@@ -54,8 +56,9 @@ public class JdkTools {
     JdkTools(JavaInfo javaInfo) {
         DefaultClassLoaderFactory defaultClassLoaderFactory = new DefaultClassLoaderFactory();
         JavaVersion javaVersion = Jvm.current().getJavaVersion();
-        FilteringClassLoader filteringClassLoader = defaultClassLoaderFactory.createSystemFilteringClassLoader();
-        if (!javaVersion.isJava9Compatible()) {
+        boolean java9Compatible = javaVersion.isJava9Compatible();
+        FilteringClassLoader filteringClassLoader = getSystemFilteringClassLoader(defaultClassLoaderFactory, java9Compatible);
+        if (!java9Compatible) {
             File toolsJar = javaInfo.getToolsJar();
             if (toolsJar == null) {
                 throw new IllegalStateException("Could not find tools.jar. Please check that "
@@ -66,10 +69,17 @@ public class JdkTools {
             isolatedToolsLoader = new VisitableURLClassLoader(filteringClassLoader, defaultClassPath.getAsURLs());
             isJava9Compatible = false;
         } else {
-            filteringClassLoader.allowPackage("com.sun.tools");
             isolatedToolsLoader = filteringClassLoader;
             isJava9Compatible = true;
         }
+    }
+
+    private FilteringClassLoader getSystemFilteringClassLoader(DefaultClassLoaderFactory defaultClassLoaderFactory, boolean java9compatible) {
+        FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
+        if (java9compatible) {
+            filterSpec.allowPackage("com.sun.tools");
+        }
+        return defaultClassLoaderFactory.createFilteringClassLoader(getSystemClassLoader(), filterSpec);
     }
 
     public JavaCompiler getSystemJavaCompiler() {

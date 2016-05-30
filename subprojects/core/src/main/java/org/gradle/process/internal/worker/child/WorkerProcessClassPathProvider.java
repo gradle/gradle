@@ -28,10 +28,15 @@ import org.gradle.internal.classloader.ClassLoaderHierarchy;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.SystemClassLoaderSpec;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.reflect.*;
+import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
+import org.gradle.internal.reflect.NoSuchPropertyException;
+import org.gradle.internal.reflect.PropertyAccessor;
+import org.gradle.internal.reflect.PropertyMutator;
 import org.gradle.process.internal.streams.EncodedStream;
 import org.gradle.process.internal.worker.GradleWorkerMain;
 import org.objectweb.asm.ClassReader;
@@ -43,7 +48,12 @@ import org.objectweb.asm.commons.RemappingClassAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -116,6 +126,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
                         ClassLoaderHierarchy.class,
                         ClassLoaderVisitor.class,
                         ClassLoaderSpec.class,
+                        SystemClassLoaderSpec.class,
                         JavaReflectionUtil.class,
                         JavaMethod.class,
                         GradleException.class,

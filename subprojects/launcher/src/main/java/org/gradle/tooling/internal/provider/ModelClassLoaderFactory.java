@@ -20,6 +20,7 @@ import org.gradle.TaskExecutionRequest;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.SystemClassLoaderSpec;
 
 import java.util.List;
 
@@ -30,14 +31,14 @@ public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
     public ModelClassLoaderFactory(ClassLoaderFactory classLoaderFactory) {
         this.classLoaderFactory = classLoaderFactory;
         ClassLoader parent = getClass().getClassLoader();
-        FilteringClassLoader filter = new FilteringClassLoader(parent);
-        filter.allowPackage("org.gradle.tooling.internal.protocol");
-        filter.allowClass(TaskExecutionRequest.class);
-        rootClassLoader = filter;
+        FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
+        filterSpec.allowPackage("org.gradle.tooling.internal.protocol");
+        filterSpec.allowClass(TaskExecutionRequest.class);
+        rootClassLoader = new FilteringClassLoader(parent, filterSpec);
     }
 
     public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
-        if (spec.equals(ClassLoaderSpec.SYSTEM_CLASS_LOADER)) {
+        if (spec.equals(SystemClassLoaderSpec.INSTANCE)) {
             return rootClassLoader;
         }
         return classLoaderFactory.createClassLoader(spec, parents);

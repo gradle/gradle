@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,24 @@
 
 package org.gradle.internal.classloader;
 
-import java.io.Serializable;
+public class SystemClassLoaderSpec extends ClassLoaderSpec {
+    public static final ClassLoaderSpec INSTANCE = new SystemClassLoaderSpec();
 
-/**
- * An immutable description of a ClassLoader hierarchy that can be used to recreate the hierarchy in a different process.
- *
- * Subclasses should implement equals() and hashCode(), so that the spec can be used as a hashmap key.
- */
-public abstract class ClassLoaderSpec implements Serializable {
+    private SystemClassLoaderSpec() {
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj != null && obj.getClass().equals(getClass());
+    }
+
+    @Override
+    public String toString() {
+        return "system";
+    }
+
+    @Override
+    public int hashCode() {
+        return 121;
+    }
 }

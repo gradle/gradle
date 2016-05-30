@@ -35,7 +35,7 @@ trait ToolingApiClasspathProvider {
         Map<String, ClassLoader> cache,
         ToolingApiDistribution toolingApi,
         List<File> testClasspath,
-        Action<? super FilteringClassLoader> classpathConfigurer) {
+        Action<? super FilteringClassLoader.Spec> classpathConfigurer) {
         synchronized(ToolingApiClasspathProvider) {
             def classLoader = cache.get(toolingApi.version.version)
             if (!classLoader) {
@@ -46,33 +46,34 @@ trait ToolingApiClasspathProvider {
         }
     }
 
-    private ClassLoader createTestClassLoader(ToolingApiDistribution toolingApi, Action<? super FilteringClassLoader> classpathConfigurer, List<File> testClassPath) {
+    private ClassLoader createTestClassLoader(ToolingApiDistribution toolingApi, Action<? super FilteringClassLoader.Spec> classpathConfigurer, List<File> testClassPath) {
         def classLoaderFactory = new DefaultClassLoaderFactory()
 
-        def sharedClassLoader = classLoaderFactory.createFilteringClassLoader(getClass().classLoader)
-        sharedClassLoader.allowPackage('org.junit')
-        sharedClassLoader.allowPackage('org.hamcrest')
-        sharedClassLoader.allowPackage('junit.framework')
-        sharedClassLoader.allowPackage('groovy')
-        sharedClassLoader.allowPackage('org.codehaus.groovy')
-        sharedClassLoader.allowPackage('spock')
-        sharedClassLoader.allowPackage('org.spockframework')
-        sharedClassLoader.allowClass(SetSystemProperties)
-        sharedClassLoader.allowClass(RedirectStdOutAndErr)
-        sharedClassLoader.allowPackage('org.gradle.integtests.fixtures')
-        sharedClassLoader.allowPackage('org.gradle.play.integtest.fixtures')
-        sharedClassLoader.allowPackage('org.gradle.plugins.ide.fixtures')
-        sharedClassLoader.allowPackage('org.gradle.test.fixtures')
-        sharedClassLoader.allowPackage('org.gradle.launcher.daemon.testing')
-        sharedClassLoader.allowClass(OperatingSystem)
-        sharedClassLoader.allowClass(Requires)
-        sharedClassLoader.allowClass(TestPrecondition)
-        sharedClassLoader.allowClass(TargetGradleVersion)
-        sharedClassLoader.allowClass(ToolingApiVersion)
-        sharedClassLoader.allowClass(DaemonUsageSuggestingBuildActionExecuter)
-        sharedClassLoader.allowClass(TeeOutputStream)
-        sharedClassLoader.allowClass(RetryRule)
-        classpathConfigurer.execute(sharedClassLoader)
+        def sharedSpec = new FilteringClassLoader.Spec()
+        sharedSpec.allowPackage('org.junit')
+        sharedSpec.allowPackage('org.hamcrest')
+        sharedSpec.allowPackage('junit.framework')
+        sharedSpec.allowPackage('groovy')
+        sharedSpec.allowPackage('org.codehaus.groovy')
+        sharedSpec.allowPackage('spock')
+        sharedSpec.allowPackage('org.spockframework')
+        sharedSpec.allowClass(SetSystemProperties)
+        sharedSpec.allowClass(RedirectStdOutAndErr)
+        sharedSpec.allowPackage('org.gradle.integtests.fixtures')
+        sharedSpec.allowPackage('org.gradle.play.integtest.fixtures')
+        sharedSpec.allowPackage('org.gradle.plugins.ide.fixtures')
+        sharedSpec.allowPackage('org.gradle.test.fixtures')
+        sharedSpec.allowPackage('org.gradle.launcher.daemon.testing')
+        sharedSpec.allowClass(OperatingSystem)
+        sharedSpec.allowClass(Requires)
+        sharedSpec.allowClass(TestPrecondition)
+        sharedSpec.allowClass(TargetGradleVersion)
+        sharedSpec.allowClass(ToolingApiVersion)
+        sharedSpec.allowClass(DaemonUsageSuggestingBuildActionExecuter)
+        sharedSpec.allowClass(TeeOutputStream)
+        sharedSpec.allowClass(RetryRule)
+        classpathConfigurer.execute(sharedSpec)
+        def sharedClassLoader = classLoaderFactory.createFilteringClassLoader(getClass().classLoader, sharedSpec)
 
         def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)
 

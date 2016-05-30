@@ -20,6 +20,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
+import org.gradle.internal.classloader.SystemClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -128,7 +129,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                 parents.add(getClassLoader(parentDetails));
             }
             if (parents.isEmpty()) {
-                parents.add(classLoaderFactory.getClassLoaderFor(ClassLoaderSpec.SYSTEM_CLASS_LOADER, null));
+                parents.add(classLoaderFactory.getClassLoaderFor(SystemClassLoaderSpec.INSTANCE, null));
             }
 
             LOGGER.info("Creating ClassLoader {} from {} and {}.", details.uuid, details.spec, parents);
@@ -144,7 +145,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
 
             if (visitor.spec == null) {
                 if (visitor.classPath == null) {
-                    visitor.spec = ClassLoaderSpec.SYSTEM_CLASS_LOADER;
+                    visitor.spec = SystemClassLoaderSpec.INSTANCE;
                 } else {
                     visitor.spec = new VisitableURLClassLoader.Spec(CollectionUtils.toList(visitor.classPath));
                 }

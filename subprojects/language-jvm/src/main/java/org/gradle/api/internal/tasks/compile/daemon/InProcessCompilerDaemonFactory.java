@@ -55,15 +55,17 @@ public class InProcessCompilerDaemonFactory implements CompilerDaemonFactory {
             public <T extends CompileSpec> CompileResult execute(Compiler<T> compiler, T spec) {
                 ClassLoader groovyClassLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(forkOptions.getClasspath()));
                 GroovySystemLoader groovyLoader = groovySystemLoaderFactory.forClassLoader(groovyClassLoader);
-                FilteringClassLoader filteredGroovy = classLoaderFactory.createFilteringClassLoader(groovyClassLoader);
+                FilteringClassLoader.Spec filteredGroovySpec = new FilteringClassLoader.Spec();
                 for (String packageName : forkOptions.getSharedPackages()) {
-                    filteredGroovy.allowPackage(packageName);
+                    filteredGroovySpec.allowPackage(packageName);
                 }
+                FilteringClassLoader filteredGroovy = classLoaderFactory.createFilteringClassLoader(groovyClassLoader, filteredGroovySpec);
 
-                FilteringClassLoader loggingClassLoader = classLoaderFactory.createFilteringClassLoader(compiler.getClass().getClassLoader());
-                loggingClassLoader.allowPackage("org.slf4j");
-                loggingClassLoader.allowClass(Logger.class);
-                loggingClassLoader.allowClass(LogLevel.class);
+                FilteringClassLoader.Spec loggingSpec = new FilteringClassLoader.Spec();
+                loggingSpec.allowPackage("org.slf4j");
+                loggingSpec.allowClass(Logger.class);
+                loggingSpec.allowClass(LogLevel.class);
+                FilteringClassLoader loggingClassLoader = classLoaderFactory.createFilteringClassLoader(compiler.getClass().getClassLoader(), loggingSpec);
 
                 ClassLoader groovyAndLoggingClassLoader = new CachingClassLoader(new MultiParentClassLoader(loggingClassLoader, filteredGroovy));
 
