@@ -21,7 +21,6 @@ import com.google.common.io.CharSource;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -61,6 +60,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.*;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
@@ -589,28 +589,38 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected boolean isUseDaemon() {
-        Boolean daemonOrNoDaemon = findDaemonOrNoDaemonArgument();
-        if (daemonOrNoDaemon != null) {
-            return daemonOrNoDaemon;
+        CliDaemonArgument cliDaemonArgument = resolveCliDaemonArgument();
+        if (cliDaemonArgument == DAEMON) {
+            return true;
         }
         return requireDaemon;
     }
 
-    @Nullable
-    private Boolean findDaemonOrNoDaemonArgument() {
+    enum CliDaemonArgument {
+        NOT_DEFINED,
+        DAEMON,
+        NO_DAEMON,
+        FOREGROUND
+    }
+
+    private CliDaemonArgument resolveCliDaemonArgument() {
         for (int i = args.size() - 1; i >= 0; i--) {
-            if (args.get(i).equals("--daemon")) {
-                return true;
+            final String arg = args.get(i);
+            if (arg.equals("--daemon")) {
+                return DAEMON;
             }
-            if (args.get(i).equals("--no-daemon")) {
-                return false;
+            if (arg.equals("--no-daemon")) {
+                return NO_DAEMON;
+            }
+            if (arg.equals("--foreground")) {
+                return FOREGROUND;
             }
         }
-        return null;
+        return NOT_DEFINED;
     }
 
     private boolean noDaemonArgumentGiven() {
-        return findDaemonOrNoDaemonArgument() == null;
+        return resolveCliDaemonArgument() == NOT_DEFINED;
     }
 
     protected List<String> getAllArgs() {
