@@ -100,8 +100,13 @@ class DaemonExpirationListenerRegistryIntegrationSpec extends DaemonIntegrationS
 
             @Override
             public DaemonExpirationResult checkExpiration() {
-                DaemonContext dc = project.getServices().get(DaemonContext)
-                return new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, "expiring daemon with TestExpirationStrategy uuid: \${dc.getUid()}")
+                DaemonContext dc = null
+                try {
+                    dc = project.getServices().get(DaemonContext)
+                } catch (Exception e) {
+                    // ignore
+                }
+                return new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, "expiring daemon with TestExpirationStrategy uuid: \${dc?.getUid()}")
             }
         }
 
