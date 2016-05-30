@@ -15,10 +15,10 @@
  */
 
 package org.gradle.integtests.tooling.r18
+
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.UnsupportedVersionException
@@ -26,7 +26,6 @@ import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaProject
 
 @TargetGradleVersion('>=1.8')
-@LeaksFileHandles
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def "client receives the result of running a build action"() {
         given:

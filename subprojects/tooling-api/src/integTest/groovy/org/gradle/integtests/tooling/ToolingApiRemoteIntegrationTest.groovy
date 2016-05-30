@@ -15,11 +15,15 @@
  */
 
 package org.gradle.integtests.tooling
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
-import org.gradle.tooling.*
+import org.gradle.tooling.BuildCancelledException
+import org.gradle.tooling.BuildLauncher
+import org.gradle.tooling.CancellationTokenSource
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.GradleVersion
 import org.junit.Rule
@@ -32,7 +36,6 @@ import java.util.concurrent.TimeUnit
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 
-@LeaksFileHandles
 class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     @Rule HttpServer server = new HttpServer()
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
