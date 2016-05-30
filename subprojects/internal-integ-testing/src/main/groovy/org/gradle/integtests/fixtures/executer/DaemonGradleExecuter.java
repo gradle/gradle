@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 
 import java.util.ArrayList;
@@ -74,4 +75,12 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         return buildJvmOpts;
     }
 
+    @Override
+    protected void transformInvocation(GradleInvocation invocation) {
+        super.transformInvocation(invocation);
+
+        if (!noExplicitNativeServicesDir) {
+            invocation.environmentVars.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
+        }
+    }
 }
