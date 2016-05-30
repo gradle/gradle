@@ -29,7 +29,7 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
             apply plugin: 'java'
 
             task resolveLibs(type: Copy) {
-                ext.extractedDir = file('\$buildDir/libs')
+                ext.extractedDir = file("\$buildDir/libs")
                 from configurations.testCompile
                 into extractedDir
             }
@@ -53,10 +53,13 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
                     assert testKitFunctionalJar
 
                     def jar = new java.util.jar.JarFile(testKitFunctionalJar)
-                    def jarFileEntries = jar.entries()
-
-                    def classFiles = jarFileEntries.collect {
-                        it.name.startsWith('org/gradle/testkit') && it.name.endsWith('.class')
+                    def classFiles
+                    try {
+                        classFiles = jar.entries().collect {
+                            it.name.startsWith('org/gradle/testkit') && it.name.endsWith('.class')
+                        }
+                    } finally {
+                        jar.close()
                     }
 
                     assert !classFiles.empty
