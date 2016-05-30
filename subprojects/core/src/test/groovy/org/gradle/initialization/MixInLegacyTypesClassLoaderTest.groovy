@@ -17,7 +17,7 @@
 package org.gradle.initialization
 
 import org.gradle.internal.classloader.FilteringClassLoader
-import org.gradle.internal.classloader.MutableURLClassLoader
+import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -105,7 +105,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         def fileManager = compiler.getStandardFileManager(null, null, null)
         def task = compiler.getTask(null, fileManager, null, ["-d", classesDir.path], null, fileManager.getJavaFileObjects(srcFile))
         task.call()
-        def cl = new MutableURLClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
+        def cl = new VisitableURLClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
         cl.loadClass(className)
     }
 }

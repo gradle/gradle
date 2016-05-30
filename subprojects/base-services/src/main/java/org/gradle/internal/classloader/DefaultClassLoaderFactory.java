@@ -71,7 +71,7 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
             }
         }
 
-        return new MutableURLClassLoader(getIsolatedSystemClassLoader(), classpath);
+        return new VisitableURLClassLoader(getIsolatedSystemClassLoader(), classpath);
     }
 
     public FilteringClassLoader createFilteringClassLoader(ClassLoader parent) {
@@ -93,9 +93,9 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
             throw new IllegalArgumentException("Expected a single parent.");
         }
         ClassLoader parent = parents.get(0);
-        if (spec instanceof MutableURLClassLoader.Spec) {
-            MutableURLClassLoader.Spec clSpec = (MutableURLClassLoader.Spec) spec;
-            return new MutableURLClassLoader(parent, clSpec);
+        if (spec instanceof VisitableURLClassLoader.Spec) {
+            VisitableURLClassLoader.Spec clSpec = (VisitableURLClassLoader.Spec) spec;
+            return new VisitableURLClassLoader(parent, clSpec);
         }
         if (spec instanceof CachingClassLoader.Spec) {
             return new CachingClassLoader(parent);

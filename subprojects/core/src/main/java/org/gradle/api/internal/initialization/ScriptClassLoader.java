@@ -17,21 +17,21 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.internal.classloader.MultiParentClassLoader;
-import org.gradle.internal.classloader.MutableURLClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
 
 public class ScriptClassLoader extends MultiParentClassLoader {
 
-    private final MutableURLClassLoader mutableClassLoader;
+    private final VisitableURLClassLoader mutableClassLoader;
     private final ClassLoader parent;
 
     public ScriptClassLoader(ClassLoader parent) {
         super(parent);
         this.parent = parent;
-        this.mutableClassLoader = new MutableURLClassLoader(parent);
+        this.mutableClassLoader = new VisitableURLClassLoader(parent);
         addParent(mutableClassLoader);
     }
 
-    public MutableURLClassLoader getMutableClassLoader() {
+    public VisitableURLClassLoader getMutableClassLoader() {
         return mutableClassLoader;
     }
 

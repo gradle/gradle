@@ -33,7 +33,7 @@ import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
-import org.gradle.internal.classloader.MutableURLClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.Stoppable;
@@ -91,7 +91,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
 
         // Need Transformer (part of AntBuilder API) from base services
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
-        this.antAdapterLoader = new MutableURLClassLoader(baseAntLoader, gradleCoreUrls);
+        this.antAdapterLoader = new VisitableURLClassLoader(baseAntLoader, gradleCoreUrls);
 
         gradleApiGroovyLoader = groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());
         antAdapterGroovyLoader = groovySystemLoaderFactory.forClassLoader(antAdapterLoader);
@@ -126,7 +126,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             new Factory<ClassLoader>() {
                 @Override
                 public ClassLoader create() {
-                    return new MutableURLClassLoader(baseAntLoader, libClasspath);
+                    return new VisitableURLClassLoader(baseAntLoader, libClasspath);
                 }
             }, new Action<CachedClassLoader>() {
                 @Override

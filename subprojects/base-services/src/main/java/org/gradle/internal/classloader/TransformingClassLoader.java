@@ -28,7 +28,7 @@ import java.security.CodeSource;
 import java.security.cert.Certificate;
 import java.util.Collection;
 
-public abstract class TransformingClassLoader extends MutableURLClassLoader {
+public abstract class TransformingClassLoader extends VisitableURLClassLoader {
     public TransformingClassLoader(ClassLoader parent, ClassPath classPath) {
         super(parent, classPath);
     }

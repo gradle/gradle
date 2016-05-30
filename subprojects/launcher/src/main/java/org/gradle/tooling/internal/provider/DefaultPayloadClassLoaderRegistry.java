@@ -20,13 +20,17 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
-import org.gradle.internal.classloader.MutableURLClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @ThreadSafe
 public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
@@ -142,7 +146,7 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                 if (visitor.classPath == null) {
                     visitor.spec = ClassLoaderSpec.SYSTEM_CLASS_LOADER;
                 } else {
-                    visitor.spec = new MutableURLClassLoader.Spec(CollectionUtils.toList(visitor.classPath));
+                    visitor.spec = new VisitableURLClassLoader.Spec(CollectionUtils.toList(visitor.classPath));
                 }
             }
 

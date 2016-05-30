@@ -21,7 +21,7 @@ import org.gradle.api.Action
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
-import org.gradle.internal.classloader.MutableURLClassLoader
+import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
 import org.gradle.testing.internal.util.RetryRule
@@ -76,6 +76,6 @@ trait ToolingApiClasspathProvider {
 
         def parentClassLoader = new MultiParentClassLoader(toolingApi.classLoader, sharedClassLoader)
 
-        return new MutableURLClassLoader(parentClassLoader, testClassPath.collect { it.toURI().toURL() })
+        return new VisitableURLClassLoader(parentClassLoader, testClassPath.collect { it.toURI().toURL() })
     }
 }

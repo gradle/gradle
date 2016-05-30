@@ -18,18 +18,18 @@ package org.gradle.internal.classloader
 
 import spock.lang.Specification
 
-class MutableURLClassLoaderTest extends Specification {
+class VisitableURLClassLoaderTest extends Specification {
     def "visits self and parent"() {
         def visitor = Mock(ClassLoaderVisitor)
         def parent = new ClassLoader(null) { }
         def classPath = [new File("a").toURI().toURL(), new File("b").toURI().toURL()]
-        def cl = new MutableURLClassLoader(parent, classPath)
+        def cl = new VisitableURLClassLoader(parent, classPath)
 
         when:
         cl.visit(visitor)
 
         then:
-        1 * visitor.visitSpec({it instanceof MutableURLClassLoader.Spec}) >> { MutableURLClassLoader.Spec spec ->
+        1 * visitor.visitSpec({it instanceof VisitableURLClassLoader.Spec}) >> { VisitableURLClassLoader.Spec spec ->
             assert spec.classpath == classPath
         }
         1 * visitor.visitClassPath(classPath)

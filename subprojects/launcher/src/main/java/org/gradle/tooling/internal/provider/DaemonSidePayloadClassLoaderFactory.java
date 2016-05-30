@@ -23,7 +23,7 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderSpec;
-import org.gradle.internal.classloader.MutableURLClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
 
 import java.io.Closeable;
 import java.io.File;
@@ -56,8 +56,8 @@ public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
     }
 
     public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
-        if (spec instanceof MutableURLClassLoader.Spec) {
-            MutableURLClassLoader.Spec urlSpec = (MutableURLClassLoader.Spec) spec;
+        if (spec instanceof VisitableURLClassLoader.Spec) {
+            VisitableURLClassLoader.Spec urlSpec = (VisitableURLClassLoader.Spec) spec;
             if (parents.size() != 1) {
                 throw new IllegalStateException("Expected exactly one parent ClassLoader");
             }
@@ -84,7 +84,7 @@ public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
                 cachedClassPath.add(url);
             }
 
-            return new MutableURLClassLoader(parents.get(0), cachedClassPath);
+            return new VisitableURLClassLoader(parents.get(0), cachedClassPath);
         }
         return delegate.getClassLoaderFor(spec, parents);
     }

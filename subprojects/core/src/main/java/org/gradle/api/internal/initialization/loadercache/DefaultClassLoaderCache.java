@@ -23,7 +23,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classloader.MutableURLClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.util.Map;
@@ -81,7 +81,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
                 parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
                 classLoader = new HashedFilteringClassLoader(parentCachedLoader, spec, hashCode);
             } else {
-                classLoader = new HashedMutableURLClassLoader(spec, classPath, hashCode);
+                classLoader = new HashedVisitableURLClassLoader(spec, classPath, hashCode);
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);
@@ -152,10 +152,10 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         }
     }
 
-    private static class HashedMutableURLClassLoader extends MutableURLClassLoader implements HashedClassLoader {
+    private static class HashedVisitableURLClassLoader extends VisitableURLClassLoader implements HashedClassLoader {
         private final long hashCode;
 
-        public HashedMutableURLClassLoader(ClassLoaderSpec spec, ClassPath classPath, long hashCode) {
+        public HashedVisitableURLClassLoader(ClassLoaderSpec spec, ClassPath classPath, long hashCode) {
             super(spec.parent, classPath);
             this.hashCode = hashCode;
         }

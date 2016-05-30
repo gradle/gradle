@@ -24,20 +24,20 @@ import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.List;
 
-public class MutableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
-    public MutableURLClassLoader(ClassLoader parent, URL... urls) {
+public class VisitableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
+    public VisitableURLClassLoader(ClassLoader parent, URL... urls) {
         super(urls, parent);
     }
 
-    public MutableURLClassLoader(ClassLoader parent, Collection<URL> urls) {
+    public VisitableURLClassLoader(ClassLoader parent, Collection<URL> urls) {
         super(urls.toArray(new URL[0]), parent);
     }
 
-    public MutableURLClassLoader(ClassLoader parent, ClassPath classPath) {
+    public VisitableURLClassLoader(ClassLoader parent, ClassPath classPath) {
         super(classPath.getAsURLArray(), parent);
     }
 
-    public MutableURLClassLoader(ClassLoader parent, Spec spec) {
+    public VisitableURLClassLoader(ClassLoader parent, Spec spec) {
         this(parent, spec.classpath);
     }
 
@@ -45,17 +45,6 @@ public class MutableURLClassLoader extends URLClassLoader implements ClassLoader
         visitor.visitSpec(new Spec(CollectionUtils.toList(getURLs())));
         visitor.visitClassPath(getURLs());
         visitor.visitParent(getParent());
-    }
-
-    @Override
-    public void addURL(URL url) {
-        super.addURL(url);
-    }
-
-    public void addURLs(Iterable<URL> urls) {
-        for (URL url : urls) {
-            addURL(url);
-        }
     }
 
     public static class Spec extends ClassLoaderSpec {

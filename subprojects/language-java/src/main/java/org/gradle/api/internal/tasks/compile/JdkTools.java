@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.JavaVersion;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classloader.MutableURLClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jvm;
@@ -63,7 +63,7 @@ public class JdkTools {
                                                 + " contains a valid JDK installation.");
             }
             DefaultClassPath defaultClassPath = new DefaultClassPath(toolsJar);
-            isolatedToolsLoader = new MutableURLClassLoader(filteringClassLoader, defaultClassPath.getAsURLs());
+            isolatedToolsLoader = new VisitableURLClassLoader(filteringClassLoader, defaultClassPath.getAsURLs());
             isJava9Compatible = false;
         } else {
             filteringClassLoader.allowPackage("com.sun.tools");

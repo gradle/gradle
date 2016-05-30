@@ -21,7 +21,12 @@ import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.*;
+import org.gradle.internal.classloader.CachingClassLoader;
+import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.ClasspathUtil;
+import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.MultiParentClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -62,7 +67,7 @@ public class InProcessCompilerDaemonFactory implements CompilerDaemonFactory {
 
                 ClassLoader groovyAndLoggingClassLoader = new CachingClassLoader(new MultiParentClassLoader(loggingClassLoader, filteredGroovy));
 
-                ClassLoader workerClassLoader = new MutableURLClassLoader(groovyAndLoggingClassLoader, ClasspathUtil.getClasspath(compiler.getClass().getClassLoader()));
+                ClassLoader workerClassLoader = new VisitableURLClassLoader(groovyAndLoggingClassLoader, ClasspathUtil.getClasspath(compiler.getClass().getClassLoader()));
 
                 try {
                     byte[] serializedWorker = GUtil.serialize(new Worker<T>(compiler, spec, gradleUserHomeDir));
