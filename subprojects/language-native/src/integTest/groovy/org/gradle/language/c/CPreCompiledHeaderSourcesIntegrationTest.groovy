@@ -16,12 +16,10 @@
 
 package org.gradle.language.c
 
+import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
-import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
-import org.gradle.test.fixtures.file.LeaksFileHandles
 
-@LeaksFileHandles
 class CPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompiledHeaderIntegrationTest {
     @Override
     IncrementalHelloWorldApp getApp() {

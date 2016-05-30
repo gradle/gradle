@@ -21,8 +21,13 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
-import org.gradle.nativeplatform.fixtures.app.*
-import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.MixedObjectiveCHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.ObjectiveCHelloWorldApp
+import org.gradle.nativeplatform.fixtures.app.ObjectiveCppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
@@ -77,7 +82,6 @@ class ParallelNativePluginsIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    @LeaksFileHandles("can't delete build/install/firstMainExecutable/lib")
     def "can produce multiple executables that use a library from a single project in parallel"() {
         given:
         Map<String, ExeWithLibraryUsingLibraryHelloWorldApp> apps = [
