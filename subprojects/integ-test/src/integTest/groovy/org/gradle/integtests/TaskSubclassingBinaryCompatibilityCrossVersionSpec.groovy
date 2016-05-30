@@ -35,7 +35,6 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.plugins.ear.Ear
 import org.gradle.plugins.signing.Sign
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -44,7 +43,6 @@ import org.gradle.util.GradleVersion
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
-@TargetVersions('1.0+')
 @LeaksFileHandles
 class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
     def "can use task subclass compiled using previous Gradle version"() {

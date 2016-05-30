@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 package org.gradle.integtests
+
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
 import org.junit.Test
 
-@TargetVersions('0.9+')
 class JavaProjectCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     @Test
     public void "can upgrade and downgrade Gradle version used to build Java project"() {

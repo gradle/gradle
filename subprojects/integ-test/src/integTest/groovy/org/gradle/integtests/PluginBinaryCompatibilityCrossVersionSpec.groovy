@@ -16,13 +16,11 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.GradleVersion
 
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
-@TargetVersions('1.0+')
 class PluginBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
     def "plugin implemented in Groovy can use types converted from Groovy to Java"() {
         given:

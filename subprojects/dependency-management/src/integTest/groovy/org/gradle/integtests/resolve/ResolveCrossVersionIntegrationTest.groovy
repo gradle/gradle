@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -25,7 +24,6 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 import spock.lang.Issue
 
-@TargetVersions('0.9+')
 @LeaksFileHandles
 class ResolveCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
     @Rule

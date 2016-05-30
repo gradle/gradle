@@ -15,17 +15,14 @@
  */
 package org.gradle.integtests.resolve.artifactreuse
 
-import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
+import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
 
-import org.gradle.integtests.fixtures.IgnoreVersions
-import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager
-
-@TargetVersions('1.0-milestone-6+')
 @IgnoreVersions({ it.artifactCacheLayoutVersion == DefaultCacheLockingManager.CACHE_LAYOUT_VERSION || it.version.version == "1.9-rc-1" })
 @LeaksFileHandles
 class CacheReuseCrossVersionIntegrationTest extends AbstractCacheReuseCrossVersionIntegrationTest {
