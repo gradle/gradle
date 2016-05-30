@@ -24,7 +24,7 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 - Move `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER` from public API. (Done)
 - Move internal types `org.gradle.logging.StandardOutputCapture` and `org.gradle.logging.LoggingManagerInternal` into an internal package.
 - Merge `Module` and `ModuleInternal`, now that `Module` is internal (Done)
-- Internal `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter`
+- Internal `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter` (Done)
 - Constructor on `DefaultSourceDirectorySet`
 
 ## Simplify definition of public API
@@ -111,7 +111,7 @@ Tooling api client no longer executes builds for Gradle versions older than 1.2.
 
 ## Remove Sonar plugins (DONE)
 
-~~Remove the Sonar plugins~~ done
+Remove the Sonar plugins
 
 ## Remove support for TestNG source annotations (DONE)
 

@@ -65,46 +65,6 @@ public class ExtraPropertiesDynamicObjectAdapterTest extends Specification {
         !adapter.hasMethod("other")
     }
 
-    def "can call get(name)"() {
-        given:
-        extension.set("foo", 12)
-
-        expect:
-        adapter.hasMethod("get", "foo")
-        adapter.invokeMethod("get", ["foo"] as Object[]) == 12
-
-        !adapter.hasMethod("get")
-        !adapter.hasMethod("get", 123)
-        !adapter.hasMethod("get", "foo", 12)
-    }
-
-    def "can call has(name)"() {
-        given:
-        extension.set("foo", 12)
-
-        expect:
-        adapter.hasMethod("has", "foo")
-        adapter.invokeMethod("has", ["foo"] as Object[]) == true
-        adapter.invokeMethod("has", ["bar"] as Object[]) == false
-
-        !adapter.hasMethod("has")
-        !adapter.hasMethod("has", 123)
-        !adapter.hasMethod("has", "foo", 12)
-    }
-
-    def "can call set(name, value) "() {
-        when:
-        adapter.invokeMethod("set", ["foo", 12] as Object[])
-
-        then:
-        adapter.hasMethod("set", "foo", 12)
-        extension.get("foo") == 12
-
-        !adapter.hasMethod("set", "foo")
-        !adapter.hasMethod("set", 12, "foo")
-        !adapter.hasMethod("set", "foo", 12, 12)
-    }
-
     def "getting missing property throws MPE"() {
         when:
         adapter.getProperty("foo")
