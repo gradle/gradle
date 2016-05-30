@@ -40,11 +40,12 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
     }
 
     @Override
-    protected byte[] transform(String className, byte[] bytes) {
-        if (!className.equals("org.gradle.api.plugins.JavaPluginConvention")) {
-            return bytes;
-        }
+    protected boolean shouldTransform(String className) {
+        return className.equals("org.gradle.api.plugins.JavaPluginConvention");
+    }
 
+    @Override
+    protected byte[] transform(String className, byte[] bytes) {
         ClassReader classReader = new ClassReader(bytes);
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         classReader.accept(new TransformingAdapter(classWriter), 0);

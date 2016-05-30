@@ -44,13 +44,15 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
                 String doSomething(String arg) { return arg; }
             }
         """)
-        assert !(original instanceof GroovyObject)
+        !GroovyObject.isAssignableFrom(original)
 
         expect:
         def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
 
         def cl = loader.loadClass(className)
         cl.classLoader.is(loader)
+        cl.protectionDomain.codeSource.location == classesDir.toURI().toURL()
+        cl.package.name == "org.gradle.api.plugins"
 
         def obj = cl.newInstance()
         obj instanceof GroovyObject
@@ -63,6 +65,27 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         def newMetaClass = new MetaClassImpl(cl)
         newMetaClass.initialize()
         obj.setMetaClass(newMetaClass) == null
+    }
+
+    def "does not mix GroovyObject into other types"() {
+        given:
+        def className = "org.gradle.api.plugins.Thing"
+
+        def original = compileJavaToDir(className, """
+            package org.gradle.api.plugins;
+            class Thing {
+            }
+        """)
+        !GroovyObject.isAssignableFrom(original)
+
+        expect:
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
+
+        def cl = loader.loadClass(className)
+        cl.classLoader.is(loader)
+        !GroovyObject.isAssignableFrom(cl)
+        cl.protectionDomain.codeSource.location == classesDir.toURI().toURL()
+        cl.package.name == "org.gradle.api.plugins"
     }
 
     ClassLoader getGroovyClassLoader() {

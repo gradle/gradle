@@ -17,12 +17,15 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.io.ByteStreams;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.security.CodeSource;
+import java.security.cert.Certificate;
 import java.util.Collection;
 
 public abstract class TransformingClassLoader extends MutableURLClassLoader {
@@ -36,18 +39,29 @@ public abstract class TransformingClassLoader extends MutableURLClassLoader {
 
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
-        URL resource = findResource(name.replace('.', '/') + ".class");
+        if (!shouldTransform(name)) {
+            return super.findClass(name);
+        }
+
+        String resourceName = name.replace('.', '/') + ".class";
+        URL resource = findResource(resourceName);
         if (resource == null) {
             throw new ClassNotFoundException(name);
         }
-        byte[] bytes;
+
         try {
-            bytes = loadBytecode(resource);
+            byte[] bytes = loadBytecode(resource);
             bytes = transform(name, bytes);
+            String packageName = StringUtils.substringBeforeLast(name, ".");
+            Package p = getPackage(packageName);
+            if (p == null) {
+                definePackage(packageName, null, null, null, null, null, null, null);
+            }
+            URL codeBase = ClasspathUtil.getClasspathForResource(resource, resourceName).toURI().toURL();
+            return defineClass(name, bytes, 0, bytes.length, new CodeSource(codeBase, (Certificate[]) null));
         } catch (Exception e) {
             throw new GradleException(String.format("Could not load class '%s' from %s.", name, resource), e);
         }
-        return defineClass(name, bytes, 0, bytes.length);
     }
 
     private byte[] loadBytecode(URL resource) throws IOException {
@@ -57,6 +71,10 @@ public abstract class TransformingClassLoader extends MutableURLClassLoader {
         } finally {
             inputStream.close();
         }
+    }
+
+    protected boolean shouldTransform(String className) {
+        return true;
     }
 
     protected abstract byte[] transform(String className, byte[] bytes);
