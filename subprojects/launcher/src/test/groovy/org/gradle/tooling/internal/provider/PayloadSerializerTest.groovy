@@ -183,9 +183,9 @@ class PayloadSerializerTest extends AbstractClassGraphSpec {
     }
 
     ClassLoader filter(Class<?> aClass) {
-        def spec = new FilteringClassLoader.Spec()
-        spec.allowClass(aClass)
-        return new FilteringClassLoader(aClass.classLoader, spec)
+        def filter = new FilteringClassLoader(aClass.classLoader)
+        filter.allowClass(aClass)
+        return filter
     }
 
     ClassLoader isolated(ClassLoader parent = ClassLoader.systemClassLoader.parent, Class<?>... classes) {

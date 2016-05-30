@@ -50,11 +50,10 @@ public class GradleWorkerMain {
         }
 
         // Set up worker ClassLoader
-        FilteringClassLoader.Spec filteringClassLoaderSpec = new FilteringClassLoader.Spec();
+        FilteringClassLoader filteringClassLoader = new FilteringClassLoader(getClass().getClassLoader());
         for (String sharedPackage : sharedPackages) {
-            filteringClassLoaderSpec.allowPackage(sharedPackage);
+            filteringClassLoader.allowPackage(sharedPackage);
         }
-        FilteringClassLoader filteringClassLoader = new FilteringClassLoader(getClass().getClassLoader(), filteringClassLoaderSpec);
         URLClassLoader classLoader = new URLClassLoader(implementationClassPath, filteringClassLoader);
 
         Class<? extends Callable> workerClass = classLoader.loadClass("org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);

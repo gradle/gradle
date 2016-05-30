@@ -121,9 +121,8 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         // Wrap our real classloader in one that hides the parent.
         // TODO - move this into FilteringClassLoader
         MultiParentClassLoader parentObfuscatingClassLoader = new MultiParentClassLoader(classLoader);
-        FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
-        filterSpec.allowPackage("org.gradle.tooling.internal.protocol");
-        FilteringClassLoader filteringClassLoader = new FilteringClassLoader(parentObfuscatingClassLoader, filterSpec);
+        FilteringClassLoader filteringClassLoader = new FilteringClassLoader(parentObfuscatingClassLoader);
+        filteringClassLoader.allowPackage("org.gradle.tooling.internal.protocol");
         return new VisitableURLClassLoader(filteringClassLoader, implementationClasspath.getAsURLArray());
     }
 }

@@ -30,10 +30,10 @@ public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
     public ModelClassLoaderFactory(ClassLoaderFactory classLoaderFactory) {
         this.classLoaderFactory = classLoaderFactory;
         ClassLoader parent = getClass().getClassLoader();
-        FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
-        filterSpec.allowPackage("org.gradle.tooling.internal.protocol");
-        filterSpec.allowClass(TaskExecutionRequest.class);
-        rootClassLoader = new FilteringClassLoader(parent, filterSpec);
+        FilteringClassLoader filter = new FilteringClassLoader(parent);
+        filter.allowPackage("org.gradle.tooling.internal.protocol");
+        filter.allowClass(TaskExecutionRequest.class);
+        rootClassLoader = filter;
     }
 
     public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {

@@ -75,13 +75,12 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         }
 
         antLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(antClasspath));
-        FilteringClassLoader.Spec loggingLoaderSpec = new FilteringClassLoader.Spec();
-        loggingLoaderSpec.allowPackage("org.slf4j");
-        loggingLoaderSpec.allowPackage("org.apache.commons.logging");
-        loggingLoaderSpec.allowPackage("org.apache.log4j");
-        loggingLoaderSpec.allowClass(Logger.class);
-        loggingLoaderSpec.allowClass(LogLevel.class);
-        FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().getClassLoader(), loggingLoaderSpec);
+        FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().getClassLoader());
+        loggingLoader.allowPackage("org.slf4j");
+        loggingLoader.allowPackage("org.apache.commons.logging");
+        loggingLoader.allowPackage("org.apache.log4j");
+        loggingLoader.allowClass(Logger.class);
+        loggingLoader.allowClass(LogLevel.class);
 
         this.baseAntLoader = new CachingClassLoader(new MultiParentClassLoader(antLoader, loggingLoader));
 

@@ -32,8 +32,6 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 
-import static java.lang.ClassLoader.getSystemClassLoader;
-
 public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     private final CachingServiceLocator systemClassLoaderServiceLocator = CachingServiceLocator.of(new DefaultServiceLocator(getSystemClassLoader()));
 
@@ -42,12 +40,10 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         return getSystemClassLoader().getParent();
     }
 
-    @Override
     public ClassLoader createIsolatedClassLoader(Iterable<URI> uris) {
         return doCreateIsolatedClassLoader(CollectionUtils.collect(uris, Transformers.toURL()));
     }
 
-    @Override
     public ClassLoader createIsolatedClassLoader(ClassPath classPath) {
         return doCreateIsolatedClassLoader(classPath.getAsURLs());
     }
@@ -78,19 +74,17 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         return new VisitableURLClassLoader(getIsolatedSystemClassLoader(), classpath);
     }
 
-    @Override
-    public FilteringClassLoader createFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
+    public FilteringClassLoader createFilteringClassLoader(ClassLoader parent) {
         // See the comment for {@link #createIsolatedClassLoader} above
-        FilteringClassLoader.Spec classLoaderSpec = new FilteringClassLoader.Spec(spec);
+        FilteringClassLoader classLoader = new FilteringClassLoader(parent);
         if (needJaxpImpl()) {
-            makeServiceVisible(systemClassLoaderServiceLocator, classLoaderSpec, SAXParserFactory.class);
-            makeServiceVisible(systemClassLoaderServiceLocator, classLoaderSpec, DocumentBuilderFactory.class);
-            makeServiceVisible(systemClassLoaderServiceLocator, classLoaderSpec, DatatypeFactory.class);
+            makeServiceVisible(systemClassLoaderServiceLocator, classLoader, SAXParserFactory.class);
+            makeServiceVisible(systemClassLoaderServiceLocator, classLoader, DocumentBuilderFactory.class);
+            makeServiceVisible(systemClassLoaderServiceLocator, classLoader, DatatypeFactory.class);
         }
-        return new FilteringClassLoader(parent, classLoaderSpec);
+        return classLoader;
     }
 
-    @Override
     public ClassLoader createClassLoader(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
         if (spec instanceof MultiParentClassLoader.Spec) {
             return new MultiParentClassLoader(parents);
@@ -113,13 +107,22 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         throw new IllegalArgumentException(String.format("Don't know how to create a ClassLoader from spec %s", spec));
     }
 
-    private void makeServiceVisible(ServiceLocator locator, FilteringClassLoader.Spec classLoaderSpec, Class<?> serviceType) {
-        classLoaderSpec.allowClass(locator.getFactory(serviceType).getImplementationClass());
-        classLoaderSpec.allowResource("META-INF/services/" + serviceType.getName());
+    @Override
+    public FilteringClassLoader createSystemFilteringClassLoader() {
+        return createFilteringClassLoader(getSystemClassLoader());
+    }
+
+    private void makeServiceVisible(ServiceLocator locator, FilteringClassLoader classLoader, Class<?> serviceType) {
+        classLoader.allowClass(locator.getFactory(serviceType).getImplementationClass());
+        classLoader.allowResource("META-INF/services/" + serviceType.getName());
     }
 
     private boolean needJaxpImpl() {
         return ClassLoader.getSystemResource("META-INF/services/javax.xml.parsers.SAXParserFactory") != null;
+    }
+
+    private ClassLoader getSystemClassLoader() {
+        return ClassLoader.getSystemClassLoader();
     }
 
 }
