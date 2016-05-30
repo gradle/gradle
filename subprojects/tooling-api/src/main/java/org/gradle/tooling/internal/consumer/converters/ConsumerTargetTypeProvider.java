@@ -29,6 +29,8 @@ public class ConsumerTargetTypeProvider implements TargetTypeProvider {
     Map<String, Class<?>> configuredTargetTypes = new HashMap<String, Class<?>>();
 
     public ConsumerTargetTypeProvider() {
+        configuredTargetTypes.put(IdeaSingleEntryLibraryDependency.class.getCanonicalName(), IdeaSingleEntryLibraryDependency.class);
+        configuredTargetTypes.put(IdeaModuleDependency.class.getCanonicalName(), IdeaModuleDependency.class);
         configuredTargetTypes.put(GradleFileBuildOutcome.class.getCanonicalName(), GradleFileBuildOutcome.class);
     }
 
