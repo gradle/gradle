@@ -25,7 +25,7 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 - Move internal types `org.gradle.logging.StandardOutputCapture` and `org.gradle.logging.LoggingManagerInternal` into an internal package.
 - Merge `Module` and `ModuleInternal`, now that `Module` is internal (Done)
 - Internal `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter` (Done)
-- Constructor on `DefaultSourceDirectorySet`
+- Constructor on `DefaultSourceDirectorySet` (Done)
 
 ## Simplify definition of public API
 
