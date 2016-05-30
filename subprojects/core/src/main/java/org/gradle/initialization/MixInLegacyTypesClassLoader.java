@@ -20,6 +20,7 @@ import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
+import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.objectweb.asm.ClassReader;
@@ -30,18 +31,81 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
+    private static final Type GROOVY_OBJECT_TYPE = Type.getType(GroovyObject.class);
+    private static final Type META_CLASS_REGISTRY_TYPE = Type.getType(MetaClassRegistry.class);
+    private static final Type GROOVY_SYSTEM_TYPE = Type.getType(GroovySystem.class);
+    private static final Type META_CLASS_TYPE = Type.getType(MetaClass.class);
+    private static final Type OBJECT_TYPE = Type.getType(Object.class);
+    private static final Type CLASS_TYPE = Type.getType(Class.class);
+    private static final Type STRING_TYPE = Type.getType(String.class);
+
+    private static final String RETURN_OBJECT_FROM_OBJECT_STRING_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
+    private static final String RETURN_OBJECT_FROM_STRING_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
+    private static final String RETURN_OBJECT_FROM_STRING = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
+    private static final String RETURN_OBJECT_FROM_OBJECT_STRING = Type.getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, STRING_TYPE);
+    private static final String RETURN_VOID_FROM_OBJECT_STRING_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
+    private static final String RETURN_VOID_FROM_STRING_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE);
+    private static final String RETURN_META_CLASS_REGISTRY = Type.getMethodDescriptor(META_CLASS_REGISTRY_TYPE);
+    private static final String RETURN_META_CLASS_FROM_CLASS = Type.getMethodDescriptor(META_CLASS_TYPE, CLASS_TYPE);
+    private static final String RETURN_META_CLASS = Type.getMethodDescriptor(META_CLASS_TYPE);
+    private static final String RETURN_CLASS = Type.getMethodDescriptor(CLASS_TYPE);
+
+    private static final String META_CLASS_FIELD = "__meta_class__";
+
+    private final Set<String> classesToMixInGroovyObject;
+    private final Set<String> syntheticClasses;
+
     public MixInLegacyTypesClassLoader(ClassLoader parent, ClassPath classPath) {
         super(parent, classPath);
+        classesToMixInGroovyObject = readClassNames();
+        syntheticClasses = Collections.singleton("org.gradle.messaging.actor.ActorFactory");
+    }
+
+    private Set<String> readClassNames() {
+        Set<String> classNames = new HashSet<String>();
+        URL resource = getClass().getResource("converted-types.txt");
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(resource.openStream()));
+            try {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    classNames.add(line.trim());
+                }
+            } finally {
+                reader.close();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Could not load class names from '" + resource + "'.", e);
+        }
+        return classNames;
+    }
+
+    @Nullable
+    @Override
+    protected byte[] generateMissingClass(String name) {
+        if (!syntheticClasses.contains(name)) {
+            return null;
+        }
+        ClassWriter visitor = new ClassWriter(0);
+        visitor.visit(Opcodes.V1_7, Opcodes.ACC_PUBLIC, name.replace('.', '/'), null, OBJECT_TYPE.getInternalName(), null);
+        visitor.visitEnd();
+        return visitor.toByteArray();
     }
 
     @Override
     protected boolean shouldTransform(String className) {
-        return className.equals("org.gradle.api.plugins.JavaPluginConvention");
+        return classesToMixInGroovyObject.contains(className) || syntheticClasses.contains(className);
     }
 
     @Override
@@ -54,27 +118,6 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
     }
 
     private static class TransformingAdapter extends ClassVisitor {
-        static final Type GROOVY_OBJECT_TYPE = Type.getType(GroovyObject.class);
-        static final Type META_CLASS_REGISTRY_TYPE = Type.getType(MetaClassRegistry.class);
-        static final Type GROOVY_SYSTEM_TYPE = Type.getType(GroovySystem.class);
-        static final Type META_CLASS_TYPE = Type.getType(MetaClass.class);
-        static final Type OBJECT_TYPE = Type.getType(Object.class);
-        static final Type CLASS_TYPE = Type.getType(Class.class);
-        static final Type STRING_TYPE = Type.getType(String.class);
-
-        static final String RETURN_OBJECT_FROM_OBJECT_STRING_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
-        static final String RETURN_OBJECT_FROM_STRING_OBJECT = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
-        static final String RETURN_OBJECT_FROM_STRING = Type.getMethodDescriptor(OBJECT_TYPE, STRING_TYPE);
-        static final String RETURN_OBJECT_FROM_OBJECT_STRING = Type.getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, STRING_TYPE);
-        static final String RETURN_VOID_FROM_OBJECT_STRING_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, OBJECT_TYPE, STRING_TYPE, OBJECT_TYPE);
-        static final String RETURN_VOID_FROM_STRING_OBJECT = Type.getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, OBJECT_TYPE);
-        static final String RETURN_META_CLASS_REGISTRY = Type.getMethodDescriptor(META_CLASS_REGISTRY_TYPE);
-        static final String RETURN_META_CLASS_FROM_CLASS = Type.getMethodDescriptor(META_CLASS_TYPE, CLASS_TYPE);
-        static final String RETURN_META_CLASS = Type.getMethodDescriptor(META_CLASS_TYPE);
-        static final String RETURN_CLASS = Type.getMethodDescriptor(CLASS_TYPE);
-
-        static final String META_CLASS_FIELD = "__meta_class__";
-
         private String className;
 
         TransformingAdapter(ClassVisitor cv) {

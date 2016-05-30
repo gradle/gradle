@@ -88,6 +88,26 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         cl.package.name == "org.gradle.api.plugins"
     }
 
+    def "mixes in empty classes for old types that were removed"() {
+        expect:
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath())
+
+        def cl = loader.loadClass("org.gradle.messaging.actor.ActorFactory")
+        cl.classLoader.is(loader)
+        cl.protectionDomain.codeSource.location == null
+        cl.package.name == "org.gradle.messaging.actor"
+    }
+
+    def "fails for unknown class"() {
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath())
+
+        when:
+        loader.loadClass("org.gradle.Unknown")
+
+        then:
+        ClassNotFoundException e = thrown()
+    }
+
     ClassLoader getGroovyClassLoader() {
         def spec = new FilteringClassLoader.Spec()
         spec.allowPackage("groovy")

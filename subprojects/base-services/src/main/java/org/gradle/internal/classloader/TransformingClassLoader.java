@@ -19,6 +19,7 @@ package org.gradle.internal.classloader;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.Nullable;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.io.IOException;
@@ -45,23 +46,36 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
 
         String resourceName = name.replace('.', '/') + ".class";
         URL resource = findResource(resourceName);
-        if (resource == null) {
-            throw new ClassNotFoundException(name);
-        }
 
         try {
-            byte[] bytes = loadBytecode(resource);
-            bytes = transform(name, bytes);
+            byte[] bytes;
+            CodeSource codeSource;
+            if (resource != null) {
+                bytes = loadBytecode(resource);
+                bytes = transform(name, bytes);
+                URL codeBase = ClasspathUtil.getClasspathForResource(resource, resourceName).toURI().toURL();
+                codeSource = new CodeSource(codeBase, (Certificate[]) null);
+            } else {
+                bytes = generateMissingClass(name);
+                if (bytes == null) {
+                    throw new ClassNotFoundException(name);
+                }
+                codeSource = null;
+            }
             String packageName = StringUtils.substringBeforeLast(name, ".");
             Package p = getPackage(packageName);
             if (p == null) {
                 definePackage(packageName, null, null, null, null, null, null, null);
             }
-            URL codeBase = ClasspathUtil.getClasspathForResource(resource, resourceName).toURI().toURL();
-            return defineClass(name, bytes, 0, bytes.length, new CodeSource(codeBase, (Certificate[]) null));
+            return defineClass(name, bytes, 0, bytes.length, codeSource);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not load class '%s' from %s.", name, resource), e);
         }
+    }
+
+    @Nullable
+    protected byte[] generateMissingClass(String name) {
+        return null;
     }
 
     private byte[] loadBytecode(URL resource) throws IOException {
