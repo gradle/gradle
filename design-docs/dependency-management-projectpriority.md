@@ -34,17 +34,16 @@ want the current codebase to substitute it.
 
 # The change
 
-The proposed change will give a higher priority project dependencies, before version comparison even starts.
+The proposed change adds an option to enforce higher priority of project dependencies, before version comparison even starts.
 In other words prioritize by type first and by version second.
 
 To that extent a new class `ProjectDependencyForcingResolver` is introduced. It implements `ModuleConflictResolver`,
 and is chained in front of `LatestModuleConflictResolver` by `DefaultArtifactDependencyResolver`.
 
-There is also a new method `ResolutionStrategy.disableProjectPriority`, which reverts to the old behavior.
+There is also a new method `ResolutionStrategy.preferProjectModules`, which allows toggling between project priority and version-only
+conflict resolution.
 
 # Unit tests
 
-A change to `DependencySubstitutionRulesIntegrationTest` is made to account for the new behavior (that tests use case 2).
-
-A new test is added to `DependencyResolveRulesIntegrationTest` in order to test the various permutations of
-versions, forced dependencies and `disableProjectPriority` settings.
+`ProjectDependencyPreferenceIntegrationTest`, is added in order to test the various permutations of
+versions, forced dependencies and `preferProjectModules` settings.
