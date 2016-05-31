@@ -95,6 +95,6 @@ class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSp
     private ClassLoader loadOpenApi(GradleDistribution openApiVersion) {
         def classpath = openApiVersion.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-open-api.*\.jar/ }
         logger.info('Using Open API classpath {}', classpath)
-        new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath.collect { it.toURI() })
+        new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath)
     }
 }

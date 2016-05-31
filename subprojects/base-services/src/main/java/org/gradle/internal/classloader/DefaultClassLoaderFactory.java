@@ -15,21 +15,20 @@
  */
 package org.gradle.internal.classloader;
 
-import org.gradle.internal.Transformers;
+import com.google.common.collect.Lists;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceLocator;
-import org.gradle.util.CollectionUtils;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParserFactory;
+import java.io.File;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
-import java.util.Collection;
 import java.util.List;
 
 import static java.lang.ClassLoader.getSystemClassLoader;
@@ -43,16 +42,16 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     }
 
     @Override
-    public ClassLoader createIsolatedClassLoader(Iterable<URI> uris) {
-        return doCreateIsolatedClassLoader(CollectionUtils.collect(uris, Transformers.toURL()));
+    public ClassLoader createIsolatedClassLoader(Iterable<File> files) {
+        return createIsolatedClassLoader(new DefaultClassPath(files));
     }
 
     @Override
     public ClassLoader createIsolatedClassLoader(ClassPath classPath) {
-        return doCreateIsolatedClassLoader(classPath.getAsURLs());
+        return doCreateIsolatedClassLoader(classPath);
     }
 
-    private ClassLoader doCreateIsolatedClassLoader(Collection<URL> classpath) {
+    private ClassLoader doCreateIsolatedClassLoader(ClassPath classPath) {
         // This piece of ugliness copies the JAXP (ie XML API) provider, if any, from the system ClassLoader. Here's why:
         //
         // 1. When looking for a provider, JAXP looks for a service resource in the context ClassLoader, which is our isolated ClassLoader. If our classpath above does not contain a
@@ -67,15 +66,17 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         //
         // Note that in practise, this is only triggered when running in our tests
 
+        List<URL> urls = classPath.getAsURLs();
         if (needJaxpImpl()) {
             try {
-                classpath.add(ClasspathUtil.getClasspathForResource(getSystemClassLoader(), "META-INF/services/javax.xml.parsers.SAXParserFactory").toURI().toURL());
+                urls = Lists.newArrayList(urls);
+                urls.add(ClasspathUtil.getClasspathForResource(getSystemClassLoader(), "META-INF/services/javax.xml.parsers.SAXParserFactory").toURI().toURL());
             } catch (MalformedURLException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
-        return new VisitableURLClassLoader(getIsolatedSystemClassLoader(), classpath);
+        return new VisitableURLClassLoader(getIsolatedSystemClassLoader(), urls);
     }
 
     @Override

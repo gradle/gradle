@@ -85,7 +85,7 @@ class DefaultClassLoaderFactoryTest extends Specification {
     }
 
     def getClasspath() {
-        return [ClasspathUtil.getClasspathForClass(DefaultClassLoaderFactoryTestHelper)].collect { it.toURI() }
+        return [ClasspathUtil.getClasspathForClass(DefaultClassLoaderFactoryTestHelper)]
     }
 }
 

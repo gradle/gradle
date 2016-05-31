@@ -31,15 +31,15 @@ class ExternalToolingApiDistribution implements ToolingApiDistribution {
     GradleVersion getVersion() {
         version
     }
-    
+
     Collection<File> getClasspath() {
         classpath
     }
-    
+
     ClassLoader getClassLoader() {
-        return new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath*.toURI())
+        return new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath)
     }
-    
+
     String toString() {
         "Tooling API $version.version"
     }
