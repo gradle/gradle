@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.plugins
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.IgnoreIf
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -102,7 +102,7 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
         succeeds 'build'
     }
 
-    @IgnoreIf({ !JavaVersion.current().java7Compatible })
+    @Requires(TestPrecondition.JDK7_OR_LATER)
     def 'nebula recommender plugin'() {
         when:
         buildScript """
@@ -130,7 +130,7 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
         succeeds 'build'
     }
 
-    @IgnoreIf({ !JavaVersion.current().java7Compatible })
+    @Requires(TestPrecondition.JDK7_OR_LATER)
     def 'Nebula plugin plugin'() {
         when:
         buildFile << """
