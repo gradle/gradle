@@ -51,23 +51,23 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
         validateTestName(target);
 
         previous = new ArrayList<GradleDistribution>();
-        final ReleasedVersionDistributions previousVersions = new ReleasedVersionDistributions();
+        final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions();
         if (versionStr.equals("latest")) {
-            previous.add(previousVersions.getMostRecentFinalRelease());
+            previous.add(releasedVersions.getMostRecentFinalRelease());
             implicitVersion = true;
         } else if (versionStr.equals("all")) {
             implicitVersion = true;
-            List<GradleDistribution> allSupported = previousVersions.getSupported();
-            for (GradleDistribution previous : allSupported) {
-                if (!previous.worksWith(Jvm.current())) {
-                    add(new IgnoredVersion(previous, "does not work with current JVM"));
+            List<GradleDistribution> previousVersionsToTest = choosePreviousVersionsToTest(releasedVersions);
+            for (GradleDistribution previousVersion : previousVersionsToTest) {
+                if (!previousVersion.worksWith(Jvm.current())) {
+                    add(new IgnoredVersion(previousVersion, "does not work with current JVM"));
                     continue;
                 }
-                if (!previous.worksWith(OperatingSystem.current())) {
-                    add(new IgnoredVersion(previous, "does not work with current OS"));
+                if (!previousVersion.worksWith(OperatingSystem.current())) {
+                    add(new IgnoredVersion(previousVersion, "does not work with current OS"));
                     continue;
                 }
-                this.previous.add(previous);
+                this.previous.add(previousVersion);
             }
         } else if (versionStr.matches("^\\d.*$")) {
             implicitVersion = false;
@@ -80,7 +80,7 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
 
             inject(previous, gradleVersions, new Action<InjectionStep<List<GradleDistribution>, GradleVersion>>() {
                 public void execute(InjectionStep<List<GradleDistribution>, GradleVersion> step) {
-                    GradleDistribution distribution = previousVersions.getDistribution(step.getItem());
+                    GradleDistribution distribution = releasedVersions.getDistribution(step.getItem());
                     if (distribution == null) {
                         throw new RuntimeException("Gradle version '" + step.getItem().getVersion() + "' is not a valid testable released version");
                     }
@@ -91,6 +91,8 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
             throw new RuntimeException("Invalid value for " + VERSIONS_SYSPROP_NAME + " system property: " + versionStr + "(valid values: 'all', 'latest' or comma separated list of versions)");
         }
     }
+
+    protected abstract List<GradleDistribution> choosePreviousVersionsToTest(ReleasedVersionDistributions previousVersions);
 
     /**
      * Makes sure the test adhers to the naming convention.
