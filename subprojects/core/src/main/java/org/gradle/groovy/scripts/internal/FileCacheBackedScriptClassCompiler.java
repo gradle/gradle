@@ -26,7 +26,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
-import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
@@ -34,6 +33,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
+import org.gradle.internal.classloader.HashedClassLoader;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
@@ -174,8 +174,8 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                 hasher.putBytes(APP);
                 hasher.putBytes(JAVA_VERSION);
                 return true;
-            } else if (cl instanceof DefaultClassLoaderCache.HashedClassLoader) {
-                hasher.putBytes(((DefaultClassLoaderCache.HashedClassLoader) cl).getClassLoaderHash().asBytes());
+            } else if (cl instanceof HashedClassLoader) {
+                hasher.putBytes(((HashedClassLoader) cl).getClassLoaderHash().asBytes());
                 return true;
             }
             hasher.putBytes(UNKNOWN);

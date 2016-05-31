@@ -21,7 +21,6 @@ import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
 import org.gradle.api.internal.changedetection.state.FileSnapshot
 import org.gradle.api.internal.initialization.ClassLoaderIds
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
-import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.CacheValidator
@@ -30,6 +29,7 @@ import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.Transformer
 import org.gradle.initialization.ClassLoaderRegistry
+import org.gradle.internal.classloader.HashedClassLoader
 import org.gradle.internal.hash.HashValue
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -192,7 +192,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         1 * logger.completed()
     }
 
-    private static class MockClassLoader extends ClassLoader implements DefaultClassLoaderCache.HashedClassLoader {
+    private static class MockClassLoader extends ClassLoader implements HashedClassLoader {
         @Override
         HashCode getClassLoaderHash() {
             HashCode.fromLong(9999);
