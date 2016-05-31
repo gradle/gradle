@@ -64,6 +64,7 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
+import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
@@ -74,6 +75,7 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.ClassLoaderHasher;
 import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
@@ -200,6 +202,10 @@ public class GlobalScopeServices {
         }
 
         return new DefaultClassLoaderRegistry(classPathRegistry, classLoaderFactory);
+    }
+
+    ClassLoaderHasher createClassLoaderHasher(ClassLoaderRegistry registry) {
+        return new RegistryAwareClassLoaderHasher(registry);
     }
 
     CachingServiceLocator createPluginsServiceLocator(ClassLoaderRegistry registry) {

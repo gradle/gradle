@@ -15,10 +15,6 @@
  */
 package org.gradle.groovy.scripts.internal;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
@@ -30,16 +26,11 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.CachingClassLoader;
-import org.gradle.internal.classloader.ClassLoaderVisitor;
-import org.gradle.internal.classloader.HashedClassLoader;
-import org.gradle.internal.classloader.MultiParentClassLoader;
+import org.gradle.internal.classloader.ClassLoaderHasher;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
-import org.gradle.util.GradleVersion;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -65,18 +56,18 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final CacheValidator validator;
     private final FileSnapshotter snapshotter;
     private final ClassLoaderCache classLoaderCache;
-    private final ClassLoaderRegistry classLoaderRegistry;
+    private final ClassLoaderHasher classLoaderHasher;
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler,
                                               ProgressLoggerFactory progressLoggerFactory, FileSnapshotter snapshotter, ClassLoaderCache classLoaderCache,
-                                              ClassLoaderRegistry classLoaderRegistry) {
+                                              ClassLoaderHasher classLoaderHasher) {
         this.cacheRepository = cacheRepository;
         this.validator = validator;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
         this.snapshotter = snapshotter;
         this.classLoaderCache = classLoaderCache;
-        this.classLoaderRegistry = classLoaderRegistry;
+        this.classLoaderHasher = classLoaderHasher;
     }
 
     @Override
@@ -93,7 +84,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         final String sourceHash = hashFor(source);
         final String dslId = operation.getId();
-        final String classpathHash = dslId + getClassLoaderHash(classLoader);
+        final String classpathHash = dslId + classLoaderHasher.getHash(classLoader);
         final RemappingScriptSource remapped = new RemappingScriptSource(source);
 
         // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice
@@ -115,90 +106,6 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         File remappedMetadataDir = metadataDir(remappedClassesCache);
 
         return scriptCompilationHandler.loadFromDir(source, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
-    }
-
-    private HashCode getClassLoaderHash(ClassLoader cl) {
-        ClassloaderHasher hasher = new ClassloaderHasher(classLoaderRegistry);
-        hasher.visit(cl);
-        return hasher.hasher.hash();
-    }
-
-    private static class ClassloaderHasher extends ClassLoaderVisitor {
-        private static final byte[] JAVA_VERSION = calculateJavaVmVersion().getBytes(Charsets.UTF_8);
-        private static final byte[] GRADLE_VERSION = GradleVersion.current().getVersion().getBytes(Charsets.UTF_8);
-        private static final byte[] RUNTIME = "runtime".getBytes(Charsets.UTF_8);
-        private static final byte[] API = "api".getBytes(Charsets.UTF_8);
-        private static final byte[] CORE_API = "core-api".getBytes(Charsets.UTF_8);
-        private static final byte[] PLUGINS = "plugins".getBytes(Charsets.UTF_8);
-        private static final byte[] SYSTEM = "system".getBytes(Charsets.UTF_8);
-        private static final byte[] APP = "app".getBytes(Charsets.UTF_8);
-        private static final byte[] UNKNOWN = "unknown".getBytes(Charsets.UTF_8);
-
-        private final ClassLoaderRegistry classLoaderRegistry;
-
-        private final Hasher hasher = Hashing.md5().newHasher();
-
-        public ClassloaderHasher(ClassLoaderRegistry classLoaderRegistry) {
-            this.classLoaderRegistry = classLoaderRegistry;
-        }
-
-        private static String calculateJavaVmVersion() {
-            return System.getProperty("java.vm.name") + " " + System.getProperty("java.vm.vendor") + " " + System.getProperty("java.vm.vendor");
-        }
-
-        private boolean addToHash(ClassLoader cl) {
-            if (cl instanceof CachingClassLoader || cl instanceof MultiParentClassLoader) {
-                return true;
-            }
-            if (classLoaderRegistry.getRuntimeClassLoader() == cl) {
-                hasher.putBytes(RUNTIME);
-                hasher.putBytes(GRADLE_VERSION);
-                return true;
-            }
-            if (classLoaderRegistry.getGradleApiClassLoader() == cl) {
-                hasher.putBytes(API);
-                hasher.putBytes(GRADLE_VERSION);
-                return true;
-            }
-            if (classLoaderRegistry.getGradleCoreApiClassLoader() == cl) {
-                hasher.putBytes(CORE_API);
-                hasher.putBytes(GRADLE_VERSION);
-                return true;
-            } else
-            if (classLoaderRegistry.getPluginsClassLoader() == cl) {
-                hasher.putBytes(PLUGINS);
-                hasher.putBytes(GRADLE_VERSION);
-                return true;
-            }
-            ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
-            if (systemClassLoader == cl) {
-                hasher.putBytes(SYSTEM);
-                hasher.putBytes(JAVA_VERSION);
-                return true;
-            } else if (systemClassLoader != null && systemClassLoader.getParent() == cl) {
-                hasher.putBytes(APP);
-                hasher.putBytes(JAVA_VERSION);
-                return true;
-            } else if (cl instanceof HashedClassLoader) {
-                hasher.putBytes(((HashedClassLoader) cl).getClassLoaderHash().asBytes());
-                return true;
-            }
-            hasher.putBytes(UNKNOWN);
-            return false;
-        }
-
-        @Override
-        public void visit(ClassLoader classLoader) {
-            ClassLoader end = ClassLoader.getSystemClassLoader();
-            if (classLoader != null && classLoader != end) {
-                addToHash(classLoader);
-            }
-            super.visit(classLoader);
-        }
-
-        public HashCode getHash() {
-            return hasher.hash();
-        }
     }
 
     private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation) {
