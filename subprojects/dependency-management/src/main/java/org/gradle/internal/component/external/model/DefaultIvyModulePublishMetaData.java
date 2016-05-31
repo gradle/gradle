@@ -87,8 +87,7 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
         }
         return dependency;
     }
-    // TODO:DAZ Should be able to push artifacts into MutableModuleDescriptorState, rather than keeping a separate set
-    // Would need to change the copy constructor so that artifacts aren't retained.
+
     @Override
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {

@@ -48,7 +48,6 @@ public class ToolingModelServices implements PluginServiceRegistry {
 
     private static class BuildScopeToolingServices {
 
-        // TODO:DAZ The registry should be created in core, with the builders being registered here.
         protected ToolingModelBuilderRegistry createBuildScopedToolingModelBuilders(ProjectTaskLister taskLister, ProjectPublicationRegistry projectPublicationRegistry, ServiceRegistry services) {
             DefaultToolingModelBuilderRegistry registry = new DefaultToolingModelBuilderRegistry();
             GradleProjectBuilder gradleProjectBuilder  = new GradleProjectBuilder();
