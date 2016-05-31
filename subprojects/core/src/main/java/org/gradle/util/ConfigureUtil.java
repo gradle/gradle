@@ -17,6 +17,7 @@
 package org.gradle.util;
 
 import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.GeneratedClosure;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.ClosureBackedAction;
@@ -83,13 +84,13 @@ public class ConfigureUtil {
 
     /**
      * <p>Configures {@code target} with {@code configureClosure}, via the {@link Configurable} interface if necessary.</p>
-     * 
+     *
      * <p>If {@code target} does not implement {@link Configurable} interface, it is set as the delegate of a clone of
      * {@code configureClosure} with a resolve strategy of {@code DELEGATE_FIRST}.</p>
-     * 
+     *
      * <p>If {@code target} does implement the {@link Configurable} interface, the {@code configureClosure} will be passed to
      * {@code delegate}'s {@link Configurable#configure(Closure)} method.</p>
-     * 
+     *
      * @param configureClosure The configuration closure
      * @param target The object to be configured
      * @return The delegate param
@@ -150,6 +151,10 @@ public class ConfigureUtil {
     }
 
     private static <T> Action<T> configureActionFor(Closure configureClosure, T target, ConfigureDelegate closureDelegate) {
+        if (!(configureClosure instanceof GeneratedClosure)) {
+            return new ClosureBackedAction<T>(configureClosure, Closure.DELEGATE_FIRST, false);
+        }
+
         // Hackery to make closure execution faster, by short-circuiting the expensive property and method lookup on Closure
         Closure withNewOwner = configureClosure.rehydrate(target, closureDelegate, configureClosure.getThisObject());
         return new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false);

@@ -137,6 +137,17 @@ apply plugin: MyPlugin
         outputContains("from static method: value")
     }
 
+    def "can use curried closure to configure item"() {
+        buildFile << """
+def cl = { String description, Task task -> task.description = description }
+tasks.help cl.curry("this is the description")
+assert tasks.help.description == "this is the description"
+"""
+
+        expect:
+        succeeds()
+    }
+
     def "can invoke method from configure closure outer scope"() {
         buildFile << """
 ext.m = { p -> "[\$p]" }
