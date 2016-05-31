@@ -16,16 +16,23 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache {
@@ -75,13 +82,12 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         if (cachedLoader == null) {
             ClassLoader classLoader;
             CachedClassLoader parentCachedLoader = null;
-            long snapshotHash = spec.classPathSnapshot.getStrongHash().asLong();
-            final long hashCode = 31 * snapshotHash + (spec.filterSpec != null ? spec.filterSpec.hashCode() : 0);
+            HashCode classPathHash = spec.classPathSnapshot.getStrongHash();
             if (spec.isFiltered()) {
                 parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
-                classLoader = new HashedFilteringClassLoader(parentCachedLoader, spec, hashCode);
+                classLoader = new HashedFilteringClassLoader(parentCachedLoader.classLoader, spec);
             } else {
-                classLoader = new HashedVisitableURLClassLoader(spec, classPath, hashCode);
+                classLoader = new HashedVisitableURLClassLoader(spec.parent, classPath, classPathHash);
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);
@@ -98,7 +104,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     }
 
     public interface HashedClassLoader {
-        long getClassLoaderHash();
+        HashCode getClassLoaderHash();
     }
 
     private static class ClassLoaderSpec {
@@ -139,29 +145,50 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     }
 
     private static class HashedFilteringClassLoader extends FilteringClassLoader implements HashedClassLoader {
-        private final long hashCode;
+        private final HashCode hashCode;
 
-        public HashedFilteringClassLoader(CachedClassLoader parentCachedLoader, ClassLoaderSpec spec, long hashCode) {
-            super(parentCachedLoader.classLoader, spec.filterSpec);
-            this.hashCode = hashCode;
+        public HashedFilteringClassLoader(ClassLoader parent, ClassLoaderSpec spec) {
+            super(parent, spec.filterSpec);
+            this.hashCode = calculateHash(spec.filterSpec);
         }
 
         @Override
-        public long getClassLoaderHash() {
+        public HashCode getClassLoaderHash() {
             return hashCode;
+        }
+
+        private static HashCode calculateHash(Spec spec) {
+            Hasher hasher = Hashing.md5().newHasher();
+            addToHash(hasher, spec.getClassNames());
+            addToHash(hasher, spec.getPackageNames());
+            addToHash(hasher, spec.getPackagePrefixes());
+            addToHash(hasher, spec.getResourcePrefixes());
+            addToHash(hasher, spec.getResourceNames());
+            addToHash(hasher, spec.getDisallowedClassNames());
+            addToHash(hasher, spec.getDisallowedPackagePrefixes());
+            return hasher.hash();
+        }
+
+        private static void addToHash(Hasher hasher, Iterable<String> items) {
+            List<String> sortedItems = Lists.newArrayList(items);
+            Collections.sort(sortedItems);
+            for (String item : sortedItems) {
+                hasher.putInt(0);
+                hasher.putString(item, Charsets.UTF_8);
+            }
         }
     }
 
     private static class HashedVisitableURLClassLoader extends VisitableURLClassLoader implements HashedClassLoader {
-        private final long hashCode;
+        private final HashCode hashCode;
 
-        public HashedVisitableURLClassLoader(ClassLoaderSpec spec, ClassPath classPath, long hashCode) {
-            super(spec.parent, classPath);
+        public HashedVisitableURLClassLoader(ClassLoader parent, ClassPath classPath, HashCode hashCode) {
+            super(parent, classPath);
             this.hashCode = hashCode;
         }
 
         @Override
-        public long getClassLoaderHash() {
+        public HashCode getClassLoaderHash() {
             return hashCode;
         }
     }

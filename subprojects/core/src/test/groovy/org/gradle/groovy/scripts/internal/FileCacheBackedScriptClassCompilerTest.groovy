@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.scripts.internal
 
+import com.google.common.hash.HashCode
 import org.gradle.api.Action
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
 import org.gradle.api.internal.changedetection.state.FileSnapshot
@@ -30,9 +31,9 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.Transformer
 import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.internal.hash.HashValue
-import org.gradle.internal.resource.TextResource
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.resource.TextResource
 import spock.lang.Specification
 
 class FileCacheBackedScriptClassCompilerTest extends Specification {
@@ -85,7 +86,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         then:
         result == Script
         1 * snapshotter.snapshot(resource) >> Stub(FileSnapshot) { getHash() >> new HashValue("123") }
-        1 * cacheRepository.cache("scripts-remapped/ScriptClassName/83/TransformerId309980") >> localCacheBuilder
+        1 * cacheRepository.cache({ it =~ "scripts-remapped/ScriptClassName/\\p{XDigit}+/TransformerId\\p{XDigit}+" }) >> localCacheBuilder
         1 * localCacheBuilder.withInitializer(!null) >> { args ->
             initializer = args[0]
             localCacheBuilder
@@ -97,7 +98,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
             localCache
         }
 
-        1 * cacheRepository.cache('scripts/83/TransformerId/TransformerId309980') >> globalCacheBuilder
+        1 * cacheRepository.cache({ it =~ "scripts/\\p{XDigit}+/TransformerId/TransformerId\\p{XDigit}+" }) >> globalCacheBuilder
         1 * globalCacheBuilder.withDisplayName(!null) >> globalCacheBuilder
         1 * globalCacheBuilder.withInitializer(!null) >> globalCacheBuilder
         1 * globalCacheBuilder.withValidator(!null) >> globalCacheBuilder
@@ -110,7 +111,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     def "passes CacheValidator to cache builders"() {
         setup:
         snapshotter.snapshot(resource) >> Stub(FileSnapshot) { getHash() >> new HashValue("123") }
-        cacheRepository.cache("scripts-remapped/ScriptClassName/83/TransformerId309980") >> localCacheBuilder
+        cacheRepository.cache({ it =~ "scripts-remapped/ScriptClassName/\\p{XDigit}+/TransformerId\\p{XDigit}+" }) >> localCacheBuilder
         localCacheBuilder.withProperties(!null) >> localCacheBuilder
         localCacheBuilder.withInitializer(!null) >> localCacheBuilder
         localCacheBuilder.withDisplayName(!null) >> localCacheBuilder
@@ -137,7 +138,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
         then:
         result == Script
         1 * snapshotter.snapshot(resource) >> Stub(FileSnapshot) { getHash() >> new HashValue("123") }
-        1 * cacheRepository.cache('scripts-remapped/ScriptClassName/83/TransformerId309980') >> localCacheBuilder
+        1 * cacheRepository.cache({ it =~ "scripts-remapped/ScriptClassName/\\p{XDigit}+/TransformerId\\p{XDigit}+" }) >> localCacheBuilder
         1 * localCacheBuilder.withInitializer(!null) >> { args ->
             initializer = args[0]
             localCacheBuilder
@@ -149,7 +150,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
             localCache
         }
 
-        1 * cacheRepository.cache('scripts/83/TransformerId/TransformerId309980') >> globalCacheBuilder
+        1 * cacheRepository.cache({ it =~ "scripts/\\p{XDigit}+/TransformerId/TransformerId\\p{XDigit}+" }) >> globalCacheBuilder
         1 * globalCacheBuilder.withDisplayName(!null) >> globalCacheBuilder
         1 * globalCacheBuilder.withInitializer(!null) >> { args ->
             globalInitializer = args[0]
@@ -193,8 +194,8 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
     private static class MockClassLoader extends ClassLoader implements DefaultClassLoaderCache.HashedClassLoader {
         @Override
-        long getClassLoaderHash() {
-            9999
+        HashCode getClassLoaderHash() {
+            HashCode.fromLong(9999);
         }
     }
 }

@@ -15,6 +15,10 @@
  */
 package org.gradle.groovy.scripts.internal;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
@@ -33,7 +37,16 @@ import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
-import org.objectweb.asm.*;
+import org.gradle.util.GradleVersion;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 import java.io.Closeable;
 import java.io.File;
@@ -102,55 +115,85 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         return scriptCompilationHandler.loadFromDir(source, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
     }
 
-    private long getClassLoaderHash(ClassLoader cl) {
+    private HashCode getClassLoaderHash(ClassLoader cl) {
         ClassloaderHasher hasher = new ClassloaderHasher(classLoaderRegistry);
         hasher.visit(cl);
-        return hasher.hash;
+        return hasher.hasher.hash();
     }
 
     private static class ClassloaderHasher extends ClassLoaderVisitor {
+        private static final byte[] JAVA_VERSION = calculateJavaVmVersion().getBytes(Charsets.UTF_8);
+        private static final byte[] GRADLE_VERSION = GradleVersion.current().getVersion().getBytes(Charsets.UTF_8);
+        private static final byte[] RUNTIME = "runtime".getBytes(Charsets.UTF_8);
+        private static final byte[] API = "api".getBytes(Charsets.UTF_8);
+        private static final byte[] CORE_API = "core-api".getBytes(Charsets.UTF_8);
+        private static final byte[] PLUGINS = "plugins".getBytes(Charsets.UTF_8);
+        private static final byte[] SYSTEM = "system".getBytes(Charsets.UTF_8);
+        private static final byte[] APP = "app".getBytes(Charsets.UTF_8);
+        private static final byte[] UNKNOWN = "unknown".getBytes(Charsets.UTF_8);
+
         private final ClassLoaderRegistry classLoaderRegistry;
 
-        private long hash;
+        private final Hasher hasher = Hashing.md5().newHasher();
 
-        private ClassloaderHasher(ClassLoaderRegistry classLoaderRegistry) {
+        public ClassloaderHasher(ClassLoaderRegistry classLoaderRegistry) {
             this.classLoaderRegistry = classLoaderRegistry;
         }
 
-        private long hashFor(ClassLoader cl) {
+        private static String calculateJavaVmVersion() {
+            return System.getProperty("java.vm.name") + " " + System.getProperty("java.vm.vendor") + " " + System.getProperty("java.vm.vendor");
+        }
+
+        private boolean addToHash(ClassLoader cl) {
             if (classLoaderRegistry.getRuntimeClassLoader() == cl) {
-                return 1;
+                hasher.putBytes(RUNTIME);
+                hasher.putBytes(GRADLE_VERSION);
+                return true;
             }
             if (classLoaderRegistry.getGradleApiClassLoader() == cl) {
-                return 2;
+                hasher.putBytes(API);
+                hasher.putBytes(GRADLE_VERSION);
+                return true;
             }
             if (classLoaderRegistry.getGradleCoreApiClassLoader() == cl) {
-                return 3;
-            }
+                hasher.putBytes(CORE_API);
+                hasher.putBytes(GRADLE_VERSION);
+                return true;
+            } else
             if (classLoaderRegistry.getPluginsClassLoader() == cl) {
-                return 5;
+                hasher.putBytes(PLUGINS);
+                hasher.putBytes(GRADLE_VERSION);
+                return true;
             }
             ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
             if (systemClassLoader == cl) {
-                return 7;
+                hasher.putBytes(SYSTEM);
+                hasher.putBytes(JAVA_VERSION);
+                return true;
+            } else if (systemClassLoader != null && systemClassLoader.getParent() == cl) {
+                hasher.putBytes(APP);
+                hasher.putBytes(JAVA_VERSION);
+                return true;
+            } else if (cl instanceof DefaultClassLoaderCache.HashedClassLoader) {
+                hasher.putBytes(((DefaultClassLoaderCache.HashedClassLoader) cl).getClassLoaderHash().asBytes());
+                return true;
             }
-            if (systemClassLoader != null && systemClassLoader.getParent() == cl) {
-                return 11;
-            }
-            if (cl instanceof DefaultClassLoaderCache.HashedClassLoader) {
-                return ((DefaultClassLoaderCache.HashedClassLoader) cl).getClassLoaderHash();
-            }
-            return 0;
+            hasher.putBytes(UNKNOWN);
+            return false;
         }
 
+        @Override
         public void visit(ClassLoader classLoader) {
             ClassLoader end = ClassLoader.getSystemClassLoader();
             if (classLoader != null && classLoader != end) {
-                hash = 31 * hash + hashFor(classLoader);
+                addToHash(classLoader);
             }
             super.visit(classLoader);
         }
 
+        public HashCode getHash() {
+            return hasher.hash();
+        }
     }
 
     private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation) {
