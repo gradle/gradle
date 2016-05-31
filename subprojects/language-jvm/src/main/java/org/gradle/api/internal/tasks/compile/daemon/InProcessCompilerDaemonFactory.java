@@ -59,13 +59,13 @@ public class InProcessCompilerDaemonFactory implements CompilerDaemonFactory {
                 for (String packageName : forkOptions.getSharedPackages()) {
                     filteredGroovySpec.allowPackage(packageName);
                 }
-                FilteringClassLoader filteredGroovy = classLoaderFactory.createFilteringClassLoader(groovyClassLoader, filteredGroovySpec);
+                ClassLoader filteredGroovy = classLoaderFactory.createFilteringClassLoader(groovyClassLoader, filteredGroovySpec);
 
                 FilteringClassLoader.Spec loggingSpec = new FilteringClassLoader.Spec();
                 loggingSpec.allowPackage("org.slf4j");
                 loggingSpec.allowClass(Logger.class);
                 loggingSpec.allowClass(LogLevel.class);
-                FilteringClassLoader loggingClassLoader = classLoaderFactory.createFilteringClassLoader(compiler.getClass().getClassLoader(), loggingSpec);
+                ClassLoader loggingClassLoader = classLoaderFactory.createFilteringClassLoader(compiler.getClass().getClassLoader(), loggingSpec);
 
                 ClassLoader groovyAndLoggingClassLoader = new CachingClassLoader(new MultiParentClassLoader(loggingClassLoader, filteredGroovy));
 

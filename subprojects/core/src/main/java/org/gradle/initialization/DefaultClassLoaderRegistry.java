@@ -52,7 +52,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         rootSpec.allowPackage("org.apache.commons.logging");
         rootSpec.allowPackage("org.apache.log4j");
         rootSpec.allowPackage("javax.inject");
-        FilteringClassLoader rootClassLoader = classLoaderFactory.createFilteringClassLoader(classLoader, rootSpec);
+        ClassLoader rootClassLoader = classLoaderFactory.createFilteringClassLoader(classLoader, rootSpec);
         return new CachingClassLoader(rootClassLoader);
     }
 

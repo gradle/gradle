@@ -80,7 +80,7 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     }
 
     @Override
-    public FilteringClassLoader createFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
+    public ClassLoader createFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
         // See the comment for {@link #createIsolatedClassLoader} above
         FilteringClassLoader.Spec classLoaderSpec = new FilteringClassLoader.Spec(spec);
         if (needJaxpImpl()) {
