@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
 
 class ToolingApiUnsupportedClientJvmCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
@@ -72,6 +73,7 @@ public class TestClient {
         targetDist.executer(temporaryFolder).inDirectory(projectDir).withTasks("installDist").requireGradleDistribution().run()
     }
 
+    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })
     @TargetGradleVersion("current")
     @ToolingApiVersion("current")
     def "cannot use tooling API from Java 6 or earlier"() {
