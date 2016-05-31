@@ -18,7 +18,6 @@ package org.gradle.internal.classloader;
 import com.google.common.collect.Lists;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceLocator;
@@ -26,7 +25,6 @@ import org.gradle.internal.service.ServiceLocator;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParserFactory;
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -39,11 +37,6 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     @Override
     public ClassLoader getIsolatedSystemClassLoader() {
         return getSystemClassLoader().getParent();
-    }
-
-    @Override
-    public ClassLoader createIsolatedClassLoader(Iterable<File> files) {
-        return createIsolatedClassLoader(new DefaultClassPath(files));
     }
 
     @Override

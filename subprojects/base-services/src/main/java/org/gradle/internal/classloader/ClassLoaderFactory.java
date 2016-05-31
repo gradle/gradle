@@ -17,7 +17,6 @@ package org.gradle.internal.classloader;
 
 import org.gradle.internal.classpath.ClassPath;
 
-import java.io.File;
 import java.util.List;
 
 public interface ClassLoaderFactory {
@@ -30,11 +29,6 @@ public interface ClassLoaderFactory {
      * Creates a ClassLoader implementation which has only the classes from the specified URIs and the Java API visible.
      */
     ClassLoader createIsolatedClassLoader(ClassPath classPath);
-
-    /**
-     * Creates a ClassLoader implementation which has only the classes from the specified files and directories, and the Java API visible.
-     */
-    ClassLoader createIsolatedClassLoader(Iterable<File> files);
 
     /**
      * Creates a ClassLoader implementation which has, by default, only the classes from the Java API visible, but which can allow access to selected classes from the given parent ClassLoader.
