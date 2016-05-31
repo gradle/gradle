@@ -23,7 +23,6 @@ import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classloader.MultiParentClassLoader
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
 import org.gradle.testing.internal.util.RetryRule
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.Requires
@@ -69,7 +68,6 @@ trait ToolingApiClasspathProvider {
         sharedSpec.allowClass(TestPrecondition)
         sharedSpec.allowClass(TargetGradleVersion)
         sharedSpec.allowClass(ToolingApiVersion)
-        sharedSpec.allowClass(DaemonUsageSuggestingBuildActionExecuter)
         sharedSpec.allowClass(TeeOutputStream)
         sharedSpec.allowClass(RetryRule)
         classpathConfigurer.execute(sharedSpec)

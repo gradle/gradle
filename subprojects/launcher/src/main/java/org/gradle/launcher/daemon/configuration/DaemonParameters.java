@@ -45,7 +45,7 @@ public class DaemonParameters {
 
     private int periodicCheckInterval = DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS;
     private final DaemonJvmOptions jvmOptions = new DaemonJvmOptions(new IdentityFileResolver());
-    private DaemonUsage daemonUsage = DaemonUsage.IMPLICITLY_DISABLED;
+    private boolean enabled = true;
     private boolean hasJvmArgs;
     private boolean foreground;
     private boolean stop;
@@ -66,9 +66,12 @@ public class DaemonParameters {
         return interactive;
     }
 
-    public DaemonParameters setEnabled(boolean enabled) {
-        daemonUsage = enabled ? DaemonUsage.EXPLICITLY_ENABLED : DaemonUsage.EXPLICITLY_DISABLED;
-        return this;
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     public File getBaseDir() {
@@ -154,10 +157,6 @@ public class DaemonParameters {
 
     public boolean getDebug() {
         return jvmOptions.getDebug();
-    }
-
-    public DaemonUsage getDaemonUsage() {
-        return daemonUsage;
     }
 
     public boolean isForeground() {

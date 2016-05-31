@@ -40,7 +40,6 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
-import org.gradle.launcher.daemon.configuration.DaemonUsage;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
@@ -94,7 +93,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
 
         final List<Object> results = Lists.newArrayList();
         for (GradleParticipantBuild participant : compositeParameters.getBuilds()) {
-            DefaultBuildActionParameters actionParameters = new DefaultBuildActionParameters(Collections.EMPTY_MAP, Collections.<String, String>emptyMap(), participant.getProjectDir(), LogLevel.INFO, DaemonUsage.EXPLICITLY_DISABLED, false, true, ClassPath.EMPTY);
+            DefaultBuildActionParameters actionParameters = new DefaultBuildActionParameters(Collections.EMPTY_MAP, Collections.<String, String>emptyMap(), participant.getProjectDir(), LogLevel.INFO, false, false, true, ClassPath.EMPTY);
 
             StartParameter startParameter = modelAction.getStartParameter().newInstance();
             startParameter.setProjectDir(participant.getProjectDir());

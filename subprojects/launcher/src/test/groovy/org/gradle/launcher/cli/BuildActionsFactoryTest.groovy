@@ -22,6 +22,9 @@ import org.gradle.initialization.DefaultCommandLineConverter
 import org.gradle.initialization.LayoutCommandLineConverter
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.invocation.BuildActionRunner
+import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
+import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.PluginServiceRegistry
 import org.gradle.launcher.cli.converter.DaemonCommandLineConverter
@@ -32,10 +35,7 @@ import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
-import org.gradle.launcher.exec.DaemonUsageSuggestingBuildActionExecuter
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.internal.logging.text.StyledTextOutputFactory
-import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.launcher.exec.ContinuousBuildActionExecuter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
@@ -81,20 +81,12 @@ class BuildActionsFactoryTest extends Specification {
         action.startParameter.maxWorkerCount == 5
     }
 
-    def "executes build"() {
+    def "by default daemon is used"() {
         when:
         def action = convert('args')
 
         then:
-        isInProcess(action)
-    }
-
-    def "by default daemon is not used"() {
-        when:
-        def action = convert('args')
-
-        then:
-        isInProcess action
+        isDaemon action
     }
 
     def "daemon is used when command line option is used"() {
@@ -136,7 +128,7 @@ class BuildActionsFactoryTest extends Specification {
         propertiesToDaemonParametersConverter.convert(_, _) >> { Map p, DaemonParameters params -> params.jvm = jvm }
 
         when:
-        def action = convert()
+        def action = convert('--no-daemon')
 
         then:
         isSingleUseDaemon action
@@ -156,7 +148,7 @@ class BuildActionsFactoryTest extends Specification {
 
     void isInProcess(def action) {
         assert action instanceof RunBuildAction
-        assert action.executer instanceof DaemonUsageSuggestingBuildActionExecuter
+        assert action.executer instanceof ContinuousBuildActionExecuter
     }
 
     void isSingleUseDaemon(def action) {

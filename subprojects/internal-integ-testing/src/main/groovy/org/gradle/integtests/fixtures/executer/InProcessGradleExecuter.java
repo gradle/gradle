@@ -50,7 +50,6 @@ import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.cli.ParametersConverter;
-import org.gradle.launcher.daemon.configuration.DaemonUsage;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
@@ -263,7 +262,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                 System.getenv(),
                 SystemProperties.getInstance().getCurrentDir(),
                 startParameter.getLogLevel(),
-                DaemonUsage.EXPLICITLY_DISABLED,
+                false,
                 startParameter.isContinuous(),
                 interactive,
                 ClassPath.EMPTY
