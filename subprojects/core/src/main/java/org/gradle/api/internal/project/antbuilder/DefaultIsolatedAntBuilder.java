@@ -75,6 +75,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         loggingLoader.allowPackage("org.slf4j");
         loggingLoader.allowPackage("org.apache.commons.logging");
         loggingLoader.allowPackage("org.apache.log4j");
+        loggingLoader.allowPackage("org.fusesource.jansi");
         loggingLoader.allowClass(Logger.class);
         loggingLoader.allowClass(LogLevel.class);
 
