@@ -110,8 +110,7 @@ class KotlinScriptPluginFactoryTest {
         })
 
     private fun zipTo(zipFile: File, baseDir: File) {
-        val zos = ZipOutputStream(zipFile.outputStream())
-        try {
+        ZipOutputStream(zipFile.outputStream()).use { zos ->
             baseDir.walkTopDown().filter { it.isFile }.forEach {
                 val path = it.relativeTo(baseDir).path
                 val bytes = it.readBytes()
@@ -119,8 +118,6 @@ class KotlinScriptPluginFactoryTest {
                 zos.write(bytes)
                 zos.closeEntry()
             }
-        } finally {
-            zos.close()
         }
     }
 }
