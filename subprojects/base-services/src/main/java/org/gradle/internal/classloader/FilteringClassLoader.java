@@ -16,6 +16,10 @@
 
 package org.gradle.internal.classloader;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
@@ -296,6 +300,26 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
                     ^ classNames.hashCode()
                     ^ disallowedClassNames.hashCode()
                     ^ disallowedPackagePrefixes.hashCode();
+        }
+
+        public HashCode calculateHash(HashCode parentHash) {
+            Hasher hasher = Hashing.md5().newHasher();
+            hasher.putBytes(parentHash.asBytes());
+            addToHash(hasher, classNames);
+            addToHash(hasher, packageNames);
+            addToHash(hasher, packagePrefixes);
+            addToHash(hasher, resourcePrefixes);
+            addToHash(hasher, resourceNames);
+            addToHash(hasher, disallowedClassNames);
+            addToHash(hasher, disallowedPackagePrefixes);
+            return hasher.hash();
+        }
+
+        private void addToHash(Hasher hasher, Iterable<String> items) {
+            for (String item : items) {
+                hasher.putInt(0);
+                hasher.putString(item, Charsets.UTF_8);
+            }
         }
     }
 }
