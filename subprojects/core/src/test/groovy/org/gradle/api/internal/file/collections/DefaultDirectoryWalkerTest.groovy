@@ -22,9 +22,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import spock.lang.Ignore
 
-@Ignore // Test is flaky on Linux JDK 1.8, and fails consistently on IBM JDK 1.7
 class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
     def directoryWalkerFactory = new Factory<DirectoryWalker>() {
         def directoryWalker = new DefaultDirectoryWalker(TestFiles.fileSystem())
@@ -42,7 +40,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
 
     def rootDirEmpty() {
         given:
-        def root = StableTestFile.root(temporaryFolder.createDir("root"))
+        def root = temporaryFolder.createDir("root")
         def fileTree = new DirectoryFileTree(root, new PatternSet(), directoryWalkerFactory)
 
         when:
@@ -68,12 +66,12 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
 
     def walkSingleFile() {
         given:
-        def root = StableTestFile.root(temporaryFolder.createDir("root"))
+        def root = temporaryFolder.createDir("root")
         def fileToCopy = root.createFile("file.txt")
         def fileTree = new DirectoryFileTree(fileToCopy, new PatternSet(), directoryWalkerFactory)
 
         when:
-        visitor.setExpectedVisitations([fileToCopy])
+        visitor.setExpectedVisitations([[fileToCopy]])
         fileTree.visit(visitor)
 
         then:
@@ -93,7 +91,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
      */
     def walkBreadthFirst() {
         given:
-        def root = StableTestFile.root(temporaryFolder.createDir("root"))
+        def root = temporaryFolder.createDir("root")
         def rootFile1 = root.createFile("rootFile1")
         def dir1 = root.createDir("dir1")
         def dirFile1 = dir1.createFile("dirFile1")
@@ -103,7 +101,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
         def fileTree = new DirectoryFileTree(root, new PatternSet(), directoryWalkerFactory)
 
         when:
-        visitor.setExpectedVisitations([rootFile1, rootFile2, dir1, dirFile1, dirFile2])
+        visitor.setExpectedVisitations([[rootFile1, rootFile2], [dir1], [dirFile1, dirFile2]])
         fileTree.visit(visitor)
 
         then:
@@ -112,7 +110,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
 
     def walkDepthFirst() {
         given:
-        def root = StableTestFile.root(temporaryFolder.createDir("root"))
+        def root = temporaryFolder.createDir("root")
         def rootFile1 = root.createFile("rootFile1")
         def dir1 = root.createDir("dir1")
         def dirFile1 = dir1.createFile("dirFile1")
@@ -122,7 +120,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
         def fileTree = new DirectoryFileTree(root, new PatternSet(), directoryWalkerFactory).postfix()
 
         when:
-        visitor.setExpectedVisitations([rootFile1, rootFile2, dirFile1, dirFile2, dir1])
+        visitor.setExpectedVisitations([[rootFile1, rootFile2], [dirFile2, dirFile1], [dir1]])
         fileTree.visit(visitor)
 
         then:
@@ -131,7 +129,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
 
     def canApplyFilter() {
         given:
-        def root = StableTestFile.root(temporaryFolder.createDir("root"))
+        def root = temporaryFolder.createDir("root")
         root.createFile("rootFile1")
         def dir1 = root.createDir("dir1")
         dir1.createFile("dirFile1")
@@ -148,7 +146,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
         DirectoryFileTree fileTree = new DirectoryFileTree(root, patterns, directoryWalkerFactory).filter(filter)
 
         when:
-        visitor.setExpectedVisitations([dir1, dirFile2])
+        visitor.setExpectedVisitations([[dir1], [dirFile2]])
         fileTree.visit(visitor)
 
         then:
@@ -157,11 +155,11 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
 
     def visitorCanStopVisit() {
         given:
-        def root = StableTestFile.root(temporaryFolder.createDir("root"))
+        def root = temporaryFolder.createDir("root")
         def rootFile1 = root.createFile("rootFile1")
         def dir1 = root.createDir("dir1")
         def dirFile1 = dir1.createFile("dirFile1")
-        dir1.createFile("dirFile2")
+        def dirFile2 = dir1.createFile("dirFile2")
         dir1.createDir("dir1Dir").createFile("dir1Dir1File1")
         def rootFile2 = root.createFile("rootFile2")
 
@@ -169,7 +167,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
 
         when:
         visitor.setStopOn(rootFile1)
-        visitor.setExpectedVisitations([rootFile1])
+        visitor.setExpectedVisitations([[rootFile1, rootFile2]])
         fileTree.visit(visitor)
 
         then:
@@ -178,7 +176,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
         when:
         visitor = new TestVisitor()
         visitor.setStopOn(dirFile1)
-        visitor.setExpectedVisitations([rootFile1, rootFile2, dir1, dirFile1])
+        visitor.setExpectedVisitations([[rootFile1, rootFile2], [dir1], [dirFile2, dirFile1]])
         fileTree.visit(visitor)
 
         then:
@@ -187,7 +185,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
 
     def canTestForFileMembership() {
         given:
-        def rootDir = StableTestFile.root(temporaryFolder.createDir("root"))
+        def rootDir = temporaryFolder.createDir("root")
         def rootTextFile = rootDir.file("a.txt").createFile()
         def nestedTextFile = rootDir.file("a/b/c.txt").createFile()
         def notTextFile = rootDir.file("a/b/c.html").createFile()
@@ -227,8 +225,10 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
     }
 
     private static class TestVisitor implements FileVisitor {
+        // This is a list of lists. We want to confirm that files at each level
+        // of the directory walk are visited while not caring about their
+        // order.
         def expectedVisitations = []
-        private actualVisitations = []
         private stopOn = null
 
         @Override
@@ -242,9 +242,14 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
         }
 
         private void handleDetails(FileVisitDetails details) {
-            actualVisitations.add(details.getFile())
-            if (details.getFile() == stopOn) {
-                details.stopVisiting()
+            def file = details.getFile()
+            assert expectedVisitations[0].contains(file)
+            expectedVisitations[0].remove(file)
+            if (expectedVisitations[0].isEmpty() || file == stopOn) {
+                expectedVisitations.remove(0)
+                if (file == stopOn) {
+                    details.stopVisiting()
+                }
             }
         }
 
@@ -253,7 +258,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
         }
 
         boolean assertExpectations() {
-            assert expectedVisitations == actualVisitations
+            assert expectedVisitations.isEmpty()
             return true
         }
     }
