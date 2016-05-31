@@ -17,6 +17,8 @@
 package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.configuration.ScriptPlugin
 
@@ -43,9 +45,14 @@ class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<
     }
 
     private fun registerBuiltinTasks(target: Project) {
-        target.task<GenerateKtsConfig>("generateKtsConfig")
-        target.task<PatchIdeaConfig>("patchIdeaConfig")
+        target.tasks.apply {
+            createIfAbsent<GenerateKtsConfig>("generateKtsConfig")
+            createIfAbsent<PatchIdeaConfig>("patchIdeaConfig")
+        }
     }
+
+    private inline fun <reified T : Task> TaskContainer.createIfAbsent(name: String) =
+        findByName(name) ?: create(name, T::class.java)
 
     fun instantiateScriptClass(target: Any) {
         try {
