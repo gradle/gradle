@@ -25,7 +25,7 @@ import org.gradle.internal.classpath.ClassPath;
 import java.util.Collections;
 import java.util.List;
 
-public class HashingClassLoaderFactory extends AbstractClassLoaderFactory {
+public class HashingClassLoaderFactory extends DefaultClassLoaderFactory {
     private final ClassPathSnapshotter snapshotter;
 
     public HashingClassLoaderFactory(ClassPathSnapshotter snapshotter) {
@@ -33,13 +33,15 @@ public class HashingClassLoaderFactory extends AbstractClassLoaderFactory {
     }
 
     protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classpath) {
+        ClassLoader classLoader = super.doCreateClassLoader(parent, classpath);
         HashCode hashCode = snapshotter.snapshot(classpath).getStrongHash();
-        return new HashedVisitableURLClassLoader(parent, classpath.getAsURLs(), hashCode);
+        return new HashedClassLoader(classLoader, hashCode);
     }
 
-    protected FilteringClassLoader doCreateFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
+    protected ClassLoader doCreateFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
+        ClassLoader classLoader = super.doCreateFilteringClassLoader(parent, spec);
         HashCode filterHash = calculateFilterSpecHash(spec);
-        return new HashedFilteringClassLoader(parent, spec, filterHash);
+        return new HashedClassLoader(classLoader, filterHash);
     }
 
     private static HashCode calculateFilterSpecHash(FilteringClassLoader.Spec spec) {

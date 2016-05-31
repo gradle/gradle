@@ -17,8 +17,6 @@ package org.gradle.internal.classloader;
 
 import org.gradle.internal.classpath.ClassPath;
 
-import java.util.List;
-
 public interface ClassLoaderFactory {
     /**
      * Returns the ClassLoader that will be used as the parent for all isolated ClassLoaders.
@@ -43,9 +41,4 @@ public interface ClassLoaderFactory {
      * @return The ClassLoader
      */
     ClassLoader createFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec);
-
-    /**
-     * Creates a ClassLoader from its spec.
-     */
-    ClassLoader createClassLoader(ClassLoaderSpec spec, List<? extends ClassLoader> parents);
 }

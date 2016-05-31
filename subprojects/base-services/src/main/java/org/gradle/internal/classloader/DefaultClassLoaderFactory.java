@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,84 @@
 package org.gradle.internal.classloader;
 
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.service.CachingServiceLocator;
+import org.gradle.internal.service.DefaultServiceLocator;
+import org.gradle.internal.service.ServiceLocator;
 
-public class DefaultClassLoaderFactory extends AbstractClassLoaderFactory {
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.SAXParserFactory;
+import java.util.Collections;
+
+import static java.lang.ClassLoader.getSystemClassLoader;
+
+public class DefaultClassLoaderFactory implements ClassLoaderFactory {
+    private final CachingServiceLocator systemClassLoaderServiceLocator = CachingServiceLocator.of(new DefaultServiceLocator(getSystemClassLoader()));
+
+    @Override
+    public ClassLoader getIsolatedSystemClassLoader() {
+        return getSystemClassLoader().getParent();
+    }
+
+    @Override
+    public ClassLoader createIsolatedClassLoader(ClassPath classPath) {
+        return doCreateIsolatedClassLoader(classPath);
+    }
+
+    private ClassLoader doCreateIsolatedClassLoader(ClassPath classPath) {
+        // This piece of ugliness copies the JAXP (ie XML API) provider, if any, from the system ClassLoader. Here's why:
+        //
+        // 1. When looking for a provider, JAXP looks for a service resource in the context ClassLoader, which is our isolated ClassLoader. If our classpath above does not contain a
+        //    provider, this returns null. If it does contain a provider, JAXP extracts the classname from the service resource.
+        // 2. If not found, JAXP looks for a service resource in the system ClassLoader. This happens to include all the application classes specified on the classpath. If the application
+        //    classpath does not contain a provider, this returns null. If it does contain a provider, JAXP extracts the implementation classname from the service resource.
+        // 3. If not found, JAXP uses a default classname
+        // 4. JAXP attempts to load the provider using the context ClassLoader. which is our isolated ClassLoader. This is fine if the classname came from step 1 or 3. It blows up if the
+        //    classname came from step 2.
+        //
+        // So, as a workaround, locate and include the JAXP provider jar in the classpath for our isolated ClassLoader.
+        //
+        // Note that in practise, this is only triggered when running in our tests
+
+        if (needJaxpImpl()) {
+            classPath = classPath.plus(Collections.singleton(ClasspathUtil.getClasspathForResource(getSystemClassLoader(), "META-INF/services/javax.xml.parsers.SAXParserFactory")));
+        }
+
+        return doCreateClassLoader(getIsolatedSystemClassLoader(), classPath);
+    }
+
+    @Override
+    public ClassLoader createClassLoader(ClassLoader parent, ClassPath classPath) {
+        return doCreateClassLoader(parent, classPath);
+    }
+
+    @Override
+    public ClassLoader createFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
+        // See the comment for {@link #createIsolatedClassLoader} above
+        FilteringClassLoader.Spec classLoaderSpec = new FilteringClassLoader.Spec(spec);
+        if (needJaxpImpl()) {
+            makeServiceVisible(systemClassLoaderServiceLocator, classLoaderSpec, SAXParserFactory.class);
+            makeServiceVisible(systemClassLoaderServiceLocator, classLoaderSpec, DocumentBuilderFactory.class);
+            makeServiceVisible(systemClassLoaderServiceLocator, classLoaderSpec, DatatypeFactory.class);
+        }
+        return doCreateFilteringClassLoader(parent, classLoaderSpec);
+    }
+
     protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classpath) {
         return new VisitableURLClassLoader(parent, classpath);
     }
 
-    protected FilteringClassLoader doCreateFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
+    protected ClassLoader doCreateFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
         return new FilteringClassLoader(parent, spec);
     }
+
+    private static void makeServiceVisible(ServiceLocator locator, FilteringClassLoader.Spec classLoaderSpec, Class<?> serviceType) {
+        classLoaderSpec.allowClass(locator.getFactory(serviceType).getImplementationClass());
+        classLoaderSpec.allowResource("META-INF/services/" + serviceType.getName());
+    }
+
+    private static boolean needJaxpImpl() {
+        return ClassLoader.getSystemResource("META-INF/services/javax.xml.parsers.SAXParserFactory") != null;
+    }
+
 }

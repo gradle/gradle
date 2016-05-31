@@ -18,6 +18,51 @@ package org.gradle.internal.classloader;
 
 import com.google.common.hash.HashCode;
 
-public interface HashedClassLoader {
-    HashCode getClassLoaderHash();
+public class HashedClassLoader extends ClassLoader implements ClassLoaderHierarchy {
+    private final HashCode hashCode;
+
+    public HashedClassLoader(ClassLoader parent, HashCode hashCode) {
+        super(parent);
+        this.hashCode = hashCode;
+    }
+
+    public HashCode getClassLoaderHash() {
+        return hashCode;
+    }
+
+    @Override
+    public void visit(ClassLoaderVisitor visitor) {
+        visitor.visitSpec(new Spec(hashCode));
+        visitor.visitParent(getParent());
+    }
+
+    public static ClassLoader unwrap(ClassLoader classLoader) {
+        if (classLoader instanceof HashedClassLoader) {
+            return unwrap(classLoader.getParent());
+        } else {
+            return classLoader;
+        }
+    }
+
+    public static class Spec extends ClassLoaderSpec {
+        private final HashCode hashCode;
+
+        public Spec(HashCode hashCode) {
+            this.hashCode = hashCode;
+        }
+
+        public HashCode getClassLoaderHash() {
+            return hashCode;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj != null && obj.getClass().equals(HashedClassLoader.Spec.class);
+        }
+
+        @Override
+        public int hashCode() {
+            return getClass().getName().hashCode();
+        }
+    }
 }

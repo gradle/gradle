@@ -19,6 +19,7 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.internal.classloader.CachingClassLoader;
+import org.gradle.internal.classloader.HashedClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
@@ -158,7 +159,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope {
     public boolean defines(Class<?> clazz) {
         if (ownLoaders != null) {
             for (ClassLoader ownLoader : ownLoaders) {
-                if (ownLoader.equals(clazz.getClassLoader())) {
+                if (HashedClassLoader.unwrap(ownLoader).equals(clazz.getClassLoader())) {
                     return true;
                 }
             }
