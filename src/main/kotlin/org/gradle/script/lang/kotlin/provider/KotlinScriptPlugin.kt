@@ -17,16 +17,13 @@
 package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.tasks.TaskContainer
 
 import org.gradle.configuration.ScriptPlugin
 
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.script.lang.kotlin.loggerFor
-import org.gradle.script.lang.kotlin.task
-import org.gradle.script.lang.kotlin.tasks.GenerateKtsConfig
-import org.gradle.script.lang.kotlin.tasks.PatchIdeaConfig
+import org.gradle.script.lang.kotlin.apply
+
 import java.lang.reflect.InvocationTargetException
 
 class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<*>) : ScriptPlugin {
@@ -45,14 +42,8 @@ class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<
     }
 
     private fun registerBuiltinTasks(target: Project) {
-        target.tasks.apply {
-            createIfAbsent<GenerateKtsConfig>("generateKtsConfig")
-            createIfAbsent<PatchIdeaConfig>("patchIdeaConfig")
-        }
+        target.apply<BuiltinTasksPlugin>()
     }
-
-    private inline fun <reified T : Task> TaskContainer.createIfAbsent(name: String) =
-        findByName(name) ?: create(name, T::class.java)
 
     fun instantiateScriptClass(target: Any) {
         try {
