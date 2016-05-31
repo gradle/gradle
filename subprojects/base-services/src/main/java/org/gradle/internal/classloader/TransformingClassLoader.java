@@ -47,9 +47,9 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
         String resourceName = name.replace('.', '/') + ".class";
         URL resource = findResource(resourceName);
 
+        byte[] bytes;
+        CodeSource codeSource;
         try {
-            byte[] bytes;
-            CodeSource codeSource;
             if (resource != null) {
                 bytes = loadBytecode(resource);
                 bytes = transform(name, bytes);
@@ -57,20 +57,22 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
                 codeSource = new CodeSource(codeBase, (Certificate[]) null);
             } else {
                 bytes = generateMissingClass(name);
-                if (bytes == null) {
-                    throw new ClassNotFoundException(name);
-                }
                 codeSource = null;
             }
-            String packageName = StringUtils.substringBeforeLast(name, ".");
-            Package p = getPackage(packageName);
-            if (p == null) {
-                definePackage(packageName, null, null, null, null, null, null, null);
-            }
-            return defineClass(name, bytes, 0, bytes.length, codeSource);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not load class '%s' from %s.", name, resource), e);
         }
+
+        if (bytes == null) {
+            throw new ClassNotFoundException(name);
+        }
+
+        String packageName = StringUtils.substringBeforeLast(name, ".");
+        Package p = getPackage(packageName);
+        if (p == null) {
+            definePackage(packageName, null, null, null, null, null, null, null);
+        }
+        return defineClass(name, bytes, 0, bytes.length, codeSource);
     }
 
     @Nullable
