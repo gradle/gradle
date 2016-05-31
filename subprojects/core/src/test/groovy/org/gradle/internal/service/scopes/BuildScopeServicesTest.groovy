@@ -65,6 +65,7 @@ import org.gradle.initialization.SettingsProcessor
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser
 import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClassLoaderFactory
+import org.gradle.internal.classloader.ClassLoaderHasher
 import org.gradle.internal.classloader.ClassPathSnapshotter
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
@@ -118,6 +119,7 @@ public class BuildScopeServicesTest extends Specification {
         sessionServices.get(StartParameter) >> startParameter
         sessionServices.get(CacheAccessingFileSnapshotter) >> Mock(CacheAccessingFileSnapshotter)
         sessionServices.get(ClassPathSnapshotter) >> Mock(ClassPathSnapshotter)
+        sessionServices.get(ClassLoaderHasher) >> Mock(ClassLoaderHasher)
         sessionServices.get(CrossBuildInMemoryCachingScriptClassCache) >> Mock(CrossBuildInMemoryCachingScriptClassCache)
         sessionServices.get(InjectedPluginClasspath) >> Mock(InjectedPluginClasspath)
         sessionServices.get(PluginRepositoryRegistry) >> Mock(PluginRepositoryRegistry)

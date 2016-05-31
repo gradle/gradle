@@ -28,8 +28,7 @@ import org.gradle.cache.PersistentCache
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.Transformer
-import org.gradle.initialization.ClassLoaderRegistry
-import org.gradle.internal.classloader.HashedClassLoader
+import org.gradle.internal.classloader.ClassLoaderHasher
 import org.gradle.internal.hash.HashValue
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -46,17 +45,19 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final PersistentCache globalCache = Mock()
     final ScriptSource source = Mock()
     final TextResource resource = Mock()
-    final ClassLoader classLoader = new MockClassLoader()
+    final classLoader = Mock(ClassLoader)
     final Transformer transformer = Mock()
     final CompileOperation<?> operation = Mock()
     final CachingFileSnapshotter snapshotter = Mock()
     final ClassLoaderCache classLoaderCache = Mock()
-    final ClassLoaderRegistry classLoaderRegistry = Mock()
+    final classLoaderHasher = Mock(ClassLoaderHasher) {
+        getHash(classLoader) >> HashCode.fromLong(9999)
+    }
     final File localDir = new File("local-dir")
     final File globalDir = new File("global-dir")
     final File classesDir = new File(globalDir, "classes")
     final File metadataDir = new File(globalDir, "metadata")
-    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory), snapshotter, classLoaderCache, classLoaderRegistry)
+    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory), snapshotter, classLoaderCache, classLoaderHasher)
     final Action verifier = Stub()
     final CompiledScript compiledScript = Stub() {
         loadClass() >> Script
@@ -190,12 +191,5 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
 
         then:
         1 * logger.completed()
-    }
-
-    private static class MockClassLoader extends ClassLoader implements HashedClassLoader {
-        @Override
-        HashCode getClassLoaderHash() {
-            HashCode.fromLong(9999);
-        }
     }
 }

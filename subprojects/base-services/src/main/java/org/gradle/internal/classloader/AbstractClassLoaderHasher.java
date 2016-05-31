@@ -38,11 +38,8 @@ public abstract class AbstractClassLoaderHasher implements ClassLoaderHasher {
 
     @Override
     public HashCode getHash(ClassLoader classLoader) {
-        if (!(classLoader instanceof ClassLoaderHierarchy)) {
-            return null;
-        }
         Visitor visitor = new Visitor();
-        ((ClassLoaderHierarchy) classLoader).visit(visitor);
+        visitor.visit(classLoader);
         return visitor.getHash();
     }
 
