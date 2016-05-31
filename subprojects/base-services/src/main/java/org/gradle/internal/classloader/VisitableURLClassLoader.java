@@ -17,18 +17,14 @@
 package org.gradle.internal.classloader;
 
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.util.CollectionUtils;
 
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 public class VisitableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
-    public VisitableURLClassLoader(ClassLoader parent, URL... urls) {
-        super(urls, parent);
-    }
-
     public VisitableURLClassLoader(ClassLoader parent, Collection<URL> urls) {
         super(urls.toArray(new URL[0]), parent);
     }
@@ -37,13 +33,10 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         super(classPath.getAsURLArray(), parent);
     }
 
-    public VisitableURLClassLoader(ClassLoader parent, Spec spec) {
-        this(parent, spec.classpath);
-    }
-
     public void visit(ClassLoaderVisitor visitor) {
-        visitor.visitSpec(new Spec(CollectionUtils.toList(getURLs())));
-        visitor.visitClassPath(getURLs());
+        URL[] urLs = getURLs();
+        visitor.visitSpec(new Spec(Arrays.asList(urLs)));
+        visitor.visitClassPath(urLs);
         visitor.visitParent(getParent());
     }
 

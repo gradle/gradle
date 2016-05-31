@@ -32,8 +32,10 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.HashedClassLoader;
+import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
@@ -145,6 +147,9 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
 
         private boolean addToHash(ClassLoader cl) {
+            if (cl instanceof CachingClassLoader || cl instanceof MultiParentClassLoader) {
+                return true;
+            }
             if (classLoaderRegistry.getRuntimeClassLoader() == cl) {
                 hasher.putBytes(RUNTIME);
                 hasher.putBytes(GRADLE_VERSION);

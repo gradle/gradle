@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -74,12 +75,12 @@ public class JdkTools {
         }
     }
 
-    private ClassLoader getSystemFilteringClassLoader(DefaultClassLoaderFactory defaultClassLoaderFactory, boolean java9compatible) {
+    private ClassLoader getSystemFilteringClassLoader(ClassLoaderFactory classLoaderFactory, boolean java9compatible) {
         FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
         if (java9compatible) {
             filterSpec.allowPackage("com.sun.tools");
         }
-        return defaultClassLoaderFactory.createFilteringClassLoader(getSystemClassLoader(), filterSpec);
+        return classLoaderFactory.createFilteringClassLoader(getSystemClassLoader(), filterSpec);
     }
 
     public JavaCompiler getSystemJavaCompiler() {

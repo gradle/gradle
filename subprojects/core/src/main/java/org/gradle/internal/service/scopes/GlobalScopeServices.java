@@ -46,7 +46,6 @@ import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
-import org.gradle.api.internal.initialization.loadercache.ClassPathSnapshotter;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter;
 import org.gradle.api.tasks.util.PatternSet;
@@ -75,7 +74,8 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.DefaultClassLoaderFactory;
+import org.gradle.internal.classloader.ClassPathSnapshotter;
+import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
@@ -216,8 +216,8 @@ public class GlobalScopeServices {
         return new DefaultListenerManager();
     }
 
-    ClassLoaderFactory createClassLoaderFactory() {
-        return new DefaultClassLoaderFactory();
+    ClassLoaderFactory createClassLoaderFactory(ClassPathSnapshotter snapshotter) {
+        return new HashingClassLoaderFactory(snapshotter);
     }
 
     MessagingServices createMessagingServices() {
@@ -296,8 +296,8 @@ public class GlobalScopeServices {
         return new CacheAccessingFileSnapshotter(new CachingFileSnapshotter(new DefaultHasher(), inMemoryStore, stringInterner), inMemoryStore);
     }
 
-    ClassLoaderCache createClassLoaderCache(ClassPathSnapshotter classPathSnapshotter) {
-        return new DefaultClassLoaderCache(classPathSnapshotter);
+    ClassLoaderCache createClassLoaderCache(ClassLoaderFactory classLoaderFactory, ClassPathSnapshotter classPathSnapshotter) {
+        return new DefaultClassLoaderCache(classLoaderFactory, classPathSnapshotter);
     }
 
     protected ModelSchemaAspectExtractor createModelSchemaAspectExtractor(ServiceRegistry serviceRegistry) {

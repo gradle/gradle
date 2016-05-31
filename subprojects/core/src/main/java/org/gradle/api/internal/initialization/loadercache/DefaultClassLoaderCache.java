@@ -16,24 +16,18 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
 import org.gradle.api.Nullable;
+import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.ClassPathSnapshot;
+import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classloader.HashedFilteringClassLoader;
-import org.gradle.internal.classloader.HashedVisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache {
@@ -42,8 +36,10 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     private final Map<ClassLoaderId, CachedClassLoader> byId = Maps.newHashMap();
     private final Map<ClassLoaderSpec, CachedClassLoader> bySpec = Maps.newHashMap();
     private final ClassPathSnapshotter snapshotter;
+    private final ClassLoaderFactory classLoaderFactory;
 
-    public DefaultClassLoaderCache(ClassPathSnapshotter snapshotter) {
+    public DefaultClassLoaderCache(ClassLoaderFactory classLoaderFactory, ClassPathSnapshotter snapshotter) {
+        this.classLoaderFactory = classLoaderFactory;
         this.snapshotter = snapshotter;
     }
 
@@ -83,13 +79,11 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         if (cachedLoader == null) {
             ClassLoader classLoader;
             CachedClassLoader parentCachedLoader = null;
-            HashCode classPathHash = spec.classPathSnapshot.getStrongHash();
             if (spec.isFiltered()) {
                 parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
-                HashCode filterHash = calculateFilterSpecHash(spec.filterSpec);
-                classLoader = new HashedFilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec, filterHash);
+                classLoader = classLoaderFactory.createFilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
             } else {
-                classLoader = new HashedVisitableURLClassLoader(spec.parent, classPath, classPathHash);
+                classLoader = classLoaderFactory.createClassLoader(spec.parent, classPath);
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);
@@ -102,27 +96,6 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     public int size() {
         synchronized (lock) {
             return bySpec.size();
-        }
-    }
-
-    private static HashCode calculateFilterSpecHash(FilteringClassLoader.Spec spec) {
-        Hasher hasher = Hashing.md5().newHasher();
-        addToHash(hasher, spec.getClassNames());
-        addToHash(hasher, spec.getPackageNames());
-        addToHash(hasher, spec.getPackagePrefixes());
-        addToHash(hasher, spec.getResourcePrefixes());
-        addToHash(hasher, spec.getResourceNames());
-        addToHash(hasher, spec.getDisallowedClassNames());
-        addToHash(hasher, spec.getDisallowedPackagePrefixes());
-        return hasher.hash();
-    }
-
-    private static void addToHash(Hasher hasher, Iterable<String> items) {
-        List<String> sortedItems = Lists.newArrayList(items);
-        Collections.sort(sortedItems);
-        for (String item : sortedItems) {
-            hasher.putInt(0);
-            hasher.putString(item, Charsets.UTF_8);
         }
     }
 

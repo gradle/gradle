@@ -19,8 +19,16 @@ package org.gradle.internal.classloader;
 import com.google.common.hash.HashCode;
 import org.gradle.internal.classpath.ClassPath;
 
+import java.net.URL;
+import java.util.Collection;
+
 public class HashedVisitableURLClassLoader extends VisitableURLClassLoader implements HashedClassLoader {
     private final HashCode hashCode;
+
+    public HashedVisitableURLClassLoader(ClassLoader parent, Collection<URL> urls, HashCode hashCode) {
+        super(parent, urls);
+        this.hashCode = hashCode;
+    }
 
     public HashedVisitableURLClassLoader(ClassLoader parent, ClassPath classPath, HashCode hashCode) {
         super(parent, classPath);

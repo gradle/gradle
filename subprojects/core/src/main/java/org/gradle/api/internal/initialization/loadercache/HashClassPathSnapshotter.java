@@ -22,6 +22,8 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.classloader.ClassPathSnapshot;
+import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.io.File;

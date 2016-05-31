@@ -124,6 +124,6 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
         FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
         filterSpec.allowPackage("org.gradle.tooling.internal.protocol");
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(parentObfuscatingClassLoader, filterSpec);
-        return new VisitableURLClassLoader(filteringClassLoader, implementationClasspath.getAsURLArray());
+        return new VisitableURLClassLoader(filteringClassLoader, implementationClasspath);
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.initialization.loadercache
 
 import org.gradle.internal.classloader.FilteringClassLoader
+import org.gradle.internal.classloader.HashingClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestFile
@@ -26,7 +27,8 @@ import spock.lang.Specification
 
 class DefaultClassLoaderCacheTest extends Specification {
 
-    def cache = new DefaultClassLoaderCache(new FileClassPathSnapshotter())
+    def snapshotter = new FileClassPathSnapshotter()
+    def cache = new DefaultClassLoaderCache(new HashingClassLoaderFactory(snapshotter), snapshotter)
     def id1 = new ClassLoaderId() {}
     def id2 = new ClassLoaderId() {}
 
