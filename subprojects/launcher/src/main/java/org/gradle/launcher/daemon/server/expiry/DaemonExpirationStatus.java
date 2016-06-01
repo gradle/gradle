@@ -24,5 +24,13 @@ public enum DaemonExpirationStatus {
     DO_NOT_EXPIRE,
     QUIET_EXPIRE,
     GRACEFUL_EXPIRE,
-    IMMEDIATE_EXPIRE
+    IMMEDIATE_EXPIRE;
+
+    public static DaemonExpirationStatus highestPriorityOf(DaemonExpirationStatus left, DaemonExpirationStatus right) {
+        if (left.ordinal() > right.ordinal()) {
+            return left;
+        } else {
+            return right;
+        }
+    }
 }

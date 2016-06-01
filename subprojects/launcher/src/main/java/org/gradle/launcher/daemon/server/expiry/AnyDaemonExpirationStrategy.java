@@ -21,6 +21,8 @@ import com.google.common.collect.Lists;
 
 import java.util.List;
 
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.*;
+
 /**
  * Expires the daemon if any of the children would expire the daemon.
  */
@@ -34,20 +36,18 @@ public class AnyDaemonExpirationStrategy implements DaemonExpirationStrategy {
     @Override
     public DaemonExpirationResult checkExpiration() {
         DaemonExpirationResult expirationResult;
-        DaemonExpirationStatus expirationStatus = DaemonExpirationStatus.DO_NOT_EXPIRE;
+        DaemonExpirationStatus expirationStatus = DO_NOT_EXPIRE;
         List<String> reasons = Lists.newArrayList();
 
         for (DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
             expirationResult = expirationStrategy.checkExpiration();
-            if (expirationResult.getStatus() != DaemonExpirationStatus.DO_NOT_EXPIRE) {
+            if (expirationResult.getStatus() != DO_NOT_EXPIRE) {
                 reasons.add(expirationResult.getReason());
-                if (expirationResult.getStatus().ordinal() > expirationStatus.ordinal()) {
-                    expirationStatus = expirationResult.getStatus();
-                }
+                expirationStatus = highestPriorityOf(expirationResult.getStatus(), expirationStatus);
             }
         }
 
-        if (expirationStatus == DaemonExpirationStatus.DO_NOT_EXPIRE) {
+        if (expirationStatus == DO_NOT_EXPIRE) {
             return DaemonExpirationResult.NOT_TRIGGERED;
         } else {
             return new DaemonExpirationResult(expirationStatus, Joiner.on(" and ").skipNulls().join(reasons));
