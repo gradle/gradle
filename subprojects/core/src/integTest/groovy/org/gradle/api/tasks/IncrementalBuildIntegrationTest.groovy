@@ -20,15 +20,14 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Before
 import org.junit.Test
 
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationTest {
-    @Before
-    public void setup() {
+
+    private TestFile writeDirTransformerTask() {
         testFile('buildSrc/src/main/groovy/DirTransformerTask.groovy') << '''
 import org.gradle.api.*
 import org.gradle.api.tasks.*
@@ -64,6 +63,9 @@ public class DirTransformerTask extends DefaultTask {
     }
 }
 '''
+    }
+
+    private TestFile writeTransformerTask() {
         testFile('buildSrc/src/main/groovy/TransformerTask.groovy') << '''
 import org.gradle.api.*
 import org.gradle.api.tasks.*
@@ -110,6 +112,8 @@ public class TransformerTask extends DefaultTask {
 
     @Test
     public void skipsTaskWhenOutputFileIsUpToDate() {
+        writeTransformerTask()
+
         testFile('build.gradle') << '''
 task a(type: TransformerTask) {
     inputFile = file('src.txt')
@@ -223,6 +227,8 @@ b.outputFile = file('new-output.txt')
 
     @Test
     public void skipsTaskWhenOutputDirContentsAreUpToDate() {
+        writeDirTransformerTask()
+
         testFile('build.gradle') << '''
 task a(type: DirTransformerTask) {
     inputDir = file('src')
@@ -340,6 +346,8 @@ task a(type: GeneratorTask) {
 
     @Test
     public void multipleTasksCanGenerateIntoOverlappingOutputDirectories() {
+        writeDirTransformerTask()
+
         testFile('build.gradle') << '''
 task a(type: DirTransformerTask) {
     inputDir = file('src/a')
@@ -448,6 +456,8 @@ task nothing {
 
     @Test
     public void lifecycleTaskIsUpToDateWhenAllDependenciesAreSkipped() {
+        writeTransformerTask()
+
         testFile('build.gradle') << '''
 task a(type: TransformerTask) {
     inputFile = file('src.txt')
@@ -464,6 +474,8 @@ task b(dependsOn: a)
 
     @Test
     public void canShareArtifactsBetweenBuilds() {
+        writeTransformerTask()
+
         def buildFile = testFile('build.gradle') << '''
 task otherBuild(type: GradleBuild) {
     buildFile = 'build.gradle'
