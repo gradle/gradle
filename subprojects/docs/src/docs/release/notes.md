@@ -10,10 +10,6 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### Delayed configuration of task inputs and outputs
-
-A `configure()` method with an `Action` or `Closure` parameter was added to both `TaskInputs` and `TaskOutputs` to allow configuring the task's inputs and outputs directly before the task is to be executed.
-
 ### Improvements since Gradle 2.0
 
 - Performance improvements, faster builds and reduced memory usage
@@ -76,6 +72,10 @@ A `configure()` method with an `Action` or `Closure` parameter was added to both
     - Better extension by plugins
     - Model DSL
     
+
+### Delayed configuration of task inputs and outputs
+
+A `configure()` method with an `Action` or `Closure` parameter was added to both `TaskInputs` and `TaskOutputs` to allow configuring the task's inputs and outputs directly before the task is to be executed.
 
 ## Promoted features
 
