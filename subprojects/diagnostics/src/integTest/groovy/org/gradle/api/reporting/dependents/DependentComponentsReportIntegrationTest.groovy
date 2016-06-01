@@ -107,7 +107,8 @@ class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
             +--- util:sharedLibrary
             |    +--- lib:sharedLibrary NOT BUILDABLE
             |    |    \\--- main:executable
-            |    \\--- lib:staticLibrary NOT BUILDABLE
+            |    +--- lib:staticLibrary NOT BUILDABLE
+            |    \\--- main:executable
             \\--- util:staticLibrary
         '''.stripIndent()
     }
@@ -139,6 +140,7 @@ class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
     private static String simpleCppBuild() {
         return """
             plugins {
+                id 'c'
                 id 'cpp'
             }
             model {
@@ -154,6 +156,7 @@ class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
                     main(NativeExecutableSpec) {
                         sources {
                             cpp {
+                                lib library: 'util'
                                 lib library: 'lib'
                             }
                         }
@@ -185,7 +188,8 @@ class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
             +--- util:sharedLibrary
             |    +--- lib:sharedLibrary
             |    |    \\--- main:executable
-            |    \\--- lib:staticLibrary
+            |    +--- lib:staticLibrary
+            |    \\--- main:executable
             \\--- util:staticLibrary
         '''.stripIndent()
     }
