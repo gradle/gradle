@@ -68,6 +68,11 @@ class ImplementationDependencyRelocator extends Remapper {
         }
     }
 
+    public boolean keepOriginalResource(String resource) {
+        return resource == null || maybeRelocateResource(resource) == null
+            || !resource.startsWith("com/sun/jna"); // in order to use a newer version of jna the resources must not be available in the old location
+    }
+
     public ClassLiteralRemapping maybeRemap(String literal) {
         if (literal.startsWith("class$")) {
             String className = literal.substring(6).replace('$', '.');

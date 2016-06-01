@@ -252,12 +252,15 @@ class RuntimeShadedJarCreator {
         String originalName = zipEntry.getName();
         byte[] resource = bos.toByteArray();
 
-        // we're writing 2 copies of the resource: one relocated, the other not, in order to support `getResource/getResourceAsStream` with
-        // both absolute and relative paths
-        writeResourceEntry(outputStream, new ByteArrayInputStream(resource), buffer, zipEntry.getName());
-
         int i = originalName.lastIndexOf("/");
         String path = i == -1 ? null : originalName.substring(0, i);
+
+        if (REMAPPER.keepOriginalResource(path)) {
+            // we're writing 2 copies of the resource: one relocated, the other not, in order to support `getResource/getResourceAsStream` with
+            // both absolute and relative paths
+            writeResourceEntry(outputStream, new ByteArrayInputStream(resource), buffer, zipEntry.getName());
+        }
+
         String remappedResourceName = path != null ? REMAPPER.maybeRelocateResource(path) : null;
         if (remappedResourceName != null) {
             String newFileName = remappedResourceName + originalName.substring(i);
