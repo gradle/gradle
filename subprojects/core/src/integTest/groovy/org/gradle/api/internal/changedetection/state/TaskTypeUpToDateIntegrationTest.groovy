@@ -93,6 +93,32 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2936")
+    def "task declared in buildSrc is not up-to-date after its source is changed"() {
+        file("input.txt") << "input"
+
+        file("buildSrc/src/main/groovy/SimpleCopyTask.groovy") << declareSimpleCopyTaskType(false)
+        buildFile << """
+            task copy(type: SimpleCopy) {
+                input = file("input.txt")
+                output = file("output.txt")
+            }
+        """
+
+        when: succeeds "copy"
+        then: skippedTasks.empty
+
+        when: succeeds "copy"
+        then: skippedTasks == ([":copy"] as Set)
+
+        when:
+        file("buildSrc/src/main/groovy/SimpleCopyTask.groovy").text = declareSimpleCopyTaskType(true)
+
+        succeeds "copy"
+        then:
+        skippedTasks.empty
+    }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-1910")
     def "task declared in buildSrc is not up-to-date after dependencies change"() {
         file("input.txt") << "input"
 
