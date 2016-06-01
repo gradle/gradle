@@ -85,7 +85,6 @@ class EclipseWtpPlugin extends IdePlugin {
             project.afterEvaluate {
                 model.classpath.plusConfigurations += model.wtp.component.rootConfigurations
                 model.classpath.plusConfigurations += model.wtp.component.libConfigurations
-                model.classpath.minusConfigurations += model.wtp.component.minusConfigurations
             }
 
             model.classpath.file.whenMerged { Classpath classpath ->

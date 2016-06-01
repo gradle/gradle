@@ -9,6 +9,17 @@
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
+	<classpathentry sourcepath="@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8-sources.jar" kind="lib" path="@CACHE_DIR@/org.slf4j/slf4j-api/1.5.8/@SHA1@/slf4j-api-1.5.8.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
+	<classpathentry sourcepath="@CACHE_DIR@/commons-io/commons-io/1.2/@SHA1@/commons-io-1.2-sources.jar" kind="lib" path="@CACHE_DIR@/commons-io/commons-io/1.2/@SHA1@/commons-io-1.2.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/commons-io/commons-io/1.2/@SHA1@/commons-io-1.2-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry sourcepath="@CACHE_DIR@/commons-lang/commons-lang/2.5/@SHA1@/commons-lang-2.5-sources.jar" kind="lib" path="@CACHE_DIR@/commons-lang/commons-lang/2.5/@SHA1@/commons-lang-2.5.jar">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>

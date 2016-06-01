@@ -10,6 +10,12 @@
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
+	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17-sources.jar" kind="var"  path="GRADLE_USER_HOME/@CACHE@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/log4j/log4j/1.2.17/@SHA1@/log4j-1.2.17-javadoc.jar!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/joda-time/joda-time/2.5/@SHA1@/joda-time-2.5-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/joda-time/joda-time/2.5/@SHA1@/joda-time-2.5.jar">
 		<attributes>
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>

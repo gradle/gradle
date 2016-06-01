@@ -62,6 +62,10 @@ eclipse {
 
   pathVariables 'userHomeVariable' : file(System.properties['user.home'])
 
+  classpath {
+    minusConfigurations << configurations.configTwo
+  }
+
   wtp {
     component {
       contextPath = 'killerApp'
@@ -69,7 +73,6 @@ eclipse {
       sourceDirs += file('someExtraSourceDir')
 
       plusConfigurations << configurations.configOne
-      minusConfigurations << configurations.configTwo
 
       deployName = 'someBetterDeployName'
 
@@ -272,10 +275,12 @@ dependencies {
 }
 
 eclipse {
+  classpath {
+    minusConfigurations << configurations.configTwo
+  }
   wtp {
     component {
         plusConfigurations << configurations.configOne
-        minusConfigurations << configurations.configTwo
     }
   }
 }
