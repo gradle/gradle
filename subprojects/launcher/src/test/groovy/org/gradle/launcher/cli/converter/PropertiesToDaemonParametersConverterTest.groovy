@@ -39,9 +39,9 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
 
     def "allows whitespace around boolean properties"() {
         when:
-        converter.convert([ (DAEMON_ENABLED_PROPERTY): 'true ' ], params)
+        converter.convert([ (DAEMON_ENABLED_PROPERTY): 'false ' ], params)
         then:
-        params.enabled
+        !params.enabled
     }
 
     def "can configure jvm args combined with a system property"() {
@@ -68,7 +68,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         converter.convert([
             (JVM_ARGS_PROPERTY)                 : '-Xmx256m',
             (JAVA_HOME_PROPERTY)                : Jvm.current().javaHome.absolutePath,
-            (DAEMON_ENABLED_PROPERTY)           : "true",
+            (DAEMON_ENABLED_PROPERTY)           : "false",
             (DAEMON_BASE_DIR_PROPERTY)          : new File("baseDir").absolutePath,
             (IDLE_TIMEOUT_PROPERTY)             : "115",
             (HEALTH_CHECK_INTERVAL_PROPERTY)  : "42",
@@ -79,7 +79,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         params.effectiveJvmArgs.contains("-Xmx256m")
         params.debug
         params.effectiveJvm == Jvm.current()
-        params.enabled
+        !params.enabled
         params.baseDir == new File("baseDir").absoluteFile
         params.idleTimeout == 115
         params.periodicCheckInterval == 42
