@@ -20,9 +20,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.plugins.ide.eclipse.EclipsePlugin;
-import org.gradle.plugins.ide.eclipse.model.EclipseModel;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule;
@@ -40,6 +41,12 @@ import java.util.List;
 import java.util.Set;
 
 public class WtpComponentFactory {
+    private final CompositeBuildIdeProjectResolver ideProjectResolver;
+
+    public WtpComponentFactory(Project project) {
+        ideProjectResolver = new CompositeBuildIdeProjectResolver(((ProjectInternal) project).getServices());
+    }
+
     public void configure(final EclipseWtpComponent wtp, WtpComponent component) {
         List<WbModuleEntry> entries = Lists.newArrayList();
         entries.addAll(getEntriesFromSourceDirs(wtp));
@@ -92,16 +99,15 @@ public class WtpComponentFactory {
 
         List<WbDependentModule> projectDependencies = Lists.newArrayList();
         for (IdeProjectDependency dependency : dependencies) {
-            Project dependencyProject = dependency.getProject();
-            String moduleName;
-            if (dependencyProject.getPlugins().hasPlugin(EclipsePlugin.class)) {
-                moduleName = dependencyProject.getExtensions().getByType(EclipseModel.class).getProject().getName();
-            } else {
-                moduleName = dependencyProject.getName();
-            }
+            String moduleName = determineProjectName(dependency);
             projectDependencies.add(new WbDependentModule(deployPath, "module:/resource/" + moduleName + "/" + moduleName));
         }
         return projectDependencies;
+    }
+
+    private String determineProjectName(IdeProjectDependency dependency) {
+        ComponentArtifactMetadata eclipseProjectArtifact = ideProjectResolver.resolveArtifact(dependency.getProjectId(), "eclipse.project");
+        return eclipseProjectArtifact == null ? dependency.getProjectName() : eclipseProjectArtifact.getName().getName();
     }
 
     private List<WbDependentModule> getEntriesFromLibraries(Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {

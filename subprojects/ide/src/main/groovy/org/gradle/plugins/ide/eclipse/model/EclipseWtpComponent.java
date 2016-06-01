@@ -369,7 +369,7 @@ public class EclipseWtpComponent {
 
     public void mergeXmlComponent(WtpComponent xmlComponent) {
         file.getBeforeMerged().execute(xmlComponent);
-        new WtpComponentFactory().configure(this, xmlComponent);
+        new WtpComponentFactory(project).configure(this, xmlComponent);
         file.getWhenMerged().execute(xmlComponent);
     }
 }
