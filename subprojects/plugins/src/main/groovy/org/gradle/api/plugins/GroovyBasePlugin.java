@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.plugins.DslObject;
@@ -112,7 +113,10 @@ public class GroovyBasePlugin implements Plugin<Project> {
             public void execute(final Groovydoc groovydoc) {
                 groovydoc.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
                     public Object call() throws Exception {
-                        return groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath());
+                        // Jansi is required to log errors when generating Groovydoc
+                        Dependency jansi = project.getDependencies().create("org.fusesource.jansi:jansi:1.2.1");
+                        return groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath()).plus(
+                             project.getConfigurations().detachedConfiguration(jansi));
                     }
                 });
                 groovydoc.getConventionMapping().map("destinationDir", new Callable<Object>() {
