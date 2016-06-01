@@ -28,10 +28,6 @@ class IncrementalGroovyProjectBuildIntegrationTest extends AbstractIntegrationTe
             apply plugin: 'groovy'
             dependencies { compile localGroovy() }
 
-            repositories {
-              mavenCentral()
-            }
-
             groovydoc {
                 link('http://download.oracle.com/javase/1.5.0/docs/api', 'java.,org.xml.,javax.,org.xml.')
             }
