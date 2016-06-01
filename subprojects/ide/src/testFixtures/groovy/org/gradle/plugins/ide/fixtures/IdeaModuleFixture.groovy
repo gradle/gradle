@@ -148,13 +148,13 @@ class IdeaModuleFixture {
         void assertHasModule(String scope = 'COMPILE', String name) {
             assert modules.any { ImlModule it ->
                 it.scope == scope && it.moduleName == name
-            }
+            }  : "No module '$name' with scope $scope found in ${modules*.moduleName}"
         }
 
         void assertHasLibrary(String scope = 'COMPILE', String name) {
             assert libraries.any { ImlModuleLibrary it ->
                 it.scope == scope && it.url.contains(name)
-            }
+            }  : "No library '$name' with scope $scope found in ${libraries*.url}"
         }
     }
 

@@ -69,7 +69,7 @@ class IdeaProjectFixture {
         }
 
         void assertHasModule(String name) {
-            assert modules.any { it.endsWith(name)}
+            assert modules.any { it.endsWith(name)} : "No module with $name found in ${modules}"
         }
     }
 

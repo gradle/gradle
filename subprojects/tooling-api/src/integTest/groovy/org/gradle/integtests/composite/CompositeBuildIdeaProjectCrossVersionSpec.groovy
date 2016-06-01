@@ -262,6 +262,25 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         imlHasNoDependencies(buildC)
     }
 
+    def "generated IDEA metadata respects idea plugin configuration"() {
+        given:
+        dependency 'org.test:b1:1.0'
+        dependency 'org.test:b2:1.0'
+
+        buildB.buildFile << """
+            project(':b1') {
+                idea.module.name = 'b1-renamed'
+            }
+"""
+
+        when:
+        idea()
+
+        then:
+        iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1-renamed.iml", "../buildB/b2/b2.iml"
+        imlHasDependencies "b1-renamed", "b2"
+    }
+
     def dependency(TestFile buildRoot = buildA, String notation) {
         buildRoot.buildFile << """
             dependencies {
