@@ -57,6 +57,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
@@ -130,7 +131,7 @@ public class TaskExecutionServices {
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter, FileSnapshotter fileSnapshotter,
                                                                   StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem, FileCollectionFactory fileCollectionFactory,
-                                                                  CachingTreeVisitor treeVisitor, TreeSnapshotRepository treeSnapshotRepository, CachingTreeVisitorCleaner treeVisitorCleaner) {
+                                                                  CachingTreeVisitor treeVisitor, TreeSnapshotRepository treeSnapshotRepository, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         FileCollectionSnapshotter fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileResolver, treeVisitor, treeSnapshotRepository);
         FileCollectionSnapshotter discoveredFileCollectionSnapshotter = new MinimalFileSetSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileResolver, fileSystem);
 
@@ -157,7 +158,8 @@ public class TaskExecutionServices {
                 outputFilesSnapshotter,
                 fileCollectionSnapshotter,
                 discoveredFileCollectionSnapshotter,
-                fileCollectionFactory
+                fileCollectionFactory,
+                classLoaderHierarchyHasher
             )
         );
     }

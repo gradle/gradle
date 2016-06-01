@@ -29,7 +29,10 @@ import static org.junit.Assert.assertThat
 class IncrementalBuildIntegrationTest extends AbstractIntegrationTest {
     @Before
     public void setup() {
-        testFile('build.gradle') << '''
+        testFile('buildSrc/src/main/groovy/DirTransformerTask.groovy') << '''
+import org.gradle.api.*
+import org.gradle.api.tasks.*
+
 public class DirTransformerTask extends DefaultTask {
     private File inputDir
     private File outputDir
@@ -60,34 +63,10 @@ public class DirTransformerTask extends DefaultTask {
         }
     }
 }
-
-public class GeneratorTask extends DefaultTask {
-    @Input
-    private String text
-    @OutputFile
-    private File outputFile
-
-    public String getText() {
-        return text
-    }
-
-    public void setText(String text) {
-        this.text = text
-    }
-
-    public File getOutputFile() {
-        return outputFile
-    }
-
-    public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile
-    }
-
-    @TaskAction
-    public void generate() {
-        outputFile.text = text
-    }
-}
+'''
+        testFile('buildSrc/src/main/groovy/TransformerTask.groovy') << '''
+import org.gradle.api.*
+import org.gradle.api.tasks.*
 
 public class TransformerTask extends DefaultTask {
     private File inputFile
@@ -318,6 +297,34 @@ task b(type: DirTransformerTask, dependsOn: a) {
     @Test
     public void skipsTaskWhenInputPropertiesHaveNotChanged() {
         testFile('build.gradle') << '''
+public class GeneratorTask extends DefaultTask {
+    @Input
+    private String text
+    @OutputFile
+    private File outputFile
+
+    public String getText() {
+        return text
+    }
+
+    public void setText(String text) {
+        this.text = text
+    }
+
+    public File getOutputFile() {
+        return outputFile
+    }
+
+    public void setOutputFile(File outputFile) {
+        this.outputFile = outputFile
+    }
+
+    @TaskAction
+    public void generate() {
+        outputFile.text = text
+    }
+}
+
 task a(type: GeneratorTask) {
     text = project.text
     outputFile = file('dest.txt')

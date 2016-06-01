@@ -29,12 +29,15 @@ import org.gradle.util.Configurable;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 public interface TaskInternal extends Task, Configurable<Task> {
 
     // Can we just override Task.getActions()?
     // Would need to change return type on Task API to: List<? super Action<? super Task>> : not certain this is back-compatible
     List<ContextAwareTaskAction> getTaskActions();
+
+    Set<ClassLoader> getActionClassLoaders();
 
     Spec<? super TaskInternal> getOnlyIf();
 

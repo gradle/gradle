@@ -86,6 +86,11 @@ public class TaskMutator {
             public void contextualise(TaskExecutionContext context) {
                 action.contextualise(context);
             }
+
+            @Override
+            public ClassLoader getClassLoader() {
+                return action.getClassLoader();
+            }
         };
     }
 

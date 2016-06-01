@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.tasks.TaskAction;
@@ -108,7 +109,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
         };
     }
 
-    private static class StandardTaskAction implements Action<Task> {
+    private static class StandardTaskAction implements ClassLoaderAwareTaskAction {
         private final Method method;
 
         public StandardTaskAction(Method method) {
@@ -127,6 +128,11 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
         protected void doExecute(Task task, String methodName) {
             JavaReflectionUtil.method(task, Object.class, methodName).invoke(task);
+        }
+
+        @Override
+        public ClassLoader getClassLoader() {
+            return method.getDeclaringClass().getClassLoader();
         }
     }
 

@@ -26,6 +26,7 @@ import org.gradle.api.internal.changedetection.state.FilesSnapshotSet
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -36,6 +37,7 @@ class TaskUpToDateStateTest extends Specification {
     private FileCollectionSnapshotter stubInputFileSnapshotter
     private FileCollectionSnapshotter stubDiscoveredInputFileSnapshotter
     private FileCollectionFactory fileCollectionFactory = Mock(FileCollectionFactory)
+    private classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
 
     def setup() {
         def stubInputs = Stub(TaskInputsInternal)
@@ -63,7 +65,7 @@ class TaskUpToDateStateTest extends Specification {
         FileCollectionSnapshot.PreCheck outputPreCheck = Mock(FileCollectionSnapshot.PreCheck)
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, mockInputFileSnapshotter, mockDiscoveredInputFileSnapshotter, fileCollectionFactory)
+        new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, mockInputFileSnapshotter, mockDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
 
         then:
         noExceptionThrown()
@@ -78,7 +80,7 @@ class TaskUpToDateStateTest extends Specification {
         _ * stubInputFileSnapshotter.preCheck(_, _) >> { throw cause }
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory)
+        new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
 
         then:
         def e = thrown(UncheckedIOException)
@@ -95,7 +97,7 @@ class TaskUpToDateStateTest extends Specification {
          _ * stubOutputFileSnapshotter.preCheck(_, _) >> { throw cause }
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory)
+        new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
 
         then:
         def e = thrown(UncheckedIOException)
