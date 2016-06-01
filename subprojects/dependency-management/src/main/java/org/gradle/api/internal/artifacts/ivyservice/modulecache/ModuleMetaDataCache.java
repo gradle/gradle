@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.math.BigInteger;
@@ -34,7 +34,7 @@ public interface ModuleMetaDataCache {
     interface CachedMetaData {
         ResolvedModuleVersion getModuleVersion();
 
-        MutableModuleComponentResolveMetaData getMetaData();
+        MutableModuleComponentResolveMetadata getMetaData();
 
         long getAgeMillis();
 

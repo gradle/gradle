@@ -24,8 +24,8 @@ import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.component.model.IvyArtifactName
 import spock.lang.Specification
 
-class DefaultIvyModulePublishMetaDataTest extends Specification {
-    def metaData = new DefaultIvyModulePublishMetaData(Stub(ModuleComponentIdentifier), "status")
+class DefaultIvyModulePublishMetadataTest extends Specification {
+    def metaData = new DefaultIvyModulePublishMetadata(Stub(ModuleComponentIdentifier), "status")
 
     def "can add artifacts"() {
         def artifact = Stub(IvyArtifactName)

@@ -29,10 +29,10 @@ import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersio
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
@@ -170,7 +170,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 result.setAuthoritative(cachedMetaData.getAgeMillis() == 0);
                 return;
             }
-            MutableModuleComponentResolveMetaData metaData = cachedMetaData.getMetaData();
+            MutableModuleComponentResolveMetadata metaData = cachedMetaData.getMetaData();
             metadataProcessor.processMetadata(metaData);
             if (requestMetaData.isChanging() || metaData.isChanging()) {
                 if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
@@ -223,7 +223,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             if (cachedModuleArtifacts != null) {
                 if (!cachePolicy.mustRefreshModuleArtifacts(component.getId(), null, cachedModuleArtifacts.getAgeMillis(),
                         cachedModuleSource.isChangingModule(), moduleDescriptorHash.equals(cachedModuleArtifacts.getDescriptorHash()))) {
-                    Set<ModuleComponentArtifactMetaData> artifactMetaDataSet = CollectionUtils.collect(cachedModuleArtifacts.getArtifacts(), new ArtifactIdToMetaData());
+                    Set<ModuleComponentArtifactMetadata> artifactMetaDataSet = CollectionUtils.collect(cachedModuleArtifacts.getArtifacts(), new ArtifactIdToMetaData());
                     result.resolved(artifactMetaDataSet);
                     return;
                 }
@@ -250,7 +250,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             if (cached != null) {
                 long age = timeProvider.getCurrentTime() - cached.getCachedAt();
                 final boolean isChangingModule = moduleSource.isChangingModule();
-                ArtifactIdentifier artifactIdentifier = ((ModuleComponentArtifactMetaData) artifact).toArtifactIdentifier();
+                ArtifactIdentifier artifactIdentifier = ((ModuleComponentArtifactMetadata) artifact).toArtifactIdentifier();
                 if (cached.isMissing()) {
                     if (!cachePolicy.mustRefreshArtifact(artifactIdentifier, null, age, isChangingModule, descriptorHash.equals(cached.getDescriptorHash()))) {
                         LOGGER.debug("Detected non-existence of artifact '{}' in resolver cache", artifact);
@@ -300,7 +300,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     moduleMetaDataCache.cacheMissing(delegate, moduleComponentIdentifier);
                     break;
                 case Resolved:
-                    MutableModuleComponentResolveMetaData metaData = result.getMetaData();
+                    MutableModuleComponentResolveMetadata metaData = result.getMetaData();
                     ModuleSource moduleSource = metaData.getSource();
                     ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, metaData);
                     metadataProcessor.processMetadata(metaData);
@@ -361,8 +361,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
     private ArtifactAtRepositoryKey artifactCacheKey(ComponentArtifactMetaData artifact) {
         // TODO:ADAM - Don't assume this
-        ModuleComponentArtifactMetaData moduleComponentArtifactMetaData = (ModuleComponentArtifactMetaData) artifact;
-        return new ArtifactAtRepositoryKey(delegate.getId(), moduleComponentArtifactMetaData.getId());
+        ModuleComponentArtifactMetadata moduleComponentArtifactMetadata = (ModuleComponentArtifactMetadata) artifact;
+        return new ArtifactAtRepositoryKey(delegate.getId(), moduleComponentArtifactMetadata.getId());
     }
 
     static class CachingModuleSource implements ModuleSource {
@@ -389,15 +389,15 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
         }
     }
 
-    static class ArtifactIdToMetaData implements Transformer<ModuleComponentArtifactMetaData, ModuleComponentArtifactIdentifier> {
-        public ModuleComponentArtifactMetaData transform(ModuleComponentArtifactIdentifier original) {
-            return new DefaultModuleComponentArtifactMetaData(original);
+    static class ArtifactIdToMetaData implements Transformer<ModuleComponentArtifactMetadata, ModuleComponentArtifactIdentifier> {
+        public ModuleComponentArtifactMetadata transform(ModuleComponentArtifactIdentifier original) {
+            return new DefaultModuleComponentArtifactMetadata(original);
         }
     }
 
     static class ArtifactMetaDataToId implements Transformer<ModuleComponentArtifactIdentifier, ComponentArtifactMetaData> {
         public ModuleComponentArtifactIdentifier transform(ComponentArtifactMetaData original) {
-            return ((ModuleComponentArtifactMetaData)original).getId();
+            return ((ModuleComponentArtifactMetadata)original).getId();
         }
     }
 }

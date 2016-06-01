@@ -18,13 +18,13 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 
-public class DefaultModuleDescriptorArtifactMetaData implements ModuleDescriptorArtifactMetaData {
-    private final DefaultModuleComponentArtifactMetaData delegate;
+public class DefaultModuleDescriptorArtifactMetadata implements ModuleDescriptorArtifactMetadata {
+    private final DefaultModuleComponentArtifactMetadata delegate;
 
-    public DefaultModuleDescriptorArtifactMetaData(DefaultModuleComponentArtifactMetaData delegate) {
+    public DefaultModuleDescriptorArtifactMetadata(DefaultModuleComponentArtifactMetadata delegate) {
         this.delegate = delegate;
     }
 

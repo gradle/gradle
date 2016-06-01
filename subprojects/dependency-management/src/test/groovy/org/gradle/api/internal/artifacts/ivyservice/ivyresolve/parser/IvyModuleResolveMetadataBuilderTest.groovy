@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 import static com.google.common.collect.Sets.newHashSet
 
-class IvyModuleResolveMetaDataBuilderTest extends Specification {
+class IvyModuleResolveMetadataBuilderTest extends Specification {
 
     def md = new DefaultModuleDescriptor(ModuleRevisionId.newInstance("org", "foo", "1.0"), "release", null)
     def meta = new IvyModuleResolveMetaDataBuilder(md)

@@ -29,7 +29,7 @@ public interface ModuleComponentResolveMetaData extends ComponentResolveMetaData
 
     ModuleComponentResolveMetaData withSource(ModuleSource source);
 
-    ModuleComponentArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier);
+    ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 
     /**
      * Returns this module version as an Ivy ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types

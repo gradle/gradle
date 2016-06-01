@@ -21,11 +21,11 @@ import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.List;
 
-public interface MutableModuleComponentResolveMetaData extends ModuleComponentResolveMetaData {
+public interface MutableModuleComponentResolveMetadata extends ModuleComponentResolveMetaData {
     /**
      * Creates a deep copy of this meta-data.
      */
-    MutableModuleComponentResolveMetaData copy();
+    MutableModuleComponentResolveMetadata copy();
 
     /**
      * Also sets the {@link #getId()} based on the provided component id.
@@ -46,5 +46,5 @@ public interface MutableModuleComponentResolveMetaData extends ModuleComponentRe
     /**
      * Replaces the artifacts of this module version.
      */
-    void setArtifacts(Iterable<? extends ModuleComponentArtifactMetaData> artifacts);
+    void setArtifacts(Iterable<? extends ModuleComponentArtifactMetadata> artifacts);
 }

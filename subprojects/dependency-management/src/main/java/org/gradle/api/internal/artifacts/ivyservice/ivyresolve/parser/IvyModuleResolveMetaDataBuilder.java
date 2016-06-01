@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData;
+import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.List;
@@ -38,11 +38,11 @@ class IvyModuleResolveMetaDataBuilder {
         artifacts.add(new Artifact(newArtifact, configurations));
     }
 
-    public DefaultIvyModuleResolveMetaData build() {
+    public DefaultIvyModuleResolveMetadata build() {
         ModuleDescriptorState descriptorState = IvyModuleDescriptorConverter.forIvyModuleDescriptor(ivyDescriptor);
         for (Artifact artifact : artifacts) {
             descriptorState.addArtifact(artifact.getArtifactName(), artifact.getConfigurations());
         }
-        return new DefaultIvyModuleResolveMetaData(descriptorState.getComponentIdentifier(), descriptorState);
+        return new DefaultIvyModuleResolveMetadata(descriptorState.getComponentIdentifier(), descriptorState);
     }
 }

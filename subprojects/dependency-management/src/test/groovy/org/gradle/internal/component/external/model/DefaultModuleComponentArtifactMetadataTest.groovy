@@ -20,30 +20,30 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Specification
 
-class DefaultModuleComponentArtifactMetaDataTest extends Specification {
+class DefaultModuleComponentArtifactMetadataTest extends Specification {
     def "has reasonable string representation"() {
         expect:
-        def artifact = new DefaultModuleComponentArtifactMetaData(Stub(ModuleComponentIdentifier), ivyArtifact("name", "type", "ext", 'classifier'))
+        def artifact = new DefaultModuleComponentArtifactMetadata(Stub(ModuleComponentIdentifier), ivyArtifact("name", "type", "ext", 'classifier'))
         artifact.toString() == artifact.id.toString()
     }
 
     def "extracts attributes from provided artifact instance"() {
         expect:
-        def artifact = new DefaultModuleComponentArtifactMetaData(Stub(ModuleComponentIdentifier), ivyArtifact("name", "type", "ext", 'classifier'))
+        def artifact = new DefaultModuleComponentArtifactMetadata(Stub(ModuleComponentIdentifier), ivyArtifact("name", "type", "ext", 'classifier'))
         artifact.name.name == "name"
         artifact.name.type == "type"
         artifact.name.extension == "ext"
         artifact.name.classifier == "classifier"
 
         and:
-        def noClassifier = new DefaultModuleComponentArtifactMetaData(Stub(ModuleComponentIdentifier), ivyArtifact("name", "type", "ext"))
+        def noClassifier = new DefaultModuleComponentArtifactMetadata(Stub(ModuleComponentIdentifier), ivyArtifact("name", "type", "ext"))
         noClassifier.name.name == "name"
         noClassifier.name.type == "type"
         noClassifier.name.extension == "ext"
         noClassifier.name.classifier == null
 
         and:
-        def noExtension = new DefaultModuleComponentArtifactMetaData(Stub(ModuleComponentIdentifier), ivyArtifact("name", "type", null))
+        def noExtension = new DefaultModuleComponentArtifactMetadata(Stub(ModuleComponentIdentifier), ivyArtifact("name", "type", null))
         noExtension.name.name == "name"
         noExtension.name.type == "type"
         noExtension.name.extension == null

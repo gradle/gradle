@@ -23,16 +23,16 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.model.DependencyMetaData
 
-class DefaultIvyModuleResolveMetaDataTest extends AbstractModuleComponentResolveMetaDataTest {
+class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
 
     @Override
-    AbstractModuleComponentResolveMetaData createMetaData(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
+    AbstractModuleComponentResolveMetadata createMetaData(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
         moduleDescriptor.getModuleRevisionId() >> IvyUtil.createModuleRevisionId(id)
         moduleDescriptor.getConfigurationsNames() >> new String[0]
         moduleDescriptor.getAllArtifacts() >> new Artifact[0]
         moduleDescriptor.getDependencies() >> new DependencyDescriptor[0]
         moduleDescriptor.getAllExcludeRules() >> new ExcludeRule[0]
-        return new DefaultIvyModuleResolveMetaData(id, moduleDescriptor)
+        return new DefaultIvyModuleResolveMetadata(id, moduleDescriptor)
     }
 
     def "can make a copy"() {
@@ -61,7 +61,7 @@ class DefaultIvyModuleResolveMetaDataTest extends AbstractModuleComponentResolve
     def "getBranch returns branch from moduleDescriptor" () {
         setup:
         moduleDescriptor.setBranch(expectedBranch)
-        def metaDataWithBranch = new DefaultIvyModuleResolveMetaData(id, moduleDescriptor)
+        def metaDataWithBranch = new DefaultIvyModuleResolveMetadata(id, moduleDescriptor)
 
         expect:
         metaDataWithBranch.branch == expectedBranch

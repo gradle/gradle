@@ -20,8 +20,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetaData
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import spock.lang.Specification
 
 class IvyResourcePatternTest extends Specification {
@@ -82,8 +82,8 @@ class IvyResourcePatternTest extends Specification {
         "org.group" | "projectA" | 'prefix/org.group-projectA/[revision]/ivys/[revision]/ivy.xml'
     }
 
-    private static ModuleComponentArtifactMetaData artifact(String group, String name, String version) {
+    private static ModuleComponentArtifactMetadata artifact(String group, String name, String version) {
         final componentIdentifier = DefaultModuleComponentIdentifier.newId(group, name, version)
-        return new DefaultModuleComponentArtifactMetaData(new DefaultModuleComponentArtifactIdentifier(componentIdentifier, "ivy", "ivy", "xml"))
+        return new DefaultModuleComponentArtifactMetadata(new DefaultModuleComponentArtifactIdentifier(componentIdentifier, "ivy", "ivy", "xml"))
     }
 }

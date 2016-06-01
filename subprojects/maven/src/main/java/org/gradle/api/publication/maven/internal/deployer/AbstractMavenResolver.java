@@ -40,8 +40,8 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
-import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
-import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
+import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
+import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.listener.ActionBroadcast;
@@ -84,8 +84,8 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
 
     protected abstract MavenPublishAction createPublishAction(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
 
-    public void publish(IvyModulePublishMetaData moduleVersion) {
-        for (IvyModuleArtifactPublishMetaData artifactMetadata : moduleVersion.getArtifacts()) {
+    public void publish(IvyModulePublishMetadata moduleVersion) {
+        for (IvyModuleArtifactPublishMetadata artifactMetadata : moduleVersion.getArtifacts()) {
             IvyArtifactName artifact = artifactMetadata.getArtifactName();
             ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(artifactMetadata.getId().getComponentIdentifier());
             Map<String, String> attributes = Collections.singletonMap("classifier", artifact.getClassifier());

@@ -26,7 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
-import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData
+import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData
 import org.gradle.util.TestUtil
@@ -68,7 +68,7 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         when:
         Configuration config1 = createNamesAndExtendedConfigurationStub("conf1");
         Configuration config2 = createNamesAndExtendedConfigurationStub("conf2", config1);
-        DefaultIvyModulePublishMetaData metaData = new DefaultIvyModulePublishMetaData(componentId, "status");
+        DefaultIvyModulePublishMetadata metaData = new DefaultIvyModulePublishMetadata(componentId, "status");
 
         and:
         converter.addConfigurations(metaData, WrapUtil.toSet(config1, config2));

@@ -19,7 +19,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentUsage
@@ -188,7 +188,7 @@ class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
     def "retrieves and caches artifacts"() {
         def result = Mock(BuildableArtifactResolveResult)
         def artifactId = Stub(ModuleComponentArtifactIdentifier)
-        def artifact = Stub(ModuleComponentArtifactMetaData) {
+        def artifact = Stub(ModuleComponentArtifactMetadata) {
             getId() >> artifactId
         }
         def moduleSource = Mock(ModuleSource)
@@ -215,7 +215,7 @@ class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
     def "uses artifacts from cache"() {
         def result = Mock(BuildableArtifactResolveResult)
         def artifactId = Stub(ModuleComponentArtifactIdentifier)
-        def artifact = Stub(ModuleComponentArtifactMetaData) {
+        def artifact = Stub(ModuleComponentArtifactMetadata) {
             getId() >> artifactId
         }
         def moduleSource = Mock(ModuleSource)

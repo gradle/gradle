@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetaData
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId
@@ -56,7 +56,7 @@ class M2ResourcePatternTest extends Specification {
         def pattern = new M2ResourcePattern("prefix/" + MavenPattern.M2_PATTERN)
         def snapshotId = new MavenUniqueSnapshotComponentIdentifier("group", "projectA", "1.2-SNAPSHOT", "2014-timestamp-3333")
 
-        def artifact1 = new DefaultModuleComponentArtifactMetaData(new DefaultModuleComponentArtifactIdentifier(snapshotId, "projectA", "pom", "pom"))
+        def artifact1 = new DefaultModuleComponentArtifactMetadata(new DefaultModuleComponentArtifactIdentifier(snapshotId, "projectA", "pom", "pom"))
 
         expect:
         pattern.getLocation(artifact1).path == 'prefix/group/projectA/1.2-SNAPSHOT/projectA-1.2-2014-timestamp-3333.pom'
@@ -120,8 +120,8 @@ class M2ResourcePatternTest extends Specification {
         thrown(UnsupportedOperationException)
     }
 
-    private static ModuleComponentArtifactMetaData artifact(String group, String name, String version) {
+    private static ModuleComponentArtifactMetadata artifact(String group, String name, String version) {
         final moduleVersionId = newId(group, name, version)
-        return new DefaultModuleComponentArtifactMetaData(new DefaultModuleComponentArtifactIdentifier(moduleVersionId, "ivy", "ivy", "xml"))
+        return new DefaultModuleComponentArtifactMetadata(new DefaultModuleComponentArtifactIdentifier(moduleVersionId, "ivy", "ivy", "xml"))
     }
 }

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DependencyMetaData
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification {
     final target = Mock(ModuleComponentRepositoryAccess)
-    final metaData = Mock(MutableModuleComponentResolveMetaData)
+    final metaData = Mock(MutableModuleComponentResolveMetadata)
     final requestedDependency = Mock(ComponentOverrideMetadata)
     final moduleComponentId = Mock(ModuleComponentIdentifier)
     final result = Mock(BuildableModuleComponentMetaDataResolveResult)

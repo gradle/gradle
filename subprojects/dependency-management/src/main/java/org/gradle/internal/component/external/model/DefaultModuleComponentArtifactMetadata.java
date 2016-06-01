@@ -22,14 +22,14 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultArtifactIdentifier;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-public class DefaultModuleComponentArtifactMetaData implements ModuleComponentArtifactMetaData {
+public class DefaultModuleComponentArtifactMetadata implements ModuleComponentArtifactMetadata {
     private final DefaultModuleComponentArtifactIdentifier id;
 
-    public DefaultModuleComponentArtifactMetaData(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
+    public DefaultModuleComponentArtifactMetadata(ModuleComponentIdentifier componentIdentifier, IvyArtifactName artifact) {
         this(new DefaultModuleComponentArtifactIdentifier(componentIdentifier, artifact));
     }
 
-    public DefaultModuleComponentArtifactMetaData(ModuleComponentArtifactIdentifier moduleComponentArtifactIdentifier) {
+    public DefaultModuleComponentArtifactMetadata(ModuleComponentArtifactIdentifier moduleComponentArtifactIdentifier) {
         this.id = (DefaultModuleComponentArtifactIdentifier) moduleComponentArtifactIdentifier;
     }
 
