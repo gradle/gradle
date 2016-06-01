@@ -79,12 +79,21 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         return doCreateFilteringClassLoader(parent, classLoaderSpec);
     }
 
+    @Override
+    public ClassLoader createClassLoader(ClassLoader parent, ClassPath classPath, ClassLoaderCreator creator) {
+        return doCreateClassLoader(parent, classPath, creator);
+    }
+
     protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classpath) {
         return new VisitableURLClassLoader(parent, classpath);
     }
 
     protected ClassLoader doCreateFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
         return new FilteringClassLoader(parent, spec);
+    }
+
+    protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classPath, ClassLoaderCreator creator) {
+        return creator.create(parent, classPath);
     }
 
     private static void makeServiceVisible(ServiceLocator locator, FilteringClassLoader.Spec classLoaderSpec, Class<?> serviceType) {

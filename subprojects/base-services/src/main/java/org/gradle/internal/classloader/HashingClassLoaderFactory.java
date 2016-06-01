@@ -32,16 +32,28 @@ public class HashingClassLoaderFactory extends DefaultClassLoaderFactory {
         this.snapshotter = snapshotter;
     }
 
+    @Override
     protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classpath) {
         ClassLoader classLoader = super.doCreateClassLoader(parent, classpath);
-        HashCode hashCode = snapshotter.snapshot(classpath).getStrongHash();
-        return new HashedClassLoader(classLoader, hashCode);
+        return createClassPathHashedLoader(classLoader, classpath);
     }
 
+    @Override
     protected ClassLoader doCreateFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
         ClassLoader classLoader = super.doCreateFilteringClassLoader(parent, spec);
         HashCode filterHash = calculateFilterSpecHash(spec);
         return new HashedClassLoader(classLoader, filterHash);
+    }
+
+    @Override
+    protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classPath, ClassLoaderCreator creator) {
+        ClassLoader classLoader = super.doCreateClassLoader(parent, classPath, creator);
+        return createClassPathHashedLoader(classLoader, classPath);
+    }
+
+    private ClassLoader createClassPathHashedLoader(ClassLoader classLoader, ClassPath classpath) {
+        HashCode hashCode = snapshotter.snapshot(classpath).getStrongHash();
+        return new HashedClassLoader(classLoader, hashCode);
     }
 
     private static HashCode calculateFilterSpecHash(FilteringClassLoader.Spec spec) {

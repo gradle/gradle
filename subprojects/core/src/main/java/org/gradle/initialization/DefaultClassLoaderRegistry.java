@@ -35,7 +35,12 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
         apiOnlyClassLoader = restrictToGradleApi(runtimeClassLoader);
 
         ClassPath pluginsClassPath = classPathRegistry.getClassPath("GRADLE_EXTENSIONS");
-        extensionsClassLoader = new MixInLegacyTypesClassLoader(runtimeClassLoader, pluginsClassPath);
+        extensionsClassLoader = classLoaderFactory.createClassLoader(runtimeClassLoader, pluginsClassPath, new ClassLoaderFactory.ClassLoaderCreator() {
+            @Override
+            public ClassLoader create(ClassLoader parent, ClassPath classPath) {
+                return new MixInLegacyTypesClassLoader(parent, classPath);
+            }
+        });
 
         this.apiAndPluginsClassLoader = restrictToGradleApi(extensionsClassLoader);
     }
