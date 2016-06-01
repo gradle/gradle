@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -256,9 +255,12 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectPublicationRegistry();
     }
 
-    ProjectComponentRegistry createProjectComponentRegistry(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder, ServiceRegistry serviceRegistry) {
-        List<ProjectComponentProvider> providers = Lists.newArrayList(serviceRegistry.getAll(ProjectComponentProvider.class));
-        providers.add(new LocalProjectComponentProvider(projectRegistry, metaDataBuilder));
+    ProjectComponentProvider createProjectComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
+        return new LocalProjectComponentProvider(projectRegistry, metaDataBuilder);
+    }
+
+    ProjectComponentRegistry createProjectComponentRegistry(ServiceRegistry serviceRegistry) {
+        List<ProjectComponentProvider> providers = serviceRegistry.getAll(ProjectComponentProvider.class);
         return new DefaultProjectComponentRegistry(providers);
     }
 

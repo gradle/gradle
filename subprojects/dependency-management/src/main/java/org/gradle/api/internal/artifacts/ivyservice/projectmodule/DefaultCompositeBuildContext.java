@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -27,11 +28,8 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.initialization.ReportedException;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -39,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -81,12 +78,18 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
 
     @Override
     public File getProjectDirectory(ProjectComponentIdentifier project) {
-        RegisteredProject registeredProject = projectMetadata.get(project);
-        if (registeredProject == null) {
-            throw new IllegalStateException(String.format("Requested %s which was never registered", project));
-        }
+        RegisteredProject registeredProject = getRegisteredProject(project);
         return registeredProject.projectDirectory;
     }
+
+    @Override
+    public Set<ProjectComponentIdentifier> getAllProjects() {
+        return projectMetadata.keySet();
+    }
+
+    public Collection<ComponentArtifactMetaData> getAdditionalArtifacts(ProjectComponentIdentifier projectIdentifier) {
+        return getRegisteredProject(projectIdentifier).artifacts;
+     }
 
     @Override
     public void register(ModuleIdentifier moduleId, ProjectComponentIdentifier project, LocalComponentMetaData localComponentMetaData, File projectDirectory) {
@@ -100,32 +103,22 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
     }
 
     @Override
-    public Set<ProjectComponentIdentifier> getAllProjects() {
-        return projectMetadata.keySet();
+    public void registerArtifact(ProjectComponentIdentifier identifier, ComponentArtifactMetaData componentArtifactMetaData) {
+        getRegisteredProject(identifier).artifacts.add(componentArtifactMetaData);
     }
 
-    @Override
-    public ComponentArtifactMetaData getImlArtifact(ProjectComponentIdentifier project) {
-        File projectDir = getProjectDirectory(project);
-
-        // TODO:DAZ This isn't good: doesn't take into account `idea` configuration of the project. Need this to be "published" by project.
-        String name = getProject(project).getId().getName();
-        IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(name, "iml", "iml", null);
-
-        File imlFile = new File(projectDir, name + ".iml");
-
-        String rootProjectPath = project.getProjectPath().split("::")[0] + "::";
-        ProjectComponentIdentifier rootProjectIdentifier = DefaultProjectComponentIdentifier.newId(rootProjectPath);
-        File buildDir = getProjectDirectory(rootProjectIdentifier);
-
-        String taskPath = project.getProjectPath().equals(rootProjectPath) ? ":ideaModule" : project.getProjectPath().substring(rootProjectPath.length() - 1) + ":ideaModule";
-
-        return new CompositeProjectComponentArtifactMetaData(project, ivyArtifactName, imlFile, buildDir, Collections.singleton(taskPath));
+    private RegisteredProject getRegisteredProject(ProjectComponentIdentifier project) {
+        RegisteredProject registeredProject = projectMetadata.get(project);
+        if (registeredProject == null) {
+            throw new IllegalStateException(String.format("Requested %s which was never registered", project));
+        }
+        return registeredProject;
     }
 
     private static class RegisteredProject {
         LocalComponentMetaData metaData;
         File projectDirectory;
+        Collection<ComponentArtifactMetaData> artifacts = Lists.newArrayList();
 
         public RegisteredProject(LocalComponentMetaData metaData, File projectDirectory) {
             this.metaData = metaData;

@@ -55,13 +55,27 @@ public class CompositeBuildIdeProjectResolver {
 
     // TODO:DAZ Push this into dependency resolution, getting artifact by type
     public File getImlArtifact(ProjectComponentIdentifier project) {
-        ComponentArtifactMetaData artifactMetaData = getRegistry().getImlArtifact(project);
+        ComponentArtifactMetaData artifactMetaData = findImlArtifact(project);
         for (ProjectArtifactBuilder artifactBuilder : artifactBuilders) {
             artifactBuilder.build(artifactMetaData);
         }
         // TODO:DAZ Introduce a `LocalComponentArtifactMetaData` interface.
         return ((LocalComponentArtifactIdentifier) artifactMetaData).getFile();
     }
+
+    private ComponentArtifactMetaData findImlArtifact(ProjectComponentIdentifier project) {
+        return findArtifact(project, "iml");
+    }
+
+    private ComponentArtifactMetaData findArtifact(ProjectComponentIdentifier project, String type) {
+        for (ComponentArtifactMetaData artifactMetaData : getRegistry().getAdditionalArtifacts(project)) {
+            if (artifactMetaData.getName().getType().equals(type)) {
+                return artifactMetaData;
+            }
+        }
+        throw new IllegalArgumentException("No artifact with type: " + type);
+    }
+
 
     private CompositeProjectComponentRegistry getRegistry() {
         if (discovered == null) {

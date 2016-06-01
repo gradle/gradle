@@ -17,7 +17,9 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetaData;
 
 public interface ProjectComponentProvider {
     LocalComponentMetaData getProject(ProjectComponentIdentifier projectIdentifier);
+    Iterable<ComponentArtifactMetaData> getAdditionalArtifacts(ProjectComponentIdentifier project);
 }

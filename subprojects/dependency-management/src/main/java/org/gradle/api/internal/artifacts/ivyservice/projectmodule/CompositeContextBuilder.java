@@ -70,14 +70,18 @@ public class CompositeContextBuilder implements BuildActionRunner {
     }
 
     private void registerProject(String buildName, ProjectInternal project) {
-        ProjectComponentRegistry projectComponentRegistry = project.getServices().get(ProjectComponentRegistry.class);
+        File buildDir = project.getRootDir();
+        ProjectComponentProvider projectComponentProvider = project.getServices().get(ProjectComponentProvider.class);
         ProjectComponentIdentifier originalIdentifier = DefaultProjectComponentIdentifier.newId(project.getPath());
-        DefaultLocalComponentMetaData originalComponent = (DefaultLocalComponentMetaData) projectComponentRegistry.getProject(originalIdentifier);
+        DefaultLocalComponentMetaData originalComponent = (DefaultLocalComponentMetaData) projectComponentProvider.getProject(originalIdentifier);
 
         ProjectComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(createExternalProjectPath(buildName, project.getPath()));
-        LocalComponentMetaData compositeComponent = createCompositeCopy(buildName, componentIdentifier, originalComponent, project.getRootDir());
+        LocalComponentMetaData compositeComponent = createCompositeCopy(buildName, componentIdentifier, originalComponent, buildDir);
 
         context.register(compositeComponent.getId().getModule(), componentIdentifier, compositeComponent, project.getProjectDir());
+        for (ComponentArtifactMetaData artifactMetaData : projectComponentProvider.getAdditionalArtifacts(originalIdentifier)) {
+            context.registerArtifact(componentIdentifier, createCompositeCopy(componentIdentifier, artifactMetaData, buildDir));
+        }
     }
 
     private LocalComponentMetaData createCompositeCopy(String buildName, ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetaData originalComponentMetadata, File buildDir) {
@@ -116,7 +120,12 @@ public class CompositeContextBuilder implements BuildActionRunner {
     }
 
     private String createExternalProjectPath(String buildName, String projectPath) {
-        return buildName + ":" +  projectPath;
+        return buildName + ":" + projectPath;
+    }
+
+    private ComponentArtifactMetaData createCompositeCopy(ProjectComponentIdentifier project, ComponentArtifactMetaData artifactMetaData, File buildDir) {
+        File artifactFile = ((LocalComponentArtifactIdentifier) artifactMetaData).getFile();
+        return new CompositeProjectComponentArtifactMetaData(project, artifactMetaData.getName(), artifactFile, buildDir, getArtifactTasks(artifactMetaData));
     }
 
     public CompositeBuildContext build() {
@@ -126,14 +135,24 @@ public class CompositeContextBuilder implements BuildActionRunner {
     private Set<String> determineTargetTasks(LocalConfigurationMetaData configuration) {
         Set<String> taskNames = Sets.newLinkedHashSet();
         for (ComponentArtifactMetaData artifactMetaData : configuration.getArtifacts()) {
-            if (artifactMetaData instanceof Buildable) {
-                Buildable publishArtifact = (Buildable) artifactMetaData;
-                Set<? extends Task> dependencies = publishArtifact.getBuildDependencies().getDependencies(null);
-                for (Task dependency : dependencies) {
-                    taskNames.add(dependency.getPath());
-                }
-            }
+            addArtifactTasks(taskNames, artifactMetaData);
         }
         return taskNames;
+    }
+
+    private Set<String> getArtifactTasks(ComponentArtifactMetaData artifactMetaData) {
+        Set<String> taskNames = Sets.newLinkedHashSet();
+        addArtifactTasks(taskNames, artifactMetaData);
+        return taskNames;
+    }
+
+    private void addArtifactTasks(Set<String> taskNames, ComponentArtifactMetaData artifactMetaData) {
+        if (artifactMetaData instanceof Buildable) {
+            Buildable publishArtifact = (Buildable) artifactMetaData;
+            Set<? extends Task> dependencies = publishArtifact.getBuildDependencies().getDependencies(null);
+            for (Task dependency : dependencies) {
+                taskNames.add(dependency.getPath());
+            }
+        }
     }
 }
