@@ -1257,8 +1257,16 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 if (schema != null) {
                     schemaStream = URLHandlerRegistry.getDefault().openStream(schema);
                 }
-                SAXParser parser = newSAXParser(schema, schemaStream);
-                parser.parse(xmlStream, handler);
+
+                // Set the context classloader to our classloader, to work around how JAXP locates implementation classes
+                ClassLoader original = Thread.currentThread().getContextClassLoader();
+                Thread.currentThread().setContextClassLoader(PomReader.class.getClassLoader());
+                try {
+                    SAXParser parser = newSAXParser(schema, schemaStream);
+                    parser.parse(xmlStream, handler);
+                } finally {
+                    Thread.currentThread().setContextClassLoader(original);
+                }
             } finally {
                 if (schemaStream != null) {
                     try {

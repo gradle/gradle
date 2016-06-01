@@ -199,8 +199,16 @@ public class PomReader implements PomParent {
             }
         };
         InputStream dtdStream = new AddDTDFilterInputStream(stream);
-        DocumentBuilder docBuilder = XMLHelper.getDocBuilder(entityResolver);
-        return docBuilder.parse(dtdStream, systemId);
+
+        // Set the context classloader to our classloader, to work around how JAXP locates implementation classes
+        ClassLoader original = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(PomReader.class.getClassLoader());
+        try {
+            DocumentBuilder docBuilder = XMLHelper.getDocBuilder(entityResolver);
+            return docBuilder.parse(dtdStream, systemId);
+        } finally {
+            Thread.currentThread().setContextClassLoader(original);
+        }
     }
 
     public boolean hasParent() {
