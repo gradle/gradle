@@ -77,6 +77,10 @@ Add-->
 
 A `configure()` method with an `Action` or `Closure` parameter was added to both `TaskInputs` and `TaskOutputs` to allow configuring the task's inputs and outputs directly before the task is to be executed.
 
+### Up-to-date checks more robust against task implementation changes
+
+Previously if a task's implementation class name changed, the class was deemed out-of-date even if its inputs and outputs matched the previous execution. However, if only the code of the task, or a dependent library changed, the task was still considered up-to-date. Since this version Gradle notices if the code of a task or its dependencies change between executions, and marks tasks as out-of-date when needed.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
