@@ -15,29 +15,25 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.Task;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetaData;
-import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetaData;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
-
-import java.io.File;
-import java.util.Collections;
 
 public class LocalProjectComponentProvider implements ProjectComponentProvider {
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ConfigurationComponentMetaDataBuilder metaDataBuilder;
+    private final ListMultimap<ProjectComponentIdentifier, ComponentArtifactMetaData> registeredArtifacts = ArrayListMultimap.create();
 
     public LocalProjectComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
         this.projectRegistry = projectRegistry;
@@ -62,20 +58,12 @@ public class LocalProjectComponentProvider implements ProjectComponentProvider {
     }
 
     @Override
-    public Iterable<ComponentArtifactMetaData> getAdditionalArtifacts(ProjectComponentIdentifier projectIdentifier) {
-        ProjectInternal project = projectRegistry.getProject(projectIdentifier.getProjectPath());
-        if (project == null || project.getExtensions().findByName("idea") == null) {
-            return Collections.emptyList();
-        }
-        return Collections.singleton(createImlArtifact(projectIdentifier, project));
+    public void registerAdditionalArtifact(ProjectComponentIdentifier project, ComponentArtifactMetaData artifact) {
+        registeredArtifacts.put(project, artifact);
     }
 
-    private ComponentArtifactMetaData createImlArtifact(ProjectComponentIdentifier projectId, ProjectInternal project) {
-        String name = project.getName();
-        File imlFile = new File(project.getProjectDir(), name + ".iml");
-        String taskName = project.getPath().equals(":") ? ":ideaModule" : project.getPath() + ":ideaModule";
-        Task byName = project.getTasks().getByPath(taskName);
-        PublishArtifact publishArtifact = new DefaultPublishArtifact(name, "iml", "iml", null, null, imlFile, byName);
-        return new PublishArtifactLocalArtifactMetaData(projectId, "IML-FILE", publishArtifact);
+    @Override
+    public Iterable<ComponentArtifactMetaData> getAdditionalArtifacts(ProjectComponentIdentifier projectIdentifier) {
+        return registeredArtifacts.get(projectIdentifier);
     }
 }

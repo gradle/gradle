@@ -19,14 +19,23 @@ import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.ConventionMapping
 import org.gradle.api.internal.IConventionAware
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentProvider
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
+import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetaData
+import org.gradle.internal.component.model.ComponentArtifactMetaData
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin
@@ -81,6 +90,24 @@ class IdeaPlugin extends IdePlugin {
         configureForJavaPlugin(project)
         configureForScalaPlugin()
         hookDeduplicationToTheRoot(project)
+        registerImlArtifact()
+    }
+
+    void registerImlArtifact() {
+        def projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectComponentProvider)
+        def projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
+        def imlArtifact = createImlArtifact()
+        projectComponentProvider.registerAdditionalArtifact(projectId, imlArtifact)
+    }
+
+    private ComponentArtifactMetaData createImlArtifact() {
+        ProjectComponentIdentifier projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
+        String name = project.getName();
+        File imlFile = new File(project.getProjectDir(), name + ".iml");
+        String taskName = project.getPath().equals(":") ? ":ideaModule" : project.getPath() + ":ideaModule";
+        Task byName = project.getTasks().getByPath(taskName);
+        PublishArtifact publishArtifact = new DefaultPublishArtifact(name, "iml", "iml", null, null, imlFile, byName);
+        return new PublishArtifactLocalArtifactMetaData(projectId, "IML-FILE", publishArtifact);
     }
 
     void hookDeduplicationToTheRoot(Project project) {

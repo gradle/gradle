@@ -103,8 +103,8 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
     }
 
     @Override
-    public void registerArtifact(ProjectComponentIdentifier identifier, ComponentArtifactMetaData componentArtifactMetaData) {
-        getRegisteredProject(identifier).artifacts.add(componentArtifactMetaData);
+    public void registerAdditionalArtifact(ProjectComponentIdentifier project, ComponentArtifactMetaData artifact) {
+        getRegisteredProject(project).artifacts.add(artifact);
     }
 
     private RegisteredProject getRegisteredProject(ProjectComponentIdentifier project) {

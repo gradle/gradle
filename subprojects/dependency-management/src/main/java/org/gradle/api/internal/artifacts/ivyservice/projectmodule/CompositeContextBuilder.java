@@ -80,7 +80,7 @@ public class CompositeContextBuilder implements BuildActionRunner {
 
         context.register(compositeComponent.getId().getModule(), componentIdentifier, compositeComponent, project.getProjectDir());
         for (ComponentArtifactMetaData artifactMetaData : projectComponentProvider.getAdditionalArtifacts(originalIdentifier)) {
-            context.registerArtifact(componentIdentifier, createCompositeCopy(componentIdentifier, artifactMetaData, buildDir));
+            context.registerAdditionalArtifact(componentIdentifier, createCompositeCopy(componentIdentifier, artifactMetaData, buildDir));
         }
     }
 
