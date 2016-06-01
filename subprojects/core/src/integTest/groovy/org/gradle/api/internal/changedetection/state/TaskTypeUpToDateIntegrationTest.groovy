@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
@@ -91,6 +92,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.empty
     }
 
+    @Issue("https://issues.gradle.org/browse/GRADLE-2936")
     def "task declared in buildSrc is not up-to-date after dependencies change"() {
         file("input.txt") << "input"
 
