@@ -28,8 +28,13 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.ConventionMapping
 import org.gradle.api.internal.IConventionAware
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentProvider
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
@@ -38,6 +43,9 @@ import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
+import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
+import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ear.EarPlugin
@@ -87,19 +95,44 @@ class EclipsePlugin extends IdePlugin {
         configureEclipseJdt(project, model)
         configureEclipseClasspath(project, model)
 
-        hookDeduplicationToTheRoot(project)
+        processModulesForAllProjects(project)
 
         applyEclipseWtpPluginOnWebProjects(project)
     }
 
-    void hookDeduplicationToTheRoot(Project project) {
+    void processModulesForAllProjects(Project project) {
+        // Only add processing once
         if (project.parent == null) {
-            project.gradle.projectsEvaluated(new Closure(this, this) {
-                public void doCall() {
-                    makeSureProjectNamesAreUnique()
-                }
-            })
+            project.gradle.projectsEvaluated {
+                makeSureProjectNamesAreUnique()
+                // This needs to happen after de-duplication
+                registerEclipseArtifacts()
+            }
         }
+    }
+
+    private void registerEclipseArtifacts() {
+        def projectsWithIml = project.allprojects.findAll({ it.plugins.hasPlugin(EclipsePlugin) })
+        projectsWithIml.each {
+            registerEclipseArtifacts(it)
+        }
+    }
+
+    private static void registerEclipseArtifacts(Project project) {
+        def projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectComponentProvider)
+        def projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
+        String projectName = project.extensions.getByType(EclipseModel).project.name
+        projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("project", projectId, projectName, project))
+        projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("classpath", projectId, projectName, project))
+    }
+
+    private static ComponentArtifactMetadata createArtifact(String extension, ProjectComponentIdentifier projectId, String projectName, Project project) {
+        File projectFile = new File(project.getProjectDir(), "." + extension);
+        String taskName = project.getPath().equals(":") ? ":eclipseProject" : project.getPath() + ":eclipseProject";
+        Task byName = project.getTasks().getByPath(taskName);
+        def type = "eclipse." + extension
+        PublishArtifact publishArtifact = new DefaultPublishArtifact(projectName, extension, type, null, null, projectFile, byName);
+        return new PublishArtifactLocalArtifactMetadata(projectId, type, publishArtifact);
     }
 
     public void makeSureProjectNamesAreUnique() {

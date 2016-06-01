@@ -18,6 +18,9 @@ package org.gradle.plugins.ide.eclipse.model.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
@@ -39,10 +42,13 @@ public class EclipseDependenciesCreator {
 
     private final IdeDependenciesExtractor dependenciesExtractor;
     private final EclipseClasspath classpath;
+    private final ProjectDependencyBuilder projectDependencyBuilder;
 
     public EclipseDependenciesCreator(EclipseClasspath classpath) {
         this.dependenciesExtractor = new IdeDependenciesExtractor();
         this.classpath = classpath;
+        ServiceRegistry serviceRegistry = ((ProjectInternal) classpath.getProject()).getServices();
+        this.projectDependencyBuilder = new ProjectDependencyBuilder(new CompositeBuildIdeProjectResolver(serviceRegistry));
     }
 
     public List<AbstractClasspathEntry> createDependencyEntries() {
@@ -63,7 +69,7 @@ public class EclipseDependenciesCreator {
 
         Collection<IdeProjectDependency> projectDependencies = dependenciesExtractor.extractProjectDependencies(classpath.getProject(), classpath.getPlusConfigurations(), classpath.getMinusConfigurations());
         for (IdeProjectDependency projectDependency : projectDependencies) {
-            projects.add(new ProjectDependencyBuilder().build(projectDependency));
+            projects.add(projectDependencyBuilder.build(projectDependency));
         }
         return projects;
     }

@@ -16,26 +16,25 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import org.gradle.api.Project;
-import org.gradle.plugins.ide.eclipse.EclipsePlugin;
-import org.gradle.plugins.ide.eclipse.model.EclipseModel;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 
 public class ProjectDependencyBuilder {
+    private final CompositeBuildIdeProjectResolver ideProjectResolver;
+
+    public ProjectDependencyBuilder(CompositeBuildIdeProjectResolver ideProjectResolver) {
+        this.ideProjectResolver = ideProjectResolver;
+    }
+
     public ProjectDependency build(IdeProjectDependency dependency) {
         return buildProjectDependency(determineProjectName(dependency), dependency.getProjectPath());
     }
 
     private String determineProjectName(IdeProjectDependency dependency) {
-        Project project = dependency.getProject();
-        if (project == null) {
-            return dependency.getProjectName();
-        } else if (project.getPlugins().hasPlugin(EclipsePlugin.class)) {
-            return project.getExtensions().getByType(EclipseModel.class).getProject().getName();
-        } else {
-            return project.getName();
-        }
+        ComponentArtifactMetadata eclipseProjectArtifact = ideProjectResolver.resolveArtifact(dependency.getProjectId(), "eclipse.project");
+        return eclipseProjectArtifact == null ? dependency.getProjectName() : eclipseProjectArtifact.getName().getName();
     }
 
     private ProjectDependency buildProjectDependency(String name, String projectPath) {
