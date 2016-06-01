@@ -29,13 +29,15 @@ import org.gradle.plugin.internal.InvalidPluginIdException;
 import org.gradle.plugin.internal.PluginId;
 import org.gradle.plugin.use.PluginDependencySpec;
 
-import static org.gradle.groovy.scripts.internal.AstUtils.isString;
+import static org.gradle.groovy.scripts.internal.AstUtils.hasSingleConstantArgOfType;
+import static org.gradle.groovy.scripts.internal.AstUtils.isOfType;
 
 public class PluginUseScriptBlockMetadataExtractor {
 
-    public static final String INVALID_ARGUMENT_LIST = "argument list must be exactly 1 literal non empty string";
+    public static final String NEED_SINGLE_BOOLEAN = "argument list must be exactly 1 literal boolean";
+    public static final String NEED_SINGLE_STRING = "argument list must be exactly 1 literal non empty string";
     public static final String BASE_MESSAGE = "only id(String) method calls allowed in plugins {} script block";
-    public static final String VERSION_MESSAGE = "only version(String) method calls allowed in plugins {} script block";
+    public static final String EXTENDED_MESSAGE = "only version(String) and apply(boolean) method calls allowed in plugins {} script block";
     private static final String NOT_LITERAL_METHOD_NAME = "method name must be literal (i.e. not a variable)";
     private static final String NOT_LITERAL_ID_METHOD_NAME = BASE_MESSAGE + " - " + NOT_LITERAL_METHOD_NAME;
 
@@ -73,17 +75,18 @@ public class PluginUseScriptBlockMetadataExtractor {
 
                 if (call.getMethod() instanceof ConstantExpression) {
                     ConstantExpression methodName = (ConstantExpression) call.getMethod();
-                    if (isString(methodName)) {
+                    if (isOfType(methodName, String.class)) {
                         String methodNameText = methodName.getText();
                         if (methodNameText.equals("id") || methodNameText.equals("version")) {
-                            ConstantExpression argumentExpression = hasSingleConstantStringArg(call);
+                            ConstantExpression argumentExpression = hasSingleConstantArgOfType(call, String.class);
                             if (argumentExpression == null) {
+                                restrict(call, formatErrorMessage(NEED_SINGLE_STRING));
                                 return;
                             }
 
                             String argStringValue = argumentExpression.getValue().toString();
                             if (argStringValue.length() == 0) {
-                                restrict(argumentExpression, formatErrorMessage(INVALID_ARGUMENT_LIST));
+                                restrict(argumentExpression, formatErrorMessage(NEED_SINGLE_STRING));
                                 return;
                             }
 
@@ -101,19 +104,27 @@ public class PluginUseScriptBlockMetadataExtractor {
                             }
 
                             if (methodName.getText().equals("version")) {
-                                Expression objectExpression = call.getObjectExpression();
-                                if (objectExpression instanceof MethodCallExpression) {
-                                    PluginDependencySpec spec = objectExpression.getNodeMetaData(PluginDependencySpec.class);
-                                    if (spec != null) {
-                                        spec.version(argStringValue);
-                                    }
-                                } else {
-                                    restrict(call, formatErrorMessage(BASE_MESSAGE));
+                                PluginDependencySpec spec = getSpecFor(call);
+                                if (spec == null) {
+                                    return;
                                 }
+                                spec.version(argStringValue);
+                                call.setNodeMetaData(PluginDependencySpec.class, spec);
                             }
+                        } else if (methodNameText.equals("apply")) {
+                            ConstantExpression arguments = hasSingleConstantArgOfType(call, boolean.class);
+                            if (arguments == null) {
+                                restrict(call, formatErrorMessage(NEED_SINGLE_BOOLEAN));
+                                return;
+                            }
+                            PluginDependencySpec spec = getSpecFor(call);
+                            if (spec == null) {
+                                return;
+                            }
+                            spec.apply((Boolean) arguments.getValue());
                         } else {
                             if (!call.isImplicitThis()) {
-                                restrict(methodName, formatErrorMessage(VERSION_MESSAGE));
+                                restrict(methodName, formatErrorMessage(EXTENDED_MESSAGE));
                             } else {
                                 restrict(methodName, formatErrorMessage(BASE_MESSAGE));
                             }
@@ -126,25 +137,14 @@ public class PluginUseScriptBlockMetadataExtractor {
                 }
             }
 
-            private ConstantExpression hasSingleConstantStringArg(MethodCallExpression call) {
-                ArgumentListExpression argumentList = (ArgumentListExpression) call.getArguments();
-                if (argumentList.getExpressions().size() == 1) {
-                    Expression argumentExpression = argumentList.getExpressions().get(0);
-                    if (argumentExpression instanceof ConstantExpression) {
-                        ConstantExpression constantArgumentExpression = (ConstantExpression) argumentExpression;
-                        if (isString(constantArgumentExpression)) {
-                            return constantArgumentExpression;
-                        } else {
-                            restrict(constantArgumentExpression, formatErrorMessage(INVALID_ARGUMENT_LIST));
-                        }
-                    } else {
-                        restrict(argumentExpression, formatErrorMessage(INVALID_ARGUMENT_LIST));
-                    }
+            private PluginDependencySpec getSpecFor(MethodCallExpression call) {
+                Expression objectExpression = call.getObjectExpression();
+                if (objectExpression instanceof MethodCallExpression) {
+                    return objectExpression.getNodeMetaData(PluginDependencySpec.class);
                 } else {
-                    restrict(argumentList, formatErrorMessage(INVALID_ARGUMENT_LIST));
+                    restrict(call, formatErrorMessage(BASE_MESSAGE));
+                    return null;
                 }
-
-                return null;
             }
 
             @Override
@@ -153,6 +153,8 @@ public class PluginUseScriptBlockMetadataExtractor {
             }
         });
     }
+
+
 
     public PluginRequests getRequests() {
         return new DefaultPluginRequests(pluginRequestCollector.getRequests());

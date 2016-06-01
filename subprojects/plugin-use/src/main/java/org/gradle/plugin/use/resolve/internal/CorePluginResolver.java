@@ -48,6 +48,12 @@ public class CorePluginResolver implements PluginResolver {
                                     + "Such plugins are versioned as part of Gradle. Please remove the version number from the declaration."
                     );
                 }
+                if (!pluginRequest.isApply()) {
+                    throw new InvalidPluginRequestException(pluginRequest,
+                        "Plugin '" + id + "' is a core Gradle plugin, which is already on the classpath. "
+                            + "Requesting it with the 'apply false' option is a no-op."
+                    );
+                }
                 result.found(getDescription(), new SimplePluginResolution(plugin));
             }
         } else {

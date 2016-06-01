@@ -42,7 +42,7 @@ class CorePluginResolverTest extends Specification {
     def resolver = new CorePluginResolver(docRegistry, pluginRegistry)
 
     PluginRequest request(String id, String version = null) {
-        new DefaultPluginRequest(id, version, 1, new StringScriptSource("test", "test"))
+        new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
     }
 
     def "non core plugins are ignored"() {
