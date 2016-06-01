@@ -27,7 +27,7 @@ import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.ClassLoaderHasher;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
@@ -56,18 +56,18 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final CacheValidator validator;
     private final FileSnapshotter snapshotter;
     private final ClassLoaderCache classLoaderCache;
-    private final ClassLoaderHasher classLoaderHasher;
+    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler,
                                               ProgressLoggerFactory progressLoggerFactory, FileSnapshotter snapshotter, ClassLoaderCache classLoaderCache,
-                                              ClassLoaderHasher classLoaderHasher) {
+                                              ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.cacheRepository = cacheRepository;
         this.validator = validator;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
         this.snapshotter = snapshotter;
         this.classLoaderCache = classLoaderCache;
-        this.classLoaderHasher = classLoaderHasher;
+        this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
     }
 
     @Override
@@ -84,7 +84,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         final String sourceHash = hashFor(source);
         final String dslId = operation.getId();
-        final String classpathHash = dslId + classLoaderHasher.getHash(classLoader);
+        final String classpathHash = dslId + classLoaderHierarchyHasher.getHash(classLoader);
         final RemappingScriptSource remapped = new RemappingScriptSource(source);
 
         // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice

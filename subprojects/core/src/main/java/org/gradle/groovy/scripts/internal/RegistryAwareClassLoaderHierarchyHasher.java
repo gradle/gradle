@@ -18,13 +18,13 @@ package org.gradle.groovy.scripts.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.internal.classloader.AbstractClassLoaderHasher;
+import org.gradle.internal.classloader.AbstractClassLoaderHierarchyHasher;
 import org.gradle.util.GradleVersion;
 
 import java.util.Map;
 
-public class RegistryAwareClassLoaderHasher extends AbstractClassLoaderHasher {
-    public RegistryAwareClassLoaderHasher(ClassLoaderRegistry registry) {
+public class RegistryAwareClassLoaderHierarchyHasher extends AbstractClassLoaderHierarchyHasher {
+    public RegistryAwareClassLoaderHierarchyHasher(ClassLoaderRegistry registry) {
         super(collectKnownClassLoaders(registry));
     }
 

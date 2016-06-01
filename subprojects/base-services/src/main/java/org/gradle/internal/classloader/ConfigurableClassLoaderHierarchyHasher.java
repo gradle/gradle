@@ -18,17 +18,19 @@ package org.gradle.internal.classloader;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 
 import java.util.Map;
+import java.util.Set;
 
-public abstract class AbstractClassLoaderHasher implements ClassLoaderHasher {
+public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierarchyHasher {
     private static final byte[] UNKNOWN = "unknown".getBytes(Charsets.UTF_8);
     private final Map<ClassLoader, byte[]> knownClassLoaders;
 
-    protected AbstractClassLoaderHasher(Map<ClassLoader, String> knownClassLoaders) {
+    protected ConfigurableClassLoaderHierarchyHasher(Map<ClassLoader, String> knownClassLoaders) {
         ImmutableMap.Builder<ClassLoader, byte[]> hashesBuilder = ImmutableMap.builder();
         for (Map.Entry<ClassLoader, String> entry : knownClassLoaders.entrySet()) {
             hashesBuilder.put(entry.getKey(), entry.getValue().getBytes(Charsets.UTF_8));
@@ -45,6 +47,7 @@ public abstract class AbstractClassLoaderHasher implements ClassLoaderHasher {
 
     private class Visitor extends ClassLoaderVisitor {
         private final Hasher hasher = Hashing.md5().newHasher();
+        private final Set<ClassLoader> alreadyHashedLoaders = Sets.newHashSet();
 
         @Override
         public void visit(ClassLoader classLoader) {
@@ -60,6 +63,9 @@ public abstract class AbstractClassLoaderHasher implements ClassLoaderHasher {
         }
 
         private boolean addToHash(ClassLoader cl) {
+            if (alreadyHashedLoaders.contains(cl)) {
+                return true;
+            }
             byte[] knownId = knownClassLoaders.get(cl);
             if (knownId != null) {
                 hasher.putBytes(knownId);
@@ -70,6 +76,7 @@ public abstract class AbstractClassLoaderHasher implements ClassLoaderHasher {
             }
             if (cl instanceof HashedClassLoader) {
                 hasher.putBytes(((HashedClassLoader) cl).getClassLoaderHash().asBytes());
+                alreadyHashedLoaders.add(cl.getParent());
                 return true;
             }
             hasher.putBytes(UNKNOWN);

@@ -18,6 +18,9 @@ package org.gradle.internal.classloader;
 
 import com.google.common.hash.HashCode;
 
-public interface ClassLoaderHasher {
+/**
+ * Provides a combined hash for a hierarchy of classloaders.
+ */
+public interface ClassLoaderHierarchyHasher {
     HashCode getHash(ClassLoader classLoader);
 }

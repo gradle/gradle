@@ -28,7 +28,7 @@ import org.gradle.cache.PersistentCache
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.Transformer
-import org.gradle.internal.classloader.ClassLoaderHasher
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashValue
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -50,14 +50,14 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final CompileOperation<?> operation = Mock()
     final CachingFileSnapshotter snapshotter = Mock()
     final ClassLoaderCache classLoaderCache = Mock()
-    final classLoaderHasher = Mock(ClassLoaderHasher) {
+    final classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher) {
         getHash(classLoader) >> HashCode.fromLong(9999)
     }
     final File localDir = new File("local-dir")
     final File globalDir = new File("global-dir")
     final File classesDir = new File(globalDir, "classes")
     final File metadataDir = new File(globalDir, "metadata")
-    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory), snapshotter, classLoaderCache, classLoaderHasher)
+    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, validator, scriptCompilationHandler, Stub(ProgressLoggerFactory), snapshotter, classLoaderCache, classLoaderHierarchyHasher)
     final Action verifier = Stub()
     final CompiledScript compiledScript = Stub() {
         loadClass() >> Script
