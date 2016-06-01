@@ -66,4 +66,58 @@ class MixInClosurePropertiesAsMethodsDynamicObjectTest extends Specification {
         MissingMethodException e = thrown()
         e.method == "m"
     }
+
+    def "can invoke custom closure implementation"() {
+        def cl = new Closure(this, this) {
+            @Override
+            Object call(Object... args) {
+                return "result"
+            }
+        }
+
+        def obj1 = Mock(DynamicObject)
+        def obj2 = Mock(DynamicObject)
+        def obj3 = Mock(DynamicObject)
+        obj.setObjects(obj1, obj2, obj3)
+
+        given:
+        obj3.getProperty("m", _) >> { String name, GetPropertyResult r -> r.result(cl) }
+
+        expect:
+        obj.invokeMethod("m", [12] as Object[]) == "result"
+    }
+
+    def "can invoke curried closure"() {
+        def cl = { String result, Number n -> "$result: $n" }.curry("result")
+
+        def obj1 = Mock(DynamicObject)
+        def obj2 = Mock(DynamicObject)
+        def obj3 = Mock(DynamicObject)
+        obj.setObjects(obj1, obj2, obj3)
+
+        given:
+        obj3.getProperty("m", _) >> { String name, GetPropertyResult r -> r.result(cl) }
+
+        expect:
+        obj.invokeMethod("m", [12] as Object[]) == "result: 12"
+    }
+
+    def "fails when curried closure does not accept given parameters"() {
+        def cl = { String result, Number n -> "$result: $n" }.curry("result")
+
+        def obj1 = Mock(DynamicObject)
+        def obj2 = Mock(DynamicObject)
+        def obj3 = Mock(DynamicObject)
+        obj.setObjects(obj1, obj2, obj3)
+
+        given:
+        obj3.getProperty("m", _) >> { String name, GetPropertyResult r -> r.result(cl) }
+
+        when:
+        obj.invokeMethod("m", ["not-a-number"] as Object[])
+
+        then:
+        MissingMethodException e = thrown()
+        e.method == "doCall"
+    }
 }
