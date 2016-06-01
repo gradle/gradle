@@ -18,19 +18,20 @@ package org.gradle.internal.classloader;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
+import org.gradle.api.Nullable;
 
 import java.util.Map;
-import java.util.Set;
 
 public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierarchyHasher {
     private static final byte[] UNKNOWN = "unknown".getBytes(Charsets.UTF_8);
     private final Map<ClassLoader, byte[]> knownClassLoaders;
+    private final ClassLoaderHasher classLoaderHasher;
 
-    protected ConfigurableClassLoaderHierarchyHasher(Map<ClassLoader, String> knownClassLoaders) {
+    public ConfigurableClassLoaderHierarchyHasher(Map<ClassLoader, String> knownClassLoaders, ClassLoaderHasher classLoaderHasher) {
+        this.classLoaderHasher = classLoaderHasher;
         ImmutableMap.Builder<ClassLoader, byte[]> hashesBuilder = ImmutableMap.builder();
         for (Map.Entry<ClassLoader, String> entry : knownClassLoaders.entrySet()) {
             hashesBuilder.put(entry.getKey(), entry.getValue().getBytes(Charsets.UTF_8));
@@ -39,48 +40,56 @@ public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierar
     }
 
     @Override
-    public HashCode getHash(ClassLoader classLoader) {
+    public HashCode getLenientHash(ClassLoader classLoader) {
         Visitor visitor = new Visitor();
         visitor.visit(classLoader);
         return visitor.getHash();
     }
 
+    @Nullable
+    @Override
+    public HashCode getStrictHash(ClassLoader classLoader) {
+        Visitor visitor = new Visitor();
+        visitor.visit(classLoader);
+        return visitor.hasUnknown() ? null : visitor.getHash();
+    }
+
     private class Visitor extends ClassLoaderVisitor {
         private final Hasher hasher = Hashing.md5().newHasher();
-        private final Set<ClassLoader> alreadyHashedLoaders = Sets.newHashSet();
+        private boolean foundUnknown;
 
         @Override
         public void visit(ClassLoader classLoader) {
-            ClassLoader end = ClassLoader.getSystemClassLoader();
-            if (classLoader != null && classLoader != end) {
-                addToHash(classLoader);
+            if (addToHash(classLoader)) {
+                super.visit(classLoader);
             }
-            super.visit(classLoader);
         }
 
         public HashCode getHash() {
             return hasher.hash();
         }
 
+        public boolean hasUnknown() {
+            return foundUnknown;
+        }
+
         private boolean addToHash(ClassLoader cl) {
-            if (alreadyHashedLoaders.contains(cl)) {
-                return true;
-            }
             byte[] knownId = knownClassLoaders.get(cl);
             if (knownId != null) {
                 hasher.putBytes(knownId);
-                return true;
+                return false;
             }
             if (cl instanceof CachingClassLoader || cl instanceof MultiParentClassLoader) {
                 return true;
             }
-            if (cl instanceof HashedClassLoader) {
-                hasher.putBytes(((HashedClassLoader) cl).getClassLoaderHash().asBytes());
-                alreadyHashedLoaders.add(cl.getParent());
+            HashCode hash = classLoaderHasher.getHash(cl);
+            if (hash != null) {
+                hasher.putBytes(hash.asBytes());
                 return true;
             }
             hasher.putBytes(UNKNOWN);
-            return false;
+            foundUnknown = true;
+            return true;
         }
     }
 }

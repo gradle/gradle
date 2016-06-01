@@ -20,7 +20,6 @@ import org.gradle.TaskExecutionRequest;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classloader.HashedClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.SystemClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -59,10 +58,6 @@ public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
         if (spec instanceof FilteringClassLoader.Spec) {
             FilteringClassLoader.Spec clSpec = (FilteringClassLoader.Spec) spec;
             return new FilteringClassLoader(parent, clSpec);
-        }
-        if (spec instanceof HashedClassLoader.Spec) {
-            HashedClassLoader.Spec clSpec = (HashedClassLoader.Spec) spec;
-            return new HashedClassLoader(parent, clSpec.getClassLoaderHash());
         }
         throw new IllegalArgumentException(String.format("Don't know how to create a ClassLoader from spec %s", spec));
     }

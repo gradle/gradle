@@ -20,7 +20,6 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache
 import org.gradle.api.internal.initialization.loadercache.FileClassPathSnapshotter
 import org.gradle.internal.classloader.CachingClassLoader
-import org.gradle.internal.classloader.HashedClassLoader
 import org.gradle.internal.classloader.HashingClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -93,9 +92,8 @@ class DefaultClassLoaderScopeTest extends Specification {
         then:
         scope.exportClassLoader.getResource("root").text == "root"
         scope.exportClassLoader.getResource("foo").text == "foo"
-        scope.exportClassLoader instanceof HashedClassLoader
-        scope.exportClassLoader.parent instanceof URLClassLoader
-        scope.exportClassLoader.parent.parent.is rootClassLoader
+        scope.exportClassLoader instanceof URLClassLoader
+        scope.exportClassLoader.parent.is rootClassLoader
         scope.localClassLoader.is scope.exportClassLoader
     }
 
@@ -140,9 +138,8 @@ class DefaultClassLoaderScopeTest extends Specification {
         then:
         scope.localClassLoader.getResource("root").text == "root"
         scope.localClassLoader.getResource("foo").text == "foo"
-        scope.localClassLoader instanceof HashedClassLoader
-        scope.localClassLoader.parent instanceof URLClassLoader
-        scope.localClassLoader.parent.parent.is rootClassLoader
+        scope.localClassLoader instanceof URLClassLoader
+        scope.localClassLoader.parent.is rootClassLoader
         scope.exportClassLoader.is rootClassLoader
     }
 
@@ -158,9 +155,8 @@ class DefaultClassLoaderScopeTest extends Specification {
         then:
         scope.exportClassLoader.getResource("export").text == "bar"
         scope.exportClassLoader.getResource("local") == null
-        scope.exportClassLoader instanceof HashedClassLoader
-        scope.exportClassLoader.parent instanceof URLClassLoader
-        scope.exportClassLoader.parent.parent == rootClassLoader
+        scope.exportClassLoader instanceof URLClassLoader
+        scope.exportClassLoader.parent == rootClassLoader
 
         scope.localClassLoader instanceof CachingClassLoader
         scope.localClassLoader.getResource("export").text == "bar"

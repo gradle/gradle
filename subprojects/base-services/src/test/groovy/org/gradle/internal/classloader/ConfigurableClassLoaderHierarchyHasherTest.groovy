@@ -22,68 +22,54 @@ import com.google.common.hash.Hashing
 import spock.lang.Specification
 
 class ConfigurableClassLoaderHierarchyHasherTest extends Specification {
+    def classLoaderHasher = Mock(ClassLoaderHasher)
+    def runtimeLoader = getClass().getClassLoader()
+    def hasher = hasher((runtimeLoader): "system")
+
     def "hashes known classloader"() {
-        def runtimeLoader = Mock(ClassLoader)
-        def hasher = hasher([
-            (runtimeLoader): "system"
-        ])
         expect:
-        hasher.getHash(runtimeLoader) == hashFor("system")
+        bothHashes(hasher, runtimeLoader) == hashFor("system")
     }
 
     def "hashes unknown classloader"() {
-        def runtimeLoader = Mock(ClassLoader)
-        def hasher = hasher([:])
+        def unknownLoader = Mock(ClassLoader)
         expect:
-        hasher.getHash(runtimeLoader) == hashFor("unknown")
+        hasher.getLenientHash(unknownLoader) == hashFor("unknown")
+        hasher.getStrictHash(unknownLoader) == null
     }
 
     def "hashes hashed classloader"() {
-        def runtimeLoader = Mock(ClassLoader)
+        def hashedLoader = new DelegatingLoader(runtimeLoader)
         def hashedLoaderHash = HashCode.fromLong(123456)
-        def hashedLoader = new HashedClassLoader(runtimeLoader, hashedLoaderHash)
-        def hasher = hasher([:])
-        expect:
-        hasher.getHash(hashedLoader) == hashFor(hashedLoaderHash)
+
+        when:
+        bothHashes(hasher, hashedLoader) == hashFor(hashedLoaderHash)
+
+        then:
+        _ * classLoaderHasher.getHash(hashedLoader) >> hashedLoaderHash
     }
 
     def "hashes known classloader with parent"() {
-        def runtimeLoader = Mock(ClassLoader)
         def classLoader = new DelegatingLoader(runtimeLoader)
         def hasher = hasher([
             (runtimeLoader): "system",
             (classLoader): "this"
         ])
         expect:
-        hasher.getHash(classLoader) == hashFor("this", "system")
+        bothHashes(hasher, classLoader) == hashFor("this")
     }
 
     def "hashes unknown classloader with parent"() {
-        def runtimeLoader = Mock(ClassLoader)
         def classLoader = new DelegatingLoader(runtimeLoader)
-        def hasher = hasher([
-            (runtimeLoader): "system"
-        ])
         expect:
-        hasher.getHash(classLoader) == hashFor("unknown", "system")
+        hasher.getLenientHash(classLoader) == hashFor("unknown", "system")
+        hasher.getStrictHash(classLoader) == null
     }
 
-    def "hashes hashed classloader with parent"() {
-        def runtimeLoader = Mock(ClassLoader)
-        def classLoader = new DelegatingLoader(runtimeLoader)
-        def hashedLoaderHash = HashCode.fromLong(123456)
-        def hashedLoader = new HashedClassLoader(classLoader, hashedLoaderHash)
-        def hasher = hasher([
-            (runtimeLoader): "system"
-        ])
-        expect:
-        hasher.getHash(hashedLoader) == hashFor(hashedLoaderHash, "system")
-    }
-
-    private static ConfigurableClassLoaderHierarchyHasher hasher(Map<ClassLoader, String> classLoaders) {
+    private ConfigurableClassLoaderHierarchyHasher hasher(Map<ClassLoader, String> classLoaders) {
         classLoaders = new HashMap<>(classLoaders)
         classLoaders.put(ClassLoader.getSystemClassLoader(), "system")
-        return new ConfigurableClassLoaderHierarchyHasher(classLoaders)
+        return new ConfigurableClassLoaderHierarchyHasher(classLoaders, classLoaderHasher)
     }
 
     private static HashCode hashFor(Object... values) {
@@ -105,4 +91,12 @@ class ConfigurableClassLoaderHierarchyHasherTest extends Specification {
             super(parent)
         }
     }
+
+    private static HashCode bothHashes(ConfigurableClassLoaderHierarchyHasher hasher, ClassLoader classLoader) {
+        def local = hasher.getLenientHash(classLoader)
+        def export = hasher.getStrictHash(classLoader)
+        assert local == export
+        return local
+    }
+
 }

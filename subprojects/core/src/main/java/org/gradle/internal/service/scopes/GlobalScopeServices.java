@@ -75,6 +75,7 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.ClassLoaderHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
@@ -204,8 +205,8 @@ public class GlobalScopeServices {
         return new DefaultClassLoaderRegistry(classPathRegistry, classLoaderFactory);
     }
 
-    ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry) {
-        return new RegistryAwareClassLoaderHierarchyHasher(registry);
+    ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, ClassLoaderHasher classLoaderHasher) {
+        return new RegistryAwareClassLoaderHierarchyHasher(registry, classLoaderHasher);
     }
 
     CachingServiceLocator createPluginsServiceLocator(ClassLoaderRegistry registry) {
@@ -222,7 +223,7 @@ public class GlobalScopeServices {
         return new DefaultListenerManager();
     }
 
-    ClassLoaderFactory createClassLoaderFactory(ClassPathSnapshotter snapshotter) {
+    HashingClassLoaderFactory createClassLoaderFactory(ClassPathSnapshotter snapshotter) {
         return new HashingClassLoaderFactory(snapshotter);
     }
 

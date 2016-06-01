@@ -84,8 +84,8 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         return doCreateClassLoader(parent, classPath, creator);
     }
 
-    protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classpath) {
-        return new VisitableURLClassLoader(parent, classpath);
+    protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classPath) {
+        return new VisitableURLClassLoader(parent, classPath);
     }
 
     protected ClassLoader doCreateFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {

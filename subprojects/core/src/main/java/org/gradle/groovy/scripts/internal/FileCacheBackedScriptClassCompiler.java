@@ -84,7 +84,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         final String sourceHash = hashFor(source);
         final String dslId = operation.getId();
-        final String classpathHash = dslId + classLoaderHierarchyHasher.getHash(classLoader);
+        final String classpathHash = dslId + classLoaderHierarchyHasher.getLenientHash(classLoader);
         final RemappingScriptSource remapped = new RemappingScriptSource(source);
 
         // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice

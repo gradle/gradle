@@ -51,7 +51,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final CachingFileSnapshotter snapshotter = Mock()
     final ClassLoaderCache classLoaderCache = Mock()
     final classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher) {
-        getHash(classLoader) >> HashCode.fromLong(9999)
+        getLenientHash(classLoader) >> HashCode.fromLong(9999)
     }
     final File localDir = new File("local-dir")
     final File globalDir = new File("global-dir")

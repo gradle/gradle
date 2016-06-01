@@ -24,36 +24,45 @@ import org.gradle.internal.classpath.ClassPath;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 
-public class HashingClassLoaderFactory extends DefaultClassLoaderFactory {
+public class HashingClassLoaderFactory extends DefaultClassLoaderFactory implements ClassLoaderHasher {
     private final ClassPathSnapshotter snapshotter;
+    private final Map<ClassLoader, HashCode> hashCodes = new WeakHashMap<ClassLoader, HashCode>();
 
     public HashingClassLoaderFactory(ClassPathSnapshotter snapshotter) {
         this.snapshotter = snapshotter;
     }
 
     @Override
-    protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classpath) {
-        ClassLoader classLoader = super.doCreateClassLoader(parent, classpath);
-        return createClassPathHashedLoader(classLoader, classpath);
+    protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classPath) {
+        ClassLoader classLoader = super.doCreateClassLoader(parent, classPath);
+        hashCodes.put(classLoader, calculateClassLoaderHash(classPath));
+        return classLoader;
     }
 
     @Override
     protected ClassLoader doCreateFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
         ClassLoader classLoader = super.doCreateFilteringClassLoader(parent, spec);
-        HashCode filterHash = calculateFilterSpecHash(spec);
-        return new HashedClassLoader(classLoader, filterHash);
+        hashCodes.put(classLoader, calculateFilterSpecHash(spec));
+        return classLoader;
     }
 
     @Override
     protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classPath, ClassLoaderCreator creator) {
         ClassLoader classLoader = super.doCreateClassLoader(parent, classPath, creator);
-        return createClassPathHashedLoader(classLoader, classPath);
+        hashCodes.put(classLoader, calculateClassLoaderHash(classPath));
+        return classLoader;
     }
 
-    private ClassLoader createClassPathHashedLoader(ClassLoader classLoader, ClassPath classpath) {
-        HashCode hashCode = snapshotter.snapshot(classpath).getStrongHash();
-        return new HashedClassLoader(classLoader, hashCode);
+    @Override
+    public HashCode getHash(ClassLoader classLoader) {
+        return hashCodes.get(classLoader);
+    }
+
+    private HashCode calculateClassLoaderHash(ClassPath classPath) {
+        return snapshotter.snapshot(classPath).getStrongHash();
     }
 
     private static HashCode calculateFilterSpecHash(FilteringClassLoader.Spec spec) {
