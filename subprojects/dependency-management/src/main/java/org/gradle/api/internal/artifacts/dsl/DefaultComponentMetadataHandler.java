@@ -30,9 +30,9 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadata
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
+import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.rules.*;
@@ -124,7 +124,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
 
-    public void processMetadata(MutableModuleComponentResolveMetaData metadata) {
+    public void processMetadata(MutableModuleComponentResolveMetadata metadata) {
         ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, metadata);
         processAllRules(metadata, details);
         if (!metadata.getStatusScheme().contains(metadata.getStatus())) {
@@ -147,11 +147,11 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         for (Class<?> inputType : specRuleAction.getAction().getInputTypes()) {
             if (inputType == IvyModuleDescriptor.class) {
                 // Ignore the rule if it expects Ivy metadata and this isn't an Ivy module
-                if (!(metadata instanceof IvyModuleResolveMetaData)) {
+                if (!(metadata instanceof IvyModuleResolveMetadata)) {
                     return;
                 }
 
-                IvyModuleResolveMetaData ivyMetadata = (IvyModuleResolveMetaData) metadata;
+                IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metadata;
                 inputs.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus()));
                 continue;
             }

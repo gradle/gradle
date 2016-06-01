@@ -24,8 +24,8 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsC
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.model.*
 import org.gradle.internal.resolve.result.*
 import org.gradle.internal.resource.cached.CachedArtifactIndex
@@ -55,7 +55,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def "artifact last modified date is cached - lastModified = #lastModified"() {
         given:
         def artifactId = Stub(ModuleComponentArtifactIdentifier)
-        def artifact = Stub(ModuleComponentArtifactMetaData) {
+        def artifact = Stub(ModuleComponentArtifactMetadata) {
             getId() >> artifactId
         }
 
@@ -107,7 +107,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
         then:
         realLocalAccess.resolveComponentMetaData(componentId, prescribedMetaData, result) >> {
-            result.resolved(Mock(MutableModuleComponentResolveMetaData))
+            result.resolved(Mock(MutableModuleComponentResolveMetadata))
         }
         0 * _
     }

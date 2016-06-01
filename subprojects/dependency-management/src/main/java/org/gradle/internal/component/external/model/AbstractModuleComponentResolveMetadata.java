@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-abstract class AbstractModuleComponentResolveMetaData implements MutableModuleComponentResolveMetaData {
+abstract class AbstractModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
     private final ModuleDescriptorState descriptor;
     private ModuleVersionIdentifier moduleVersionIdentifier;
     private ModuleComponentIdentifier componentIdentifier;
@@ -57,11 +57,11 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
     private Map<String, DefaultConfigurationMetaData> configurations;
-    private Multimap<String, ModuleComponentArtifactMetaData> artifactsByConfig;
+    private Multimap<String, ModuleComponentArtifactMetadata> artifactsByConfig;
     private List<DependencyMetaData> dependencies;
     private List<Exclude> excludes;
 
-    public AbstractModuleComponentResolveMetaData(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptorState moduleDescriptor) {
+    public AbstractModuleComponentResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptorState moduleDescriptor) {
         this.descriptor = moduleDescriptor;
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = moduleVersionIdentifier;
@@ -89,7 +89,7 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
         return moduleDescriptorState;
     }
 
-    protected void copyTo(AbstractModuleComponentResolveMetaData copy) {
+    protected void copyTo(AbstractModuleComponentResolveMetadata copy) {
         copy.changing = changing;
         copy.status = status;
         copy.statusScheme = statusScheme;
@@ -103,10 +103,10 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
         return descriptor;
     }
 
-    public abstract AbstractModuleComponentResolveMetaData copy();
+    public abstract AbstractModuleComponentResolveMetadata copy();
 
-    public MutableModuleComponentResolveMetaData withSource(ModuleSource source) {
-        AbstractModuleComponentResolveMetaData copy = copy();
+    public MutableModuleComponentResolveMetadata withSource(ModuleSource source) {
+        AbstractModuleComponentResolveMetadata copy = copy();
         copy.setModuleSource(source);
         return copy;
     }
@@ -177,22 +177,22 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
         return componentIdentifier.getDisplayName();
     }
 
-    public ModuleComponentArtifactMetaData artifact(String type, @Nullable String extension, @Nullable String classifier) {
+    public ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier) {
         IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(getId().getName(), type, extension, classifier);
-        return new DefaultModuleComponentArtifactMetaData(getComponentId(), ivyArtifactName);
+        return new DefaultModuleComponentArtifactMetadata(getComponentId(), ivyArtifactName);
     }
 
-    public void setArtifacts(Iterable<? extends ModuleComponentArtifactMetaData> artifacts) {
+    public void setArtifacts(Iterable<? extends ModuleComponentArtifactMetadata> artifacts) {
         this.artifactsByConfig = LinkedHashMultimap.create();
         for (String config : getConfigurationNames()) {
             artifactsByConfig.putAll(config, artifacts);
         }
     }
 
-    private static Multimap<String, ModuleComponentArtifactMetaData> populateArtifactsFromDescriptor(ModuleComponentIdentifier componentId, ModuleDescriptorState descriptor) {
-        Multimap<String, ModuleComponentArtifactMetaData> artifactsByConfig = LinkedHashMultimap.create();
+    private static Multimap<String, ModuleComponentArtifactMetadata> populateArtifactsFromDescriptor(ModuleComponentIdentifier componentId, ModuleDescriptorState descriptor) {
+        Multimap<String, ModuleComponentArtifactMetadata> artifactsByConfig = LinkedHashMultimap.create();
         for (Artifact artifact : descriptor.getArtifacts()) {
-            ModuleComponentArtifactMetaData artifactMetadata = new DefaultModuleComponentArtifactMetaData(componentId, artifact.getArtifactName());
+            ModuleComponentArtifactMetadata artifactMetadata = new DefaultModuleComponentArtifactMetadata(componentId, artifact.getArtifactName());
             for (String configuration : artifact.getConfigurations()) {
                 artifactsByConfig.put(configuration, artifactMetadata);
             }
@@ -301,7 +301,7 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
         }
 
         public ComponentResolveMetaData getComponent() {
-            return AbstractModuleComponentResolveMetaData.this;
+            return AbstractModuleComponentResolveMetadata.this;
         }
 
         public String getName() {
@@ -412,8 +412,8 @@ abstract class AbstractModuleComponentResolveMetaData implements MutableModuleCo
             return accumulator;
         }
 
-        public ModuleComponentArtifactMetaData artifact(IvyArtifactName artifact) {
-            return new DefaultModuleComponentArtifactMetaData(getComponentId(), artifact);
+        public ModuleComponentArtifactMetadata artifact(IvyArtifactName artifact) {
+            return new DefaultModuleComponentArtifactMetadata(getComponentId(), artifact);
         }
     }
 

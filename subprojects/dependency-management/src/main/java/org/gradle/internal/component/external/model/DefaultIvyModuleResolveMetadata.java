@@ -25,28 +25,28 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultIvyModuleResolveMetaData extends AbstractModuleComponentResolveMetaData implements IvyModuleResolveMetaData {
+public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
     private final Map<NamespaceId, String> extraInfo;
     private final String branch;
 
-    public DefaultIvyModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
+    public DefaultIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
         this(componentIdentifier, createModuleDescriptor(componentIdentifier, artifacts));
     }
 
-    public DefaultIvyModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor) {
+    public DefaultIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor) {
         this(componentIdentifier, DefaultModuleVersionIdentifier.newId(componentIdentifier), moduleDescriptor);
     }
 
-    private DefaultIvyModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier identifier, ModuleDescriptorState moduleDescriptor) {
+    private DefaultIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier identifier, ModuleDescriptorState moduleDescriptor) {
         super(componentIdentifier, identifier, moduleDescriptor);
         this.extraInfo = moduleDescriptor.getExtraInfo();
         this.branch = moduleDescriptor.getBranch();
     }
 
     @Override
-    public DefaultIvyModuleResolveMetaData copy() {
+    public DefaultIvyModuleResolveMetadata copy() {
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
-        DefaultIvyModuleResolveMetaData copy = new DefaultIvyModuleResolveMetaData(getComponentId(), getId(), getDescriptor());
+        DefaultIvyModuleResolveMetadata copy = new DefaultIvyModuleResolveMetadata(getComponentId(), getId(), getDescriptor());
         copyTo(copy);
         return copy;
     }

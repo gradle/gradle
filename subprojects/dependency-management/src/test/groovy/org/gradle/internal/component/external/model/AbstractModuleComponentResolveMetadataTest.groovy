@@ -26,14 +26,14 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-abstract class AbstractModuleComponentResolveMetaDataTest extends Specification {
+abstract class AbstractModuleComponentResolveMetadataTest extends Specification {
 
     def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
     def moduleDescriptor = new MutableModuleDescriptorState(id, "status", false)
 
-    abstract AbstractModuleComponentResolveMetaData createMetaData(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor);
+    abstract AbstractModuleComponentResolveMetadata createMetaData(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor);
 
-    MutableModuleComponentResolveMetaData getMetaData() {
+    MutableModuleComponentResolveMetadata getMetaData() {
         return createMetaData(id, moduleDescriptor)
     }
 

@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.internal.component.external.descriptor.Dependency
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -47,7 +47,7 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
         descriptor = parseMetaData().descriptor
     }
 
-    protected MutableModuleComponentResolveMetaData parseMetaData() {
+    protected MutableModuleComponentResolveMetadata parseMetaData() {
         parser.parseMetaData(parseContext, pomFile, true)
     }
 

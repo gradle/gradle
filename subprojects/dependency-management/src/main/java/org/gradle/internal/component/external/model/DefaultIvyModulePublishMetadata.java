@@ -36,17 +36,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublishMetaData, BuildableLocalComponentMetaData {
+public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublishMetadata, BuildableLocalComponentMetaData {
     private final ModuleComponentIdentifier id;
     private final MutableModuleDescriptorState descriptor;
-    private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetaData> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetaData>();
+    private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata>();
 
-    public DefaultIvyModulePublishMetaData(ModuleComponentIdentifier id, String status) {
+    public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, String status) {
         this.id = id;
         this.descriptor = new MutableModuleDescriptorState(id, status, true);
     }
 
-    public DefaultIvyModulePublishMetaData(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
+    public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
         this.id = id;
         this.descriptor = (MutableModuleDescriptorState) moduleDescriptor;
     }
@@ -92,32 +92,32 @@ public class DefaultIvyModulePublishMetaData implements BuildableIvyModulePublis
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {
             DefaultIvyArtifactName ivyName = DefaultIvyArtifactName.forPublishArtifact(artifact);
-            IvyModuleArtifactPublishMetaData ivyArtifact = getOrCreate(ivyName, artifact.getFile());
-            ((DefaultIvyModuleArtifactPublishMetaData) ivyArtifact).addConfiguration(configuration);
+            IvyModuleArtifactPublishMetadata ivyArtifact = getOrCreate(ivyName, artifact.getFile());
+            ((DefaultIvyModuleArtifactPublishMetadata) ivyArtifact).addConfiguration(configuration);
         }
     }
 
     public void addArtifact(IvyArtifactName artifact, File file) {
-        DefaultIvyModuleArtifactPublishMetaData publishMetaData = new DefaultIvyModuleArtifactPublishMetaData(id, artifact, file);
+        DefaultIvyModuleArtifactPublishMetadata publishMetaData = new DefaultIvyModuleArtifactPublishMetadata(id, artifact, file);
         artifactsById.put(publishMetaData.getId(), publishMetaData);
     }
 
-    public void addArtifact(IvyModuleArtifactPublishMetaData artifact) {
+    public void addArtifact(IvyModuleArtifactPublishMetadata artifact) {
         artifactsById.put(artifact.getId(), artifact);
     }
 
-    private IvyModuleArtifactPublishMetaData getOrCreate(IvyArtifactName ivyName, File artifactFile) {
-        for (IvyModuleArtifactPublishMetaData artifactPublishMetaData : artifactsById.values()) {
+    private IvyModuleArtifactPublishMetadata getOrCreate(IvyArtifactName ivyName, File artifactFile) {
+        for (IvyModuleArtifactPublishMetadata artifactPublishMetaData : artifactsById.values()) {
             if (artifactPublishMetaData.getArtifactName().equals(ivyName)) {
                 return artifactPublishMetaData;
             }
         }
-        DefaultIvyModuleArtifactPublishMetaData artifact = new DefaultIvyModuleArtifactPublishMetaData(id, ivyName, artifactFile);
+        DefaultIvyModuleArtifactPublishMetadata artifact = new DefaultIvyModuleArtifactPublishMetadata(id, ivyName, artifactFile);
         artifactsById.put(artifact.getId(), artifact);
         return artifact;
     }
 
-    public Collection<IvyModuleArtifactPublishMetaData> getArtifacts() {
+    public Collection<IvyModuleArtifactPublishMetadata> getArtifacts() {
         return artifactsById.values();
     }
 

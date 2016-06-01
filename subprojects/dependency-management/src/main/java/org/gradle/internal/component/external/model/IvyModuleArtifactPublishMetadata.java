@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2013 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Map;
+import java.io.File;
+import java.util.List;
 
-/**
- * Meta-data for a module version resolved from an Ivy repository.
- */
-public interface IvyModuleResolveMetaData extends ModuleComponentResolveMetaData {
-    /***
-     * Returns the branch attribute for the module.
-     *
-     * @return the branch attribute for the module
-     */
-    String getBranch();
+public interface IvyModuleArtifactPublishMetadata {
+    ModuleComponentArtifactIdentifier getId();
 
-    /**
-     * Returns the extra info for the module.
-     *
-     * @return the extra info for the module
-     */
-    Map<NamespaceId, String> getExtraInfo();
+    IvyArtifactName getArtifactName();
+
+    List<String> getConfigurations();
+
+    File getFile();
 }

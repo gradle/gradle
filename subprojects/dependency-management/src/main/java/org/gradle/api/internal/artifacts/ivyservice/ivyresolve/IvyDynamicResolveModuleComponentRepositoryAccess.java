@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetaData;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -59,7 +59,7 @@ class IvyDynamicResolveModuleComponentRepositoryAccess extends BaseModuleCompone
     }
 
     private void transformDependencies(BuildableModuleComponentMetaDataResolveResult result) {
-        MutableModuleComponentResolveMetaData metaData = result.getMetaData();
+        MutableModuleComponentResolveMetadata metaData = result.getMetaData();
         List<DependencyMetaData> transformed = new ArrayList<DependencyMetaData>();
         for (DependencyMetaData dependency : metaData.getDependencies()) {
             transformed.add(dependency.withRequestedVersion(dependency.getDynamicConstraintVersion()));

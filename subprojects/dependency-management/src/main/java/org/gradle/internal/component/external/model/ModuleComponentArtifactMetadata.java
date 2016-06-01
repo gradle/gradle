@@ -22,7 +22,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetaData;
 /**
  * Meta-data for an artifact that belongs to some module version.
  */
-public interface ModuleComponentArtifactMetaData extends ComponentArtifactMetaData {
+public interface ModuleComponentArtifactMetadata extends ComponentArtifactMetaData {
     ModuleComponentArtifactIdentifier getId();
 
     /**

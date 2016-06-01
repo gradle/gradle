@@ -16,17 +16,18 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 
-import java.io.File;
-import java.util.List;
+import java.util.Collection;
 
-public interface IvyModuleArtifactPublishMetaData {
-    ModuleComponentArtifactIdentifier getId();
+public interface IvyModulePublishMetadata {
+    String IVY_MAVEN_NAMESPACE = "http://ant.apache.org/ivy/maven";
+    String IVY_MAVEN_NAMESPACE_PREFIX = "m";
 
-    IvyArtifactName getArtifactName();
+    ModuleDescriptorState getModuleDescriptor();
 
-    List<String> getConfigurations();
+    ModuleComponentIdentifier getId();
 
-    File getFile();
+    Collection<IvyModuleArtifactPublishMetadata> getArtifacts();
 }

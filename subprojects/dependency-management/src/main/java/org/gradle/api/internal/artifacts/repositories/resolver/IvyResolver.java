@@ -19,10 +19,10 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextualMetaDataParser;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess;
@@ -40,14 +40,14 @@ import java.util.Set;
 public class IvyResolver extends ExternalResourceResolver implements PatternBasedResolver {
 
     private final boolean dynamicResolve;
-    private final MetaDataParser<DefaultIvyModuleResolveMetaData> metaDataParser;
+    private final MetaDataParser<DefaultIvyModuleResolveMetadata> metaDataParser;
     private boolean m2Compatible;
 
     public IvyResolver(String name, RepositoryTransport transport,
-                       LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
-                       boolean dynamicResolve, FileStore<ModuleComponentArtifactMetaData> artifactFileStore, IvyContextManager ivyContextManager) {
+                       LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+                       boolean dynamicResolve, FileStore<ModuleComponentArtifactMetadata> artifactFileStore, IvyContextManager ivyContextManager) {
         super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), new ResourceVersionLister(transport.getRepository()), locallyAvailableResourceFinder, artifactFileStore);
-        this.metaDataParser = new IvyContextualMetaDataParser<DefaultIvyModuleResolveMetaData>(ivyContextManager, new DownloadedIvyModuleDescriptorParser());
+        this.metaDataParser = new IvyContextualMetaDataParser<DefaultIvyModuleResolveMetadata>(ivyContextManager, new DownloadedIvyModuleDescriptorParser());
         this.dynamicResolve = dynamicResolve;
     }
 
@@ -99,12 +99,12 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
         return new IvyRemoteRepositoryAccess();
     }
 
-    protected MutableModuleComponentResolveMetaData createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set<IvyArtifactName> artifacts) {
-        return new DefaultIvyModuleResolveMetaData(moduleComponentIdentifier, artifacts);
+    protected MutableModuleComponentResolveMetadata createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set<IvyArtifactName> artifacts) {
+        return new DefaultIvyModuleResolveMetadata(moduleComponentIdentifier, artifacts);
     }
 
-    protected MutableModuleComponentResolveMetaData parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
-        MutableModuleComponentResolveMetaData metaData = metaDataParser.parseMetaData(context, cachedResource);
+    protected MutableModuleComponentResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
+        MutableModuleComponentResolveMetadata metaData = metaDataParser.parseMetaData(context, cachedResource);
         checkMetadataConsistency(moduleComponentIdentifier, metaData);
         return metaData;
     }

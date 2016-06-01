@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.external.model;
+package org.gradle.internal.component.model;
 
-/**
- * Meta-data for a module version resolved from a Maven repository.
- */
-public interface MavenModuleResolveMetaData extends ModuleComponentResolveMetaData {
-    String getPackaging();
-    boolean isRelocated();
-    boolean isPomPackaging();
-    boolean isKnownJarPackaging();
-    String getSnapshotTimestamp();
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+
+public interface ModuleDescriptorArtifactMetadata extends ModuleComponentArtifactMetadata {
 }

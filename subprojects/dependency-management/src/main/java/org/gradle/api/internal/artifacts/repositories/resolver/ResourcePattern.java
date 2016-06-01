@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResourceName;
 
@@ -31,7 +31,7 @@ public interface ResourcePattern {
     /**
      * Returns the path for the given artifact.
      */
-    ExternalResourceName getLocation(ModuleComponentArtifactMetaData artifact);
+    ExternalResourceName getLocation(ModuleComponentArtifactMetadata artifact);
 
     /**
      * Returns the pattern which can be used to search for versions of the given artifact.

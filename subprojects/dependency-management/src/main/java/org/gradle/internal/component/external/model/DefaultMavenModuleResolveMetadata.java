@@ -27,35 +27,35 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
-public class DefaultMavenModuleResolveMetaData extends AbstractModuleComponentResolveMetaData implements MavenModuleResolveMetaData {
+public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
     private static final String POM_PACKAGING = "pom";
     private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
     private final String packaging;
     private final boolean relocated;
     private String snapshotTimestamp;
 
-    public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
+    public DefaultMavenModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
         this(componentIdentifier, createModuleDescriptor(componentIdentifier, artifacts), "jar", false);
     }
 
-    public DefaultMavenModuleResolveMetaData(ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated) {
+    public DefaultMavenModuleResolveMetadata(ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated) {
         this(moduleDescriptor.getComponentIdentifier(), moduleDescriptor, packaging, relocated);
     }
 
-    public DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentId, ModuleDescriptorState descriptor, String packaging, boolean relocated) {
+    public DefaultMavenModuleResolveMetadata(ModuleComponentIdentifier componentId, ModuleDescriptorState descriptor, String packaging, boolean relocated) {
         this(componentId, DefaultModuleVersionIdentifier.newId(componentId), descriptor, packaging, relocated);
     }
 
-    private DefaultMavenModuleResolveMetaData(ModuleComponentIdentifier componentId, ModuleVersionIdentifier id, ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated) {
+    private DefaultMavenModuleResolveMetadata(ModuleComponentIdentifier componentId, ModuleVersionIdentifier id, ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated) {
         super(componentId, id, moduleDescriptor);
         this.packaging = packaging;
         this.relocated = relocated;
     }
 
     @Override
-    public DefaultMavenModuleResolveMetaData copy() {
+    public DefaultMavenModuleResolveMetadata copy() {
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
-        DefaultMavenModuleResolveMetaData copy = new DefaultMavenModuleResolveMetaData(getComponentId(), getId(), getDescriptor(), packaging, relocated);
+        DefaultMavenModuleResolveMetadata copy = new DefaultMavenModuleResolveMetadata(getComponentId(), getId(), getDescriptor(), packaging, relocated);
         copyTo(copy);
         copy.snapshotTimestamp = snapshotTimestamp;
         return copy;
