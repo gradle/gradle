@@ -34,7 +34,7 @@ public class CompositeScopeServices {
         return new CompositeProjectArtifactBuilder(gradleLauncherFactory, startParameter, compositeServices);
     }
 
-    DependencySubstitutionRuleProvider createCompositeBuildDependencySubstitutions(CompositeProjectComponentRegistry projectComponentRegistry) {
+    DependencySubstitutionRuleProvider createCompositeBuildDependencySubstitutions(CompositeBuildContext projectComponentRegistry) {
         return new CompositeBuildDependencySubstitutions(projectComponentRegistry);
     }
 

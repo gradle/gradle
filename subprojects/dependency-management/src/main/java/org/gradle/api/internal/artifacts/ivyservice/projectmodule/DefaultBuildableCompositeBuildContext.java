@@ -41,8 +41,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-public class DefaultCompositeBuildContext implements CompositeBuildContext {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultCompositeBuildContext.class);
+public class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildableCompositeBuildContext.class);
 
     private final Multimap<ModuleIdentifier, ProjectComponentIdentifier> replacementProjects = ArrayListMultimap.create();
     private final Map<ProjectComponentIdentifier, RegisteredProject> projectMetadata = Maps.newHashMap();
@@ -91,15 +91,14 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
         return getRegisteredProject(projectIdentifier).artifacts;
      }
 
-    @Override
-    public void register(ModuleIdentifier moduleId, ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetaData, File projectDirectory) {
+    public void register(ModuleIdentifier moduleId, ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata, File projectDirectory) {
         LOGGER.info("Registering project '" + project + "' in composite build. Will substitute for module '" + moduleId + "'.");
         replacementProjects.put(moduleId, project);
         if (projectMetadata.containsKey(project)) {
             String failureMessage = String.format("Project path '%s' is not unique in composite.", project.getProjectPath());
             throw new ReportedException(new GradleException(failureMessage));
         }
-        projectMetadata.put(project, new RegisteredProject(localComponentMetaData, projectDirectory));
+        projectMetadata.put(project, new RegisteredProject(localComponentMetadata, projectDirectory));
     }
 
     @Override

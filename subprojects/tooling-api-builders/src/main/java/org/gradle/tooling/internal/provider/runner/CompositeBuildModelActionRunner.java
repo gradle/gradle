@@ -173,7 +173,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     }
 
     private CompositeBuildContext constructCompositeContext(BuildModelAction modelAction, BuildRequestContext buildRequestContext,
-                                                            CompositeParameters compositeParameters, ServiceRegistry sharedServices, boolean propagateFailures) {
+                                                                     CompositeParameters compositeParameters, ServiceRegistry sharedServices, boolean propagateFailures) {
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         CompositeContextBuilder builder = new CompositeContextBuilder(propagateFailures);
         BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, builder);

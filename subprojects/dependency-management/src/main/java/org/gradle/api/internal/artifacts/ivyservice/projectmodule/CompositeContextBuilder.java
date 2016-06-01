@@ -43,7 +43,7 @@ import java.io.File;
 import java.util.Set;
 
 public class CompositeContextBuilder implements BuildActionRunner {
-    private final DefaultCompositeBuildContext context = new DefaultCompositeBuildContext();
+    private final DefaultBuildableCompositeBuildContext context = new DefaultBuildableCompositeBuildContext();
     private final boolean propagateFailures;
 
     public CompositeContextBuilder(boolean propagateFailures) {

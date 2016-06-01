@@ -29,11 +29,11 @@ import java.util.Set;
 
 // TODO:DAZ Rename this and make it useful for composite and non-composite builds
 public class CompositeBuildIdeProjectResolver {
-    private final CompositeProjectComponentRegistry discovered;
+    private final CompositeBuildContext discovered;
     private final List<ProjectArtifactBuilder> artifactBuilders;
 
     public CompositeBuildIdeProjectResolver(ServiceRegistry services) {
-        List<CompositeProjectComponentRegistry> registries = services.getAll(CompositeProjectComponentRegistry.class);
+        List<CompositeBuildContext> registries = services.getAll(CompositeBuildContext.class);
         if (!registries.isEmpty()) {
             discovered = registries.iterator().next();
         } else {
@@ -80,7 +80,7 @@ public class CompositeBuildIdeProjectResolver {
         return null;
     }
 
-    private CompositeProjectComponentRegistry getRegistry() {
+    private CompositeBuildContext getRegistry() {
         if (discovered == null) {
             throw new IllegalStateException("Not a composite");
         }
