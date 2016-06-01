@@ -89,39 +89,45 @@ class IdeaPlugin extends IdePlugin {
         configureIdeaModule(project)
         configureForJavaPlugin(project)
         configureForScalaPlugin()
-        hookDeduplicationToTheRoot(project)
-        registerImlArtifact()
+        processModulesForAllProjects(project)
     }
 
-    void registerImlArtifact() {
-        project.afterEvaluate {
-            def projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectComponentProvider)
-            def projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
-            def imlArtifact = createImlArtifact()
-            projectComponentProvider.registerAdditionalArtifact(projectId, imlArtifact)
-        }
-    }
-
-    private ComponentArtifactMetadata createImlArtifact() {
-        ProjectComponentIdentifier projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
-        String moduleName = model.module.name
-        File imlFile = new File(project.getProjectDir(), moduleName + ".iml");
-        String taskName = project.getPath().equals(":") ? ":ideaModule" : project.getPath() + ":ideaModule";
-        Task byName = project.getTasks().getByPath(taskName);
-        PublishArtifact publishArtifact = new DefaultPublishArtifact(moduleName, "iml", "iml", null, null, imlFile, byName);
-        return new PublishArtifactLocalArtifactMetadata(projectId, "IML-FILE", publishArtifact);
-    }
-
-    void hookDeduplicationToTheRoot(Project project) {
+    void processModulesForAllProjects(Project project) {
         if (isRoot(project)) {
             project.gradle.projectsEvaluated {
                 makeSureModuleNamesAreUnique()
+                // This needs to happen after de-duplication
+                registerImlArtifacts()
             }
         }
     }
 
     public void makeSureModuleNamesAreUnique() {
         new IdeaNameDeduper().configureRoot(project.rootProject)
+    }
+
+    private void registerImlArtifacts() {
+        def projectsWithIml = project.allprojects.findAll({ it.plugins.hasPlugin(IdeaPlugin) })
+        projectsWithIml.each {
+            registerImlArtifact(it)
+        }
+    }
+
+    private static void registerImlArtifact(Project project) {
+        def projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectComponentProvider)
+        def projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
+        def imlArtifact = createImlArtifact(project)
+        projectComponentProvider.registerAdditionalArtifact(projectId, imlArtifact)
+    }
+
+    private static ComponentArtifactMetadata createImlArtifact(Project project) {
+        ProjectComponentIdentifier projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
+        String moduleName = project.extensions.getByType(IdeaModel).module.name
+        File imlFile = new File(project.getProjectDir(), moduleName + ".iml");
+        String taskName = project.getPath().equals(":") ? ":ideaModule" : project.getPath() + ":ideaModule";
+        Task byName = project.getTasks().getByPath(taskName);
+        PublishArtifact publishArtifact = new DefaultPublishArtifact(moduleName, "iml", "iml", null, null, imlFile, byName);
+        return new PublishArtifactLocalArtifactMetadata(projectId, "IML-FILE", publishArtifact);
     }
 
     private configureIdeaWorkspace(Project project) {

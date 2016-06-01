@@ -22,5 +22,9 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 public interface ProjectComponentProvider {
     LocalComponentMetadata getProject(ProjectComponentIdentifier projectIdentifier);
     void registerAdditionalArtifact(ProjectComponentIdentifier project, ComponentArtifactMetadata artifact);
+
+    /**
+     * @return The additional artifacts registered for this project, or null if none registered for this project
+     */
     Iterable<ComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project);
 }

@@ -64,6 +64,9 @@ public class LocalProjectComponentProvider implements ProjectComponentProvider {
 
     @Override
     public Iterable<ComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier projectIdentifier) {
-        return registeredArtifacts.get(projectIdentifier);
+        if (registeredArtifacts.containsKey(projectIdentifier)) {
+            return registeredArtifacts.get(projectIdentifier);
+        }
+        return null;
     }
 }

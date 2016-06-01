@@ -18,7 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -45,5 +47,16 @@ public class DefaultProjectComponentRegistry implements ProjectComponentRegistry
             }
         }
         return null;
+    }
+
+    @Override
+    public Iterable<ComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
+        for (ProjectComponentProvider provider : providers) {
+            Iterable<ComponentArtifactMetadata> artifacts = provider.getAdditionalArtifacts(project);
+            if (artifacts != null) {
+                return artifacts;
+            }
+        }
+        return Collections.emptyList();
     }
 }

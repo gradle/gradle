@@ -46,7 +46,11 @@ public class IdeProjectDependency extends IdeDependency {
     }
 
     public String getProjectName() {
-        // TODO:DAZ Fix this
+        if (project != null) {
+            return project.getName();
+        }
+
+        // TODO:DAZ Tidy this up : is it ever required?
         String projectPath = getProjectPath();
         // This is just a hack to allow 'idea' task to function reasonably in a composite
         // This will be addressed when we add support for IDE project file generation for a composite build

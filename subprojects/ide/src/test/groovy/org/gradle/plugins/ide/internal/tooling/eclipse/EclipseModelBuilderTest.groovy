@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.internal.tooling.eclipse
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentRegistry
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaBasePlugin
@@ -270,6 +271,8 @@ class EclipseModelBuilderTest extends Specification {
     private def createEclipseModelBuilder() {
         def gradleProjectBuilder = Mock(GradleProjectBuilder)
         gradleProjectBuilder.buildAll(_) >> Mock(DefaultGradleProject)
-        new EclipseModelBuilder(gradleProjectBuilder, new DefaultServiceRegistry())
+        def serviceRegistry = new DefaultServiceRegistry()
+        serviceRegistry.add(ProjectComponentRegistry, Stub(ProjectComponentRegistry))
+        new EclipseModelBuilder(gradleProjectBuilder, serviceRegistry)
     }
 }

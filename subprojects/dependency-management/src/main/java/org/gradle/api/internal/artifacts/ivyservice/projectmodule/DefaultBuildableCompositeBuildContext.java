@@ -87,8 +87,9 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
         return projectMetadata.keySet();
     }
 
-    public Collection<ComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier projectIdentifier) {
-        return getRegisteredProject(projectIdentifier).artifacts;
+    public Collection<ComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
+        RegisteredProject registeredProject = projectMetadata.get(project);
+        return registeredProject == null ? null : registeredProject.artifacts;
      }
 
     public void register(ModuleIdentifier moduleId, ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata, File projectDirectory) {

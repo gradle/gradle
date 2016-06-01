@@ -30,6 +30,7 @@ import java.util.Set;
 // TODO:DAZ Rename this and make it useful for composite and non-composite builds
 public class CompositeBuildIdeProjectResolver {
     private final CompositeBuildContext discovered;
+    private final ProjectComponentRegistry registry;
     private final List<ProjectArtifactBuilder> artifactBuilders;
 
     public CompositeBuildIdeProjectResolver(ServiceRegistry services) {
@@ -39,19 +40,27 @@ public class CompositeBuildIdeProjectResolver {
         } else {
             discovered = null;
         }
+        registry = services.get(ProjectComponentRegistry.class);
         artifactBuilders = services.getAll(ProjectArtifactBuilder.class);
     }
 
     public File getProjectDirectory(String projectPath) {
         ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newId(projectPath);
-        return getRegistry().getProjectDirectory(projectComponentIdentifier);
+        return getCompositeContext().getProjectDirectory(projectComponentIdentifier);
     }
 
     public Set<ProjectComponentIdentifier> getProjectsInComposite() {
         if (discovered == null) {
             return Collections.emptySet();
         }
-        return getRegistry().getAllProjects();
+        return getCompositeContext().getAllProjects();
+    }
+
+    private CompositeBuildContext getCompositeContext() {
+        if (discovered == null) {
+            throw new IllegalStateException("Not a composite");
+        }
+        return discovered;
     }
 
     public ComponentArtifactMetadata resolveImlArtifact(ProjectComponentIdentifier project) {
@@ -72,19 +81,12 @@ public class CompositeBuildIdeProjectResolver {
     }
 
     private ComponentArtifactMetadata findArtifact(ProjectComponentIdentifier project, String type) {
-        for (ComponentArtifactMetadata artifactMetaData : getRegistry().getAdditionalArtifacts(project)) {
+        for (ComponentArtifactMetadata artifactMetaData : registry.getAdditionalArtifacts(project)) {
             if (artifactMetaData.getName().getType().equals(type)) {
                 return artifactMetaData;
             }
         }
         return null;
-    }
-
-    private CompositeBuildContext getRegistry() {
-        if (discovered == null) {
-            throw new IllegalStateException("Not a composite");
-        }
-        return discovered;
     }
 
 }

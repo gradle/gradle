@@ -16,11 +16,8 @@
 
 package org.gradle.plugins.ide.idea.model.internal;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver;
 import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.plugins.ide.idea.IdeaPlugin;
-import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.ModuleDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 
@@ -38,14 +35,7 @@ class ModuleDependencyBuilder {
     }
 
     private String determineProjectName(IdeProjectDependency dependency) {
-        Project project = dependency.getProject();
-        if (project == null) {
-            ComponentArtifactMetaData imlArtifact = ideProjectResolver.resolveImlArtifact(dependency.getProjectId());
-            return imlArtifact == null ? dependency.getProjectName() : imlArtifact.getName().getName();
-        } else if (project.getPlugins().hasPlugin(IdeaPlugin.class)) {
-            return ((IdeaModel) project.getExtensions().getByName("idea")).getModule().getName();
-        } else {
-            return project.getName();
-        }
+        ComponentArtifactMetaData imlArtifact = ideProjectResolver.resolveImlArtifact(dependency.getProjectId());
+        return imlArtifact == null ? dependency.getProjectName() : imlArtifact.getName().getName();
     }
 }
