@@ -19,6 +19,7 @@ package org.gradle.api.internal.runtimeshaded
 import org.apache.ivy.core.settings.IvySettings
 import org.gradle.api.Action
 import org.gradle.internal.IoActions
+import org.gradle.internal.installation.GradleRuntimeShadedJarDetector
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
@@ -221,6 +222,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         def duplicateResources = ['aQute/libg/tuple/packageinfo',
                                     'org/joda/time/tz/data/Africa/Abidjan']
         def onlyRelocatedResources = ['com/sun/jna/win32-amd64/jnidispatch.dll']
+        def generatedFiles = [GradleRuntimeShadedJarDetector.MARKER_FILENAME]
         def resources = noRelocationResources + duplicateResources + onlyRelocatedResources
         def inputFilesDir = tmpDir.createDir('inputFiles')
         def jarFile = inputFilesDir.file('lib.jar')
@@ -238,7 +240,11 @@ org.gradle.api.internal.tasks.CompileServices"""
         relocatedJar == outputJar
 
         handleAsJarFile(relocatedJar) { JarFile jar ->
-            assert jar.entries().toList().size() - 1 == noRelocationResources.size() + duplicateResources.size() * 2 + onlyRelocatedResources.size()
+            assert jar.entries().toList().size() ==
+                noRelocationResources.size() +
+                duplicateResources.size() * 2 +
+                onlyRelocatedResources.size() +
+                generatedFiles.size()
             noRelocationResources.each { resourceName ->
                 assert jar.getEntry(resourceName)
             }
@@ -248,6 +254,9 @@ org.gradle.api.internal.tasks.CompileServices"""
             }
             onlyRelocatedResources.each { resourceName ->
                 assert jar.getEntry("org/gradle/internal/impldep/$resourceName")
+            }
+            generatedFiles.each { resourceName ->
+                assert jar.getEntry(resourceName)
             }
         }
     }
