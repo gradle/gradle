@@ -26,10 +26,9 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import java.io.OutputStream;
 
 /**
- * 2.14 moved LoggingManagerInternal.
- * This type is exposed via AbstractTask.getLogging().
- * This “bridge” exists purely to maintain compatibility there.
+ * 2.14 moved LoggingManagerInternal. This type is exposed via AbstractTask.getLogging(). This “bridge” exists purely to maintain compatibility there.
  */
+@SuppressWarnings("deprecation")
 public class LoggingManagerInternalCompatibilityBridge implements org.gradle.logging.LoggingManagerInternal {
 
     private final LoggingManagerInternal delegate;
@@ -39,33 +38,39 @@ public class LoggingManagerInternalCompatibilityBridge implements org.gradle.log
     }
 
     @Override
-    public LoggingManagerInternal start() {
-        return delegate.start();
+    public org.gradle.logging.LoggingManagerInternal start() {
+        delegate.start();
+        return this;
     }
 
     @Override
-    public LoggingManagerInternal stop() {
-        return delegate.stop();
+    public org.gradle.logging.LoggingManagerInternal stop() {
+        delegate.stop();
+        return this;
     }
 
     @Override
-    public LoggingManagerInternal captureSystemSources() {
-        return delegate.captureSystemSources();
+    public org.gradle.logging.LoggingManagerInternal captureSystemSources() {
+        delegate.captureSystemSources();
+        return this;
     }
 
     @Override
-    public LoggingManagerInternal captureStandardOutput(LogLevel level) {
-        return delegate.captureStandardOutput(level);
+    public org.gradle.logging.LoggingManagerInternal captureStandardOutput(LogLevel level) {
+        delegate.captureStandardOutput(level);
+        return this;
     }
 
     @Override
-    public LoggingManagerInternal captureStandardError(LogLevel level) {
-        return delegate.captureStandardError(level);
+    public org.gradle.logging.LoggingManagerInternal captureStandardError(LogLevel level) {
+        delegate.captureStandardError(level);
+        return this;
     }
 
     @Override
-    public LoggingManagerInternal setLevelInternal(LogLevel logLevel) {
-        return delegate.setLevelInternal(logLevel);
+    public org.gradle.logging.LoggingManagerInternal setLevelInternal(LogLevel logLevel) {
+        delegate.setLevelInternal(logLevel);
+        return this;
     }
 
     @Override
