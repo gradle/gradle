@@ -19,13 +19,13 @@ package org.gradle.internal.resolve.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public interface BuildableComponentIdResolveResult extends ComponentIdResolveResult, ResourceAwareResolveResult {
     void resolved(ComponentIdentifier id, ModuleVersionIdentifier moduleVersionIdentifier);
 
-    void resolved(ComponentResolveMetaData metaData);
+    void resolved(ComponentResolveMetadata metaData);
 
     void setSelectionReason(ComponentSelectionReason reason);
 

@@ -24,31 +24,31 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
-class DefaultLocalComponentMetaDataTest extends Specification {
+class DefaultLocalComponentMetadataTest extends Specification {
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "version")
     def componentIdentifier = DefaultModuleComponentIdentifier.newId(id)
-    def metaData = new DefaultLocalComponentMetaData(id, componentIdentifier, "status")
+    def metadata = new DefaultLocalComponentMetadata(id, componentIdentifier, "status")
     def taskDep = new DefaultTaskDependency()
 
     def "can lookup configuration after it has been added"() {
         when:
-        metaData.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, taskDep)
-        metaData.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, taskDep)
+        metadata.addConfiguration("super", "description", [] as Set, ["super"] as Set, false, false, taskDep)
+        metadata.addConfiguration("conf", "description", ["super"] as Set, ["super", "conf"] as Set, true, true, taskDep)
 
         then:
-        metaData.configurationNames == ['conf', 'super'] as Set
+        metadata.configurationNames == ['conf', 'super'] as Set
 
-        def conf = metaData.getConfiguration('conf')
+        def conf = metadata.getConfiguration('conf')
         conf != null
         conf.visible
         conf.transitive
 
-        def superConf = metaData.getConfiguration('super')
+        def superConf = metadata.getConfiguration('super')
         superConf != null
         !superConf.visible
         !superConf.transitive
@@ -65,19 +65,19 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         addArtifact("conf", artifact, file)
 
         then:
-        metaData.getConfiguration("conf").artifacts.size() == 1
+        metadata.getConfiguration("conf").artifacts.size() == 1
 
-        def publishArtifact = metaData.getConfiguration("conf").artifacts.first()
+        def publishArtifact = metadata.getConfiguration("conf").artifacts.first()
         publishArtifact.id
         publishArtifact.name.name == artifact.name
         publishArtifact.name.type == artifact.type
         publishArtifact.name.extension == artifact.extension
         publishArtifact.file == file
-        publishArtifact == metaData.getConfiguration("conf").artifact(artifact)
+        publishArtifact == metadata.getConfiguration("conf").artifact(artifact)
     }
 
     private addConfiguration(String name) {
-        metaData.addConfiguration(name, "", [] as Set, [name] as Set, true, true, taskDep)
+        metadata.addConfiguration(name, "", [] as Set, [name] as Set, true, true, taskDep)
     }
 
     def addArtifact(String configuration, IvyArtifactName name, File file) {
@@ -86,7 +86,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
     }
 
     def addArtifact(String configuration, PublishArtifact publishArtifact) {
-        metaData.addArtifacts(configuration, new DefaultPublishArtifactSet("arts", WrapUtil.toDomainObjectSet(PublishArtifact, publishArtifact), TestFiles.fileCollectionFactory()))
+        metadata.addArtifacts(configuration, new DefaultPublishArtifactSet("arts", WrapUtil.toDomainObjectSet(PublishArtifact, publishArtifact), TestFiles.fileCollectionFactory()))
     }
 
     def "can add artifact to several configurations"() {
@@ -103,8 +103,8 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         addArtifact("conf2", publishArtifact)
 
         then:
-        metaData.getConfiguration("conf1").artifacts.size() == 1
-        metaData.getConfiguration("conf1").artifacts == metaData.getConfiguration("conf2").artifacts
+        metadata.getConfiguration("conf1").artifacts.size() == 1
+        metadata.getConfiguration("conf1").artifacts == metadata.getConfiguration("conf2").artifacts
     }
 
     def "can lookup an artifact given an Ivy artifact"() {
@@ -121,7 +121,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         def ivyArtifact = artifactName()
 
         expect:
-        def resolveArtifact = metaData.getConfiguration("conf").artifact(ivyArtifact)
+        def resolveArtifact = metadata.getConfiguration("conf").artifact(ivyArtifact)
         resolveArtifact.file == file
     }
 
@@ -131,7 +131,7 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         addConfiguration("conf")
 
         expect:
-        def resolveArtifact = metaData.getConfiguration("conf").artifact(artifact)
+        def resolveArtifact = metadata.getConfiguration("conf").artifact(artifact)
         resolveArtifact != null
         resolveArtifact.file == null
     }
@@ -149,11 +149,11 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         addArtifact("conf2", artifact2, file2)
 
         then:
-        def conf1Artifacts = metaData.getConfiguration("conf1").artifacts as List
+        def conf1Artifacts = metadata.getConfiguration("conf1").artifacts as List
         conf1Artifacts.size() == 1
         def artifactMetadata1 = conf1Artifacts[0]
 
-        def conf2Artifacts = metaData.getConfiguration("conf2").artifacts as List
+        def conf2Artifacts = metadata.getConfiguration("conf2").artifacts as List
         conf2Artifacts.size() == 1
         def artifactMetadata2 = conf2Artifacts[0]
 
@@ -161,18 +161,18 @@ class DefaultLocalComponentMetaDataTest extends Specification {
         artifactMetadata1.id != artifactMetadata2.id
 
         and:
-        metaData.getConfiguration("conf1").artifacts == [artifactMetadata1] as Set
-        metaData.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
+        metadata.getConfiguration("conf1").artifacts == [artifactMetadata1] as Set
+        metadata.getConfiguration("conf2").artifacts == [artifactMetadata2] as Set
     }
 
     def "can add dependencies"() {
-        def dependency = Mock(DependencyMetaData)
+        def dependency = Mock(DependencyMetadata)
 
         when:
-        metaData.addDependency(dependency)
+        metadata.addDependency(dependency)
 
         then:
-        metaData.dependencies == [dependency]
+        metadata.dependencies == [dependency]
     }
 
     def artifactName() {

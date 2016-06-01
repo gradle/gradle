@@ -18,7 +18,7 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.internal.component.model.DefaultDependencyMetaData;
+import org.gradle.internal.component.model.DefaultDependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -26,10 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultProjectDependencyMetaData extends DefaultDependencyMetaData {
+public class DefaultProjectDependencyMetadata extends DefaultDependencyMetadata {
     private final String projectPath;
 
-    public DefaultProjectDependencyMetaData(String projectPath, ModuleVersionSelector requested, Map<String, List<String>> confs,
+    public DefaultProjectDependencyMetadata(String projectPath, ModuleVersionSelector requested, Map<String, List<String>> confs,
                                             Map<IvyArtifactName, Set<String>> dependencyArtifacts, Map<Exclude, Set<String>> excludeRules,
                                             String dynamicConstraintVersion, boolean changing, boolean transitive) {
         super(requested, confs, dependencyArtifacts, excludeRules, dynamicConstraintVersion, changing, transitive);

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
@@ -48,7 +48,7 @@ abstract class ModuleDescriptorCacheEntry {
         return new MissingModuleCacheEntry(createTimestamp);
     }
 
-    public static ModuleDescriptorCacheEntry forMetaData(ModuleComponentResolveMetaData metaData, long createTimestamp, BigInteger moduleDescriptorHash) {
+    public static ModuleDescriptorCacheEntry forMetaData(ModuleComponentResolveMetadata metaData, long createTimestamp, BigInteger moduleDescriptorHash) {
         if (metaData instanceof IvyModuleResolveMetadata) {
             return new IvyModuleCacheEntry(metaData.isChanging(), createTimestamp, moduleDescriptorHash, metaData.getSource());
         }

@@ -19,20 +19,20 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentArtifactIdentifier;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 import java.util.Set;
 
-public class CompositeProjectComponentArtifactMetaData implements ComponentArtifactMetaData, LocalComponentArtifactIdentifier {
+public class CompositeProjectComponentArtifactMetadata implements ComponentArtifactMetadata, LocalComponentArtifactIdentifier {
     private final ProjectComponentIdentifier componentIdentifier;
     private final IvyArtifactName ivyArtifactName;
     private final File artifactFile;
     private final File rootDirectory;
     private final Set<String> tasks;
 
-    public CompositeProjectComponentArtifactMetaData(ProjectComponentIdentifier componentIdentifier, IvyArtifactName ivyArtifactName, File artifactFile, File rootDirectory, Set<String> tasks) {
+    public CompositeProjectComponentArtifactMetadata(ProjectComponentIdentifier componentIdentifier, IvyArtifactName ivyArtifactName, File artifactFile, File rootDirectory, Set<String> tasks) {
         this.componentIdentifier = componentIdentifier;
         this.ivyArtifactName = ivyArtifactName;
         this.artifactFile = artifactFile;
@@ -89,11 +89,11 @@ public class CompositeProjectComponentArtifactMetaData implements ComponentArtif
         if (this == o) {
             return true;
         }
-        if (!(o instanceof CompositeProjectComponentArtifactMetaData)) {
+        if (!(o instanceof CompositeProjectComponentArtifactMetadata)) {
             return false;
         }
 
-        CompositeProjectComponentArtifactMetaData that = (CompositeProjectComponentArtifactMetaData) o;
+        CompositeProjectComponentArtifactMetadata that = (CompositeProjectComponentArtifactMetadata) o;
 
         return artifactFile.equals(that.artifactFile);
 

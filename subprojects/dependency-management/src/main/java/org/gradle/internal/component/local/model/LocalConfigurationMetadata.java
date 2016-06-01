@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,19 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 
-/**
- * A dependency declared using the dependency DSL.
- */
-public interface DslOriginDependencyMetaData extends DependencyMetaData {
+import java.util.Set;
+
+public interface LocalConfigurationMetadata extends ConfigurationMetadata {
+
+    String getDescription();
+
+    Set<String> getExtendsFrom();
+
     /**
-     * Remove this.
+     * The task dependencies required to build any artifacts and self-resolving dependencies for this configuration.
      */
-    ModuleDependency getSource();
+    TaskDependency getDirectBuildDependencies();
 }

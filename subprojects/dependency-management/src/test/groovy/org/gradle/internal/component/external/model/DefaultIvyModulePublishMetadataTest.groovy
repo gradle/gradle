@@ -19,35 +19,35 @@ package org.gradle.internal.component.external.model
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.internal.component.external.descriptor.Configuration
-import org.gradle.internal.component.local.model.LocalConfigurationMetaData
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.local.model.LocalConfigurationMetadata
+import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import spock.lang.Specification
 
 class DefaultIvyModulePublishMetadataTest extends Specification {
-    def metaData = new DefaultIvyModulePublishMetadata(Stub(ModuleComponentIdentifier), "status")
+    def metadata = new DefaultIvyModulePublishMetadata(Stub(ModuleComponentIdentifier), "status")
 
     def "can add artifacts"() {
         def artifact = Stub(IvyArtifactName)
         def file = new File("artifact.zip")
 
         when:
-        metaData.addArtifact(artifact, file)
+        metadata.addArtifact(artifact, file)
 
         then:
-        metaData.artifacts.size() == 1
-        def publishArtifact = metaData.artifacts.iterator().next()
+        metadata.artifacts.size() == 1
+        def publishArtifact = metadata.artifacts.iterator().next()
         publishArtifact.artifactName == artifact
         publishArtifact.file == file
     }
 
     def "can add configuration"() {
         when:
-        metaData.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null)
+        metadata.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null)
 
         then:
-        metaData.moduleDescriptor.configurations.size() == 1
-        Configuration conf = metaData.moduleDescriptor.configurations[0]
+        metadata.moduleDescriptor.configurations.size() == 1
+        Configuration conf = metadata.moduleDescriptor.configurations[0]
         conf.name == "configName"
         conf.extendsFrom == ["one", "three", "two"]
         conf.visible
@@ -55,7 +55,7 @@ class DefaultIvyModulePublishMetadataTest extends Specification {
     }
 
     def mockConfiguration() {
-        return Stub(LocalConfigurationMetaData) { configuration ->
+        return Stub(LocalConfigurationMetadata) { configuration ->
             configuration.name >> "configName"
             configuration.description >> "configDescription"
             configuration.extendsFrom >> (["one", "two", "three"] as Set)
@@ -65,10 +65,10 @@ class DefaultIvyModulePublishMetadataTest extends Specification {
     }
 
     def "can add dependencies"() {
-        def dependency = Mock(DependencyMetaData)
+        def dependency = Mock(DependencyMetadata)
 
         given:
-        metaData.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null)
+        metadata.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null)
 
         and:
         dependency.requested >> DefaultModuleVersionSelector.newSelector("group", "module", "version")
@@ -80,15 +80,15 @@ class DefaultIvyModulePublishMetadataTest extends Specification {
         dependency.artifacts >> ([] as Set)
 
         when:
-        metaData.addDependency(dependency)
+        metadata.addDependency(dependency)
 
         then:
-        metaData.moduleDescriptor.dependencies.size() == 1
-        def dependencyMetaData = metaData.moduleDescriptor.dependencies[0]
-        dependencyMetaData.force
-        dependencyMetaData.changing
-        dependencyMetaData.transitive
-        dependencyMetaData.confMappings == [configName: ["dep1"]]
-        dependencyMetaData.dependencyArtifacts.empty
+        metadata.moduleDescriptor.dependencies.size() == 1
+        def dependencyMetadata = metadata.moduleDescriptor.dependencies[0]
+        dependencyMetadata.force
+        dependencyMetadata.changing
+        dependencyMetadata.transitive
+        dependencyMetadata.confMappings == [configName: ["dep1"]]
+        dependencyMetadata.dependencyArtifacts.empty
     }
 }

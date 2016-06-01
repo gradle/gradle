@@ -23,7 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public interface DependencyMetaData {
+public interface DependencyMetadata {
     ModuleVersionSelector getRequested();
 
     /**
@@ -31,7 +31,7 @@ public interface DependencyMetaData {
      * this dependency does not reference any specific artifacts - the defaults for the target configuration should be used in this case.
      */
     // TODO:ADAM - fromConfiguration should be implicit in this metadata
-    Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration);
+    Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration);
 
     /**
      * Returns the artifacts referenced by this dependency, if any. Returns an empty set if this dependency does not reference any specific artifacts - the
@@ -42,17 +42,17 @@ public interface DependencyMetaData {
     /**
      * Returns a copy of this dependency with the given requested version.
      */
-    DependencyMetaData withRequestedVersion(String requestedVersion);
+    DependencyMetadata withRequestedVersion(String requestedVersion);
 
     /**
      * Returns a copy of this dependency with the given target.
      */
-    DependencyMetaData withTarget(ComponentSelector target);
+    DependencyMetadata withTarget(ComponentSelector target);
 
     /**
      * Returns a copy of this dependency with the changing flag set.
      */
-    DependencyMetaData withChanging();
+    DependencyMetadata withChanging();
 
     /**
      * Returns the component selector for this dependency.

@@ -25,22 +25,22 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
+import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalComponentMetaData;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 public class LocalProjectComponentProvider implements ProjectComponentProvider {
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ConfigurationComponentMetaDataBuilder metaDataBuilder;
-    private final ListMultimap<ProjectComponentIdentifier, ComponentArtifactMetaData> registeredArtifacts = ArrayListMultimap.create();
+    private final ListMultimap<ProjectComponentIdentifier, ComponentArtifactMetadata> registeredArtifacts = ArrayListMultimap.create();
 
     public LocalProjectComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
         this.projectRegistry = projectRegistry;
         this.metaDataBuilder = metaDataBuilder;
     }
 
-    public LocalComponentMetaData getProject(ProjectComponentIdentifier projectIdentifier) {
+    public LocalComponentMetadata getProject(ProjectComponentIdentifier projectIdentifier) {
         ProjectInternal project = projectRegistry.getProject(projectIdentifier.getProjectPath());
         if (project == null) {
             return null;
@@ -48,22 +48,22 @@ public class LocalProjectComponentProvider implements ProjectComponentProvider {
         return getLocalComponentMetaData(project);
     }
 
-    private LocalComponentMetaData getLocalComponentMetaData(ProjectInternal project) {
+    private LocalComponentMetadata getLocalComponentMetaData(ProjectInternal project) {
         Module module = project.getModule();
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
         ComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(project.getPath());
-        DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleVersionIdentifier, componentIdentifier, module.getStatus());
+        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus());
         metaDataBuilder.addConfigurations(metaData, project.getConfigurations());
         return metaData;
     }
 
     @Override
-    public void registerAdditionalArtifact(ProjectComponentIdentifier project, ComponentArtifactMetaData artifact) {
+    public void registerAdditionalArtifact(ProjectComponentIdentifier project, ComponentArtifactMetadata artifact) {
         registeredArtifacts.put(project, artifact);
     }
 
     @Override
-    public Iterable<ComponentArtifactMetaData> getAdditionalArtifacts(ProjectComponentIdentifier projectIdentifier) {
+    public Iterable<ComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier projectIdentifier) {
         return registeredArtifacts.get(projectIdentifier);
     }
 }

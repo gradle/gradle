@@ -212,13 +212,13 @@ public class MavenResolver extends ExternalResourceResolver {
         return processMetaData(metaData);
     }
 
-    protected static MavenModuleResolveMetadata mavenMetaData(ModuleComponentResolveMetaData metaData) {
+    protected static MavenModuleResolveMetadata mavenMetaData(ModuleComponentResolveMetadata metaData) {
         return Transformers.cast(MavenModuleResolveMetadata.class).transform(metaData);
     }
 
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
-        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetadata module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
             if (mavenMetaData(module).isKnownJarPackaging()) {
                 ModuleComponentArtifactMetadata artifact = module.artifact("jar", "jar", null);
                 result.resolved(ImmutableSet.of(artifact));
@@ -226,22 +226,22 @@ public class MavenResolver extends ExternalResourceResolver {
         }
 
         @Override
-        protected void resolveJavadocArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
+        protected void resolveJavadocArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result) {
             // Javadoc artifacts are optional, so we need to probe for them remotely
         }
 
         @Override
-        protected void resolveSourceArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
+        protected void resolveSourceArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result) {
             // Javadoc artifacts are optional, so we need to probe for them remotely
         }
     }
 
     private class MavenRemoteRepositoryAccess extends RemoteRepositoryAccess {
         @Override
-        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetadata module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
             MavenModuleResolveMetadata mavenMetaData = mavenMetaData(module);
             if (mavenMetaData.isPomPackaging()) {
-                Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
+                Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
                 artifacts.addAll(findOptionalArtifacts(module, "jar", null));
                 result.resolved(artifacts);
             } else {
@@ -257,12 +257,12 @@ public class MavenResolver extends ExternalResourceResolver {
         }
 
         @Override
-        protected void resolveJavadocArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
+        protected void resolveJavadocArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result) {
             result.resolved(findOptionalArtifacts(module, "javadoc", "javadoc"));
         }
 
         @Override
-        protected void resolveSourceArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
+        protected void resolveSourceArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result) {
             result.resolved(findOptionalArtifacts(module, "source", "sources"));
         }
     }

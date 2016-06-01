@@ -15,8 +15,8 @@
  */
 package org.gradle.internal.resolve.result;
 
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.resolve.ArtifactResolveException;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -24,10 +24,10 @@ import java.util.Set;
 
 public class DefaultBuildableArtifactSetResolveResult implements BuildableArtifactSetResolveResult {
     private ArtifactResolveException failure;
-    private Set<ComponentArtifactMetaData> artifacts;
+    private Set<ComponentArtifactMetadata> artifacts;
 
-    public void resolved(Collection<? extends ComponentArtifactMetaData> artifacts) {
-        this.artifacts = new LinkedHashSet<ComponentArtifactMetaData>(artifacts);
+    public void resolved(Collection<? extends ComponentArtifactMetadata> artifacts) {
+        this.artifacts = new LinkedHashSet<ComponentArtifactMetadata>(artifacts);
     }
 
     public void failed(ArtifactResolveException failure) {
@@ -43,7 +43,7 @@ public class DefaultBuildableArtifactSetResolveResult implements BuildableArtifa
         return failure;
     }
 
-    public Set<ComponentArtifactMetaData> getArtifacts() {
+    public Set<ComponentArtifactMetadata> getArtifacts() {
         assertResolved();
         return artifacts;
     }

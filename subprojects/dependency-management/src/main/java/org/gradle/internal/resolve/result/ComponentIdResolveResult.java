@@ -20,7 +20,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 /**
@@ -41,5 +41,5 @@ public interface ComponentIdResolveResult extends ResolveResult {
      * Returns the meta-data for the component, if it was available at resolve time.
      */
     @Nullable
-    ComponentResolveMetaData getMetaData();
+    ComponentResolveMetadata getMetaData();
 }

@@ -20,20 +20,20 @@ import org.gradle.api.Buildable;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 
-public class PublishArtifactLocalArtifactMetaData implements LocalComponentArtifactIdentifier, ComponentArtifactMetaData, Buildable {
+public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtifactIdentifier, ComponentArtifactMetadata, Buildable {
     private final ComponentIdentifier componentIdentifier;
     private final String componentDisplayName;
     private final PublishArtifact publishArtifact;
 
     // The componentDisplayName parameter is temporary
-    public PublishArtifactLocalArtifactMetaData(ComponentIdentifier componentIdentifier, String componentDisplayName, PublishArtifact publishArtifact) {
+    public PublishArtifactLocalArtifactMetadata(ComponentIdentifier componentIdentifier, String componentDisplayName, PublishArtifact publishArtifact) {
         this.componentIdentifier = componentIdentifier;
         this.componentDisplayName = componentDisplayName;
         this.publishArtifact = publishArtifact;
@@ -100,7 +100,7 @@ public class PublishArtifactLocalArtifactMetaData implements LocalComponentArtif
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        PublishArtifactLocalArtifactMetaData other = (PublishArtifactLocalArtifactMetaData) obj;
+        PublishArtifactLocalArtifactMetadata other = (PublishArtifactLocalArtifactMetadata) obj;
         return other.componentIdentifier.equals(componentIdentifier) && other.publishArtifact.equals(publishArtifact);
     }
 

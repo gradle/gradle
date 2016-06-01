@@ -15,8 +15,9 @@
  */
 
 package org.gradle.internal.resolve.result
+
 import org.gradle.internal.resolve.ArtifactResolveException
-import org.gradle.internal.component.model.ComponentArtifactMetaData
+import org.gradle.internal.component.model.ComponentArtifactMetadata
 import spock.lang.Specification
 
 class DefaultBuildableArtifactSetResolveResultTest extends Specification {
@@ -54,7 +55,7 @@ class DefaultBuildableArtifactSetResolveResultTest extends Specification {
 
     def "has result when artifacts set"() {
         when:
-        def artifact = Mock(ComponentArtifactMetaData)
+        def artifact = Mock(ComponentArtifactMetadata)
         result.resolved([artifact])
 
         then:

@@ -18,16 +18,16 @@ package org.gradle.internal.component.external.model;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 /**
  * The meta-data for a module version that is required during dependency resolution.
  */
-public interface ModuleComponentResolveMetaData extends ComponentResolveMetaData {
+public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata {
     ModuleComponentIdentifier getComponentId();
 
-    ModuleComponentResolveMetaData withSource(ModuleSource source);
+    ModuleComponentResolveMetadata withSource(ModuleSource source);
 
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 

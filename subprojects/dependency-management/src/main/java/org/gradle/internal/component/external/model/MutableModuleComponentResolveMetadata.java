@@ -16,12 +16,12 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.List;
 
-public interface MutableModuleComponentResolveMetadata extends ModuleComponentResolveMetaData {
+public interface MutableModuleComponentResolveMetadata extends ModuleComponentResolveMetadata {
     /**
      * Creates a deep copy of this meta-data.
      */
@@ -41,7 +41,7 @@ public interface MutableModuleComponentResolveMetadata extends ModuleComponentRe
     /**
      * Replaces the dependencies of this module version.
      */
-    void setDependencies(Iterable<? extends DependencyMetaData> dependencies);
+    void setDependencies(Iterable<? extends DependencyMetadata> dependencies);
 
     /**
      * Replaces the artifacts of this module version.

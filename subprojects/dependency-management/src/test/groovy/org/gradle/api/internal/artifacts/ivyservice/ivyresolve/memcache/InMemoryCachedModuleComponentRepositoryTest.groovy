@@ -20,10 +20,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentUsage
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
@@ -50,7 +50,7 @@ class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
     def repo = new InMemoryCachedModuleComponentRepository(caches, delegate)
     def lib = Mock(ModuleComponentIdentifier)
     def selector = newSelector("org", "lib", "1.0")
-    def dep = Stub(DependencyMetaData) { getRequested() >> selector }
+    def dep = Stub(DependencyMetadata) { getRequested() >> selector }
     def componentRequestMetaData = Mock(ComponentOverrideMetadata)
 
 
@@ -146,7 +146,7 @@ class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
     }
 
     def "delegates request for module artifacts by type"() {
-        def moduleMetaData = Stub(ModuleComponentResolveMetaData)
+        def moduleMetaData = Stub(ModuleComponentResolveMetadata)
         def artifactType = ArtifactType.JAVADOC
         def result = Mock(BuildableArtifactSetResolveResult)
 
@@ -166,7 +166,7 @@ class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
     }
 
     def "delegates request for module artifacts for usage"() {
-        def moduleMetaData = Stub(ModuleComponentResolveMetaData)
+        def moduleMetaData = Stub(ModuleComponentResolveMetadata)
         def componentUsage = Stub(ComponentUsage)
         def result = Mock(BuildableArtifactSetResolveResult)
 

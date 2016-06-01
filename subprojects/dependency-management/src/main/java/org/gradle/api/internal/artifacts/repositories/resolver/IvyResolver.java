@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyContextualMetaDataParser;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.*;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
@@ -111,22 +111,22 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {
 
-        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
-            ConfigurationMetaData configuration = module.getConfiguration(usage.getConfigurationName());
+        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetadata module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+            ConfigurationMetadata configuration = module.getConfiguration(usage.getConfigurationName());
             result.resolved(configuration.getArtifacts());
         }
 
         @Override
-        protected void resolveJavadocArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
-            ConfigurationMetaData configuration = module.getConfiguration("javadoc");
+        protected void resolveJavadocArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result) {
+            ConfigurationMetadata configuration = module.getConfiguration("javadoc");
             if (configuration != null) {
                 result.resolved(configuration.getArtifacts());
             }
         }
 
         @Override
-        protected void resolveSourceArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
-            ConfigurationMetaData configuration = module.getConfiguration("sources");
+        protected void resolveSourceArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result) {
+            ConfigurationMetadata configuration = module.getConfiguration("sources");
             if (configuration != null) {
                 result.resolved(configuration.getArtifacts());
             }
@@ -135,18 +135,18 @@ public class IvyResolver extends ExternalResourceResolver implements PatternBase
 
     private class IvyRemoteRepositoryAccess extends RemoteRepositoryAccess {
         @Override
-        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetaData module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetadata module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
             // Configuration artifacts are determined locally
         }
 
         @Override
-        protected void resolveJavadocArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
+        protected void resolveJavadocArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result) {
             // Probe for artifact with classifier
             result.resolved(findOptionalArtifacts(module, "javadoc", "javadoc"));
         }
 
         @Override
-        protected void resolveSourceArtifacts(ModuleComponentResolveMetaData module, BuildableArtifactSetResolveResult result) {
+        protected void resolveSourceArtifacts(ModuleComponentResolveMetadata module, BuildableArtifactSetResolveResult result) {
             // Probe for artifact with classifier
             result.resolved(findOptionalArtifacts(module, "source", "sources"));
         }

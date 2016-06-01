@@ -34,8 +34,8 @@ import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
-import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetaData
-import org.gradle.internal.component.model.ComponentArtifactMetaData
+import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
+import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin
@@ -102,14 +102,14 @@ class IdeaPlugin extends IdePlugin {
         }
     }
 
-    private ComponentArtifactMetaData createImlArtifact() {
+    private ComponentArtifactMetadata createImlArtifact() {
         ProjectComponentIdentifier projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
         String moduleName = model.module.name
         File imlFile = new File(project.getProjectDir(), moduleName + ".iml");
         String taskName = project.getPath().equals(":") ? ":ideaModule" : project.getPath() + ":ideaModule";
         Task byName = project.getTasks().getByPath(taskName);
         PublishArtifact publishArtifact = new DefaultPublishArtifact(moduleName, "iml", "iml", null, null, imlFile, byName);
-        return new PublishArtifactLocalArtifactMetaData(projectId, "IML-FILE", publishArtifact);
+        return new PublishArtifactLocalArtifactMetadata(projectId, "IML-FILE", publishArtifact);
     }
 
     void hookDeduplicationToTheRoot(Project project) {

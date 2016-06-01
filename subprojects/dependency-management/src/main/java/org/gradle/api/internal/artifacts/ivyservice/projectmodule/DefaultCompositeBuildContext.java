@@ -28,8 +28,8 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.initialization.ReportedException;
-import org.gradle.internal.component.local.model.LocalComponentMetaData;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -71,7 +71,7 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
     }
 
     @Override
-    public LocalComponentMetaData getProject(ProjectComponentIdentifier project) {
+    public LocalComponentMetadata getProject(ProjectComponentIdentifier project) {
         RegisteredProject registeredProject = projectMetadata.get(project);
         return registeredProject == null ? null : registeredProject.metaData;
     }
@@ -87,12 +87,12 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
         return projectMetadata.keySet();
     }
 
-    public Collection<ComponentArtifactMetaData> getAdditionalArtifacts(ProjectComponentIdentifier projectIdentifier) {
+    public Collection<ComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier projectIdentifier) {
         return getRegisteredProject(projectIdentifier).artifacts;
      }
 
     @Override
-    public void register(ModuleIdentifier moduleId, ProjectComponentIdentifier project, LocalComponentMetaData localComponentMetaData, File projectDirectory) {
+    public void register(ModuleIdentifier moduleId, ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetaData, File projectDirectory) {
         LOGGER.info("Registering project '" + project + "' in composite build. Will substitute for module '" + moduleId + "'.");
         replacementProjects.put(moduleId, project);
         if (projectMetadata.containsKey(project)) {
@@ -103,7 +103,7 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
     }
 
     @Override
-    public void registerAdditionalArtifact(ProjectComponentIdentifier project, ComponentArtifactMetaData artifact) {
+    public void registerAdditionalArtifact(ProjectComponentIdentifier project, ComponentArtifactMetadata artifact) {
         getRegisteredProject(project).artifacts.add(artifact);
     }
 
@@ -116,11 +116,11 @@ public class DefaultCompositeBuildContext implements CompositeBuildContext {
     }
 
     private static class RegisteredProject {
-        LocalComponentMetaData metaData;
+        LocalComponentMetadata metaData;
         File projectDirectory;
-        Collection<ComponentArtifactMetaData> artifacts = Lists.newArrayList();
+        Collection<ComponentArtifactMetadata> artifacts = Lists.newArrayList();
 
-        public RegisteredProject(LocalComponentMetaData metaData, File projectDirectory) {
+        public RegisteredProject(LocalComponentMetadata metaData, File projectDirectory) {
             this.metaData = metaData;
             this.projectDirectory = projectDirectory;
         }
