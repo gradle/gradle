@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentRegistry
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
-import org.gradle.internal.component.model.ComponentArtifactMetaData
+import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
@@ -33,14 +33,14 @@ class ProjectDependencyBuilderTest extends Specification {
     def projectComponentRegistry = Mock(ProjectComponentRegistry)
     def serviceRegistry = new DefaultServiceRegistry().add(ProjectComponentRegistry, projectComponentRegistry)
     def ProjectDependencyBuilder builder = new ProjectDependencyBuilder(new CompositeBuildIdeProjectResolver(serviceRegistry))
-    def IdeProjectDependency ideProjectDependency = new IdeProjectDependency(projectId, project)
+    def IdeProjectDependency ideProjectDependency = new IdeProjectDependency(projectId, "test")
 
     def "should create dependency using project name"() {
         when:
         def dependency = builder.build(ideProjectDependency)
 
         then:
-        dependency.path == "/" + project.name
+        dependency.path == "/test"
 
         and:
         projectComponentRegistry.getAdditionalArtifacts(_) >> []
@@ -48,7 +48,7 @@ class ProjectDependencyBuilderTest extends Specification {
 
     def "should create dependency using eclipse projectName"() {
         given:
-        def projectArtifact = Stub(ComponentArtifactMetaData) {
+        def projectArtifact = Stub(ComponentArtifactMetadata) {
             getName() >> new DefaultIvyArtifactName("foo", "eclipse.project", "project", null)
         }
         projectComponentRegistry.getAdditionalArtifacts(_) >> [projectArtifact]

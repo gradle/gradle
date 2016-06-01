@@ -72,7 +72,7 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
             if (resolvedProject == null) {
                 ideProjectDependencies.add(new IdeProjectDependency(projectId));
             } else {
-                ideProjectDependencies.add(new IdeProjectDependency(projectId, resolvedProject));
+                ideProjectDependencies.add(new IdeProjectDependency(projectId, resolvedProject.getName()));
             }
         }
         return ideProjectDependencies;

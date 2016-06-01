@@ -18,18 +18,16 @@ package org.gradle.plugins.ide.idea.model.internal
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentRegistry
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
-import org.gradle.internal.component.model.ComponentArtifactMetaData
+import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
-import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ModuleDependencyBuilderTest extends Specification {
 
     def projectId = DefaultProjectComponentIdentifier.newId("project-path")
-    def project = TestUtil.createRootProject()
-    def ideDependency = new IdeProjectDependency(projectId, project)
+    def ideDependency = new IdeProjectDependency(projectId, "test")
     def projectComponentRegistry = Mock(ProjectComponentRegistry)
     def serviceRegistry = new DefaultServiceRegistry().add(ProjectComponentRegistry, projectComponentRegistry)
     def builder = new ModuleDependencyBuilder(new CompositeBuildIdeProjectResolver(serviceRegistry))
@@ -40,7 +38,7 @@ class ModuleDependencyBuilderTest extends Specification {
 
         then:
         dependency.scope == 'compile'
-        dependency.name == project.name
+        dependency.name == "test"
 
         and:
         projectComponentRegistry.getAdditionalArtifacts(_) >> []
@@ -48,7 +46,7 @@ class ModuleDependencyBuilderTest extends Specification {
 
     def "builds dependency for project"() {
         given:
-        def imlArtifact = Stub(ComponentArtifactMetaData) {
+        def imlArtifact = Stub(ComponentArtifactMetadata) {
             getName() >> new DefaultIvyArtifactName("foo", "iml", "iml", null)
         }
 

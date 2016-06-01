@@ -16,25 +16,20 @@
 
 package org.gradle.plugins.ide.internal.resolver.model;
 
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
 public class IdeProjectDependency extends IdeDependency {
-    private final Project project;
     private final ProjectComponentIdentifier projectId;
+    private final String projectName;
 
-    public IdeProjectDependency(ProjectComponentIdentifier projectId, Project project) {
+    public IdeProjectDependency(ProjectComponentIdentifier projectId, String projectName) {
         this.projectId = projectId;
-        this.project = project;
+        this.projectName = projectName;
     }
 
     public IdeProjectDependency(ProjectComponentIdentifier projectId) {
-        this.project = null;
         this.projectId = projectId;
-    }
-
-    public Project getProject() {
-        return project;
+        this.projectName = null;
     }
 
     public ProjectComponentIdentifier getProjectId() {
@@ -46,19 +41,7 @@ public class IdeProjectDependency extends IdeDependency {
     }
 
     public String getProjectName() {
-        if (project != null) {
-            return project.getName();
-        }
-
-        // TODO:DAZ Once we use the published metadata artifact everywhere, this won't be required
-        String projectPath = getProjectPath();
-        // This is just a hack to allow 'idea' task to function reasonably in a composite
-        // This will be addressed when we add support for IDE project file generation for a composite build
-        if (projectPath.endsWith("::")) {
-            return projectPath.substring(0, projectPath.length() - 2);
-        }
-        int index = projectPath.lastIndexOf(':');
-        return projectPath.substring(index + 1);
+        return projectName;
     }
 
 }
