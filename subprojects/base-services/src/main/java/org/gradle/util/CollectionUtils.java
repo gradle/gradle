@@ -559,18 +559,18 @@ public abstract class CollectionUtils {
      * <pre>Left</pre> Collection containing entries that satisfy the given predicate
      * <pre>Right</pre> Collection containing entries that do NOT satisfy the given predicate
      */
-    public static <T> Pair<Collection<T>, Collection<T>> partition(Iterable<T> xs, Spec<? super T> predicate) {
-        Preconditions.checkNotNull(xs, "Cannot partition null Collection");
+    public static <T> Pair<Collection<T>, Collection<T>> partition(Iterable<T> items, Spec<? super T> predicate) {
+        Preconditions.checkNotNull(items, "Cannot partition null Collection");
         Preconditions.checkNotNull(predicate, "Cannot apply null Spec when partitioning");
 
         Collection<T> left = new LinkedList<T>();
         Collection<T> right = new LinkedList<T>();
 
-        for (T x : xs) {
-            if (predicate.isSatisfiedBy(x)) {
-                left.add(x);
+        for (T item : items) {
+            if (predicate.isSatisfiedBy(item)) {
+                left.add(item);
             } else {
-                right.add(x);
+                right.add(item);
             }
         }
 

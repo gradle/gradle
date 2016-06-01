@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.registry;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.remote.Address;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -40,7 +41,7 @@ public interface DaemonRegistry {
 
     void storeStopEvent(DaemonStopEvent stopEvent);
     List<DaemonStopEvent> getStopEvents();
-    void removeStopEvents(List<DaemonStopEvent> stopEvents);
+    void removeStopEvents(Collection<DaemonStopEvent> stopEvents);
 
     static class EmptyRegistryException extends RuntimeException {
         public EmptyRegistryException(String message) {

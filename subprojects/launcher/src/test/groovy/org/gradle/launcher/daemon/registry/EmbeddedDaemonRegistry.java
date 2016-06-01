@@ -21,6 +21,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.remote.Address;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -103,7 +104,7 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
     }
 
     @Override
-    public void removeStopEvents(final List<DaemonStopEvent> events) {
+    public void removeStopEvents(final Collection<DaemonStopEvent> events) {
         stopEvents.removeAll(events);
     }
 

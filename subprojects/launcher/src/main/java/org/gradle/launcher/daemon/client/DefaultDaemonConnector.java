@@ -98,12 +98,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     public DaemonClientConnection connect(ExplainingSpec<DaemonContext> constraint) {
-        final Collection<DaemonInfo> allDaemons = daemonRegistry.getAll();
-        final Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> idleBusy = CollectionUtils.partition(allDaemons, new Spec<DaemonInfo>() {
-            public boolean isSatisfiedBy(DaemonInfo element) {
-                return element.isIdle();
-            }
-        });
+        final Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> idleBusy = partitionByIdleState(daemonRegistry.getAll());
         final Collection<DaemonInfo> idleDaemons = idleBusy.getLeft();
         final Collection<DaemonInfo> busyDaemons = idleBusy.getRight();
 
@@ -145,6 +140,14 @@ public class DefaultDaemonConnector implements DaemonConnector {
         messages.add(SUBSEQUENT_BUILDS_FASTER_MESSAGE);
 
         return Joiner.on(LINE_SEPARATOR + "   ").skipNulls().join(messages);
+    }
+
+    private Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> partitionByIdleState(final Collection<DaemonInfo> daemons) {
+        return CollectionUtils.partition(daemons, new Spec<DaemonInfo>() {
+            public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
+                return daemonInfo.isIdle();
+            }
+        });
     }
 
     private List<DaemonInfo> getCompatibleDaemons(Iterable<DaemonInfo> daemons, ExplainingSpec<DaemonContext> constraint) {

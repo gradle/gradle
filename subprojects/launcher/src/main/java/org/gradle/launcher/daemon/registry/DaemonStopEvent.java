@@ -26,7 +26,7 @@ import java.util.Date;
  */
 public class DaemonStopEvent implements Serializable {
     private final Date timestamp;
-    private final String reason;
+    private final @Nullable String reason;
 
     public DaemonStopEvent(Date timestamp, @Nullable String reason) {
         this.timestamp = timestamp;
@@ -37,7 +37,7 @@ public class DaemonStopEvent implements Serializable {
         return timestamp;
     }
 
-    public String getReason() {
+    @Nullable public String getReason() {
         return reason;
     }
 
