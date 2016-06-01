@@ -61,6 +61,9 @@ public class CompositeBuildIdeProjectResolver {
     // TODO:DAZ Push this into dependency resolution, getting artifact by type
     public File resolveImlArtifactFile(ProjectComponentIdentifier project) {
         ComponentArtifactMetadata artifactMetaData = resolveImlArtifact(project);
+        if (artifactMetaData == null) {
+            throw new IllegalArgumentException("No iml artifact registered");
+        }
         for (ProjectArtifactBuilder artifactBuilder : artifactBuilders) {
             artifactBuilder.build(artifactMetaData);
         }
@@ -74,9 +77,8 @@ public class CompositeBuildIdeProjectResolver {
                 return artifactMetaData;
             }
         }
-        throw new IllegalArgumentException("No artifact with type: " + type);
+        return null;
     }
-
 
     private CompositeProjectComponentRegistry getRegistry() {
         if (discovered == null) {
