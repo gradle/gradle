@@ -50,7 +50,7 @@ public class IdeProjectDependency extends IdeDependency {
             return project.getName();
         }
 
-        // TODO:DAZ Tidy this up : is it ever required?
+        // TODO:DAZ Once we use the published metadata artifact everywhere, this won't be required
         String projectPath = getProjectPath();
         // This is just a hack to allow 'idea' task to function reasonably in a composite
         // This will be addressed when we add support for IDE project file generation for a composite build

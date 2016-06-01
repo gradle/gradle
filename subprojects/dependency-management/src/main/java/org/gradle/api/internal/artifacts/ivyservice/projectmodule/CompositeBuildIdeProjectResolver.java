@@ -27,7 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-// TODO:DAZ Rename this and make it useful for composite and non-composite builds
+// TODO:DAZ Split out the non-composite resolution stuff and name appropriately
 public class CompositeBuildIdeProjectResolver {
     private final CompositeBuildContext discovered;
     private final ProjectComponentRegistry registry;
@@ -63,15 +63,15 @@ public class CompositeBuildIdeProjectResolver {
         return discovered;
     }
 
-    public ComponentArtifactMetadata resolveImlArtifact(ProjectComponentIdentifier project) {
-        return findArtifact(project, "iml");
+    public ComponentArtifactMetadata resolveArtifact(ProjectComponentIdentifier project, String type) {
+        return findArtifact(project, type);
     }
 
     // TODO:DAZ Push this into dependency resolution, getting artifact by type
-    public File resolveImlArtifactFile(ProjectComponentIdentifier project) {
-        ComponentArtifactMetadata artifactMetaData = resolveImlArtifact(project);
+    public File resolveArtifactFile(ProjectComponentIdentifier project, String type) {
+        ComponentArtifactMetadata artifactMetaData = resolveArtifact(project, type);
         if (artifactMetaData == null) {
-            throw new IllegalArgumentException("No iml artifact registered");
+            throw new IllegalArgumentException("No artifact registered for type: " + type);
         }
         for (ProjectArtifactBuilder artifactBuilder : artifactBuilders) {
             artifactBuilder.build(artifactMetaData);

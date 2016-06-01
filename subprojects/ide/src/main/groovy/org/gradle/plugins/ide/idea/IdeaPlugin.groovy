@@ -116,18 +116,17 @@ class IdeaPlugin extends IdePlugin {
     private static void registerImlArtifact(Project project) {
         def projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectComponentProvider)
         def projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
-        def imlArtifact = createImlArtifact(project)
+        def imlArtifact = createImlArtifact(projectId, project)
         projectComponentProvider.registerAdditionalArtifact(projectId, imlArtifact)
     }
 
-    private static ComponentArtifactMetadata createImlArtifact(Project project) {
-        ProjectComponentIdentifier projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
+    private static ComponentArtifactMetadata createImlArtifact(ProjectComponentIdentifier projectId, Project project) {
         String moduleName = project.extensions.getByType(IdeaModel).module.name
         File imlFile = new File(project.getProjectDir(), moduleName + ".iml");
         String taskName = project.getPath().equals(":") ? ":ideaModule" : project.getPath() + ":ideaModule";
         Task byName = project.getTasks().getByPath(taskName);
         PublishArtifact publishArtifact = new DefaultPublishArtifact(moduleName, "iml", "iml", null, null, imlFile, byName);
-        return new PublishArtifactLocalArtifactMetadata(projectId, "IML-FILE", publishArtifact);
+        return new PublishArtifactLocalArtifactMetadata(projectId, "idea.iml", publishArtifact);
     }
 
     private configureIdeaWorkspace(Project project) {
