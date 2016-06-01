@@ -28,12 +28,12 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
+import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.UsageKind;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.LocalComponentDependencyMetaData;
+import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.LibraryBinaryDependencySpec;
 import org.gradle.platform.base.ModuleDependencySpec;
@@ -47,35 +47,35 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.google.common.base.Strings.nullToEmpty;
 import static org.gradle.platform.base.internal.DefaultModuleDependencySpec.effectiveVersionFor;
 
-public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentMetaData {
+public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentMetadata {
     private static final String VERSION = "<local component>";
     private static final List<Exclude> EXCLUDE_RULES = Collections.emptyList();
     private static final String CONFIGURATION_COMPILE = "compile";
 
-    public static DefaultLibraryLocalComponentMetaData newResolvedLibraryMetadata(
+    public static DefaultLibraryLocalComponentMetadata newResolvedLibraryMetadata(
         LibraryBinaryIdentifier componentId,
         Map<UsageKind, TaskDependency> buildDependencies,
         Map<UsageKind, Iterable<DependencySpec>> dependencies,
         String defaultProject) {
-        DefaultLibraryLocalComponentMetaData metadata = newDefaultLibraryLocalComponentMetadata(componentId, buildDependencies);
+        DefaultLibraryLocalComponentMetadata metadata = newDefaultLibraryLocalComponentMetadata(componentId, buildDependencies);
         addDependenciesToMetaData(dependencies, metadata, defaultProject);
         return metadata;
     }
 
-    private static void addDependenciesToMetaData(Map<UsageKind, Iterable<DependencySpec>> dependencies, DefaultLibraryLocalComponentMetaData metadata, String defaultProject) {
+    private static void addDependenciesToMetaData(Map<UsageKind, Iterable<DependencySpec>> dependencies, DefaultLibraryLocalComponentMetadata metadata, String defaultProject) {
         for (Map.Entry<UsageKind, Iterable<DependencySpec>> entry : dependencies.entrySet()) {
             addDependenciesToMetadata(metadata, defaultProject, entry.getValue(), entry.getKey());
         }
     }
 
-    public static DefaultLibraryLocalComponentMetaData newResolvingLocalComponentMetadata(LibraryBinaryIdentifier componentId, UsageKind usage, Iterable<DependencySpec> dependencies) {
-        DefaultLibraryLocalComponentMetaData metadata = newDefaultLibraryLocalComponentMetadata(componentId, Collections.<UsageKind, TaskDependency>singletonMap(usage, new DefaultTaskDependency()));
+    public static DefaultLibraryLocalComponentMetadata newResolvingLocalComponentMetadata(LibraryBinaryIdentifier componentId, UsageKind usage, Iterable<DependencySpec> dependencies) {
+        DefaultLibraryLocalComponentMetadata metadata = newDefaultLibraryLocalComponentMetadata(componentId, Collections.<UsageKind, TaskDependency>singletonMap(usage, new DefaultTaskDependency()));
         addDependenciesToMetadata(metadata, componentId.getProjectPath(), dependencies, usage);
         return metadata;
     }
 
-    private static DefaultLibraryLocalComponentMetaData newDefaultLibraryLocalComponentMetadata(LibraryBinaryIdentifier componentId, Map<UsageKind, TaskDependency> buildDependencies) {
-        DefaultLibraryLocalComponentMetaData metaData = new DefaultLibraryLocalComponentMetaData(localModuleVersionIdentifierFor(componentId), componentId);
+    private static DefaultLibraryLocalComponentMetadata newDefaultLibraryLocalComponentMetadata(LibraryBinaryIdentifier componentId, Map<UsageKind, TaskDependency> buildDependencies) {
+        DefaultLibraryLocalComponentMetadata metaData = new DefaultLibraryLocalComponentMetadata(localModuleVersionIdentifierFor(componentId), componentId);
         for (Map.Entry<UsageKind, TaskDependency> entry : buildDependencies.entrySet()) {
             String configurationName = entry.getKey().getConfigurationName();
             metaData.addConfiguration(
@@ -90,7 +90,7 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         return metaData;
     }
 
-    private static void addDependenciesToMetadata(DefaultLibraryLocalComponentMetaData metadata, String defaultProject, Iterable<DependencySpec> value, UsageKind usage) {
+    private static void addDependenciesToMetadata(DefaultLibraryLocalComponentMetadata metadata, String defaultProject, Iterable<DependencySpec> value, UsageKind usage) {
         metadata.addDependencies(value, defaultProject, usage.getConfigurationName());
     }
 
@@ -98,7 +98,7 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         return new DefaultModuleVersionIdentifier(componentId.getProjectPath(), componentId.getLibraryName(), VERSION);
     }
 
-    private DefaultLibraryLocalComponentMetaData(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
+    private DefaultLibraryLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
         super(id, componentIdentifier, Project.DEFAULT_STATUS);
     }
 
@@ -109,14 +109,14 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
     }
 
     private void addDependency(DependencySpec dependency, String defaultProject, String usageConfigurationName) {
-        DependencyMetaData metadata = dependency instanceof ModuleDependencySpec
+        DependencyMetadata metadata = dependency instanceof ModuleDependencySpec
             ? moduleDependencyMetadata((ModuleDependencySpec) dependency, usageConfigurationName)
             : dependency instanceof ProjectDependencySpec ? projectDependencyMetadata((ProjectDependencySpec) dependency, defaultProject, usageConfigurationName)
             : binaryDependencyMetadata((LibraryBinaryDependencySpec) dependency, usageConfigurationName);
         addDependency(metadata);
     }
 
-    private DependencyMetaData moduleDependencyMetadata(ModuleDependencySpec moduleDependency, String usageConfigurationName) {
+    private DependencyMetadata moduleDependencyMetadata(ModuleDependencySpec moduleDependency, String usageConfigurationName) {
         ModuleVersionSelector requested = moduleVersionSelectorFrom(moduleDependency);
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
         // TODO: This hard-codes the assumption of a 'compile' configuration on the external module
@@ -125,7 +125,7 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
     }
 
     // TODO: projectDependency should be transformed based on defaultProject (and other context) elsewhere.
-    private DependencyMetaData projectDependencyMetadata(ProjectDependencySpec projectDependency, String defaultProject, String usageConfigurationName) {
+    private DependencyMetadata projectDependencyMetadata(ProjectDependencySpec projectDependency, String defaultProject, String usageConfigurationName) {
         String projectPath = projectDependency.getProjectPath();
         if (isNullOrEmpty(projectPath)) {
             projectPath = defaultProject;
@@ -136,7 +136,7 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
         return dependencyMetadataFor(selector, requested, usageConfigurationName, usageConfigurationName);
     }
 
-    private DependencyMetaData binaryDependencyMetadata(LibraryBinaryDependencySpec binarySpec, String usageConfigurationName) {
+    private DependencyMetadata binaryDependencyMetadata(LibraryBinaryDependencySpec binarySpec, String usageConfigurationName) {
         String projectPath = binarySpec.getProjectPath();
         String libraryName = binarySpec.getLibraryName();
         ComponentSelector selector = new DefaultLibraryComponentSelector(projectPath, libraryName, binarySpec.getVariant());
@@ -155,8 +155,8 @@ public class DefaultLibraryLocalComponentMetaData extends DefaultLocalComponentM
      * assumed to exist. Therefore, this method takes 2 arguments: one is the requested usage ("API") and the other is the mapped usage
      * ("compile"). For local libraries, both should be equal, but for external dependencies, they will be different.
      */
-    private DependencyMetaData dependencyMetadataFor(ComponentSelector selector, ModuleVersionSelector requested, String usageConfigurationName, String mappedUsageConfiguration) {
-        return new LocalComponentDependencyMetaData(
+    private DependencyMetadata dependencyMetadataFor(ComponentSelector selector, ModuleVersionSelector requested, String usageConfigurationName, String mappedUsageConfiguration) {
+        return new LocalComponentDependencyMetadata(
                 selector, requested, usageConfigurationName, mappedUsageConfiguration,
                 Collections.<IvyArtifactName>emptySet(),
                 EXCLUDE_RULES,

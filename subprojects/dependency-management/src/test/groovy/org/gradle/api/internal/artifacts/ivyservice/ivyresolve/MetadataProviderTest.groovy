@@ -21,12 +21,12 @@ import org.gradle.internal.component.external.descriptor.MutableModuleDescriptor
 import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
 
 class MetadataProviderTest extends Specification {
-    def dep = Stub(DependencyMetaData)
+    def dep = Stub(DependencyMetadata)
     def id = Stub(ModuleComponentIdentifier) {
         getVersion() >> "1.2"
     }

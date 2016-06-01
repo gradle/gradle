@@ -21,7 +21,7 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.DependencyMetadata
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -31,10 +31,10 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
     def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
     def moduleDescriptor = new MutableModuleDescriptorState(id, "status", false)
 
-    abstract AbstractModuleComponentResolveMetadata createMetaData(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor);
+    abstract AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor);
 
-    MutableModuleComponentResolveMetadata getMetaData() {
-        return createMetaData(id, moduleDescriptor)
+    MutableModuleComponentResolveMetadata getMetadata() {
+        return createMetadata(id, moduleDescriptor)
     }
 
     def "has useful string representation"() {
@@ -42,22 +42,22 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         configuration("config")
 
         expect:
-        metaData.toString() == 'group:module:version'
-        metaData.getConfiguration('config').toString() == 'group:module:version:config'
+        metadata.toString() == 'group:module:version'
+        metadata.getConfiguration('config').toString() == 'group:module:version:config'
     }
 
     def "can replace identifiers"() {
         def newId = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def metaData = getMetaData()
+        def metadata = getMetadata()
 
         given:
-        metaData.setComponentId(newId)
+        metadata.setComponentId(newId)
 
         expect:
-        metaData.componentId.is(newId)
-        metaData.id.group == "group"
-        metaData.id.name == "module"
-        metaData.id.version == "version"
+        metadata.componentId.is(newId)
+        metadata.id.group == "group"
+        metadata.id.name == "module"
+        metadata.id.version == "version"
     }
 
     def "builds and caches the dependency meta-data from the module descriptor"() {
@@ -66,7 +66,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         dependency("org", "another", "1.2")
 
         when:
-        def deps = metaData.dependencies
+        def deps = metadata.dependencies
 
         then:
         deps.size() == 2
@@ -79,13 +79,13 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         configuration("conf")
 
         then:
-        metaData.getConfiguration("conf").transitive
-        metaData.getConfiguration("conf").visible
+        metadata.getConfiguration("conf").transitive
+        metadata.getConfiguration("conf").visible
     }
 
     def "returns null for unknown configuration"() {
         expect:
-        metaData.getConfiguration("conf") == null
+        metadata.getConfiguration("conf") == null
     }
 
     def "builds and caches dependencies for a configuration"() {
@@ -99,17 +99,17 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         dependency("org", "module", "1.5").addDependencyConfiguration("%", "e")
 
         when:
-        def dependencies = metaData.getConfiguration("conf").dependencies
+        def dependencies = this.metadata.getConfiguration("conf").dependencies
 
         then:
         dependencies*.requested*.version == ["1.1", "1.2", "1.3", "1.5"]
 
         when:
-        def metaData = getMetaData()
-        metaData.setDependencies([])
+        def metadata = getMetadata()
+        metadata.setDependencies([])
 
         then:
-        metaData.getConfiguration("conf").dependencies == []
+        metadata.getConfiguration("conf").dependencies == []
     }
 
     def "builds and caches artifacts for a configuration"() {
@@ -119,7 +119,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         artifact("two", ["conf"])
 
         when:
-        def artifacts = metaData.getConfiguration("conf").artifacts
+        def artifacts = metadata.getConfiguration("conf").artifacts
 
         then:
         artifacts*.name.name == ["one", "two"]
@@ -135,7 +135,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         artifact("three", ["super"])
 
         when:
-        def artifacts = metaData.getConfiguration("conf").artifacts
+        def artifacts = metadata.getConfiguration("conf").artifacts
 
         then:
         artifacts*.name.name == ["one", "two", "three"]
@@ -150,28 +150,28 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         def rule3 = exclude("three", ["other"])
 
         when:
-        def excludeRules = metaData.getConfiguration("conf").excludes
+        def excludeRules = metadata.getConfiguration("conf").excludes
 
         then:
         excludeRules as List == [rule1, rule2]
     }
 
     def "can replace the dependencies for the module version"() {
-        def dependency1 = Stub(DependencyMetaData)
-        def dependency2 = Stub(DependencyMetaData)
+        def dependency1 = Stub(DependencyMetadata)
+        def dependency2 = Stub(DependencyMetadata)
 
         when:
         dependency("foo", "bar", "1.0")
-        def metaData = getMetaData()
+        def metadata = getMetadata()
 
         then:
-        metaData.dependencies*.requested*.toString() == ["foo:bar:1.0"]
+        metadata.dependencies*.requested*.toString() == ["foo:bar:1.0"]
 
         when:
-        metaData.dependencies = [dependency1, dependency2]
+        metadata.dependencies = [dependency1, dependency2]
 
         then:
-        metaData.dependencies == [dependency1, dependency2]
+        metadata.dependencies == [dependency1, dependency2]
     }
 
     def configuration(String name, List<String> extendsFrom = []) {

@@ -21,7 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRe
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
@@ -82,7 +82,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new DefaultCachedMetaData(entry, null, timeProvider);
     }
 
-    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetaData metaData) {
+    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetadata metaData) {
         ModuleDescriptorState moduleDescriptor = metaData.getDescriptor();
         LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getComponentIdentifier(), metaData.isChanging());
         LocallyAvailableResource resource = moduleDescriptorStore.putModuleDescriptor(repository, metaData.getComponentId(), moduleDescriptor);
@@ -95,7 +95,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new RevisionKey(repository.getId(), id);
     }
 
-    private ModuleDescriptorCacheEntry createEntry(ModuleComponentResolveMetaData metaData, HashValue moduleDescriptorHash) {
+    private ModuleDescriptorCacheEntry createEntry(ModuleComponentResolveMetadata metaData, HashValue moduleDescriptorHash) {
         return ModuleDescriptorCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime(), moduleDescriptorHash.asBigInteger());
     }
 

@@ -17,17 +17,17 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-public class MissingLocalArtifactMetaData implements LocalComponentArtifactIdentifier, ComponentArtifactMetaData {
+public class MissingLocalArtifactMetadata implements LocalComponentArtifactIdentifier, ComponentArtifactMetadata {
     private final ComponentIdentifier componentIdentifier;
     private final String componentDisplayName;
     private final IvyArtifactName name;
 
-    public MissingLocalArtifactMetaData(ComponentIdentifier componentIdentifier, String componentDisplayName, IvyArtifactName artifactName) {
+    public MissingLocalArtifactMetadata(ComponentIdentifier componentIdentifier, String componentDisplayName, IvyArtifactName artifactName) {
         this.componentIdentifier = componentIdentifier;
         this.componentDisplayName = componentDisplayName;
         this.name = artifactName;
@@ -78,7 +78,7 @@ public class MissingLocalArtifactMetaData implements LocalComponentArtifactIdent
         if (obj == null || obj.getClass() != getClass()) {
             return false;
         }
-        MissingLocalArtifactMetaData other = (MissingLocalArtifactMetaData) obj;
+        MissingLocalArtifactMetadata other = (MissingLocalArtifactMetadata) obj;
         return other.componentIdentifier.equals(componentIdentifier) && other.name.equals(name);
     }
 }

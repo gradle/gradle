@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentArtifactIdentifier;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
@@ -54,13 +54,13 @@ public class CompositeBuildIdeProjectResolver {
         return getRegistry().getAllProjects();
     }
 
-    public ComponentArtifactMetaData resolveImlArtifact(ProjectComponentIdentifier project) {
+    public ComponentArtifactMetadata resolveImlArtifact(ProjectComponentIdentifier project) {
         return findArtifact(project, "iml");
     }
 
     // TODO:DAZ Push this into dependency resolution, getting artifact by type
     public File resolveImlArtifactFile(ProjectComponentIdentifier project) {
-        ComponentArtifactMetaData artifactMetaData = resolveImlArtifact(project);
+        ComponentArtifactMetadata artifactMetaData = resolveImlArtifact(project);
         for (ProjectArtifactBuilder artifactBuilder : artifactBuilders) {
             artifactBuilder.build(artifactMetaData);
         }
@@ -68,8 +68,8 @@ public class CompositeBuildIdeProjectResolver {
         return ((LocalComponentArtifactIdentifier) artifactMetaData).getFile();
     }
 
-    private ComponentArtifactMetaData findArtifact(ProjectComponentIdentifier project, String type) {
-        for (ComponentArtifactMetaData artifactMetaData : getRegistry().getAdditionalArtifacts(project)) {
+    private ComponentArtifactMetadata findArtifact(ProjectComponentIdentifier project, String type) {
+        for (ComponentArtifactMetadata artifactMetaData : getRegistry().getAdditionalArtifacts(project)) {
             if (artifactMetaData.getName().getType().equals(type)) {
                 return artifactMetaData;
             }

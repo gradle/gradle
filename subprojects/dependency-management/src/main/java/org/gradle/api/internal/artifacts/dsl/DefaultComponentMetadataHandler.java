@@ -31,7 +31,7 @@ import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -132,13 +132,13 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         }
     }
 
-    private void processAllRules(ModuleComponentResolveMetaData metadata, ComponentMetadataDetails details) {
+    private void processAllRules(ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details) {
         for (SpecRuleAction<? super ComponentMetadataDetails> rule : rules) {
             processRule(rule, metadata, details);
         }
     }
 
-    private void processRule(SpecRuleAction<? super ComponentMetadataDetails> specRuleAction, ModuleComponentResolveMetaData metadata, ComponentMetadataDetails details) {
+    private void processRule(SpecRuleAction<? super ComponentMetadataDetails> specRuleAction, ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details) {
         if (!specRuleAction.getSpec().isSatisfiedBy(details)) {
             return;
         }

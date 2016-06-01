@@ -27,12 +27,12 @@ import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
-import org.gradle.internal.component.model.ConfigurationMetaData;
-import org.gradle.internal.component.model.DefaultDependencyMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DefaultDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
@@ -56,9 +56,9 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
     private String status;
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
-    private Map<String, DefaultConfigurationMetaData> configurations;
+    private Map<String, DefaultConfigurationMetadata> configurations;
     private Multimap<String, ModuleComponentArtifactMetadata> artifactsByConfig;
-    private List<DependencyMetaData> dependencies;
+    private List<DependencyMetadata> dependencies;
     private List<Exclude> excludes;
 
     public AbstractModuleComponentResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptorState moduleDescriptor) {
@@ -200,42 +200,42 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
         return artifactsByConfig;
     }
 
-    private static List<DependencyMetaData> populateDependenciesFromDescriptor(ModuleDescriptorState moduleDescriptor) {
+    private static List<DependencyMetadata> populateDependenciesFromDescriptor(ModuleDescriptorState moduleDescriptor) {
         List<Dependency> dependencies = moduleDescriptor.getDependencies();
-        List<DependencyMetaData> result = new ArrayList<DependencyMetaData>(dependencies.size());
+        List<DependencyMetadata> result = new ArrayList<DependencyMetadata>(dependencies.size());
         for (Dependency dependency : dependencies) {
-            result.add(new DefaultDependencyMetaData(dependency));
+            result.add(new DefaultDependencyMetadata(dependency));
         }
         return result;
     }
 
 
-    public List<DependencyMetaData> getDependencies() {
+    public List<DependencyMetadata> getDependencies() {
         return dependencies;
     }
 
-    public void setDependencies(Iterable<? extends DependencyMetaData> dependencies) {
+    public void setDependencies(Iterable<? extends DependencyMetadata> dependencies) {
         this.dependencies = CollectionUtils.toList(dependencies);
-        for (DefaultConfigurationMetaData configuration : configurations.values()) {
+        for (DefaultConfigurationMetadata configuration : configurations.values()) {
             configuration.configDependencies = null;
         }
     }
 
-    public DefaultConfigurationMetaData getConfiguration(final String name) {
+    public DefaultConfigurationMetadata getConfiguration(final String name) {
         return configurations.get(name);
     }
 
-    private Map<String, DefaultConfigurationMetaData> populateConfigurationsFromDescriptor(ModuleDescriptorState moduleDescriptor) {
+    private Map<String, DefaultConfigurationMetadata> populateConfigurationsFromDescriptor(ModuleDescriptorState moduleDescriptor) {
         Set<String> configurationsNames = moduleDescriptor.getConfigurationsNames();
-        Map<String, DefaultConfigurationMetaData> configurations = new HashMap<String, DefaultConfigurationMetaData>(configurationsNames.size());
+        Map<String, DefaultConfigurationMetadata> configurations = new HashMap<String, DefaultConfigurationMetadata>(configurationsNames.size());
         for (String configName : configurationsNames) {
             populateConfigurationFromDescriptor(configName, moduleDescriptor, configurations);
         }
         return configurations;
     }
 
-    private DefaultConfigurationMetaData populateConfigurationFromDescriptor(String name, ModuleDescriptorState moduleDescriptor, Map<String, DefaultConfigurationMetaData> configurations) {
-        DefaultConfigurationMetaData populated = configurations.get(name);
+    private DefaultConfigurationMetadata populateConfigurationFromDescriptor(String name, ModuleDescriptorState moduleDescriptor, Map<String, DefaultConfigurationMetadata> configurations) {
+        DefaultConfigurationMetadata populated = configurations.get(name);
         if (populated != null) {
             return populated;
         }
@@ -246,11 +246,11 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
         boolean visible = descriptorConfiguration.isVisible();
         if (extendsFrom.isEmpty()) {
             // tail
-            populated = new DefaultConfigurationMetaData(name, transitive, visible);
+            populated = new DefaultConfigurationMetadata(name, transitive, visible);
             configurations.put(name, populated);
             return populated;
         } else if (extendsFrom.size() == 1) {
-            populated = new DefaultConfigurationMetaData(
+            populated = new DefaultConfigurationMetadata(
                 name,
                 transitive,
                 visible,
@@ -259,11 +259,11 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
             configurations.put(name, populated);
             return populated;
         }
-        List<DefaultConfigurationMetaData> hierarchy = new ArrayList<DefaultConfigurationMetaData>(extendsFrom.size());
+        List<DefaultConfigurationMetadata> hierarchy = new ArrayList<DefaultConfigurationMetadata>(extendsFrom.size());
         for (String confName : extendsFrom) {
             hierarchy.add(populateConfigurationFromDescriptor(confName, moduleDescriptor, configurations));
         }
-        populated = new DefaultConfigurationMetaData(
+        populated = new DefaultConfigurationMetadata(
             name,
             transitive,
             visible,
@@ -274,23 +274,23 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
         return populated;
     }
 
-    private class DefaultConfigurationMetaData implements ConfigurationMetaData {
+    private class DefaultConfigurationMetadata implements ConfigurationMetadata {
         private final String name;
-        private final List<DefaultConfigurationMetaData> parents;
-        private List<DependencyMetaData> configDependencies;
-        private Set<ComponentArtifactMetaData> artifacts;
+        private final List<DefaultConfigurationMetadata> parents;
+        private List<DependencyMetadata> configDependencies;
+        private Set<ComponentArtifactMetadata> artifacts;
         private LinkedHashSet<Exclude> configExcludes;
         private final boolean transitive;
         private final boolean visible;
 
-        private DefaultConfigurationMetaData(String name, boolean transitive, boolean visible, List<DefaultConfigurationMetaData> parents) {
+        private DefaultConfigurationMetadata(String name, boolean transitive, boolean visible, List<DefaultConfigurationMetadata> parents) {
             this.name = name;
             this.parents = parents;
             this.transitive = transitive;
             this.visible = visible;
         }
 
-        private DefaultConfigurationMetaData(String name, boolean transitive, boolean visible) {
+        private DefaultConfigurationMetadata(String name, boolean transitive, boolean visible) {
             this(name, transitive, visible, null);
         }
 
@@ -300,7 +300,7 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
             return getComponent().getComponentId() + ":" + name;
         }
 
-        public ComponentResolveMetaData getComponent() {
+        public ComponentResolveMetadata getComponent() {
             return AbstractModuleComponentResolveMetadata.this;
         }
 
@@ -320,7 +320,7 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
         private void populateHierarchy(Set<String> accumulator) {
             accumulator.add(name);
             if (parents != null) {
-                for (DefaultConfigurationMetaData parent : parents) {
+                for (DefaultConfigurationMetadata parent : parents) {
                     parent.populateHierarchy(accumulator);
                 }
             }
@@ -334,10 +334,10 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
             return visible;
         }
 
-        public List<DependencyMetaData> getDependencies() {
+        public List<DependencyMetadata> getDependencies() {
             if (configDependencies == null) {
-                configDependencies = new ArrayList<DependencyMetaData>();
-                for (DependencyMetaData dependency : dependencies) {
+                configDependencies = new ArrayList<DependencyMetadata>();
+                for (DependencyMetadata dependency : dependencies) {
                     if (include(dependency)) {
                         configDependencies.add(dependency);
                     }
@@ -346,7 +346,7 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
             return configDependencies;
         }
 
-        private boolean include(DependencyMetaData dependency) {
+        private boolean include(DependencyMetadata dependency) {
             String[] moduleConfigurations = dependency.getModuleConfigurations();
             Set<String> hierarchy = getHierarchy();
             for (int i = 0; i < moduleConfigurations.length; i++) {
@@ -390,22 +390,22 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
             }
         }
 
-        public Set<ComponentArtifactMetaData> getArtifacts() {
+        public Set<ComponentArtifactMetadata> getArtifacts() {
             if (artifacts == null) {
-                artifacts = getArtifactsForConfiguration(this, new LinkedHashSet<ComponentArtifactMetaData>(), new HashSet<String>());
+                artifacts = getArtifactsForConfiguration(this, new LinkedHashSet<ComponentArtifactMetadata>(), new HashSet<String>());
             }
             return artifacts;
         }
 
-        protected Set<ComponentArtifactMetaData> getArtifactsForConfiguration(ConfigurationMetaData configurationMetaData, Set<ComponentArtifactMetaData> accumulator, HashSet<String> visited) {
-            String name = configurationMetaData.getName();
+        protected Set<ComponentArtifactMetadata> getArtifactsForConfiguration(ConfigurationMetadata configurationMetadata, Set<ComponentArtifactMetadata> accumulator, HashSet<String> visited) {
+            String name = configurationMetadata.getName();
             if (visited.contains(name)) {
                 return accumulator;
             }
             visited.add(name);
             accumulator.addAll(artifactsByConfig.get(name));
             if (parents!= null) {
-                for (DefaultConfigurationMetaData parent : parents) {
+                for (DefaultConfigurationMetadata parent : parents) {
                     getArtifactsForConfiguration(parent, accumulator, visited);
                 }
             }

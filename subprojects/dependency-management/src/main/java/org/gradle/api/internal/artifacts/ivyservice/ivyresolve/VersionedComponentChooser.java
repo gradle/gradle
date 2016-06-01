@@ -17,13 +17,13 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.result.BuildableComponentSelectionResult;
 
 import java.util.Collection;
 
 public interface VersionedComponentChooser {
-    ComponentResolveMetaData selectNewestComponent(ComponentResolveMetaData one, ComponentResolveMetaData two);
+    ComponentResolveMetadata selectNewestComponent(ComponentResolveMetadata one, ComponentResolveMetadata two);
 
     void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, BuildableComponentSelectionResult result, ModuleVersionSelector requested);
 

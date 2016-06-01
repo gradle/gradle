@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentUsage;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -33,7 +33,7 @@ public class CacheLockingArtifactResolver implements ArtifactResolver {
         this.delegate = delegate;
     }
 
-    public void resolveModuleArtifacts(final ComponentResolveMetaData component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(final ComponentResolveMetadata component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
         String description = "Resolve " + artifactType + " for " + component;
         lockingManager.useCache(description, new Runnable() {
             public void run() {
@@ -42,7 +42,7 @@ public class CacheLockingArtifactResolver implements ArtifactResolver {
         });
     }
 
-    public void resolveModuleArtifacts(final ComponentResolveMetaData component, final ComponentUsage usage, final BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(final ComponentResolveMetadata component, final ComponentUsage usage, final BuildableArtifactSetResolveResult result) {
         String description = "Resolve " + usage + " for " + component;
         lockingManager.useCache(description, new Runnable() {
             public void run() {
@@ -51,7 +51,7 @@ public class CacheLockingArtifactResolver implements ArtifactResolver {
         });
     }
 
-    public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
+    public void resolveArtifact(final ComponentArtifactMetadata artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
         String description = "Resolve ".concat(artifact.toString());
         lockingManager.useCache(description, new Runnable() {
             public void run() {

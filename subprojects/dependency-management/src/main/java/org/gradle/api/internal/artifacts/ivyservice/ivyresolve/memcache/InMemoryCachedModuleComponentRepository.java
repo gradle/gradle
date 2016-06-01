@@ -17,12 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.*;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
@@ -63,7 +63,7 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
             return "in-memory cache > " + getDelegate().toString();
         }
 
-        public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
+        public void listModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
             if(!metaDataCache.supplyModuleVersions(dependency.getRequested(), result)) {
                 super.listModuleVersions(dependency, result);
                 metaDataCache.newModuleVersions(dependency.getRequested(), result);
@@ -77,7 +77,7 @@ class InMemoryCachedModuleComponentRepository extends BaseModuleComponentReposit
             }
         }
 
-        public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
             if (!artifactsCache.supplyArtifact(artifact.getId(), result)) {
                 super.resolveArtifact(artifact, moduleSource, result);
                 artifactsCache.newArtifact(artifact.getId(), result);

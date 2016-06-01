@@ -126,11 +126,11 @@ project(':tool') {
 	}
     task checkDeps(dependsOn: configurations.compile) << {
         assert configurations.compile*.name == ['api-1.0.jar', 'impl-1.0.jar', 'foo-1.5.5.jar']
-        def metaData = configurations.compile.resolvedConfiguration
-        def api = metaData.firstLevelModuleDependencies.find { it.moduleName == 'api' }
+        def metadata = configurations.compile.resolvedConfiguration
+        def api = metadata.firstLevelModuleDependencies.find { it.moduleName == 'api' }
         assert api.children.size() == 1
         assert api.children.find { it.moduleName == 'foo' && it.moduleVersion == '1.5.5' }
-        def impl = metaData.firstLevelModuleDependencies.find { it.moduleName == 'impl' }
+        def impl = metadata.firstLevelModuleDependencies.find { it.moduleName == 'impl' }
         assert impl.children.size() == 1
         assert impl.children.find { it.moduleName == 'foo' && it.moduleVersion == '1.5.5' }
     }

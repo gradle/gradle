@@ -33,7 +33,7 @@ import org.gradle.api.internal.component.ComponentTypeRegistry
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentOverrideMetadata
-import org.gradle.internal.component.model.ComponentResolveMetaData
+import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.resolve.resolver.ArtifactResolver
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
@@ -51,7 +51,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     def artifactResolver = Mock(ArtifactResolver)
     def repositoryChain = Mock(ComponentResolvers)
     def componentMetaDataResolver = Mock(ComponentMetaDataResolver)
-    def componentResolveMetaData = Mock(ComponentResolveMetaData)
+    def componentResolveMetaData = Mock(ComponentResolveMetadata)
 
     @Shared ComponentTypeRegistry testComponentTypeRegistry = createTestComponentTypeRegistry()
 

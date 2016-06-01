@@ -19,7 +19,7 @@ package org.gradle.internal.component.external.model;
 /**
  * Meta-data for a module version resolved from a Maven repository.
  */
-public interface MavenModuleResolveMetadata extends ModuleComponentResolveMetaData {
+public interface MavenModuleResolveMetadata extends ModuleComponentResolveMetadata {
     String getPackaging();
     boolean isRelocated();
     boolean isPomPackaging();

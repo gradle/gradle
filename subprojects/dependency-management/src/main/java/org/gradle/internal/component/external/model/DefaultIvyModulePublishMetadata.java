@@ -22,9 +22,9 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
-import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData;
+import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublishMetadata, BuildableLocalComponentMetaData {
+public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublishMetadata, BuildableLocalComponentMetadata {
     private final ModuleComponentIdentifier id;
     private final MutableModuleDescriptorState descriptor;
     private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata>();
@@ -72,14 +72,14 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     }
 
     @Override
-    public void addDependency(DependencyMetaData dependency) {
+    public void addDependency(DependencyMetadata dependency) {
         descriptor.addDependency(normalizeVersionForIvy(dependency));
     }
 
     /**
      * [1.0] is a valid version in maven, but not in Ivy: strip the surrounding '[' and ']' characters for ivy publish.
      */
-    private static DependencyMetaData normalizeVersionForIvy(DependencyMetaData dependency) {
+    private static DependencyMetadata normalizeVersionForIvy(DependencyMetadata dependency) {
         String version = dependency.getRequested().getVersion();
         if (version.startsWith("[") && version.endsWith("]") && version.indexOf(',') == -1) {
             String normalizedVersion = version.substring(1, version.length() - 1);
@@ -98,8 +98,8 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     }
 
     public void addArtifact(IvyArtifactName artifact, File file) {
-        DefaultIvyModuleArtifactPublishMetadata publishMetaData = new DefaultIvyModuleArtifactPublishMetadata(id, artifact, file);
-        artifactsById.put(publishMetaData.getId(), publishMetaData);
+        DefaultIvyModuleArtifactPublishMetadata publishMetadata = new DefaultIvyModuleArtifactPublishMetadata(id, artifact, file);
+        artifactsById.put(publishMetadata.getId(), publishMetadata);
     }
 
     public void addArtifact(IvyModuleArtifactPublishMetadata artifact) {
@@ -107,9 +107,9 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     }
 
     private IvyModuleArtifactPublishMetadata getOrCreate(IvyArtifactName ivyName, File artifactFile) {
-        for (IvyModuleArtifactPublishMetadata artifactPublishMetaData : artifactsById.values()) {
-            if (artifactPublishMetaData.getArtifactName().equals(ivyName)) {
-                return artifactPublishMetaData;
+        for (IvyModuleArtifactPublishMetadata artifactPublishMetadata : artifactsById.values()) {
+            if (artifactPublishMetadata.getArtifactName().equals(ivyName)) {
+                return artifactPublishMetadata;
             }
         }
         DefaultIvyModuleArtifactPublishMetadata artifact = new DefaultIvyModuleArtifactPublishMetadata(id, ivyName, artifactFile);

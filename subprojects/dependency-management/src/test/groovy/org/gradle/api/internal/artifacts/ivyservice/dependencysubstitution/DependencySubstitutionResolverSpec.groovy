@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.DependencySubstitution
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
@@ -28,7 +28,7 @@ import spock.lang.Specification
 class DependencySubstitutionResolverSpec extends Specification {
     def requested = new DefaultModuleVersionSelector("group", "module", "version")
     def selector = new DefaultModuleComponentSelector("group", "module", "version")
-    def dependency = Mock(DependencyMetaData) {
+    def dependency = Mock(DependencyMetadata) {
         getRequested() >> requested
         getSelector() >> selector
     }
@@ -50,7 +50,7 @@ class DependencySubstitutionResolverSpec extends Specification {
     }
 
     def "replaces dependency by rule"() {
-        def substitutedDependency = Stub(DependencyMetaData)
+        def substitutedDependency = Stub(DependencyMetadata)
 
         given:
         rule.execute(_) >> { DependencySubstitutionInternal details ->

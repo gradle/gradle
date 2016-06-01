@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 /**
  * Meta-data for an artifact that belongs to some component.
  */
-public interface ComponentArtifactMetaData {
+public interface ComponentArtifactMetadata {
     /**
      * Returns the identifier for this artifact.
      */

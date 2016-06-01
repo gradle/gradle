@@ -25,9 +25,9 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
@@ -38,16 +38,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultLocalComponentMetaData implements LocalComponentMetaData, BuildableLocalComponentMetaData {
-    private final Map<String, DefaultLocalConfigurationMetaData> allConfigurations = Maps.newHashMap();
-    private final Multimap<String, ComponentArtifactMetaData> allArtifacts = ArrayListMultimap.create();
-    private final List<DependencyMetaData> allDependencies = Lists.newArrayList();
+public class DefaultLocalComponentMetadata implements LocalComponentMetadata, BuildableLocalComponentMetadata {
+    private final Map<String, DefaultLocalConfigurationMetadata> allConfigurations = Maps.newHashMap();
+    private final Multimap<String, ComponentArtifactMetadata> allArtifacts = ArrayListMultimap.create();
+    private final List<DependencyMetadata> allDependencies = Lists.newArrayList();
     private final List<Exclude> allExcludes = Lists.newArrayList();
     private final ModuleVersionIdentifier id;
     private final ComponentIdentifier componentIdentifier;
     private final String status;
 
-    public DefaultLocalComponentMetaData(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, String status) {
+    public DefaultLocalComponentMetadata(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier, String status) {
         this.id = id;
         this.componentIdentifier = componentIdentifier;
         this.status = status;
@@ -59,21 +59,21 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
 
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {
-            ComponentArtifactMetaData artifactMetaData = new PublishArtifactLocalArtifactMetaData(componentIdentifier, componentIdentifier.getDisplayName(), artifact);
-            addArtifact(configuration, artifactMetaData);
+            ComponentArtifactMetadata artifactMetadata = new PublishArtifactLocalArtifactMetadata(componentIdentifier, componentIdentifier.getDisplayName(), artifact);
+            addArtifact(configuration, artifactMetadata);
         }
     }
 
-    public void addArtifact(String configuration, ComponentArtifactMetaData artifactMetaData) {
-        allArtifacts.put(configuration, artifactMetaData);
+    public void addArtifact(String configuration, ComponentArtifactMetadata artifactMetadata) {
+        allArtifacts.put(configuration, artifactMetadata);
     }
 
     public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies) {
-        DefaultLocalConfigurationMetaData conf = new DefaultLocalConfigurationMetaData(name, description, visible, transitive, extendsFrom, hierarchy, buildDependencies);
+        DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, buildDependencies);
         allConfigurations.put(name, conf);
     }
 
-    public void addDependency(DependencyMetaData dependency) {
+    public void addDependency(DependencyMetadata dependency) {
         allDependencies.add(dependency);
     }
 
@@ -90,7 +90,7 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
         return null;
     }
 
-    public ComponentResolveMetaData withSource(ModuleSource source) {
+    public ComponentResolveMetadata withSource(ModuleSource source) {
         throw new UnsupportedOperationException();
     }
 
@@ -114,7 +114,7 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
         return componentIdentifier;
     }
 
-    public List<DependencyMetaData> getDependencies() {
+    public List<DependencyMetadata> getDependencies() {
         return allDependencies;
     }
 
@@ -127,11 +127,11 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
         return allConfigurations.keySet();
     }
 
-    public DefaultLocalConfigurationMetaData getConfiguration(final String name) {
+    public DefaultLocalConfigurationMetadata getConfiguration(final String name) {
         return allConfigurations.get(name);
     }
 
-    private class DefaultLocalConfigurationMetaData implements LocalConfigurationMetaData {
+    private class DefaultLocalConfigurationMetadata implements LocalConfigurationMetadata {
         private final String name;
         private final String description;
         private final boolean transitive;
@@ -140,10 +140,10 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
         private final Set<String> extendsFrom;
         private final TaskDependency buildDependencies;
 
-        private List<DependencyMetaData> configurationDependencies;
+        private List<DependencyMetadata> configurationDependencies;
         private LinkedHashSet<Exclude> configurationExcludes;
 
-        private DefaultLocalConfigurationMetaData(String name, String description, boolean visible, boolean transitive, Set<String> extendsFrom, Set<String> hierarchy, TaskDependency buildDependencies) {
+        private DefaultLocalConfigurationMetadata(String name, String description, boolean visible, boolean transitive, Set<String> extendsFrom, Set<String> hierarchy, TaskDependency buildDependencies) {
             this.name = name;
             this.description = description;
             this.transitive = transitive;
@@ -158,8 +158,8 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
             return componentIdentifier.getDisplayName() + ":" + name;
         }
 
-        public ComponentResolveMetaData getComponent() {
-            return DefaultLocalComponentMetaData.this;
+        public ComponentResolveMetadata getComponent() {
+            return DefaultLocalComponentMetadata.this;
         }
 
         @Override
@@ -191,10 +191,10 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
             return visible;
         }
 
-        public List<DependencyMetaData> getDependencies() {
+        public List<DependencyMetadata> getDependencies() {
             if (configurationDependencies == null) {
-                configurationDependencies = new ArrayList<DependencyMetaData>();
-                for (DependencyMetaData dependency : allDependencies) {
+                configurationDependencies = new ArrayList<DependencyMetadata>();
+                for (DependencyMetadata dependency : allDependencies) {
                     if (include(dependency)) {
                         configurationDependencies.add(dependency);
                     }
@@ -203,7 +203,7 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
             return configurationDependencies;
         }
 
-        private boolean include(DependencyMetaData dependency) {
+        private boolean include(DependencyMetadata dependency) {
             String[] moduleConfigurations = dependency.getModuleConfigurations();
             for (int i = 0; i < moduleConfigurations.length; i++) {
                 String moduleConfiguration = moduleConfigurations[i];
@@ -241,23 +241,23 @@ public class DefaultLocalComponentMetaData implements LocalComponentMetaData, Bu
             return configurationExcludes;
         }
 
-        public Set<ComponentArtifactMetaData> getArtifacts() {
-            return DefaultLocalComponentMetaData.getArtifacts(getHierarchy(), allArtifacts);
+        public Set<ComponentArtifactMetadata> getArtifacts() {
+            return DefaultLocalComponentMetadata.getArtifacts(getHierarchy(), allArtifacts);
         }
 
-        public ComponentArtifactMetaData artifact(IvyArtifactName ivyArtifactName) {
-            for (ComponentArtifactMetaData candidate : getArtifacts()) {
+        public ComponentArtifactMetadata artifact(IvyArtifactName ivyArtifactName) {
+            for (ComponentArtifactMetadata candidate : getArtifacts()) {
                 if (candidate.getName().equals(ivyArtifactName)) {
                     return candidate;
                 }
             }
 
-            return new MissingLocalArtifactMetaData(componentIdentifier, id.toString(), ivyArtifactName);
+            return new MissingLocalArtifactMetadata(componentIdentifier, id.toString(), ivyArtifactName);
         }
     }
 
-    static Set<ComponentArtifactMetaData> getArtifacts(Set<String> configurationHierarchy, Multimap<String, ComponentArtifactMetaData> allArtifacts) {
-        Set<ComponentArtifactMetaData> artifacts = Sets.newLinkedHashSet();
+    static Set<ComponentArtifactMetadata> getArtifacts(Set<String> configurationHierarchy, Multimap<String, ComponentArtifactMetadata> allArtifacts) {
+        Set<ComponentArtifactMetadata> artifacts = Sets.newLinkedHashSet();
         for (String config : configurationHierarchy) {
             artifacts.addAll(allArtifacts.get(config));
         }

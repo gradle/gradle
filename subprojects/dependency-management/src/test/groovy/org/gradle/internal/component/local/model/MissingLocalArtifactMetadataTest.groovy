@@ -23,7 +23,7 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.util.Matchers
 import spock.lang.Specification
 
-class MissingLocalArtifactMetaDataTest extends Specification {
+class MissingLocalArtifactMetadataTest extends Specification {
     def file = new File(".")
     def "has useful string representation"() {
         def componentId = Stub(ComponentIdentifier)
@@ -54,7 +54,7 @@ class MissingLocalArtifactMetaDataTest extends Specification {
         def differentAttributes = localArtifactIdentifier(componentId, "comp", "name", "type", "ext", 'classifier-2')
         def emptyParts = localArtifactIdentifier(componentId, "comp", "name", "type", null)
         def emptyPartsSame = localArtifactIdentifier(componentId, "comp", "name", "type", null)
-        def differentFile = new MissingLocalArtifactMetaData(componentId, "comp", new DefaultIvyArtifactName("name", "type", "ext", 'classifier-2'))
+        def differentFile = new MissingLocalArtifactMetadata(componentId, "comp", new DefaultIvyArtifactName("name", "type", "ext", 'classifier-2'))
 
         expect:
         withClassifier Matchers.strictlyEqual(same)
@@ -70,6 +70,6 @@ class MissingLocalArtifactMetaDataTest extends Specification {
     }
 
     def localArtifactIdentifier(def componentId, def displayName, def name, def type, def extension, String classifier = null) {
-        return new MissingLocalArtifactMetaData(componentId, displayName, new DefaultIvyArtifactName(name, type, extension, classifier))
+        return new MissingLocalArtifactMetadata(componentId, displayName, new DefaultIvyArtifactName(name, type, extension, classifier))
     }
 }

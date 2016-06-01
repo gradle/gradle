@@ -34,7 +34,7 @@ public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepos
         return delegate;
     }
 
-    public void listModuleVersions(DependencyMetaData dependency, BuildableModuleVersionListingResolveResult result) {
+    public void listModuleVersions(DependencyMetadata dependency, BuildableModuleVersionListingResolveResult result) {
         delegate.listModuleVersions(dependency, result);
     }
 
@@ -42,15 +42,15 @@ public class BaseModuleComponentRepositoryAccess implements ModuleComponentRepos
         delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
     }
 
-    public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         delegate.resolveModuleArtifacts(component, artifactType, result);
     }
 
-    public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
+    public void resolveModuleArtifacts(ComponentResolveMetadata component, ComponentUsage componentUsage, BuildableArtifactSetResolveResult result) {
         delegate.resolveModuleArtifacts(component, componentUsage, result);
     }
 
-    public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+    public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         delegate.resolveArtifact(artifact, moduleSource, result);
     }
 }

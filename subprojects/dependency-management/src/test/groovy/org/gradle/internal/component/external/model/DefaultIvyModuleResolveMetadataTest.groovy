@@ -21,12 +21,12 @@ import org.apache.ivy.core.module.descriptor.ExcludeRule
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.DependencyMetadata
 
 class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
 
     @Override
-    AbstractModuleComponentResolveMetadata createMetaData(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
+    AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
         moduleDescriptor.getModuleRevisionId() >> IvyUtil.createModuleRevisionId(id)
         moduleDescriptor.getConfigurationsNames() >> new String[0]
         moduleDescriptor.getAllArtifacts() >> new Artifact[0]
@@ -36,21 +36,21 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
     }
 
     def "can make a copy"() {
-        def dependency1 = Stub(DependencyMetaData)
-        def dependency2 = Stub(DependencyMetaData)
+        def dependency1 = Stub(DependencyMetadata)
+        def dependency2 = Stub(DependencyMetadata)
 
         given:
-        def metaData = getMetaData()
-        metaData.changing = true
-        metaData.dependencies = [dependency1, dependency2]
-        metaData.status = 'a'
-        metaData.statusScheme = ['a', 'b', 'c']
+        def metadata = getMetadata()
+        metadata.changing = true
+        metadata.dependencies = [dependency1, dependency2]
+        metadata.status = 'a'
+        metadata.statusScheme = ['a', 'b', 'c']
 
         when:
-        def copy = metaData.copy()
+        def copy = metadata.copy()
 
         then:
-        copy != metaData
+        copy != metadata
         copy.descriptor == moduleDescriptor
         copy.changing
         copy.dependencies == [dependency1, dependency2]
@@ -61,10 +61,10 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
     def "getBranch returns branch from moduleDescriptor" () {
         setup:
         moduleDescriptor.setBranch(expectedBranch)
-        def metaDataWithBranch = new DefaultIvyModuleResolveMetadata(id, moduleDescriptor)
+        def metadataWithBranch = new DefaultIvyModuleResolveMetadata(id, moduleDescriptor)
 
         expect:
-        metaDataWithBranch.branch == expectedBranch
+        metadataWithBranch.branch == expectedBranch
 
         where:
         expectedBranch | _

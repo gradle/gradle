@@ -18,10 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalComponentMetaData;
+import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 import java.io.File;
 
 public interface CompositeBuildContext extends CompositeProjectComponentRegistry {
-    void register(ModuleIdentifier moduleId, ProjectComponentIdentifier identifier, LocalComponentMetaData localComponentMetaData, File projectDirectory);
+    void register(ModuleIdentifier moduleId, ProjectComponentIdentifier identifier, LocalComponentMetadata localComponentMetaData, File projectDirectory);
 }

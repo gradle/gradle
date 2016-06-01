@@ -19,7 +19,7 @@ package org.gradle.internal.component.model;
 import java.util.List;
 import java.util.Set;
 
-public interface ConfigurationMetaData {
+public interface ConfigurationMetadata {
     /**
      * The set of configurations that this configuration extends. Includes this configuration.
      */
@@ -27,11 +27,11 @@ public interface ConfigurationMetaData {
 
     String getName();
 
-    ComponentResolveMetaData getComponent();
+    ComponentResolveMetadata getComponent();
 
-    List<DependencyMetaData> getDependencies();
+    List<DependencyMetadata> getDependencies();
 
-    Set<ComponentArtifactMetaData> getArtifacts();
+    Set<ComponentArtifactMetadata> getArtifacts();
 
     Set<Exclude> getExcludes();
 
@@ -42,9 +42,9 @@ public interface ConfigurationMetaData {
     /**
      * Find the component artifact with the given IvyArtifactName, creating a new one if none matches.
      *
-     * This is used to create a ComponentArtifactMetaData from an artifact declared as part of a dependency.
+     * This is used to create a ComponentArtifactMetadata from an artifact declared as part of a dependency.
      * The reason to do this lookup is that for a local component artifact, the file is part of the artifact metadata.
      * (For external module components, we just instantiate a new artifact metadata).
      */
-    ComponentArtifactMetaData artifact(IvyArtifactName artifact);
+    ComponentArtifactMetadata artifact(IvyArtifactName artifact);
 }

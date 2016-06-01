@@ -29,7 +29,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.local.model.DefaultProjectDependencyMetaData;
+import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultDependencyMetaData implements DependencyMetaData {
+public class DefaultDependencyMetadata implements DependencyMetadata {
     private final ModuleVersionSelector requested;
     private final Map<String, List<String>> confs;
     private final Map<IvyArtifactName, Set<String>> dependencyArtifacts;
@@ -52,7 +52,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
     private final boolean force;
     private final String dynamicConstraintVersion;
 
-    public DefaultDependencyMetaData(Dependency dependencyState) {
+    public DefaultDependencyMetadata(Dependency dependencyState) {
         this.requested = dependencyState.getRequested();
         this.changing = dependencyState.isChanging();
         this.transitive = dependencyState.isTransitive();
@@ -81,7 +81,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         }
     }
 
-    public DefaultDependencyMetaData(ModuleVersionIdentifier moduleVersionIdentifier) {
+    public DefaultDependencyMetadata(ModuleVersionIdentifier moduleVersionIdentifier) {
         this(
             new DefaultModuleVersionSelector(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion()),
             Collections.<String, List<String>>emptyMap(),
@@ -93,7 +93,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         );
     }
 
-    public DefaultDependencyMetaData(ModuleComponentIdentifier componentIdentifier) {
+    public DefaultDependencyMetadata(ModuleComponentIdentifier componentIdentifier) {
         this(
             new DefaultModuleVersionSelector(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion()),
             Collections.<String, List<String>>emptyMap(),
@@ -105,7 +105,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         );
     }
 
-    public DefaultDependencyMetaData(ModuleVersionSelector requested, Map<String, List<String>> confs,
+    public DefaultDependencyMetadata(ModuleVersionSelector requested, Map<String, List<String>> confs,
                                      Map<IvyArtifactName, Set<String>> dependencyArtifacts, Map<Exclude, Set<String>> excludes,
                                      String dynamicConstraintVersion, boolean changing, boolean transitive) {
         this.requested = requested;
@@ -204,15 +204,15 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return dynamicConstraintVersion;
     }
 
-    public Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration) {
+    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
         Set<String> includedConfigurations = fromConfiguration.getHierarchy();
-        Set<ComponentArtifactMetaData> artifacts = Sets.newLinkedHashSet();
+        Set<ComponentArtifactMetadata> artifacts = Sets.newLinkedHashSet();
 
         for (Map.Entry<IvyArtifactName, Set<String>> entry : dependencyArtifacts.entrySet()) {
             IvyArtifactName ivyArtifactName = entry.getKey();
             Set<String> artifactConfigurations = entry.getValue();
             if (include(artifactConfigurations, includedConfigurations)) {
-                ComponentArtifactMetaData artifact = toConfiguration.artifact(ivyArtifactName);
+                ComponentArtifactMetadata artifact = toConfiguration.artifact(ivyArtifactName);
                 artifacts.add(artifact);
             }
         }
@@ -235,7 +235,7 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return dependencyArtifacts.keySet();
     }
 
-    public DependencyMetaData withRequestedVersion(String requestedVersion) {
+    public DependencyMetadata withRequestedVersion(String requestedVersion) {
         if (requestedVersion.equals(requested.getVersion())) {
             return this;
         }
@@ -243,15 +243,15 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         return withRequested(newRequested);
     }
 
-    private DependencyMetaData withRequested(ModuleVersionSelector newRequested) {
+    private DependencyMetadata withRequested(ModuleVersionSelector newRequested) {
         if (newRequested.equals(requested)) {
             return this;
         }
-        return new DefaultDependencyMetaData(newRequested, confs, dependencyArtifacts, excludes, dynamicConstraintVersion, changing, transitive);
+        return new DefaultDependencyMetadata(newRequested, confs, dependencyArtifacts, excludes, dynamicConstraintVersion, changing, transitive);
     }
 
     @Override
-    public DependencyMetaData withTarget(ComponentSelector target) {
+    public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
             ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersion());
@@ -262,18 +262,18 @@ public class DefaultDependencyMetaData implements DependencyMetaData {
         } else if (target instanceof ProjectComponentSelector) {
             // TODO:Prezi what to do here?
             ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
-            return new DefaultProjectDependencyMetaData(projectTarget.getProjectPath(), requested, confs, dependencyArtifacts, excludes, dynamicConstraintVersion, changing, transitive);
+            return new DefaultProjectDependencyMetadata(projectTarget.getProjectPath(), requested, confs, dependencyArtifacts, excludes, dynamicConstraintVersion, changing, transitive);
         } else {
             throw new AssertionError();
         }
     }
 
-    public DependencyMetaData withChanging() {
+    public DependencyMetadata withChanging() {
         if (changing) {
             return this;
         }
 
-        return new DefaultDependencyMetaData(requested, confs, dependencyArtifacts, excludes, dynamicConstraintVersion, true, transitive);
+        return new DefaultDependencyMetadata(requested, confs, dependencyArtifacts, excludes, dynamicConstraintVersion, true, transitive);
     }
 
     public ComponentSelector getSelector() {

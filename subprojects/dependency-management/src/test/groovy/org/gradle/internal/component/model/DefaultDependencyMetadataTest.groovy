@@ -30,62 +30,62 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-class DefaultDependencyMetaDataTest extends Specification {
+class DefaultDependencyMetadataTest extends Specification {
     final requestedModuleId = IvyUtil.createModuleRevisionId("org", "module", "1.2+")
     def requested = newSelector("org", "module", "1.2+")
     def descriptor = new Dependency(requested, "foo", false, false, false)
 
     def "constructs meta-data from descriptor"() {
-        def metaData = new DefaultDependencyMetaData(descriptor)
+        def metadata = new DefaultDependencyMetadata(descriptor)
 
         expect:
-        metaData.requested == requested
+        metadata.requested == requested
     }
 
     def "constructs meta-data from component id"() {
         def id = new DefaultModuleComponentIdentifier("org", "module", "1.1")
-        def metaData = new DefaultDependencyMetaData(id)
+        def metadata = new DefaultDependencyMetadata(id)
 
         expect:
-        metaData.requested == newSelector("org", "module", "1.1")
+        metadata.requested == newSelector("org", "module", "1.1")
     }
 
     def "constructs meta-data from module version id"() {
         def id = new DefaultModuleVersionIdentifier("org", "module", "1.1")
-        def metaData = new DefaultDependencyMetaData(id)
+        def metadata = new DefaultDependencyMetadata(id)
 
         expect:
-        metaData.requested == newSelector("org", "module", "1.1")
+        metadata.requested == newSelector("org", "module", "1.1")
     }
 
     def "creates a copy with new requested version"() {
-        def metaData = new DefaultDependencyMetaData(descriptor)
+        def metadata = new DefaultDependencyMetadata(descriptor)
 
         given:
 
         when:
-        def copy = metaData.withRequestedVersion("1.3+")
+        def copy = metadata.withRequestedVersion("1.3+")
 
         then:
         copy.requested == newSelector("org", "module", "1.3+")
     }
 
     def "returns this if new requested version is the same as current requested version"() {
-        def metaData = new DefaultDependencyMetaData(descriptor)
+        def metadata = new DefaultDependencyMetadata(descriptor)
 
         expect:
-        metaData.withRequestedVersion("1.2+").is(metaData)
-        metaData.withTarget(DefaultModuleComponentSelector.newSelector("org", "module", "1.2+")).is(metaData)
+        metadata.withRequestedVersion("1.2+").is(metadata)
+        metadata.withTarget(DefaultModuleComponentSelector.newSelector("org", "module", "1.2+")).is(metadata)
     }
 
     def "can set changing flag"() {
-        def metaData = new DefaultDependencyMetaData(descriptor)
+        def metadata = new DefaultDependencyMetadata(descriptor)
 
         expect:
-        !metaData.changing
+        !metadata.changing
 
         when:
-        def copy = metaData.withChanging()
+        def copy = metadata.withChanging()
 
         then:
         copy.requested == requested
@@ -93,39 +93,39 @@ class DefaultDependencyMetaDataTest extends Specification {
     }
 
     def "returns this when changing is already true"() {
-        def metaData = new DefaultDependencyMetaData(descriptor).withChanging()
+        def metadata = new DefaultDependencyMetadata(descriptor).withChanging()
 
         expect:
-        metaData.withChanging().is(metaData)
+        metadata.withChanging().is(metadata)
     }
 
     def "returns empty set of artifacts when dependency descriptor does not declare any artifacts"() {
-        def metaData = new DefaultDependencyMetaData(descriptor)
-        def fromConfiguration = Stub(ConfigurationMetaData)
-        def toConfiguration = Stub(ConfigurationMetaData)
+        def metadata = new DefaultDependencyMetadata(descriptor)
+        def fromConfiguration = Stub(ConfigurationMetadata)
+        def toConfiguration = Stub(ConfigurationMetadata)
 
         expect:
-        metaData.getArtifacts(fromConfiguration, toConfiguration).empty
+        metadata.getArtifacts(fromConfiguration, toConfiguration).empty
     }
 
     def "returns empty set of artifacts when dependency descriptor does not declare any artifacts for source configuration"() {
-        def metaData = new DefaultDependencyMetaData(descriptor)
-        def fromConfiguration = Stub(ConfigurationMetaData)
-        def toConfiguration = Stub(ConfigurationMetaData)
+        def metadata = new DefaultDependencyMetadata(descriptor)
+        def fromConfiguration = Stub(ConfigurationMetadata)
+        def toConfiguration = Stub(ConfigurationMetadata)
 
         given:
         descriptor.dependencyArtifacts.add(new Artifact(new DefaultIvyArtifactName("art", "type", "ext"), ["other"] as Set))
 
         expect:
-        metaData.getArtifacts(fromConfiguration, toConfiguration).empty
+        metadata.getArtifacts(fromConfiguration, toConfiguration).empty
     }
 
     def "uses artifacts defined by dependency descriptor for specified source and target configurations "() {
-        def fromConfiguration = Stub(ConfigurationMetaData)
-        def targetComponent = Stub(ComponentResolveMetaData)
-        def toConfiguration = Stub(ConfigurationMetaData)
-        def artifact1 = Stub(ComponentArtifactMetaData)
-        def artifact3 = Stub(ComponentArtifactMetaData)
+        def fromConfiguration = Stub(ConfigurationMetadata)
+        def targetComponent = Stub(ComponentResolveMetadata)
+        def toConfiguration = Stub(ConfigurationMetadata)
+        def artifact1 = Stub(ComponentArtifactMetadata)
+        def artifact3 = Stub(ComponentArtifactMetadata)
 
         given:
         fromConfiguration.hierarchy >> (['config', 'super'] as LinkedHashSet)
@@ -134,12 +134,12 @@ class DefaultDependencyMetaDataTest extends Specification {
         addArtifact(descriptor, "other", "art2")
         addArtifact(descriptor, "super", "art3")
 
-        def metaData = new DefaultDependencyMetaData(descriptor)
+        def metadata = new DefaultDependencyMetadata(descriptor)
         toConfiguration.artifact({it.name == 'art1'}) >> artifact1
         toConfiguration.artifact({it.name == 'art3'}) >> artifact3
 
         expect:
-        metaData.getArtifacts(fromConfiguration, toConfiguration) == [artifact1, artifact3] as Set
+        metadata.getArtifacts(fromConfiguration, toConfiguration) == [artifact1, artifact3] as Set
     }
 
     def "uses artifacts defined by dependency descriptor"() {
@@ -147,11 +147,11 @@ class DefaultDependencyMetaDataTest extends Specification {
         addArtifact(descriptor, "config", "art1")
         addArtifact(descriptor, "other", "art2")
         addArtifact(descriptor, "super", "art3")
-        def metaData = new DefaultDependencyMetaData(descriptor)
+        def metadata = new DefaultDependencyMetadata(descriptor)
 
         expect:
-        metaData.artifacts.size() == 3
-        def artifacts = metaData.artifacts.sort { it.name }
+        metadata.artifacts.size() == 3
+        def artifacts = metadata.artifacts.sort { it.name }
         artifacts[0].name == 'art1'
         artifacts[1].name == 'art2'
         artifacts[2].name == 'art3'
@@ -164,10 +164,10 @@ class DefaultDependencyMetaDataTest extends Specification {
 
     def "returns a module component selector if descriptor indicates a default dependency"() {
         given:
-        def metaData = new DefaultDependencyMetaData(descriptor)
+        def metadata = new DefaultDependencyMetadata(descriptor)
 
         when:
-        ComponentSelector componentSelector = metaData.getSelector()
+        ComponentSelector componentSelector = metadata.getSelector()
 
         then:
         componentSelector instanceof ModuleComponentSelector
@@ -179,15 +179,15 @@ class DefaultDependencyMetaDataTest extends Specification {
     def "retains transitive and changing flags in substituted dependency"() {
         given:
         def descriptor = new Dependency(requested, "foo", false, changing, transitive)
-        def metaData = new DefaultDependencyMetaData(descriptor)
+        def metadata = new DefaultDependencyMetadata(descriptor)
 
         when:
-        DependencyMetaData replacedMetaData = metaData.withTarget(DefaultProjectComponentSelector.newSelector("test"))
+        DependencyMetadata replacedMetadata = metadata.withTarget(DefaultProjectComponentSelector.newSelector("test"))
 
         then:
-        replacedMetaData.getSelector() instanceof ProjectComponentSelector
-        replacedMetaData.isTransitive() == metaData.isTransitive()
-        replacedMetaData.isChanging() == metaData.isChanging()
+        replacedMetadata.getSelector() instanceof ProjectComponentSelector
+        replacedMetadata.isTransitive() == metadata.isTransitive()
+        replacedMetadata.isChanging() == metadata.isChanging()
 
         where:
         transitive | changing

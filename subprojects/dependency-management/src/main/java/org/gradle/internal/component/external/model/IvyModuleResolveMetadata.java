@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * Meta-data for a module version resolved from an Ivy repository.
  */
-public interface IvyModuleResolveMetadata extends ModuleComponentResolveMetaData {
+public interface IvyModuleResolveMetadata extends ModuleComponentResolveMetadata {
     /***
      * Returns the branch attribute for the module.
      *

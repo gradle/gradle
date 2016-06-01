@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.initialization.ProjectAccessListener
-import org.gradle.internal.component.local.model.DslOriginDependencyMetaData
+import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.util.TestUtil
 import org.junit.Test
 
@@ -43,7 +43,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
     public void testCreateFromProjectDependency() {
         ProjectDependency projectDependency = createProjectDependency(TEST_DEP_CONF);
         setUpDependency(projectDependency);
-        DslOriginDependencyMetaData dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, projectDependency);
+        DslOriginDependencyMetadata dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, projectDependency);
 
         assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData);
         assertFalse(dependencyMetaData.isChanging());

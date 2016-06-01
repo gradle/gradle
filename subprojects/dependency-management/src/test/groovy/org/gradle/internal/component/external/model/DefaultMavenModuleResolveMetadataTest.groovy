@@ -19,31 +19,31 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.DependencyMetadata
 
 class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
 
-    AbstractModuleComponentResolveMetadata createMetaData(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
+    AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
         return new DefaultMavenModuleResolveMetadata(id, moduleDescriptor, "pom", false)
     }
 
     def "can make a copy"() {
-        def dependency1 = Stub(DependencyMetaData)
-        def dependency2 = Stub(DependencyMetaData)
+        def dependency1 = Stub(DependencyMetadata)
+        def dependency2 = Stub(DependencyMetadata)
 
         given:
-        def metaData = getMetaData()
-        metaData.changing = true
-        metaData.dependencies = [dependency1, dependency2]
-        metaData.status = 'a'
-        metaData.statusScheme = ['a', 'b', 'c']
-        metaData.snapshotTimestamp = '123'
+        def metadata = getMetadata()
+        metadata.changing = true
+        metadata.dependencies = [dependency1, dependency2]
+        metadata.status = 'a'
+        metadata.statusScheme = ['a', 'b', 'c']
+        metadata.snapshotTimestamp = '123'
 
         when:
-        def copy = metaData.copy()
+        def copy = metadata.copy()
 
         then:
-        copy != metaData
+        copy != metadata
         copy.descriptor == moduleDescriptor
         copy.changing
         copy.dependencies == [dependency1, dependency2]
@@ -56,12 +56,12 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
 
     def "recognises pom packaging"() {
         when:
-        def metaData = new DefaultMavenModuleResolveMetadata(id, moduleDescriptor, packaging, false)
+        def metadata = new DefaultMavenModuleResolveMetadata(id, moduleDescriptor, packaging, false)
 
         then:
-        metaData.packaging == packaging
-        metaData.isPomPackaging() == isPom
-        metaData.isKnownJarPackaging() == isJar
+        metadata.packaging == packaging
+        metadata.isPomPackaging() == isPom
+        metadata.isKnownJarPackaging() == isJar
 
         where:
         packaging      | isPom | isJar

@@ -19,9 +19,9 @@ package org.gradle.internal.component.local.model;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.ConfigurationMetaData;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -29,11 +29,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-public class DslOriginDependencyMetaDataWrapper implements DslOriginDependencyMetaData {
-    private final DependencyMetaData delegate;
+public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMetadata {
+    private final DependencyMetadata delegate;
     private final ModuleDependency source;
 
-    public DslOriginDependencyMetaDataWrapper(DependencyMetaData delegate, ModuleDependency source) {
+    public DslOriginDependencyMetadataWrapper(DependencyMetadata delegate, ModuleDependency source) {
         this.delegate = delegate;
         this.source = source;
     }
@@ -76,7 +76,7 @@ public class DslOriginDependencyMetaDataWrapper implements DslOriginDependencyMe
         return delegate.isForce();
     }
 
-    public Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration) {
+    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
         return delegate.getArtifacts(fromConfiguration, toConfiguration);
     }
 
@@ -84,15 +84,15 @@ public class DslOriginDependencyMetaDataWrapper implements DslOriginDependencyMe
         return delegate.getArtifacts();
     }
 
-    public DependencyMetaData withRequestedVersion(String requestedVersion) {
+    public DependencyMetadata withRequestedVersion(String requestedVersion) {
         return delegate.withRequestedVersion(requestedVersion);
     }
 
-    public DependencyMetaData withTarget(ComponentSelector target) {
+    public DependencyMetadata withTarget(ComponentSelector target) {
         return delegate.withTarget(target);
     }
 
-    public DependencyMetaData withChanging() {
+    public DependencyMetadata withChanging() {
         return delegate.withChanging();
     }
 

@@ -84,7 +84,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
     }
 
     def "does not use cache when module version listing can be determined locally"() {
-        def dependency = Mock(DependencyMetaData)
+        def dependency = Mock(DependencyMetadata)
         def result = new DefaultBuildableModuleVersionListingResolveResult()
 
         when:
@@ -113,7 +113,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
     }
 
     def "does not use cache when artifacts for type can be determined locally"() {
-        def component = Mock(ComponentResolveMetaData)
+        def component = Mock(ComponentResolveMetadata)
         def source = Mock(ModuleSource)
         def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(BigInteger.ONE, false, source)
         def artifactType = ArtifactType.JAVADOC
@@ -126,13 +126,13 @@ class CachingModuleComponentRepositoryTest extends Specification {
         1 * component.getSource() >> cachingSource
         1 * component.withSource(source) >> component
         realLocalAccess.resolveModuleArtifacts(component, artifactType, result) >> {
-            result.resolved([Mock(ComponentArtifactMetaData)])
+            result.resolved([Mock(ComponentArtifactMetadata)])
         }
         0 * _
     }
 
     def "does not use cache when artifacts for usage can be determined locally"() {
-        def component = Mock(ComponentResolveMetaData)
+        def component = Mock(ComponentResolveMetadata)
         def source = Mock(ModuleSource)
         def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(BigInteger.ONE, false, source)
         def componentUsage = Mock(ComponentUsage)
@@ -145,7 +145,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         1 * component.getSource() >> cachingSource
         1 * component.withSource(source) >> component
         realLocalAccess.resolveModuleArtifacts(component, componentUsage, result) >> {
-            result.resolved([Mock(ComponentArtifactMetaData)])
+            result.resolved([Mock(ComponentArtifactMetadata)])
         }
         0 * _
     }

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 
-public interface LocalComponentMetaData extends ComponentResolveMetaData {
+public interface LocalComponentMetadata extends ComponentResolveMetadata {
 }

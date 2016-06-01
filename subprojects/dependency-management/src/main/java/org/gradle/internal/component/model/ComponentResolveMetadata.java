@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * The meta-data for a component instance that is required during dependency resolution.
  */
-public interface ComponentResolveMetaData {
+public interface ComponentResolveMetadata {
     List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
 
     /**
@@ -52,9 +52,9 @@ public interface ComponentResolveMetaData {
     /**
      * Makes a copy of this meta-data with the given source.
      */
-    ComponentResolveMetaData withSource(ModuleSource source);
+    ComponentResolveMetadata withSource(ModuleSource source);
 
-    List<DependencyMetaData> getDependencies();
+    List<DependencyMetadata> getDependencies();
 
     /**
      * Returns the names of all of the configurations for this component.
@@ -65,7 +65,7 @@ public interface ComponentResolveMetaData {
      * Locates the configuration with the given name, if any.
      */
     @Nullable
-    ConfigurationMetaData getConfiguration(String name);
+    ConfigurationMetadata getConfiguration(String name);
 
     boolean isGenerated();
 

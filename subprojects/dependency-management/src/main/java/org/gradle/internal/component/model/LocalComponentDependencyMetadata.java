@@ -29,7 +29,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class LocalComponentDependencyMetaData implements DependencyMetaData {
+public class LocalComponentDependencyMetadata implements DependencyMetadata {
     private final ComponentSelector selector;
     private final ModuleVersionSelector requested;
     private final String moduleConfiguration;
@@ -40,7 +40,7 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
     private final boolean changing;
     private final boolean transitive;
 
-    public LocalComponentDependencyMetaData(ComponentSelector selector, ModuleVersionSelector requested, String moduleConfiguration, String dependencyConfiguration,
+    public LocalComponentDependencyMetadata(ComponentSelector selector, ModuleVersionSelector requested, String moduleConfiguration, String dependencyConfiguration,
                                             Set<IvyArtifactName> artifactNames, List<Exclude> excludes,
                                             boolean force, boolean changing, boolean transitive) {
         this.selector = selector;
@@ -105,11 +105,11 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
         return requested.getVersion();
     }
 
-    public Set<ComponentArtifactMetaData> getArtifacts(ConfigurationMetaData fromConfiguration, ConfigurationMetaData toConfiguration) {
+    public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
         if (artifactNames.isEmpty()) {
             return Collections.emptySet();
         }
-        Set<ComponentArtifactMetaData> artifacts = new LinkedHashSet<ComponentArtifactMetaData>();
+        Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
         for (IvyArtifactName artifactName : artifactNames) {
             artifacts.add(toConfiguration.artifact(artifactName));
         }
@@ -120,7 +120,7 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
         return artifactNames;
     }
 
-    public DependencyMetaData withRequestedVersion(String requestedVersion) {
+    public DependencyMetadata withRequestedVersion(String requestedVersion) {
         if (requestedVersion.equals(requested.getVersion())) {
             return this;
         }
@@ -130,7 +130,7 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
     }
 
     @Override
-    public DependencyMetaData withTarget(ComponentSelector target) {
+    public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
             ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersion());
@@ -142,14 +142,14 @@ public class LocalComponentDependencyMetaData implements DependencyMetaData {
         }
     }
 
-    private DependencyMetaData copyWithTarget(ComponentSelector selector, ModuleVersionSelector requested) {
-        return new LocalComponentDependencyMetaData(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
+    private DependencyMetadata copyWithTarget(ComponentSelector selector, ModuleVersionSelector requested) {
+        return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
     }
 
-    public DependencyMetaData withChanging() {
+    public DependencyMetadata withChanging() {
         if (isChanging()) {
             return this;
         }
-        return new LocalComponentDependencyMetaData(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludes, force, true, transitive);
+        return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludes, force, true, transitive);
     }
 }
