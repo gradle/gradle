@@ -132,7 +132,6 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
         entryIsDeployed(classpath[1], '/')
     }
 
-    @TargetGradleVersion('>=2.14 <3.0')
     def "Root wtp dependencies present in minusConfigurations are excluded from deployment"() {
         given:
         buildFile <<
@@ -152,7 +151,9 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
         Collection<EclipseExternalDependency> classpath = eclipseProject.getClasspath()
 
         then:
-        entryNotDeployed(classpath.find { it.file.absolutePath.contains 'example-api' })
+        classpath.size() == 1
+        classpath[0].file.absolutePath.contains 'example-lib'
+        entryIsDeployed(classpath[0], '/')
     }
 
     def "Library wtp dependencies and their transitives are deployed to '/WEB-INF/lib'"() {
@@ -173,7 +174,6 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
         entryIsDeployed(classpath[1], '/WEB-INF/lib')
     }
 
-    @TargetGradleVersion('>=2.14 <3.0')
     def "Lib wtp dependencies present in minusConfigurations are excluded from deployment"() {
         given:
         buildFile <<
@@ -192,7 +192,9 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
         Collection<EclipseExternalDependency> classpath = eclipseProject.getClasspath()
 
         then:
-        entryNotDeployed(classpath.find { it.file.absolutePath.contains 'example-api' })
+        classpath.size() == 1
+        classpath[0].file.absolutePath.contains 'example-lib'
+        entryIsDeployed(classpath[0], '/WEB-INF/lib')
     }
 
     def "Deployment folder follows ear app dir name configuration"() {
@@ -215,6 +217,7 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
         entryIsDeployed(classpath[0], '/custom/lib/dir')
 
     }
+
 
     def "All non-wtp dependencies are marked as not deployed"() {
         given:
