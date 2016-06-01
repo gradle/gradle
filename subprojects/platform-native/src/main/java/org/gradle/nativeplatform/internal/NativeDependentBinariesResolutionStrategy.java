@@ -92,8 +92,11 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
                 state.dependencies.put(key, Lists.<NativeBinarySpecInternal>newArrayList());
             }
             for (NativeLibraryBinary libraryBinary : nativeBinary.getDependentBinaries()) {
-                // DEBT Unfortunate cast! see LibraryBinaryLocator
-                state.dependencies.get(key).add((NativeBinarySpecInternal) libraryBinary);
+                // TODO:PM DEBT Skip prebuilt libraries
+                if (libraryBinary instanceof NativeBinarySpecInternal) {
+                    // TODO:PM DEBT Unfortunate cast! see LibraryBinaryLocator
+                    state.dependencies.get(key).add((NativeBinarySpecInternal) libraryBinary);
+                }
             }
         }
 

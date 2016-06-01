@@ -137,6 +137,14 @@ class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
         '''.stripIndent()
     }
 
+    def "don't fail with prebuilt libraries"() {
+        given:
+        buildScript simpleBuildWithPrebuiltLibrary()
+
+        expect:
+        succeeds 'dependentComponents'
+    }
+
     private static String simpleCppBuild() {
         return """
             plugins {
@@ -159,6 +167,26 @@ class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
                                 lib library: 'util'
                                 lib library: 'lib'
                             }
+                        }
+                    }
+                }
+            }
+        """.stripIndent()
+    }
+
+    private static String simpleBuildWithPrebuiltLibrary() {
+        return simpleCppBuild() + """
+            model {
+                repositories {
+                    libs(PrebuiltLibraries) {
+                        prebuiltlib {
+                        }
+                    }
+                }
+                components {
+                    util {
+                        sources.c {
+                            lib library: 'prebuiltlib', linkage: 'static'
                         }
                     }
                 }
