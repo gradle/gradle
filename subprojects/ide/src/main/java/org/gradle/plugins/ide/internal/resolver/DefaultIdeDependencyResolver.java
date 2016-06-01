@@ -63,15 +63,16 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         List<IdeProjectDependency> ideProjectDependencies = new ArrayList<IdeProjectDependency>();
 
         for (ResolvedComponentResult projectComponent : projectComponents) {
-            String resolvedProjectPath = ((ProjectComponentIdentifier) projectComponent.getId()).getProjectPath();
+            ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) projectComponent.getId();
+            String resolvedProjectPath = projectId.getProjectPath();
             if (project.getPath().equals(resolvedProjectPath)) {
                 continue;
             }
             Project resolvedProject = project.findProject(resolvedProjectPath);
             if (resolvedProject == null) {
-                ideProjectDependencies.add(new IdeProjectDependency(resolvedProjectPath));
+                ideProjectDependencies.add(new IdeProjectDependency(projectId));
             } else {
-                ideProjectDependencies.add(new IdeProjectDependency(resolvedProject));
+                ideProjectDependencies.add(new IdeProjectDependency(projectId, resolvedProject));
             }
         }
         return ideProjectDependencies;

@@ -17,37 +17,31 @@
 package org.gradle.plugins.ide.internal.resolver.model;
 
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
 public class IdeProjectDependency extends IdeDependency {
     private final Project project;
-    private final String projectPath;
+    private final ProjectComponentIdentifier projectId;
 
-    public IdeProjectDependency(Project project) {
+    public IdeProjectDependency(ProjectComponentIdentifier projectId, Project project) {
+        this.projectId = projectId;
         this.project = project;
-        this.projectPath = project.getPath();
     }
 
-    public IdeProjectDependency(String projectPath) {
+    public IdeProjectDependency(ProjectComponentIdentifier projectId) {
         this.project = null;
-        this.projectPath = projectPath;
+        this.projectId = projectId;
     }
 
     public Project getProject() {
         return project;
     }
 
-    public String getProjectPath() {
-        return projectPath;
+    public ProjectComponentIdentifier getProjectId() {
+        return projectId;
     }
 
-    public String getModuleName() {
-        // TODO:DAZ Implement this properly, or get rid of it
-        // This is just a hack to allow 'idea' task to function reasonably in a composite
-        // This will be addressed when we add support for IDE project file generation for a composite build
-        if (projectPath.endsWith("::")) {
-            return projectPath.substring(0, projectPath.length() - 2);
-        }
-        int index = projectPath.lastIndexOf(':');
-        return projectPath.substring(index + 1);
+    public String getProjectPath() {
+        return projectId.getProjectPath();
     }
 }

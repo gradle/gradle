@@ -16,15 +16,19 @@
 
 package org.gradle.plugins.ide.idea.model.internal
 
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ModuleDependencyBuilderTest extends Specification {
 
+    def projectId = DefaultProjectComponentIdentifier.newId("project-path")
     def project = TestUtil.createRootProject()
-    def ideDependency = new IdeProjectDependency(project)
-    def builder = new ModuleDependencyBuilder()
+    def ideDependency = new IdeProjectDependency(projectId, project)
+    def builder = new ModuleDependencyBuilder(new CompositeBuildIdeProjectResolver(Stub(ServiceRegistry)))
 
     def "builds dependency for nonIdea project"() {
         when:

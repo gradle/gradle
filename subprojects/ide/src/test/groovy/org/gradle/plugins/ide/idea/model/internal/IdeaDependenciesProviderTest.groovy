@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.idea.model.internal
 
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.Dependency
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
@@ -27,12 +28,12 @@ import spock.lang.Specification
 public class IdeaDependenciesProviderTest extends Specification {
     private final ProjectInternal project = TestUtil.createRootProject()
     private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
+    private final dependenciesProvider = new IdeaDependenciesProvider(Stub(ServiceRegistry))
 
     def "no dependencies test"() {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def dependenciesProvider = new IdeaDependenciesProvider()
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
 
@@ -47,7 +48,6 @@ public class IdeaDependenciesProviderTest extends Specification {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def dependenciesProvider = new IdeaDependenciesProvider()
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
 
@@ -66,7 +66,6 @@ public class IdeaDependenciesProviderTest extends Specification {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def dependenciesProvider = new IdeaDependenciesProvider()
         def module = project.ideaModule.module // Mock(IdeaModule)
         project.configurations.create('excluded')
         module.offline = true
@@ -85,7 +84,6 @@ public class IdeaDependenciesProviderTest extends Specification {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def dependenciesProvider = new IdeaDependenciesProvider()
         def module = project.ideaModule.module // Mock(IdeaModule)
         project.configurations.create('excluded1')
         project.configurations.create('excluded2')
@@ -108,7 +106,6 @@ public class IdeaDependenciesProviderTest extends Specification {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def dependenciesProvider = new IdeaDependenciesProvider()
         def module = project.ideaModule.module
         def extraDependency = project.dependencies.create(project.files('lib/guava.jar'))
         def detachedCfg = project.configurations.detachedConfiguration(extraDependency)
@@ -128,7 +125,6 @@ public class IdeaDependenciesProviderTest extends Specification {
         project.apply(plugin: 'java')
         childProject.apply(plugin: 'java')
 
-        def dependenciesProvider = new IdeaDependenciesProvider()
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
 
@@ -145,7 +141,6 @@ public class IdeaDependenciesProviderTest extends Specification {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def dependenciesProvider = new IdeaDependenciesProvider()
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
 
@@ -166,7 +161,6 @@ public class IdeaDependenciesProviderTest extends Specification {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def dependenciesProvider = new IdeaDependenciesProvider()
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
 
@@ -187,7 +181,6 @@ public class IdeaDependenciesProviderTest extends Specification {
         applyPluginToProjects()
         project.apply(plugin: 'java')
 
-        def dependenciesProvider = new IdeaDependenciesProvider()
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
 
@@ -211,7 +204,7 @@ public class IdeaDependenciesProviderTest extends Specification {
         project.apply(plugin: 'java')
 
         def dependenciesExtractor = Spy(IdeDependenciesExtractor)
-        def dependenciesProvider = new IdeaDependenciesProvider(dependenciesExtractor)
+        def dependenciesProvider = new IdeaDependenciesProvider(dependenciesExtractor, Stub(ServiceRegistry))
         def module = project.ideaModule.module // Mock(IdeaModule)
         module.offline = true
         def extraConfiguration = project.configurations.create('extraConfiguration')

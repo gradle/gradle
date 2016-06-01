@@ -17,12 +17,19 @@
 package org.gradle.plugins.ide.idea.model.internal;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.ModuleDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
 
 class ModuleDependencyBuilder {
+    private final CompositeBuildIdeProjectResolver ideProjectResolver;
+
+    public ModuleDependencyBuilder(CompositeBuildIdeProjectResolver ideProjectResolver) {
+        this.ideProjectResolver = ideProjectResolver;
+    }
+
     public ModuleDependency create(IdeProjectDependency dependency, String scope) {
         ModuleDependency moduleDependency = new ModuleDependency(determineProjectName(dependency), scope);
         moduleDependency.setGradlePath(dependency.getProjectPath());
@@ -32,7 +39,7 @@ class ModuleDependencyBuilder {
     private String determineProjectName(IdeProjectDependency dependency) {
         Project project = dependency.getProject();
         if (project == null) {
-            return dependency.getModuleName();
+            return ideProjectResolver.resolveImlArtifact(dependency.getProjectId()).getName().getName();
         } else if (project.getPlugins().hasPlugin(IdeaPlugin.class)) {
             return ((IdeaModel) project.getExtensions().getByName("idea")).getModule().getName();
         } else {

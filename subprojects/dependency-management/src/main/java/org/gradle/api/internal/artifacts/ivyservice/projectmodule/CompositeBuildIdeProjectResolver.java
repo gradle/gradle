@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+// TODO:DAZ Rename this and make it useful for composite and non-composite builds
 public class CompositeBuildIdeProjectResolver {
     private final CompositeProjectComponentRegistry discovered;
     private final List<ProjectArtifactBuilder> artifactBuilders;
@@ -53,18 +54,18 @@ public class CompositeBuildIdeProjectResolver {
         return getRegistry().getAllProjects();
     }
 
+    public ComponentArtifactMetaData resolveImlArtifact(ProjectComponentIdentifier project) {
+        return findArtifact(project, "iml");
+    }
+
     // TODO:DAZ Push this into dependency resolution, getting artifact by type
-    public File getImlArtifact(ProjectComponentIdentifier project) {
-        ComponentArtifactMetaData artifactMetaData = findImlArtifact(project);
+    public File resolveImlArtifactFile(ProjectComponentIdentifier project) {
+        ComponentArtifactMetaData artifactMetaData = resolveImlArtifact(project);
         for (ProjectArtifactBuilder artifactBuilder : artifactBuilders) {
             artifactBuilder.build(artifactMetaData);
         }
         // TODO:DAZ Introduce a `LocalComponentArtifactMetaData` interface.
         return ((LocalComponentArtifactIdentifier) artifactMetaData).getFile();
-    }
-
-    private ComponentArtifactMetaData findImlArtifact(ProjectComponentIdentifier project) {
-        return findArtifact(project, "iml");
     }
 
     private ComponentArtifactMetaData findArtifact(ProjectComponentIdentifier project, String type) {

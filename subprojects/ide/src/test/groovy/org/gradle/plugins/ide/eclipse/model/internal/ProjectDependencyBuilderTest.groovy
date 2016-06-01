@@ -15,15 +15,17 @@
  */
 package org.gradle.plugins.ide.eclipse.model.internal
 import org.gradle.api.Project
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ProjectDependencyBuilderTest extends Specification {
-
+    def ProjectComponentIdentifier projectId = DefaultProjectComponentIdentifier.newId("anything")
     def Project project = TestUtil.createRootProject()
     def ProjectDependencyBuilder builder = new ProjectDependencyBuilder()
-    def IdeProjectDependency ideProjectDependency = new IdeProjectDependency(project)
+    def IdeProjectDependency ideProjectDependency = new IdeProjectDependency(projectId, project)
 
     def "should create dependency using project name"() {
         when:

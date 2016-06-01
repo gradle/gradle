@@ -25,6 +25,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedDependenciesLogger;
@@ -527,7 +528,8 @@ public class IdeaModule {
      * @return dependencies
      */
     public Set<Dependency> resolveDependencies() {
-        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider();
+        ProjectInternal projectInternal = (ProjectInternal) project;
+        IdeaDependenciesProvider ideaDependenciesProvider = new IdeaDependenciesProvider(projectInternal.getServices());
         new UnresolvedDependenciesLogger().log(ideaDependenciesProvider.getUnresolvedDependencies(this));
         return ideaDependenciesProvider.provide(this);
     }
