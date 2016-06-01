@@ -65,6 +65,7 @@ abstract class AbstractClassGraphSpec extends Specification {
                 def resource = it.classLoader.getResource(name)
                 zip.putNextEntry(new ZipEntry(name))
                 zip.write(resource.bytes)
+                zip.closeEntry()
             }
             zip.close()
         } finally {
