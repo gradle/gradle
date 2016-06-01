@@ -18,12 +18,12 @@ package org.gradle.groovy.scripts.internal;
 
 import com.google.common.collect.Maps;
 import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.internal.classloader.AbstractClassLoaderHierarchyHasher;
+import org.gradle.internal.classloader.ConfigurableClassLoaderHierarchyHasher;
 import org.gradle.util.GradleVersion;
 
 import java.util.Map;
 
-public class RegistryAwareClassLoaderHierarchyHasher extends AbstractClassLoaderHierarchyHasher {
+public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLoaderHierarchyHasher {
     public RegistryAwareClassLoaderHierarchyHasher(ClassLoaderRegistry registry) {
         super(collectKnownClassLoaders(registry));
     }
@@ -34,8 +34,8 @@ public class RegistryAwareClassLoaderHierarchyHasher extends AbstractClassLoader
         String javaVmVersion = String.format("%s|%s|%s", System.getProperty("java.vm.name"), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.vendor"));
         ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
         if (systemClassLoader != null) {
-            addClassLoader(knownClassLoaders, systemClassLoader, "system" + javaVmVersion);
-            addClassLoader(knownClassLoaders, systemClassLoader.getParent(), "app" + javaVmVersion);
+            addClassLoader(knownClassLoaders, systemClassLoader, "system-app" + javaVmVersion);
+            addClassLoader(knownClassLoaders, systemClassLoader.getParent(), "system-ext" + javaVmVersion);
         }
 
         String gradleVersion = GradleVersion.current().getVersion();
