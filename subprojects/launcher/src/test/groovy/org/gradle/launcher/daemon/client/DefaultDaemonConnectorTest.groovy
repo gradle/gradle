@@ -30,6 +30,9 @@ import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.DaemonStopEvent
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import spock.lang.Specification
+import spock.lang.Unroll
+
+import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.*
 
 class DefaultDaemonConnectorTest extends Specification {
 
@@ -194,15 +197,24 @@ class DefaultDaemonConnectorTest extends Specification {
         registry.all.empty
     }
 
-    def "starting message contains number of busy and incompatible daemons if > 0"() {
+    @Unroll
+    def "starting message contains number of busy and incompatible daemons (#numBusy busy, #numIncompatible incompatible)"() {
         given:
-        def message = getConnector().generateStartingMessage(2, 2, Lists.newArrayList())
+        def message = getConnector().generateStartingMessage(numBusy, numIncompatible, Lists.newArrayList())
 
         expect:
-        message.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE)
-        message.contains(DefaultDaemonConnector.MULTIPLE_BUSY_DAEMONS_MESSAGE)
-        message.contains(DefaultDaemonConnector.MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE)
-        message.contains(DefaultDaemonConnector.SUBSEQUENT_BUILDS_FASTER_MESSAGE)
+        message.contains(STARTING_DAEMON_MESSAGE)
+        messages.each { assert message.contains(it) }
+        message.contains(SUBSEQUENT_BUILDS_FASTER_MESSAGE)
+
+        where:
+        numBusy | numIncompatible | messages
+        0       | 1               | [ONE_INCOMPATIBLE_DAEMON_MESSAGE]
+        1       | 0               | [ONE_BUSY_DAEMON_MESSAGE]
+        1       | 1               | [ONE_BUSY_DAEMON_MESSAGE, ONE_INCOMPATIBLE_DAEMON_MESSAGE]
+        1       | 2               | [ONE_BUSY_DAEMON_MESSAGE, MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE]
+        2       | 1               | [MULTIPLE_BUSY_DAEMONS_MESSAGE, ONE_INCOMPATIBLE_DAEMON_MESSAGE]
+        2       | 2               | [MULTIPLE_BUSY_DAEMONS_MESSAGE, MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE]
     }
 
     def "starting message contains stoppage reasons"() {
@@ -212,9 +224,9 @@ class DefaultDaemonConnectorTest extends Specification {
         def message = getConnector().generateStartingMessage(0, 0, Lists.newArrayList(stopEvent, stopEvent2))
 
         expect:
-        message.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE + " none are running")
-        message.contains(DefaultDaemonConnector.DAEMON_WAS_STOPPED_PREFIX + "REASON")
-        message.contains(DefaultDaemonConnector.DAEMON_WAS_STOPPED_PREFIX + "OTHER_REASON")
-        message.contains(DefaultDaemonConnector.SUBSEQUENT_BUILDS_FASTER_MESSAGE)
+        message.contains(STARTING_DAEMON_MESSAGE + " none are running")
+        message.contains(DAEMON_WAS_STOPPED_PREFIX + "REASON")
+        message.contains(DAEMON_WAS_STOPPED_PREFIX + "OTHER_REASON")
+        message.contains(SUBSEQUENT_BUILDS_FASTER_MESSAGE)
     }
 }
