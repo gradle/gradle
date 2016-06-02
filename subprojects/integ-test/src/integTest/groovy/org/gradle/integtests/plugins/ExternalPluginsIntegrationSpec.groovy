@@ -16,12 +16,10 @@
 
 package org.gradle.integtests.plugins
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
-import spock.lang.Ignore
 
 class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
     @Rule
@@ -107,7 +105,6 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
         succeeds 'build'
     }
 
-    @Ignore("Does not release lock on file on Windows")
     def 'asciidoctor plugin'() {
         given:
         buildScript """
@@ -131,6 +128,9 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
             Rubies are red,
             Topazes are blue.
             """
+
+        // Does not close output file, which remains locked on windows. Run the build in a forked process
+        executer.requireGradleHome()
 
         expect:
         succeeds 'asciidoc'
@@ -199,7 +199,6 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "dependencies", "--configuration", "compile"
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER) // fails on JDK 6 with Jaxb Provider problem
     def 'tomcat plugin'() {
         given:
         def httpPort = portAllocator.assignPort()
@@ -260,6 +259,11 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
                 exclude '**/*IntegrationTest.*'
             }
             """.stripIndent()
+
+        // Tomcat plugin doesn't work in embedded mode
+        if (JavaVersion.current() == JavaVersion.VERSION_1_6) {
+            executer.requireGradleHome()
+        }
 
         expect:
         succeeds 'integrationTest'
