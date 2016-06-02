@@ -99,4 +99,65 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
         executer.expectDeprecationWarning().withStackTraceChecksDisabled()
         succeeds 'build'
     }
+
+    def 'asciidoctor plugin'() {
+        given:
+        buildScript """
+            buildscript {
+                repositories {
+                    jcenter()
+                }
+
+                dependencies {
+                    classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
+                }
+            }
+
+            apply plugin: 'org.asciidoctor.convert'
+            """.stripIndent()
+
+        file('src/docs/asciidoc/test.adoc') << """
+            = Line Break Doc Title
+            :hardbreaks:
+
+            Rubies are red,
+            Topazes are blue.
+            """
+
+        expect:
+        succeeds 'asciidoc'
+        file('build/asciidoc').isDirectory()
+    }
+
+    def 'docker plugin'() {
+        given:
+        buildScript """
+            buildscript {
+                repositories {
+                    jcenter()
+                }
+
+                dependencies {
+                    classpath 'com.bmuschko:gradle-docker-plugin:2.6.8'
+                }
+            }
+
+            apply plugin: 'java'
+            apply plugin: 'application'
+            apply plugin: 'com.bmuschko.docker-java-application'
+
+            mainClassName = 'org.gradle.JettyMain'
+
+            docker {
+                javaApplication {
+                    baseImage = 'dockerfile/java:openjdk-7-jre'
+                    port = 9090
+                    tag = 'jettyapp:1.115'
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds 'dockerCopyDistResources'
+    }
 }
