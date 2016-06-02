@@ -18,20 +18,27 @@ package org.gradle.logging;
 
 import org.gradle.api.logging.LogLevel;
 
-@Deprecated
+/**
+ * This type was accidentally leaked into the public API, please do not refer to it.
+ * Use {@link org.gradle.api.logging.LoggingManager} instead.
+ */
 @SuppressWarnings("deprecation")
 public interface LoggingManagerInternal extends org.gradle.internal.logging.LoggingManagerInternal, StandardOutputCapture {
 
+    @Deprecated
     LoggingManagerInternal start();
 
+    @Deprecated
     LoggingManagerInternal stop();
 
+    @Deprecated
     LoggingManagerInternal captureSystemSources();
 
     LoggingManagerInternal captureStandardOutput(LogLevel level);
 
     LoggingManagerInternal captureStandardError(LogLevel level);
 
+    @Deprecated
     LoggingManagerInternal setLevelInternal(LogLevel logLevel);
 
 }
