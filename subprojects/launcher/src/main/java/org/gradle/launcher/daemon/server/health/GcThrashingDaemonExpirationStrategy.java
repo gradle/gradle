@@ -31,7 +31,7 @@ public class GcThrashingDaemonExpirationStrategy implements DaemonExpirationStra
     @Override
     public DaemonExpirationResult checkExpiration() {
         if (status.isThrashing()) {
-            return new DaemonExpirationResult(IMMEDIATE_EXPIRE, "due to JVM garbage collector thrashing");
+            return new DaemonExpirationResult(IMMEDIATE_EXPIRE, "after the JVM garbage collector started thrashing");
         } else {
             return DaemonExpirationResult.NOT_TRIGGERED;
         }

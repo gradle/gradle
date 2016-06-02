@@ -129,7 +129,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         }
 
         and:
-        daemons.daemon.log.contains("Daemon stopping because JVM tenured space is exhausted")
+        daemons.daemon.log.contains("Daemon stopping after running out of JVM memory")
     }
 
     def "when build leaks permgen space daemon is expired"() {
@@ -173,13 +173,13 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         }
 
         and:
-        daemons.daemon.log.contains("Daemon stopping immediately because garbage collector is starting to thrash")
+        daemons.daemon.log.contains("Daemon stopping immediately after the JVM garbage collector started thrashing")
 
         when:
         ExecutionFailure failure = gradle.waitForFailure()
 
         then:
-        failure.assertOutputContains("Gradle build daemon has been stopped: garbage collector is starting to thrash")
+        failure.assertOutputContains("Gradle build daemon has been stopped: after the JVM garbage collector started thrashing")
     }
 
     private boolean daemonIsExpiredEagerly() {
