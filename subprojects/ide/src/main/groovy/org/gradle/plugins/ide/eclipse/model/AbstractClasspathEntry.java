@@ -40,7 +40,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
     protected String path;
     protected boolean exported;
     protected Set<AccessRule> accessRules;
-    protected Map<String, Object> entryAttributes;
+    protected final Map<String, Object> entryAttributes;
 
     public AbstractClasspathEntry(Node node) {
         path = normalizePath((String) node.attribute("path"));

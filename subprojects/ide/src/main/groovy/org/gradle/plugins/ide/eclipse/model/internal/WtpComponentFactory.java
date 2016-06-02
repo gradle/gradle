@@ -49,7 +49,6 @@ public class WtpComponentFactory {
             }
         }
         entries.addAll(wtp.getProperties());
-        // for ear files root deps are NOT transitive; wars don't use root deps so this doesn't hurt them
         Project project = wtp.getProject();
         entries.addAll(getEntriesFromConfigurations(project, configOrEmptySet(wtp.getRootConfigurations()), configOrEmptySet(wtp.getMinusConfigurations()), wtp, "/"));
         entries.addAll(getEntriesFromConfigurations(project, configOrEmptySet(wtp.getLibConfigurations()), configOrEmptySet(wtp.getMinusConfigurations()), wtp, wtp.getLibDeployPath()));

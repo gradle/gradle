@@ -62,10 +62,6 @@ eclipse {
 
   pathVariables 'userHomeVariable' : file(System.properties['user.home'])
 
-  classpath {
-    minusConfigurations << configurations.configTwo
-  }
-
   wtp {
     component {
       contextPath = 'killerApp'
@@ -73,6 +69,7 @@ eclipse {
       sourceDirs += file('someExtraSourceDir')
 
       plusConfigurations << configurations.configOne
+      minusConfigurations << configurations.configTwo
 
       deployName = 'someBetterDeployName'
 
@@ -87,28 +84,24 @@ eclipse {
 }
         """
 
-        component = getFile([:], '.settings/org.eclipse.wst.common.component').text
-        def facet = getFile([:], '.settings/org.eclipse.wst.common.project.facet.core.xml').text
-        def classpath = getFile([:], '.classpath').text
+        // Classpath
+        def classpath = getClasspath()
+        classpath.assertHasLibs('foo-1.0.jar', 'bar-1.0.jar', 'baz-1.0.jar')
+        classpath.lib('foo-1.0.jar').assertIsDeployedTo('/WEB-INF/lib')
+        classpath.lib('bar-1.0.jar').assertIsDeployedTo('/WEB-INF/lib')
+        classpath.lib('baz-1.0.jar').assertIsExcludedFromDeployment()
 
-        //then component:
-        contains('someExtraSourceDir')
+        // Facets
+        wtpFacets.assertFacetVersion('gradleFacet', '1.333')
 
-        assert classpath.contains('foo-1.0.jar')
-        assert classpath.contains('bar-1.0.jar')
-        assert !classpath.contains('baz-1.0.jar')
-
-        contains('someBetterDeployName')
-
+        // Component
+        def component = getWtpComponent()
+        component.resources[0].assertAttributes('deploy-path': '/WEB-INF/classes', 'source-path': 'someExtraSourceDir')
+        component.resources[1].assertAttributes('deploy-path': './deploy/foo/bar', 'source-path': './src/foo/bar')
+        assert component.deployName =='someBetterDeployName'
+        assert component.moduleProperties.'wbPropertyOne' == 'New York!'
+        assert component.moduleProperties.'context-root' == 'killerApp'
         //contains('userHomeVariable') //TODO don't know how to test it at the moment
-
-        contains('./src/foo/bar', './deploy/foo/bar')
-        contains('wbPropertyOne', 'New York!')
-
-        contains('killerApp')
-
-        assert facet.contains('gradleFacet')
-        assert facet.contains('1.333')
     }
 
     @Issue("GRADLE-2653")
@@ -275,22 +268,20 @@ dependencies {
 }
 
 eclipse {
-  classpath {
-    minusConfigurations << configurations.configTwo
-  }
   wtp {
     component {
         plusConfigurations << configurations.configOne
+        minusConfigurations << configurations.configTwo
     }
   }
 }
         """
 
-        // TODO (donat) should we add local file dependencies to the component descriptor?
-        def classpath = getFile([:], '.classpath').text
-        assert classpath.contains('foo.txt')
-        assert classpath.contains('bar.txt')
-        assert !classpath.contains('baz.txt')
+        def classpath = getClasspath()
+        classpath.assertHasLibs('foo.txt', 'bar.txt', 'baz.txt')
+        classpath.lib('foo.txt').assertIsDeployedTo('/WEB-INF/lib')
+        classpath.lib('bar.txt').assertIsDeployedTo('/WEB-INF/lib')
+        classpath.lib('baz.txt').assertIsExcludedFromDeployment()
     }
 
     @Test

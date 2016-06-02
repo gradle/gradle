@@ -29,6 +29,7 @@ import java.util.Map;
  * Common superclass for the library elements.
  */
 public abstract class AbstractLibrary extends AbstractClasspathEntry {
+    private static final String ATTRIBUTE_JAVADOC_LOCATION = "javadoc_location";
 
     private FileReference sourcePath;
     private FileReference javadocPath;
@@ -37,7 +38,7 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
 
     public AbstractLibrary(Node node, FileReferenceFactory fileReferenceFactory) {
         super(node);
-        String javadocLocation = (String) getEntryAttributes().get("javadoc_location");
+        String javadocLocation = (String) getEntryAttributes().get(ATTRIBUTE_JAVADOC_LOCATION);
         javadocPath = fileReferenceFactory.fromJarURI(javadocLocation);
     }
 
@@ -62,9 +63,9 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
         this.javadocPath = path;
         if (path != null) {
             String location = path.getJarURL();
-            getEntryAttributes().put("javadoc_location", location);
+            getEntryAttributes().put(ATTRIBUTE_JAVADOC_LOCATION, location);
         } else {
-            getEntryAttributes().remove("javadoc_location");
+            getEntryAttributes().remove(ATTRIBUTE_JAVADOC_LOCATION);
         }
     }
 

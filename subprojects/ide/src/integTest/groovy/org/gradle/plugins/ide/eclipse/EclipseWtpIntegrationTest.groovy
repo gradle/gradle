@@ -67,12 +67,17 @@ dependencies {
         //given
         mavenRepo.module("gradle", "foo").publish()
         mavenRepo.module("gradle", "bar").publish()
+        mavenRepo.module("gradle", "baz").publish()
 
         //when
-        runEclipseTask(
+        runEclipseTask "include 'sub'",
         """apply plugin: 'java'
            apply plugin: 'war'
            apply plugin: 'eclipse-wtp'
+
+           project(':sub') {
+               apply plugin : 'java'
+           }
 
            repositories {
                maven { url "${mavenRepo.uri}" }
@@ -80,20 +85,23 @@ dependencies {
 
            dependencies {
                compile 'gradle:foo:1.0'
+               compile project(':sub')
            }
 
            configurations.all {
                resolutionStrategy.dependencySubstitution {
                    substitute module("gradle:foo") with module("gradle:bar:1.0")
+                   substitute project(":sub") with module("gradle:baz:1.0")
                }
            }
-        """)
+        """
 
         //then
         def classpath = getClasspath()
 
-        classpath.assertHasLibs('bar-1.0.jar')
+        classpath.assertHasLibs('bar-1.0.jar', 'baz-1.0.jar')
         classpath.lib('bar-1.0.jar').assertIsDeployedTo('/WEB-INF/lib')
+        classpath.lib('baz-1.0.jar').assertIsDeployedTo('/WEB-INF/lib')
     }
 
     private generateEclipseFilesForWebProject(myArtifactVersion = "1.0") {
