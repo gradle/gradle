@@ -17,9 +17,11 @@
 package org.gradle.integtests.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+@NonCrossVersion
 class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
 
     def 'shadow plugin'() {
