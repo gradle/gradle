@@ -89,15 +89,15 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         then:
         output.contains '''
-            lib - Dependent components for native library 'lib'
+            lib - Components that depend on native library 'lib'
             +--- lib:sharedLibrary NOT BUILDABLE
             |    \\--- main:executable
             \\--- lib:staticLibrary NOT BUILDABLE
 
-            main - Dependent components for native executable 'main'
+            main - Components that depend on native executable 'main'
             \\--- main:executable
 
-            util - Dependent components for native library 'util'
+            util - Components that depend on native library 'util'
             +--- util:sharedLibrary
             |    +--- lib:sharedLibrary NOT BUILDABLE
             |    |    \\--- main:executable
@@ -121,7 +121,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             Project :libraries
             ------------------------------------------------------------
 
-            foo - Dependent components for native library 'foo'
+            foo - Components that depend on native library 'foo'
             +--- :libraries:foo:sharedLibrary
             |    +--- :bootstrap:main:executable
             |    +--- :extensions:bazar:sharedLibrary
@@ -202,7 +202,7 @@ model {
 Root project
 ------------------------------------------------------------
 
-lib - Dependent components for native library 'lib'
+lib - Components that depend on native library 'lib'
 +--- lib:freewareSharedLibrary
 |    \\--- main:freewareExecutable
 +--- lib:freewareStaticLibrary
@@ -213,7 +213,7 @@ lib - Dependent components for native library 'lib'
 |    \\--- main:shrinkwareExecutable
 \\--- lib:shrinkwareStaticLibrary
 
-main - Dependent components for native executable 'main'
+main - Components that depend on native executable 'main'
 +--- main:freewareExecutable
 +--- main:sharewareExecutable
 \\--- main:shrinkwareExecutable
@@ -271,7 +271,7 @@ main - Dependent components for native executable 'main'
 
     private static String simpleCppLibDependents() {
         return '''
-            lib - Dependent components for native library 'lib'
+            lib - Components that depend on native library 'lib'
             +--- lib:sharedLibrary
             |    \\--- main:executable
             \\--- lib:staticLibrary
@@ -280,14 +280,14 @@ main - Dependent components for native executable 'main'
 
     private static String simpleCppMainDependents() {
         return '''
-            main - Dependent components for native executable 'main'
+            main - Components that depend on native executable 'main'
             \\--- main:executable
         '''.stripIndent()
     }
 
     private static String simpleCppUtilDependents() {
         return '''
-            util - Dependent components for native library 'util'
+            util - Components that depend on native library 'util'
             +--- util:sharedLibrary
             |    +--- lib:sharedLibrary
             |    |    \\--- main:executable

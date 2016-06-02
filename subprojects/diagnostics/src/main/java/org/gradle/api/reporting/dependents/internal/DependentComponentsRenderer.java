@@ -54,7 +54,7 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
             @Override
             public void execute(StyledTextOutput output) {
                 output.withStyle(Identifier).text(component.getName());
-                output.withStyle(Description).text(" - Dependent components for " + component.getDisplayName());
+                output.withStyle(Description).text(" - Components that depend on " + component.getDisplayName());
             }
         }, true);
         NodeRenderer nodeRenderer = new DependentBinaryNodeRenderer();
