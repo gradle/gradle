@@ -17,8 +17,12 @@
 package org.gradle.integtests.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
+    def setup() {
+        executer.requireGradleDistribution()
+    }
 
     def 'shadow plugin'() {
         when:
@@ -127,6 +131,7 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
         succeeds 'build'
     }
 
+    @Ignore("uses internal types")
     def 'Nebula plugin plugin'() {
         when:
         buildFile << """
