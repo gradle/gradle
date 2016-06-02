@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.idea
-
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.JavaVersion
@@ -52,7 +51,6 @@ import org.gradle.plugins.ide.idea.model.PathFactory
 import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
-
 /**
  * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task.
  * For projects that have the Java plugin applied, the tasks receive additional Java-specific configuration.
@@ -89,16 +87,10 @@ class IdeaPlugin extends IdePlugin {
         configureIdeaModule(project)
         configureForJavaPlugin(project)
         configureForScalaPlugin()
-        processModulesForAllProjects(project)
-    }
-
-    void processModulesForAllProjects(Project project) {
-        if (isRoot(project)) {
-            project.gradle.projectsEvaluated {
-                makeSureModuleNamesAreUnique()
-                // This needs to happen after de-duplication
-                registerImlArtifacts()
-            }
+        postProcess("idea") {
+            makeSureModuleNamesAreUnique()
+            // This needs to happen after de-duplication
+            registerImlArtifacts()
         }
     }
 
@@ -107,17 +99,12 @@ class IdeaPlugin extends IdePlugin {
     }
 
     private void registerImlArtifacts() {
-        def projectsWithIml = project.allprojects.findAll({ it.plugins.hasPlugin(IdeaPlugin) })
-        projectsWithIml.each {
-            registerImlArtifact(it)
+        def projectsWithIml = project.rootProject.allprojects.findAll({ it.plugins.hasPlugin(IdeaPlugin) })
+        projectsWithIml.each { project ->
+            def projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectComponentProvider)
+            def projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
+            projectComponentProvider.registerAdditionalArtifact(projectId, createImlArtifact(projectId, project))
         }
-    }
-
-    private static void registerImlArtifact(Project project) {
-        def projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectComponentProvider)
-        def projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
-        def imlArtifact = createImlArtifact(projectId, project)
-        projectComponentProvider.registerAdditionalArtifact(projectId, imlArtifact)
     }
 
     private static ComponentArtifactMetadata createImlArtifact(ProjectComponentIdentifier projectId, Project project) {

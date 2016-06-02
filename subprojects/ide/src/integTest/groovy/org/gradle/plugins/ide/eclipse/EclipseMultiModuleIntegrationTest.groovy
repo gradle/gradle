@@ -146,6 +146,38 @@ project(':api') {
         assert deps.contains("/nonEclipse")
     }
 
+    @Test
+    void shouldCreateCorrectClasspathEvenIfUserReconfiguresTheProjectNameAndRootProjectDoesNotApplyEclipsePlugin() {
+        def settingsFile = file("master/settings.gradle") << "include 'api', 'shared:model'"
+
+        def buildFile = file("master/build.gradle") << """
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+
+    eclipse {
+        project {
+            name = rootProject.name + path.replace(':', '-')
+        }
+    }
+}
+
+project(':api') {
+    dependencies {
+        compile project(':shared:model')
+    }
+}
+"""
+
+        //when
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("eclipse").run()
+
+        //then
+        def deps = parseEclipseProjectDependencies(project: 'master/api')
+
+        assert deps.contains("/master-shared-model")
+    }
+
     List parseEclipseProjectDependencies(def options) {
         def eclipseClasspathFile = parseFile(options, ".classpath")
         def deps = eclipseClasspathFile.classpathentry.findAll { it.@kind.text() == 'src' }.collect { it.@path.text() }

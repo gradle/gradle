@@ -95,25 +95,22 @@ class EclipsePlugin extends IdePlugin {
         configureEclipseJdt(project, model)
         configureEclipseClasspath(project, model)
 
-        processModulesForAllProjects(project)
+        postProcess("eclipse") {
+            makeSureProjectNamesAreUnique()
+            // This needs to happen after de-duplication
+            registerEclipseArtifacts()
+        }
 
         applyEclipseWtpPluginOnWebProjects(project)
     }
 
-    void processModulesForAllProjects(Project project) {
-        // Only add processing once
-        if (project.parent == null) {
-            project.gradle.projectsEvaluated {
-                makeSureProjectNamesAreUnique()
-                // This needs to happen after de-duplication
-                registerEclipseArtifacts()
-            }
-        }
+    public void makeSureProjectNamesAreUnique() {
+        new EclipseNameDeduper().configureRoot(project.rootProject);
     }
 
     private void registerEclipseArtifacts() {
-        def projectsWithIml = project.allprojects.findAll({ it.plugins.hasPlugin(EclipsePlugin) })
-        projectsWithIml.each {
+        def projectsWithEclipse = project.rootProject.allprojects.findAll({ it.plugins.hasPlugin(EclipsePlugin) })
+        projectsWithEclipse.each {
             registerEclipseArtifacts(it)
         }
     }
@@ -133,10 +130,6 @@ class EclipsePlugin extends IdePlugin {
         def type = "eclipse." + extension
         PublishArtifact publishArtifact = new DefaultPublishArtifact(projectName, extension, type, null, null, projectFile, byName);
         return new PublishArtifactLocalArtifactMetadata(projectId, type, publishArtifact);
-    }
-
-    public void makeSureProjectNamesAreUnique() {
-        new EclipseNameDeduper().configureRoot(project.rootProject);
     }
 
     private void configureEclipseProject(Project project, EclipseModel model) {
