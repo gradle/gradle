@@ -17,6 +17,7 @@
 package org.gradle.api.reporting.dependents;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
@@ -31,7 +32,7 @@ import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 
 import javax.inject.Inject;
-import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllComponents;
@@ -42,14 +43,14 @@ import static org.gradle.api.reporting.dependents.internal.DependentComponentsUt
 @Incubating
 public class DependentComponentsReport extends DefaultTask {
 
-    private Set<String> components;
+    private List<String> components;
 
     /**
      * Returns the components to generate the report for. Defaults to all components of this task's containing project.
      *
      * @return the components.
      */
-    public Set<String> getComponents() {
+    public List<String> getComponents() {
         return components;
     }
 
@@ -58,7 +59,8 @@ public class DependentComponentsReport extends DefaultTask {
      *
      * @param components The components. Must not be null.
      */
-    public void setComponents(Set<String> components) {
+    @Option(option = "component", description = "The component to generate the report for.")
+    public void setComponents(List<String> components) {
         this.components = components;
     }
 
@@ -67,9 +69,8 @@ public class DependentComponentsReport extends DefaultTask {
      *
      * @param componentName name of the component to generate the report for
      */
-    @Option(option = "component", description = "The component to generate the report for.")
     public void setComponent(String componentName) {
-        this.components = Collections.singleton(componentName);
+        this.components = Lists.newArrayList(componentName);
     }
 
     @Inject
@@ -109,9 +110,9 @@ public class DependentComponentsReport extends DefaultTask {
     }
 
     private static class ReportedComponentPredicate implements Predicate<ComponentSpec> {
-        private final Set<String> reported;
+        private final List<String> reported;
 
-        private ReportedComponentPredicate(Set<String> reported) {
+        private ReportedComponentPredicate(List<String> reported) {
             this.reported = reported;
         }
 

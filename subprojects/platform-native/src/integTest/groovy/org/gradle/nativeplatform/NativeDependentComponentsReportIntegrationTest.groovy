@@ -57,6 +57,19 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         'main'    | simpleCppMainDependents()
     }
 
+    def "displays dependent of multiple targeted components"() {
+        given:
+        buildScript simpleCppBuild()
+
+        when:
+        run 'dependentComponents', '--component', 'lib', '--component', 'main'
+
+        then:
+        output.contains simpleCppLibDependents()
+        output.contains simpleCppMainDependents()
+        !output.contains(simpleCppUtilDependents())
+    }
+
     def "displays non-buildable dependents"() {
         given:
         buildScript simpleCppBuild() + '''
