@@ -96,11 +96,12 @@ public class DefaultGradleDistribution implements GradleDistribution {
 
     @Override
     public boolean isToolingApiTargetJvmSupported(JavaVersion javaVersion) {
-        if (isSameOrNewer("2.7")) {
-            return true;
+        if (isSameOrNewer("2.10")) {
+            // Java 1.6 or later
+            return javaVersion.compareTo(JavaVersion.VERSION_1_6) >= 0;
         }
 
-        // Gradle versions older than 2.7 did not fully support Java 1.9 as the target JVM
+        // Gradle versions older than 2.10 did not fully support Java 1.9 as the target JVM
         if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
             return false;
         }
