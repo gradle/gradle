@@ -64,8 +64,8 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
 
         where:
         builds | heap    | rate
-        10     | "200m"  | 2800
-        10     | "1024m" | 15000
+        10     | "200m"  | 2500
+        10     | "1024m" | 13000
     }
 
     def "when build leaks slowly daemon is eventually expired"() {
