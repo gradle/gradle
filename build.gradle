@@ -115,7 +115,7 @@ buildTypes {
 
     soakTest {
         tasks "soak:soakTest"
-        projectProperties useIncomingDistributions: true, testAllVersions: true
+        projectProperties testAllVersions: true
     }
 }
 
