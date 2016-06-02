@@ -20,8 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+@Requires(TestPrecondition.JDK7_OR_LATER)
 class NebulaPluginsSmokeSpec extends AbstractIntegrationSpec {
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def 'nebula recommender plugin'() {
         when:
         buildScript """
@@ -49,7 +49,6 @@ class NebulaPluginsSmokeSpec extends AbstractIntegrationSpec {
         succeeds 'build'
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
@@ -71,5 +70,45 @@ class NebulaPluginsSmokeSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds 'groovydoc'
+    }
+
+    def 'nebula lint plugin jcenter'() {
+        when:
+        buildFile << """
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "com.netflix.nebula:gradle-lint-plugin:0.30.4"
+  }
+}
+
+apply plugin: "nebula.lint"
+        """
+
+        then:
+        succeeds 'buildEnvironment', 'lintGradle', '-s'
+    }
+
+    def 'nebula dependency lock plugin jcenter'() {
+        when:
+        buildFile << """
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "com.netflix.nebula:gradle-dependency-lock-plugin:4.3.0"
+  }
+}
+
+apply plugin: "nebula.dependency-lock"
+        """
+
+        then:
+        succeeds 'buildEnvironment', 'generateLock', '-s'
     }
 }
