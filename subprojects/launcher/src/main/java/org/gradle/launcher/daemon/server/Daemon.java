@@ -296,16 +296,16 @@ public class Daemon implements Stoppable {
                     case DO_NOT_EXPIRE:
                         break;
                     case QUIET_EXPIRE:
-                        LOGGER.lifecycle("Daemon stopping " + result.getReason());
+                        LOGGER.lifecycle("Daemon will be stopped at the end of the build " + result.getReason());
                         stateControl.requestStop();
                         break;
                     case GRACEFUL_EXPIRE:
-                        LOGGER.lifecycle("Daemon stopping " + result.getReason());
+                        LOGGER.lifecycle("Daemon will be stopped at the end of the build " + result.getReason());
                         stateControl.requestStop();
                         registryUpdater.onExpire(result.getReason());
                         break;
                     case IMMEDIATE_EXPIRE:
-                        LOGGER.lifecycle("Daemon stopping immediately " + result.getReason());
+                        LOGGER.lifecycle("Daemon is stopping immediately " + result.getReason());
                         stateControl.requestForcefulStop(result.getReason());
                         registryUpdater.onExpire(result.getReason());
                         break;

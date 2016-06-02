@@ -54,8 +54,8 @@ public class MasterExpirationStrategy implements DaemonExpirationStrategy {
             // this is to check that the JVM supports calling MemoryInfo.getFreePhysicalMemory
             lowMemoryDaemonExpirationStrategy.checkExpiration();
             strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
-                lowMemoryDaemonExpirationStrategy,
-                new DaemonIdleTimeoutExpirationStrategy(daemon, idleTimeout / 8, TimeUnit.MILLISECONDS)
+                new DaemonIdleTimeoutExpirationStrategy(daemon, idleTimeout / 8, TimeUnit.MILLISECONDS),
+                lowMemoryDaemonExpirationStrategy
             )));
         } catch (UnsupportedOperationException e) {
             LOGGER.info("This JVM does not support getting free system memory, so daemons will not check for it");

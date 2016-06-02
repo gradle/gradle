@@ -39,7 +39,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
         result.status == QUIET_EXPIRE
-        result.reason == "to reclaim system memory after free system memory (2 B) fell below threshold of 5 B"
+        result.reason == "after free system memory (2 B) fell below threshold of 5 B"
     }
 
     def "daemon should not expire when memory is above threshold"() {
