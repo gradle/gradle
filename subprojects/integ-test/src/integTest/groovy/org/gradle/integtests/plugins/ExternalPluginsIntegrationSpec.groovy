@@ -17,8 +17,6 @@
 package org.gradle.integtests.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -100,57 +98,5 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
         then:
         executer.expectDeprecationWarning().withStackTraceChecksDisabled()
         succeeds 'build'
-    }
-
-    @Requires(TestPrecondition.JDK7_OR_LATER)
-    def 'nebula recommender plugin'() {
-        when:
-        buildScript """
-            plugins {
-              id "nebula.dependency-recommender" version "3.3.0"
-            }
-
-            apply plugin: 'java'
-
-            repositories {
-               jcenter()
-            }
-
-            dependencyRecommendations {
-               mavenBom module: 'netflix:platform:latest.release'
-            }
-
-            dependencies {
-               compile 'com.google.guava:guava' // no version, version is recommended
-               compile 'commons-lang:commons-lang:2.6' // I know what I want, don't recommend
-            }
-            """
-
-        then:
-        succeeds 'build'
-    }
-
-    @Requires(TestPrecondition.JDK7_OR_LATER)
-    def 'Nebula plugin plugin'() {
-        when:
-        buildFile << """
-            plugins {
-               id 'nebula.plugin-plugin' version '4.15.0'
-            }
-        """
-
-        file("src/main/groovy/pkg/Thing.java") << """
-            package pkg;
-
-            import java.util.ArrayList;
-            import java.util.List;
-
-            public class Thing {
-                   private List<String> firstOrderDepsWithoutVersions = new ArrayList<>();
-            }
-        """
-
-        then:
-        succeeds 'groovydoc'
     }
 }
