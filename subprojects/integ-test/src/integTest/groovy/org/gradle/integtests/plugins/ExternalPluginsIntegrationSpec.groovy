@@ -17,8 +17,12 @@
 package org.gradle.integtests.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.ports.ReleasingPortAllocator
+import org.junit.Rule
 
 class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
+    @Rule
+    final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     def 'shadow plugin'() {
         when:
@@ -189,5 +193,70 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
 
         expect:
         succeeds "dependencies", "--configuration", "compile"
+    }
+
+    def 'tomcat plugin'() {
+        given:
+        def httpPort = portAllocator.assignPort()
+        def httpsPort = portAllocator.assignPort()
+        def stopPort = portAllocator.assignPort()
+        buildScript """
+            buildscript {
+                repositories {
+                    jcenter()
+                }
+
+                dependencies {
+                    classpath 'com.bmuschko:gradle-tomcat-plugin:2.2.4'
+                }
+            }
+
+            apply plugin: 'com.bmuschko.tomcat'
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                def tomcatVersion = '7.0.59'
+                tomcat "org.apache.tomcat.embed:tomcat-embed-core:\${tomcatVersion}",
+                       "org.apache.tomcat.embed:tomcat-embed-logging-juli:\${tomcatVersion}",
+                       "org.apache.tomcat.embed:tomcat-embed-jasper:\${tomcatVersion}"
+            }
+
+            ext {
+                tomcatStopPort = ${stopPort}
+                tomcatStopKey = 'stopKey'
+            }
+
+            tomcat {
+                httpPort = ${httpPort}
+                httpsPort = ${httpsPort}
+            }
+
+            task integrationTomcatRun(type: com.bmuschko.gradle.tomcat.tasks.TomcatRun) {
+                stopPort = tomcatStopPort
+                stopKey = tomcatStopKey
+                daemon = true
+            }
+
+            task integrationTomcatStop(type: com.bmuschko.gradle.tomcat.tasks.TomcatStop) {
+                stopPort = tomcatStopPort
+                stopKey = tomcatStopKey
+            }
+
+            task integrationTest(type: Test) {
+                include '**/*IntegrationTest.*'
+                dependsOn integrationTomcatRun
+                finalizedBy integrationTomcatStop
+            }
+
+            test {
+                exclude '**/*IntegrationTest.*'
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds 'integrationTest'
     }
 }
