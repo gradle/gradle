@@ -22,6 +22,7 @@ import org.gradle.integtests.resource.s3.fixtures.stub.StubRequest
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.util.TextUtil
 import org.joda.time.DateTimeZone
 import org.joda.time.format.DateTimeFormat
 import org.joda.time.format.DateTimeFormatter
@@ -263,7 +264,8 @@ class S3Server extends HttpServer implements RepositoryServer {
 
                 CommonPrefixes {
                     dirs.each { File dir ->
-                        Prefix("${(dir =~ /(${prefix}.*)/)[0][1]}/")
+                        String path = TextUtil.normaliseFileSeparators(dir.absolutePath)
+                        Prefix("${(path =~ /(${prefix}.*)/)[0][1]}/")
                     }
                 }
             }
