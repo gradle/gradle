@@ -33,16 +33,6 @@ public class S3ResourceResolver {
 
     private static final Pattern FILENAME_PATTERN = Pattern.compile("[^/]+\\.*$");
 
-    private static final Function<String, String> MAYBE_STRIP_TRAILING_SLASH = new Function<String, String>() {
-        @Override
-        public String apply(String input) {
-            if (input.endsWith("/")) {
-                return input.substring(0, input.length() - 1);
-            }
-            return input;
-        }
-    };
-
     private static final Function<S3ObjectSummary, String> EXTRACT_FILE_NAME = new Function<S3ObjectSummary, String>() {
         @Override
         public String apply(S3ObjectSummary input) {
@@ -77,8 +67,20 @@ public class S3ResourceResolver {
     }
 
     private List<String> resolveDirectoryResourceNames(ObjectListing objectListing) {
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
         if (objectListing.getCommonPrefixes() != null) {
-            return ImmutableList.copyOf(Iterables.transform(objectListing.getCommonPrefixes(), MAYBE_STRIP_TRAILING_SLASH));
+            for (String prefix : objectListing.getCommonPrefixes()) {
+                /**
+                 * The common prefixes will also include the prefix of the <code>ObjectListing</code>
+                 */
+                String directChild = prefix.split(Pattern.quote(objectListing.getPrefix()))[1];
+                if (directChild.endsWith("/")) {
+                    builder.add(directChild.substring(0, directChild.length() - 1));
+                } else {
+                    builder.add(directChild);
+                }
+            }
+            return builder.build();
         }
         return Collections.emptyList();
     }

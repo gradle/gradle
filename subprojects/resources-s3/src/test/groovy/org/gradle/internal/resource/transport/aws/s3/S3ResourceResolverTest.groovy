@@ -25,13 +25,14 @@ class S3ResourceResolverTest extends Specification {
     def "should resolve file names"() {
         setup:
         ObjectListing objectListing = Mock()
+        objectListing.getPrefix() >> 'root/'
         S3ObjectSummary objectSummary = Mock()
         objectSummary.getKey() >> '/SNAPSHOT/some.jar'
 
         S3ObjectSummary objectSummary2 = Mock()
         objectSummary2.getKey() >> '/SNAPSHOT/someOther.jar'
         objectListing.getObjectSummaries() >> [objectSummary, objectSummary2]
-        objectListing.getCommonPrefixes() >> ['SNAPSHOT']
+        objectListing.getCommonPrefixes() >> ['root/SNAPSHOT']
 
         S3ResourceResolver resolver = new S3ResourceResolver()
 
@@ -47,6 +48,7 @@ class S3ResourceResolverTest extends Specification {
         ObjectListing objectListing = Mock()
         S3ObjectSummary objectSummary = Mock()
         objectSummary.getKey() >> '/SNAPSHOT/some.jar'
+        objectListing.getPrefix() >> 'root/'
         objectListing.getObjectSummaries() >> [objectSummary]
         objectListing.getCommonPrefixes() >> [prefix]
 
@@ -59,9 +61,9 @@ class S3ResourceResolverTest extends Specification {
         results == ['some.jar', expected]
 
         where:
-        prefix      | expected
-        'SNAPSHOT'  | 'SNAPSHOT'
-        'SNAPSHOT/' | 'SNAPSHOT'
+        prefix           | expected
+        'root/SNAPSHOT'  | 'SNAPSHOT'
+        'root/SNAPSHOT/' | 'SNAPSHOT'
     }
 
     def "should extract file name from s3 listing"() {

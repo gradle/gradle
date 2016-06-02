@@ -136,7 +136,6 @@ public class S3Client {
         ObjectListing objectListing = amazonS3Client.listObjects(listObjectsRequest);
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         builder.addAll(resourceResolver.resolveResourceNames(objectListing));
-        builder.addAll(resourceResolver.resolveResourceNames(objectListing));
 
         while (objectListing.isTruncated()) {
             objectListing = amazonS3Client.listNextBatchOfObjects(objectListing);

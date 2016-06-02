@@ -263,7 +263,7 @@ class S3Server extends HttpServer implements RepositoryServer {
 
                 CommonPrefixes {
                     dirs.each { File dir ->
-                        Prefix("${(dir =~ /${prefix}(.*)/)[0][1]}/")
+                        Prefix("${(dir =~ /(${prefix}.*)/)[0][1]}/")
                     }
                 }
             }
