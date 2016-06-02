@@ -106,11 +106,15 @@ public class DependentComponentsRenderableDependency implements RenderableDepend
 
     @Override
     public boolean isResolvable() {
-        return buildable;
+        return true;
     }
 
     @Override
     public Set<? extends RenderableDependency> getChildren() {
         return children;
+    }
+
+    public boolean isBuildable() {
+        return buildable;
     }
 }

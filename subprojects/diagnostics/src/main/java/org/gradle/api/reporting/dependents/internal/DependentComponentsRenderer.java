@@ -86,8 +86,11 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
         @Override
         public void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered) {
             output.text(node.getName());
-            if (!node.isResolvable()) {
-                output.withStyle(Info).text(" NOT BUILDABLE");
+            if (node instanceof DependentComponentsRenderableDependency) {
+                DependentComponentsRenderableDependency dep = Cast.uncheckedCast(node);
+                if (!dep.isBuildable()) {
+                    output.withStyle(Info).text(" NOT BUILDABLE");
+                }
             }
         }
     }
