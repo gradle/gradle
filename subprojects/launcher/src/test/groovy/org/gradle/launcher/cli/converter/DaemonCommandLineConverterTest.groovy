@@ -34,11 +34,13 @@ class DaemonCommandLineConverterTest extends Specification {
         converted.enabled == useDaemon
 
         where:
-        options                     | useDaemon
-        []                          | true
-        ['--no-daemon']             | false
-        ['--daemon']                | true
-        ['--no-daemon', '--daemon'] | true
+        options                         | useDaemon
+        []                              | true
+        ['--no-daemon']                 | false
+        ['--foreground', '--no-daemon'] | false
+        ['--no-daemon', '--foreground'] | false
+        ['--daemon']                    | true
+        ['--no-daemon', '--daemon']     | true
     }
 
     private DaemonParameters convert(Iterable args) {
