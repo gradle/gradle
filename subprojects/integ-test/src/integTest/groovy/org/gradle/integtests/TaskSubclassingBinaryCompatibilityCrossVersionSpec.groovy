@@ -167,7 +167,7 @@ apply plugin: SomePlugin
         """
 
         then:
-        version previous requireGradleHome() withTasks 'assemble' inDirectory(file("producer")) run()
-        version current requireGradleHome() withTasks 't' run()
+        version previous requireGradleDistribution() withTasks 'assemble' inDirectory(file("producer")) run()
+        version current requireGradleDistribution() withTasks 't' run()
     }
 }
