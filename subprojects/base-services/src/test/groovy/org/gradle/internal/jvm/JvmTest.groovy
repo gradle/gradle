@@ -117,10 +117,7 @@ class JvmTest extends Specification {
             }
         }
 
-        when:
-        System.properties['java.home'] = software.file('jdk/jre').absolutePath
-
-        then:
+        expect:
         def jvm = new Jvm(os, software.file('jdk/jre'), JavaVersion.current());
         jvm.javaHome == software.file('jdk')
         jvm.toolsJar == software.file('jdk/lib/tools.jar')
