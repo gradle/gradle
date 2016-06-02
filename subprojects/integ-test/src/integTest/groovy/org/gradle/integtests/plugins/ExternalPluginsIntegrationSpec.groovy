@@ -17,8 +17,6 @@
 package org.gradle.integtests.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -102,7 +100,6 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
         succeeds 'build'
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def 'nebula recommender plugin'() {
         when:
         buildScript """
@@ -130,7 +127,6 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
         succeeds 'build'
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def 'Nebula plugin plugin'() {
         when:
         buildFile << """

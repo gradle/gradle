@@ -20,8 +20,6 @@ import org.apache.commons.lang.StringEscapeUtils
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovydocCoverage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 @TargetCoverage({GroovydocCoverage.ALL_COVERAGE})
@@ -116,7 +114,6 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue(["GRADLE-3174", "GRADLE-3463"])
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "Error in Groovydoc generation is logged"() {
         when:
         buildScript """
