@@ -88,13 +88,17 @@ class IdeaPlugin extends IdePlugin {
         configureForJavaPlugin(project)
         configureForScalaPlugin()
         postProcess("idea") {
-            makeSureModuleNamesAreUnique()
-            // This needs to happen after de-duplication
-            registerImlArtifacts()
+            performPostEvaluationActions()
         }
     }
 
-    public void makeSureModuleNamesAreUnique() {
+    public void performPostEvaluationActions() {
+        makeSureModuleNamesAreUnique()
+        // This needs to happen after de-duplication
+        registerImlArtifacts()
+    }
+
+    private void makeSureModuleNamesAreUnique() {
         new IdeaNameDeduper().configureRoot(project.rootProject)
     }
 

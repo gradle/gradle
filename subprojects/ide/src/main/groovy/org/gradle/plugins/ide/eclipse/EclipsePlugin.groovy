@@ -96,15 +96,19 @@ class EclipsePlugin extends IdePlugin {
         configureEclipseClasspath(project, model)
 
         postProcess("eclipse") {
-            makeSureProjectNamesAreUnique()
-            // This needs to happen after de-duplication
-            registerEclipseArtifacts()
+            performPostEvaluationActions()
         }
 
         applyEclipseWtpPluginOnWebProjects(project)
     }
 
-    public void makeSureProjectNamesAreUnique() {
+    public void performPostEvaluationActions() {
+        makeSureProjectNamesAreUnique()
+        // This needs to happen after de-duplication
+        registerEclipseArtifacts()
+    }
+
+    private void makeSureProjectNamesAreUnique() {
         new EclipseNameDeduper().configureRoot(project.rootProject);
     }
 

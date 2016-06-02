@@ -113,7 +113,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         for (Project p : allProjects) {
             p.getPluginManager().apply(EclipsePlugin.class);
         }
-        root.getPlugins().getPlugin(EclipsePlugin.class).makeSureProjectNamesAreUnique();
+        root.getPlugins().getPlugin(EclipsePlugin.class).performPostEvaluationActions();
     }
 
     private DefaultEclipseProject buildHierarchy(Project project) {
