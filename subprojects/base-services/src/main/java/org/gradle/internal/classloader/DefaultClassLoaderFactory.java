@@ -47,7 +47,19 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     }
 
     public FilteringClassLoader createFilteringClassLoader(ClassLoader parent) {
-        // See the comment for {@link #createIsolatedClassLoader} above
+        // This piece of ugliness makes XML parsing classes visible in some cases. Here's why:
+        //
+        // 1. When looking for a provider, JAXP looks for a service resource in the context ClassLoader, which is our isolated ClassLoader. If our classpath above does not contain a
+        //    provider, this returns null. If it does contain a provider, JAXP extracts the classname from the service resource.
+        // 2. If not found, JAXP looks for a service resource in the system ClassLoader. This happens to include all the application classes specified on the classpath. If the application
+        //    classpath does not contain a provider, this returns null. If it does contain a provider, JAXP extracts the implementation classname from the service resource.
+        // 3. If not found, JAXP uses a default classname
+        // 4. JAXP attempts to load the provider using the context ClassLoader. which is our isolated ClassLoader. This is fine if the classname came from step 1 or 3. It blows up if the
+        //    classname came from step 2.
+        //
+        // So, as a workaround, locate and make visible XML parser classes from the system classloader in our isolated ClassLoader.
+        //
+        // Note that in practise, this is triggered when running in our tests and running in embedded mode with the tooling API.
         FilteringClassLoader classLoader = new FilteringClassLoader(parent);
         if (needJaxpImpl()) {
             ServiceLocator locator = new ServiceLocator(getSystemClassLoader());

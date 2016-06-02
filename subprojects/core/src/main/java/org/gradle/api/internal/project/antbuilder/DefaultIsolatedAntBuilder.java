@@ -75,7 +75,10 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             antClasspath.add(toolsJar);
         }
 
-        // Mix in an XML parser implementation when running on Java 6 and another XML parser is present on the system ClassLoader, to work around a bug in older implementations of JAXP
+        /**
+         * Mix in an XML parser implementation when running on Java 6 and another XML parser is present on the system ClassLoader, to work around a bug in older implementations of JAXP
+         * @see org.gradle.internal.classloader.DefaultClassLoaderFactory#createFilteringClassLoader(ClassLoader)
+         */
         if (needJaxpHackery()) {
             antClasspath.addAll(moduleRegistry.getExternalModule("xercesImpl").getImplementationClasspath().getAsFiles());
         }
