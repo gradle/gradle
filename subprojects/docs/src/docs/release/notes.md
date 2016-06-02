@@ -72,6 +72,13 @@ Add-->
     - Better extension by plugins
     - Model DSL
     
+### Improved Gradle Daemon, now enabled by default
+
+The performance improvement gained by using the Daemon is staggering: our performance tests [show that builds could be up to 75% faster](TODO(ew) link blog post), just by enabling the Gradle Daemon.
+
+We have been working hard to make the Gradle Daemon aware of its health and impact on the system it's running on; and we believe that it is now robust enough to be **enabled by default**.
+
+We encourage you to give the improved Daemon a try. If for some reason you encounter problems, you can [disable the Daemon](userguide/gradle_daemon.html#daemon_faq). Please [submit feedback to us](https://discuss.gradle.org/c/bugs/) if you encounter instability so that we can make further improvements.
 
 ### Delayed configuration of task inputs and outputs
 

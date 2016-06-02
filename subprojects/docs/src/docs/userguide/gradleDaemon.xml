@@ -35,7 +35,7 @@
         </para>
 
         <para>The reasoning is simple: improve build speed by reusing computations from previous builds.
-        However, the benefits are dramatic: we typically measure build times reduced by 5-75% on
+        However, the benefits are dramatic: we typically measure build times reduced by 15-75% on
         subsequent builds. We recommend profiling your build by using <literal>--profile</literal> to get
         a sense of how much impact the Gradle Daemon can have for you.</para>
 
