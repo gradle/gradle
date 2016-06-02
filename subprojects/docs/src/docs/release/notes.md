@@ -410,6 +410,15 @@ Existing builds and plugins should continue to work.
 
 The method for creating a handle to a Rhino-backed worker has changed in `RhinoWorkerHandleFactory`.  All classes in this package have been deprecated and will be moved to an internal package.
 
+### Changes to internal APIs
+
+Please note that internal APIs may change between releases and will not necessarily be mentioned in release notes. The list of classes available in our Javadoc and Groovydocs represent the public API.
+
+* `org.gradle.util.ConfigureUtil`
+    * Removed `configure(Closure configureClosure, T delegate, boolean configureableAware)`
+    * Removed `configure(Closure configureClosure, T delegate, int resolveStrategy)`
+    * In many cases, `ConfigureUtil.configure()` can be replaced by `Project.configure()` instead.
+
 ### Source and target compatibility options are always passed to the Java compiler
 
 The target-/sourceCompatibility options for the Java Plugin default to the version of Java used to start Gradle.
