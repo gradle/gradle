@@ -28,6 +28,7 @@ import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.WarPluginConvention
 import org.gradle.api.tasks.bundling.War
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.plugins.ear.Ear
 import org.gradle.plugins.ear.EarPlugin
 import org.gradle.plugins.ear.EarPluginConvention
 import org.gradle.plugins.ide.eclipse.model.Classpath
@@ -117,14 +118,14 @@ class EclipseWtpPlugin extends IdePlugin {
                 task.component.libConfigurations = [project.configurations.getByName('runtime')] as Set<Configuration>
                 task.component.minusConfigurations = [] as Set<Configuration>
                 task.component.classesDeployPath = "/"
-                task.component.libDeployPath = "../"
+                ((IConventionAware)task.component).conventionMapping.map('libDeployPath') { "../" }
                 ((IConventionAware)task.component).conventionMapping.map('sourceDirs') { getMainSourceDirs(project) }
             }
             project.plugins.withType(WarPlugin) {
                 task.component.libConfigurations = [project.configurations.getByName('runtime')] as Set<Configuration>
                 task.component.minusConfigurations = [project.configurations.getByName('providedRuntime')] as Set<Configuration>
                 task.component.classesDeployPath = "/WEB-INF/classes"
-                task.component.libDeployPath = "/WEB-INF/lib"
+                ((IConventionAware)task.component).conventionMapping.map('libDeployPath') { "/WEB-INF/lib" }
                 ConventionMapping convention = ((IConventionAware)task.component).conventionMapping
                 convention.map('contextPath') { ((War)project.tasks.getByName('war')).baseName }
                 convention.map('resources') { [new WbResource('/', project.getConvention().getPlugin(WarPluginConvention).webAppDirName)] }
@@ -135,7 +136,13 @@ class EclipseWtpPlugin extends IdePlugin {
                 task.component.libConfigurations = [project.configurations.getByName('earlib')] as Set<Configuration>
                 task.component.minusConfigurations = [] as Set<Configuration>
                 task.component.classesDeployPath = "/"
-                task.component.libDeployPath = "/lib"
+                ((IConventionAware)task.component).conventionMapping.map('libDeployPath') {
+                    String deployPath = ((Ear)project.tasks.findByName(EarPlugin.EAR_TASK_NAME)).libDirName
+                    if (!deployPath.startsWith("/")) {
+                        deployPath = "/" + deployPath
+                    }
+                    deployPath
+                }
                 ((IConventionAware)task.component).conventionMapping.map('sourceDirs') {
                     [project.file { project.getConvention().getPlugin(EarPluginConvention).appDirName }] as Set
                 }

@@ -141,7 +141,7 @@ public class EclipseWtpComponent {
     private List<WbProperty> properties = Lists.newArrayList();
     private String contextPath;
     private String classesDeployPath = "/WEB-INF/classes";
-    private String libDeployPath = "/WEB-INF/lib";
+    private String libDeployPath;
     private Map<String, File> pathVariables = Maps.newHashMap();
 
     public EclipseWtpComponent(org.gradle.api.Project project, XmlFileContentMerger file) {

@@ -21,7 +21,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.plugins.WarPlugin;
-import org.gradle.plugins.ear.Ear;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
@@ -48,17 +47,10 @@ public class WtpClasspathAttributeSupport {
     private final Set<File> libConfigFiles;
 
     public WtpClasspathAttributeSupport(Project project, EclipseModel model) {
-        this.isUtilityProject = !project.getPlugins().hasPlugin(WarPlugin.class) && !project.getPlugins().hasPlugin(EarPlugin.class);
-        Ear ear = (Ear) project.getTasks().findByName(EarPlugin.EAR_TASK_NAME);
-        if (ear == null) {
-           libDirName = "/WEB-INF/lib";
-        } else if (ear.getLibDirName().startsWith("/")) {
-            libDirName = ear.getLibDirName();
-        } else {
-            libDirName = "/" + ear.getLibDirName();
-        }
+        isUtilityProject = !project.getPlugins().hasPlugin(WarPlugin.class) && !project.getPlugins().hasPlugin(EarPlugin.class);
         EclipseWtp eclipseWtp = model.getWtp();
         EclipseWtpComponent wtpComponent = eclipseWtp.getComponent();
+        libDirName = wtpComponent.getLibDeployPath();
         Set<Configuration> rootConfigs = wtpComponent.getRootConfigurations();
         Set<Configuration> libConfigs = wtpComponent.getLibConfigurations();
         Set<Configuration> minusConfigs = wtpComponent.getMinusConfigurations();

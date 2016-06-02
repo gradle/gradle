@@ -82,4 +82,34 @@ class EclipseWtpJavaEarSingleProjectIntegrationTest extends AbstractEclipseInteg
         component.sourceDirectory('src/main/java').assertDeployedAt('/')
         component.modules.size() == 0
     }
+
+    def "ear deployment location can be configured via libDirName"() {
+        settingsFile << "rootProject.name = 'ear'"
+
+        buildFile <<
+        """apply plugin: 'eclipse-wtp'
+           apply plugin: 'ear'
+           apply plugin: 'java'
+
+           repositories { $localMaven }
+
+           dependencies {
+               earlib 'org.example:lib1-impl:1.0'
+               deploy 'org.example:lib2-impl:2.0'
+           }
+            ear {
+               libDirName = 'APP-INF/lib'
+           }
+        """
+
+        when:
+        run 'eclipse'
+
+        then:
+        def classpath = classpath
+        classpath.assertHasLibs('lib2-impl-2.0.jar', 'lib1-impl-1.0.jar', 'lib1-api-1.0.jar')
+        classpath.lib('lib1-api-1.0.jar').assertIsDeployedTo('/APP-INF/lib')
+        classpath.lib('lib1-impl-1.0.jar').assertIsDeployedTo('/APP-INF/lib')
+        classpath.lib('lib2-impl-2.0.jar').assertIsDeployedTo('/')
+    }
 }
