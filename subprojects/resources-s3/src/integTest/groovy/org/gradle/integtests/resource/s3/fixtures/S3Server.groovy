@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.resource.s3.fixtures
+
 import groovy.xml.StreamingMarkupBuilder
 import org.gradle.integtests.resource.s3.fixtures.stub.HttpStub
 import org.gradle.integtests.resource.s3.fixtures.stub.StubRequest
@@ -37,8 +38,8 @@ class S3Server extends HttpServer implements RepositoryServer {
     public static final String BUCKET_NAME = "tests3bucket"
     private static final DateTimeZone GMT = new FixedDateTimeZone("GMT", "GMT", 0, 0)
     protected static final DateTimeFormatter RCF_822_DATE_FORMAT = DateTimeFormat.forPattern("EEE, dd MMM yyyy HH:mm:ss z")
-            .withLocale(Locale.US)
-            .withZone(GMT);
+        .withLocale(Locale.US)
+        .withZone(GMT);
 
     public static final String ETAG = 'd41d8cd98f00b204e9800998ecf8427e'
     public static final String X_AMZ_REQUEST_ID = '0A398F9A1BAD4027'
@@ -112,8 +113,8 @@ class S3Server extends HttpServer implements RepositoryServer {
                 method = 'PUT'
                 path = url
                 headers = [
-                        'Content-Type': 'application/octet-stream',
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': 'application/octet-stream',
+                    'Connection': 'Keep-Alive'
                 ]
                 body = { InputStream content ->
                     file.parentFile.mkdirs()
@@ -123,11 +124,11 @@ class S3Server extends HttpServer implements RepositoryServer {
             response {
                 status = 200
                 headers = [
-                        'x-amz-id-2'      : X_AMZ_ID_2,
-                        'x-amz-request-id': X_AMZ_REQUEST_ID,
-                        'Date'            : DATE_HEADER,
-                        "ETag"            : { calculateEtag(file) },
-                        'Server'          : SERVER_AMAZON_S3
+                    'x-amz-id-2': X_AMZ_ID_2,
+                    'x-amz-request-id': X_AMZ_REQUEST_ID,
+                    'Date': DATE_HEADER,
+                    "ETag": { calculateEtag(file) },
+                    'Server': SERVER_AMAZON_S3
                 ]
             }
         }
@@ -140,22 +141,22 @@ class S3Server extends HttpServer implements RepositoryServer {
                 method = 'GET'
                 path = url
                 headers = [
-                        'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 200
                 headers = [
-                        'x-amz-id-2'      : X_AMZ_ID_2,
-                        'x-amz-request-id': X_AMZ_REQUEST_ID,
-                        'Date'            : DATE_HEADER,
-                        'ETag'            : { calculateEtag(file) },
-                        'Server'          : SERVER_AMAZON_S3,
-                        'Accept-Ranges'   : 'bytes',
-                        'Content-Type'    : 'application/octet-stream',
-                        'Content-Length'  : "0",
-                        'Last-Modified'   : RCF_822_DATE_FORMAT.print(new Date().getTime())
+                    'x-amz-id-2': X_AMZ_ID_2,
+                    'x-amz-request-id': X_AMZ_REQUEST_ID,
+                    'Date': DATE_HEADER,
+                    'ETag': { calculateEtag(file) },
+                    'Server': SERVER_AMAZON_S3,
+                    'Accept-Ranges': 'bytes',
+                    'Content-Type': 'application/octet-stream',
+                    'Content-Length': "0",
+                    'Last-Modified': RCF_822_DATE_FORMAT.print(new Date().getTime())
                 ]
             }
         }
@@ -176,22 +177,22 @@ class S3Server extends HttpServer implements RepositoryServer {
                 method = 'GET'
                 path = url
                 headers = [
-                        'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = statusCode
                 headers = [
-                        'x-amz-id-2'      : X_AMZ_ID_2,
-                        'x-amz-request-id': X_AMZ_REQUEST_ID,
-                        'Date'            : DATE_HEADER,
-                        'Server'          : SERVER_AMAZON_S3,
-                        'Content-Type'    : 'application/xml',
+                    'x-amz-id-2': X_AMZ_ID_2,
+                    'x-amz-request-id': X_AMZ_REQUEST_ID,
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_AMAZON_S3,
+                    'Content-Type': 'application/xml',
                 ]
             }
         }
-       expect(httpStub)
+        expect(httpStub)
     }
 
     def stubGetFile(File file, String url) {
@@ -200,22 +201,22 @@ class S3Server extends HttpServer implements RepositoryServer {
                 method = 'GET'
                 path = url
                 headers = [
-                        'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 200
                 headers = [
-                        'x-amz-id-2'      : X_AMZ_ID_2,
-                        'x-amz-request-id': X_AMZ_REQUEST_ID,
-                        'Date'            : DATE_HEADER,
-                        'ETag'            : { calculateEtag(file) },
-                        'Server'          : SERVER_AMAZON_S3,
-                        'Accept-Ranges'   : 'bytes',
-                        'Content-Type'    : 'application/octet-stream',
-                        'Content-Length'  : { file.length()},
-                        'Last-Modified'   : RCF_822_DATE_FORMAT.print(new Date().getTime())
+                    'x-amz-id-2': X_AMZ_ID_2,
+                    'x-amz-request-id': X_AMZ_REQUEST_ID,
+                    'Date': DATE_HEADER,
+                    'ETag': { calculateEtag(file) },
+                    'Server': SERVER_AMAZON_S3,
+                    'Accept-Ranges': 'bytes',
+                    'Content-Type': 'application/octet-stream',
+                    'Content-Length': { file.length() },
+                    'Last-Modified': RCF_822_DATE_FORMAT.print(new Date().getTime())
                 ]
                 body = { file.bytes }
             }
@@ -223,27 +224,30 @@ class S3Server extends HttpServer implements RepositoryServer {
         expect(httpStub)
     }
 
-    def stubListFile(File file, String bucketName, prefix = 'maven/release/', delimiter = '/') {
+    def stubListFile(File file, String bucketName, prefix = 'maven/release/') {
+        def files = file.listFiles(new FileFilter() {
+            @Override
+            boolean accept(File pathname) {
+                return pathname.isFile()
+            }
+        })
+
+        def dirs = file.listFiles(new FileFilter() {
+            @Override
+            boolean accept(File pathname) {
+                return pathname.isDirectory()
+            }
+        })
+
         def xml = new StreamingMarkupBuilder().bind {
             ListBucketResult(xmlns: "http://s3.amazonaws.com/doc/2006-03-01/") {
                 Name(bucketName)
                 Prefix(prefix)
                 Marker()
                 MaxKeys('1000')
-                Delimiter(delimiter)
+                Delimiter('/')
                 IsTruncated('false')
-                Contents {
-                    Key(prefix)
-                    LastModified('2014-09-21T06:44:09.000Z')
-                    ETag(ETAG)
-                    Size('0')
-                    Owner {
-                        ID("${(1..57).collect { 'a' }.join()}")
-                        DisplayName('me')
-                    }
-                    StorageClass('STANDARD')
-                }
-                file.listFiles().each { currentFile ->
+                files.each { currentFile ->
                     Contents {
                         Key(prefix + currentFile.name)
                         LastModified('2014-10-01T13:03:29.000Z')
@@ -255,50 +259,41 @@ class S3Server extends HttpServer implements RepositoryServer {
                         }
                         StorageClass('STANDARD')
                     }
-                    CommonPrefixes {
-                        Prefix("${prefix}com/")
-                    }
                 }
-                Contents {
-                    Key(prefix + file.name)
-                    LastModified('2014-10-01T13:03:29.000Z')
-                    ETag(ETAG)
-                    Size('19')
-                    Owner {
-                        ID("${(1..57).collect { 'a' }.join()}")
-                        DisplayName('me')
-                    }
-                    StorageClass('STANDARD')
-                }
+
                 CommonPrefixes {
-                    Prefix("${prefix}com/")
+                    dirs.each { File dir ->
+                        Prefix("${(dir =~ /${prefix}(.*)/)[0][1]}/")
+                    }
                 }
             }
         }
 
+        println(xml.toString())
         HttpStub httpStub = HttpStub.stubInteraction {
             request {
                 method = 'GET'
                 path = "/${bucketName}/"
                 headers = [
-                        'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': "application/x-www-form-urlencoded; charset=utf-8",
+                    'Connection': 'Keep-Alive'
                 ]
                 params = [
-                        'prefix'   : [prefix],
-                        'delimiter': [delimiter],
-                        'max-keys' : ["1000"]
+                    'prefix': [prefix],
+                    'delimiter': ['/'],
+                    'max-keys': ["1000"]
                 ]
             }
             response {
                 status = 200
                 headers = [
-                        'x-amz-id-2'      : X_AMZ_ID_2,
-                        'x-amz-request-id': X_AMZ_REQUEST_ID,
-                        'Date'            : DATE_HEADER,
-                        'Server'          : SERVER_AMAZON_S3,
-                        'Content-Type'    : 'application/xml',
+                    'x-amz-id-2': X_AMZ_ID_2,
+                    'x-amz-request-id': X_AMZ_REQUEST_ID,
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_AMAZON_S3,
+                    'Content-Type': 'application/xml',
                 ]
+
                 body = { xml.toString() }
             }
         }
@@ -321,20 +316,21 @@ class S3Server extends HttpServer implements RepositoryServer {
                 method = 'GET'
                 path = url
                 headers = [
-                        'Content-Type': 'application/octet-stream',
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': 'application/octet-stream',
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 403
                 headers = [
-                        'x-amz-id-2'      : X_AMZ_ID_2,
-                        'x-amz-request-id': X_AMZ_REQUEST_ID,
-                        'Date'            : DATE_HEADER,
-                        'Server'          : SERVER_AMAZON_S3,
-                        'Content-Type'    : 'application/xml',
+                    'x-amz-id-2': X_AMZ_ID_2,
+                    'x-amz-request-id': X_AMZ_REQUEST_ID,
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_AMAZON_S3,
+                    'Content-Type': 'application/xml',
                 ]
-                body = { xml.toString() }
+                String thing = xml.toString()
+                body = { thing }
             }
         }
         expect(httpStub)
@@ -356,18 +352,18 @@ class S3Server extends HttpServer implements RepositoryServer {
                 method = 'PUT'
                 path = url
                 headers = [
-                        'Content-Type': 'application/octet-stream',
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': 'application/octet-stream',
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 403
                 headers = [
-                        'x-amz-id-2'      : X_AMZ_ID_2,
-                        'x-amz-request-id': X_AMZ_REQUEST_ID,
-                        'Date'            : DATE_HEADER,
-                        'Server'          : SERVER_AMAZON_S3,
-                        'Content-Type'    : 'application/xml',
+                    'x-amz-id-2': X_AMZ_ID_2,
+                    'x-amz-request-id': X_AMZ_REQUEST_ID,
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_AMAZON_S3,
+                    'Content-Type': 'application/xml',
                 ]
                 body = { xml.toString() }
             }
@@ -391,18 +387,18 @@ class S3Server extends HttpServer implements RepositoryServer {
                 method = 'GET'
                 path = url
                 headers = [
-                        'Content-Type': 'application/octet-stream',
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': 'application/octet-stream',
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 404
                 headers = [
-                        'x-amz-id-2'      : X_AMZ_ID_2,
-                        'x-amz-request-id': X_AMZ_REQUEST_ID,
-                        'Date'            : DATE_HEADER,
-                        'Server'          : SERVER_AMAZON_S3,
-                        'Content-Type'    : 'application/xml',
+                    'x-amz-id-2': X_AMZ_ID_2,
+                    'x-amz-request-id': X_AMZ_REQUEST_ID,
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_AMAZON_S3,
+                    'Content-Type': 'application/xml',
                 ]
                 body = { xml.toString() }
             }
@@ -425,18 +421,18 @@ class S3Server extends HttpServer implements RepositoryServer {
                 method = 'GET'
                 path = url
                 headers = [
-                        'Content-Type': 'application/octet-stream',
-                        'Connection'  : 'Keep-Alive'
+                    'Content-Type': 'application/octet-stream',
+                    'Connection': 'Keep-Alive'
                 ]
             }
             response {
                 status = 500
                 headers = [
-                        'x-amz-id-2'      : X_AMZ_ID_2,
-                        'x-amz-request-id': X_AMZ_REQUEST_ID,
-                        'Date'            : DATE_HEADER,
-                        'Server'          : SERVER_AMAZON_S3,
-                        'Content-Type'    : 'application/xml',
+                    'x-amz-id-2': X_AMZ_ID_2,
+                    'x-amz-request-id': X_AMZ_REQUEST_ID,
+                    'Date': DATE_HEADER,
+                    'Server': SERVER_AMAZON_S3,
+                    'Content-Type': 'application/xml',
                 ]
                 body = { xml.toString() }
             }

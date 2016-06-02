@@ -99,7 +99,7 @@ class S3ClientIntegrationTest extends Specification {
         server.stubListFile(temporaryFolder.testDirectory, bucketName)
 
         then:
-        def listing = s3Client.list(new URI("s3://${bucketName}/maven/release/"))
+        def listing = s3Client.listDirectChildren(new URI("s3://${bucketName}/maven/release/"))
         !listing.isEmpty()
         listing.each {
             // Files contain a "." and directories end with "/"

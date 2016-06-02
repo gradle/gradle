@@ -30,6 +30,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -39,7 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 
 public class S3Client {
@@ -122,27 +122,27 @@ public class S3Client {
         return doGetS3Object(uri, false);
     }
 
-    public List<String> list(URI parent) {
-        List<String> results = new ArrayList<String>();
-
+    public List<String> listDirectChildren(URI parent) {
         S3RegionalResource s3RegionalResource = new S3RegionalResource(parent);
         String bucketName = s3RegionalResource.getBucketName();
         String s3BucketKey = s3RegionalResource.getKey();
         configureClient(s3RegionalResource);
 
         ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
-                .withBucketName(bucketName)
-                .withPrefix(s3BucketKey)
-                .withMaxKeys(1000)
-                .withDelimiter("/");
+            .withBucketName(bucketName)
+            .withPrefix(s3BucketKey)
+            .withMaxKeys(1000)
+            .withDelimiter("/");
         ObjectListing objectListing = amazonS3Client.listObjects(listObjectsRequest);
-        results.addAll(resourceResolver.resolveResourceNames(objectListing));
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        builder.addAll(resourceResolver.resolveResourceNames(objectListing));
+        builder.addAll(resourceResolver.resolveResourceNames(objectListing));
 
         while (objectListing.isTruncated()) {
             objectListing = amazonS3Client.listNextBatchOfObjects(objectListing);
-            results.addAll(resourceResolver.resolveResourceNames(objectListing));
+            builder.addAll(resourceResolver.resolveResourceNames(objectListing));
         }
-        return results;
+        return builder.build();
     }
 
     private S3Object doGetS3Object(URI uri, boolean isLightWeight) {

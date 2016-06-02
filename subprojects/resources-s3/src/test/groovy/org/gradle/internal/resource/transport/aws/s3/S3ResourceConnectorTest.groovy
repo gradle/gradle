@@ -28,7 +28,7 @@ class S3ResourceConnectorTest extends Specification {
         when:
         new S3ResourceConnector(s3Client).list(uri)
         then:
-        1 * s3Client.list(uri)
+        1 * s3Client.listDirectChildren(uri)
     }
 
     def "should get a resource"() {

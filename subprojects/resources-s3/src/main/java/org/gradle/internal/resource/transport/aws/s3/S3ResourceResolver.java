@@ -18,13 +18,42 @@ package org.gradle.internal.resource.transport.aws.s3;
 
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.google.common.base.Function;
+import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class S3ResourceResolver {
 
-    private S3ResourceNameExtractor nameExtractor = new S3ResourceNameExtractor();
+    private static final Pattern FILENAME_PATTERN = Pattern.compile("[^/]+\\.*$");
+
+    private static final Function<String, String> MAYBE_STRIP_TRAILING_SLASH = new Function<String, String>() {
+        @Override
+        public String apply(String input) {
+            if (input.endsWith("/")) {
+                return input.substring(0, input.length() - 1);
+            }
+            return input;
+        }
+    };
+
+    private static final Function<S3ObjectSummary, String> EXTRACT_FILE_NAME = new Function<S3ObjectSummary, String>() {
+        @Override
+        public String apply(S3ObjectSummary input) {
+            Matcher matcher = FILENAME_PATTERN.matcher(input.getKey());
+            if (matcher.find()) {
+                String group = matcher.group(0);
+                return group.contains(".") ? group : null;
+            }
+            return null;
+        }
+    };
 
     public List<String> resolveResourceNames(ObjectListing objectListing) {
         List<String> results = new ArrayList<String>();
@@ -36,33 +65,21 @@ public class S3ResourceResolver {
     }
 
     private List<String> resolveFileResourceNames(ObjectListing objectListing) {
-        List<String> results = new ArrayList<String>();
         List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
         if (null != objectSummaries) {
-            for (S3ObjectSummary objectSummary : objectSummaries) {
-                String key = objectSummary.getKey();
-                String fileName = nameExtractor.extractResourceName(key);
-                if (null != fileName) {
-                    results.add(fileName);
-                }
-            }
+            return ImmutableList.copyOf(Iterables.filter(
+                Iterables.transform(objectSummaries, EXTRACT_FILE_NAME),
+                Predicates.notNull()
+            ));
         }
+        return Collections.emptyList();
 
-        return results;
     }
 
     private List<String> resolveDirectoryResourceNames(ObjectListing objectListing) {
-        List<String> results = new ArrayList<String>();
-        List<String> commonPrefixes = objectListing.getCommonPrefixes();
-        if(null != commonPrefixes) {
-            for(String prefix : commonPrefixes) {
-                String dirName = nameExtractor.extractDirectoryName(prefix);
-                if(null != dirName) {
-                    results.add(dirName);
-                }
-            }
+        if (objectListing.getCommonPrefixes() != null) {
+            return ImmutableList.copyOf(Iterables.transform(objectListing.getCommonPrefixes(), MAYBE_STRIP_TRAILING_SLASH));
         }
-
-        return results;
+        return Collections.emptyList();
     }
 }

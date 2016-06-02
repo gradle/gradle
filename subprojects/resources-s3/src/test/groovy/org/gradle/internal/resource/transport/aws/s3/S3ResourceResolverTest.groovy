@@ -21,7 +21,8 @@ import com.amazonaws.services.s3.model.S3ObjectSummary
 import spock.lang.Specification
 
 class S3ResourceResolverTest extends Specification {
-    def "should resolve all resource names from an AWS objectlisting"() {
+
+    def "should resolve file names"() {
         setup:
         ObjectListing objectListing = Mock()
         S3ObjectSummary objectSummary = Mock()
@@ -30,13 +31,62 @@ class S3ResourceResolverTest extends Specification {
         S3ObjectSummary objectSummary2 = Mock()
         objectSummary2.getKey() >> '/SNAPSHOT/someOther.jar'
         objectListing.getObjectSummaries() >> [objectSummary, objectSummary2]
+        objectListing.getCommonPrefixes() >> ['SNAPSHOT']
 
-        objectListing.getCommonPrefixes() >> ['/SNAPSHOT/', '/SNAPSHOT/1.0.8/']
         S3ResourceResolver resolver = new S3ResourceResolver()
 
         when:
         def results = resolver.resolveResourceNames(objectListing)
+
         then:
-        results == ['some.jar', 'someOther.jar', 'SNAPSHOT/', '1.0.8/']
+        results == ['some.jar', 'someOther.jar', 'SNAPSHOT']
     }
+
+    def "should clean common prefixes"() {
+        setup:
+        ObjectListing objectListing = Mock()
+        S3ObjectSummary objectSummary = Mock()
+        objectSummary.getKey() >> '/SNAPSHOT/some.jar'
+        objectListing.getObjectSummaries() >> [objectSummary]
+        objectListing.getCommonPrefixes() >> [prefix]
+
+        S3ResourceResolver resolver = new S3ResourceResolver()
+
+        when:
+        def results = resolver.resolveResourceNames(objectListing)
+
+        then:
+        results == ['some.jar', expected]
+
+        where:
+        prefix      | expected
+        'SNAPSHOT'  | 'SNAPSHOT'
+        'SNAPSHOT/' | 'SNAPSHOT'
+    }
+
+    def "should extract file name from s3 listing"() {
+        ObjectListing objectListing = Mock()
+        S3ObjectSummary objectSummary = Mock()
+        objectSummary.getKey() >> listing
+        objectListing.getObjectSummaries() >> [objectSummary]
+
+        S3ResourceResolver resolver = new S3ResourceResolver()
+
+        when:
+        def results = resolver.resolveResourceNames(objectListing)
+
+        then:
+        results == expected
+
+        where:
+        listing         | expected
+        '/a/b/file.pom' | ['file.pom']
+        '/file.pom'     | ['file.pom']
+        '/file.pom'     | ['file.pom']
+        '/SNAPSHOT/'    | []
+        '/SNAPSHOT/bin' | []
+        '/'             | []
+    }
+
+
 }
