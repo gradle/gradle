@@ -67,7 +67,7 @@ import java.util.Set;
  *       sourceDirs += file('someExtraFolder')
  *
  *       // dependencies to mark as deployable with lib folder deploy path
- *       plusConfigurations += [ configurations.someInterestingConfiguration ]
+ *       libConfigurations += [ configurations.someInterestingConfiguration ]
  *
  *       // dependencies to mark as deployable with root folder deploy path
  *       rootConfigurations += [ configurations.someInterestingConfiguration ]
