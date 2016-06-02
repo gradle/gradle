@@ -127,7 +127,7 @@ public class ConfigureUtil {
     }
 
     /**
-     * Called from an object's {@link Configuable#configure} method.
+     * Called from an object's {@link Configurable#configure} method.
      */
     public static <T> T configureSelf(@Nullable Closure configureClosure, T target) {
         if (configureClosure == null) {
@@ -139,7 +139,7 @@ public class ConfigureUtil {
     }
 
     /**
-     * Called from an object's {@link Configuable#configure} method.
+     * Called from an object's {@link Configurable#configure} method.
      */
     public static <T> T configureSelf(@Nullable Closure configureClosure, T target, ConfigureDelegate closureDelegate) {
         if (configureClosure == null) {
