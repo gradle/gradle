@@ -13,6 +13,10 @@ buildscript {
 
 apply from: 'build.gradle.kts'
 
+// -- Performance testing ----------------------------------------------
+task checkSamples(type: integration.CheckSamples)
+check.dependsOn checkSamples
+
 // --- classpath.properties --------------------------------------------
 File generatedResourcesDir = file("$buildDir/generate-resources/main")
 task generateClasspathManifest(type: codegen.GenerateClasspathManifest) {
