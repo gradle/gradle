@@ -118,8 +118,8 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     public void requestStop() {
         lock.lock();
         try {
-            LOGGER.debug("Stop as soon as idle requested. The daemon is busy: {}", isBusy());
             if (isBusy()) {
+                LOGGER.debug("Stop as soon as idle requested. The daemon is busy: {}", isBusy());
                 beginStopping();
             } else {
                 stopNow("stop requested and daemon idle");
@@ -381,7 +381,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    boolean isStopped() {
+    public boolean isStopped() {
         return state == State.Stopped;
     }
 

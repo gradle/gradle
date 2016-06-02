@@ -39,12 +39,15 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
     def setup() {
         buildFile << "${logJdk()}"
 
-        // Set Java Home to dictate version
-        file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
-
         // Set JVM args for GC
-        String jvmArgs = file("gradle.properties").getProperties().getOrDefault("org.gradle.jvmargs", "")
-        file("gradle.properties").writeProperties("org.gradle.jvmargs": jvmArgs + " " + version.gc.jvmArgs)
+        String jvmArgs = ""
+        if (file('gradle.properties').exists()) {
+            jvmArgs = file("gradle.properties").getProperties().getOrDefault("org.gradle.jvmargs", "")
+        }
+        file("gradle.properties").writeProperties(
+            "org.gradle.java.home": jdk.javaHome.absolutePath,
+            "org.gradle.jvmargs": jvmArgs + " " + version.gc.jvmArgs
+        )
     }
 
     def "when build leaks quickly daemon is expired eagerly"() {
@@ -129,7 +132,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         }
 
         and:
-        daemons.daemon.log.contains("Daemon stopping after running out of JVM memory")
+        daemons.daemon.log.contains("Daemon will be stopped at the end of the build after running out of JVM memory")
     }
 
     def "when build leaks permgen space daemon is expired"() {
@@ -173,7 +176,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         }
 
         and:
-        daemons.daemon.log.contains("Daemon stopping immediately after the JVM garbage collector started thrashing")
+        daemons.daemon.log.contains("Daemon is stopping immediately after the JVM garbage collector started thrashing")
 
         when:
         ExecutionFailure failure = gradle.waitForFailure()
@@ -328,6 +331,6 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
     }
 
     String logJdk() {
-        return """logger.warn("Build is running with JDK: ${jdk.javaHome.absolutePath}")"""
+        return """logger.warn("Build is running with JDK: \${System.getProperty('java.home')}")"""
     }
 }
