@@ -52,8 +52,6 @@ import org.gradle.launcher.daemon.server.exec.ResetDeprecationLogger;
 import org.gradle.launcher.daemon.server.exec.ReturnResult;
 import org.gradle.launcher.daemon.server.exec.StartBuildOrRespondWithBusy;
 import org.gradle.launcher.daemon.server.exec.WatchForDisconnection;
-import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListenerRegistry;
-import org.gradle.launcher.daemon.server.expiry.DefaultDaemonExpirationListenerRegistry;
 import org.gradle.launcher.daemon.server.health.DaemonHealthCheck;
 import org.gradle.launcher.daemon.server.health.DaemonHealthStats;
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus;
@@ -119,8 +117,8 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new DaemonRunningStats(new TrueTimeProvider(), startTime);
     }
 
-    protected DaemonScanInfo createDaemonScanInfo(DaemonRunningStats runningStats) {
-        return new DefaultDaemonScanInfo(runningStats, configuration.getIdleTimeout(), get(DaemonRegistry.class));
+    protected DaemonScanInfo createDaemonScanInfo(DaemonRunningStats runningStats, ListenerManager listenerManager) {
+        return new DefaultDaemonScanInfo(runningStats, configuration.getIdleTimeout(), get(DaemonRegistry.class), listenerManager);
     }
 
     protected MasterExpirationStrategy createMasterExpirationStrategy(Daemon daemon, HealthExpirationStrategy healthExpirationStrategy) {
@@ -173,10 +171,6 @@ public class DaemonServices extends DefaultServiceRegistry {
             get(ScheduledExecutorService.class),
             get(ListenerManager.class)
         );
-    }
-
-    protected DaemonExpirationListenerRegistry createDaemonExpirationListenerRegistry(ListenerManager listenerManager) {
-        return DefaultDaemonExpirationListenerRegistry.of(listenerManager);
     }
 
 }

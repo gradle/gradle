@@ -16,7 +16,11 @@
 
 package org.gradle.launcher.daemon.server.scaninfo;
 
+import org.gradle.api.Action;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 
 public class DefaultDaemonScanInfo implements DaemonScanInfo {
@@ -24,11 +28,13 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
     private final DaemonRunningStats stats;
     private final long idleTimeout;
     private final DaemonRegistry daemonRegistry;
+    private final ListenerManager listenerManager;
 
-    public DefaultDaemonScanInfo(DaemonRunningStats stats, long idleTimeout, DaemonRegistry daemonRegistry) {
+    public DefaultDaemonScanInfo(final DaemonRunningStats stats, final long idleTimeout, final DaemonRegistry daemonRegistry, final ListenerManager listenerManager) {
         this.stats = stats;
         this.idleTimeout = idleTimeout;
         this.daemonRegistry = daemonRegistry;
+        this.listenerManager = listenerManager;
     }
 
     @Override
@@ -50,4 +56,17 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
     public int getNumberOfRunningDaemons() {
         return daemonRegistry.getAll().size();
     }
+
+    @Override
+    public void registerDaemonWillStopAtEndOfBuildListener(final Action<? super String> listener) {
+        listenerManager.addListener(
+            new DaemonExpirationListener() {
+                @Override
+                public void onExpirationEvent(DaemonExpirationResult result) {
+                    listener.execute(result.getReason());
+                }
+            }
+        );
+    }
+
 }

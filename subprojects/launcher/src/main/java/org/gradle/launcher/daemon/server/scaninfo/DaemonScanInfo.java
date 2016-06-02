@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.server.scaninfo;
 
+import org.gradle.api.Action;
+
 /**
  * A means to expose Daemon information _specifically_ for the purpose of build scans.
  * The associated plugin obtains this via the service registry and queries all values
@@ -44,4 +46,10 @@ public interface DaemonScanInfo {
      * @return The number of running daemons
      */
     int getNumberOfRunningDaemons();
+
+    /**
+     * Calls <code>{@link Action#execute(Object)}</code> on the listener when it is determined that the daemon is to expire
+     * @param listener an <code>{@link Action}</code> which gets passed the reason the the daemon has been set to expire
+     */
+    void registerDaemonWillStopAtEndOfBuildListener(Action<? super String> listener);
 }
