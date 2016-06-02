@@ -18,16 +18,21 @@ package org.gradle.launcher.daemon.server.health;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.util.NumberUtil;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
-import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE;
 
 /** An expiry strategy which only triggers when system memory falls below a threshold. */
 public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrategy {
     private final MemoryInfo memoryInfo;
     protected final long minFreeMemoryBytes;
+    private static final Logger LOG = Logging.getLogger(LowMemoryDaemonExpirationStrategy.class);
+
+    public static final String EXPIRATION_REASON = "to reclaim system memory";
 
     private LowMemoryDaemonExpirationStrategy(MemoryInfo memoryInfo, long minFreeMemoryBytes) {
         Preconditions.checkArgument(minFreeMemoryBytes >= 0);
@@ -67,7 +72,8 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
     public DaemonExpirationResult checkExpiration() {
         long freeMem = memoryInfo.getFreePhysicalMemory();
         if (freeMem < minFreeMemoryBytes) {
-            return new DaemonExpirationResult(QUIET_EXPIRE, "after free system memory (" + NumberUtil.formatBytes(freeMem) + ") fell below threshold of " + NumberUtil.formatBytes(minFreeMemoryBytes));
+            LOG.info("after free system memory (" + NumberUtil.formatBytes(freeMem) + ") fell below threshold of " + NumberUtil.formatBytes(minFreeMemoryBytes));
+            return new DaemonExpirationResult(GRACEFUL_EXPIRE, EXPIRATION_REASON);
         } else {
             return DaemonExpirationResult.NOT_TRIGGERED;
         }

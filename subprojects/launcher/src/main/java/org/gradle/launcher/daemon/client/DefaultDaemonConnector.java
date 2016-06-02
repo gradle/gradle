@@ -15,15 +15,11 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
-import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.remote.internal.ConnectException;
 import org.gradle.internal.remote.internal.OutgoingConnector;
@@ -51,14 +47,6 @@ import java.util.List;
 public class DefaultDaemonConnector implements DaemonConnector {
     private static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
     public static final int DEFAULT_CONNECT_TIMEOUT = 30000;
-    public static final String STARTING_DAEMON_MESSAGE = "Starting a new Gradle Daemon because";
-    public static final String ONE_BUSY_DAEMON_MESSAGE = "Another daemon is busy";
-    public static final String MULTIPLE_BUSY_DAEMONS_MESSAGE = "Multiple daemons are busy";
-    public static final String ONE_INCOMPATIBLE_DAEMON_MESSAGE = "An idle daemon with different constraints could not be used";
-    public static final String MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE = "Multiple idle daemons with different constraints could not be used";
-    public static final String SUBSEQUENT_BUILDS_FASTER_MESSAGE = "Subsequent builds will be faster";
-    public static final String DAEMON_WAS_STOPPED_PREFIX = "A daemon was stopped ";
-    private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
     private final DaemonRegistry daemonRegistry;
     protected final OutgoingConnector connector;
     private final DaemonStarter daemonStarter;
@@ -112,34 +100,9 @@ public class DefaultDaemonConnector implements DaemonConnector {
         final List<DaemonStopEvent> stopEvents = daemonRegistry.getStopEvents();
         daemonRegistry.removeStopEvents(stopEvents);
 
-        LOGGER.lifecycle(generateStartingMessage(busyDaemons.size(), idleDaemons.size(), stopEvents));
+        LOGGER.lifecycle(DaemonStartingMessage.generate(busyDaemons.size(), idleDaemons.size(), stopEvents));
 
         return startDaemon(constraint);
-    }
-
-    @VisibleForTesting
-    String generateStartingMessage(final int numBusy, final int numIncompatible, final List<DaemonStopEvent> stopEvents) {
-        final List<String> messages = Lists.newArrayList();
-        if (numBusy + numIncompatible == 0) {
-            messages.add(STARTING_DAEMON_MESSAGE + " none are running");
-        } else {
-            messages.add(STARTING_DAEMON_MESSAGE);
-            if (numBusy > 0) {
-                messages.add(numBusy > 1 ? MULTIPLE_BUSY_DAEMONS_MESSAGE : ONE_BUSY_DAEMON_MESSAGE);
-            }
-            if (numIncompatible > 0) {
-                messages.add(numIncompatible > 1 ? MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE : ONE_INCOMPATIBLE_DAEMON_MESSAGE);
-            }
-        }
-
-        if (stopEvents.size() > 0) {
-            for (DaemonStopEvent event : stopEvents) {
-                messages.add(DAEMON_WAS_STOPPED_PREFIX + event.getReason());
-            }
-        }
-        messages.add(SUBSEQUENT_BUILDS_FASTER_MESSAGE);
-
-        return Joiner.on(LINE_SEPARATOR + "   ").skipNulls().join(messages);
     }
 
     private Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> partitionByIdleState(final Collection<DaemonInfo> daemons) {
@@ -237,7 +200,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         public boolean maybeStaleAddress(Exception failure) {
             LOGGER.info("{}{}", DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE, daemon);
             final Date timestamp = new Date(System.currentTimeMillis());
-            daemonRegistry.storeStopEvent(new DaemonStopEvent(timestamp, "daemon was terminated"));
+            daemonRegistry.storeStopEvent(new DaemonStopEvent(timestamp, "by user or operating system"));
             daemonRegistry.remove(daemon.getAddress());
             return exposeAsStale;
         }

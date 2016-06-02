@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.registry;
 import org.gradle.api.Nullable;
 
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -60,5 +61,12 @@ public class DaemonStopEvent implements Serializable {
         int result = timestamp.hashCode();
         result = 31 * result + (reason != null ? reason.hashCode() : 0);
         return result;
+    }
+
+    public boolean occurredInLastDays(final int numDays) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date(System.currentTimeMillis()));
+        cal.add(Calendar.DAY_OF_MONTH, -1 * numDays);
+        return timestamp.after(cal.getTime());
     }
 }

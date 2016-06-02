@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.server.health;
 
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
@@ -23,6 +25,9 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.IM
 
 public class GcThrashingDaemonExpirationStrategy implements DaemonExpirationStrategy {
     private final DaemonMemoryStatus status;
+    private static final Logger LOG = Logging.getLogger(GcThrashingDaemonExpirationStrategy.class);
+
+    public static final String EXPIRATION_REASON = "after running JVM memory";
 
     public GcThrashingDaemonExpirationStrategy(DaemonMemoryStatus status) {
         this.status = status;
@@ -31,7 +36,8 @@ public class GcThrashingDaemonExpirationStrategy implements DaemonExpirationStra
     @Override
     public DaemonExpirationResult checkExpiration() {
         if (status.isThrashing()) {
-            return new DaemonExpirationResult(IMMEDIATE_EXPIRE, "after the JVM garbage collector started thrashing");
+            LOG.info("JVM garbage collector is thrashing. Daemon will be stopped immediately");
+            return new DaemonExpirationResult(IMMEDIATE_EXPIRE, EXPIRATION_REASON);
         } else {
             return DaemonExpirationResult.NOT_TRIGGERED;
         }

@@ -35,7 +35,7 @@ class GcThrashingDaemonExpirationStrategyTest extends Specification {
 
         and:
         result.status == IMMEDIATE_EXPIRE
-        result.reason == "after the JVM garbage collector started thrashing"
+        result.reason == GcThrashingDaemonExpirationStrategy.EXPIRATION_REASON
     }
 
     def "daemon is not expired when garbage collector is fine" () {

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.launcher.daemon.client.DefaultDaemonConnector
+import org.gradle.launcher.daemon.client.DaemonStartingMessage
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import spock.lang.IgnoreIf
 
@@ -162,7 +162,7 @@ assert System.getProperty('some-prop') == 'some-value'
         succeeds()
 
         then:
-        !output.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE)
+        !output.contains(DaemonStartingMessage.STARTING_DAEMON_MESSAGE)
         wasForked()
         daemons.daemon.stops()
     }
