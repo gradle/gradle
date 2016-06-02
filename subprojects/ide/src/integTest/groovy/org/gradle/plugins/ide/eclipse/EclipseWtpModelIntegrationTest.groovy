@@ -60,8 +60,6 @@ dependencies {
 
 eclipse {
 
-  pathVariables 'userHomeVariable' : file(System.properties['user.home'] + File.separator + ".customUserHome")
-
   wtp {
     component {
       contextPath = 'killerApp'
