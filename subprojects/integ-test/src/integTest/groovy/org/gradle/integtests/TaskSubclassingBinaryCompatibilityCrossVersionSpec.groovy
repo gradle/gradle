@@ -141,6 +141,7 @@ apply plugin: SomePlugin
         file("producer/src/main/java/SubclassTask.java") << """
             import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.*;
+            import org.gradle.api.logging.LogLevel;
 
             public class SubclassTask extends DefaultTask {
                 @TaskAction
@@ -149,6 +150,7 @@ apply plugin: SomePlugin
                     getTaskDependencies();
                     getState();
                     getLogging();
+                    getLogging().captureStandardOutput(LogLevel.INFO);
                     getStandardOutputCapture();
                     getInputs();
                     getOutputs();
@@ -165,7 +167,7 @@ apply plugin: SomePlugin
         """
 
         then:
-        version previous withTasks 'assemble' inDirectory(file("producer")) run()
-        version current withTasks 't' run()
+        version previous requireGradleHome() withTasks 'assemble' inDirectory(file("producer")) run()
+        version current requireGradleHome() withTasks 't' run()
     }
 }

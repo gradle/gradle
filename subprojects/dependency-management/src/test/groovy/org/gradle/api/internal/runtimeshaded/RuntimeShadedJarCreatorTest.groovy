@@ -19,6 +19,7 @@ package org.gradle.api.internal.runtimeshaded
 import org.apache.ivy.core.settings.IvySettings
 import org.gradle.api.Action
 import org.gradle.internal.IoActions
+import org.gradle.internal.installation.GradleRuntimeShadedJarDetector
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
@@ -214,6 +215,52 @@ org.gradle.api.internal.tasks.CompileServices"""
         bytecode.contains('LDC "org.gradle.internal.impldep.org.apache.ivy.core.settings.IvySettings"')
     }
 
+    def "remaps resources"() {
+        given:
+        def noRelocationResources = ['org/gradle/reporting/report.js',
+                                      'javax/servlet/http/LocalStrings.properties']
+        def duplicateResources = ['aQute/libg/tuple/packageinfo',
+                                    'org/joda/time/tz/data/Africa/Abidjan']
+        def onlyRelocatedResources = ['com/sun/jna/win32-amd64/jnidispatch.dll']
+        def generatedFiles = [GradleRuntimeShadedJarDetector.MARKER_FILENAME]
+        def resources = noRelocationResources + duplicateResources + onlyRelocatedResources
+        def inputFilesDir = tmpDir.createDir('inputFiles')
+        def jarFile = inputFilesDir.file('lib.jar')
+        createJarFileWithResources(jarFile, resources)
+
+        when:
+        relocatedJarCreator.create(outputJar, [jarFile])
+
+        then:
+        1 * progressLoggerFactory.newOperation(RuntimeShadedJarCreator) >> progressLogger
+        1 * progressLogger.completed()
+        TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
+        contents.length == 1
+        def relocatedJar = contents[0]
+        relocatedJar == outputJar
+
+        handleAsJarFile(relocatedJar) { JarFile jar ->
+            assert jar.entries().toList().size() ==
+                noRelocationResources.size() +
+                duplicateResources.size() * 2 +
+                onlyRelocatedResources.size() +
+                generatedFiles.size()
+            noRelocationResources.each { resourceName ->
+                assert jar.getEntry(resourceName)
+            }
+            duplicateResources.each { resourceName ->
+                assert jar.getEntry(resourceName)
+                assert jar.getEntry("org/gradle/internal/impldep/$resourceName")
+            }
+            onlyRelocatedResources.each { resourceName ->
+                assert jar.getEntry("org/gradle/internal/impldep/$resourceName")
+            }
+            generatedFiles.each { resourceName ->
+                assert jar.getEntry(resourceName)
+            }
+        }
+    }
+
     private void createJarFileWithClassFiles(TestFile jar, List<String> classNames) {
         TestFile contents = tmpDir.createDir("contents/$jar.name")
 
@@ -243,6 +290,14 @@ org.gradle.api.internal.tasks.CompileServices"""
     private void createJarFileWithProviderConfigurationFile(TestFile jar, String serviceType, String serviceProvider) {
         TestFile contents = tmpDir.createDir("contents/$jar.name")
         contents.createFile("META-INF/services/$serviceType") << serviceProvider
+        contents.zipTo(jar)
+    }
+
+    private void createJarFileWithResources(TestFile jar, List<String> resourceNames) {
+        TestFile contents = tmpDir.createDir("contents/$jar.name")
+        resourceNames.each { resourceName ->
+            contents.createFile(resourceName) << resourceName
+        }
         contents.zipTo(jar)
     }
 

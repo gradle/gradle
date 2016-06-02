@@ -109,6 +109,45 @@ assert prop == "value 3"
         succeeds()
     }
 
+    def "can read static property from configure closure outer scope"() {
+        buildFile << """
+class MyPlugin implements Plugin<Project> {
+    static String prop = "value"
+
+    void apply(Project p) {
+        p.repositories {
+            maven { println "from apply: " + prop }
+        }
+        configure(p)
+    }
+
+    static void configure(def p) {
+        p.repositories {
+            maven { println "from static method: " + prop }
+        }
+    }
+}
+
+apply plugin: MyPlugin
+"""
+
+        expect:
+        succeeds()
+        outputContains("from apply: value")
+        outputContains("from static method: value")
+    }
+
+    def "can use curried closure to configure item"() {
+        buildFile << """
+def cl = { String description, Task task -> task.description = description }
+tasks.help cl.curry("this is the description")
+assert tasks.help.description == "this is the description"
+"""
+
+        expect:
+        succeeds()
+    }
+
     def "can invoke method from configure closure outer scope"() {
         buildFile << """
 ext.m = { p -> "[\$p]" }

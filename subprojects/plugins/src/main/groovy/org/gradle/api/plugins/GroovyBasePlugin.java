@@ -19,7 +19,10 @@ package org.gradle.api.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultGroovySourceSet;
@@ -43,13 +46,15 @@ public class GroovyBasePlugin implements Plugin<Project> {
     public static final String GROOVY_RUNTIME_EXTENSION_NAME = "groovyRuntime";
 
     private final SourceDirectorySetFactory sourceDirectorySetFactory;
+    private final ModuleRegistry moduleRegistry;
 
     private Project project;
     private GroovyRuntime groovyRuntime;
 
     @Inject
-    public GroovyBasePlugin(SourceDirectorySetFactory sourceDirectorySetFactory) {
+    public GroovyBasePlugin(SourceDirectorySetFactory sourceDirectorySetFactory, ModuleRegistry moduleRegistry) {
         this.sourceDirectorySetFactory = sourceDirectorySetFactory;
+        this.moduleRegistry = moduleRegistry;
     }
 
     public void apply(Project project) {
@@ -112,7 +117,10 @@ public class GroovyBasePlugin implements Plugin<Project> {
             public void execute(final Groovydoc groovydoc) {
                 groovydoc.getConventionMapping().map("groovyClasspath", new Callable<Object>() {
                     public Object call() throws Exception {
-                        return groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath());
+                        FileCollection groovyClasspath = groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath());
+                        // Jansi is required to log errors when generating Groovydoc
+                        ConfigurableFileCollection jansi = project.files(moduleRegistry.getExternalModule("jansi").getImplementationClasspath().getAsFiles());
+                        return groovyClasspath.plus(jansi);
                     }
                 });
                 groovydoc.getConventionMapping().map("destinationDir", new Callable<Object>() {

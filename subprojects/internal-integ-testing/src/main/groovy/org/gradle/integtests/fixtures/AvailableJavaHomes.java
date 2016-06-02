@@ -136,22 +136,32 @@ public abstract class AvailableJavaHomes {
         return Iterables.getFirst(getAvailableJdks(filter), null);
     }
 
+    private static boolean isSupportedVersion(JavaVersion javaVersion) {
+        return javaVersion.compareTo(JavaVersion.VERSION_1_6) >=0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
+    }
+
+    /**
+     * Returns a JDK is that has a different Java home to the current one, and which is supported by the Gradle version under test.
+     */
     @Nullable
     public static Jvm getDifferentJdk() {
         return getAvailableJdk(new Spec<JvmInstallation>() {
             @Override
             public boolean isSatisfiedBy(JvmInstallation element) {
-                return !element.getJavaHome().equals(Jvm.current().getJavaHome());
+                return !element.getJavaHome().equals(Jvm.current().getJavaHome()) && isSupportedVersion(element.getJavaVersion());
             }
         });
     }
 
+    /**
+     * Returns a JDK is that has a different Java version to the current one, and which is supported by the Gradle version under test.
+     */
     @Nullable
     public static Jvm getDifferentVersion() {
         return getAvailableJdk(new Spec<JvmInstallation>() {
             @Override
             public boolean isSatisfiedBy(JvmInstallation element) {
-                return !element.getJavaVersion().equals(Jvm.current().getJavaVersion());
+                return !element.getJavaVersion().equals(Jvm.current().getJavaVersion()) && isSupportedVersion(element.getJavaVersion());
             }
         });
     }

@@ -230,8 +230,15 @@ public class PomReader implements PomParent {
     }
 
     private static Document parseToDom(InputStream stream, String systemId) throws IOException, SAXException {
-        InputStream dtdStream = new AddDTDFilterInputStream(stream);
-        return getDocBuilder(M2_ENTITY_RESOLVER).parse(dtdStream, systemId);
+        // Set the context classloader to our classloader, to work around how JAXP locates implementation classes
+        ClassLoader original = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(PomReader.class.getClassLoader());
+        try {
+            InputStream dtdStream = new AddDTDFilterInputStream(stream);
+            return getDocBuilder(M2_ENTITY_RESOLVER).parse(dtdStream, systemId);
+        } finally {
+            Thread.currentThread().setContextClassLoader(original);
+        }
     }
 
     public boolean hasParent() {

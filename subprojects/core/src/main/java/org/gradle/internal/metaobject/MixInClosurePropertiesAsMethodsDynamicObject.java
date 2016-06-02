@@ -17,6 +17,7 @@
 package org.gradle.internal.metaobject;
 
 import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.GeneratedClosure;
 
 /**
  * Exposes methods for those properties whose value is a closure.
@@ -38,7 +39,11 @@ public abstract class MixInClosurePropertiesAsMethodsDynamicObject extends Compo
             if (property instanceof Closure) {
                 Closure closure = (Closure) property;
                 closure.setResolveStrategy(Closure.DELEGATE_FIRST);
-                new BeanDynamicObject(closure).invokeMethod("doCall", result, arguments);
+                BeanDynamicObject dynamicObject = new BeanDynamicObject(closure);
+                dynamicObject.invokeMethod("doCall", result, arguments);
+                if (!result.isFound() && !(closure instanceof GeneratedClosure)) {
+                    result.result(closure.call(arguments));
+                }
             }
         }
     }
