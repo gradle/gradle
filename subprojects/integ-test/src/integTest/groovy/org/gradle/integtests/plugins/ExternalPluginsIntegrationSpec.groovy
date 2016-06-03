@@ -132,9 +132,6 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
             Topazes are blue.
             """
 
-        // Does not close output file, which remains locked on windows. Run the build in a forked process
-        executer.requireGradleHome()
-
         expect:
         succeeds 'asciidoc'
         file('build/asciidoc').isDirectory()
@@ -262,11 +259,6 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
                 exclude '**/*IntegrationTest.*'
             }
             """.stripIndent()
-
-        // Tomcat plugin doesn't work in embedded mode
-        if (JavaVersion.current() == JavaVersion.VERSION_1_6) {
-            executer.requireGradleHome()
-        }
 
         expect:
         succeeds 'integrationTest'
