@@ -17,28 +17,58 @@
 package org.gradle.logging;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.internal.logging.events.OutputEventListener;
+
+import java.io.OutputStream;
 
 /**
  * This type was accidentally leaked into the public API, please do not refer to it.
  * Use {@link org.gradle.api.logging.LoggingManager} instead.
  */
-@SuppressWarnings("deprecation")
-public interface LoggingManagerInternal extends org.gradle.internal.logging.LoggingManagerInternal, StandardOutputCapture {
+@Deprecated
+public interface LoggingManagerInternal extends LoggingManager, StandardOutputCapture {
+    LogLevel getLevel();
 
-    @Deprecated
+    LoggingManager setLevel(LogLevel logLevel);
+
     LoggingManagerInternal start();
 
-    @Deprecated
     LoggingManagerInternal stop();
 
-    @Deprecated
     LoggingManagerInternal captureSystemSources();
 
     LoggingManagerInternal captureStandardOutput(LogLevel level);
 
     LoggingManagerInternal captureStandardError(LogLevel level);
 
-    @Deprecated
     LoggingManagerInternal setLevelInternal(LogLevel logLevel);
 
+    LogLevel getStandardErrorCaptureLevel();
+
+    LogLevel getStandardOutputCaptureLevel();
+
+    void addOutputEventListener(OutputEventListener listener);
+
+    void removeOutputEventListener(OutputEventListener listener);
+
+    void addStandardOutputListener(OutputStream outputStream);
+
+    void addStandardErrorListener(OutputStream outputStream);
+
+    void addStandardOutputListener(StandardOutputListener listener);
+
+    void addStandardErrorListener(StandardOutputListener listener);
+
+    void removeStandardOutputListener(StandardOutputListener listener);
+
+    void removeStandardErrorListener(StandardOutputListener listener);
+
+    void attachAnsiConsole(OutputStream outputStream);
+
+    void attachProcessConsole(ConsoleOutput consoleOutput);
+
+    void attachSystemOutAndErr();
 }
