@@ -149,7 +149,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
         def daemonScanInfo = project.getServices().get(DaemonScanInfo)
 
-        daemonScanInfo.registerDaemonWillStopAtEndOfBuildListener(new Action<String>() {
+        daemonScanInfo.notifyOnUnhealthy(new Action<String>() {
             @Override
             public void execute(String s) {
                   println "onExpirationEvent fired with: \${s}"

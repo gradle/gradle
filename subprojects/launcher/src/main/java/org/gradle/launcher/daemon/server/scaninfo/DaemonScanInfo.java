@@ -19,12 +19,9 @@ package org.gradle.launcher.daemon.server.scaninfo;
 import org.gradle.api.Action;
 
 /**
- * A means to expose Daemon information _specifically_ for the purpose of build scans.
- * The associated plugin obtains this via the service registry and queries all values
- * when it is applied.
+ * A means to expose Daemon information _specifically_ for the purpose of build scans. The associated plugin obtains this via the service registry and queries all values when it is applied.
  *
- * This API is a contract with the plugin.
- * Any binary incompatible changes will require changes to the plugin.
+ * This API is a contract with the plugin. Any binary incompatible changes will require changes to the plugin.
  */
 public interface DaemonScanInfo {
     /**
@@ -48,8 +45,10 @@ public interface DaemonScanInfo {
     int getNumberOfRunningDaemons();
 
     /**
-     * Calls <code>{@link Action#execute(Object)}</code> on the listener when it is determined that the daemon is to expire
-     * @param listener an <code>{@link Action}</code> which gets passed the reason the the daemon has been set to expire
+     * Invokes the given action when the Daemon becomes unhealthy in way that requires it be terminated at the end of the build. <p> The action will be invoked at-most once during a build. It will
+     * only be invoked for the build in which it was registered (i.e. not subsequent builds). Each action provided to each invocation of this message will be notified. </p>
+     *
+     * <p> The action receives a free-form, human friendly, string describing why the daemon is considered unhealthy.</p>
      */
-    void registerDaemonWillStopAtEndOfBuildListener(Action<? super String> listener);
+    void notifyOnUnhealthy(Action<? super String> listener);
 }

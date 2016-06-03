@@ -58,7 +58,7 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
     }
 
     @Override
-    public void registerDaemonWillStopAtEndOfBuildListener(final Action<? super String> listener) {
+    public void notifyOnUnhealthy(final Action<? super String> listener) {
         listenerManager.addListener(
             new DaemonExpirationListener() {
                 @Override
