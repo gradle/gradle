@@ -37,6 +37,7 @@ import org.gradle.plugins.ear.Ear
 import org.gradle.plugins.signing.Sign
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
+import org.junit.Assume
 
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
@@ -124,7 +125,8 @@ apply plugin: SomePlugin
     }
 
     def "task can use all methods declared by Task interface that AbstractTask specialises"() {
-        given:
+        // Don't run these for RC 3, as stuff did change during the RCs
+        Assume.assumeFalse(previous.version == GradleVersion.version("2.14-rc-3"))
 
         when:
         file("producer/build.gradle") << """
