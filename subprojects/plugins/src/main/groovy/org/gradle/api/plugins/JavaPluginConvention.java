@@ -122,7 +122,13 @@ public class JavaPluginConvention {
      * Returns the source compatibility used for compiling Java sources.
      */
     public JavaVersion getSourceCompatibility() {
-        return srcCompat != null ? srcCompat : JavaVersion.current();
+        return srcCompat != null ? srcCompat : resolveDefaultSourceCompatibility();
+    }
+
+    private JavaVersion resolveDefaultSourceCompatibility() {
+        final JavaVersion current = JavaVersion.current();
+        // TODO LH Remove this hack after upgrading to ASM version that supports class file v53
+        return current.isJava9Compatible() ? JavaVersion.VERSION_1_8 : current;
     }
 
     /**
