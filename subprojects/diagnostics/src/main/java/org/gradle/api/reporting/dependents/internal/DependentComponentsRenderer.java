@@ -35,11 +35,14 @@ import org.gradle.reporting.ReportRenderer;
 
 import java.util.LinkedHashSet;
 
-import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Identifier;
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
 public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
 
     private final DependentBinariesResolver resolver;
+    private boolean seenTestSuite;
 
     public DependentComponentsRenderer(@Nullable DependentBinariesResolver dependentBinariesResolver) {
         this.resolver = dependentBinariesResolver;
@@ -57,7 +60,7 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
                 output.withStyle(Description).text(" - Components that depend on " + component.getDisplayName());
             }
         }, true);
-        NodeRenderer nodeRenderer = new DependentBinaryNodeRenderer();
+        DependentBinaryNodeRenderer nodeRenderer = new DependentBinaryNodeRenderer();
         DependencyGraphRenderer dependencyGraphRenderer = new DependencyGraphRenderer(renderer, nodeRenderer);
         RenderableDependency root = getRenderableDependencyOf(component, internalProtocol);
         if (root.getChildren().isEmpty()) {
@@ -66,6 +69,9 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
         } else {
             dependencyGraphRenderer.render(root);
         }
+        if (nodeRenderer.seenTestSuite) {
+            seenTestSuite = true;
+        }
     }
 
     private RenderableDependency getRenderableDependencyOf(final ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
@@ -73,7 +79,7 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
             VariantComponentSpec variantComponentSpec = (VariantComponentSpec) componentSpec;
             LinkedHashSet<DependentComponentsRenderableDependency> children = Sets.newLinkedHashSet();
             for (BinarySpecInternal binarySpec : variantComponentSpec.getBinaries().withType(BinarySpecInternal.class)) {
-                DependentBinariesResolutionResult resolvedBinary = resolver.resolve(binarySpec, false);
+                DependentBinariesResolutionResult resolvedBinary = resolver.resolve(binarySpec);
                 children.add(DependentComponentsRenderableDependency.of(resolvedBinary.getRoot()));
             }
             return DependentComponentsRenderableDependency.of(componentSpec, internalProtocol, children);
@@ -82,12 +88,30 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
         }
     }
 
+    void resetSeenTestSuite() {
+        seenTestSuite = false;
+    }
+
+    void renderLegend(TextReportBuilder builder) {
+        if (seenTestSuite) {
+            builder.getOutput().println();
+            builder.getOutput().withStyle(Info).println("(t) - Test suite binary");
+        }
+    }
+
     private static class DependentBinaryNodeRenderer implements NodeRenderer {
+
+        private boolean seenTestSuite;
+
         @Override
         public void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered) {
             output.text(node.getName());
             if (node instanceof DependentComponentsRenderableDependency) {
                 DependentComponentsRenderableDependency dep = (DependentComponentsRenderableDependency) node;
+                if (dep.isTestSuite()) {
+                    output.withStyle(Info).text(" (t)");
+                    seenTestSuite = true;
+                }
                 if (!dep.isBuildable()) {
                     output.withStyle(Info).text(" NOT BUILDABLE");
                 }

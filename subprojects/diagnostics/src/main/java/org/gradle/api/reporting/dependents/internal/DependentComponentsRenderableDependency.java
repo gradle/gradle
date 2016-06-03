@@ -44,11 +44,14 @@ public class DependentComponentsRenderableDependency implements RenderableDepend
             name += id.getProjectPath() + Project.PATH_SEPARATOR;
         }
         name += id.getProjectScopedName();
+        // TODO:PM DEBT This should be handled by strategies
+        boolean buildable = true;
+        boolean testSuite = false;
         return new DependentComponentsRenderableDependency(
             id,
             name,
             componentSpec.getDisplayName(),
-            true,
+            buildable, testSuite,
             children
         );
     }
@@ -61,30 +64,34 @@ public class DependentComponentsRenderableDependency implements RenderableDepend
         }
         name += id.getLibraryName() + Project.PATH_SEPARATOR + id.getVariant();
         String description = id.getDisplayName();
+        boolean buildable = binariesResolutionResult.isBuildable();
+        boolean testSuite = binariesResolutionResult.isTestSuite();
         LinkedHashSet<DependentComponentsRenderableDependency> children = Sets.newLinkedHashSet();
         for (DependentBinariesResolvedResult childResolutionResult : binariesResolutionResult.getChildren()) {
             children.add(of(childResolutionResult));
         }
-        return new DependentComponentsRenderableDependency(id, name, description, binariesResolutionResult.isBuildable(), children);
+        return new DependentComponentsRenderableDependency(id, name, description, buildable, testSuite, children);
     }
 
     private final Object id;
     private final String name;
     private final String description;
     private final boolean buildable;
+    private final boolean testSuite;
     private final LinkedHashSet<? extends RenderableDependency> children;
 
-    public DependentComponentsRenderableDependency(Object id, String name, String description, boolean buildable) {
-        this(id, name, description, buildable, null);
+    public DependentComponentsRenderableDependency(Object id, String name, String description, boolean buildable, boolean testSuite) {
+        this(id, name, description, buildable, testSuite, null);
     }
 
-    public DependentComponentsRenderableDependency(Object id, String name, String description, boolean buildable, LinkedHashSet<? extends RenderableDependency> children) {
+    public DependentComponentsRenderableDependency(Object id, String name, String description, boolean buildable, boolean testSuite, LinkedHashSet<? extends RenderableDependency> children) {
         checkNotNull(id, "id must not be null");
         checkNotNull(emptyToNull(name), "name must not be null nor empty");
         this.id = id;
         this.name = name;
         this.description = emptyToNull(description);
         this.buildable = buildable;
+        this.testSuite = testSuite;
         this.children = children;
     }
 
@@ -116,5 +123,9 @@ public class DependentComponentsRenderableDependency implements RenderableDepend
 
     public boolean isBuildable() {
         return buildable;
+    }
+
+    public boolean isTestSuite() {
+        return testSuite;
     }
 }

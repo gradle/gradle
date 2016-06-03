@@ -38,6 +38,7 @@ public class TextDependentComponentsReportRenderer extends TextReportRenderer {
             getTextOutput().withStyle(Info).println("No components.");
             return;
         }
+        dependentComponentsRenderer.resetSeenTestSuite();
         boolean seen = false;
         for (ComponentSpec component : components) {
             if (seen) {
@@ -47,5 +48,6 @@ public class TextDependentComponentsReportRenderer extends TextReportRenderer {
             }
             getBuilder().item(component, dependentComponentsRenderer);
         }
+        dependentComponentsRenderer.renderLegend(getBuilder());
     }
 }

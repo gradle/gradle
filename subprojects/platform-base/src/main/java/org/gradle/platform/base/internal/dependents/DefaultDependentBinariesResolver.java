@@ -16,9 +16,13 @@
 
 package org.gradle.platform.base.internal.dependents;
 
+import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -34,16 +38,41 @@ public class DefaultDependentBinariesResolver implements DependentBinariesResolv
     }
 
     @Override
-    public DependentBinariesResolutionResult resolve(BinarySpecInternal target, boolean includeTestSuites) {
+    public DependentBinariesResolutionResult resolve(BinarySpecInternal target) {
         DependentBinariesResolvedResult root = null;
         for (DependentBinariesResolutionStrategy strategy : strategies) {
-            DependentBinariesResolutionResult result = strategy.resolve(target, includeTestSuites);
+            DependentBinariesResolutionResult result = strategy.resolve(target);
             if (root == null) {
                 root = result.getRoot();
             } else {
-                root.getChildren().addAll(result.getRoot().getChildren());
+                root = mergeResults(Arrays.asList(root, result.getRoot()));
             }
         }
         return new DefaultDependentBinariesResolutionResult(root);
+    }
+
+    private DependentBinariesResolvedResult mergeResults(Iterable<DependentBinariesResolvedResult> results) {
+        LibraryBinaryIdentifier id = results.iterator().next().getId();
+        boolean hasNotBuildables = false;
+        boolean hasTestSuites = false;
+        LinkedListMultimap<LibraryBinaryIdentifier, DependentBinariesResolvedResult> index = LinkedListMultimap.create();
+        List<DependentBinariesResolvedResult> allChildren = Lists.newArrayList();
+        for (DependentBinariesResolvedResult result : results) {
+            if (!result.isBuildable()) {
+                hasNotBuildables = true;
+            }
+            if (result.isTestSuite()) {
+                hasTestSuites = true;
+            }
+            allChildren.addAll(result.getChildren());
+            for (DependentBinariesResolvedResult child : result.getChildren()) {
+                index.put(child.getId(), child);
+            }
+        }
+        List<DependentBinariesResolvedResult> children = Lists.newArrayList();
+        for (Collection<DependentBinariesResolvedResult> childResults : index.asMap().values()) {
+            children.add(mergeResults(childResults));
+        }
+        return new DefaultDependentBinariesResolvedResult(id, !hasNotBuildables, hasTestSuites, children);
     }
 }

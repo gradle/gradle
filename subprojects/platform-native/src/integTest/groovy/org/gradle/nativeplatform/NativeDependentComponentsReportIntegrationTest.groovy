@@ -139,6 +139,45 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         succeeds 'dependentComponents'
     }
 
+    def "displays dependent test suites"() {
+        given:
+        buildScript simpleBuildWithTestSuites()
+
+        when:
+        run 'dependentComponents'
+
+        then:
+        output.contains """
+            lib - Components that depend on native library 'lib'
+            +--- lib:sharedLibrary
+            |    \\--- main:executable
+            \\--- lib:staticLibrary
+                 \\--- libTest:googleTestExe (t)
+
+            main - Components that depend on native executable 'main'
+            \\--- main:executable
+
+            util - Components that depend on native library 'util'
+            +--- util:sharedLibrary
+            |    +--- lib:sharedLibrary
+            |    |    \\--- main:executable
+            |    +--- lib:staticLibrary
+            |    |    \\--- libTest:googleTestExe (t)
+            |    +--- main:executable
+            |    \\--- libTest:googleTestExe (t)
+            \\--- util:staticLibrary
+                 \\--- utilTest:cUnitExe (t)
+
+            libTest - Components that depend on Google test suite 'libTest'
+            \\--- libTest:googleTestExe (t)
+
+            utilTest - Components that depend on Cunit test suite 'utilTest'
+            \\--- utilTest:cUnitExe (t)
+
+            (t) - Test suite binary
+        """.stripIndent()
+    }
+
     // TODO: This may or may not make sense (we shouldn't fail any worse than building would)
     @NotYetImplemented
     def "circular dependencies are handled gracefully"() {
@@ -263,6 +302,23 @@ main - Components that depend on native executable 'main'
                         sources.c {
                             lib library: 'prebuiltlib', linkage: 'static'
                         }
+                    }
+                }
+            }
+        """.stripIndent()
+    }
+
+    private static String simpleBuildWithTestSuites() {
+        return simpleCppBuild() + """
+            apply plugin: 'cunit-test-suite'
+            apply plugin: 'google-test-test-suite'
+            model {
+                testSuites {
+                    utilTest(CUnitTestSuiteSpec) {
+                        testing \$.components.util
+                    }
+                    libTest(GoogleTestTestSuiteSpec) {
+                        testing \$.components.lib
                     }
                 }
             }

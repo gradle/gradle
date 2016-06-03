@@ -23,6 +23,6 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
  */
 public interface DependentBinariesResolutionStrategy {
 
-    DependentBinariesResolutionResult resolve(BinarySpecInternal target, boolean includeTestSuites);
+    DependentBinariesResolutionResult resolve(BinarySpecInternal target);
 
 }

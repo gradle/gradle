@@ -20,8 +20,14 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.resolve.ProjectModelResolver;
+import org.gradle.internal.Cast;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.DependentSourceSet;
+import org.gradle.model.Defaults;
 import org.gradle.model.Each;
 import org.gradle.model.Finalize;
 import org.gradle.model.RuleSource;
@@ -29,12 +35,14 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec;
+import org.gradle.nativeplatform.test.internal.NativeDependentTestSuiteBinariesResolutionStrategy;
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
 
 /**
@@ -85,5 +93,13 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
             Project project = runTask.getProject();
             runTask.setOutputDir(namingScheme.getOutputDirectory(project.getBuildDir(), "test-results"));
         }
+
+        @Defaults
+        void registerNativeDependentTestSuiteBinariesResolutionStrategy(DependentBinariesResolver resolver, ServiceRegistry serviceRegistry) {
+            ProjectRegistry<ProjectInternal> projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
+            ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
+            resolver.register(new NativeDependentTestSuiteBinariesResolutionStrategy(projectRegistry, projectModelResolver));
+        }
+
     }
 }

@@ -32,11 +32,12 @@ import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.NativeLibraryBinary;
 import org.gradle.platform.base.VariantComponentSpec;
-import org.gradle.platform.base.internal.dependents.AbstractDependentBinariesResolutionStrategy;
 import org.gradle.platform.base.internal.BinarySpecInternal;
+import org.gradle.platform.base.internal.dependents.AbstractDependentBinariesResolutionStrategy;
 import org.gradle.platform.base.internal.dependents.DefaultDependentBinariesResolvedResult;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.emptyToNull;
 
 public class NativeDependentBinariesResolutionStrategy extends AbstractDependentBinariesResolutionStrategy {
+
+    private static class State {
+        private final Map<String, NativeBinarySpecInternal> binaries = Maps.newLinkedHashMap();
+        private final Map<String, List<NativeBinarySpecInternal>> dependencies = Maps.newLinkedHashMap();
+    }
 
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ProjectModelResolver projectModelResolver;
@@ -58,19 +64,15 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
 
     @Nullable
     @Override
-    protected List<DependentBinariesResolvedResult> resolveDependents(BinarySpecInternal target, boolean includeTestSuites) {
+    protected List<DependentBinariesResolvedResult> resolveDependents(BinarySpecInternal target) {
         if (!(target instanceof NativeBinarySpecInternal)) {
             return null;
         }
-        return buildResolvedResult((NativeBinarySpecInternal) target, buildState(includeTestSuites));
+        return buildResolvedResult((NativeBinarySpecInternal) target, buildState());
     }
 
-    private static class State {
-        Map<String, NativeBinarySpecInternal> binaries = Maps.newLinkedHashMap();
-        Map<String, List<NativeBinarySpecInternal>> dependencies = Maps.newLinkedHashMap();
-    }
 
-    private State buildState(boolean includeTestSuites) {
+    private State buildState() {
         State state = new State();
 
         List<ProjectInternal> orderedProjects = Ordering.usingToString().sortedCopy(projectRegistry.getAllProjects());
@@ -78,10 +80,12 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
             if (project.getPlugins().hasPlugin(ComponentModelBasePlugin.class)) {
                 ModelRegistry modelRegistry = projectModelResolver.resolveProjectModel(project.getPath());
                 ModelMap<NativeComponentSpec> components = modelRegistry.realize("components", ModelTypes.modelMap(NativeComponentSpec.class));
-                for (NativeBinarySpecInternal binary : allBinariesOf(components)) {
+                for (NativeBinarySpecInternal binary : allBinariesOf(components.withType(VariantComponentSpec.class))) {
                     state.binaries.put(stateKeyOf(binary), binary);
                 }
-                // TODO:PM Can't import TestingModelBasePlugin nor NativeTestSuiteSpec here to includeTestSuites
+            }
+            for (NativeBinarySpecInternal extraBinary : getExtraBinaries(project, projectModelResolver)) {
+                state.binaries.put(stateKeyOf(extraBinary), extraBinary);
             }
         }
 
@@ -98,14 +102,23 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
                     state.dependencies.get(key).add((NativeBinarySpecInternal) libraryBinary);
                 }
             }
+            state.dependencies.get(key).addAll(getExtraDependents(nativeBinary));
         }
 
         return state;
     }
 
-    private Iterable<NativeBinarySpecInternal> allBinariesOf(ModelMap<NativeComponentSpec> components) {
+    protected List<NativeBinarySpecInternal> getExtraBinaries(Project project, ProjectModelResolver projectModelResolver) {
+        return Collections.emptyList();
+    }
+
+    protected List<NativeBinarySpecInternal> getExtraDependents(NativeBinarySpecInternal nativeBinary) {
+        return Collections.emptyList();
+    }
+
+    protected List<NativeBinarySpecInternal> allBinariesOf(ModelMap<VariantComponentSpec> components) {
         List<NativeBinarySpecInternal> binaries = Lists.newArrayList();
-        for (VariantComponentSpec nativeComponent : components.withType(VariantComponentSpec.class)) {
+        for (VariantComponentSpec nativeComponent : components) {
             for (NativeBinarySpecInternal nativeBinary : nativeComponent.getBinaries().withType(NativeBinarySpecInternal.class)) {
                 binaries.add(nativeBinary);
             }
@@ -134,7 +147,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         List<NativeBinarySpecInternal> dependents = getDependents(target, state);
         for (NativeBinarySpecInternal dependent : dependents) {
             List<DependentBinariesResolvedResult> children = buildResolvedResult(dependent, state);
-            result.add(new DefaultDependentBinariesResolvedResult(dependent.getId(), dependent.isBuildable(), false, children));
+            result.add(new DefaultDependentBinariesResolvedResult(dependent.getId(), dependent.isBuildable(), isTestSuite(dependent), children));
         }
         return result;
     }

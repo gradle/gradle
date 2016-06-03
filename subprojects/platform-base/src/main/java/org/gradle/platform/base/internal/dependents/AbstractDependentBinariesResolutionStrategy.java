@@ -24,21 +24,20 @@ import java.util.List;
 public abstract class AbstractDependentBinariesResolutionStrategy implements DependentBinariesResolutionStrategy {
 
     @Override
-    public DependentBinariesResolutionResult resolve(BinarySpecInternal target, boolean includeTestSuites) {
+    public DependentBinariesResolutionResult resolve(BinarySpecInternal target) {
         DependentBinariesResolvedResult root = new DefaultDependentBinariesResolvedResult(
             target.getId(),
             target.isBuildable(),
             isTestSuite(target),
-            resolveDependents(target, includeTestSuites)
+            resolveDependents(target)
         );
         return new DefaultDependentBinariesResolutionResult(root);
     }
 
     @Nullable
-    protected abstract List<DependentBinariesResolvedResult> resolveDependents(BinarySpecInternal target, boolean includeTestSuites);
+    protected abstract List<DependentBinariesResolvedResult> resolveDependents(BinarySpecInternal target);
 
-    private static boolean isTestSuite(BinarySpecInternal target) {
-        // TODO:PM How to test for test-suite? Cannot import TestSuiteBinarySpec here
+    protected boolean isTestSuite(BinarySpecInternal target) {
         return false;
     }
 

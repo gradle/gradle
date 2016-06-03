@@ -36,8 +36,7 @@ public class BaseDependentBinariesResolutionStrategy extends AbstractDependentBi
 
     @Nullable
     @Override
-    protected List<DependentBinariesResolvedResult> resolveDependents(BinarySpecInternal target, boolean includeTestSuites) {
-        
+    protected List<DependentBinariesResolvedResult> resolveDependents(BinarySpecInternal target) {
         return null;
     }
 }
