@@ -18,7 +18,7 @@ open class CheckSamples : DefaultTask() {
 
     @get:InputFiles
     val samples: FileCollection by lazy {
-        project.fileTree(mapOf("dir" to samplesDir)).apply {
+        project.fileTree(samplesDir).apply {
             include("**/*.gradle.kts")
             include("**/gradle-wrapper.properties")
         }
