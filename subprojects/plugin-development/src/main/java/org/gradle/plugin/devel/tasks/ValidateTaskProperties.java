@@ -48,6 +48,7 @@ import org.gradle.api.tasks.TaskValidationException;
 import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.reflect.Instantiator;
 import org.objectweb.asm.ClassReader;
@@ -112,7 +113,8 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
     @TaskAction
     public void validateTaskClasses() throws IOException {
         final Map<String, Boolean> taskValidationProblems = Maps.newTreeMap();
-        final ClassLoader classLoader = getClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(Iterables.concat(Collections.singleton(getClassesDir()), getClasspath())));
+        ClassPath classPath = new DefaultClassPath(Iterables.concat(Collections.singleton(getClassesDir()), getClasspath()));
+        final ClassLoader classLoader = getClassLoaderFactory().createIsolatedClassLoader(classPath);
         final Class<?> taskInterface;
         final Method validatorMethod;
         try {
