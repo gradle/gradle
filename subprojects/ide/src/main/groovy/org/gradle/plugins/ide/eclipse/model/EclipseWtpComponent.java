@@ -40,8 +40,7 @@ import java.util.Set;
  * Bear in mind that usually you don't have to configure them directly because Gradle configures it for free!
  *
  * <pre autoTested=''>
- * apply plugin: 'java'
- * apply plugin: 'war'
+ * apply plugin: 'war' //or 'ear' or 'java'
  * apply plugin: 'eclipse-wtp'
  *
  * configurations {
@@ -95,7 +94,6 @@ import java.util.Set;
  * Examples of advanced configuration:
  *
  * <pre autoTested=''>
- * apply plugin: 'java'
  * apply plugin: 'war'
  * apply plugin: 'eclipse-wtp'
  *

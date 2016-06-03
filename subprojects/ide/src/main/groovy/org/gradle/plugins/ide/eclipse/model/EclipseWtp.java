@@ -26,8 +26,7 @@ import org.gradle.util.ConfigureUtil;
  * More interesting examples you will find in docs for {@link EclipseWtpComponent} and {@link EclipseWtpFacet}
  *
  * <pre autoTested=''>
- * apply plugin: 'java'
- * apply plugin: 'war'
+ * apply plugin: 'war' //or 'ear' or 'java'
  * apply plugin: 'eclipse-wtp'
  *
  * eclipse {
@@ -50,18 +49,8 @@ import org.gradle.util.ConfigureUtil;
  */
 public class EclipseWtp {
 
-    private EclipseClasspath eclipseClasspath;
     private EclipseWtpComponent component;
     private EclipseWtpFacet facet;
-
-    /**
-     * Create a new EclipseWtp.
-     *
-     * @param eclipseClasspath - wtp needs access to classpath
-     */
-    public EclipseWtp(EclipseClasspath eclipseClasspath) {
-        this.eclipseClasspath = eclipseClasspath;
-    }
 
     /**
      * Configures wtp component.

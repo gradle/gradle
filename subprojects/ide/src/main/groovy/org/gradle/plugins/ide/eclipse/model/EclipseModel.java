@@ -29,9 +29,8 @@ import java.util.Map;
  *
  * <pre autoTested=''>
  * apply plugin: 'java'
- * apply plugin: 'war'  //needed for wtp
  * apply plugin: 'eclipse'
- * apply plugin: 'eclipse-wtp'
+ * apply plugin: 'eclipse-wtp' //for web projects only
  *
  * eclipse {
  *   pathVariables 'GRADLE_HOME': file('/best/software/gradle'), 'TOMCAT_HOME': file('../tomcat')
