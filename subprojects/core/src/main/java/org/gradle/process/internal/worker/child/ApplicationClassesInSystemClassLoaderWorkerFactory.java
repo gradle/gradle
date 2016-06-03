@@ -24,19 +24,27 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.process.ArgWriter;
-import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
-import org.gradle.process.internal.worker.DefaultWorkerProcessBuilder;
+import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.worker.GradleWorkerMain;
 import org.gradle.process.internal.streams.EncodedStream;
+import org.gradle.process.internal.worker.DefaultWorkerProcessBuilder;
+import org.gradle.process.internal.worker.GradleWorkerMain;
 import org.gradle.util.GUtil;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A factory for a worker process which loads the application classes using the JVM's system ClassLoader.
@@ -145,6 +153,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         List<File> classpath = new ArrayList<File>(workerMainClassPath.size() + applicationClasspath.size());
         classpath.addAll(workerMainClassPath);
         classpath.addAll(applicationClasspath);
-        return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.unixStyleFactory()).transform(Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath)));
+        List<String> argumentList = Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath));
+        return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.unixStyleFactory()).transform(argumentList);
     }
 }
