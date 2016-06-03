@@ -200,7 +200,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         then:
         def e = thrown(MetaDataParseException)
         e.message == "Could not parse Ivy file ${file}"
-        e.cause.message.contains('Element type "info"')
+        e.cause.message.contains('"info"')
     }
 
     public void "fails when descriptor does not match schema"() {
