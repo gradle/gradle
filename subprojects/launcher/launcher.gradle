@@ -26,7 +26,7 @@ dependencies {
     testFixturesCompile project(':internalIntegTesting')
 
     // Needed for testing debug command line option
-    testFixturesCompile files(Jvm.current().toolsJar)
+    testFixturesCompile files(Jvm.current().toolsJar?:[])
 
     startScriptGenerator project(':plugins')
 }
