@@ -57,7 +57,7 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
     }
 
     @Override
-    public boolean isNotBeNullByDefault() {
+    public boolean getMustNotBeNullByDefault() {
         return true;
     }
 }

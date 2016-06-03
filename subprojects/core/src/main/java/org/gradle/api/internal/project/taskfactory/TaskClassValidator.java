@@ -189,7 +189,7 @@ public class TaskClassValidator implements TaskValidator, Action<Task> {
             return false;
         }
 
-        if (handler.isNotBeNullByDefault() && !annotationTarget.isAnnotationPresent(Optional.class)) {
+        if (handler.getMustNotBeNullByDefault() && !annotationTarget.isAnnotationPresent(Optional.class)) {
             propertyInfo.setNotNullValidator(NOT_NULL_VALIDATOR);
         }
 

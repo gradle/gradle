@@ -42,7 +42,7 @@ public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHa
     }
 
     @Override
-    public boolean isNotBeNullByDefault() {
+    public boolean getMustNotBeNullByDefault() {
         return true;
     }
 }

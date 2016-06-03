@@ -36,5 +36,5 @@ public interface PropertyAnnotationHandler {
     /**
      * Returns whether the property must not be {@code null} unless {@literal @}{@link org.gradle.api.tasks.Optional Optional} is specified.
      */
-    boolean isNotBeNullByDefault();
+    boolean getMustNotBeNullByDefault();
 }
