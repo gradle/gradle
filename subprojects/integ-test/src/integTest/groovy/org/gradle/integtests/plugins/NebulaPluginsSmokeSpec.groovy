@@ -17,6 +17,7 @@
 package org.gradle.integtests.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 class NebulaPluginsSmokeSpec extends AbstractIntegrationSpec {
     def 'nebula recommender plugin'() {
@@ -46,6 +47,7 @@ class NebulaPluginsSmokeSpec extends AbstractIntegrationSpec {
         succeeds 'build'
     }
 
+    @Ignore
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
@@ -69,6 +71,7 @@ class NebulaPluginsSmokeSpec extends AbstractIntegrationSpec {
         succeeds 'groovydoc'
     }
 
+    @Ignore
     def 'nebula lint plugin jcenter'() {
         when:
         buildFile << """

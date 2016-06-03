@@ -19,6 +19,7 @@ package org.gradle.integtests.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
+import spock.lang.Ignore
 
 class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
@@ -108,6 +109,7 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
         succeeds 'build'
     }
 
+    @Ignore
     def 'asciidoctor plugin'() {
         given:
         buildScript """
@@ -169,6 +171,7 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
         succeeds 'dockerCopyDistResources'
     }
 
+    @Ignore
     def 'spring dependency management plugin'() {
         given:
         buildScript """

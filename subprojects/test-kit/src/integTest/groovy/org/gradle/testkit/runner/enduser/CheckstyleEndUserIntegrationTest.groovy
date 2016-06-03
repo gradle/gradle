@@ -18,6 +18,7 @@ package org.gradle.testkit.runner.enduser
 
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
+import spock.lang.Ignore
 
 @NonCrossVersion
 @NoDebug
@@ -105,6 +106,7 @@ public class Hello {
 """
     }
 
+    @Ignore
     def "build passes"() {
         expect:
         succeeds("test")
