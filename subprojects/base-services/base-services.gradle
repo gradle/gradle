@@ -5,7 +5,7 @@
  * application (eg as part of the tooling API).
  */
 
-sourceCompatibility = 1.5
+sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 dependencies {
     publishCompile libraries.slf4j_api
