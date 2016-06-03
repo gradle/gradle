@@ -106,7 +106,7 @@ The `eclipse-wtp` plugin now fully leverages Gradle's dependency resolution engi
 
 ### `eclipse` plugin also applies `eclipse-wtp` for web projects
 
-If a project applies the `war` or `ear` plugins, then applying the `eclipse` plugin also applies `eclipse-wtp`. This ensures that the necessary configurations like the WTP deployment information (above) is present.
+If a project applies the `war` or `ear` plugins, then applying the `eclipse` plugin also applies `eclipse-wtp`. This improves the out-of-the box experience for Eclipse Buildship users.
 
 ## Promoted features
 
@@ -176,6 +176,16 @@ In previous versions, annotations on task properties like `@InputFile` and `@Out
 
 For Java projects, the `eclipse-wtp` plugin no longer adds external dependencies to the WTP component file, but to the classpath instead. Any customizations related to external dependencies that were made in the `eclipse.wtp.component.file` hooks now need to be done in the `eclipse.classpath.file` hooks instead.
 
+### `eclipse-wtp` is automatically applied when the `war` or `ear` plugins are applied
+
+User who are building `war` projects with Eclipse, but for any reason do not want to have WTP enabled can deactivate WTP like this:
+
+```
+eclipse.project {
+    natures.removeAll { it.startsWith('org.eclipse.wst') }
+    buildCommands.removeAll { it.name.startsWith('org.eclipse.wst') }
+}
+```
 
 ### Changes to previously deprecated APIs
 
