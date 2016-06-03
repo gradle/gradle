@@ -99,10 +99,12 @@ class KotlinScriptPluginFactoryTest {
         return jarFile
     }
 
-    private fun classLoaderScopeRegistryFor(classPathRegistry: DefaultClassPathRegistry) =
-        DefaultClassLoaderScopeRegistry(
-            DefaultClassLoaderRegistry(classPathRegistry, DefaultClassLoaderFactory()),
-            DefaultClassLoaderCache(HashClassPathSnapshotter(DefaultHasher())))
+    private fun classLoaderScopeRegistryFor(classPathRegistry: DefaultClassPathRegistry): DefaultClassLoaderScopeRegistry {
+        val classLoaderFactory = DefaultClassLoaderFactory()
+        return DefaultClassLoaderScopeRegistry(
+            DefaultClassLoaderRegistry(classPathRegistry, classLoaderFactory),
+            DefaultClassLoaderCache(classLoaderFactory, HashClassPathSnapshotter(DefaultHasher())))
+    }
 
     private fun scriptSourceFor(code: String): ScriptSource =
         UriScriptSource.file("script", createTempFile("script", ".gradle.kts").apply {
