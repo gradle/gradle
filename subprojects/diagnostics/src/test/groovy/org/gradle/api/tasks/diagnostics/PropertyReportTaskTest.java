@@ -57,15 +57,15 @@ public class PropertyReportTaskTest {
     @Test
     public void passesEachProjectPropertyToRenderer() throws IOException {
         context.checking(new Expectations() {{
-            one(project).getProperties();
+            oneOf(project).getProperties();
             will(returnValue(GUtil.map("b", "value2", "a", "value1")));
 
             Sequence sequence = context.sequence("seq");
 
-            one(renderer).addProperty("a", "value1");
+            oneOf(renderer).addProperty("a", "value1");
             inSequence(sequence);
 
-            one(renderer).addProperty("b", "value2");
+            oneOf(renderer).addProperty("b", "value2");
             inSequence(sequence);
         }});
 
@@ -75,14 +75,14 @@ public class PropertyReportTaskTest {
     @Test
     public void doesNotShowContentsOfThePropertiesProperty() throws IOException {
         context.checking(new Expectations() {{
-            one(project).getProperties();
+            oneOf(project).getProperties();
             will(returnValue(GUtil.map("prop", "value", "properties", "prop")));
 
             Sequence sequence = context.sequence("seq");
 
-            one(renderer).addProperty("prop", "value");
+            oneOf(renderer).addProperty("prop", "value");
             inSequence(sequence);
-            one(renderer).addProperty("properties", "{...}");
+            oneOf(renderer).addProperty("properties", "{...}");
             inSequence(sequence);
         }});
 

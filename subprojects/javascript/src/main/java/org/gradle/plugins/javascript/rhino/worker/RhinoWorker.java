@@ -18,6 +18,10 @@ package org.gradle.plugins.javascript.rhino.worker;
 
 import java.io.Serializable;
 
+/**
+ * This should have originally been an internal API.
+ */
+@Deprecated
 public interface RhinoWorker<R extends Serializable, P extends Serializable> {
     R process(P payload);
 }

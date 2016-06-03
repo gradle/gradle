@@ -17,21 +17,16 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TextUtil
 import org.gradle.util.UsesNativeServices
 import spock.lang.FailsWith
-import spock.lang.IgnoreIf
 import spock.lang.Issue
-
 // TODO: This needs a better home - Possibly in the test kit package in the future
 
 @UsesNativeServices
-@IgnoreIf({ OperatingSystem.current().windows && GradleContextualExecuter.daemon }) // TODO:DAZ This test fails consistently on Windows
 class ApplyPluginIntegSpec extends AbstractIntegrationSpec {
     def testProjectPath
     def gradleUserHome

@@ -17,6 +17,8 @@ package org.gradle.nativeplatform.platform;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -58,8 +60,13 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface Architecture extends Named {
+    @Override
+    @Input
+    String getName();
+
     /**
      * Returns a human-consumable display name for this architecture.
      */
+    @Internal
     String getDisplayName();
 }

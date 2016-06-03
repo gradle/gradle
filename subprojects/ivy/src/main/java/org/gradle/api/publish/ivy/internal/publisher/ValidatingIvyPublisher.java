@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository
 import org.gradle.api.publish.internal.PublicationFieldValidator;
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 
 import java.io.File;
 import java.util.HashSet;
@@ -62,7 +62,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
                 .notEmpty()
                 .validInFileName();
 
-        MutableModuleComponentResolveMetaData metadata = parseIvyFile(publication);
+        MutableModuleComponentResolveMetadata metadata = parseIvyFile(publication);
         ModuleVersionIdentifier moduleId = metadata.getId();
         organisation.matches(moduleId.getGroup());
         moduleName.matches(moduleId.getName());
@@ -77,7 +77,7 @@ public class ValidatingIvyPublisher implements IvyPublisher {
                 .validInFileName();
     }
 
-    private MutableModuleComponentResolveMetaData parseIvyFile(IvyNormalizedPublication publication) {
+    private MutableModuleComponentResolveMetadata parseIvyFile(IvyNormalizedPublication publication) {
         try {
             return moduleDescriptorParser.parseMetaData(parserSettings, publication.getDescriptorFile());
         } catch (MetaDataParseException pe) {

@@ -115,14 +115,13 @@ div.example code.filename {
 h2 > a.section-anchor, h3 > a.section-anchor, h4 > a.section-anchor {
     background-image: url("icon-link.svg");
     background-repeat: no-repeat;
-    background-position: 0em 0.1em;
+    background-position: 0em 105%;  /* 105% works well for published docs */
     background-size: 0.9em;
     display: inline-block;
     text-decoration: none !important;
     width: 0.9em;
     height: 0.9em;
     margin-left: -0.9em;
-    margin-top: 0;
     visibility: hidden;
 }
 

@@ -15,9 +15,10 @@
  */
 
 package org.gradle.play.tasks
+
 import org.gradle.api.Action
 import org.gradle.api.internal.TaskExecutionHistory
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.language.base.internal.compile.Compiler
@@ -29,7 +30,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class TwirlCompileTest extends Specification {
-    DefaultProject project = TestUtil.createRootProject()
+    ProjectInternal project = TestUtil.createRootProject()
     TwirlCompile compile = project.tasks.create("compile", TwirlCompile)
     Compiler<TwirlCompileSpec> twirlCompiler = Mock(Compiler)
     IncrementalTaskInputs taskInputs = Mock(IncrementalTaskInputs)

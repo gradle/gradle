@@ -626,42 +626,9 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     }
 
     /**
-     * Returns the number of parallel threads to use for build execution.
-     *
-     * <0: Automatically determine the optimal number of executors to use. 0: Do not use parallel execution. >0: Use this many parallel execution threads.
-     *
-     * @see #getMaxWorkerCount()
-     * @see #isParallelProjectExecutionEnabled()
-     * @deprecated Use getMaxWorkerCount or isParallelProjectExecutionEnabled instead.
-     */
-    @Deprecated
-    public int getParallelThreadCount() {
-        if (isParallelProjectExecutionEnabled()) {
-            return getMaxWorkerCount();
-        }
-        return 0;
-    }
-
-    /**
-     * Specifies the number of parallel threads to use for build execution.
-     *
-     * @see #getParallelThreadCount()
-     */
-    @Deprecated
-    public void setParallelThreadCount(int parallelThreadCount) {
-        setParallelProjectExecutionEnabled(parallelThreadCount != 0);
-
-        if (parallelThreadCount < 1) {
-            setMaxWorkerCount(Runtime.getRuntime().availableProcessors());
-        } else {
-            setMaxWorkerCount(parallelThreadCount);
-        }
-    }
-
-    /**
      * Returns true if parallel project execution is enabled.
      *
-     * @see #getParallelThreadCount()
+     * @see #getMaxWorkerCount()
      */
     @Incubating
     public boolean isParallelProjectExecutionEnabled() {

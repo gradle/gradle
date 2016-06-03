@@ -222,6 +222,11 @@ public interface GradleExecuter {
     GradleExecuter withDaemonBaseDir(File baseDir);
 
     /**
+     * Returns the working space for any daemons used by the builds.
+     */
+    File getDaemonBaseDir();
+
+    /**
      * Requires that the build run in a separate daemon process.
      */
     GradleExecuter requireDaemon();
@@ -296,6 +301,11 @@ public interface GradleExecuter {
      * <p>Note: this does not affect the Gradle user home directory.</p>
      */
     GradleExecuter requireIsolatedDaemons();
+
+    /**
+     * Returns true if this executer will share daemons with other executers.
+     */
+    boolean usesSharedDaemons();
 
     /**
      * Configures a unique gradle user home dir for the test.

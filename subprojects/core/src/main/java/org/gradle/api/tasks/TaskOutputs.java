@@ -17,15 +17,18 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * <p>A {@code TaskOutputs} represents the outputs of a task.</p>
  *
  * <p>You can obtain a {@code TaskOutputs} instance using {@link org.gradle.api.Task#getOutputs()}.</p>
  */
+@HasInternalProtocol
 public interface TaskOutputs {
     /**
      * <p>Adds a predicate to determine whether the outputs of this task are up-to-date. The given closure is executed
@@ -71,7 +74,10 @@ public interface TaskOutputs {
      *
      * @param paths The output files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
+     *
+     * @deprecated Use {@link #file(Object)} or {@link #dir(Object)} instead.
      */
+    @Deprecated
     TaskOutputs files(Object... paths);
 
     /**
@@ -89,4 +95,20 @@ public interface TaskOutputs {
      * @return this
      */
     TaskOutputs dir(Object path);
+
+    /**
+     * Executes the given configuration action on the {@code TaskOutputs}. The action is executed before the task is executed.
+     *
+     * @param action the configuration action to execute.
+     * @return this
+     */
+    TaskOutputs configure(Action<? super TaskOutputs> action);
+
+    /**
+     * Executes the given configuration action on the {@code TaskOutputs}. The action is executed before the task is executed.
+     *
+     * @param action the configuration action to execute.
+     * @return this
+     */
+    TaskOutputs configure(Closure action);
 }

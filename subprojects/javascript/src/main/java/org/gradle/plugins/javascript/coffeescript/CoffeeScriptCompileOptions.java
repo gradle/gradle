@@ -16,12 +16,16 @@
 
 package org.gradle.plugins.javascript.coffeescript;
 
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
+
 import java.io.Serializable;
 
 public class CoffeeScriptCompileOptions implements Serializable {
 
     private String encoding = "UTF-8";
 
+    @Optional @Input
     public String getEncoding() {
         return encoding;
     }

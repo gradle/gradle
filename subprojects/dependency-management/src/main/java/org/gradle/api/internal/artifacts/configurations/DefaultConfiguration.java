@@ -44,7 +44,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
-import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -59,8 +59,8 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
@@ -196,7 +196,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolvedState;
     }
 
-    public ModuleInternal getModule() {
+    public Module getModule() {
         return metaDataProvider.getModule();
     }
 
@@ -569,12 +569,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolutionStrategy;
     }
 
-    public ComponentResolveMetaData toRootComponentMetaData() {
-        ModuleInternal module = getModule();
+    public ComponentResolveMetadata toRootComponentMetaData() {
+        Module module = getModule();
         Set<? extends Configuration> configurations = getAll();
         ComponentIdentifier componentIdentifier = new DefaultComponentIdentifierFactory().createComponentIdentifier(module);
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
-        DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleVersionIdentifier, componentIdentifier, module.getStatus());
+        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus());
         configurationComponentMetaDataBuilder.addConfigurations(metaData, configurations);
         return metaData;
     }

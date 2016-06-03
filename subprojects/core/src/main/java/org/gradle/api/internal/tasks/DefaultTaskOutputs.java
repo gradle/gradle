@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
@@ -27,12 +29,17 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollectio
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
+
+import java.util.Queue;
 
 public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final DefaultConfigurableFileCollection outputFiles;
     private AndSpec<TaskInternal> upToDateSpec = new AndSpec<TaskInternal>();
     private TaskExecutionHistory history;
     private final TaskMutator taskMutator;
+    private Queue<Action<? super TaskOutputs>> configureActions;
 
     public DefaultTaskOutputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
         this.taskMutator = taskMutator;
@@ -69,6 +76,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     public TaskOutputs files(final Object... paths) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskOutputs.files()", "Please use the TaskOutputs.file() or the TaskOutputs.dir() method instead.");
         taskMutator.mutate("TaskOutputs.files(Object...)", new Runnable() {
             public void run() {
                 outputFiles.from(paths);
@@ -104,5 +112,33 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     public void setHistory(TaskExecutionHistory history) {
         this.history = history;
+    }
+
+    @Override
+    public TaskOutputs configure(final Action<? super TaskOutputs> action) {
+        taskMutator.mutate("TaskOutputs.configure(Action)", new Runnable() {
+            public void run() {
+                if (configureActions == null) {
+                    configureActions = Lists.newLinkedList();
+                }
+                configureActions.add(action);
+            }
+        });
+        return this;
+    }
+
+    @Override
+    public TaskOutputs configure(Closure action) {
+        return configure(ConfigureUtil.configureUsing(action));
+    }
+
+    @Override
+    public void ensureConfigured() {
+        if (configureActions != null) {
+            while (!configureActions.isEmpty()) {
+                configureActions.remove().execute(this);
+            }
+            configureActions = null;
+        }
     }
 }

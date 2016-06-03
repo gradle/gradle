@@ -19,7 +19,7 @@ package org.gradle.internal.component.external.descriptor;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -68,23 +68,23 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
         return dependency;
     }
 
-    public void addDependency(DependencyMetaData dependencyMetaData) {
+    public void addDependency(DependencyMetadata dependencyMetadata) {
         Dependency dependency = new Dependency(
-            dependencyMetaData.getRequested(),
-            dependencyMetaData.getDynamicConstraintVersion(),
-            dependencyMetaData.isForce(),
-            dependencyMetaData.isChanging(),
-            dependencyMetaData.isTransitive());
+            dependencyMetadata.getRequested(),
+            dependencyMetadata.getDynamicConstraintVersion(),
+            dependencyMetadata.isForce(),
+            dependencyMetadata.isChanging(),
+            dependencyMetadata.isTransitive());
 
         // In reality, there will only be 1 module configuration and 1 matching dependency configuration
-        List<String> configurations = Lists.newArrayList(dependencyMetaData.getModuleConfigurations());
+        List<String> configurations = Lists.newArrayList(dependencyMetadata.getModuleConfigurations());
         for (String moduleConfiguration : configurations) {
-            for (String dependencyConfiguration : dependencyMetaData.getDependencyConfigurations(moduleConfiguration, moduleConfiguration)) {
+            for (String dependencyConfiguration : dependencyMetadata.getDependencyConfigurations(moduleConfiguration, moduleConfiguration)) {
                 dependency.addDependencyConfiguration(moduleConfiguration, dependencyConfiguration);
             }
         }
 
-        for (IvyArtifactName artifactName : dependencyMetaData.getArtifacts()) {
+        for (IvyArtifactName artifactName : dependencyMetadata.getArtifacts()) {
             dependency.addArtifact(artifactName, configurations);
         }
 

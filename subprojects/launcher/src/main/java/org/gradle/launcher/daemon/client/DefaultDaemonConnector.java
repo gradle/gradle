@@ -15,13 +15,11 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.SystemProperties;
+import org.gradle.api.specs.Spec;
+import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.remote.internal.ConnectException;
 import org.gradle.internal.remote.internal.OutgoingConnector;
@@ -36,12 +34,12 @@ import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
+import org.gradle.util.CollectionUtils;
 
+import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Provides the mechanics of connecting to a daemon, starting one via a given runnable if no suitable daemons are already available.
@@ -49,9 +47,6 @@ import java.util.Map;
 public class DefaultDaemonConnector implements DaemonConnector {
     private static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
     public static final int DEFAULT_CONNECT_TIMEOUT = 30000;
-    public static final String STARTING_DAEMON_MESSAGE = "Starting a new Gradle Daemon for this build.";
-    public static final String SUBSEQUENT_BUILDS_FASTER_MESSAGE = "Subsequent builds will be faster.";
-    private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
     private final DaemonRegistry daemonRegistry;
     protected final OutgoingConnector connector;
     private final DaemonStarter daemonStarter;
@@ -91,57 +86,40 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     public DaemonClientConnection connect(ExplainingSpec<DaemonContext> constraint) {
-        List<DaemonInfo> compatibleIdleDaemons = getCompatibleDaemons(daemonRegistry.getIdle(), constraint);
+        final Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> idleBusy = partitionByIdleState(daemonRegistry.getAll());
+        final Collection<DaemonInfo> idleDaemons = idleBusy.getLeft();
+        final Collection<DaemonInfo> busyDaemons = idleBusy.getRight();
+
+        final List<DaemonInfo> compatibleIdleDaemons = getCompatibleDaemons(idleDaemons, constraint);
         DaemonClientConnection connection = findConnection(compatibleIdleDaemons);
         if (connection != null) {
             return connection;
         }
 
-        final int numBusy = daemonRegistry.getBusy().size();
-        final int numIncompatible = daemonRegistry.getIdle().size();
+        // Remove the stop events we're about to display
         final List<DaemonStopEvent> stopEvents = daemonRegistry.getStopEvents();
-        LOGGER.lifecycle(generateStartingMessage(numBusy, numIncompatible, stopEvents));
-        daemonRegistry.clearStopEvents();
+        daemonRegistry.removeStopEvents(stopEvents);
+
+        LOGGER.lifecycle(DaemonStartingMessage.generate(busyDaemons.size(), idleDaemons.size(), stopEvents));
 
         return startDaemon(constraint);
     }
 
-    @VisibleForTesting
-    String generateStartingMessage(final int numBusy, final int numIncompatible, final List<DaemonStopEvent> stopEvents) {
-        final List<String> reasons = Lists.newArrayList(STARTING_DAEMON_MESSAGE);
-        if (numBusy > 0) {
-            reasons.add(numBusy + " " + (numBusy > 1 ? "are" : "is") + " busy");
-        }
-        if (numIncompatible > 0) {
-            reasons.add(numIncompatible + " " + (numIncompatible > 1 ? "are" : "is") + " incompatible");
-        }
-
-        if (stopEvents.size() > 0) {
-            // REVIEWME: seems like this should be more concise/elegant
-            Map<String, Integer> countByReason = new HashMap<String, Integer>();
-            for (DaemonStopEvent event : stopEvents) {
-                final String reason = event.getReason();
-                Integer count = countByReason.get(reason) == null ? 0 : countByReason.get(reason);
-                countByReason.put(reason, count + 1);
+    private Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> partitionByIdleState(final Collection<DaemonInfo> daemons) {
+        return CollectionUtils.partition(daemons, new Spec<DaemonInfo>() {
+            public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
+                return daemonInfo.isIdle();
             }
-
-            for (Map.Entry<String, Integer> entry : countByReason.entrySet()) {
-                Integer numStopped = entry.getValue();
-                reasons.add(numStopped + " " + (numStopped > 1 ? "were" : "was") + " stopped because " + entry.getKey());
-            }
-        }
-
-        final String startingDaemonMessage = Joiner.on(LINE_SEPARATOR + " - ").skipNulls().join(reasons);
-        return startingDaemonMessage + LINE_SEPARATOR + SUBSEQUENT_BUILDS_FASTER_MESSAGE;
+        });
     }
 
-    private List<DaemonInfo> getCompatibleDaemons(List<DaemonInfo> daemons, ExplainingSpec<DaemonContext> constraint) {
+    private List<DaemonInfo> getCompatibleDaemons(Iterable<DaemonInfo> daemons, ExplainingSpec<DaemonContext> constraint) {
         List<DaemonInfo> compatibleDaemons = new LinkedList<DaemonInfo>();
         for (DaemonInfo daemon : daemons) {
             if (constraint.isSatisfiedBy(daemon.getContext())) {
                 compatibleDaemons.add(daemon);
             } else {
-                LOGGER.debug("Found daemon {} however its context does not match the desired criteria.\n"
+                LOGGER.info("Found daemon {} however its context does not match the desired criteria.\n"
                     + constraint.whyUnsatisfied(daemon.getContext()) + "\n"
                     + "  Looking for a different daemon...", daemon);
             }
@@ -222,7 +200,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         public boolean maybeStaleAddress(Exception failure) {
             LOGGER.info("{}{}", DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE, daemon);
             final Date timestamp = new Date(System.currentTimeMillis());
-            daemonRegistry.storeStopEvent(new DaemonStopEvent(timestamp, "daemon was terminated"));
+            daemonRegistry.storeStopEvent(new DaemonStopEvent(timestamp, "by user or operating system"));
             daemonRegistry.remove(daemon.getAddress());
             return exposeAsStale;
         }

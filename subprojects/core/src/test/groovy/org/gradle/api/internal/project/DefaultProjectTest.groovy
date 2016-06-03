@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.component.SoftwareComponentContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.*
-import org.gradle.api.internal.artifacts.ModuleInternal
+import org.gradle.api.internal.artifacts.Module
 import org.gradle.api.internal.artifacts.ProjectBackedModule
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.file.FileOperations
@@ -208,7 +208,7 @@ class DefaultProjectTest {
     }
 
     Type getProjectRegistryType() {
-        return AbstractProject.class.getDeclaredMethod("getProjectRegistry").getGenericReturnType()
+        return DefaultProject.class.getDeclaredMethod("getProjectRegistry").getGenericReturnType()
     }
 
     //TODO please move more coverage to NewDefaultProjectTest
@@ -635,7 +635,7 @@ def scriptMethod(Closure closure) {
     @Test
     void testProperties() {
         context.checking {
-            allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue({} as ModuleInternal))
+            allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue({} as Module))
             ignoring(fileOperationsMock)
             ignoring(taskContainerMock)
             allowing(serviceRegistryMock).get(ServiceRegistryFactory); will(returnValue({} as ServiceRegistryFactory))
@@ -805,7 +805,7 @@ def scriptMethod(Closure closure) {
 
     @Test
     void testGetModule() {
-        ModuleInternal moduleDummyResolve = new ProjectBackedModule(project)
+        Module moduleDummyResolve = new ProjectBackedModule(project)
         context.checking {
             allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue(moduleDummyResolve))
         }

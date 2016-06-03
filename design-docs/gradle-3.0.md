@@ -9,9 +9,23 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 ## Remove deprecated elements
 
-- Move `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER` from public API.
+- Remove deprecated methods from:
+    - Specs (Done)
+    - StartParameter (Done)
+    - ArtifactRepository, plus special case handling to 'lock' this when added to a repository container (Done)
+    - AbstractLibrary (Done)
+    - EclipseClasspath (Done)
+    - org.gradle.plugins.ide.eclipse.model.ProjectDependency (Done)
+    - org.gradle.tooling.model.Task (Done)
+    - PrefixHeaderFileGenerateTask (Done)
+- Remove deprecated:
+    - `--parallel-threads` command-line option (Done)
+    - old wrapper properties from `WrapperExecutor`, remove generation of these properties from `Wrapper` task (Done)
+- Move `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER` from public API. (Done)
 - Move internal types `org.gradle.logging.StandardOutputCapture` and `org.gradle.logging.LoggingManagerInternal` into an internal package.
-- Merge `Module` and `ModuleInternal`, now that `Module` is internal
+- Merge `Module` and `ModuleInternal`, now that `Module` is internal (Done)
+- Internal `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter` (Done)
+- Constructor on `DefaultSourceDirectorySet` (Done)
 
 ## Simplify definition of public API
 
@@ -97,9 +111,9 @@ Tooling api client no longer executes builds for Gradle versions older than 1.2.
 
 ## Remove Sonar plugins (DONE)
 
-~~Remove the Sonar plugins~~ done
+Remove the Sonar plugins
 
-## Remove support for TestNG source annotations
+## Remove support for TestNG source annotations (DONE)
 
 TestNG dropped support for this in 5.12, in early 2010. Supporting these old style annotations means we need to attach the test source files as an input to the `Test` task, which means there's an up-to-date check cost for this.
 
@@ -120,20 +134,46 @@ The current defaults for the outputs of tasks of type `Test` conflict with each 
   does not conflict with the default for any other `Test` task.
 * Change the default TestNG output directory.
 
-# Candidates for Gradle 3.0 and later
+# Candidates for Gradle 4.0 and later
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
+## Remove support for using the project build script classloader before it has been configured
+
+Would have to tackle implicit usage, eg `evaluationDependsOn(child-of-some-project)`, which implicitly queries the classloader of `some-project`. Similar problems when using configure on demand.
+
+## Address issues in ordering of dynamic method lookup
+
+Currently, we look first for a method and if not found, look for a property with the given name and if the value is a closure, treat it as a method.
+
+- Methods inherited from an ancestor project can silently shadow these properties.
+- Method matching is inconsistent with how methods are matched on POJO/POGO objects, where a method is selected only when the args can be coerced to those accepted by the method, and if not, searching continues with the next object. Should do something similar for property-as-a-method matching.
+
+## Remove Gradle GUI
+
+It is now straight forward to implement a rich UI using the Gradle tooling API.
+
+* Remove the remaining Open API interfaces and stubs.
+* Remove the `openApi` project.
+
+## Drop support for using old wrapper or old Gradle runtime versions
+
+Reduce the number of supported (wrapper-version, runtime-version) combinations. 
+
+- Remove old and unused configuration properties from `Wrapper`
+- Drop support for running old Gradle distributions (older than 2.0 say) using the wrapper
+    - For example, change the `wrapper` task to refuse to configure the wrapper to point to old Gradle distributions. Don't do this change at runtime in the wrapper, to keep the wrapper as small as possible.
+- Drop support for running Gradle using old wrapper
+    - For example, change the `wrapper` task to do some validation, or change `wrapper` to always use the newest wrapper (downloading as required), or provide some way for the runtime to query which wrapper it has been launched from.
+
 ## Drop support for old versions of things
 
-- Wrapper support for versions older than 2.0. Wrapper 2.x supports Gradle 0.9.2 and later (5 years) and Gradle 2.x can be run by wrapper 0.9.2 and later.
 - Cached artefact reuse for versions older than 2.0.
 - Execution of task classes compiled against Gradle versions older than 2.0.
 - Cross version tests no longer test against anything earlier than 1.0
 - Local artifact reuse no longer considers candidates from the artifact caches for Gradle versions earlier than 1.0
-- Wrapper does not support downloading versions earlier than 1.0
 - Remove old unused types that are baked into the bytecode of tasks compiled against older versions (eg `ConventionValue`). Fail with a reasonable
-error message for these task types.
+error message for these task types or generate as required.
 
 ## Logging changes
 
@@ -149,11 +189,6 @@ error message for these task types.
 
 Now we have real incremental Java compilation, remove the `CompileOptions.useDepend` property and related options.
 
-## Remove the Gradle Open API stubs
-
-* Remove the remaining Open API interfaces and stubs.
-* Remove the `openApi` project.
-
 ## Remove `group` and `status` from project
 
 Alternatively, default the group to `null` and status to `integration`.
@@ -167,7 +202,9 @@ Alternatively, default the group to `null` and status to `integration`.
 
 Currently required for in-process Ant-based compilation on Java 5. Dropping support for one of (in-process, ant-based, java 5) would allow us to remove this.
 
-## Decouple publishing DSL from Maven classes
+## Stable Maven plugin
+
+Ideally, replace with new publishing plugin. In the meantime:
 
 * Change the old publishing DSL to use the Maven 3 classes instead of Maven 2 classes. This affects:
     * `MavenResolver.settings`
@@ -175,6 +212,7 @@ Currently required for in-process Ant-based compilation on Java 5. Dropping supp
     * `MavenPom.dependencies`.
 * Remove `MavenDeployer.addProtocolProviderJars()`.
 * Change `PublishFilter` so that it accepts a `PublishArtifact` instead of an `Artifact`.
+* Change `MavenDeployer.repository {... }` DSL to use the same configuration DSL as everywhere else, rather than custom owner-first DSL.
 
 ## Decouple file and resource APIs from project and task APIs
 
@@ -213,7 +251,7 @@ types and to offer a more consistent DSL.
 
 * Remove all methods that accept a `Closure` when an `Action` overload is available. Add missing overloads where appropriate.
 * Remove all methods that accept a `String` or `Object` when a enum overload is available. Add missing overloads where appropriate.
-* Remove CharSequence -> Enum conversion code in `DefaultTaskLogging`.
+* Remove CharSequence -> Enum conversion code in `DefaultTestLogging`.
 * Remove all set methods that contain no custom logic.
 * Formally document the Closure → Action coercion mechanism
     - Needs to be prominent enough that casual DSL ref readers understand this (perhaps such Action args are annotated in DSL ref)
@@ -233,14 +271,15 @@ types and to offer a more consistent DSL.
 * Remove `Task.dependsOnTaskDidWork()`.
 * Mix `TaskInternal` in during decoration and remove references to internal types from `DefaultTask` and `AbstractTask`
 
-## Remove references to internal classes from API
+## Remove references to internal classes from public API
 
 * Remove `Configurable` from public API types.
 * Remove `PomFilterContainer.getActivePomFilters()`.
+* Move rhino worker classes off public API
 
 ## Remove support for convention objects
 
-Extension objects have been available for over 2 years and are now an established pattern.
+Extension objects have been available for over 5 years and are now an established pattern. Supporting the mix-in of properties and methods in using convention objects also has implications for performance (more places to look for properties, requires reflective lookup) and statically compiled DSL (more places to look for data)
 
 * Migrate core plugins to use extensions.
 * Remove `Convention` type.
@@ -283,6 +322,25 @@ Extension objects have been available for over 2 years and are now an establishe
 * Remove `Settings.startParameter`. Can use `gradle.startParameter` instead.
 * Remove `AbstractOptions`.
 * Replace `ShowStacktrace.INTERNAL_EXCEPTIONS` with `NONE`.
+
+## Deprecate and remove unintended behaviour for container configuration closures
+
+When the configuration closure for an element of a container fails with any MethodMissingException, we attempt to invoke the method on the owner of the closure (e.g. the Project).
+This allows for the following constructs to work:
+```
+configurations {
+    repositories {
+        mavenCentral()
+    }
+    someConf {
+        allprojects { }
+    }
+}
+```
+
+The corresponding code is in ConfigureDelegate and has been reintroduced for backwards compatibility (https://github.com/gradle/gradle/commit/79d084e16050b02cc566f71df3c3ad7a342b9c5a ).
+
+This behaviour should be deprecated and then removed in 4.0.
 
 ## Signing plugin tidy-ups
 

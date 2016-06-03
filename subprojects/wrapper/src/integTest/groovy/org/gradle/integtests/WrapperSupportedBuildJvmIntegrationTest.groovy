@@ -15,11 +15,12 @@
  */
 
 package org.gradle.integtests
-
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
 import spock.lang.Unroll
 
+@Requires(adhoc = { !AvailableJavaHomes.getJdks("1.5", "1.6").empty })
 class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Unroll
     def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {

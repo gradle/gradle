@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import groovy.transform.CompileStatic
+import org.gradle.api.tasks.Internal
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.EclipseProject
@@ -32,6 +33,7 @@ class GenerateEclipseProject extends XmlGeneratorTask<Project> {
     /**
      * The Eclipse project model that contains the details required to generate the project file.
      */
+    @Internal
     EclipseProject projectModel
 
     GenerateEclipseProject() {

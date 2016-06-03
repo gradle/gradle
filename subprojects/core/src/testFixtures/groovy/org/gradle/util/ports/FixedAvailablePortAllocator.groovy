@@ -16,6 +16,8 @@
 
 package org.gradle.util.ports
 
+import org.gradle.internal.Pair
+
 class FixedAvailablePortAllocator extends AbstractAvailablePortAllocator {
     static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker"
     static final String AGENT_NUM_SYS_PROPERTY = "org.gradle.ci.agentNum"
@@ -49,8 +51,8 @@ class FixedAvailablePortAllocator extends AbstractAvailablePortAllocator {
     }
 
     @Override
-    protected ReservedPortRange reservePortRange() {
-        if (reservations.size() >= 1) {
+    protected Pair<Integer, Integer> getNextPortRange(int rangeNumber) {
+        if (rangeNumber >= 1) {
             throw new NoSuchElementException("All available ports in the fixed port range for agent ${agentNum}, worker ${workerId} have been exhausted.")
         }
 
@@ -66,6 +68,6 @@ class FixedAvailablePortAllocator extends AbstractAvailablePortAllocator {
 
         int startPort = MIN_PRIVATE_PORT + (fixedRange * rangeSize)
         int endPort = startPort + rangeSize - 1
-        return reservePortRange(startPort, endPort)
+        return Pair.of(startPort, endPort)
     }
 }

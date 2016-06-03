@@ -19,7 +19,7 @@ package org.gradle.play.plugins.ide
 import org.gradle.play.integtest.fixtures.PlayApp
 import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 
-import static org.gradle.plugins.ide.idea.IdeaFixtures.parseIml
+import static org.gradle.plugins.ide.fixtures.IdeaFixtures.parseIml
 
 class PlayIdeaPluginBasicIntegrationTest extends PlayIdeaPluginIntegrationTest {
 

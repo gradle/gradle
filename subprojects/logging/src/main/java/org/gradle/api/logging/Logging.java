@@ -16,13 +16,9 @@
 
 package org.gradle.api.logging;
 
-import org.apache.tools.ant.Project;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * <p>The main entry point for Gradle's logging system. Gradle routes all logging via SLF4J. You can use either an SLF4J
@@ -51,14 +47,4 @@ public class Logging {
     public static Logger getLogger(String name) {
         return (Logger) LoggerFactory.getLogger(name);
     }
-
-    @Deprecated
-    public static final Map<Integer, LogLevel> ANT_IVY_2_SLF4J_LEVEL_MAPPER = new HashMap<Integer, LogLevel>() {
-        {
-            put(Project.MSG_ERR, LogLevel.ERROR);
-            put(Project.MSG_WARN, LogLevel.WARN);
-            put(Project.MSG_INFO, LogLevel.INFO);
-            put(Project.MSG_DEBUG, LogLevel.DEBUG);
-            put(Project.MSG_VERBOSE, LogLevel.DEBUG);
-        }};
 }

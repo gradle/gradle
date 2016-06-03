@@ -109,6 +109,45 @@ assert prop == "value 3"
         succeeds()
     }
 
+    def "can read static property from configure closure outer scope"() {
+        buildFile << """
+class MyPlugin implements Plugin<Project> {
+    static String prop = "value"
+
+    void apply(Project p) {
+        p.repositories {
+            maven { println "from apply: " + prop }
+        }
+        configure(p)
+    }
+
+    static void configure(def p) {
+        p.repositories {
+            maven { println "from static method: " + prop }
+        }
+    }
+}
+
+apply plugin: MyPlugin
+"""
+
+        expect:
+        succeeds()
+        outputContains("from apply: value")
+        outputContains("from static method: value")
+    }
+
+    def "can use curried closure to configure item"() {
+        buildFile << """
+def cl = { String description, Task task -> task.description = description }
+tasks.help cl.curry("this is the description")
+assert tasks.help.description == "this is the description"
+"""
+
+        expect:
+        succeeds()
+    }
+
     def "can invoke method from configure closure outer scope"() {
         buildFile << """
 ext.m = { p -> "[\$p]" }
@@ -152,6 +191,53 @@ assert tasks.help.description == "some help"
 
         expect:
         succeeds()
+    }
+
+    def "can configure named container when script level configure method with same name exists"() {
+        buildFile << """
+configurations {
+    repositories {
+    }
+}
+assert configurations.names as List == ['repositories']
+assert repositories.empty
+"""
+
+        expect:
+        succeeds()
+    }
+
+    // NOTE: Documents actual behaviour, for backwards compatibility purposes, not desired behaviour
+    def "can reference script level configure method from named container configure closure when that closure would fail with MME if applied to a new element"() {
+        buildFile << """
+configurations {
+    repositories {
+        mavenCentral()
+    }
+    someConf {
+        allprojects { }
+    }
+}
+assert configurations.names as List == ['repositories', 'someConf'] // side effect is that the configuration is actually created
+assert repositories.size() == 1
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "reports missing method from inside configure closure"() {
+        buildFile << """
+configurations {
+    broken {
+        noExist(12)
+    }
+}
+"""
+
+        expect:
+        fails()
+        failure.assertHasCause("Could not find method noExist() for arguments [12] on configuration ':broken' of type org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.")
     }
 
     def "reports set unknown property from polymorphic container configure closure"() {

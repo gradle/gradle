@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.apache.maven.artifact.ant.RemoteRepository;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
@@ -67,7 +68,8 @@ public class DefaultGroovyMavenDeployer extends BaseMavenDeployer implements Gro
     private RemoteRepository createRepository(Map properties, Closure closure) {
         RemoteRepository repository = new MavenRemoteRepository();
         ConfigureUtil.configureByMap(properties, repository);
-        ConfigureUtil.configure(closure, repository);
+        // Should be using ConfigureUtil (with DELEGATE_FIRST strategy), however for backwards compatibility need to use OWNER_FIRST
+        new ClosureBackedAction<RemoteRepository>(closure, Closure.OWNER_FIRST).execute(repository);
         return repository;
     }
 }

@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
@@ -31,7 +31,7 @@ import static org.junit.Assert.assertThat
 import static org.junit.Assert.assertTrue
 
 class GroovyBasePluginTest {
-    private final DefaultProject project = TestUtil.createRootProject()
+    private final ProjectInternal project = TestUtil.createRootProject()
 
     @Before
     void before() {
@@ -62,7 +62,7 @@ class GroovyBasePluginTest {
         def task = project.tasks['customClasses']
         assertThat(task, dependsOn(hasItem('compileCustomGroovy')))
     }
-   
+
     @Test void configuresAdditionalTasksDefinedByTheBuildScript() {
         def task = project.task('otherGroovydoc', type: Groovydoc)
         assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))

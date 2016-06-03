@@ -146,7 +146,7 @@ public class ResolveIvyFactory {
         }
 
         @Override
-        public void resolve(final DependencyMetaData dependency, final BuildableComponentIdResolveResult result) {
+        public void resolve(final DependencyMetadata dependency, final BuildableComponentIdResolveResult result) {
             cacheLockingManager.useCache("Resolve " + dependency, new Runnable() {
                 public void run() {
                     delegate.getComponentIdResolver().resolve(dependency, result);
@@ -163,7 +163,7 @@ public class ResolveIvyFactory {
             });
         }
 
-        public void resolveModuleArtifacts(final ComponentResolveMetaData component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(final ComponentResolveMetadata component, final ArtifactType artifactType, final BuildableArtifactSetResolveResult result) {
             cacheLockingManager.useCache("Resolve " + artifactType + " for " + component, new Runnable() {
                 public void run() {
                     delegate.getArtifactResolver().resolveModuleArtifacts(component, artifactType, result);
@@ -171,7 +171,7 @@ public class ResolveIvyFactory {
             });
         }
 
-        public void resolveModuleArtifacts(final ComponentResolveMetaData component, final ComponentUsage usage, final BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(final ComponentResolveMetadata component, final ComponentUsage usage, final BuildableArtifactSetResolveResult result) {
             cacheLockingManager.useCache("Resolve " + usage + " for " + component, new Runnable() {
                 public void run() {
                     delegate.getArtifactResolver().resolveModuleArtifacts(component, usage, result);
@@ -179,7 +179,7 @@ public class ResolveIvyFactory {
             });
         }
 
-        public void resolveArtifact(final ComponentArtifactMetaData artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
+        public void resolveArtifact(final ComponentArtifactMetadata artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
             cacheLockingManager.useCache("Resolve " + artifact, new Runnable() {
                 public void run() {
                     delegate.getArtifactResolver().resolveArtifact(artifact, moduleSource, result);

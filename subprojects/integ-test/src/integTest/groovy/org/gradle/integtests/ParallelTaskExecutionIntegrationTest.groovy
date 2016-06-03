@@ -39,8 +39,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << 'include "a", "b"'
 
         buildFile << """
-            assert gradle.startParameter.parallelThreadCount != 0
-
             class SerialPing extends DefaultTask {
                 @TaskAction
                 void ping() {

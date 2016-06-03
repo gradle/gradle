@@ -16,7 +16,7 @@
 package org.gradle.internal.resource.local.ivy;
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.api.internal.artifacts.mvnsettings.CannotLocateLocalMavenRepositoryException;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResourcePattern;
@@ -37,27 +37,27 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData>> {
+public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> {
     private static final Logger LOGGER = LoggerFactory.getLogger(LocallyAvailableResourceFinderFactory.class);
 
     private final File rootCachesDirectory;
     private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
-    private final FileStoreSearcher<ModuleComponentArtifactMetaData> fileStore;
+    private final FileStoreSearcher<ModuleComponentArtifactMetadata> fileStore;
 
     public LocallyAvailableResourceFinderFactory(
-            ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, FileStoreSearcher<ModuleComponentArtifactMetaData> fileStore) {
+            ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, FileStoreSearcher<ModuleComponentArtifactMetadata> fileStore) {
         this.rootCachesDirectory = artifactCacheMetaData.getCacheDir().getParentFile();
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileStore = fileStore;
     }
 
-    public LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> create() {
-        List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData>> finders = new LinkedList<LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData>>();
+    public LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> create() {
+        List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders = new LinkedList<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>>();
 
         // Order is important here, because they will be searched in that order
 
         // The current filestore
-        finders.add(new LocallyAvailableResourceFinderSearchableFileStoreAdapter<ModuleComponentArtifactMetaData>(fileStore));
+        finders.add(new LocallyAvailableResourceFinderSearchableFileStoreAdapter<ModuleComponentArtifactMetadata>(fileStore));
 
         // 1.8
         addForPattern(finders, "artifacts-26/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
@@ -99,10 +99,10 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         } catch (CannotLocateLocalMavenRepositoryException ex) {
             finders.add(new NoMavenLocalRepositoryResourceFinder(ex));
         }
-        return new CompositeLocallyAvailableResourceFinder<ModuleComponentArtifactMetaData>(finders);
+        return new CompositeLocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>(finders);
     }
 
-    private void addForPattern(List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData>> finders, String pattern) {
+    private void addForPattern(List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders, String pattern) {
         int wildcardPos = pattern.indexOf("/*/");
         int patternPos = pattern.indexOf("/[");
         if (wildcardPos < 0 && patternPos < 0) {
@@ -121,13 +121,13 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
         addForPattern(finders, new File(rootCachesDirectory, pathPart), new IvyResourcePattern(patternPart));
     }
 
-    private void addForPattern(List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData>> finders, File baseDir, ResourcePattern pattern) {
+    private void addForPattern(List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders, File baseDir, ResourcePattern pattern) {
         if (baseDir.exists()) {
             finders.add(new PatternBasedLocallyAvailableResourceFinder(baseDir, pattern));
         }
     }
 
-    private class NoMavenLocalRepositoryResourceFinder implements LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> {
+    private class NoMavenLocalRepositoryResourceFinder implements LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> {
         private final CannotLocateLocalMavenRepositoryException ex;
         private boolean logged;
 
@@ -135,7 +135,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
             this.ex = ex;
         }
 
-        public LocallyAvailableResourceCandidates findCandidates(ModuleComponentArtifactMetaData criterion) {
+        public LocallyAvailableResourceCandidates findCandidates(ModuleComponentArtifactMetadata criterion) {
             if(!logged){
                 LOGGER.warn("Unable to locate local Maven repository.");
                 LOGGER.debug("Problems while locating local Maven repository.", ex);

@@ -121,9 +121,6 @@ public class EclipseClasspath {
 
     private Collection<Configuration> minusConfigurations = new ArrayList<Configuration>();
 
-    @Deprecated
-    private Collection<Configuration> noExportConfigurations = new ArrayList<Configuration>();
-
     private Set<String> containers = new LinkedHashSet<String>();
 
     private File defaultOutputDir;
@@ -211,12 +208,16 @@ public class EclipseClasspath {
         this.defaultOutputDir = defaultOutputDir;
     }
 
+    public boolean isDownloadSources() {
+        return downloadSources;
+    }
+
     /**
      * Whether to download and associate source Jars with the dependency Jars. Defaults to true.
      * <p>
      * See {@link EclipseClasspath} for an example.
      */
-    public boolean isDownloadSources() {
+    public boolean getDownloadSources() {
         return downloadSources;
     }
 
@@ -224,12 +225,16 @@ public class EclipseClasspath {
         this.downloadSources = downloadSources;
     }
 
+    public boolean isDownloadJavadoc() {
+        return downloadJavadoc;
+    }
+
     /**
      * Whether to download and associate Javadoc Jars with the dependency Jars. Defaults to false.
      * <p>
      * See {@link EclipseClasspath} for an example.
      */
-    public boolean isDownloadJavadoc() {
+    public boolean getDownloadJavadoc() {
         return downloadJavadoc;
     }
 
@@ -257,6 +262,10 @@ public class EclipseClasspath {
     }
 
     public boolean isProjectDependenciesOnly() {
+        return projectDependenciesOnly;
+    }
+
+    public boolean getProjectDependenciesOnly() {
         return projectDependenciesOnly;
     }
 
@@ -303,9 +312,9 @@ public class EclipseClasspath {
      * Calculates, resolves and returns dependency entries of this classpath.
      */
     public List<ClasspathEntry> resolveDependencies() {
-        ClasspathFactory classpathFactory = new ClasspathFactory();
-        List<ClasspathEntry> entries = classpathFactory.createEntries(this);
-        new UnresolvedDependenciesLogger().log(classpathFactory.getUnresolvedDependencies(this));
+        ClasspathFactory classpathFactory = new ClasspathFactory(this);
+        List<ClasspathEntry> entries = classpathFactory.createEntries();
+        new UnresolvedDependenciesLogger().log(classpathFactory.getUnresolvedDependencies());
         return entries;
     }
 

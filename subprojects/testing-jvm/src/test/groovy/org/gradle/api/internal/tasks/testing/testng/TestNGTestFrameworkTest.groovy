@@ -21,7 +21,6 @@ import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.tasks.testing.Test
-import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
@@ -41,32 +40,15 @@ public class TestNGTestFrameworkTest extends Specification {
         project.ext.sourceCompatibility = "1.7"
     }
 
-    void "initializes"() {
-        given:
-        project.ext.sourceCompatibility = "1.4"
-
-        when:
-        def framework = createFramework()
-
-        then:
-        framework.options.annotations == TestNGOptions.JAVADOC_ANNOTATIONS
-        framework.testTask == testTask
-        framework.detector
-    }
-
-    void "initializes for newer java"() {
-        expect:
-        createFramework().options.annotations == TestNGOptions.JDK_ANNOTATIONS
-    }
-
     void "creates test class processor"() {
         when:
         def framework = createFramework()
         def processor = framework.getProcessorFactory().create(Mock(ServiceRegistry))
 
         then:
-        framework.options.testResources.is(testTask.testSrcDirs)
         processor instanceof TestNGTestClassProcessor
+        framework.testTask == testTask
+        framework.detector
     }
 
     TestNGTestFramework createFramework() {

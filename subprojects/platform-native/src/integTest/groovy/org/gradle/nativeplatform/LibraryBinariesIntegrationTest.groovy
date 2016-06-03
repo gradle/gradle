@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform
+
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-@LeaksFileHandles
 class LibraryBinariesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
@@ -100,8 +99,8 @@ model {
         staticLibrary("build/libs/helloStatic/static/helloStatic").assertExistsAndDelete()
         sharedLibrary("build/libs/helloShared/shared/helloShared").assertExistsAndDelete()
         installation("build/install/main")
-                .assertIncludesLibraries("helloShared")
-                .exec().out == "Hello staticHello shared"
+            .assertIncludesLibraries("helloShared")
+            .exec().out == "Hello staticHello shared"
     }
 
     def "executable can use a combination of libraries from the same and other projects"() {
@@ -197,8 +196,8 @@ project('exe') {
         sharedLibrary("lib/build/libs/helloLib/shared/helloLib").assertExistsAndDelete()
         sharedLibrary("exe/build/libs/helloMain/shared/helloMain").assertExistsAndDelete()
         installation("exe/build/install/main")
-                .assertIncludesLibraries("helloLib", "helloMain")
-                .exec().out == "Hello main\nHello lib"
+            .assertIncludesLibraries("helloLib", "helloMain")
+            .exec().out == "Hello main\nHello lib"
     }
 
     def "source set library dependencies are not shared with other source sets"() {

@@ -20,9 +20,12 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.PathValidation;
 import org.gradle.api.Script;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DeleteSpec;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.FileLookup;
@@ -183,7 +186,7 @@ public abstract class DefaultScript extends BasicScript {
 
     @Override
     public WorkResult copy(Closure closure) {
-        return copy(new ClosureBackedAction<CopySpec>(closure));
+        return copy(ConfigureUtil.configureUsing(closure));
     }
 
     @Override
@@ -198,7 +201,7 @@ public abstract class DefaultScript extends BasicScript {
 
     @Override
     public CopySpec copySpec(Closure closure) {
-        return Actions.with(copySpec(), new ClosureBackedAction<CopySpec>(closure));
+        return Actions.with(copySpec(), ConfigureUtil.configureUsing(closure));
     }
 
     @Override
@@ -223,7 +226,7 @@ public abstract class DefaultScript extends BasicScript {
 
     @Override
     public ExecResult javaexec(Closure closure) {
-        return processOperations.javaexec(new ClosureBackedAction<JavaExecSpec>(closure));
+        return processOperations.javaexec(ConfigureUtil.configureUsing(closure));
     }
 
     @Override
@@ -233,7 +236,7 @@ public abstract class DefaultScript extends BasicScript {
 
     @Override
     public ExecResult exec(Closure closure) {
-        return processOperations.exec(new ClosureBackedAction<ExecSpec>(closure));
+        return processOperations.exec(ConfigureUtil.configureUsing(closure));
     }
 
     @Override

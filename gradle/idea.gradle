@@ -215,6 +215,7 @@ idea {
                 "-Dorg.gradle.integtest.daemon.registry=${rootProject.file('build/daemon').absolutePath}",
                 "-DintegTest.distsDir=${rootProject.distsDir.absolutePath}",
                 "-Dorg.gradle.integtest.executer=embedded",
+                "-Dorg.gradle.integtest.versions=latest",
                 "-ea",
                 "-XX:MaxPermSize=512m",
                 "-Xmx512m"

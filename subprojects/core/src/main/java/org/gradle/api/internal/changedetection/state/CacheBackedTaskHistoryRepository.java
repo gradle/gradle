@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.PersistentIndexedCache;
@@ -24,7 +25,12 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private final TaskArtifactStateCacheAccess cacheAccess;
@@ -323,6 +329,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 execution.setOutputFilesHash(decoder.readInt());
                 execution.discoveredFilesSnapshotId = decoder.readLong();
                 execution.setTaskClass(decoder.readString());
+                if (decoder.readBoolean()) {
+                    execution.setTaskClassLoaderHash(HashCode.fromBytes(decoder.readBinary()));
+                }
+                if (decoder.readBoolean()) {
+                    execution.setTaskActionsClassLoaderHash(HashCode.fromBytes(decoder.readBinary()));
+                }
                 int outputFiles = decoder.readInt();
                 Set<String> files = new HashSet<String>();
                 for (int j = 0; j < outputFiles; j++) {
@@ -347,6 +359,20 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 encoder.writeInt(execution.getOutputFilesHash());
                 encoder.writeLong(execution.discoveredFilesSnapshotId);
                 encoder.writeString(execution.getTaskClass());
+                HashCode classLoaderHash = execution.getTaskClassLoaderHash();
+                if (classLoaderHash == null) {
+                    encoder.writeBoolean(false);
+                } else {
+                    encoder.writeBoolean(true);
+                    encoder.writeBinary(classLoaderHash.asBytes());
+                }
+                HashCode actionsClassLoaderHash = execution.getTaskActionsClassLoaderHash();
+                if (actionsClassLoaderHash == null) {
+                    encoder.writeBoolean(false);
+                } else {
+                    encoder.writeBoolean(true);
+                    encoder.writeBinary(actionsClassLoaderHash.asBytes());
+                }
                 encoder.writeInt(execution.getOutputFiles().size());
                 for (String outputFile : execution.getOutputFiles()) {
                     encoder.writeString(outputFile);

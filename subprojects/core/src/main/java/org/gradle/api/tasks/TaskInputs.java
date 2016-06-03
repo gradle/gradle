@@ -16,7 +16,10 @@
 
 package org.gradle.api.tasks;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
 
@@ -25,6 +28,7 @@ import java.util.Map;
  *
  * <p>You can obtain a {@code TaskInputs} instance using {@link org.gradle.api.Task#getInputs()}.</p>
  */
+@HasInternalProtocol
 public interface TaskInputs {
     /**
      * Returns true if this task has declared the inputs that it consumes.
@@ -135,4 +139,20 @@ public interface TaskInputs {
      * @return this
      */
     TaskInputs sourceDir(Object path);
+
+    /**
+     * Executes the given configuration action on the {@code TaskInputs}. The action is executed before the task is executed.
+     *
+     * @param action the configuration action to execute.
+     * @return this
+     */
+    TaskInputs configure(Action<? super TaskInputs> action);
+
+    /**
+     * Executes the given configuration action on the {@code TaskInputs}. The action is executed before the task is executed.
+     *
+     * @param action the configuration action to execute.
+     * @return this
+     */
+    TaskInputs configure(Closure action);
 }

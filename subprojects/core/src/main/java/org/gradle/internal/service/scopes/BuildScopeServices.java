@@ -29,7 +29,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
-import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.changedetection.state.CacheAccessingFileSnapshotter;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -122,6 +122,7 @@ import org.gradle.internal.actor.internal.DefaultActorFactory;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -264,7 +265,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
         CacheRepository cacheRepository, final StartParameter startParameter,
         ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache, ImportsReader importsReader,
-        CacheAccessingFileSnapshotter snapshotter, ClassLoaderRegistry registry) {
+        CacheAccessingFileSnapshotter snapshotter, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         CacheValidator scriptCacheInvalidator = new CacheValidator() {
             public boolean isValid() {
                 return !startParameter.isRecompileScripts();
@@ -277,7 +278,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             progressLoggerFactory,
             snapshotter,
             classLoaderCache,
-            registry);
+            classLoaderHierarchyHasher);
     }
 
     protected ScriptPluginFactory createScriptPluginFactory() {
@@ -404,7 +405,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     }
 
     private class DependencyMetaDataProviderImpl implements DependencyMetaDataProvider {
-        public ModuleInternal getModule() {
+        public Module getModule() {
             return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }
     }

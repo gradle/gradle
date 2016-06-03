@@ -24,11 +24,11 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.XmlProvider;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.DomNode;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.TextUtil;
 import org.w3c.dom.Document;
@@ -41,7 +41,16 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,7 +67,7 @@ public class XmlTransformer implements Transformer<String, String> {
     }
 
     public void addAction(Closure closure) {
-        actions.add(new ClosureBackedAction<XmlProvider>(closure));
+        actions.add(ConfigureUtil.configureUsing(closure));
     }
 
     public void transform(File destination, final String encoding, final Action<? super Writer> generator) {

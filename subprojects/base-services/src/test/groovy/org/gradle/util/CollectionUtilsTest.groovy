@@ -256,6 +256,38 @@ class CollectionUtilsTest extends Specification {
         null      | null as Object[]   | "separator"
     }
 
+    def "partitioning"() {
+        when:
+        def pair = partition([1, 2, 3], spec { it % 2 == 0 })
+
+        then:
+        pair.left == [2]
+        pair.right == [1, 3]
+    }
+
+    def "partitioning empty collection"() {
+        when:
+        def pair = partition([], spec { it })
+
+        then:
+        pair.left == []
+        pair.right == []
+    }
+
+    def "partitioning throws exception given nulls"() {
+        when:
+        partition(null, spec { it })
+
+        then:
+        thrown(NullPointerException)
+
+        when:
+        partition([], null)
+
+        then:
+        thrown(NullPointerException)
+    }
+
     def "addAll from iterable"() {
         expect:
         addAll([], [1, 2, 3] as Iterable) == [1, 2, 3]
@@ -376,7 +408,7 @@ class CollectionUtilsTest extends Specification {
     }
 
     Action action(Closure c) {
-        new ClosureBackedAction(c)
+        ClosureBackedAction.of(c)
     }
 
 }

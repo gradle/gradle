@@ -51,7 +51,7 @@ public class DefaultSelfResolvingDependencyTest {
         final DependencyResolveContext resolveContext = context.mock(DependencyResolveContext.class);
 
         context.checking(new Expectations() {{
-            one(resolveContext).add(source);
+            oneOf(resolveContext).add(source);
         }});
 
         dependency.resolve(resolveContext);

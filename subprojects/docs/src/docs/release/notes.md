@@ -72,6 +72,39 @@ Add-->
     - Better extension by plugins
     - Model DSL
     
+### Improved Gradle Daemon, now enabled by default
+
+The performance improvement gained by using the Daemon is staggering: our performance tests [show that builds could be up to 75% faster](TODO(ew) link blog post), just by enabling the Gradle Daemon.
+
+We have been working hard to make the Gradle Daemon aware of its health and impact on the system it's running on; and we believe that it is now robust enough to be **enabled by default**.
+
+We encourage you to give the improved Daemon a try. If for some reason you encounter problems, you can [disable the Daemon](userguide/gradle_daemon.html#daemon_faq). Please [submit feedback to us](https://discuss.gradle.org/c/bugs/) if you encounter instability so that we can make further improvements.
+
+### Delayed configuration of task inputs and outputs
+
+A `configure()` method with an `Action` or `Closure` parameter was added to both `TaskInputs` and `TaskOutputs` to allow configuring the task's inputs and outputs directly before the task is to be executed.
+
+### Up-to-date checks more robust against task implementation changes
+
+Previously if a task's implementation class name changed, the class was deemed out-of-date even if its inputs and outputs matched the previous execution. However, if only the code of the task, or a dependent library changed, the task was still considered up-to-date. Since this version Gradle notices if the code of a task or its dependencies change between executions, and marks tasks as out-of-date when needed.
+
+### Improved file generation in `eclipse-wtp` plugin
+
+Before Gradle 3.0, the `eclipse-wtp` plugin defined dependencies and deployment information in the Eclipse component descriptor. This caused several problems, listed at [GRADLE-2123](https://issues.gradle.org/browse/GRADLE-2123). To resolve this, the plugin now defines dependencies and deployment in the Eclipse classpath for Java projects. For each library a classpath entry similar to the one below is generated:
+
+    <classpathentry kind="lib" path=“/path/to/lib-1.0.0.jar" exported=“false">
+        <attributes>
+            <attribute name="org.eclipse.jst.component.dependency" value="WEB-INF/lib"/>
+        </attributes>
+    </classpath>
+
+### Improved dependency resolution for `eclipse-wtp` plugin
+
+The plugin no longer uses a customised dependency resolution algorithm. As a result, all dependency customisations like substitution rules and forced versions work.
+
+### `eclipse` plugin also applies `eclipse-wtp` for web projects
+
+If a project applies `war` or `ear` plugins, then applying the `eclipse` plugin also applies `eclipse-wtp`. This ensures that the necessary configurations like the wtp deployment information (above) to be present.
 
 ## Promoted features
 
@@ -97,6 +130,14 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Plural task output registration APIs
+
+The following APIs have been deprecated:
+
+* `@OutputFiles` annotation – use multiple `@OutputFile` properties instead
+* `@OutputDirectories` annotation – use multiple `@OutputDirectory` properties instead
+* `TaskOutputs.files()` method – call `TaskOutputs.file()` with each file separately instead
+
 ## Potential breaking changes
 
 ### Supported Java versions
@@ -120,6 +161,11 @@ properties have been removed from the ScalaCompile task:
 1. `useAnt`
 1. `useCompileDaemon`
 
+### Support for TestNG javadoc annotations has been removed
+
+The support for declaring TestNG tests via javadoc annotations has been removed. The `Test.testSrcDirs` and the methods on `TestNGOptions` were removed, too,
+since they are not needed any more.
+
 ### Task property annotations on implemented interfaces
 
 In previous versions, annotations on task properties like `@InputFile` and `@OutputDirectory` were only taken into account when they were declared on the task class itself, or one of its super-classes. Since Gradle 3.0 annotations declared on implemented interfaces are also taken into account.
@@ -133,6 +179,7 @@ In previous versions, annotations on task properties like `@InputFile` and `@Out
 * Declaring custom `check`, `clean`, `build` or `assemble` tasks is not allowed anymore when using the lifecycle plugin.
 * Configuring the Eclipse project name during `beforeMerged` or `whenMerged` is not allowed anymore.
 * Removed `--no-color` command-line option (use `--console=plain` instead).
+* Removed `--parallel-threads` command-line option (use `--parallel` + `--max-workers` instead).
 * Removed `Zip.encoding` (use `Zip.metadataCharset` instead).
 * Removed `DistributionPlugin.addZipTask()` and `addTarTask()`.
 * The `installApp` task is no longer created by the `application` plugin (use `installDist` instead).
@@ -141,6 +188,8 @@ In previous versions, annotations on task properties like `@InputFile` and `@Out
   If you were using this method to expose Ant logging messages, please use `AntBuilder.setLifecycleLogLevel()` instead.
 * Removed `AntScalaCompiler` in favor of `ZincScalaCompiler`.
 * Removed `EclipseClasspath.noExportConfigurations` property.
+* Removed `ProjectDependency.declaredConfigurationName` property.
+* Removed `AbstractLibrary.declaredConfigurationName` property.
 * Removed `BuildExceptionReporter`.
 * Removed `BuildLogger`.
 * Removed `BuildResultLogger`.
@@ -151,13 +200,31 @@ In previous versions, annotations on task properties like `@InputFile` and `@Out
 * Removed `EclipseDomainModel`.
 * Removed `AntGroovydoc`.
 * Removed `AntScalaDoc`.
+* Removed `BinaryType`.
+* Removed `LanguageType`.
+* Removed `ConventionValue`.
+* Removed `org.gradle.platform.base.test.TestSuiteBinarySpec` replaced by `org.gradle.testing.base.TestSuiteBinarySpec`
+* Removed `org.gradle.platform.base.test.TestSuiteContainer` replaced by `org.gradle.testing.base.TestSuiteContainer`
+* Removed `org.gradle.platform.base.test.TestSuiteSpec` replaced by `org.gradle.testing.base.TestSuiteSpec`
 * TestKit supports Gradle versions 1.2 or later.
 * Build comparison plugin supports Gradle versions 1.2 or later.
+* Removed `Specs.and()`, `Specs.or()` and `Specs.not()`
+* Removed `StartParameter.getParallelThreadCount()` and `StartParameter.setParallelThreadCount()`
+* Removed `PrefixHeaderFileGenerateTask.getHeaders()`
+* Removed `org.gradle.tooling.model.Task.getProject()`
+* Removed `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER`
+* Removed old wrapper properties `urlRoot`, `distributionName`, `distributionVersion` and `distributionClassifier`
+* Removed deprecated `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter`
+* Removed deprecated constructor `DefaultSourceDirectorySet(String name, FileResolver fileResolver)`
 
 ### Tooling API changes
 
 TBD - Requires tooling API version 2.0 or later.
 TBD - Tooling API supports only Gradle 1.2 and later.
+
+### `eclipse-wtp` plugin dependency resolution and generated file format changed
+
+As explained above, the behaviour how files are generated by the `eclipse-wtp` plugin is changed, which is a potentially breaking change. Also, because the dependency resolution has been updated, it can affect clients upgrading to the current release.
 
 ## External contributions
 
@@ -168,6 +235,7 @@ We would like to thank the following community members for making contributions 
  - [Gregorios Leach](https://github.com/simtel12) - Include directories when using a S3Client to list objects in a prefix. (GRADLE-3453)
  - [Mahmoud  Khater](https://github.com/mahmoud-k) - Fix a problem with determining the version of Findbugs on the classpath (GRADLE-3457)
  - [Ryan Ernst](https://github.com/rjernst) - Upgrade to Groovy 2.4.6
+ - [James Ward](https://github.com/jamesward) - Fixed launching Gradle from Finder on Mac OS
   
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)

@@ -55,7 +55,7 @@ public class BooleanJavadocOptionFileOptionTest {
         booleanOption.setValue(true);
 
         context.checking(new Expectations() {{
-            one(writerContextMock).writeOption(optionName);
+            oneOf(writerContextMock).writeOption(optionName);
         }});
 
         booleanOption.write(writerContextMock);

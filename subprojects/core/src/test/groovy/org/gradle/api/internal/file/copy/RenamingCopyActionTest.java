@@ -37,9 +37,9 @@ public class RenamingCopyActionTest {
         context.checking(new Expectations() {{
             allowing(details).getRelativePath();
             will(returnValue(new RelativePath(true, "a", "b")));
-            one(transformer).transform("b");
+            oneOf(transformer).transform("b");
             will(returnValue("c"));
-            one(details).setRelativePath(new RelativePath(true, "a", "c"));
+            oneOf(details).setRelativePath(new RelativePath(true, "a", "c"));
         }});
 
         action.execute(details);

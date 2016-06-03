@@ -362,21 +362,4 @@ class StartParameterTest extends Specification {
         parameter.taskNames == []
         parameter.taskRequests == []
     }
-
-
-    def 'parallel project execution linked to number of parallel threads'() {
-        StartParameter parameter = new StartParameter()
-
-        when:
-        parameter.parallelThreadCount = 10
-
-        then:
-        parameter.parallelProjectExecutionEnabled
-
-        when:
-        parameter.parallelProjectExecutionEnabled = false
-
-        then:
-        parameter.parallelThreadCount == 0
-    }
 }

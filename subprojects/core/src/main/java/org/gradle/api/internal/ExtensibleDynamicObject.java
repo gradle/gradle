@@ -22,8 +22,14 @@ import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
-import org.gradle.internal.metaobject.*;
+import org.gradle.internal.metaobject.AbstractDynamicObject;
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.CompositeDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.GetPropertyResult;
+import org.gradle.internal.metaobject.InvokeMethodResult;
+import org.gradle.internal.metaobject.MixInClosurePropertiesAsMethodsDynamicObject;
+import org.gradle.internal.metaobject.SetPropertyResult;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.ArrayList;
@@ -37,7 +43,7 @@ import java.util.Map;
  *
  * @see org.gradle.api.internal.AsmBackedClassGenerator.MixInExtensibleDynamicObject
  */
-public class ExtensibleDynamicObject extends CompositeDynamicObject implements HasConvention {
+public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject implements HasConvention {
 
     public enum Location {
         BeforeConvention, AfterConvention

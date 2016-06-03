@@ -18,19 +18,19 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
-import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetaData
+import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
+import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
 
 class MetadataProviderTest extends Specification {
-    def dep = Stub(DependencyMetaData)
+    def dep = Stub(DependencyMetadata)
     def id = Stub(ModuleComponentIdentifier) {
         getVersion() >> "1.2"
     }
-    def metaData = Stub(MutableModuleComponentResolveMetaData)
+    def metaData = Stub(MutableModuleComponentResolveMetadata)
     def resolveState = Mock(ModuleComponentResolveState)
     def metadataProvider = new MetadataProvider(resolveState)
 
@@ -95,7 +95,7 @@ class MetadataProviderTest extends Specification {
         def mds = new MutableModuleDescriptorState(DefaultModuleComponentIdentifier.newId("group", "name", "version"), "test", false)
         mds.setBranch("branchValue")
         mds.getExtraInfo().put(new NamespaceId("baz", "foo"), "extraInfoValue")
-        def metaData = new DefaultIvyModuleResolveMetaData(id, mds)
+        def metaData = new DefaultIvyModuleResolveMetadata(id, mds)
         resolveState.resolve() >> {
             def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
             result.resolved(metaData)

@@ -20,6 +20,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -33,20 +34,24 @@ import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.server.DaemonExpirationStrategies;
 import org.gradle.launcher.daemon.server.DaemonServices;
+import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.process.internal.streams.EncodedStream;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * The entry point for a daemon process.
  *
- * If the daemon hits the specified idle timeout the process will exit with 0. If the daemon encounters
- * an internal error or is explicitly stopped (which can be via receiving a stop command, or unexpected client disconnection)
- * the process will exit with 1.
+ * If the daemon hits the specified idle timeout the process will exit with 0. If the daemon encounters an internal error or is explicitly stopped (which can be via receiving a stop command, or
+ * unexpected client disconnection) the process will exit with 1.
  */
 public class DaemonMain extends EntryPoint {
 
@@ -93,16 +98,20 @@ public class DaemonMain extends EntryPoint {
             throw new UncheckedIOException(e);
         }
 
-        LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
-
         NativeServices.initialize(gradleHomeDir);
         DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, startupOpts);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
-        DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager, new DefaultClassPath(additionalClassPath));
+
+        TrueTimeProvider timeProvider = new TrueTimeProvider();
+        DaemonServices daemonServices = new DaemonServices(parameters, loggingRegistry, loggingManager, new DefaultClassPath(additionalClassPath), timeProvider.getCurrentTime());
         File daemonLog = daemonServices.getDaemonLogFile();
 
+        // Any logging prior to this point will not end up in the daemon log file.
         initialiseLogging(loggingManager, daemonLog);
+
+        LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
+
         Daemon daemon = daemonServices.get(Daemon.class);
         daemon.start();
 
@@ -110,8 +119,8 @@ public class DaemonMain extends EntryPoint {
             DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
             Long pid = daemonContext.getPid();
             daemonStarted(pid, daemon.getUid(), daemon.getAddress(), daemonLog);
-
-            daemon.stopOnExpiration(DaemonExpirationStrategies.getDefaultStrategy(daemon, daemonServices, parameters), parameters.getPeriodicCheckIntervalMs());
+            DaemonExpirationStrategy expirationStrategy = daemonServices.get(MasterExpirationStrategy.class);
+            daemon.stopOnExpiration(expirationStrategy, parameters.getPeriodicCheckIntervalMs());
         } finally {
             daemon.stop();
         }

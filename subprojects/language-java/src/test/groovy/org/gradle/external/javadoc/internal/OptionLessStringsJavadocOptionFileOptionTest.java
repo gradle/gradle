@@ -46,10 +46,10 @@ public class OptionLessStringsJavadocOptionFileOptionTest {
         final String secondValue = "secondValue";
 
         context.checking(new Expectations() {{
-            one(writerContextMock).write(firstValue);
-            one(writerContextMock).newLine();
-            one(writerContextMock).write(secondValue);
-            one(writerContextMock).newLine();
+            oneOf(writerContextMock).write(firstValue);
+            oneOf(writerContextMock).newLine();
+            oneOf(writerContextMock).write(secondValue);
+            oneOf(writerContextMock).newLine();
         }});
 
         optionLessStringsOption.write(writerContextMock);

@@ -2,6 +2,13 @@ apply plugin: 'checkstyle'
 apply plugin: 'codenarc'
 apply from: new File(buildscript.sourceFile.parentFile, 'dependencies.gradle')
 
+plugins.withType(JavaBasePlugin) {
+    // Apply to all projects depending on :core
+    configurations.compile.dependencies.withType(ProjectDependency).matching { it.dependencyProject == project(":core") }.all {
+        project.apply from: "$rootDir/gradle/taskProperties.gradle"
+    }
+}
+
 def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
 
 ext.checkstyleConfigDir = "$configDir/checkstyle"
@@ -29,7 +36,7 @@ plugins.withType(GroovyBasePlugin) {
 }
 
 def codeQualityTasks = tasks.matching { task ->
-    [org.gradle.api.plugins.quality.CodeNarc, org.gradle.api.plugins.quality.Checkstyle].any { it.isInstance(task) }
+    [org.gradle.api.plugins.quality.CodeNarc, org.gradle.api.plugins.quality.Checkstyle, org.gradle.plugin.devel.tasks.ValidateTaskProperties].any { it.isInstance(task) }
 }
 
 task codeQuality {

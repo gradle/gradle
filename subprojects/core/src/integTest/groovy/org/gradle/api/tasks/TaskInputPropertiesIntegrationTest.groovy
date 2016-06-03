@@ -63,7 +63,11 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://issues.gradle.org/browse/GRADLE-3435")
     @NotYetImplemented
     def "task is not up-to-date after file moved between properties"() {
-        def taskDefinition = """
+        file("buildSrc/src/main/groovy/TaskWithTwoFileCollectionInputs.groovy") << """
+            import org.gradle.api.*
+            import org.gradle.api.file.*
+            import org.gradle.api.tasks.*
+
             class TaskWithTwoFileCollectionInputs extends DefaultTask {
                 @InputFiles FileCollection inputs1
                 @InputFiles FileCollection inputs2
@@ -75,8 +79,6 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         buildFile << """
-            $taskDefinition
-
             task test(type: TaskWithTwoFileCollectionInputs) {
                 inputs1 = files("input1.txt", "input2.txt")
                 inputs2 = files("input3.txt")
@@ -92,8 +94,6 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         // Keep the same files, but move one of them to the other property
         buildFile.delete()
         buildFile << """
-            $taskDefinition
-
             task test(type: TaskWithTwoFileCollectionInputs) {
                 inputs1 = files("input1.txt")
                 inputs2 = files("input2.txt", "input3.txt")
@@ -110,23 +110,24 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://issues.gradle.org/browse/GRADLE-3435")
     @NotYetImplemented
     def "task is not up-to-date after swapping output directories between properties"() {
-        def taskDefinition = """
+        file("buildSrc/src/main/groovy/TaskWithTwoOutputDirectoriesProperties.groovy") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
             class TaskWithTwoOutputDirectoriesProperties extends DefaultTask {
                 @InputFiles def inputFiles = project.files()
 
-                @OutputDirectories Set<File> outputs1
-                @OutputDirectories Set<File> outputs2
+                @OutputDirectory File outputs1
+                @OutputDirectory File outputs2
 
                 @TaskAction void action() {}
             }
         """
 
         buildFile << """
-            $taskDefinition
-
             task test(type: TaskWithTwoOutputDirectoriesProperties) {
-                outputs1 = [file("\$buildDir/output1"), file("\$buildDir/output2")]
-                outputs2 = [file("\$buildDir/output3")]
+                outputs1 = file("\$buildDir/output1")
+                outputs2 = file("\$buildDir/output2")
             }
         """
 
@@ -139,11 +140,9 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         // Keep the same files, but move one of them to the other property
         buildFile.delete()
         buildFile << """
-            $taskDefinition
-
             task test(type: TaskWithTwoOutputDirectoriesProperties) {
-                outputs1 = [file("\$buildDir/output1")]
-                outputs2 = [file("\$buildDir/output2"), file("\$buildDir/output3")]
+                outputs1 = file("\$buildDir/output2")
+                outputs2 = file("\$buildDir/output1")
             }
         """
 
@@ -152,5 +151,66 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skippedTasks.isEmpty()
+    }
+
+    def "deprecation warning printed when @OutputFiles is used"() {
+        file("buildSrc/src/main/groovy/TaskWithOutputFilesProperty.groovy") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            class TaskWithOutputFilesProperty extends DefaultTask {
+                @InputFiles def inputFiles = project.files()
+                @OutputFiles Set<File> outputFiles = []
+                @TaskAction void action() {}
+            }
+        """
+
+        buildFile << """
+            task test(type: TaskWithOutputFilesProperty)
+        """
+        executer.expectDeprecationWarning()
+
+        expect:
+        succeeds "test"
+        output.contains "The @OutputFiles annotation has been deprecated and is scheduled to be removed in Gradle 4.0. " +
+            "Please use separate properties for each file annotated with @OutputFile, or reorganize output files under a single output directory annotated with @OutputDirectory."
+    }
+
+    def "deprecation warning printed when @OutputDirectories is used"() {
+        file("buildSrc/src/main/groovy/TaskWithOutputFilesProperty.groovy") << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            class TaskWithOutputDirectoriesProperty extends DefaultTask {
+                @InputFiles def inputFiles = project.files()
+                @OutputDirectories Set<File> outputDirs = []
+                @TaskAction void action() {}
+            }
+        """
+
+        buildFile << """
+            task test(type: TaskWithOutputDirectoriesProperty) {
+            }
+        """
+        executer.expectDeprecationWarning()
+
+        expect:
+        succeeds "test"
+        output.contains "The @OutputDirectories annotation has been deprecated and is scheduled to be removed in Gradle 4.0. " +
+            "Please use separate properties for each directory annotated with @OutputDirectory, or reorganize output under a single output directory."
+    }
+
+    def "deprecation warning printed when TaskOutputs.files() is used"() {
+        buildFile << """
+            task test {
+                outputs.files("output.txt")
+            }
+        """
+        executer.expectDeprecationWarning()
+
+        expect:
+        succeeds "test"
+        output.contains "The TaskOutputs.files() method has been deprecated and is scheduled to be removed in Gradle 4.0. " +
+            "Please use the TaskOutputs.file() or the TaskOutputs.dir() method instead."
     }
 }

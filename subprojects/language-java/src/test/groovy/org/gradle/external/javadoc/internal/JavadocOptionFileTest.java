@@ -45,7 +45,7 @@ public class JavadocOptionFileTest {
     @Test
     public void testAddOption() {
         context.checking(new Expectations() {{
-            one(optionFileOptionMock).getOption();
+            oneOf(optionFileOptionMock).getOption();
             returnValue(optionName);
         }});
 

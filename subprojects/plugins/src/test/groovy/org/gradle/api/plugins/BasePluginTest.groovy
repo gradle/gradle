@@ -21,7 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Jar
@@ -34,7 +34,7 @@ import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.Matchers.instanceOf
 
 class BasePluginTest extends Specification {
-    private final DefaultProject project = TestUtil.createRootProject()
+    private final ProjectInternal project = TestUtil.createRootProject()
 
     public void addsConventionObjects() {
         when:
@@ -118,7 +118,7 @@ class BasePluginTest extends Specification {
     public void addsACleanRule() {
         given:
         Task test = project.task('test')
-        test.outputs.files(project.buildDir)
+        test.outputs.dir(project.buildDir)
 
         when:
         project.pluginManager.apply(BasePlugin)

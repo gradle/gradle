@@ -21,6 +21,8 @@ import org.gradle.util.ConfigureUtil;
 /**
  * Enables fine-tuning wtp/wst details of the Eclipse plugin
  * <p>
+ * For projects applying the eclipse plugin and either one of the ear or war plugins, this plugin is auto-applied.
+ * <p>
  * More interesting examples you will find in docs for {@link EclipseWtpComponent} and {@link EclipseWtpFacet}
  *
  * <pre autoTested=''>

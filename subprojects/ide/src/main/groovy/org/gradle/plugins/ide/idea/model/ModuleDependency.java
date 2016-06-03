@@ -40,6 +40,11 @@ public class ModuleDependency implements Dependency {
         this.exported = false;
     }
 
+    @Deprecated
+    public ModuleDependency(Object name, Object scope) {
+        this((String)name, (String)scope);
+    }
+
     /**
      * The name of the module the module depends on.
      * Must not be null.
@@ -74,6 +79,10 @@ public class ModuleDependency implements Dependency {
     }
 
     public boolean isExported() {
+        return exported;
+    }
+
+    public boolean getExported() {
         return exported;
     }
 

@@ -17,7 +17,15 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.Namer;
+import org.gradle.api.PolymorphicDomainObjectContainer;
+import org.gradle.api.Rule;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.specs.Spec;
@@ -25,7 +33,12 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
 
 public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectContainer<U>, DynamicObjectAware {
     private final Class<U> type;
@@ -53,7 +66,7 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
     }
 
     public U create(String name, Closure configureClosure) throws InvalidUserDataException {
-        return parent.create(name, type, new ClosureBackedAction<U>(configureClosure));
+        return parent.create(name, type, ConfigureUtil.configureUsing(configureClosure));
     }
 
     public U maybeCreate(String name) {

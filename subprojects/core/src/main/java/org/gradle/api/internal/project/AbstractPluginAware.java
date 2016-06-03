@@ -18,7 +18,6 @@ package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.plugins.ObjectConfigurationAction;
@@ -29,9 +28,8 @@ import java.util.Map;
 
 public abstract class AbstractPluginAware implements PluginAwareInternal {
 
-    @SuppressWarnings("unchecked")
     public void apply(Closure closure) {
-        apply(ClosureBackedAction.of(closure));
+        apply(ConfigureUtil.configureUsing(closure));
     }
 
     public void apply(Action<? super ObjectConfigurationAction> action) {

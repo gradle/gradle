@@ -27,6 +27,7 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ":logging")
 useTestFixtures(project: ':dependencyManagement')
+useTestFixtures(project: ':ide')
 
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
@@ -69,6 +70,11 @@ sourceJar {
 
 artifacts {
     publishRuntime file: shadedJar.jarFile, name: archivesBaseName, type: 'jar', builtBy: shadedJar
+}
+
+// Remove the default 'jar' publication
+configurations.publishRuntime.artifacts.removeAll {
+    it.file == jar.archivePath
 }
 
 eclipse {

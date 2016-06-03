@@ -16,14 +16,12 @@
 
 package org.gradle.integtests
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.Matchers
 import spock.lang.Issue
 
 import static org.hamcrest.Matchers.containsString
 import static org.junit.Assert.assertThat
 
-@LeaksFileHandles
 class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
     def setup() {
         file("build.gradle") << """

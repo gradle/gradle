@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.client
 
-import com.google.common.collect.Lists
 import org.gradle.api.internal.specs.ExplainingSpec
 import org.gradle.api.internal.specs.ExplainingSpecs
 import org.gradle.internal.remote.Address
@@ -27,7 +26,6 @@ import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo
 import org.gradle.launcher.daemon.registry.DaemonInfo
-import org.gradle.launcher.daemon.registry.DaemonStopEvent
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import spock.lang.Specification
 
@@ -192,30 +190,5 @@ class DefaultDaemonConnectorTest extends Specification {
         !connection
 
         registry.all.empty
-    }
-
-    def "starting message contains number of busy and incompatible daemons if > 0"() {
-        given:
-        def message = getConnector().generateStartingMessage(2, 1, Lists.newArrayList())
-
-        expect:
-        message.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE)
-        message.contains("- 2 are busy")
-        message.contains("- 1 is incompatible")
-        message.contains(DefaultDaemonConnector.SUBSEQUENT_BUILDS_FASTER_MESSAGE)
-    }
-
-    def "starting message contains grouped stoppage reasons"() {
-        given:
-        def stopEvent = new DaemonStopEvent(new Date(System.currentTimeMillis()), "REASON")
-        def stopEvent2 = new DaemonStopEvent(new Date(System.currentTimeMillis()), "REASON")
-        def stopEvent3 = new DaemonStopEvent(new Date(System.currentTimeMillis()), "OTHER_REASON")
-        def message = getConnector().generateStartingMessage(0, 0, Lists.newArrayList(stopEvent, stopEvent2, stopEvent3))
-
-        expect:
-        message.contains(DefaultDaemonConnector.STARTING_DAEMON_MESSAGE)
-        message.contains("- 2 were stopped because REASON")
-        message.contains("- 1 was stopped because OTHER_REASON")
-        message.contains(DefaultDaemonConnector.SUBSEQUENT_BUILDS_FASTER_MESSAGE)
     }
 }

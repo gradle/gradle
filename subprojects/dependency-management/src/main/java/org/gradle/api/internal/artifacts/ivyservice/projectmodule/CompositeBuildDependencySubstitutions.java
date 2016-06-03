@@ -26,9 +26,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 
 public class CompositeBuildDependencySubstitutions implements DependencySubstitutionRuleProvider {
-    private final CompositeProjectComponentRegistry projectComponentRegistry;
+    private final CompositeBuildContext projectComponentRegistry;
 
-    public CompositeBuildDependencySubstitutions(CompositeProjectComponentRegistry projectComponentRegistry) {
+    public CompositeBuildDependencySubstitutions(CompositeBuildContext projectComponentRegistry) {
         this.projectComponentRegistry = projectComponentRegistry;
     }
 

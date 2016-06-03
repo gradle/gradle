@@ -21,7 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishException;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
-import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 
 import java.io.File;
@@ -36,7 +36,7 @@ public class IvyContextualArtifactPublisher implements ArtifactPublisher {
     }
 
     @Override
-    public void publish(final Iterable<? extends PublicationAwareRepository> repositories, final ModuleInternal module, final Configuration configuration, final File descriptor) throws PublishException {
+    public void publish(final Iterable<? extends PublicationAwareRepository> repositories, final Module module, final Configuration configuration, final File descriptor) throws PublishException {
         ivyContextManager.withIvy(new Action<Ivy>() {
             @Override
             public void execute(Ivy ivy) {

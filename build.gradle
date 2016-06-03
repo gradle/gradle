@@ -112,6 +112,11 @@ buildTypes {
         tasks "java9Test", "java9IntegTest"
         projectProperties useIncomingDistributions: true
     }
+
+    soakTest {
+        tasks "soak:soakTest"
+        projectProperties testAllVersions: true
+    }
 }
 
 apply from: "gradle/testGroupings.gradle"
@@ -167,6 +172,7 @@ ext {
         project(':processServices'),
         project(':resources')
     ]
+    removedProjects = ['sonar']
 }
 
 apply from: "gradle/buildReceipt.gradle"
@@ -188,7 +194,8 @@ allprojects {
     group = 'org.gradle'
 
     repositories {
-        maven { url 'https://repo.gradle.org/gradle/libs' }
+        maven { url 'https://repo.gradle.org/gradle/libs-releases' }
+        maven { url 'https://repo.gradle.org/gradle/libs-milestones' }
     }
 }
 
@@ -231,6 +238,7 @@ dependencies {
     runtime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")
+    runtime 'org.gradle:gradle-script-kotlin:1.0.0-M1a'
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')
@@ -262,6 +270,17 @@ task install(type: Install) {
     group = 'build'
     with project(":distributions").binDistImage
     installDirPropertyName = 'gradle_installPath'
+}
+
+subprojects {
+    afterEvaluate {
+        def jar = tasks.findByName('jar')
+        if (jar) {
+            jar.from(sourceSets.main.allSource) {
+                exclude '**/internal/**/*.java'
+            }
+        }
+    }
 }
 
 task installAll(type: Install) {
@@ -325,3 +344,8 @@ subprojects { prj ->
         errorWhenNotEmpty = true
     }
 }
+
+task cleanUpRemovedProjects(type: Delete) {
+    delete removedProjects.collect { "subprojects/$it" }
+}
+clean.dependsOn(cleanUpRemovedProjects)

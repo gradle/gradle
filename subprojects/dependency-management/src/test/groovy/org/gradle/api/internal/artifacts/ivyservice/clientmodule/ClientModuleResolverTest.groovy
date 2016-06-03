@@ -20,11 +20,11 @@ import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
-import org.gradle.internal.component.local.model.DslOriginDependencyMetaData
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
+import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
-import org.gradle.internal.component.model.DependencyMetaData
+import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
@@ -39,15 +39,15 @@ class ClientModuleResolverTest extends Specification {
 
     def id = Mock(ComponentIdentifier)
     def result = Mock(BuildableComponentResolveResult)
-    def metaData = Mock(MutableModuleComponentResolveMetaData)
+    def metaData = Mock(MutableModuleComponentResolveMetadata)
     def componentRequestMetaData = Mock(ComponentOverrideMetadata)
-    def dependency = Mock(DslOriginDependencyMetaData)
+    def dependency = Mock(DslOriginDependencyMetadata)
 
     def "replaces meta-data for a client module dependency"() {
         def clientModule = Mock(ClientModule)
         def dep = Mock(ModuleDependency)
-        def dependencyMetaData = Mock(DependencyMetaData)
-        def artifact = Mock(ModuleComponentArtifactMetaData)
+        def dependencyMetaData = Mock(DependencyMetadata)
+        def artifact = Mock(ModuleComponentArtifactMetadata)
 
         when:
         resolver.resolve(id, componentRequestMetaData, result)

@@ -95,6 +95,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         when:
         executer = new ForkingGradleExecuter(distribution, temporaryFolder)
         executer.withGradleUserHomeDir(homeDirectory)
+        executer.requireIsolatedDaemons()
         run 'help'
         run 'help'
 

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
-public class DefaultModule implements ModuleInternal {
+public class DefaultModule implements Module {
     private String group;
     private String name;
     private String version;

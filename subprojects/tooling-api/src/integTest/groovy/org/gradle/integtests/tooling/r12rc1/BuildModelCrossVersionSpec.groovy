@@ -16,12 +16,10 @@
 
 package org.gradle.integtests.tooling.r12rc1
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-@TargetGradleVersion(">=1.2")
 class BuildModelCrossVersionSpec extends ToolingApiSpecification {
     def "can run tasks before building Eclipse model"() {
         file('build.gradle').text = '''

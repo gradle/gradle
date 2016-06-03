@@ -21,7 +21,6 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.Matchers
 import spock.lang.IgnoreIf
 
@@ -54,7 +53,6 @@ model {
         helloWorldApp.library.writeSources(file("src/hello"))
     }
 
-    @LeaksFileHandles
     def "can build when language tools that are not required are not available"() {
         when:
         buildFile << """

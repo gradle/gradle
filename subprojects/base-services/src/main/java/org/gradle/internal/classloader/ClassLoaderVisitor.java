@@ -24,7 +24,7 @@ public class ClassLoaderVisitor {
 
     public void visit(ClassLoader classLoader) {
         if (classLoader == stopAt) {
-            visitSpec(ClassLoaderSpec.SYSTEM_CLASS_LOADER);
+            visitSpec(SystemClassLoaderSpec.INSTANCE);
             return;
         }
 

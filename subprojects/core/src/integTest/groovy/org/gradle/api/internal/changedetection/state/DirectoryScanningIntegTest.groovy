@@ -20,10 +20,11 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.util.GFileUtils
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 // This fails with Java 1.8.0_05, but succeeds with 1.8.0_74
-@Requires(adhoc = { System.getProperty('java.version') != '1.8.0_05' })
+@Requires(adhoc = { System.getProperty('java.version') != '1.8.0_05' && TestPrecondition.NOT_JDK_IBM.fulfilled })
 class DirectoryScanningIntegTest extends DaemonIntegrationSpec {
     @Rule
     public final Sample sample = new Sample(testDirectoryProvider, 'dirscanning', '.')

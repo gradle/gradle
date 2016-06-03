@@ -200,6 +200,27 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         projectName("foo/services/rest") == "foo-services-rest"
     }
 
+    def "allows deduplication when root project does not apply IDE plugin"() {
+        given:
+        project("root", false) {
+            project("foo") {
+                project("app") {}
+            }
+            project("bar") {
+                project("app") {}
+            }
+        }
+
+        when:
+        run ideName
+
+        then:
+        projectName("foo") == "foo"
+        projectName("foo/app") == "foo-app"
+        projectName("bar") == "bar"
+        projectName("bar/app") == "bar-app"
+    }
+
     def "removes duplicate words from project dedup prefix"() {
         given:
         project("root"){
@@ -236,9 +257,10 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeIntegr
         projectName("impl/myproject/myproject-foo/app") == "impl-myproject-foo-app"
     }
 
-    Project project(String projectName, Closure configClosure) {
+    Project project(String projectName, boolean allProjects = true, Closure configClosure) {
+        String applyTo = allProjects ? "allprojects" : "subprojects"
         buildFile.createFile().text = """
-allprojects {
+$applyTo {
     apply plugin:'java'
     apply plugin:'$ideName'
 }

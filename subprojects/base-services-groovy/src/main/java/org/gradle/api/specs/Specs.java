@@ -55,26 +55,6 @@ public class Specs {
 
     /**
      * Returns a spec that selects the intersection of those items selected by the given specs. Returns a spec that selects everything when no specs provided.
-     *
-     * @deprecated Use {@link #intersect(Spec[])} instead.
-     */
-    @Deprecated
-    public static <T> AndSpec<T> and(Spec<? super T>... specs) {
-        return new AndSpec<T>(specs);
-    }
-
-    /**
-     * Returns a spec that selects the intersection of those items selected by the given specs. Returns a spec that selects everything when no specs provided.
-     *
-     * @deprecated Use {@link #intersect(Collection)} instead.
-     */
-    @Deprecated
-    public static <T> AndSpec<T> and(Collection<? extends Spec<? super T>> specs) {
-        return new AndSpec<T>(specs);
-    }
-
-    /**
-     * Returns a spec that selects the intersection of those items selected by the given specs. Returns a spec that selects everything when no specs provided.
      */
     public static <T> Spec<T> intersect(Spec<? super T>... specs) {
         if (specs.length == 0) {
@@ -113,26 +93,6 @@ public class Specs {
             return Cast.uncheckedCast(filtered.get(0));
         }
         return new AndSpec<T>(filtered);
-    }
-
-    /**
-     * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
-     *
-     * @deprecated Use {@link #union(Spec[])} instead.
-     */
-    @Deprecated
-    public static <T> OrSpec<T> or(Spec<? super T>... specs) {
-        return new OrSpec<T>(specs);
-    }
-
-    /**
-     * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
-     *
-     * @deprecated Use {@link #union(Collection)} instead.
-     */
-    @Deprecated
-    public static <T> OrSpec<T> or(Collection<? extends Spec<? super T>> specs) {
-        return new OrSpec<T>(specs);
     }
 
     /**
@@ -180,16 +140,6 @@ public class Specs {
 
     /**
      * Returns a spec that selects everything that is not selected by the given spec.
-     *
-     * @deprecated Use {@link #negate(Spec)} instead.
-     */
-    @Deprecated
-    public static <T> NotSpec<T> not(Spec<? super T> spec) {
-        return new NotSpec<T>(spec);
-    }
-
-    /**
-     * Returns a spec that selects everything that is not selected by the given spec.
      */
     public static <T> Spec<T> negate(Spec<? super T> spec) {
         if (spec == SATISFIES_ALL) {
@@ -205,16 +155,4 @@ public class Specs {
         return new NotSpec<T>(spec);
     }
 
-    /**
-     * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
-     *
-     * @deprecated Use {@link #union(Collection)} instead.
-     */
-    @Deprecated
-    public static <T> Spec<T> or(boolean defaultWhenNoSpecs, List<? extends Spec<? super T>> specs) {
-        if (specs.isEmpty()) {
-            return defaultWhenNoSpecs ? Specs.<T>satisfyAll() : Specs.<T>satisfyNone();
-        }
-        return new OrSpec<T>(specs);
-    }
 }

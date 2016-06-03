@@ -17,33 +17,46 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalComponentMetaData;
+import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public class DefaultProjectComponentRegistry implements ProjectComponentRegistry {
     private final List<ProjectComponentProvider> providers;
-    private final ConcurrentMap<ProjectComponentIdentifier, LocalComponentMetaData> projects = new ConcurrentHashMap<ProjectComponentIdentifier, LocalComponentMetaData>();
+    private final ConcurrentMap<ProjectComponentIdentifier, LocalComponentMetadata> projects = new ConcurrentHashMap<ProjectComponentIdentifier, LocalComponentMetadata>();
 
     public DefaultProjectComponentRegistry(List<ProjectComponentProvider> providers) {
         this.providers = providers;
     }
 
     @Override
-    public LocalComponentMetaData getProject(ProjectComponentIdentifier projectIdentifier) {
-        LocalComponentMetaData metaData = projects.get(projectIdentifier);
+    public LocalComponentMetadata getProject(ProjectComponentIdentifier projectIdentifier) {
+        LocalComponentMetadata metaData = projects.get(projectIdentifier);
         if (metaData !=null) {
             return metaData;
         }
         for (ProjectComponentProvider provider : providers) {
-            LocalComponentMetaData componentMetaData = provider.getProject(projectIdentifier);
+            LocalComponentMetadata componentMetaData = provider.getProject(projectIdentifier);
             if (componentMetaData != null) {
                 projects.putIfAbsent(projectIdentifier, componentMetaData);
                 return componentMetaData;
             }
         }
         return null;
+    }
+
+    @Override
+    public Iterable<ComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
+        for (ProjectComponentProvider provider : providers) {
+            Iterable<ComponentArtifactMetadata> artifacts = provider.getAdditionalArtifacts(project);
+            if (artifacts != null) {
+                return artifacts;
+            }
+        }
+        return Collections.emptyList();
     }
 }

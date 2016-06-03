@@ -56,14 +56,22 @@ abstract class AbstractClassGraphSpec extends Specification {
      */
     File isolatedClassesInJar(String filename = "test.jar", Class<?>... classes) {
         File zipFile = tmpDir.file(filename)
-        ZipOutputStream zip = new ZipOutputStream(new FileOutputStream(zipFile))
-        classes.each {
-            def name = it.name.replace('.', '/') + '.class'
-            def resource = it.classLoader.getResource(name)
-            zip.putNextEntry(new ZipEntry(name))
-            zip.write(resource.bytes)
+        FileOutputStream fos
+        try {
+            fos = new FileOutputStream(zipFile)
+            ZipOutputStream zip = new ZipOutputStream(fos)
+            classes.each {
+                def name = it.name.replace('.', '/') + '.class'
+                def resource = it.classLoader.getResource(name)
+                zip.putNextEntry(new ZipEntry(name))
+                zip.write(resource.bytes)
+                zip.closeEntry()
+            }
+            zip.close()
+        } finally {
+            fos.close()
         }
-        zip.close()
+
         return zipFile
     }
 

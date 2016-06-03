@@ -15,18 +15,14 @@
  */
 
 package org.gradle.language.objectivecpp
-
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.ObjectiveCppHelloWorldApp
-import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import static org.hamcrest.CoreMatchers.containsString
 
-
 @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP)
-@LeaksFileHandles
 class ObjectiveCppUnsupportedIntegrationTest extends AbstractInstalledToolChainIntegrationSpec{
 
     def helloWorldApp = new ObjectiveCppHelloWorldApp();

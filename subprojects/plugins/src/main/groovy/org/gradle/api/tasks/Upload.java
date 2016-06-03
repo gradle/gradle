@@ -24,7 +24,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.ArtifactPublicationServices;
 import org.gradle.api.internal.artifacts.ArtifactPublisher;
-import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.internal.Transformers;
@@ -54,7 +54,7 @@ public class Upload extends ConventionTask {
     @TaskAction
     protected void upload() {
         getLogger().info("Publishing configuration: " + configuration);
-        ModuleInternal module = ((ConfigurationInternal) configuration).getModule();
+        Module module = ((ConfigurationInternal) configuration).getModule();
 
         ArtifactPublisher artifactPublisher = getPublicationServices().createArtifactPublisher();
         File descriptorDestination = isUploadDescriptor() ? getDescriptorDestination() : null;
@@ -70,6 +70,7 @@ public class Upload extends ConventionTask {
     /**
      * Specifies whether the dependency descriptor should be uploaded.
      */
+    @Input
     public boolean isUploadDescriptor() {
         return uploadDescriptor;
     }
@@ -81,6 +82,7 @@ public class Upload extends ConventionTask {
     /**
      * Returns the path to generate the dependency descriptor to.
      */
+    @Optional @OutputFile
     public File getDescriptorDestination() {
         return descriptorDestination;
     }
@@ -93,6 +95,7 @@ public class Upload extends ConventionTask {
     /**
      * Returns the repositories to upload to.
      */
+    @Internal
     public RepositoryHandler getRepositories() {
         if (repositories == null) {
             repositories = getPublicationServices().createRepositoryHandler();
@@ -103,6 +106,7 @@ public class Upload extends ConventionTask {
     /**
      * Returns the configuration to upload.
      */
+    @Internal
     public Configuration getConfiguration() {
         return configuration;
     }

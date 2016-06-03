@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
+import org.gradle.api.tasks.Internal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 
@@ -61,6 +62,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
      *
      * @return The publication to be published
      */
+    @Internal
     public MavenPublication getPublication() {
         return publication;
     }
@@ -74,6 +76,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
         this.publication = toPublicationInternal(publication);
     }
 
+    @Internal
     protected MavenPublicationInternal getPublicationInternal() {
         return toPublicationInternal(getPublication());
     }

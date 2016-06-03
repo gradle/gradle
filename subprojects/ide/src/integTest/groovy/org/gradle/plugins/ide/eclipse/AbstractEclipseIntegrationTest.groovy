@@ -87,4 +87,8 @@ class AbstractEclipseIntegrationTest extends AbstractIdeIntegrationTest {
     protected EclipseClasspathFixture classpath(String path) {
         EclipseClasspathFixture.create(testDirectory.file(path), executer.gradleUserHomeDir)
     }
+
+    protected EclipseWtpFacetsFixture getWtpFacets() {
+        EclipseWtpFacetsFixture.create(testDirectory)
+    }
 }

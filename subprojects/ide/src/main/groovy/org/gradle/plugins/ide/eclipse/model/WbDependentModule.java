@@ -35,6 +35,11 @@ public class WbDependentModule implements WbModuleEntry {
         this((String) node.attribute("deploy-path"), (String) node.attribute("handle"));
     }
 
+    @Deprecated
+    public WbDependentModule(Object node) {
+        this((Node)node);
+    }
+
     public WbDependentModule(String deployPath, String handle) {
         Preconditions.checkNotNull(deployPath);
         this.deployPath = PathUtil.normalizePath(deployPath);

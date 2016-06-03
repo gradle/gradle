@@ -15,7 +15,6 @@
  */
 
 package org.gradle.nativeplatform.platform
-
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.internal.os.OperatingSystem
@@ -26,13 +25,11 @@ import org.gradle.nativeplatform.fixtures.binaryinfo.DumpbinBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 @Requires(TestPrecondition.NOT_UNKNOWN_OS)
-@LeaksFileHandles
 class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def testApp = new PlatformDetectingTestApp()
     def os = OperatingSystem.current()

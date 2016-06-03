@@ -17,13 +17,5 @@
 package org.gradle.plugins.ide.internal.resolver.model;
 
 public class IdeDependency {
-    private final String declaredConfiguration;
 
-    public IdeDependency(String declaredConfiguration) {
-        this.declaredConfiguration = declaredConfiguration;
-    }
-
-    public String getDeclaredConfiguration() {
-        return declaredConfiguration;
-    }
 }

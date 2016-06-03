@@ -93,8 +93,8 @@ task block << {
         def out = executer.withArguments("--stop").run().output
 
         then:
-        out == '''Stopping daemon(s).
-Gradle daemon stopped.
+        out == '''Stopping Daemon(s)
+1 Daemon stopped
 '''
 
         when:

@@ -67,9 +67,9 @@ public class DefaultConfigurableFileCollectionTest {
         DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection(resolverMock, taskResolverStub, "a", "b");
 
         context.checking(new Expectations() {{
-            one(resolverMock).resolve("a");
+            oneOf(resolverMock).resolve("a");
             will(returnValue(file1));
-            one(resolverMock).resolve("b");
+            oneOf(resolverMock).resolve("b");
             will(returnValue(file2));
         }});
 
@@ -103,9 +103,9 @@ public class DefaultConfigurableFileCollectionTest {
                 "src2");
 
         context.checking(new Expectations() {{
-            one(resolverMock).resolve("src1");
+            oneOf(resolverMock).resolve("src1");
             will(returnValue(file1));
-            one(resolverMock).resolve("src2");
+            oneOf(resolverMock).resolve("src2");
             will(returnValue(file2));
         }});
 
@@ -143,7 +143,7 @@ public class DefaultConfigurableFileCollectionTest {
         collection.from(closure);
 
         context.checking(new Expectations() {{
-            one(resolverMock).resolve('a');
+            oneOf(resolverMock).resolve('a');
             will(returnValue(file));
         }});
 
@@ -223,14 +223,14 @@ public class DefaultConfigurableFileCollectionTest {
         collection.from(src);
 
         context.checking(new Expectations() {{
-            one(src).getFiles();
+            oneOf(src).getFiles();
             will(returnValue(toLinkedSet(file1)));
         }});
 
         assertThat(collection.getFiles(), equalTo(toLinkedSet(file1)));
 
         context.checking(new Expectations() {{
-            one(src).getFiles();
+            oneOf(src).getFiles();
             will(returnValue(toLinkedSet(file1, file2)));
         }});
 
@@ -244,7 +244,7 @@ public class DefaultConfigurableFileCollectionTest {
         final Callable callable = context.mock(Callable.class);
 
         context.checking(new Expectations() {{
-            one(callable).call();
+            oneOf(callable).call();
             will(returnValue(toList("src1", "src2")));
             allowing(resolverMock).resolve("src1");
             will(returnValue(file1));
@@ -261,7 +261,7 @@ public class DefaultConfigurableFileCollectionTest {
         final Callable callable = context.mock(Callable.class);
 
         context.checking(new Expectations() {{
-            one(callable).call();
+            oneOf(callable).call();
             will(returnValue(null));
         }});
 
@@ -279,9 +279,9 @@ public class DefaultConfigurableFileCollectionTest {
         collection.from(fileCollectionMock);
 
         context.checking(new Expectations() {{
-            one(resolveContext).push(resolverMock);
+            oneOf(resolveContext).push(resolverMock);
             will(returnValue(nestedContext));
-            one(nestedContext).add(collection.getFrom());
+            oneOf(nestedContext).add(collection.getFrom());
         }});
 
         collection.visitContents(resolveContext);

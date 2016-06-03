@@ -19,22 +19,27 @@ import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.ManifestMergeDetails;
 import org.gradle.api.java.archives.ManifestMergeSpec;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultManifestMergeSpec implements ManifestMergeSpec {
     List<Object> mergePaths = new ArrayList<Object>();
     private final List<Action<? super ManifestMergeDetails>> actions = new ArrayList<Action<? super ManifestMergeDetails>>();
-    private String contentCharset = Charset.defaultCharset().name();
+    private String contentCharset = DefaultManifest.DEFAULT_CONTENT_CHARSET;
 
     @Override
     public String getContentCharset() {
@@ -66,11 +71,12 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
 
     @Override
     public ManifestMergeSpec eachEntry(Closure<?> mergeAction) {
-        return eachEntry(new ClosureBackedAction<ManifestMergeDetails>(mergeAction));
+        return eachEntry(ConfigureUtil.configureUsing(mergeAction));
     }
 
     public DefaultManifest merge(Manifest baseManifest, PathToFileResolver fileResolver) {
-        DefaultManifest mergedManifest = new DefaultManifest(fileResolver, baseManifest.getContentCharset());
+        String baseContentCharset = baseManifest instanceof ManifestInternal ? ((ManifestInternal) baseManifest).getContentCharset() : DefaultManifest.DEFAULT_CONTENT_CHARSET;
+        DefaultManifest mergedManifest = new DefaultManifest(fileResolver, baseContentCharset);
         mergedManifest.getAttributes().putAll(baseManifest.getAttributes());
         mergedManifest.getSections().putAll(baseManifest.getSections());
         for (Object mergePath : mergePaths) {

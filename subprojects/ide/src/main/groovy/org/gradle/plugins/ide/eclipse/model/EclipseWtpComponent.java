@@ -37,7 +37,7 @@ import java.util.Set;
  * Enables fine-tuning wtp component details of the Eclipse plugin
  * <p>
  * Example of use with a blend of all possible properties.
- * Bear in mind that usually you don't have configure them directly because Gradle configures it for free!
+ * Bear in mind that usually you don't have to configure them directly because Gradle configures it for free!
  *
  * <pre autoTested=''>
  * apply plugin: 'java'
@@ -66,10 +66,13 @@ import java.util.Set;
  *       //non-existing source dirs won't be added to the component file.
  *       sourceDirs += file('someExtraFolder')
  *
- *       //you can alter the files are to be transformed into dependent-module elements:
- *       plusConfigurations += [ configurations.someInterestingConfiguration ]
+ *       // dependencies to mark as deployable with lib folder deploy path
+ *       libConfigurations += [ configurations.someInterestingConfiguration ]
  *
- *       //or whose files are to be excluded from dependent-module elements:
+ *       // dependencies to mark as deployable with root folder deploy path
+ *       rootConfigurations += [ configurations.someInterestingConfiguration ]
+ *
+ *       // dependencies to exclude from wtp deployment
  *       minusConfigurations << configurations.anotherConfiguration
  *
  *       //you can add a wb-resource elements; mandatory keys: 'sourcePath', 'deployPath':
@@ -138,7 +141,7 @@ public class EclipseWtpComponent {
     private List<WbProperty> properties = Lists.newArrayList();
     private String contextPath;
     private String classesDeployPath = "/WEB-INF/classes";
-    private String libDeployPath = "/WEB-INF/lib";
+    private String libDeployPath;
     private Map<String, File> pathVariables = Maps.newHashMap();
 
     public EclipseWtpComponent(org.gradle.api.Project project, XmlFileContentMerger file) {
@@ -186,7 +189,7 @@ public class EclipseWtpComponent {
     }
 
     /**
-     * The configurations whose files are to be transformed into dependent-module elements with a deploy path of '/'.
+     * The configurations whose files are to be marked to be deployed with a deploy path of '/'.
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
@@ -199,7 +202,7 @@ public class EclipseWtpComponent {
     }
 
     /**
-     * The configurations whose files are to be transformed into dependent-module elements with a deploy path of {@link #getLibDeployPath()}.
+     * The configurations whose files are to be marked to be deployed with a deploy path of {@link #getLibDeployPath()}.
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
@@ -366,7 +369,7 @@ public class EclipseWtpComponent {
 
     public void mergeXmlComponent(WtpComponent xmlComponent) {
         file.getBeforeMerged().execute(xmlComponent);
-        new WtpComponentFactory().configure(this, xmlComponent);
+        new WtpComponentFactory(project).configure(this, xmlComponent);
         file.getWhenMerged().execute(xmlComponent);
     }
 }

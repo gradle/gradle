@@ -52,7 +52,7 @@ public class SigningExtension {
     /**
      * The name of the configuration that all signature artifacts will be placed into ("signatures")
      */
-    private static final String DEFAULT_CONFIGURATION_NAME = "signatures";
+    public static final String DEFAULT_CONFIGURATION_NAME = "signatures";
 
     /**
      * The project that the settings are for
@@ -292,13 +292,13 @@ public class SigningExtension {
         return signTask;
     }
 
-    protected void addSignaturesToConfiguration(Sign task, final Configuration configuration) {
+    protected Object addSignaturesToConfiguration(Sign task, final Configuration configuration) {
         task.getSignatures().all(new Action<Signature>() {
             public void execute(Signature sig) {
                 configuration.getArtifacts().add(sig);
             }
         });
-        task.getSignatures().whenObjectRemoved(new Action<Signature>() {
+        return task.getSignatures().whenObjectRemoved(new Action<Signature>() {
             public void execute(Signature sig) {
                 configuration.getArtifacts().remove(sig);
             }
@@ -451,4 +451,9 @@ public class SigningExtension {
             ? uncheckedCall((Callable) maybeCallable)
             : maybeCallable;
     }
+
+    public static String getDEFAULT_CONFIGURATION_NAME() {
+        return DEFAULT_CONFIGURATION_NAME;
+    }
+
 }

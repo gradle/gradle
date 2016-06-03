@@ -17,17 +17,20 @@
 package org.gradle.language
 
 import org.gradle.integtests.fixtures.SourceFile
-import org.gradle.language.fixtures.app.*
+import org.gradle.language.fixtures.app.DuplicateAssemblerBaseNamesTestApp
+import org.gradle.language.fixtures.app.DuplicateCBaseNamesTestApp
+import org.gradle.language.fixtures.app.DuplicateCppBaseNamesTestApp
+import org.gradle.language.fixtures.app.DuplicateMixedSameBaseNamesTestApp
+import org.gradle.language.fixtures.app.DuplicateObjectiveCBaseNamesTestApp
+import org.gradle.language.fixtures.app.DuplicateObjectiveCppBaseNamesTestApp
+import org.gradle.language.fixtures.app.DuplicateWindowsResourcesBaseNamesTestApp
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
-// TODO add coverage for mixed sources
-@LeaksFileHandles
 class DuplicateBaseNamesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "can have sourcefiles with same base name but different directories"() {

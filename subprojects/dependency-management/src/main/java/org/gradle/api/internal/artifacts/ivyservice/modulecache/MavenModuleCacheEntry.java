@@ -17,9 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetaData;
+import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.math.BigInteger;
@@ -34,8 +34,8 @@ class MavenModuleCacheEntry extends ModuleDescriptorCacheEntry {
         this.snapshotTimestamp = snapshotTimestamp;
     }
 
-    public MutableModuleComponentResolveMetaData createMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor) {
+    public MutableModuleComponentResolveMetadata createMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor) {
         // TODO Relocation is not currently cached
-        return configure(new DefaultMavenModuleResolveMetaData(componentIdentifier, descriptor, packaging, false));
+        return configure(new DefaultMavenModuleResolveMetadata(componentIdentifier, descriptor, packaging, false));
     }
 }

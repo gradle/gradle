@@ -398,7 +398,7 @@ The `GradleRunner` abstract class will be extended to provide additional methods
 
 * Using `System.out` and `System.err` as default? This might produce to much log output.
 
-## Story: Test kit does not require any of the Gradle runtime
+## Story: Test kit does not require any of the Gradle runtime (DONE)
 
 This story improves usability of the test kit by not imposing any dependencies beyond the `gradle-test-kit` and `gradle-tooling-api` jars (including no transitive dependencies).
 
@@ -412,7 +412,7 @@ This story improves usability of the test kit by not imposing any dependencies b
 - User tests cannot access classes from `gradle-core` (or any other part of the Gradle runtime) in tests where `gradleTestKit()` was used
 - Configuration containing just `gradleTestKit()` contains no other files than `gradle-test-kit` and `gradle-tooling-api`
 
-## Story: GradleRunner functionality is verified to work with all "supported" Gradle versions
+## Story: GradleRunner functionality is verified to work with all "supported" Gradle versions (DONE)
 
 The TestKit allows for executing functional tests with a Gradle distribution specified by the user. `GradleRunner` passes the provided
 distribution to the Tooling API to execute Gradle. For the most part the internal implementation of the Tooling API build execution
@@ -448,7 +448,7 @@ a human-readable error message that explains why this feature cannot be used.
 * To determine the target Gradle version under test based on the provided distribution, the Tooling API model is queries which probably has a small overhead in terms of
 execution performance. Are we OK with this overhead or is there a better way to determine the target Gradle version?
 
-## Story: Audit existing tests and improve the test coverage for TestKit
+## Story: Audit existing tests and improve the test coverage for TestKit (DONE)
 
 In a previous story, support for cross-version compatibility tests have been put in place. The goal of this story to audit the existing tests and improve the test coverage.
 
@@ -473,7 +473,7 @@ executions on the class level, this needs to be done on the level of a test meth
 This milestone focuses on making TestKit more convenient to use for plugin developers by reducing boiler plate logic. Another aspect addresses the packaging of TestKit
 and the Gradle API to avoid classpath issues.
 
-## Story: Plugin development plugin automatically injects plugin classpath
+## Story: Plugin development plugin automatically injects plugin classpath (DONE)
 
 Plugin developers using TestKit need to inject the classes-under-test by using the method `withPluginClasspath(Iterable<? extends File> classpath)`. TestKit proposes ways
 to determine the classpath in the user guide. This approach requires boiler plate code that needs to be copy/pasted from project to project. The goal of this story is
@@ -551,7 +551,7 @@ The usage of the extension looks as follows:
 invocation wins.
 * Manually verify that executing tests in the IDE (say IDEA) works reasonably well. Document any unforeseen caveats.
 
-## Story: Isolate external dependencies used by Gradle runtime from user classpath
+## Story: Isolate external dependencies used by Gradle runtime from user classpath (DONE)
 
 ### Estimate
 

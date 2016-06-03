@@ -16,15 +16,15 @@
 package org.gradle.api.java.archives;
 
 import groovy.lang.Closure;
-import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
-import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Map;
 
 /**
  * Represents the manifest file of a JAR file.
  */
+@HasInternalProtocol
 public interface Manifest {
     /**
      * Returns the main attributes of the manifest.
@@ -70,53 +70,24 @@ public interface Manifest {
     Manifest getEffectiveManifest();
 
     /**
-     * The character set used to encode this manifest content.
-     * Defaults to UTF-8.
-     * You can change this property but it is not recommended as JVMs expect manifests content to be encoded using UTF-8.
-     *
-     * @return the character set used to encode this manifest content
-     * @since 2.14
-     */
-    @Incubating
-    String getContentCharset();
-
-    /**
-     * The character set used to encode this manifest content.
-     *
-     * @param contentCharset the character set used to encode this manifest content
-     * @since 2.14
-     * @see #getContentCharset()
-     */
-    @Incubating
-    void setContentCharset(String contentCharset);
-
-    /**
      * Writes the manifest into a writer.
      *
      * If writing to bytes, prefer using the UTF-8 character set for encoding.
      *
+     * Note that using this method will break your Manifest if it contains long
+     * attribute names or values that may produce split multi-bytes characters.
+     * Prefer {@link #writeTo(Object)} instead.
+     *
      * @param writer The writer to write the manifest to
      * @return this
-     * @see #getContentCharset()
      */
+    @Deprecated
     Manifest writeTo(Writer writer);
-
-    /**
-     * Writes the manifest into a stream.
-     *
-     * The manifest will be encoded using the character set defined by the {@link #getContentCharset()} property.
-     *
-     * @param outputStream The stream to write the manifest to
-     * @return this
-     * @since 2.14
-     */
-    @Incubating
-    Manifest writeTo(OutputStream outputStream);
 
     /**
      * Writes the manifest into a file. The path's are resolved as defined by {@link org.gradle.api.Project#files(Object...)}
      *
-     * The manifest will be encoded using the character set defined by the {@link #getContentCharset()} property.
+     * The manifest will be encoded using the character set defined by the {@link org.gradle.jvm.tasks.Jar#getManifestContentCharset()} property.
      *
      * @param path The path of the file to write the manifest into.
      * @return this

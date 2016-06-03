@@ -22,6 +22,9 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidActionClosureException;
 import org.gradle.util.Configurable;
 
+/**
+ * NOTE: You should use {@link ConfigureUtil} instead of this class when adding a closure backed method to the DSL, whether statically or dynamically added. {@link ConfigureUtil} is much more efficient and takes care of applying consistent DSL behaviour when closures are nested.
+ */
 public class ClosureBackedAction<T> implements Action<T> {
     private final Closure closure;
     private final boolean configureableAware;

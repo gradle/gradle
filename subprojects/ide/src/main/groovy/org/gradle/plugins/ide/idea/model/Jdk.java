@@ -49,7 +49,16 @@ public class Jdk {
         this.projectJdkName = projectJdkName;
     }
 
+    @Deprecated
+    public Jdk(Object assertKeyword, Object jdk15, Object languageLevel, Object projectJdkName) {
+        this(((Boolean)assertKeyword).booleanValue(), ((Boolean)jdk15).booleanValue(), (String)languageLevel, (String)projectJdkName);
+    }
+
     public boolean isAssertKeyword() {
+        return assertKeyword;
+    }
+
+    public boolean getAssertKeyword() {
         return assertKeyword;
     }
 
@@ -58,6 +67,10 @@ public class Jdk {
     }
 
     public boolean isJdk15() {
+        return jdk15;
+    }
+
+    public boolean getJdk15() {
         return jdk15;
     }
 

@@ -27,7 +27,7 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
         return Nested.class;
     }
 
-    public void attachActions(final TaskPropertyActionContext context) {
+    public boolean attachActions(final TaskPropertyActionContext context) {
         Class<?> nestedType = context.getInstanceVariableType();
         if (nestedType == null) {
             nestedType = context.getType();
@@ -43,5 +43,11 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
                 });
             }
         });
+        return true;
+    }
+
+    @Override
+    public boolean isNotBeNullByDefault() {
+        return true;
     }
 }

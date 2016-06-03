@@ -20,9 +20,14 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.file.*;
+import org.gradle.api.file.CopyProcessingSpec;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.ChainingTransformer;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
@@ -35,7 +40,12 @@ import org.gradle.util.ConfigureUtil;
 import java.io.File;
 import java.io.FilterReader;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 @NonExtensible
@@ -313,7 +323,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec eachFile(Closure closure) {
-        copyActions.add(new ClosureBackedAction<FileCopyDetails>(closure));
+        copyActions.add(ConfigureUtil.configureUsing(closure));
         return this;
     }
 

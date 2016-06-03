@@ -1,0 +1,2 @@
+org.gradle.api.plugins.JavaPluginConvention
+org.gradle.plugins.ide.idea.model.IdeaModule

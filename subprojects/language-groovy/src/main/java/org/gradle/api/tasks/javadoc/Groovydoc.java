@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Nullable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
@@ -25,6 +26,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
@@ -89,8 +91,17 @@ public class Groovydoc extends SourceTask {
     protected void generate() {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
         getAntGroovydoc().execute(getSource(), getDestinationDir(), isUse(), isNoTimestamp(), isNoVersionStamp(), getWindowTitle(),
-                getDocTitle(), getHeader(), getFooter(), getOverviewText(), isIncludePrivate(), getLinks(), getGroovyClasspath(),
+                getDocTitle(), getHeader(), getFooter(), getPathToOverview(), isIncludePrivate(), getLinks(), getGroovyClasspath(),
                 getClasspath(), getProject());
+    }
+
+    @Nullable
+    private String getPathToOverview() {
+        TextResource overview = getOverviewText();
+        if (overview!=null) {
+            return overview.asFile().getAbsolutePath();
+        }
+        return null;
     }
 
     private void checkGroovyClasspathNonEmpty(Collection<File> classpath) {
@@ -150,6 +161,7 @@ public class Groovydoc extends SourceTask {
         this.classpath = classpath;
     }
 
+    @Internal
     public AntGroovydoc getAntGroovydoc() {
         if (antGroovydoc == null) {
             IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);

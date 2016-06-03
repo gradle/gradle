@@ -33,8 +33,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.STARTING_DAEMON_MESSAGE;
-import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.SUBSEQUENT_BUILDS_FASTER_MESSAGE;
+import static org.gradle.launcher.daemon.client.DaemonStartingMessage.NO_COMPATIBLE_DAEMONS_MESSAGE;
+import static org.gradle.launcher.daemon.client.DaemonStartingMessage.STARTING_DAEMON_MESSAGE;
 import static org.gradle.util.TextUtil.normaliseLineSeparators;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -79,9 +79,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             if (line.contains(STARTING_DAEMON_MESSAGE)) {
                 // Remove the "daemon starting" message
                 i++;
-
+            } else if (line.contains(NO_COMPATIBLE_DAEMONS_MESSAGE)) {
                 // Remove daemon reporting lines
-                while (i < lines.size() && !lines.get(i).contains(SUBSEQUENT_BUILDS_FASTER_MESSAGE)) {
+                while (i < lines.size() && !lines.get(i).contains(STARTING_DAEMON_MESSAGE)) {
                     i++;
                 }
 

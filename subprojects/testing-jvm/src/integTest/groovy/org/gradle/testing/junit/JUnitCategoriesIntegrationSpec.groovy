@@ -58,7 +58,10 @@ public class JUnitCategoriesIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def testTaskFailsIfCategoriesNotSupported() {
-        when: fails('test')
-        then: failure.assertHasCause("JUnit Categories defined but declared JUnit version does not support Categories.")
+        when:
+        fails('test')
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass("org.gradle.SomeTest").assertTestFailed("initializationError", startsWith("org.gradle.api.GradleException: JUnit Categories defined but declared JUnit version does not support Categories."))
     }
 }

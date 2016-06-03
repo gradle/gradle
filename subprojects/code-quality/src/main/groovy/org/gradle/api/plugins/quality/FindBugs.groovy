@@ -33,6 +33,7 @@ import org.gradle.api.reporting.Reporting
 import org.gradle.api.resources.TextResource
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.SkipWhenEmpty
@@ -82,6 +83,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
     /**
      * Whether or not to allow the build to continue if there are warnings.
      */
+    @Input
     boolean ignoreFailures
 
     /**
@@ -218,6 +220,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
     /**
      * The filename of a filter specifying which bugs are reported.
      */
+    @Internal
     File getIncludeFilter() {
         getIncludeFilterConfig()?.asFile()
     }
@@ -232,6 +235,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
     /**
      * The filename of a filter specifying bugs to exclude from being reported.
      */
+    @Internal
     File getExcludeFilter() {
         getExcludeFilterConfig()?.asFile()
     }
@@ -246,6 +250,7 @@ class FindBugs extends SourceTask implements VerificationTask, Reporting<FindBug
     /**
      * The filename of a filter specifying baseline bugs to exclude from being reported.
      */
+    @Internal
     File getExcludeBugsFilter() {
         getExcludeBugsFilterConfig()?.asFile()
     }

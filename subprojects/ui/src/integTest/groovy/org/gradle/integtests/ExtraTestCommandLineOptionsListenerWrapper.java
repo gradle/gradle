@@ -27,6 +27,6 @@ public class ExtraTestCommandLineOptionsListenerWrapper implements CommandLineAr
     }
 
     public String getAdditionalCommandLineArguments(String commandLineArguments) {
-        return String.format("--no-search-upward --gradle-user-home \'%s\'", gradleUserHomeDir);
+        return String.format("--no-search-upward --no-daemon --gradle-user-home \'%s\'", gradleUserHomeDir);
     }
 }

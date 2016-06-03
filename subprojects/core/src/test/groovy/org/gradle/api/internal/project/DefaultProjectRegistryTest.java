@@ -34,9 +34,9 @@ import static org.junit.Assert.*;
 public class DefaultProjectRegistryTest {
     public static final String CHILD_NAME = "child";
     public static final String CHILD_CHILD_NAME = "childchild";
-    private DefaultProject rootMock;
-    private DefaultProject childMock;
-    private DefaultProject childChildMock;
+    private ProjectInternal rootMock;
+    private ProjectInternal childMock;
+    private ProjectInternal childChildMock;
 
     private DefaultProjectRegistry<ProjectInternal> projectRegistry;
 
@@ -59,8 +59,8 @@ public class DefaultProjectRegistryTest {
         checkAccessMethods(childChildMock, toSortedSet(childChildMock), new TreeSet(), childChildMock);
     }
 
-    private void checkAccessMethods(Project project, SortedSet<DefaultProject> expectedAllProjects,
-                                    SortedSet<DefaultProject> expectedSubProjects, Project expectedGetProject) {
+    private void checkAccessMethods(Project project, SortedSet<ProjectInternal> expectedAllProjects,
+                                    SortedSet<ProjectInternal> expectedSubProjects, Project expectedGetProject) {
         assertSame(expectedGetProject, projectRegistry.getProject(project.getPath()));
         assertEquals(expectedAllProjects, projectRegistry.getAllProjects(project.getPath()));
         assertEquals(expectedSubProjects, projectRegistry.getSubProjects(project.getPath()));
@@ -70,7 +70,7 @@ public class DefaultProjectRegistryTest {
 
     @Test
     public void cannotLocateProjectsWithAmbiguousProjectDir() {
-        DefaultProject duplicateProjectDirProject = TestUtil.createChildProject(childMock, "childchild2", childMock.getProjectDir());
+        ProjectInternal duplicateProjectDirProject = TestUtil.createChildProject(childMock, "childchild2", childMock.getProjectDir());
         projectRegistry.addProject(duplicateProjectDirProject);
 
         try {
@@ -96,7 +96,7 @@ public class DefaultProjectRegistryTest {
         assertThat(projectRegistry.getAllProjects(), equalTo(toSet((ProjectInternal) rootMock, childMock,
                 childChildMock)));
     }
-    
+
     @Test
     public void canLocateAllProjectsWhichMatchSpec() {
         Spec<Project> spec = new Spec<Project>() {

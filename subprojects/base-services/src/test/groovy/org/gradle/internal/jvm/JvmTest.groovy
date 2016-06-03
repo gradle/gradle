@@ -97,6 +97,37 @@ class JvmTest extends Specification {
         jvm.standaloneJre == null
     }
 
+    def "locates JDK and JRE installs when user-specified java.home points to a typical JRE installation embedded in a JDK installation"() {
+        given:
+        TestFile software = tmpDir.createDir('software')
+        software.create {
+            jdk {
+                lib {
+                    file 'tools.jar'
+                }
+                bin {
+                    file 'java.exe'
+                    file 'javac.exe'
+                    file 'javadoc.exe'
+                }
+                jre {
+                    lib { file 'rt.jar' }
+                    bin { file 'java.exe' }
+                }
+            }
+        }
+
+        expect:
+        def jvm = new Jvm(os, software.file('jdk/jre'), JavaVersion.current());
+        jvm.javaHome == software.file('jdk')
+        jvm.toolsJar == software.file('jdk/lib/tools.jar')
+        jvm.javaExecutable == software.file('jdk/bin/java.exe')
+        jvm.javacExecutable == software.file('jdk/bin/javac.exe')
+        jvm.javadocExecutable == software.file('jdk/bin/javadoc.exe')
+        jvm.jre.homeDir == software.file('jdk/jre')
+        jvm.standaloneJre == null
+    }
+
     def "locates JDK and JRE installs when java.home points to a typical JDK installation"() {
         given:
         TestFile software = tmpDir.createDir('software')
@@ -246,7 +277,7 @@ class JvmTest extends Specification {
         '1.5.0_22' | 'jre1.5.0_22' | 'jdk1.5.0_22'
     }
 
-    def "JVMs are equal when their Java home dirs are the same"() {
+    def "JVM are equal when their Java home dirs are the same"() {
         given:
         TestFile installDir = tmpDir.createDir('software')
         installDir.create {
@@ -260,11 +291,24 @@ class JvmTest extends Specification {
 
         expect:
         def jvm = new Jvm(os, installDir, JavaVersion.current())
-        def current = Jvm.current()
+        def jvm2 = new Jvm(os, installDir, JavaVersion.current())
+        Matchers.strictlyEquals(jvm, jvm2)
+    }
 
-        Matchers.strictlyEquals(jvm, new Jvm(os, installDir, JavaVersion.current()))
-        Matchers.strictlyEquals(current, Jvm.forHome(current.javaHome))
-        jvm != current
+    def "Returns current JVM when located using Java home dir"() {
+        expect:
+        def current = Jvm.current()
+        def jvm = Jvm.forHome(current.javaHome)
+
+        jvm.is(current)
+    }
+
+    def "Returns current JVM when located using java.home dir"() {
+        expect:
+        def current = Jvm.current()
+        def jvm = Jvm.forHome(new File(System.getProperty("java.home")))
+
+        jvm.is(current)
     }
 
     def "uses system property to determine if Sun/Oracle JVM"() {
@@ -273,7 +317,7 @@ class JvmTest extends Specification {
         def jvm = Jvm.create()
 
         then:
-        jvm.getClass() == Jvm
+        jvm.getClass() == Jvm.JvmImplementation
     }
 
     def "uses system property to determine if Apple JVM"() {
@@ -289,7 +333,7 @@ class JvmTest extends Specification {
         jvm = Jvm.create()
 
         then:
-        jvm.getClass() == Jvm
+        jvm.getClass() == Jvm.JvmImplementation
     }
 
     def "uses system property to determine if IBM JVM"() {

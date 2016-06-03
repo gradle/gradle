@@ -70,7 +70,7 @@ public class JacocoMerge extends JacocoBase {
     }
 
     @TaskAction
-    void merge() {
+    public void merge() {
         new AntJacocoMerge(getAntBuilder()).execute(getJacocoClasspath(), getExecutionData(), getDestinationFile());
     }
 
@@ -79,7 +79,7 @@ public class JacocoMerge extends JacocoBase {
      *
      * @param files one or more files to merge
      */
-    void executionData(Object... files) {
+    public void executionData(Object... files) {
         if (executionData == null) {
             executionData = getProject().files(files);
         } else {
@@ -92,7 +92,7 @@ public class JacocoMerge extends JacocoBase {
      *
      * @param tasks one or more tasks to merge
      */
-    void executionData(Task... tasks) {
+    public void executionData(Task... tasks) {
         for (Task task : tasks) {
             JacocoTaskExtension extension = task.getExtensions().findByType(JacocoTaskExtension.class);
             if (extension != null) {
@@ -108,7 +108,7 @@ public class JacocoMerge extends JacocoBase {
      *
      * @param tasks one or more tasks to merge
      */
-    void executionData(TaskCollection tasks) {
+    public void executionData(TaskCollection tasks) {
         tasks.all(new Action<Task>() {
             @Override
             public void execute(Task task) {

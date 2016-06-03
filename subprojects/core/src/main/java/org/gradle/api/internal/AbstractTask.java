@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
@@ -30,6 +31,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.ClassLoaderAwareTaskAction;
 import org.gradle.api.internal.tasks.ContextAwareTaskAction;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
@@ -49,7 +51,6 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
@@ -120,7 +121,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     // toString() of AbstractTask is called a lot, so precompute.
     private final String toStringValue;
 
-    private final TaskInputs taskInputs;
+    private final TaskInputsInternal taskInputs;
     private final TaskOutputsInternal taskOutputs;
     private final Class<? extends Task> publicType;
     private LoggingManagerInternal loggingManager;
@@ -200,6 +201,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public List<ContextAwareTaskAction> getTaskActions() {
         return observableActionList;
+    }
+
+    @Override
+    public Set<ClassLoader> getActionClassLoaders() {
+        Set<ClassLoader> actionLoaders = Sets.newLinkedHashSet();
+        for (ContextAwareTaskAction action : actions) {
+            actionLoaders.add(action.getClassLoader());
+        }
+        return actionLoaders;
     }
 
     public void setActions(final List<Action<? super Task>> replacements) {
@@ -444,7 +454,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.group = group;
     }
 
-    public TaskInputs getInputs() {
+    public TaskInputsInternal getInputs() {
         return taskInputs;
     }
 
@@ -586,6 +596,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 Thread.currentThread().setContextClassLoader(original);
             }
         }
+
+        @Override
+        public ClassLoader getClassLoader() {
+            return closure.getClass().getClassLoader();
+        }
     }
 
     private static class TaskActionWrapper implements ContextAwareTaskAction {
@@ -608,6 +623,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 action.execute(task);
             } finally {
                 Thread.currentThread().setContextClassLoader(original);
+            }
+        }
+
+        @Override
+        public ClassLoader getClassLoader() {
+            if (action instanceof ClassLoaderAwareTaskAction) {
+                return ((ClassLoaderAwareTaskAction) action).getClassLoader();
+            } else {
+                return action.getClass().getClassLoader();
             }
         }
 

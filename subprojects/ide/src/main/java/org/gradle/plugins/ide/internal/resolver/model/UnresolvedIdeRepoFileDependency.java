@@ -23,8 +23,8 @@ public class UnresolvedIdeRepoFileDependency extends IdeExtendedRepoFileDependen
     private final Throwable problem;
     private final String displayName;
 
-    public UnresolvedIdeRepoFileDependency(String declaredConfiguration, File file, Throwable problem, String displayName) {
-        super(declaredConfiguration, file);
+    public UnresolvedIdeRepoFileDependency(File file, Throwable problem, String displayName) {
+        super(file);
 
         this.displayName = displayName;
         this.problem = problem;

@@ -110,6 +110,10 @@ public class ModuleLibrary implements Dependency {
         return exported;
     }
 
+    public boolean getExported() {
+        return exported;
+    }
+
     public void setExported(boolean exported) {
         this.exported = exported;
     }

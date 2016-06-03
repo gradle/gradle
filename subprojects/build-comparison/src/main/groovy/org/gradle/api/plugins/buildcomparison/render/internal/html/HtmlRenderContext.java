@@ -35,7 +35,7 @@ public class HtmlRenderContext {
     }
 
     public void render(Closure<?> renderAction) {
-        new ClosureBackedAction<Object>(renderAction).execute(markupBuilder);
+        ClosureBackedAction.execute(markupBuilder, renderAction);
     }
 
     public String relativePath(File file) {

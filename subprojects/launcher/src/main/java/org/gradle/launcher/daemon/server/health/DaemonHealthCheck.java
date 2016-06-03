@@ -16,6 +16,28 @@
 
 package org.gradle.launcher.daemon.server.health;
 
-public interface DaemonHealthCheck {
-    public void executeHealthCheck();
+import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.event.ListenerManager;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
+
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE;
+
+public class DaemonHealthCheck {
+
+    private final DaemonExpirationStrategy strategy;
+    private final ListenerBroadcast<DaemonExpirationListener> listenerBroadcast;
+
+    public DaemonHealthCheck(DaemonExpirationStrategy strategy, ListenerManager listenerManager) {
+        this.strategy = strategy;
+        this.listenerBroadcast = listenerManager.createAnonymousBroadcaster(DaemonExpirationListener.class);
+    }
+
+    public void executeHealthCheck() {
+        DaemonExpirationResult result = strategy.checkExpiration();
+        if (result.getStatus() != DO_NOT_EXPIRE) {
+            listenerBroadcast.getSource().onExpirationEvent(result);
+        }
+    }
 }

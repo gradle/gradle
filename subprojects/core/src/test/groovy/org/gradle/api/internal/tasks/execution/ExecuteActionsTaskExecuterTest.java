@@ -82,19 +82,19 @@ public class ExecuteActionsTaskExecuterTest {
             allowing(task).getTaskActions();
             will(returnValue(emptyList()));
 
-            one(listener).beforeActions(task);
+            oneOf(listener).beforeActions(task);
             inSequence(sequence);
 
-            one(state).setExecuting(true);
+            oneOf(state).setExecuting(true);
             inSequence(sequence);
 
-            one(state).executed(null);
+            oneOf(state).executed(null);
             inSequence(sequence);
 
-            one(state).setExecuting(false);
+            oneOf(state).setExecuting(false);
             inSequence(sequence);
 
-            one(listener).afterActions(task);
+            oneOf(listener).afterActions(task);
             inSequence(sequence);
         }});
 
@@ -107,55 +107,55 @@ public class ExecuteActionsTaskExecuterTest {
             allowing(task).getTaskActions();
             will(returnValue(toList(action1, action2)));
 
-            one(listener).beforeActions(task);
+            oneOf(listener).beforeActions(task);
             inSequence(sequence);
 
-            one(state).setExecuting(true);
+            oneOf(state).setExecuting(true);
             inSequence(sequence);
 
-            one(state).setDidWork(true);
+            oneOf(state).setDidWork(true);
             inSequence(sequence);
 
-            one(standardOutputCapture).start();
+            oneOf(standardOutputCapture).start();
             inSequence(sequence);
 
-            one(action1).contextualise(executionContext);
+            oneOf(action1).contextualise(executionContext);
             inSequence(sequence);
 
-            one(action1).execute(task);
+            oneOf(action1).execute(task);
             inSequence(sequence);
 
-            one(action1).contextualise(null);
+            oneOf(action1).contextualise(null);
             inSequence(sequence);
 
-            one(standardOutputCapture).stop();
+            oneOf(standardOutputCapture).stop();
             inSequence(sequence);
 
-            one(state).setDidWork(true);
+            oneOf(state).setDidWork(true);
             inSequence(sequence);
 
-            one(standardOutputCapture).start();
+            oneOf(standardOutputCapture).start();
             inSequence(sequence);
 
-            one(action2).contextualise(executionContext);
+            oneOf(action2).contextualise(executionContext);
             inSequence(sequence);
 
-            one(action2).execute(task);
+            oneOf(action2).execute(task);
             inSequence(sequence);
 
-            one(action2).contextualise(null);
+            oneOf(action2).contextualise(null);
             inSequence(sequence);
 
-            one(standardOutputCapture).stop();
+            oneOf(standardOutputCapture).stop();
             inSequence(sequence);
 
-            one(state).executed(null);
+            oneOf(state).executed(null);
             inSequence(sequence);
 
-            one(state).setExecuting(false);
+            oneOf(state).setExecuting(false);
             inSequence(sequence);
 
-            one(listener).afterActions(task);
+            oneOf(listener).afterActions(task);
             inSequence(sequence);
         }});
 
@@ -172,22 +172,22 @@ public class ExecuteActionsTaskExecuterTest {
                 allowing(task).getTaskActions();
                 will(returnValue(toList(action1)));
 
-                one(listener).beforeActions(task);
+                oneOf(listener).beforeActions(task);
                 inSequence(sequence);
 
-                one(state).setExecuting(true);
+                oneOf(state).setExecuting(true);
                 inSequence(sequence);
 
-                one(state).setDidWork(true);
+                oneOf(state).setDidWork(true);
                 inSequence(sequence);
 
-                one(standardOutputCapture).start();
+                oneOf(standardOutputCapture).start();
                 inSequence(sequence);
 
-                one(action1).contextualise(executionContext);
+                oneOf(action1).contextualise(executionContext);
                 inSequence(sequence);
 
-                one(action1).execute(task);
+                oneOf(action1).execute(task);
                 will(new CustomAction("Add action to actions list") {
                     public Object invoke(Invocation invocation) throws Throwable {
                         task.getActions().add(action2);
@@ -197,17 +197,17 @@ public class ExecuteActionsTaskExecuterTest {
 
                 inSequence(sequence);
 
-                one(action1).contextualise(null);
+                oneOf(action1).contextualise(null);
                 inSequence(sequence);
 
-                one(standardOutputCapture).stop();
-                one(state).executed(null);
+                oneOf(standardOutputCapture).stop();
+                oneOf(state).executed(null);
                 inSequence(sequence);
 
-                one(state).setExecuting(false);
+                oneOf(state).setExecuting(false);
                 inSequence(sequence);
 
-                one(listener).afterActions(task);
+                oneOf(listener).afterActions(task);
                 inSequence(sequence);
             }
         });
@@ -223,39 +223,39 @@ public class ExecuteActionsTaskExecuterTest {
             allowing(task).getTaskActions();
             will(returnValue(toList(action1, action2)));
 
-            one(listener).beforeActions(task);
+            oneOf(listener).beforeActions(task);
             inSequence(sequence);
 
-            one(state).setExecuting(true);
+            oneOf(state).setExecuting(true);
             inSequence(sequence);
 
-            one(state).setDidWork(true);
+            oneOf(state).setDidWork(true);
             inSequence(sequence);
 
-            one(standardOutputCapture).start();
+            oneOf(standardOutputCapture).start();
             inSequence(sequence);
 
-            one(action1).contextualise(executionContext);
+            oneOf(action1).contextualise(executionContext);
             inSequence(sequence);
 
-            one(action1).execute(task);
+            oneOf(action1).execute(task);
             will(throwException(failure));
             inSequence(sequence);
 
-            one(action1).contextualise(null);
+            oneOf(action1).contextualise(null);
             inSequence(sequence);
 
-            one(standardOutputCapture).stop();
+            oneOf(standardOutputCapture).stop();
             inSequence(sequence);
 
-            one(state).executed(with(notNullValue(Throwable.class)));
+            oneOf(state).executed(with(notNullValue(Throwable.class)));
             will(collectTo(wrappedFailure));
             inSequence(sequence);
 
-            one(state).setExecuting(false);
+            oneOf(state).setExecuting(false);
             inSequence(sequence);
 
-            one(listener).afterActions(task);
+            oneOf(listener).afterActions(task);
             inSequence(sequence);
         }});
 
@@ -274,38 +274,38 @@ public class ExecuteActionsTaskExecuterTest {
             allowing(task).getTaskActions();
             will(returnValue(toList(action1, action2)));
 
-            one(listener).beforeActions(task);
+            oneOf(listener).beforeActions(task);
             inSequence(sequence);
 
-            one(state).setExecuting(true);
+            oneOf(state).setExecuting(true);
             inSequence(sequence);
 
-            one(state).setDidWork(true);
+            oneOf(state).setDidWork(true);
             inSequence(sequence);
 
-            one(standardOutputCapture).start();
+            oneOf(standardOutputCapture).start();
             inSequence(sequence);
 
-            one(action1).contextualise(executionContext);
+            oneOf(action1).contextualise(executionContext);
             inSequence(sequence);
 
-            one(action1).execute(task);
+            oneOf(action1).execute(task);
             will(throwException(new StopExecutionException("stop")));
             inSequence(sequence);
 
-            one(action1).contextualise(null);
+            oneOf(action1).contextualise(null);
             inSequence(sequence);
 
-            one(standardOutputCapture).stop();
+            oneOf(standardOutputCapture).stop();
             inSequence(sequence);
 
-            one(state).executed(null);
+            oneOf(state).executed(null);
             inSequence(sequence);
 
-            one(state).setExecuting(false);
+            oneOf(state).setExecuting(false);
             inSequence(sequence);
 
-            one(listener).afterActions(task);
+            oneOf(listener).afterActions(task);
             inSequence(sequence);
         }});
 
@@ -318,56 +318,56 @@ public class ExecuteActionsTaskExecuterTest {
             allowing(task).getTaskActions();
             will(returnValue(toList(action1, action2)));
 
-            one(listener).beforeActions(task);
+            oneOf(listener).beforeActions(task);
             inSequence(sequence);
 
-            one(state).setExecuting(true);
+            oneOf(state).setExecuting(true);
             inSequence(sequence);
 
-            one(state).setDidWork(true);
+            oneOf(state).setDidWork(true);
             inSequence(sequence);
 
-            one(standardOutputCapture).start();
+            oneOf(standardOutputCapture).start();
             inSequence(sequence);
 
-            one(action1).contextualise(executionContext);
+            oneOf(action1).contextualise(executionContext);
             inSequence(sequence);
 
-            one(action1).execute(task);
+            oneOf(action1).execute(task);
             will(throwException(new StopActionException("stop")));
             inSequence(sequence);
 
-            one(action1).contextualise(null);
+            oneOf(action1).contextualise(null);
             inSequence(sequence);
 
-            one(standardOutputCapture).stop();
+            oneOf(standardOutputCapture).stop();
             inSequence(sequence);
 
-            one(state).setDidWork(true);
+            oneOf(state).setDidWork(true);
             inSequence(sequence);
 
-            one(standardOutputCapture).start();
+            oneOf(standardOutputCapture).start();
             inSequence(sequence);
 
-            one(action2).contextualise(executionContext);
+            oneOf(action2).contextualise(executionContext);
             inSequence(sequence);
 
-            one(action2).execute(task);
+            oneOf(action2).execute(task);
             inSequence(sequence);
 
-            one(action2).contextualise(null);
+            oneOf(action2).contextualise(null);
             inSequence(sequence);
 
-            one(standardOutputCapture).stop();
+            oneOf(standardOutputCapture).stop();
             inSequence(sequence);
 
-            one(state).executed(null);
+            oneOf(state).executed(null);
             inSequence(sequence);
 
-            one(state).setExecuting(false);
+            oneOf(state).setExecuting(false);
             inSequence(sequence);
 
-            one(listener).afterActions(task);
+            oneOf(listener).afterActions(task);
             inSequence(sequence);
         }});
 

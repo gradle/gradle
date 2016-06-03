@@ -15,32 +15,51 @@
  */
 package org.gradle.launcher.daemon.server;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.remote.internal.inet.InetAddressFactory;
+import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonContextBuilder;
+import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
-import org.gradle.launcher.daemon.server.exec.DefaultDaemonCommandExecuter;
+import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
+import org.gradle.launcher.daemon.server.api.HandleStop;
+import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
+import org.gradle.launcher.daemon.server.exec.EstablishBuildEnvironment;
+import org.gradle.launcher.daemon.server.exec.ExecuteBuild;
+import org.gradle.launcher.daemon.server.exec.ForwardClientInput;
+import org.gradle.launcher.daemon.server.exec.HandleCancel;
+import org.gradle.launcher.daemon.server.exec.HintGCAfterBuild;
+import org.gradle.launcher.daemon.server.exec.LogAndCheckHealth;
+import org.gradle.launcher.daemon.server.exec.LogToClient;
+import org.gradle.launcher.daemon.server.exec.RequestStopIfSingleUsedDaemon;
+import org.gradle.launcher.daemon.server.exec.ResetDeprecationLogger;
+import org.gradle.launcher.daemon.server.exec.ReturnResult;
+import org.gradle.launcher.daemon.server.exec.StartBuildOrRespondWithBusy;
+import org.gradle.launcher.daemon.server.exec.WatchForDisconnection;
 import org.gradle.launcher.daemon.server.health.DaemonHealthCheck;
-import org.gradle.launcher.daemon.server.health.DaemonHealthServices;
-import org.gradle.launcher.daemon.server.health.DaemonStats;
-import org.gradle.launcher.daemon.server.health.DaemonStatus;
-import org.gradle.launcher.daemon.server.health.DefaultDaemonHealthServices;
+import org.gradle.launcher.daemon.server.health.DaemonHealthStats;
+import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus;
+import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy;
+import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
+import org.gradle.launcher.daemon.server.scaninfo.DefaultDaemonScanInfo;
+import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 import org.gradle.launcher.exec.BuildExecuter;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.remote.services.MessagingServices;
-import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 
 import java.io.File;
 import java.util.UUID;
@@ -53,12 +72,14 @@ import java.util.concurrent.ScheduledExecutorService;
 public class DaemonServices extends DefaultServiceRegistry {
     private final DaemonServerConfiguration configuration;
     private final LoggingManagerInternal loggingManager;
-    private final static Logger LOGGER = Logging.getLogger(DaemonServices.class);
+    private final long startTime;
+    private static final Logger LOGGER = Logging.getLogger(DaemonServices.class);
 
-    public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath) {
+    public DaemonServices(DaemonServerConfiguration configuration, ServiceRegistry loggingServices, LoggingManagerInternal loggingManager, ClassPath additionalModuleClassPath, long startTime) {
         super(NativeServices.getInstance(), loggingServices);
         this.configuration = configuration;
         this.loggingManager = loggingManager;
+        this.startTime = startTime;
 
         addProvider(new DaemonRegistryServices(configuration.getBaseDir()));
         addProvider(new GlobalScopeServices(true, additionalModuleClassPath));
@@ -84,18 +105,60 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new File(get(DaemonDir.class).getVersionedDir(), fileName);
     }
 
-    protected DaemonHealthServices createDaemonHealthServices(ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
-        DaemonStats stats = new DaemonStats(scheduledExecutorService);
-        DaemonStatus status = new DaemonStatus(stats);
-        DaemonHealthCheck healthCheck = new DefaultDaemonHealthCheck(DaemonExpirationStrategies.getHealthStrategy(status), listenerManager);
-        return new DefaultDaemonHealthServices(healthCheck, status, stats);
+    protected DaemonMemoryStatus createDaemonMemoryStatus(DaemonHealthStats healthStats) {
+        return new DaemonMemoryStatus(healthStats);
+    }
+
+    protected DaemonHealthCheck createDaemonHealthCheck(ListenerManager listenerManager, HealthExpirationStrategy healthExpirationStrategy) {
+        return new DaemonHealthCheck(healthExpirationStrategy, listenerManager);
+    }
+
+    protected DaemonRunningStats createDaemonRunningStats() {
+        return new DaemonRunningStats(new TrueTimeProvider(), startTime);
+    }
+
+    protected DaemonScanInfo createDaemonScanInfo(DaemonRunningStats runningStats, ListenerManager listenerManager) {
+        return new DefaultDaemonScanInfo(runningStats, configuration.getIdleTimeout(), get(DaemonRegistry.class), listenerManager);
+    }
+
+    protected MasterExpirationStrategy createMasterExpirationStrategy(Daemon daemon, HealthExpirationStrategy healthExpirationStrategy) {
+        return new MasterExpirationStrategy(daemon, configuration, healthExpirationStrategy);
+    }
+
+    protected HealthExpirationStrategy createHealthExpirationStrategy(DaemonMemoryStatus memoryStatus) {
+        return new HealthExpirationStrategy(memoryStatus);
+    }
+
+    protected DaemonHealthStats createDaemonHealthStats(DaemonRunningStats runningStats, ScheduledExecutorService scheduledExecutorService) {
+        return new DaemonHealthStats(runningStats, scheduledExecutorService);
     }
 
     protected ScheduledExecutorService createScheduledExecutorService() {
         return Executors.newScheduledThreadPool(1);
     }
 
-    protected Daemon createDaemon(BuildExecuter buildActionExecuter) {
+    protected ImmutableList<DaemonCommandAction> createDaemonCommandActions(DaemonContext daemonContext, ProcessEnvironment processEnvironment, DaemonHealthStats healthStats, DaemonHealthCheck healthCheck, BuildExecuter buildActionExecuter, DaemonRunningStats runningStats) {
+        File daemonLog = getDaemonLogFile();
+        DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
+        return ImmutableList.of(
+            new HandleStop(),
+            new HandleCancel(),
+            new ReturnResult(),
+            new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
+            new HintGCAfterBuild(),
+            new EstablishBuildEnvironment(processEnvironment),
+            new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
+            new LogAndCheckHealth(healthStats, healthCheck),
+            new ForwardClientInput(),
+            new RequestStopIfSingleUsedDaemon(),
+            new ResetDeprecationLogger(),
+            new WatchForDisconnection(),
+            new ExecuteBuild(buildActionExecuter, runningStats, this)
+        );
+
+    }
+
+    protected Daemon createDaemon(ImmutableList<DaemonCommandAction> actions) {
         return new Daemon(
             new DaemonTcpServerConnector(
                 get(ExecutorFactory.class),
@@ -103,14 +166,7 @@ public class DaemonServices extends DefaultServiceRegistry {
             ),
             get(DaemonRegistry.class),
             get(DaemonContext.class),
-            new DefaultDaemonCommandExecuter(
-                buildActionExecuter,
-                this,
-                get(ProcessEnvironment.class),
-                loggingManager,
-                getDaemonLogFile(),
-                get(DaemonHealthServices.class)
-            ),
+            new DaemonCommandExecuter(actions),
             get(ExecutorFactory.class),
             get(ScheduledExecutorService.class),
             get(ListenerManager.class)

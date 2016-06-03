@@ -27,7 +27,7 @@ public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHa
         return InputFiles.class;
     }
 
-    public void attachActions(TaskPropertyActionContext context) {
+    public boolean attachActions(TaskPropertyActionContext context) {
         final boolean isSourceFiles = context.getTarget().getAnnotation(SkipWhenEmpty.class) != null;
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
@@ -38,5 +38,11 @@ public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHa
                 }
             }
         });
+        return true;
+    }
+
+    @Override
+    public boolean isNotBeNullByDefault() {
+        return true;
     }
 }

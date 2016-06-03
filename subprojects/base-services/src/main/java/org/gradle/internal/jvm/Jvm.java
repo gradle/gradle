@@ -18,14 +18,13 @@ package org.gradle.internal.jvm;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Nullable;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -41,7 +40,7 @@ public class Jvm implements JavaInfo {
     private final File javaHome;
     private final boolean userSupplied;
     private final JavaVersion javaVersion;
-    private static final AtomicReference<Jvm> CURRENT = new AtomicReference<Jvm>();
+    private static final AtomicReference<JvmImplementation> CURRENT = new AtomicReference<JvmImplementation>();
 
     // Cached resolved executables
     private File javaExecutable;
@@ -58,7 +57,7 @@ public class Jvm implements JavaInfo {
         return jvm;
     }
 
-    static Jvm create() {
+    private static JvmImplementation create() {
         String vendor = System.getProperty("java.vm.vendor");
         if (vendor.toLowerCase().startsWith("apple inc.")) {
             return new AppleJvm(OperatingSystem.current());
@@ -66,38 +65,35 @@ public class Jvm implements JavaInfo {
         if (vendor.toLowerCase().startsWith("ibm corporation")) {
             return new IbmJvm(OperatingSystem.current());
         }
-        return new Jvm(OperatingSystem.current());
+        return new JvmImplementation(OperatingSystem.current());
     }
 
     static Jvm create(File javaBase, @Nullable JavaVersion javaVersion) {
-        return new Jvm(OperatingSystem.current(), javaBase, javaVersion);
+        Jvm jvm = new Jvm(OperatingSystem.current(), javaBase, javaVersion);
+        Jvm current = current();
+        return jvm.getJavaHome().equals(current.getJavaHome()) ? current : jvm;
     }
 
     /**
      * Constructs JVM details by inspecting the current JVM.
      */
     Jvm(OperatingSystem os) {
-        this.os = os;
-        //discover based on what's in the sys. property
-        try {
-            this.javaBase = new File(System.getProperty("java.home")).getCanonicalFile();
-        } catch (IOException e) {
-            throw new UncheckedException(e);
-        }
-        this.javaHome = findJavaHome(javaBase);
-        this.javaVersion = JavaVersion.current();
-        this.userSupplied = false;
+        this(os, FileUtils.canonicalize(new File(System.getProperty("java.home"))), JavaVersion.current(), false);
     }
 
     /**
      * Constructs JVM details from the given values
      */
     Jvm(OperatingSystem os, File suppliedJavaBase, JavaVersion javaVersion) {
+        this(os, suppliedJavaBase, javaVersion, true);
+    }
+
+    private Jvm(OperatingSystem os, File suppliedJavaBase, JavaVersion javaVersion, boolean userSupplied) {
         this.os = os;
         this.javaBase = suppliedJavaBase;
-        this.javaHome = suppliedJavaBase;
+        this.javaHome = findJavaHome(suppliedJavaBase);
         this.javaVersion = javaVersion;
-        this.userSupplied = true;
+        this.userSupplied = userSupplied;
     }
 
     /**
@@ -330,7 +326,16 @@ public class Jvm implements JavaInfo {
         return false;
     }
 
-    static class IbmJvm extends Jvm {
+    /**
+     * Details about a known JVM implementation.
+     */
+    static class JvmImplementation extends Jvm {
+        JvmImplementation(OperatingSystem os) {
+            super(os);
+        }
+    }
+
+    static class IbmJvm extends JvmImplementation {
         IbmJvm(OperatingSystem os) {
             super(os);
         }
@@ -344,7 +349,7 @@ public class Jvm implements JavaInfo {
     /**
      * Note: Implementation assumes that an Apple JVM always comes with a JDK rather than a JRE, but this is likely an over-simplification.
      */
-    static class AppleJvm extends Jvm {
+    static class AppleJvm extends JvmImplementation {
         AppleJvm(OperatingSystem os) {
             super(os);
         }

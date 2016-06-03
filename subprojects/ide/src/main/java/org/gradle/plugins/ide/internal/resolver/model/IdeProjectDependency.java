@@ -16,35 +16,36 @@
 
 package org.gradle.plugins.ide.internal.resolver.model;
 
-import org.gradle.api.Project;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
 public class IdeProjectDependency extends IdeDependency {
-    private final Project project;
-    private final String projectPath;
+    private final ProjectComponentIdentifier projectId;
+    private final String projectName;
 
-    public IdeProjectDependency(String declaredConfiguration, Project project) {
-        super(declaredConfiguration);
-        this.project = project;
-        this.projectPath = project.getPath();
+    public IdeProjectDependency(ProjectComponentIdentifier projectId, String projectName) {
+        this.projectId = projectId;
+        this.projectName = projectName;
     }
 
-    public IdeProjectDependency(String declaredConfiguration, String projectPath) {
-        super(declaredConfiguration);
-        this.project = null;
-        this.projectPath = projectPath;
+    public IdeProjectDependency(ProjectComponentIdentifier projectId) {
+        this.projectId = projectId;
+        this.projectName = determineNameFromPath(projectId.getProjectPath());
     }
 
-    public Project getProject() {
-        return project;
+    public ProjectComponentIdentifier getProjectId() {
+        return projectId;
     }
 
     public String getProjectPath() {
-        return projectPath;
+        return projectId.getProjectPath();
     }
 
-    public String getModuleName() {
-        // This is just a hack to allow 'idea' task to function reasonably in a composite
-        // This will be addressed when we add support for IDE project file generation for a composite build
+    public String getProjectName() {
+        return projectName;
+    }
+
+    private static String determineNameFromPath(String projectPath) {
+        // TODO:DAZ This is less than ideal (currently only used for composite build dependencies)
         if (projectPath.endsWith("::")) {
             return projectPath.substring(0, projectPath.length() - 2);
         }

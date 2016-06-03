@@ -24,6 +24,7 @@ import org.gradle.api.plugins.jetty.internal.JettyPluginWebAppContext;
 import org.gradle.api.plugins.jetty.internal.Monitor;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -165,6 +166,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         }
     }
 
+    @Internal
     public JettyPluginServer getServer() {
         return this.server;
     }
@@ -177,10 +179,12 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.scannerListeners = new ArrayList<Scanner.Listener>(listeners);
     }
 
+    @Internal
     public List<Scanner.Listener> getScannerListeners() {
         return this.scannerListeners;
     }
 
+    @Internal
     public Scanner getScanner() {
         return scanner;
     }
@@ -409,6 +413,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * if {@code reload} is set to {@code "automatic"}. Defaults to {@code 0},
      * which <em>disables</em> automatic reloading.
      */
+    @Internal
     public int getScanIntervalSeconds() {
         return scanIntervalSeconds;
     }
@@ -426,6 +431,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     /**
      * Returns the context path to use to deploy the web application.
      */
+    @Internal
     public String getContextPath() {
         return contextPath;
     }
@@ -434,6 +440,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.contextPath = contextPath;
     }
 
+    @Internal
     public JettyPluginWebAppContext getWebAppConfig() {
         return webAppConfig;
     }
@@ -452,6 +459,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      *
      * <p>In manual mode, the web app is reloaded whenever the Enter key is pressed.
      */
+    @Internal
     public String getReload() {
         return reload;
     }
@@ -486,6 +494,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     /**
      * Returns the TCP port for Jetty to listen on for stop requests.
      */
+    @Internal
     public Integer getStopPort() {
         return stopPort;
     }
@@ -497,6 +506,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     /**
      * Returns the key to use to stop Jetty.
      */
+    @Internal
     public String getStopKey() {
         return stopKey;
     }
@@ -509,6 +519,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * Specifies whether the Jetty server should run in the background. When {@code true}, this task completes as soon as the server has started. When {@code false}, this task blocks until the Jetty
      * server is stopped.
      */
+    @Internal
     public boolean isDaemon() {
         return daemon;
     }
@@ -520,6 +531,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     /**
      * Returns the TCP port for Jetty to listen on for incoming HTTP requests.
      */
+    @Internal
     public Integer getHttpPort() {
         return httpPort;
     }
@@ -528,6 +540,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.httpPort = httpPort;
     }
 
+    @Internal
     public Connector[] getConnectors() {
         return connectors;
     }
@@ -536,6 +549,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.connectors = connectors;
     }
 
+    @Internal
     public UserRealm[] getUserRealms() {
         return userRealms;
     }
@@ -544,6 +558,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.userRealms = userRealms;
     }
 
+    @Internal
     public RequestLog getRequestLog() {
         return requestLog;
     }

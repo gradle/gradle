@@ -16,7 +16,10 @@
 
 package org.gradle.launcher.daemon.registry;
 
+import org.gradle.api.Nullable;
+
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -24,9 +27,9 @@ import java.util.Date;
  */
 public class DaemonStopEvent implements Serializable {
     private final Date timestamp;
-    private final String reason;
+    private final @Nullable String reason;
 
-    public DaemonStopEvent(Date timestamp, String reason) {
+    public DaemonStopEvent(Date timestamp, @Nullable String reason) {
         this.timestamp = timestamp;
         this.reason = reason;
     }
@@ -35,7 +38,35 @@ public class DaemonStopEvent implements Serializable {
         return timestamp;
     }
 
-    public String getReason() {
+    @Nullable public String getReason() {
         return reason;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DaemonStopEvent stopEvent = (DaemonStopEvent) o;
+        return timestamp.equals(stopEvent.timestamp)
+            && (reason != null ? reason.equals(stopEvent.reason) : stopEvent.reason == null);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = timestamp.hashCode();
+        result = 31 * result + (reason != null ? reason.hashCode() : 0);
+        return result;
+    }
+
+    public boolean occurredInLastDays(final int numDays) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date(System.currentTimeMillis()));
+        cal.add(Calendar.DAY_OF_MONTH, -1 * numDays);
+        return timestamp.after(cal.getTime());
     }
 }

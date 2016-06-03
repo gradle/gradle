@@ -15,6 +15,7 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
@@ -23,9 +24,11 @@ import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
+
 /**
  * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
  */
+// TODO:DAZ Need coverage for builds that have customized Idea/Eclipse configuration (including module names)
 class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
     def buildA
@@ -40,6 +43,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeTooling
         buildA = singleProjectBuild("buildA") {
                     buildFile << """
         apply plugin: 'java'
+        apply plugin: 'idea'
         dependencies {
             compile "org.test:buildB:1.0"
         }
@@ -51,6 +55,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeTooling
         buildB = singleProjectBuild("buildB") {
                     buildFile << """
         apply plugin: 'java'
+        apply plugin: 'idea'
 """
 }
         builds << buildA << buildB

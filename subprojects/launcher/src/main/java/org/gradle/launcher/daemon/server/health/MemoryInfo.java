@@ -21,10 +21,11 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
 import java.lang.reflect.InvocationTargetException;
 
-public class MemoryInfo {
+class MemoryInfo {
+
     private final long totalMemory; //this does not change
 
-    public MemoryInfo() {
+    MemoryInfo() {
         totalMemory = Runtime.getRuntime().maxMemory();
     }
 
@@ -43,17 +44,14 @@ public class MemoryInfo {
     }
 
     /**
-     * Max memory that this process can commit in bytes.
-     * Always returns the same value because maximum memory is determined at jvm start.
+     * Max memory that this process can commit in bytes. Always returns the same value because maximum memory is determined at jvm start.
      */
     public long getMaxMemory() {
         return totalMemory;
     }
 
     /**
-     * Currently committed memory of this process in bytes.
-     * May return different value depending on how the heap has expanded.
-     * The returned value is <= {@link #getMaxMemory()}
+     * Currently committed memory of this process in bytes. May return different value depending on how the heap has expanded. The returned value is <= {@link #getMaxMemory()}
      */
     public long getCommittedMemory() {
         //querying runtime for each invocation
@@ -61,8 +59,7 @@ public class MemoryInfo {
     }
 
     /**
-     * Retrieves the total physical memory size on the system in bytes.
-     * This value is independent of {@link #getMaxMemory()}, which is the total memory available to the JVM.
+     * Retrieves the total physical memory size on the system in bytes. This value is independent of {@link #getMaxMemory()}, which is the total memory available to the JVM.
      *
      * @throws UnsupportedOperationException if the JVM doesn't support getting total physical memory.
      */
@@ -71,8 +68,7 @@ public class MemoryInfo {
     }
 
     /**
-     * Retrieves the free physical memory on the system in bytes.
-     * This value is independent of {@link #getCommittedMemory()}, which is the memory reserved by the JVM.
+     * Retrieves the free physical memory on the system in bytes. This value is independent of {@link #getCommittedMemory()}, which is the memory reserved by the JVM.
      *
      * @throws UnsupportedOperationException if the JVM doesn't support getting free physical memory.
      */

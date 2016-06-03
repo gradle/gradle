@@ -26,9 +26,9 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
-import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData
+import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData
+import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata
 import org.gradle.util.TestUtil
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
@@ -41,7 +41,7 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
 
     def "adds artifacts from each configuration"() {
         def emptySet = new HashSet<String>()
-        def metaData = Mock(BuildableLocalComponentMetaData)
+        def metaData = Mock(BuildableLocalComponentMetadata)
         def config1 = Stub(Configuration)
         def config2 = Stub(Configuration)
         def artifacts1 = Stub(PublishArtifactSet)
@@ -68,7 +68,7 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         when:
         Configuration config1 = createNamesAndExtendedConfigurationStub("conf1");
         Configuration config2 = createNamesAndExtendedConfigurationStub("conf2", config1);
-        DefaultIvyModulePublishMetaData metaData = new DefaultIvyModulePublishMetaData(componentId, "status");
+        DefaultIvyModulePublishMetadata metaData = new DefaultIvyModulePublishMetadata(componentId, "status");
 
         and:
         converter.addConfigurations(metaData, WrapUtil.toSet(config1, config2));

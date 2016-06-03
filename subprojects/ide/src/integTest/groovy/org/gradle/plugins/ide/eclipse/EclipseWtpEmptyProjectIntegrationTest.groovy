@@ -19,9 +19,7 @@ class EclipseWtpEmptyProjectIntegrationTest extends AbstractEclipseIntegrationSp
     def "generates configuration files for an empty project"() {
         settingsFile << "rootProject.name = 'empty'"
 
-        buildFile << """
-apply plugin: 'eclipse-wtp'
-"""
+        buildFile << "apply plugin: 'eclipse-wtp'"
 
         when:
         run "eclipse"
@@ -32,14 +30,15 @@ apply plugin: 'eclipse-wtp'
         project.assertHasNatures()
         project.assertHasBuilders()
 
-        // TODO - Classpath
+        // Classpath
+        !testDirectory.file('.classpath').exists()
 
         // Facets
         def facets = wtpFacets
         facets.assertHasFixedFacets()
         facets.assertHasInstalledFacets()
 
-        // Deployment
+        // Component
         def component = wtpComponent
         component.deployName == 'empty'
         component.resources.isEmpty()

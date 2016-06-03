@@ -102,21 +102,26 @@ public class DaemonStopClient {
             return;
         }
 
-        LOGGER.lifecycle("Stopping daemon(s).");
+        LOGGER.lifecycle("Stopping Daemon(s)");
 
         //iterate and stop all daemons
+        int numStopped = 0;
         while (connection != null && System.currentTimeMillis() < expiry) {
             try {
                 seen.add(connection.getDaemon().getUid());
                 LOGGER.debug("Requesting daemon {} stop now", connection.getDaemon());
                 boolean stopped = stopDispatcher.dispatch(connection, new Stop(idGenerator.generateId(), connection.getDaemon().getToken()));
                 if (stopped) {
-                    LOGGER.lifecycle("Gradle daemon stopped.");
+                    numStopped++;
                 }
             } finally {
                 connection.stop();
             }
             connection = connector.maybeConnect(spec);
+        }
+
+        if (numStopped > 0) {
+            LOGGER.lifecycle(numStopped + " Daemon" + ((numStopped > 1) ? "s" : "") + " stopped");
         }
 
         if (connection != null) {

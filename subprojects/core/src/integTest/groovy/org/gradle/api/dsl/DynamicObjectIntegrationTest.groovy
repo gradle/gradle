@@ -428,20 +428,59 @@ assert 'overridden value' == global
         succeeds("test")
     }
 
+    def canAddMethodsUsingAPropertyWhoseValueIsAClosure() {
+        file("settings.gradle").writelns("include 'child1', 'child2'");
+        file("build.gradle") << """
+            class Thing {
+                def prop1 = { it }
+            }
+            convention.plugins.thing = new Thing()
+            ext.prop2 = { it / 2 }
+
+            assert prop1(12) == 12
+            assert prop2(12) == 6
+        """
+        file("child1/build.gradle") << """
+            ext.prop3 = { it * 2 }
+            assert prop1(12) == 12
+            assert prop2(12) == 6
+            assert prop3(12) == 24
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def appliesTypeConversionForClosureParameters() {
+        file('build.gradle') << '''
+            enum Letter { A, B, C }
+            ext.letter = null
+            ext.m = { Letter l -> letter = l }
+            m("A")
+            assert letter == Letter.A
+            m(Letter.B)
+            assert letter == Letter.B
+'''
+
+        expect:
+        succeeds()
+    }
+
     def canInjectMethodsFromParentProject() {
 
-        file("settings.gradle").writelns("include 'child'");
-        file("build.gradle").writelns(
-                "subprojects {",
-                "  ext.injectedMethod = { project.name }",
-                "}"
-        );
-        file("child/build.gradle").writelns(
-                "task testTask << {",
-                "   assert injectedMethod() == 'child'",
-                "}"
-        );
-
+        file("settings.gradle").writelns("include 'child1', 'child2'");
+        file("build.gradle") << """
+            subprojects {
+                ext.useSomeProperty = { project.name }
+                ext.useSomeMethod = { file(it) }
+            }
+        """
+        file("child1/build.gradle") << """
+            task testTask << {
+               assert useSomeProperty() == 'child1'
+               assert useSomeMethod('f') == file('f')
+            }
+        """
 
         expect:
         succeeds("testTask")
@@ -486,6 +525,55 @@ assert 'overridden value' == global
 
         expect:
         succeeds("run")
+    }
+
+    def canCallMethodWithClassArgumentType() {
+        buildFile << """
+interface Transformer {}
+
+class Impl implements Transformer {}
+
+class MyTask extends DefaultTask {
+    public void transform(Class<? extends Transformer> c) {
+        logger.lifecycle("transform(Class)")
+    }
+
+    public void transform(Transformer t) {
+        logger.lifecycle("transform(Transformer)")
+    }
+}
+
+task print(type: MyTask) {
+    transform(Impl) // should call transform(Class)
+}
+        """
+
+        expect:
+        succeeds("print")
+        result.output.contains("transform(Class)")
+    }
+
+    def failsWhenTryingToCallMethodWithClassValue() {
+        buildFile << """
+interface Transformer {}
+
+class Impl implements Transformer {}
+
+class MyTask extends DefaultTask {
+    public void transform(Transformer t) {
+        logger.lifecycle("transform(Transformer)")
+    }
+}
+
+task print(type: MyTask) {
+    transform(Impl) // should fail since transform(Class) does not exist
+}
+        """
+
+        expect:
+        fails()
+        failure.assertHasLineNumber(13)
+        failure.assertHasCause("Could not find method transform() for arguments [class Impl] on task ':print' of type MyTask.")
     }
 
     def failsWhenGettingUnknownPropertyOnProject() {
@@ -851,7 +939,7 @@ assert 'overridden value' == global
         succeeds()
     }
 
-    def dynamicPropertiesTakePrecedenceOverDecorations() {
+    def dynamicPropertiesOfDecoratedObjectTakePrecedenceOverDecorations() {
         buildFile << """
             class DynamicTask extends DefaultTask {
                 def props = [:]

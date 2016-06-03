@@ -25,6 +25,7 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
 
+@LeaksFileHandles
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         // disable URL caching
@@ -33,7 +34,6 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=2.2")
-    @LeaksFileHandles("cl1 and cl2 hold action-impl.jar open")
     def "can change the implementation of an action"() {
         // Make sure we reuse the same daemon
         toolingApi.requireIsolatedDaemons()

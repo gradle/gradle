@@ -90,7 +90,7 @@ public class ComponentResolversChain implements ComponentResolvers {
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetaData artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
             for (ArtifactResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;
@@ -100,7 +100,7 @@ public class ComponentResolversChain implements ComponentResolvers {
         }
 
         @Override
-        public void resolveModuleArtifacts(ComponentResolveMetaData component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentResolveMetadata component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
             for (ArtifactResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;
@@ -110,7 +110,7 @@ public class ComponentResolversChain implements ComponentResolvers {
         }
 
         @Override
-        public void resolveModuleArtifacts(ComponentResolveMetaData component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+        public void resolveModuleArtifacts(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
             for (ArtifactResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;
@@ -128,7 +128,7 @@ public class ComponentResolversChain implements ComponentResolvers {
         }
 
         @Override
-        public void resolve(DependencyMetaData dependency, BuildableComponentIdResolveResult result) {
+        public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
             for (DependencyToComponentIdResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;

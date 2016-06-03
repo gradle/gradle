@@ -65,9 +65,9 @@ public class CompositeFileTreeTest {
         final FileTreeInternal filtered2 = context.mock(FileTreeInternal.class);
 
         context.checking(new Expectations() {{
-            one(source1).matching(closure);
+            oneOf(source1).matching(closure);
             will(returnValue(filtered1));
-            one(source2).matching(closure);
+            oneOf(source2).matching(closure);
             will(returnValue(filtered2));
         }});
 
@@ -85,9 +85,9 @@ public class CompositeFileTreeTest {
         final FileTreeInternal filtered2 = context.mock(FileTreeInternal.class);
 
         context.checking(new Expectations() {{
-            one(source1).matching(patternSet);
+            oneOf(source1).matching(patternSet);
             will(returnValue(filtered1));
-            one(source2).matching(patternSet);
+            oneOf(source2).matching(patternSet);
             will(returnValue(filtered2));
         }});
 
@@ -113,8 +113,8 @@ public class CompositeFileTreeTest {
         final FileVisitor visitor = context.mock(FileVisitor.class);
 
         context.checking(new Expectations() {{
-            one(source1).visit(visitor);
-            one(source2).visit(visitor);
+            oneOf(source1).visit(visitor);
+            oneOf(source2).visit(visitor);
         }});
 
         tree.visit(visitor);
@@ -125,8 +125,8 @@ public class CompositeFileTreeTest {
         final Closure visitor = TestUtil.TEST_CLOSURE;
 
         context.checking(new Expectations() {{
-            one(source1).visit(visitor);
-            one(source2).visit(visitor);
+            oneOf(source1).visit(visitor);
+            oneOf(source2).visit(visitor);
         }});
 
         tree.visit(visitor);

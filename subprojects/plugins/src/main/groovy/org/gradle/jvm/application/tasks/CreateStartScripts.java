@@ -144,6 +144,7 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * Returns the full path to the Unix script. The target directory is represented by the output directory, the file name is the application name without a file extension.
      */
+    @Internal
     public File getUnixScript() {
         return new File(getOutputDir(), getApplicationName());
     }
@@ -151,6 +152,7 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * Returns the full path to the Windows script. The target directory is represented by the output directory, the file name is the application name plus the file extension .bat.
      */
+    @Internal
     public File getWindowsScript() {
         return new File(getOutputDir(), getApplicationName() + ".bat");
     }
@@ -230,6 +232,7 @@ public class CreateStartScripts extends ConventionTask {
      * Defaults to an implementation of {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}.
      */
     @Incubating
+    @Internal
     public ScriptGenerator getUnixStartScriptGenerator() {
         return unixStartScriptGenerator;
     }
@@ -244,6 +247,7 @@ public class CreateStartScripts extends ConventionTask {
      * Defaults to an implementation of {@link org.gradle.jvm.application.scripts.TemplateBasedScriptGenerator}.
      */
     @Incubating
+    @Internal
     public ScriptGenerator getWindowsStartScriptGenerator() {
         return windowsStartScriptGenerator;
     }
@@ -266,6 +270,7 @@ public class CreateStartScripts extends ConventionTask {
         generator.generateWindowsScript(getWindowsScript());
     }
 
+    @Internal
     private Iterable<String> getRelativeClasspath() {
         return Iterables.transform(getClasspath().getFiles(), new Function<File, String>() {
             @Override

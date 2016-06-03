@@ -16,10 +16,10 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.internal.component.local.model.BuildableLocalComponentMetaData;
+import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 
 import java.util.Collection;
 
 public interface ConfigurationComponentMetaDataBuilder {
-    void addConfigurations(BuildableLocalComponentMetaData metaData, Collection<? extends Configuration> configurations);
+    void addConfigurations(BuildableLocalComponentMetadata metaData, Collection<? extends Configuration> configurations);
 }

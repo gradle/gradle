@@ -45,6 +45,3 @@ integTestTasks.all {
 
 useTestFixtures()
 useClassycle()
-
-verifyTestFilesCleanup.errorWhenNotEmpty = false
-

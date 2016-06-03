@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.internal.classloader.MutableURLClassLoader
+import org.gradle.internal.classloader.VisitableURLClassLoader
 import spock.lang.Specification
 
 class ClientSidePayloadClassLoaderFactoryTest extends Specification {
@@ -27,10 +27,10 @@ class ClientSidePayloadClassLoaderFactoryTest extends Specification {
         def url2 = new URL("http://localhost/file2.jar")
 
         when:
-        def cl = registry.getClassLoaderFor(new MutableURLClassLoader.Spec([url1, url2]), [null])
+        def cl = registry.getClassLoaderFor(new VisitableURLClassLoader.Spec([url1, url2]), [null])
 
         then:
-        cl instanceof MutableURLClassLoader
+        cl instanceof VisitableURLClassLoader
         cl.URLs == [url1, url2] as URL[]
     }
 }

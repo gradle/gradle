@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.eclipse
 
 import groovy.transform.CompileStatic
+import org.gradle.api.tasks.Internal
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
@@ -30,6 +31,7 @@ class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
     /**
      * The Eclipse Classpath model containing the information required to generate the classpath file.
      */
+    @Internal
     EclipseClasspath classpath
 
     GenerateEclipseClasspath() {

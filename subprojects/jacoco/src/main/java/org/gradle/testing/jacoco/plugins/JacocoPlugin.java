@@ -148,8 +148,8 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureDefaultOutputPathForJacocoMerge() {
-        project.getTasks().withType(JacocoMerge.class, new Action<JacocoMerge>() {
+    public Object configureDefaultOutputPathForJacocoMerge() {
+        return project.getTasks().withType(JacocoMerge.class, new Action<JacocoMerge>() {
             @Override
             public void execute(final JacocoMerge task) {
                 ConventionMapping mapping = ((IConventionAware) task).getConventionMapping();
@@ -246,5 +246,15 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                 }
             }
         });
+    }
+
+    public static String getAGENT_CONFIGURATION_NAME() {
+        return AGENT_CONFIGURATION_NAME;
+    }
+    public static String getANT_CONFIGURATION_NAME() {
+        return ANT_CONFIGURATION_NAME;
+    }
+    public static String getPLUGIN_EXTENSION_NAME() {
+        return PLUGIN_EXTENSION_NAME;
     }
 }

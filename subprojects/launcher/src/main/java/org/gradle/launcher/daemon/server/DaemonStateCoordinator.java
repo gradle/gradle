@@ -107,7 +107,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    long getIdleMillis(long currentTimeMillis) {
+    public long getIdleMillis(long currentTimeMillis) {
         if (isIdle()) {
             return currentTimeMillis - lastActivityAt;
         } else {
@@ -118,8 +118,8 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     public void requestStop() {
         lock.lock();
         try {
-            LOGGER.debug("Stop as soon as idle requested. The daemon is busy: {}", isBusy());
             if (isBusy()) {
+                LOGGER.debug("Stop as soon as idle requested. The daemon is busy: {}", isBusy());
                 beginStopping();
             } else {
                 stopNow("stop requested and daemon idle");
@@ -247,6 +247,10 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         } finally {
             onFinishCommand();
         }
+    }
+
+    public boolean isStopping() {
+        return state == State.StopRequested || state == State.Stopped;
     }
 
     private void waitForCommandCompletion() {
@@ -377,7 +381,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    boolean isStopped() {
+    public boolean isStopped() {
         return state == State.Stopped;
     }
 

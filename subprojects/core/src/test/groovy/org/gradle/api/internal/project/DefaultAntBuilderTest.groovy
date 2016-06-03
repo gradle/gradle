@@ -19,21 +19,23 @@ import groovy.xml.MarkupBuilder
 import org.apache.tools.ant.Target
 import org.apache.tools.ant.Task
 import org.gradle.api.AntBuilder.AntMessagePriority
-import org.gradle.api.Project
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.tasks.ant.AntTarget
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import java.lang.reflect.Field
 
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.Matchers.not
+import static org.hamcrest.Matchers.sameInstance
 import static org.junit.Assert.assertThat
 
-class DefaultAntBuilderTest extends Specification {
-    private final Project project = TestUtil.createRootProject()
+class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
     private final AntLoggingAdapter loggingAdapter = Mock(AntLoggingAdapter)
-    private final def ant = new DefaultAntBuilder(project, loggingAdapter)
+    def ant
+
+    def setup() {
+        ant = new DefaultAntBuilder(project, loggingAdapter)
+    }
 
     def "ant properties are available as properties of builder"() {
         when:

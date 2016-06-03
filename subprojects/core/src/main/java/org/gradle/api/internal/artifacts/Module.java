@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.internal.HasInternalProtocol;
+import org.gradle.api.Nullable;
 
 /**
  * <p>A {@code Module} represents the meta-information about a project which should be used when publishing the
  * module.</p>
  */
-@HasInternalProtocol
 public interface Module {
-    public static final String DEFAULT_STATUS = "integration";
+    String DEFAULT_STATUS = "integration";
+
+    @Nullable
+    String getProjectPath();
 
     String getGroup();
 

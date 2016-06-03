@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.authentication.Authentication;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
@@ -40,14 +40,14 @@ public class DefaultFlatDirArtifactRepository extends AbstractArtifactRepository
     private final FileResolver fileResolver;
     private List<Object> dirs = new ArrayList<Object>();
     private final RepositoryTransportFactory transportFactory;
-    private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder;
-    private final FileStore<ModuleComponentArtifactMetaData> artifactFileStore;
+    private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
+    private final FileStore<ModuleComponentArtifactMetadata> artifactFileStore;
     private final IvyContextManager ivyContextManager;
 
     public DefaultFlatDirArtifactRepository(FileResolver fileResolver,
                                             RepositoryTransportFactory transportFactory,
-                                            LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder,
-                                            FileStore<ModuleComponentArtifactMetaData> artifactFileStore, IvyContextManager ivyContextManager) {
+                                            LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
+                                            FileStore<ModuleComponentArtifactMetadata> artifactFileStore, IvyContextManager ivyContextManager) {
         this.fileResolver = fileResolver;
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;

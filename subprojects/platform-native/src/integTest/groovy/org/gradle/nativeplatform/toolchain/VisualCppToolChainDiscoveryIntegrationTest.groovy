@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.toolchain
-
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.Matchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.VISUALCPP)
-@LeaksFileHandles
 class VisualCppToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CHelloWorldApp()
 

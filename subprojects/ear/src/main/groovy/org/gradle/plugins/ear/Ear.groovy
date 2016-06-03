@@ -20,10 +20,12 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCopyDetails
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.MapFileTree
 import org.gradle.api.internal.file.copy.CopySpecInternal
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor
@@ -45,11 +47,13 @@ class Ear extends Jar {
     /**
      * The name of the library directory in the EAR file. Default is "lib".
      */
+    @Optional @Input
     String libDirName
 
     /**
      * The deployment descriptor configuration.
      */
+    @Internal
     DeploymentDescriptor deploymentDescriptor
 
     private CopySpec lib
@@ -104,11 +108,6 @@ class Ear extends Jar {
         throw new UnsupportedOperationException();
     }
 
-    @Inject
-    protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
-
     /**
      * Configures the deployment descriptor for this EAR archive.
      *
@@ -129,6 +128,7 @@ class Ear extends Jar {
     /**
      * A location for dependency libraries to include in the 'lib' directory of the EAR archive.
      */
+    @Internal
     public CopySpec getLib() {
         return ((CopySpecInternal) lib).addChild()
     }

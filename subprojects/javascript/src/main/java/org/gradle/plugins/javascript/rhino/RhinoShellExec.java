@@ -38,6 +38,7 @@ public class RhinoShellExec extends JavaExec {
     public RhinoShellExec() {
     }
 
+    @Input
     public List<String> getRhinoOptions() {
         return CollectionUtils.stringize(rhinoOptions);
     }
@@ -50,6 +51,7 @@ public class RhinoShellExec extends JavaExec {
         this.rhinoOptions.addAll(Arrays.asList(rhinoOptions));
     }
 
+    @Input
     public List<String> getScriptArgs() {
         return CollectionUtils.stringize(scriptArgs);
     }

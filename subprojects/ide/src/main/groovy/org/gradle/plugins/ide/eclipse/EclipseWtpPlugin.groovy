@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import com.google.common.collect.Iterables
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
@@ -29,19 +28,16 @@ import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.WarPluginConvention
 import org.gradle.api.tasks.bundling.War
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.plugins.ear.Ear
 import org.gradle.plugins.ear.EarPlugin
 import org.gradle.plugins.ear.EarPluginConvention
-import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
-import org.gradle.plugins.ide.eclipse.model.AbstractLibrary
 import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
 import org.gradle.plugins.ide.eclipse.model.EclipseWtp
 import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
-import org.gradle.plugins.ide.eclipse.model.WbDependentModule
-import org.gradle.plugins.ide.eclipse.model.WbModuleEntry
 import org.gradle.plugins.ide.eclipse.model.WbResource
-import org.gradle.plugins.ide.eclipse.model.WtpComponent
+import org.gradle.plugins.ide.eclipse.model.internal.WtpClasspathAttributeSupport
 import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
@@ -67,70 +63,41 @@ class EclipseWtpPlugin extends IdePlugin {
 
     @Override protected void onApply(Project project) {
         project.pluginManager.apply(EclipsePlugin)
-        def model = project.extensions.getByType(EclipseModel)
-        model.wtp = instantiator.newInstance(EclipseWtp, model.classpath)
 
-        lifecycleTask.description = 'Generates Eclipse wtp configuration files.'
-        cleanTask.description = 'Cleans Eclipse wtp configuration files.'
+            def model = project.extensions.getByType(EclipseModel)
+            model.wtp = instantiator.newInstance(EclipseWtp, model.classpath)
 
-        def delegatePlugin = project.plugins.getPlugin(EclipsePlugin)
-        delegatePlugin.lifecycleTask.dependsOn(lifecycleTask)
-        delegatePlugin.cleanTask.dependsOn(cleanTask)
+            lifecycleTask.description = 'Generates Eclipse wtp configuration files.'
+            cleanTask.description = 'Cleans Eclipse wtp configuration files.'
 
-        configureEclipseProject(project)
-        configureEclipseWtpComponent(project, model)
-        configureEclipseWtpFacet(project, model)
+            project.tasks.getByName(EclipsePlugin.ECLIPSE_TASK_NAME).dependsOn(lifecycleTask)
+            project.tasks.getByName(cleanName(EclipsePlugin.ECLIPSE_TASK_NAME)).dependsOn(cleanTask)
 
-        // do this after wtp is configured because wtp config is required to update classpath properly
-        configureEclipseClasspath(project, model)
+            configureEclipseProject(project)
+            configureEclipseWtpComponent(project, model)
+            configureEclipseWtpFacet(project, model)
+
+            // do this after wtp is configured because wtp config is required to update classpath properly
+            configureEclipseClasspath(project, model)
     }
 
-    private void configureEclipseClasspath(Project project, EclipseModel eclipseModel) {
-        project.plugins.withType(JavaPlugin) {
-            List<String> deleteWtpDependentModule = []
-            eclipseModel.classpath.file.whenMerged { Classpath classpath ->
-                if (hasWarOrEarPlugin(project)) {
-                    return
-                }
-
-                Set<File> minusFiles = (Set<File>) eclipseModel.wtp.component.minusConfigurations*.files?.flatten() ?: project.files().files
-                Set<File> libFiles = (Set<File>) eclipseModel.wtp.component.libConfigurations*.files?.flatten() ?: project.files().files
-                for (AbstractLibrary entry in Iterables.filter(classpath.entries, AbstractLibrary)) {
-                    if (minusFiles.contains(entry.library.file) || !libFiles.contains(entry.library.file)) {
-                        // Mark this library as not required for deployment
-                        entry.entryAttributes[AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE] = ''
-                    } else {
-                        // '../' and '/WEB-INF/lib' both seem to be correct (and equivalent) values here
-                        //this is necessary so that the depended upon projects will have their dependencies
-                        // deployed to WEB-INF/lib of the main project.
-                        entry.entryAttributes[AbstractClasspathEntry.COMPONENT_DEPENDENCY_ATTRIBUTE] = '../'
-                        deleteWtpDependentModule << entry.path
-                    }
-                }
+    private void configureEclipseClasspath(Project project, EclipseModel model) {
+        project.plugins.withType(JavaPlugin.class) {
+            project.afterEvaluate {
+                model.classpath.plusConfigurations += model.wtp.component.rootConfigurations
+                model.classpath.plusConfigurations += model.wtp.component.libConfigurations
             }
-            eclipseModel.wtp.component.file.whenMerged { WtpComponent wtpComponent ->
-                if (hasWarOrEarPlugin(project)) {
-                    return
-                }
-                wtpComponent.wbModuleEntries.removeAll { WbModuleEntry wbModule ->
-                    wbModule instanceof WbDependentModule && deleteWtpDependentModule.any { lib -> ((WbDependentModule) wbModule).handle.contains(lib) }
-                }
+
+            model.classpath.file.whenMerged { Classpath classpath ->
+                new WtpClasspathAttributeSupport(project, model).enhance(classpath)
             }
         }
 
         project.plugins.withType(WarPlugin) {
-            eclipseModel.classpath.containers WEB_LIBS_CONTAINER
-
-            eclipseModel.classpath.file.whenMerged { Classpath classpath ->
-                for (entry in Iterables.filter(classpath.entries,AbstractLibrary)) {
-                    //this is necessary to avoid annoying warnings upon import to Eclipse
-                    //the .classpath entries can be marked all as non-deployable dependencies
-                    //because the wtp component file declares the deployable dependencies
-                    entry.entryAttributes[AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE] = ''
-                }
-            }
+            model.classpath.containers WEB_LIBS_CONTAINER
         }
     }
+
 
     private void configureEclipseWtpComponent(Project project, EclipseModel model) {
         maybeAddTask(project, this, ECLIPSE_WTP_COMPONENT_TASK_NAME, GenerateEclipseWtpComponent) { GenerateEclipseWtpComponent task ->
@@ -151,14 +118,14 @@ class EclipseWtpPlugin extends IdePlugin {
                 task.component.libConfigurations = [project.configurations.getByName('runtime')] as Set<Configuration>
                 task.component.minusConfigurations = [] as Set<Configuration>
                 task.component.classesDeployPath = "/"
-                task.component.libDeployPath = "../"
+                ((IConventionAware)task.component).conventionMapping.map('libDeployPath') { "../" }
                 ((IConventionAware)task.component).conventionMapping.map('sourceDirs') { getMainSourceDirs(project) }
             }
             project.plugins.withType(WarPlugin) {
                 task.component.libConfigurations = [project.configurations.getByName('runtime')] as Set<Configuration>
                 task.component.minusConfigurations = [project.configurations.getByName('providedRuntime')] as Set<Configuration>
                 task.component.classesDeployPath = "/WEB-INF/classes"
-                task.component.libDeployPath = "/WEB-INF/lib"
+                ((IConventionAware)task.component).conventionMapping.map('libDeployPath') { "/WEB-INF/lib" }
                 ConventionMapping convention = ((IConventionAware)task.component).conventionMapping
                 convention.map('contextPath') { ((War)project.tasks.getByName('war')).baseName }
                 convention.map('resources') { [new WbResource('/', project.getConvention().getPlugin(WarPluginConvention).webAppDirName)] }
@@ -169,7 +136,13 @@ class EclipseWtpPlugin extends IdePlugin {
                 task.component.libConfigurations = [project.configurations.getByName('earlib')] as Set<Configuration>
                 task.component.minusConfigurations = [] as Set<Configuration>
                 task.component.classesDeployPath = "/"
-                task.component.libDeployPath = "/lib"
+                ((IConventionAware)task.component).conventionMapping.map('libDeployPath') {
+                    String deployPath = ((Ear)project.tasks.findByName(EarPlugin.EAR_TASK_NAME)).libDirName
+                    if (!deployPath.startsWith("/")) {
+                        deployPath = "/" + deployPath
+                    }
+                    deployPath
+                }
                 ((IConventionAware)task.component).conventionMapping.map('sourceDirs') {
                     [project.file { project.getConvention().getPlugin(EarPluginConvention).appDirName }] as Set
                 }

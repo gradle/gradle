@@ -22,15 +22,23 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.util.CollectionUtils;
+import org.gradle.util.ConfigureUtil;
 
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -93,7 +101,7 @@ public class MapFileTree implements MinimalFileTree, FileSystemMirroringFileTree
      * of the element to.
      */
     public void add(String path, Closure contentClosure) {
-        Action<OutputStream> action = new ClosureBackedAction<OutputStream>(contentClosure);
+        Action<OutputStream> action = ConfigureUtil.configureUsing(contentClosure);
         add(path, action);
     }
 

@@ -26,6 +26,7 @@ import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyDescriptorFileGenerator;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.file.PathToFileResolver;
@@ -59,6 +60,7 @@ public class GenerateIvyDescriptor extends DefaultTask {
      *
      * @return The module descriptor.
      */
+    @Internal
     public IvyModuleDescriptorSpec getDescriptor() {
         return descriptor;
     }

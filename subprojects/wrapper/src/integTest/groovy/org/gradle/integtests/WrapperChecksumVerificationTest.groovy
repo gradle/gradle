@@ -15,13 +15,10 @@
  */
 
 package org.gradle.integtests
-
 import org.gradle.internal.hash.HashUtil
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
-@LeaksFileHandles
 class WrapperChecksumVerificationTest extends AbstractWrapperIntegrationSpec {
     @Rule
     HttpServer server = new HttpServer()

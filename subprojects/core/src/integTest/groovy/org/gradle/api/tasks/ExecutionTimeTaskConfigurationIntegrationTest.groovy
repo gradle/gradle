@@ -47,6 +47,7 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
 
         when:
         executer.withArgument("--continue")
+        executer.expectDeprecationWarning()
         fails("broken", "broken2", "broken4")
 
         then:
@@ -87,10 +88,12 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         "inputs.properties([key: 'value'])"                         | "TaskInputs.properties(Map)"
         "inputs.source('a')"                                        | "TaskInputs.source(Object)"
         "inputs.sourceDir('a')"                                     | "TaskInputs.sourceDir(Object)"
+        "inputs.configure {}"                                       | "TaskInputs.configure(Action)"
         "outputs.upToDateWhen { }"                                  | "TaskOutputs.upToDateWhen(Closure)"
         "outputs.upToDateWhen({ } as Spec)"                         | "TaskOutputs.upToDateWhen(Spec)"
         "outputs.file('a')"                                         | "TaskOutputs.file(Object)"
         "outputs.files('a')"                                        | "TaskOutputs.files(Object...)"
         "outputs.dir('a')"                                          | "TaskOutputs.dir(Object)"
+        "outputs.configure {}"                                      | "TaskOutputs.configure(Action)"
     }
 }

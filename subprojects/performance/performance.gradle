@@ -601,6 +601,15 @@ configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic,
     additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
 }
 
+configure(tasks.withType(JvmProjectGeneratorTask)) {
+    if(project.hasProperty("springDmPluginVersion")) {
+        templateArgs['springDmPluginVersion'] = springDmPluginVersion
+    }
+    if(project.hasProperty("maxProjects")) {
+        projects = maxProjects as Integer
+    }
+}
+
 task all {
     dependsOn tasks.withType(ProjectGeneratorTask)
     group = "Project Setup"

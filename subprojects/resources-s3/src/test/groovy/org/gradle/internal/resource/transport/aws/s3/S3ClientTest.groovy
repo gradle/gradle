@@ -63,7 +63,7 @@ class S3ClientTest extends Specification {
         secondListing.isTruncated() >> false
 
         when:
-        s3Client.list(uri)
+        s3Client.listDirectChildren(uri)
 
         then:
         1 * amazonS3Client.listObjects(_) >> firstListing

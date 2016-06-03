@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.signing;
 
+import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -88,9 +89,9 @@ public class Signature extends AbstractPublishArtifact {
      */
     private File file;
 
-    private final Callable<File> toSignGenerator;
+    private Callable<File> toSignGenerator;
 
-    private final Callable<String> classifierGenerator;
+    private Callable<String> classifierGenerator;
 
     /**
      * Creates a signature artifact for the given public artifact.
@@ -103,7 +104,8 @@ public class Signature extends AbstractPublishArtifact {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     public Signature(final PublishArtifact toSign, SignatureSpec signatureSpec, Object... tasks) {
-        this(new Callable<File>() {
+        super(tasks);
+        init(new Callable<File>() {
             public File call() {
                 return toSign.getFile();
             }
@@ -111,7 +113,7 @@ public class Signature extends AbstractPublishArtifact {
             public String call() {
                 return toSign.getClassifier();
             }
-        }, signatureSpec, tasks);
+        }, signatureSpec);
         this.toSignArtifact = toSign;
     }
 
@@ -123,7 +125,8 @@ public class Signature extends AbstractPublishArtifact {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     public Signature(final File toSign, SignatureSpec signatureSpec, Object... tasks) {
-        this(returning(toSign), null, signatureSpec, tasks);
+        super(tasks);
+        init(returning(toSign), null, signatureSpec);
     }
 
     /**
@@ -135,7 +138,8 @@ public class Signature extends AbstractPublishArtifact {
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
     public Signature(final File toSign, final String classifier, SignatureSpec signatureSpec, Object... tasks) {
-        this(returning(toSign), returning(classifier), signatureSpec, tasks);
+        super(tasks);
+        init(returning(toSign), returning(classifier), signatureSpec);
     }
 
     /**
@@ -148,8 +152,14 @@ public class Signature extends AbstractPublishArtifact {
      * @param signatureSpec The specification of how the artifact is to be signed
      * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
      */
-    public Signature(Callable<File> toSign, Callable<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
+    public Signature(Closure<File> toSign, Closure<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
         super(tasks);
+        this.toSignGenerator = toSign;
+        this.classifierGenerator = classifier;
+        this.signatureSpec = signatureSpec;
+    }
+
+    private void init(Callable<File> toSign, Callable<String> classifier, SignatureSpec signatureSpec) {
         this.toSignGenerator = toSign;
         this.classifierGenerator = classifier;
         this.signatureSpec = signatureSpec;

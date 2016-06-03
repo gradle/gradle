@@ -21,12 +21,12 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.DescriptorParseContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 import java.io.File;
 
-public class IvyContextualMetaDataParser<T extends MutableModuleComponentResolveMetaData> implements MetaDataParser<T> {
+public class IvyContextualMetaDataParser<T extends MutableModuleComponentResolveMetadata> implements MetaDataParser<T> {
     private final MetaDataParser<T> delegate;
     private final IvyContextManager ivyContextManager;
 

@@ -44,10 +44,23 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.*;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
@@ -69,8 +82,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
 
     protected static final List<String> DEBUG_ARGS = ImmutableList.of(
-        "-Xdebug",
-        "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
+        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
     );
 
     private final Logger logger;
@@ -558,6 +570,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return withDaemonBaseDir(testDirectoryProvider.getTestDirectory().file("daemon"));
     }
 
+    public boolean usesSharedDaemons() {
+        return isSharedDaemons();
+    }
+
     public File getDaemonBaseDir() {
         return daemonBaseDir;
     }
@@ -573,15 +589,38 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected boolean isUseDaemon() {
-        for (int i = args.size() - 1; i >= 0; i--) {
-            if (args.get(i).equals("--daemon")) {
-                return true;
-            }
-            if (args.get(i).equals("--no-daemon")) {
-                return false;
-            }
+        CliDaemonArgument cliDaemonArgument = resolveCliDaemonArgument();
+        if (cliDaemonArgument == DAEMON) {
+            return true;
         }
         return requireDaemon;
+    }
+
+    enum CliDaemonArgument {
+        NOT_DEFINED,
+        DAEMON,
+        NO_DAEMON,
+        FOREGROUND
+    }
+
+    private CliDaemonArgument resolveCliDaemonArgument() {
+        for (int i = args.size() - 1; i >= 0; i--) {
+            final String arg = args.get(i);
+            if (arg.equals("--daemon")) {
+                return DAEMON;
+            }
+            if (arg.equals("--no-daemon")) {
+                return NO_DAEMON;
+            }
+            if (arg.equals("--foreground")) {
+                return FOREGROUND;
+            }
+        }
+        return NOT_DEFINED;
+    }
+
+    private boolean noDaemonArgumentGiven() {
+        return resolveCliDaemonArgument() == NOT_DEFINED;
     }
 
     protected List<String> getAllArgs() {
@@ -605,8 +644,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (quiet) {
             allArgs.add("--quiet");
         }
-        if (isUseDaemon()) {
-            allArgs.add("--daemon");
+        if (noDaemonArgumentGiven()) {
+            if (isUseDaemon()) {
+                allArgs.add("--daemon");
+            } else {
+                allArgs.add("--no-daemon");
+            }
         }
         allArgs.add("--stacktrace");
         if (taskList) {

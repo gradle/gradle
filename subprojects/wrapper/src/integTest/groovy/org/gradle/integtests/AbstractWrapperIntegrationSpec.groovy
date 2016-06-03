@@ -15,11 +15,12 @@
  */
 
 package org.gradle.integtests
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.test.fixtures.file.TestFile
+
+import static org.gradle.integtests.fixtures.daemon.DaemonTestFixture.killIsolatedDaemons
 
 class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
     void installationIn(TestFile userHomeDir) {
@@ -40,5 +41,9 @@ class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
             executer.usingExecutable("gradlew")
         }
         return executer
+    }
+
+    protected void cleanup() {
+        killIsolatedDaemons(executer)
     }
 }

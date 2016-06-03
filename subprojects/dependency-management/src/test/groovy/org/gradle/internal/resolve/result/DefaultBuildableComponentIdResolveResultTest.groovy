@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
-import org.gradle.internal.component.model.ComponentResolveMetaData
+import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -58,7 +58,7 @@ class DefaultBuildableComponentIdResolveResultTest extends Specification {
     def "can resolve using meta-data"() {
         def id = Stub(ComponentIdentifier)
         def mvId = Stub(ModuleVersionIdentifier)
-        def metaData = Stub(ComponentResolveMetaData) {
+        def metaData = Stub(ComponentResolveMetadata) {
             getId() >> mvId
             getComponentId() >> id
         }

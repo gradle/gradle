@@ -30,3 +30,5 @@ useTestFixtures()
 useTestFixtures(project: ":logging")
 useClassycle()
 strictCompile()
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false

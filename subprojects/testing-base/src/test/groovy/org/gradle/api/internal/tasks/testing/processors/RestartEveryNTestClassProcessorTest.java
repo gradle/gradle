@@ -41,11 +41,11 @@ public class RestartEveryNTestClassProcessorTest {
     @Test
     public void onFirstTestCreatesDelegateProcessor() {
         context.checking(new Expectations() {{
-            one(factory).create();
+            oneOf(factory).create();
             will(returnValue(delegate));
 
-            one(delegate).startProcessing(resultProcessor);
-            one(delegate).processTestClass(test1);
+            oneOf(delegate).startProcessing(resultProcessor);
+            oneOf(delegate).processTestClass(test1);
         }});
 
         processor.startProcessing(resultProcessor);
@@ -55,13 +55,13 @@ public class RestartEveryNTestClassProcessorTest {
     @Test
     public void onNthTestEndsProcessingOnDelegateProcessor() {
         context.checking(new Expectations() {{
-            one(factory).create();
+            oneOf(factory).create();
             will(returnValue(delegate));
 
-            one(delegate).startProcessing(resultProcessor);
-            one(delegate).processTestClass(test1);
-            one(delegate).processTestClass(test2);
-            one(delegate).stop();
+            oneOf(delegate).startProcessing(resultProcessor);
+            oneOf(delegate).processTestClass(test1);
+            oneOf(delegate).processTestClass(test2);
+            oneOf(delegate).stop();
         }});
 
         processor.startProcessing(resultProcessor);
@@ -72,21 +72,21 @@ public class RestartEveryNTestClassProcessorTest {
     @Test
     public void onNPlus1TestCreatesNewDelegateProcessor() {
         context.checking(new Expectations() {{
-            one(factory).create();
+            oneOf(factory).create();
             will(returnValue(delegate));
 
-            one(delegate).startProcessing(resultProcessor);
-            one(delegate).processTestClass(test1);
-            one(delegate).processTestClass(test2);
-            one(delegate).stop();
+            oneOf(delegate).startProcessing(resultProcessor);
+            oneOf(delegate).processTestClass(test1);
+            oneOf(delegate).processTestClass(test2);
+            oneOf(delegate).stop();
 
             TestClassProcessor delegate2 = context.mock(TestClassProcessor.class, "delegate2");
 
-            one(factory).create();
+            oneOf(factory).create();
             will(returnValue(delegate2));
 
-            one(delegate2).startProcessing(resultProcessor);
-            one(delegate2).processTestClass(test3);
+            oneOf(delegate2).startProcessing(resultProcessor);
+            oneOf(delegate2).processTestClass(test3);
         }});
 
         processor.startProcessing(resultProcessor);
@@ -98,12 +98,12 @@ public class RestartEveryNTestClassProcessorTest {
     @Test
     public void onEndOfProcessingEndsProcessingOnDelegateProcessor() {
         context.checking(new Expectations() {{
-            one(factory).create();
+            oneOf(factory).create();
             will(returnValue(delegate));
 
-            one(delegate).startProcessing(resultProcessor);
-            one(delegate).processTestClass(test1);
-            one(delegate).stop();
+            oneOf(delegate).startProcessing(resultProcessor);
+            oneOf(delegate).processTestClass(test1);
+            oneOf(delegate).stop();
         }});
 
         processor.startProcessing(resultProcessor);
@@ -119,13 +119,13 @@ public class RestartEveryNTestClassProcessorTest {
     @Test
     public void onEndOfProcessingDoesNothingWhenOnNthTest() {
         context.checking(new Expectations() {{
-            one(factory).create();
+            oneOf(factory).create();
             will(returnValue(delegate));
 
-            one(delegate).startProcessing(resultProcessor);
-            one(delegate).processTestClass(test1);
-            one(delegate).processTestClass(test2);
-            one(delegate).stop();
+            oneOf(delegate).startProcessing(resultProcessor);
+            oneOf(delegate).processTestClass(test1);
+            oneOf(delegate).processTestClass(test2);
+            oneOf(delegate).stop();
         }});
 
         processor.startProcessing(resultProcessor);
@@ -139,13 +139,13 @@ public class RestartEveryNTestClassProcessorTest {
         processor = new RestartEveryNTestClassProcessor(factory, 0);
 
         context.checking(new Expectations() {{
-            one(factory).create();
+            oneOf(factory).create();
             will(returnValue(delegate));
 
-            one(delegate).startProcessing(resultProcessor);
-            one(delegate).processTestClass(test1);
-            one(delegate).processTestClass(test2);
-            one(delegate).stop();
+            oneOf(delegate).startProcessing(resultProcessor);
+            oneOf(delegate).processTestClass(test1);
+            oneOf(delegate).processTestClass(test2);
+            oneOf(delegate).stop();
         }});
 
         processor.startProcessing(resultProcessor);

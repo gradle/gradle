@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,17 @@
  */
 package org.gradle.internal.classloader;
 
-import org.gradle.internal.Transformers;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceLocator;
-import org.gradle.util.CollectionUtils;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.SAXParserFactory;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
+
+import static java.lang.ClassLoader.getSystemClassLoader;
 
 public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     private final CachingServiceLocator systemClassLoaderServiceLocator = CachingServiceLocator.of(new DefaultServiceLocator(getSystemClassLoader()));
@@ -40,15 +35,12 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         return getSystemClassLoader().getParent();
     }
 
-    public ClassLoader createIsolatedClassLoader(Iterable<URI> uris) {
-        return doCreateIsolatedClassLoader(CollectionUtils.collect(uris, Transformers.toURL()));
-    }
-
+    @Override
     public ClassLoader createIsolatedClassLoader(ClassPath classPath) {
-        return doCreateIsolatedClassLoader(classPath.getAsURLs());
+        return doCreateIsolatedClassLoader(classPath);
     }
 
-    private ClassLoader doCreateIsolatedClassLoader(Collection<URL> classpath) {
+    private ClassLoader doCreateIsolatedClassLoader(ClassPath classPath) {
         // This piece of ugliness copies the JAXP (ie XML API) provider, if any, from the system ClassLoader. Here's why:
         //
         // 1. When looking for a provider, JAXP looks for a service resource in the context ClassLoader, which is our isolated ClassLoader. If our classpath above does not contain a
@@ -64,65 +56,53 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         // Note that in practise, this is only triggered when running in our tests
 
         if (needJaxpImpl()) {
-            try {
-                classpath.add(ClasspathUtil.getClasspathForResource(getSystemClassLoader(), "META-INF/services/javax.xml.parsers.SAXParserFactory").toURI().toURL());
-            } catch (MalformedURLException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+            classPath = classPath.plus(Collections.singleton(ClasspathUtil.getClasspathForResource(getSystemClassLoader(), "META-INF/services/javax.xml.parsers.SAXParserFactory")));
         }
 
-        return new MutableURLClassLoader(getIsolatedSystemClassLoader(), classpath);
-    }
-
-    public FilteringClassLoader createFilteringClassLoader(ClassLoader parent) {
-        // See the comment for {@link #createIsolatedClassLoader} above
-        FilteringClassLoader classLoader = new FilteringClassLoader(parent);
-        if (needJaxpImpl()) {
-            makeServiceVisible(systemClassLoaderServiceLocator, classLoader, SAXParserFactory.class);
-            makeServiceVisible(systemClassLoaderServiceLocator, classLoader, DocumentBuilderFactory.class);
-            makeServiceVisible(systemClassLoaderServiceLocator, classLoader, DatatypeFactory.class);
-        }
-        return classLoader;
-    }
-
-    public ClassLoader createClassLoader(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
-        if (spec instanceof MultiParentClassLoader.Spec) {
-            return new MultiParentClassLoader(parents);
-        }
-        if (parents.size() != 1) {
-            throw new IllegalArgumentException("Expected a single parent.");
-        }
-        ClassLoader parent = parents.get(0);
-        if (spec instanceof MutableURLClassLoader.Spec) {
-            MutableURLClassLoader.Spec clSpec = (MutableURLClassLoader.Spec) spec;
-            return new MutableURLClassLoader(parent, clSpec);
-        }
-        if (spec instanceof CachingClassLoader.Spec) {
-            return new CachingClassLoader(parent);
-        }
-        if (spec instanceof FilteringClassLoader.Spec) {
-            FilteringClassLoader.Spec clSpec = (FilteringClassLoader.Spec) spec;
-            return new FilteringClassLoader(parent, clSpec);
-        }
-        throw new IllegalArgumentException(String.format("Don't know how to create a ClassLoader from spec %s", spec));
+        return doCreateClassLoader(getIsolatedSystemClassLoader(), classPath);
     }
 
     @Override
-    public FilteringClassLoader createSystemFilteringClassLoader() {
-        return createFilteringClassLoader(getSystemClassLoader());
+    public ClassLoader createClassLoader(ClassLoader parent, ClassPath classPath) {
+        return doCreateClassLoader(parent, classPath);
     }
 
-    private void makeServiceVisible(ServiceLocator locator, FilteringClassLoader classLoader, Class<?> serviceType) {
-        classLoader.allowClass(locator.getFactory(serviceType).getImplementationClass());
-        classLoader.allowResource("META-INF/services/" + serviceType.getName());
+    @Override
+    public ClassLoader createFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
+        // See the comment for {@link #createIsolatedClassLoader} above
+        FilteringClassLoader.Spec classLoaderSpec = new FilteringClassLoader.Spec(spec);
+        if (needJaxpImpl()) {
+            makeServiceVisible(systemClassLoaderServiceLocator, classLoaderSpec, SAXParserFactory.class);
+            makeServiceVisible(systemClassLoaderServiceLocator, classLoaderSpec, DocumentBuilderFactory.class);
+            makeServiceVisible(systemClassLoaderServiceLocator, classLoaderSpec, DatatypeFactory.class);
+        }
+        return doCreateFilteringClassLoader(parent, classLoaderSpec);
     }
 
-    private boolean needJaxpImpl() {
+    @Override
+    public ClassLoader createClassLoader(ClassLoader parent, ClassPath classPath, ClassLoaderCreator creator) {
+        return doCreateClassLoader(parent, classPath, creator);
+    }
+
+    protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classPath) {
+        return new VisitableURLClassLoader(parent, classPath);
+    }
+
+    protected ClassLoader doCreateFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
+        return new FilteringClassLoader(parent, spec);
+    }
+
+    protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classPath, ClassLoaderCreator creator) {
+        return creator.create(parent, classPath);
+    }
+
+    private static void makeServiceVisible(ServiceLocator locator, FilteringClassLoader.Spec classLoaderSpec, Class<?> serviceType) {
+        classLoaderSpec.allowClass(locator.getFactory(serviceType).getImplementationClass());
+        classLoaderSpec.allowResource("META-INF/services/" + serviceType.getName());
+    }
+
+    private static boolean needJaxpImpl() {
         return ClassLoader.getSystemResource("META-INF/services/javax.xml.parsers.SAXParserFactory") != null;
-    }
-
-    private ClassLoader getSystemClassLoader() {
-        return ClassLoader.getSystemClassLoader();
     }
 
 }

@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
-import org.gradle.internal.component.model.ComponentResolveMetaData;
-import org.gradle.internal.component.model.ConfigurationMetaData;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
 
 import java.util.Set;
 
@@ -26,5 +26,5 @@ import java.util.Set;
  * Responsible for mapping a dependency definition to the set of configurations that it refers to.
  */
 public interface DependencyToConfigurationResolver {
-    Set<ConfigurationMetaData> resolveTargetConfigurations(DependencyMetaData dependencyMetaData, ConfigurationMetaData fromConfiguration, ComponentResolveMetaData targetComponent);
+    Set<ConfigurationMetadata> resolveTargetConfigurations(DependencyMetadata dependencyMetadata, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
 }

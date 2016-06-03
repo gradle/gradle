@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
+apply from: "$rootDir/gradle/taskProperties.gradle"
+
 sourceCompatibility = 1.5
 
 configurations {
     reports
+}
+
+classpathManifest {
+    optionalProjects = ['gradle-script-kotlin']
 }
 
 dependencies {

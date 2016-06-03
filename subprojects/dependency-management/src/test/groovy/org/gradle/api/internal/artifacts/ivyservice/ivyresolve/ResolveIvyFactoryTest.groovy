@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCa
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver
 import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.resource.cached.CachedArtifactIndex
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
@@ -114,8 +114,8 @@ class ResolveIvyFactoryTest extends Specification {
         ExternalResourceRepository externalResourceRepository = Stub()
         CacheAwareExternalResourceAccessor cacheAwareExternalResourceAccessor = Stub()
         VersionLister versionLister = Stub()
-        LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> locallyAvailableResourceFinder = Stub()
-        FileStore<ModuleComponentArtifactMetaData> fileStore = Stub()
+        LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder = Stub()
+        FileStore<ModuleComponentArtifactMetadata> fileStore = Stub()
 
         return Spy(ExternalResourceResolver,
             constructorArgs: [

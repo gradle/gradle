@@ -17,6 +17,16 @@ repositories {
     }
 <% } %>
 
+<% if (binding.hasVariable("springDmPluginVersion")) {%>
+apply plugin: "io.spring.dependency-management"
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.boot:spring-boot-dependencies:1.3.5.RELEASE'
+        mavenBom 'io.spring.platform:platform-bom:2.0.5.RELEASE'
+    }
+}
+<% } %>
+
 dependencies {
     compile 'commons-lang:commons-lang:2.5'
     compile "commons-httpclient:commons-httpclient:3.0"

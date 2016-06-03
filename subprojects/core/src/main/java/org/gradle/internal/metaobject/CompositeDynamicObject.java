@@ -15,8 +15,6 @@
  */
 package org.gradle.internal.metaobject;
 
-import groovy.lang.Closure;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -99,19 +97,6 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
             if (result.isFound()) {
                 return;
             }
-            GetPropertyResult propertyLookup = new GetPropertyResult();
-            object.getProperty(name, propertyLookup);
-            if (propertyLookup.isFound()) {
-                Object property = propertyLookup.getValue();
-                if (property instanceof Closure) {
-                    Closure closure = (Closure) property;
-                    closure.setResolveStrategy(Closure.DELEGATE_FIRST);
-                    Object value = closure.call(arguments);
-                    result.result(value);
-                    return;
-                }
-            }
         }
-
     }
 }

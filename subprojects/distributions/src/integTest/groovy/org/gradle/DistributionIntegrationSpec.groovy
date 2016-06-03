@@ -39,7 +39,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     abstract String getDistributionLabel()
 
     int getLibJarsCount() {
-        160
+        165
     }
 
     def "no duplicate entries"() {
@@ -110,13 +110,15 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         contentsDir.file('LICENSE').assertIsFile()
 
         // Core libs
-        def coreLibs = contentsDir.file("lib").listFiles().findAll { it.name.startsWith("gradle-") }
+        def coreLibs = contentsDir.file("lib").listFiles().findAll {
+            it.name.startsWith("gradle-") && !it.name.startsWith("gradle-script-kotlin")
+        }
         assert coreLibs.size() == 19
         coreLibs.each { assertIsGradleJar(it) }
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${version}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 375 * 1024; // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 500 * 1024; // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Plugins
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-dependency-management-${version}.jar"))

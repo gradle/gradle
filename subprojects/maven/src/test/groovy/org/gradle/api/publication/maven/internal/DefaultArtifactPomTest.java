@@ -160,7 +160,7 @@ public class DefaultArtifactPomTest {
         assertThat(artifactPom.getPom().getVersion(), equalTo("1.0"));
         assertThat(artifactPom.getPom().getPackaging(), equalTo("mainPackaging"));
     }
-    
+
     @Test(expected = InvalidUserDataException.class)
     public void addClassifierTwiceShouldThrowInvalidUserDataEx() {
         File classifierFile = new File("someClassifierFile");
@@ -250,7 +250,7 @@ public class DefaultArtifactPomTest {
         context.checking(new Expectations() {{
             allowing(mavenPomMock).getArtifactId();
             will(returnValue("artifactId"));
-            one(mavenPomMock).writeTo(with(any(FileOutputStream.class)));
+            oneOf(mavenPomMock).writeTo(with(any(FileOutputStream.class)));
         }});
 
         PublishArtifact artifact = artifactPom.writePom(somePomFile);

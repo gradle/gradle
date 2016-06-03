@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.eclipse
+
 import junit.framework.AssertionFailedError
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier

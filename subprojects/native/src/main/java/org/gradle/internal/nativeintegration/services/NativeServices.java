@@ -95,13 +95,17 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
         }
     }
 
-    private static File getNativeServicesDir(File userHomeDir) {
-        String overrideProperty = System.getProperty(NATIVE_DIR_OVERRIDE);
+    public static File getNativeServicesDir(File userHomeDir) {
+        String overrideProperty = getNativeDirOverride();
         if (overrideProperty == null) {
             return new File(userHomeDir, "native");
         } else {
             return new File(overrideProperty);
         }
+    }
+
+    private static String getNativeDirOverride() {
+        return System.getProperty(NATIVE_DIR_OVERRIDE, System.getenv(NATIVE_DIR_OVERRIDE));
     }
 
     public static synchronized NativeServices getInstance() {

@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -61,9 +61,9 @@ public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     }
 
     @Override
-    public void build(ComponentArtifactMetaData artifact) {
-        if (artifact instanceof CompositeProjectComponentArtifactMetaData) {
-            CompositeProjectComponentArtifactMetaData artifactMetaData = (CompositeProjectComponentArtifactMetaData) artifact;
+    public void build(ComponentArtifactMetadata artifact) {
+        if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
+            CompositeProjectComponentArtifactMetadata artifactMetaData = (CompositeProjectComponentArtifactMetadata) artifact;
             build(artifactMetaData.getComponentId(), artifactMetaData.getRootDirectory(), artifactMetaData.getTasks());
         }
     }

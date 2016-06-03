@@ -6,8 +6,13 @@
 	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/commons-lang/commons-lang/2.5/@SHA1@/commons-lang-2.5-sources.jar" kind="var"
 					path="GRADLE_USER_HOME/@CACHE@/commons-lang/commons-lang/2.5/@SHA1@/commons-lang-2.5.jar">
 		<attributes>
+			<attribute name="org.eclipse.jst.component.dependency" value="/WEB-INF/lib"/>
 			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/commons-lang/commons-lang/2.5/@SHA1@/commons-lang-2.5-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/junit/junit/4.7/@SHA1@/junit-4.7-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/junit/junit/4.7/@SHA1@/junit-4.7.jar"/>
+	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/junit/junit/4.7/@SHA1@/junit-4.7-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/junit/junit/4.7/@SHA1@/junit-4.7.jar">
+		<attributes>
+			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
+		</attributes>
+	</classpathentry>
 </classpath>

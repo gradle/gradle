@@ -16,8 +16,8 @@
 package org.gradle.plugins.ide.api;
 
 import groovy.lang.Closure;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.listener.ActionBroadcast;
+import org.gradle.util.ConfigureUtil;
 
 /**
  * Models the generation/parsing/merging capabilities.
@@ -58,7 +58,7 @@ public class FileContentMerger {
      * @param closure The closure to execute.
      */
     public void beforeMerged(Closure closure) {
-        beforeMerged.add(new ClosureBackedAction(closure));
+        beforeMerged.add(ConfigureUtil.configureUsing(closure));
     }
 
     /**
@@ -73,6 +73,6 @@ public class FileContentMerger {
      * @param closure The closure to execute.
      */
     public void whenMerged(Closure closure) {
-        whenMerged.add(new ClosureBackedAction(closure));
+        whenMerged.add(ConfigureUtil.configureUsing(closure));
     }
 }

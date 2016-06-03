@@ -20,7 +20,6 @@ import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Set;
 
 public class TestNGSpec implements Serializable {
@@ -30,9 +29,6 @@ public class TestNGSpec implements Serializable {
     private final String defaultTestName;
     private final String parallel;
     private final int threadCount;
-    private final String annotations;
-    private final boolean javadocAnnotations;
-    private final List testResources;
     private final boolean useDefaultListener;
     private final Set<String> includeGroups;
     private final Set<String> excludeGroups;
@@ -47,9 +43,6 @@ public class TestNGSpec implements Serializable {
         this.defaultTestName = options.getTestName();
         this.parallel = options.getParallel();
         this.threadCount = options.getThreadCount();
-        this.annotations = options.getAnnotations();
-        this.javadocAnnotations = options.getJavadocAnnotations();
-        this.testResources = options.getTestResources();
         this.useDefaultListener = options.getUseDefaultListeners();
         this.includeGroups = options.getIncludeGroups();
         this.excludeGroups = options.getExcludeGroups();
@@ -74,18 +67,6 @@ public class TestNGSpec implements Serializable {
 
     public boolean getUseDefaultListeners() {
         return useDefaultListener;
-    }
-
-    public List getTestResources() {
-        return testResources;
-    }
-
-    public boolean getJavadocAnnotations() {
-        return javadocAnnotations;
-    }
-
-    public String getAnnotations() {
-        return annotations;
     }
 
     public int getThreadCount() {

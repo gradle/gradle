@@ -27,6 +27,8 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
@@ -53,6 +55,7 @@ import java.util.Set;
 public class IdeaDependenciesProvider {
 
     private final IdeDependenciesExtractor dependenciesExtractor;
+    private final ModuleDependencyBuilder moduleDependencyBuilder;
     private Transformer<FilePath, File> getPath;
 
     /**
@@ -63,11 +66,11 @@ public class IdeaDependenciesProvider {
      */
     private Map<GeneratedIdeaScope, List<IdeaScopeMappingRule>> scopeMappings = new EnumMap<GeneratedIdeaScope, List<IdeaScopeMappingRule>>(GeneratedIdeaScope.class);
 
-    public IdeaDependenciesProvider() {
-        this(new IdeDependenciesExtractor());
+    public IdeaDependenciesProvider(ServiceRegistry serviceRegistry) {
+        this(new IdeDependenciesExtractor(), serviceRegistry);
     }
 
-    IdeaDependenciesProvider(IdeDependenciesExtractor dependenciesExtractor) {
+    IdeaDependenciesProvider(IdeDependenciesExtractor dependenciesExtractor, ServiceRegistry serviceRegistry) {
         this.dependenciesExtractor = dependenciesExtractor;
         scopeMappings.put(GeneratedIdeaScope.PROVIDED_TEST,
                 Collections.singletonList(new IdeaScopeMappingRule("providedRuntime", "test")));
@@ -87,6 +90,8 @@ public class IdeaDependenciesProvider {
                 Lists.newArrayList(new IdeaScopeMappingRule("testCompileClasspath"), new IdeaScopeMappingRule("testCompile"), new IdeaScopeMappingRule("testRuntime")));
         scopeMappings.put(GeneratedIdeaScope.COMPILE_CLASSPATH,
                 Collections.singletonList(new IdeaScopeMappingRule("compileClasspath")));
+
+        moduleDependencyBuilder = new ModuleDependencyBuilder(new CompositeBuildIdeProjectResolver(serviceRegistry));
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {
@@ -160,7 +165,7 @@ public class IdeaDependenciesProvider {
                         new IdeDependencyKey.DependencyBuilder<IdeProjectDependency, Dependency>() {
                             @Override
                             public Dependency buildDependency(IdeProjectDependency dependency, String scope) {
-                                return new ModuleDependencyBuilder().create(dependency, scope);
+                                return moduleDependencyBuilder.create(dependency, scope);
                             }});
                 dependencyToConfigurations.put(key, configuration.getName());
             }

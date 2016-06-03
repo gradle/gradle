@@ -23,19 +23,29 @@ import com.google.common.collect.Sets
 import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.JavaVersion
+import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.ConventionMapping
 import org.gradle.api.internal.IConventionAware
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentProvider
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
+import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
+import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ear.EarPlugin
@@ -51,6 +61,7 @@ import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
 import java.util.concurrent.Callable
+
 /**
  * <p>A plugin which generates Eclipse files.</p>
  */
@@ -84,21 +95,45 @@ class EclipsePlugin extends IdePlugin {
         configureEclipseJdt(project, model)
         configureEclipseClasspath(project, model)
 
-        hookDeduplicationToTheRoot(project)
+        postProcess("eclipse") {
+            performPostEvaluationActions()
+        }
+
+        applyEclipseWtpPluginOnWebProjects(project)
     }
 
-    void hookDeduplicationToTheRoot(Project project) {
-        if (project.parent == null) {
-            project.gradle.projectsEvaluated(new Closure(this, this) {
-                public void doCall() {
-                    makeSureProjectNamesAreUnique()
-                }
-            })
+    public void performPostEvaluationActions() {
+        makeSureProjectNamesAreUnique()
+        // This needs to happen after de-duplication
+        registerEclipseArtifacts()
+    }
+
+    private void makeSureProjectNamesAreUnique() {
+        new EclipseNameDeduper().configureRoot(project.rootProject);
+    }
+
+    private void registerEclipseArtifacts() {
+        def projectsWithEclipse = project.rootProject.allprojects.findAll({ it.plugins.hasPlugin(EclipsePlugin) })
+        projectsWithEclipse.each {
+            registerEclipseArtifacts(it)
         }
     }
 
-    public void makeSureProjectNamesAreUnique() {
-        new EclipseNameDeduper().configureRoot(project.rootProject);
+    private static void registerEclipseArtifacts(Project project) {
+        def projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectComponentProvider)
+        def projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
+        String projectName = project.extensions.getByType(EclipseModel).project.name
+        projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("project", projectId, projectName, project))
+        projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("classpath", projectId, projectName, project))
+    }
+
+    private static ComponentArtifactMetadata createArtifact(String extension, ProjectComponentIdentifier projectId, String projectName, Project project) {
+        File projectFile = new File(project.getProjectDir(), "." + extension);
+        String taskName = project.getPath().equals(":") ? ":eclipseProject" : project.getPath() + ":eclipseProject";
+        Task byName = project.getTasks().getByPath(taskName);
+        def type = "eclipse." + extension
+        PublishArtifact publishArtifact = new DefaultPublishArtifact(projectName, extension, type, null, null, projectFile, byName);
+        return new PublishArtifactLocalArtifactMetadata(projectId, type, publishArtifact);
     }
 
     private void configureEclipseProject(Project project, EclipseModel model) {
@@ -308,6 +343,21 @@ class EclipsePlugin extends IdePlugin {
                 })
             }
         })
+    }
+
+    private void applyEclipseWtpPluginOnWebProjects(Project project) {
+        Action<Plugin<Project>> action = createActionApplyingEclipseWtpPlugin()
+        project.getPlugins().withType(WarPlugin.class, action);
+        project.getPlugins().withType(EarPlugin.class, action);
+    }
+
+    private Action<Plugin<Project>> createActionApplyingEclipseWtpPlugin() {
+        return new Action<Plugin<Project>>() {
+            @Override
+            public void execute(Plugin<Project> plugin) {
+                project.getPluginManager().apply(EclipseWtpPlugin.class);
+            }
+        }
     }
 
     private static <T extends Task> void maybeAddTask(Project project, IdePlugin plugin, String taskName,

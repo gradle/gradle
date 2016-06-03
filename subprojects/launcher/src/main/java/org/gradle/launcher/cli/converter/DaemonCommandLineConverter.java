@@ -36,11 +36,11 @@ public class DaemonCommandLineConverter extends AbstractCommandLineConverter<Dae
         if (args.hasOption(STOP)) {
             target.setStop(true);
         }
+
         if (args.hasOption(NO_DAEMON)) {
-            return target.setEnabled(false);
-        }
-        if (args.hasOption(DAEMON)) {
-            return target.setEnabled(true);
+            target.setEnabled(false);
+        } else if (args.hasOption(DAEMON)) {
+            target.setEnabled(true);
         }
         return target;
     }

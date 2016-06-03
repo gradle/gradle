@@ -25,7 +25,7 @@ import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
-import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -212,7 +212,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     private class ProjectBackedModuleMetaDataProvider implements DependencyMetaDataProvider {
-        public ModuleInternal getModule() {
+        public Module getModule() {
             return new ProjectBackedModule(project);
         }
     }

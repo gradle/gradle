@@ -17,6 +17,10 @@
 package org.gradle.process;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 
 import java.util.List;
 import java.util.Map;
@@ -30,6 +34,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return The system properties. Returns an empty map when there are no system properties.
      */
+    @Input
     Map<String, Object> getSystemProperties();
 
     /**
@@ -58,9 +63,10 @@ public interface JavaForkOptions extends ProcessForkOptions {
 
     /**
      * Returns the default character encoding to use.
-     * 
+     *
      * @return The default character encoding. Returns null if the {@link java.nio.charset.Charset#defaultCharset() default character encoding of this JVM} should be used.
      */
+     @Optional @Input
      String getDefaultCharacterEncoding();
 
     /**
@@ -73,12 +79,13 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @param defaultCharacterEncoding The default character encoding. Use null to use {@link java.nio.charset.Charset#defaultCharset() this JVM's default charset}
      */
      void setDefaultCharacterEncoding(String defaultCharacterEncoding);
-    
+
     /**
      * Returns the minimum heap size for the process, if any.
      *
      * @return The minimum heap size. Returns null if the default minimum heap size should be used.
      */
+    @Optional @Input
     String getMinHeapSize();
 
     /**
@@ -93,6 +100,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return The maximum heap size. Returns null if the default maximum heap size should be used.
      */
+    @Optional @Input
     String getMaxHeapSize();
 
     /**
@@ -108,6 +116,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return The arguments. Returns an empty list if there are no arguments.
      */
+    @Optional @Input
     List<String> getJvmArgs();
 
     /**
@@ -140,6 +149,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return The bootstrap classpath. Never returns null.
      */
+    @InputFiles
     FileCollection getBootstrapClasspath();
 
     /**
@@ -163,6 +173,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return true if assertions are enabled, false if disabled
      */
+    @Input
     boolean getEnableAssertions();
 
     /**
@@ -178,6 +189,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return true when debugging is enabled, false to disable.
      */
+    @Input
     boolean getDebug();
 
     /**
@@ -194,6 +206,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return The arguments. Returns an empty list if there are no arguments.
      */
+    @Internal
     List<String> getAllJvmArgs();
 
     /**

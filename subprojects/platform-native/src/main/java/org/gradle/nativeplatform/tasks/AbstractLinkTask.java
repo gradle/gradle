@@ -21,6 +21,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -70,6 +72,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * The tool chain used for linking.
      */
+    @Internal
     public NativeToolChain getToolChain() {
         return toolChain;
     }
@@ -81,6 +84,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * The platform that the linked binary will run on.
      */
+    @Nested
     public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }

@@ -15,27 +15,17 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.SourceSet
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.Matchers.*
 import static spock.util.matcher.HamcrestSupport.that
 
-@UsesNativeServices
-class CheckstylePluginTest extends Specification {
-    @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-
-    DefaultProject project = TestUtil.createRootProject(temporaryFolder.testDirectory)
+class CheckstylePluginTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         project.pluginManager.apply(CheckstylePlugin)

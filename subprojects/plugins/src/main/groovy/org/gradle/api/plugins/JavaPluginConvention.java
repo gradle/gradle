@@ -18,7 +18,6 @@ package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -26,7 +25,6 @@ import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.reporting.ReportingExtension;
-import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
@@ -69,7 +67,7 @@ public class JavaPluginConvention {
      * <p>The given closure is executed to configure the {@link SourceSetContainer}. The {@link SourceSetContainer}
      * is passed to the closure as its delegate.
      * <p>
-     * See the example below how {@link SourceSet} 'main' is accessed and how the {@link org.gradle.api.file.SourceDirectorySet} 'java'
+     * See the example below how {@link org.gradle.api.tasks.SourceSet} 'main' is accessed and how the {@link org.gradle.api.file.SourceDirectorySet} 'java'
      * is configured to exclude some package from compilation.
      *
      * <pre autoTested=''>
@@ -85,8 +83,9 @@ public class JavaPluginConvention {
      * </pre>
      *
      * @param closure The closure to execute.
+     * @return NamedDomainObjectContainer<org.gradle.api.tasks.SourceSet>
      */
-    public NamedDomainObjectContainer<SourceSet> sourceSets(Closure closure) {
+    public Object sourceSets(Closure closure) {
         return sourceSets.configure(closure);
     }
 
@@ -221,5 +220,14 @@ public class JavaPluginConvention {
 
     public ProjectInternal getProject() {
         return project;
+    }
+
+    /**
+     * project
+     * @deprecated Project should be considered final.
+     */
+    @Deprecated
+    public void setProject(ProjectInternal project) {
+        this.project = project;
     }
 }

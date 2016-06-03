@@ -36,11 +36,11 @@ public interface ArtifactRepository {
      * Sets the name for this repository.
      *
      * If this repository is to be added to an {@link org.gradle.api.artifacts.ArtifactRepositoryContainer}
-     * (including {@link org.gradle.api.artifacts.dsl.RepositoryHandler}), its name should not be changed after it has
-     * been added to the container. This capability has been deprecated and is scheduled to be removed in the next major
-     * Gradle version.
+     * (including {@link org.gradle.api.artifacts.dsl.RepositoryHandler}), its name cannot be changed after it has
+     * been added to the container.
      *
      * @param name The name. Must not be null.
+     * @throws IllegalStateException If the name is set after it has been added to the container.
      */
     void setName(String name);
 }

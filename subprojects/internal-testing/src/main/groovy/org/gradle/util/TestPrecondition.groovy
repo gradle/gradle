@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.util
-
 import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 
@@ -102,10 +101,10 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         NOT_WINDOWS.fulfilled
     }),
     NOT_JDK_IBM({
-        System.getProperty('java.vm.vendor') != 'IBM Corporation'
+        !JDK_IBM.fulfilled
     }),
     JDK_IBM({
-        !NOT_JDK_IBM.fulfilled
+        System.getProperty('java.vm.vendor') == 'IBM Corporation'
     }),
     JDK_ORACLE({
         System.getProperty('java.vm.vendor') == 'Oracle Corporation'

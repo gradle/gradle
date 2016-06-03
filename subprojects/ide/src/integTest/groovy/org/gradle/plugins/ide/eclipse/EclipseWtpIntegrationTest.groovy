@@ -47,11 +47,61 @@ dependencies {
     void overwritesDependentModules() {
         generateEclipseFilesForWebProject()
         def projectModules = parseComponentFile(project: "web")
-        assert getHandleFilenames(projectModules) == ["java1", "java2", "groovy", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
+        assert getHandleFilenames(projectModules) == ["java1", "java2", "groovy"] as Set
+        def classpath1 = classpath("web")
+        classpath1.libs.size() == 2
+        classpath1.lib("myartifact-1.0.jar")
+        classpath1.lib("myartifactdep-1.0.jar")
 
         generateEclipseFilesForWebProject("1.2.3")
         def projectModules2 = parseComponentFile(project: "web")
-        assert getHandleFilenames(projectModules2) == ["java1", "java2", "groovy", "myartifact-1.2.3.jar", "myartifactdep-1.0.jar"] as Set
+        assert getHandleFilenames(projectModules2) == ["java1", "java2", "groovy"] as Set
+        def classpath2 = classpath("web")
+        classpath2.libs.size() == 2
+        classpath2.lib("myartifact-1.2.3.jar")
+        classpath2.lib("myartifactdep-1.0.jar")
+    }
+
+    @Test
+    void respectsDependencySubstitutionRules() {
+        //given
+        mavenRepo.module("gradle", "foo").publish()
+        mavenRepo.module("gradle", "bar").publish()
+        mavenRepo.module("gradle", "baz").publish()
+
+        //when
+        runEclipseTask "include 'sub'",
+        """apply plugin: 'java'
+           apply plugin: 'war'
+           apply plugin: 'eclipse-wtp'
+
+           project(':sub') {
+               apply plugin : 'java'
+           }
+
+           repositories {
+               maven { url "${mavenRepo.uri}" }
+           }
+
+           dependencies {
+               compile 'gradle:foo:1.0'
+               compile project(':sub')
+           }
+
+           configurations.all {
+               resolutionStrategy.dependencySubstitution {
+                   substitute module("gradle:foo") with module("gradle:bar:1.0")
+                   substitute project(":sub") with module("gradle:baz:1.0")
+               }
+           }
+        """
+
+        //then
+        def classpath = getClasspath()
+
+        classpath.assertHasLibs('bar-1.0.jar', 'baz-1.0.jar')
+        classpath.lib('bar-1.0.jar').assertIsDeployedTo('/WEB-INF/lib')
+        classpath.lib('baz-1.0.jar').assertIsDeployedTo('/WEB-INF/lib')
     }
 
     private generateEclipseFilesForWebProject(myArtifactVersion = "1.0") {

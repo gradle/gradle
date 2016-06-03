@@ -14,19 +14,27 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.idea
-
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.ConventionMapping
 import org.gradle.api.internal.IConventionAware
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentProvider
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.tasks.SourceSetContainer
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
+import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata
+import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin
@@ -43,7 +51,6 @@ import org.gradle.plugins.ide.idea.model.PathFactory
 import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
-
 /**
  * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task.
  * For projects that have the Java plugin applied, the tasks receive additional Java-specific configuration.
@@ -80,19 +87,37 @@ class IdeaPlugin extends IdePlugin {
         configureIdeaModule(project)
         configureForJavaPlugin(project)
         configureForScalaPlugin()
-        hookDeduplicationToTheRoot(project)
-    }
-
-    void hookDeduplicationToTheRoot(Project project) {
-        if (isRoot(project)) {
-            project.gradle.projectsEvaluated {
-                makeSureModuleNamesAreUnique()
-            }
+        postProcess("idea") {
+            performPostEvaluationActions()
         }
     }
 
-    public void makeSureModuleNamesAreUnique() {
+    public void performPostEvaluationActions() {
+        makeSureModuleNamesAreUnique()
+        // This needs to happen after de-duplication
+        registerImlArtifacts()
+    }
+
+    private void makeSureModuleNamesAreUnique() {
         new IdeaNameDeduper().configureRoot(project.rootProject)
+    }
+
+    private void registerImlArtifacts() {
+        def projectsWithIml = project.rootProject.allprojects.findAll({ it.plugins.hasPlugin(IdeaPlugin) })
+        projectsWithIml.each { project ->
+            def projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectComponentProvider)
+            def projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
+            projectComponentProvider.registerAdditionalArtifact(projectId, createImlArtifact(projectId, project))
+        }
+    }
+
+    private static ComponentArtifactMetadata createImlArtifact(ProjectComponentIdentifier projectId, Project project) {
+        String moduleName = project.extensions.getByType(IdeaModel).module.name
+        File imlFile = new File(project.getProjectDir(), moduleName + ".iml");
+        String taskName = project.getPath().equals(":") ? ":ideaModule" : project.getPath() + ":ideaModule";
+        Task byName = project.getTasks().getByPath(taskName);
+        PublishArtifact publishArtifact = new DefaultPublishArtifact(moduleName, "iml", "iml", null, null, imlFile, byName);
+        return new PublishArtifactLocalArtifactMetadata(projectId, "idea.iml", publishArtifact);
     }
 
     private configureIdeaWorkspace(Project project) {

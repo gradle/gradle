@@ -24,6 +24,7 @@ import org.gradle.internal.featurelifecycle.UsageLocationReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -128,6 +129,11 @@ public class SingleMessageLogger {
     public static void nagUserOfDiscontinuedProperty(String propertyName, String advice) {
         nagUserWith(String.format("The %s property %s. %s",
                 propertyName, getDeprecationMessage(), advice));
+    }
+
+    public static void nagUserOfDiscontinuedAnnotation(Class<? extends Annotation> annotation, String advice) {
+        nagUserWith(String.format("The @%s annotation %s. %s",
+            annotation.getSimpleName(), getDeprecationMessage(), advice));
     }
 
     public static void nagUserOfReplacedNamedParameter(String parameterName, String replacement) {

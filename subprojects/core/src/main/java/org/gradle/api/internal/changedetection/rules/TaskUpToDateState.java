@@ -17,8 +17,13 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.*;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
+import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
 import java.io.File;
 import java.util.Set;
@@ -37,12 +42,13 @@ public class TaskUpToDateState {
 
     public TaskUpToDateState(TaskInternal task, TaskHistoryRepository.History history,
                              OutputFilesCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter,
-                             FileCollectionSnapshotter discoveredInputsSnapshotter, FileCollectionFactory fileCollectionFactory) {
+                             FileCollectionSnapshotter discoveredInputsSnapshotter, FileCollectionFactory fileCollectionFactory,
+                             ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         TaskExecution thisExecution = history.getCurrentExecution();
         TaskExecution lastExecution = history.getPreviousExecution();
 
         TaskStateChanges noHistoryState = new NoHistoryTaskStateChanges(lastExecution);
-        TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task);
+        TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task.getPath(), task.getClass(), task.getActionClassLoaders(), classLoaderHierarchyHasher);
         TaskStateChanges inputPropertiesState = new InputPropertiesTaskStateChanges(lastExecution, thisExecution, task);
 
         // Capture outputs state

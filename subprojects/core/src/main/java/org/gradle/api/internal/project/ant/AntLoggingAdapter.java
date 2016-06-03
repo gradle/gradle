@@ -21,6 +21,7 @@ import org.gradle.api.AntBuilder.AntMessagePriority;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.logging.LogLevelMapping;
 
 import java.io.PrintStream;
 
@@ -96,7 +97,7 @@ public class AntLoggingAdapter implements BuildLogger {
     }
 
     private LogLevel getLogLevelForMessagePriority(int messagePriority) {
-        LogLevel defaultLevel = Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(messagePriority);
+        LogLevel defaultLevel = LogLevelMapping.ANT_IVY_2_SLF4J.get(messagePriority);
 
         // Check to see if we should adjust the level based on a set lifecycle log level
         if (lifecycleLogLevel != null) {

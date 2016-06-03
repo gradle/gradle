@@ -24,8 +24,7 @@ public class IdeRepoFileDependency extends IdeDependency {
     private final File file;
     private ModuleVersionIdentifier id;
 
-    public IdeRepoFileDependency(String declaredConfiguration, File file) {
-        super(declaredConfiguration);
+    public IdeRepoFileDependency(File file) {
         this.file = file;
     }
 

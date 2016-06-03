@@ -25,7 +25,13 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Actions;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelRegistrations;
+import org.gradle.model.internal.core.NoInputsModelAction;
+import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -89,7 +95,7 @@ public class NonTransformedModelDslBacking extends GroovyObjectSupport {
     public void configure(Closure<?> action) {
         executingDsl.set(true);
         try {
-            new ClosureBackedAction<Object>(action).execute(this);
+            ClosureBackedAction.execute(this, action);
         } finally {
             executingDsl.set(false);
         }

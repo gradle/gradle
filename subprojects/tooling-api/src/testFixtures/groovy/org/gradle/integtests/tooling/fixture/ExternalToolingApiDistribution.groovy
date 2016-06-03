@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.fixture
 
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
+import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.util.GradleVersion
 
 class ExternalToolingApiDistribution implements ToolingApiDistribution {
@@ -31,15 +32,15 @@ class ExternalToolingApiDistribution implements ToolingApiDistribution {
     GradleVersion getVersion() {
         version
     }
-    
+
     Collection<File> getClasspath() {
         classpath
     }
-    
+
     ClassLoader getClassLoader() {
-        return new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath*.toURI())
+        return new DefaultClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(classpath))
     }
-    
+
     String toString() {
         "Tooling API $version.version"
     }

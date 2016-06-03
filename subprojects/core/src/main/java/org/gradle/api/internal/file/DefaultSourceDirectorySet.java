@@ -30,7 +30,12 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
     private final List<Object> source = new ArrayList<Object>();

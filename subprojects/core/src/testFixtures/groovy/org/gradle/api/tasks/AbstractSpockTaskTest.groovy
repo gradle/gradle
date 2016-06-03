@@ -22,8 +22,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.api.internal.project.AbstractProject
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
@@ -51,7 +50,7 @@ public abstract class AbstractSpockTaskTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    private AbstractProject project
+    private ProjectInternal project
 
     private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new DefaultTaskClassInfoStore(), new TaskFactory(new AsmBackedClassGenerator()))
 
@@ -91,9 +90,9 @@ public abstract class AbstractSpockTaskTest extends Specification {
     }
 
     def testPath() {
-        DefaultProject childProject = TestUtil.createChildProject(project, "child");
+        ProjectInternal childProject = TestUtil.createChildProject(project, "child");
         childProject.getProjectDir().mkdirs();
-        DefaultProject childchildProject = TestUtil.createChildProject(childProject, "childchild");
+        ProjectInternal childchildProject = TestUtil.createChildProject(childProject, "childchild");
         childchildProject.getProjectDir().mkdirs();
 
         when:
@@ -183,11 +182,11 @@ public abstract class AbstractSpockTaskTest extends Specification {
 
     }
 
-    public AbstractProject getProject() {
+    public ProjectInternal getProject() {
         return project;
     }
 
-    public void setProject(AbstractProject project) {
+    public void setProject(ProjectInternal project) {
         this.project = project;
     }
 

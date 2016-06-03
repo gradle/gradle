@@ -63,7 +63,7 @@ task noop << {
 
     @ToolingApiVersion("current")
     @TargetGradleVersion("<1.8")
-    def "build action execution fails for pre 1.0m8 providers"() {
+    def "build action execution fails for pre 1.8 providers"() {
         when:
         withConnection { ProjectConnection connection ->
             connection.action(new NullAction()).run()
@@ -76,7 +76,7 @@ task noop << {
 
     @ToolingApiVersion("current")
     @TargetGradleVersion("<2.6")
-    def "test execution fails for pre 1.0m8 providers"() {
+    def "test execution fails for pre 2.6 providers"() {
         when:
         withConnection { ProjectConnection connection ->
             connection.newTestLauncher().withJvmTestClasses("class").run()

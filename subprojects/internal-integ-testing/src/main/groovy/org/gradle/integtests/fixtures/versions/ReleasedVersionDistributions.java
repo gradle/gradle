@@ -91,6 +91,16 @@ public class ReleasedVersionDistributions {
         return distributions;
     }
 
+    public List<GradleDistribution> getSupported() {
+        final GradleVersion firstSupported = GradleVersion.version("1.0");
+        return CollectionUtils.filter(getAll(), new Spec<GradleDistribution>() {
+            @Override
+            public boolean isSatisfiedBy(GradleDistribution element) {
+                return element.getVersion().compareTo(firstSupported) >= 0;
+            }
+        });
+    }
+
     public GradleDistribution getDistribution(final GradleVersion gradleVersion) {
         return findFirst(getAll(), new Spec<GradleDistribution>() {
             public boolean isSatisfiedBy(GradleDistribution element) {

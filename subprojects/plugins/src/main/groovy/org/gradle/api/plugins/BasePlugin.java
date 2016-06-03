@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublication;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
@@ -133,7 +133,7 @@ public class BasePlugin implements Plugin<Project> {
                 } // Maven repos are handled by MavenPlugin
 
                 ConfigurationInternal configuration = (ConfigurationInternal) uploadArchives.getConfiguration();
-                ModuleInternal module = configuration.getModule();
+                Module module = configuration.getModule();
                 ModuleVersionIdentifier publicationId =
                         new DefaultModuleVersionIdentifier(module.getGroup(), module.getName(), module.getVersion());
                 publicationRegistry.registerPublication(module.getProjectPath(), new DefaultProjectPublication(publicationId));

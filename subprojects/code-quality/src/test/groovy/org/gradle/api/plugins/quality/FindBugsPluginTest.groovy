@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.ReportingBasePlugin
@@ -34,7 +34,7 @@ import static spock.util.matcher.HamcrestSupport.that
 class FindBugsPluginTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
-    DefaultProject project = TestUtil.createRootProject(testDir.testDirectory)
+    ProjectInternal project = TestUtil.createRootProject(testDir.testDirectory)
 
     def setup() {
         project.pluginManager.apply(FindBugsPlugin)

@@ -21,11 +21,11 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConfigureByMapAction;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.DefaultArtifactRepositoryContainer;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.ConfigureUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +53,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     public FlatDirectoryArtifactRepository flatDir(Closure configureClosure) {
-        return flatDir(new ClosureBackedAction<FlatDirectoryArtifactRepository>(configureClosure));
+        return flatDir(ConfigureUtil.configureUsing(configureClosure));
     }
 
     public FlatDirectoryArtifactRepository flatDir(Map<String, ?> args) {
@@ -90,7 +90,7 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     public MavenArtifactRepository maven(Closure closure) {
-        return maven(new ClosureBackedAction<MavenArtifactRepository>(closure));
+        return maven(ConfigureUtil.configureUsing(closure));
     }
 
     public IvyArtifactRepository ivy(Action<? super IvyArtifactRepository> action) {
@@ -98,8 +98,6 @@ public class DefaultRepositoryHandler extends DefaultArtifactRepositoryContainer
     }
 
     public IvyArtifactRepository ivy(Closure closure) {
-        return ivy(new ClosureBackedAction<IvyArtifactRepository>(closure));
+        return ivy(ConfigureUtil.configureUsing(closure));
     }
-
-
 }

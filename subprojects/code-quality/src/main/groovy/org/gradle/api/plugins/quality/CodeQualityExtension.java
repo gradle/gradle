@@ -52,13 +52,17 @@ public abstract class CodeQualityExtension {
         this.sourceSets = sourceSets;
     }
 
+    public boolean isIgnoreFailures() {
+        return ignoreFailures;
+    }
+
     /**
      * Whether or not to allow the build to continue if there are warnings.
      *
      * Example: ignoreFailures = true
      */
-    public boolean isIgnoreFailures() {
-        return ignoreFailures;
+    public boolean getIgnoreFailures() {
+        return isIgnoreFailures();
     }
 
     public void setIgnoreFailures(boolean ignoreFailures) {

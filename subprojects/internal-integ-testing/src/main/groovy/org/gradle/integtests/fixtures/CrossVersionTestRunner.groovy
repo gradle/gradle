@@ -16,6 +16,7 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.util.GradleVersion
 
 /**
@@ -29,6 +30,13 @@ import org.gradle.util.GradleVersion
 class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
     CrossVersionTestRunner(Class<? extends CrossVersionIntegrationSpec> target) {
         super(target)
+    }
+
+    /**
+     * Cross version tests will run against any _supported_ Gradle version: currently >= 1.0
+     */
+    protected List<GradleDistribution> choosePreviousVersionsToTest(ReleasedVersionDistributions previousVersions) {
+        return previousVersions.getSupported();
     }
 
     @Override

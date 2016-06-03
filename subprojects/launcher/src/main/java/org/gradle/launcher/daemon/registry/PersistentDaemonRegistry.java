@@ -29,6 +29,7 @@ import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.launcher.daemon.context.DaemonContext;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -194,14 +195,18 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     }
 
     @Override
-    public void clearStopEvents() {
+    public void removeStopEvents(final Collection<DaemonStopEvent> events) {
         lock.lock();
-        LOGGER.info("Clearing daemon stop events");
+        LOGGER.info("Removing {} daemon stop events from registry", events.size());
         try {
-            DaemonRegistryContent content = cache.get();
-            if (content != null) { // no daemon process has started yet
-                content.clearStopEvents();
-            }
+            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
+                public DaemonRegistryContent update(DaemonRegistryContent content) {
+                    if (content != null) { // no daemon process has started yet
+                        content.removeStopEvents(events);
+                    }
+                    return content;
+                }
+            });
         } finally {
             lock.unlock();
         }

@@ -27,9 +27,9 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.model.DefaultIvyModuleArtifactPublishMetaData;
-import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
-import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
+import org.gradle.internal.component.external.model.DefaultIvyModuleArtifactPublishMetadata;
+import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
+import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.xml.SimpleXmlWriter;
@@ -54,21 +54,21 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     @Override
     public void write(ModuleDescriptorState md, File output) {
         final ModuleComponentIdentifier componentIdentifier = md.getComponentIdentifier();
-        List<IvyModuleArtifactPublishMetaData> ivyArtifacts = CollectionUtils.collect(md.getArtifacts(), new Transformer<IvyModuleArtifactPublishMetaData, Artifact>() {
+        List<IvyModuleArtifactPublishMetadata> ivyArtifacts = CollectionUtils.collect(md.getArtifacts(), new Transformer<IvyModuleArtifactPublishMetadata, Artifact>() {
             @Override
-            public IvyModuleArtifactPublishMetaData transform(Artifact artifact) {
-                return new DefaultIvyModuleArtifactPublishMetaData(componentIdentifier, artifact.getArtifactName(), artifact.getConfigurations());
+            public IvyModuleArtifactPublishMetadata transform(Artifact artifact) {
+                return new DefaultIvyModuleArtifactPublishMetadata(componentIdentifier, artifact.getArtifactName(), artifact.getConfigurations());
             }
         });
         doWrite(md, ivyArtifacts, output);
     }
 
     @Override
-    public void write(ModuleDescriptorState descriptor, Collection<IvyModuleArtifactPublishMetaData> artifacts, File output) {
+    public void write(ModuleDescriptorState descriptor, Collection<IvyModuleArtifactPublishMetadata> artifacts, File output) {
         doWrite(descriptor, artifacts, output);
     }
 
-    private void doWrite(ModuleDescriptorState descriptor, Collection<IvyModuleArtifactPublishMetaData> artifacts, File output) {
+    private void doWrite(ModuleDescriptorState descriptor, Collection<IvyModuleArtifactPublishMetadata> artifacts, File output) {
         try {
             output.getParentFile().mkdirs();
             OutputStream outputStream = new FileOutputStream(output);
@@ -84,11 +84,11 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
     }
 
-    private void writeTo(ModuleDescriptorState descriptor, Collection<IvyModuleArtifactPublishMetaData> artifacts, SimpleXmlWriter writer) throws IOException {
+    private void writeTo(ModuleDescriptorState descriptor, Collection<IvyModuleArtifactPublishMetadata> artifacts, SimpleXmlWriter writer) throws IOException {
         writer.startElement("ivy-module");
         writer.attribute("version", "2.0");
 
-        writer.attribute("xmlns:" + IvyModulePublishMetaData.IVY_MAVEN_NAMESPACE_PREFIX, IvyModulePublishMetaData.IVY_MAVEN_NAMESPACE);
+        writer.attribute("xmlns:" + IvyModulePublishMetadata.IVY_MAVEN_NAMESPACE_PREFIX, IvyModulePublishMetadata.IVY_MAVEN_NAMESPACE);
 
         printInfoTag(descriptor, writer);
         printConfigurations(descriptor, writer);
@@ -173,9 +173,9 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.endElement();
     }
 
-    private static void printPublications(Collection<IvyModuleArtifactPublishMetaData> artifacts, SimpleXmlWriter writer) throws IOException {
+    private static void printPublications(Collection<IvyModuleArtifactPublishMetadata> artifacts, SimpleXmlWriter writer) throws IOException {
         writer.startElement("publications");
-        for (IvyModuleArtifactPublishMetaData artifactMetadata : artifacts) {
+        for (IvyModuleArtifactPublishMetadata artifactMetadata : artifacts) {
             IvyArtifactName artifact = artifactMetadata.getArtifactName();
             writer.startElement("artifact");
             writer.attribute("name", artifact.getName());

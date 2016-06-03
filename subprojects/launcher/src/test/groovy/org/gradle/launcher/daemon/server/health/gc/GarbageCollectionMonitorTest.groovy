@@ -49,4 +49,26 @@ class GarbageCollectionMonitorTest extends Specification {
         then:
         0 * scheduledExecutorService.scheduleAtFixedRate(_, _, _, _)
     }
+
+    def "tenured stats defaults to empty given unknown garbage collector"() {
+        given:
+        def monitor = new GarbageCollectionMonitor(GarbageCollectorMonitoringStrategy.UNKNOWN, scheduledExecutorService)
+
+        when:
+        monitor.getTenuredStats()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "perm gen stats defaults to empty given unknown garbage collector"() {
+        given:
+        def monitor = new GarbageCollectionMonitor(GarbageCollectorMonitoringStrategy.UNKNOWN, scheduledExecutorService)
+
+        when:
+        monitor.getPermGenStats()
+
+        then:
+        noExceptionThrown()
+    }
 }
