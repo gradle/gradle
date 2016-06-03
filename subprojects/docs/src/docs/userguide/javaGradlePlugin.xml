@@ -43,8 +43,7 @@
         </sample>
         <para>
             Applying the plugin automatically applies the <link linkend="java_plugin">Java</link> plugin and adds the
-            <literal>gradleApi()</literal> dependency to the compile configuration.  It also decorates the <literal>jar</literal>
-            task with validations.
+            <literal>gradleApi()</literal> dependency to the compile configuration.  It also adds some validations to the build.
         </para>
         <para>
             The following validations are performed:
