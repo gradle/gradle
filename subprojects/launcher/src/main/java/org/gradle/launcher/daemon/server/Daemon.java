@@ -50,6 +50,8 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO
  */
 public class Daemon implements Stoppable {
     private static final Logger LOGGER = Logging.getLogger(Daemon.class);
+    public static final String DAEMON_WILL_STOP_MESSAGE = "Daemon will be stopped at the end of the build ";
+    public static final String DAEMON_STOPPING_IMMEDIATELY_MESSAGE = "Daemon is stopping immediately ";
 
     private final DaemonServerConnector connector;
     private final DaemonRegistry daemonRegistry;
@@ -296,20 +298,20 @@ public class Daemon implements Stoppable {
                     break;
                 case QUIET_EXPIRE:
                     if (!stateControl.isStopping()) {
-                        LOGGER.lifecycle("Daemon will be stopped at the end of the build " + result.getReason());
+                        LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + result.getReason());
                         stateControl.requestStop();
                     }
                     break;
                 case GRACEFUL_EXPIRE:
                     if (!stateControl.isStopping()) {
-                        LOGGER.lifecycle("Daemon will be stopped at the end of the build " + result.getReason());
+                        LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + result.getReason());
                         stateControl.requestStop();
                         registryUpdater.onExpire(result.getReason());
                     }
                     break;
                 case IMMEDIATE_EXPIRE:
                     if (!stateControl.isStopped()) {
-                        LOGGER.lifecycle("Daemon is stopping immediately " + result.getReason());
+                        LOGGER.lifecycle(DAEMON_STOPPING_IMMEDIATELY_MESSAGE + result.getReason());
                         stateControl.requestForcefulStop(result.getReason());
                         registryUpdater.onExpire(result.getReason());
                     }
