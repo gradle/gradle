@@ -17,13 +17,13 @@
 package org.gradle.api.reporting.dependents;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.reporting.dependents.internal.TextDependentComponentsReportRenderer;
+import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
@@ -46,10 +46,12 @@ public class DependentComponentsReport extends DefaultTask {
     private List<String> components;
 
     /**
-     * Returns the components to generate the report for. Defaults to all components of this task's containing project.
+     * Returns the components to generate the report for.
+     * Defaults to all components of this task's containing project.
      *
      * @return the components.
      */
+    @Console
     public List<String> getComponents() {
         return components;
     }
@@ -57,20 +59,11 @@ public class DependentComponentsReport extends DefaultTask {
     /**
      * Sets the components to generate the report for.
      *
-     * @param components The components. Must not be null.
+     * @param components the components.
      */
-    @Option(option = "component", description = "The component to generate the report for.")
+    @Option(option = "component", description = "Component to generate the report for, repeatable.")
     public void setComponents(List<String> components) {
         this.components = components;
-    }
-
-    /**
-     * Sets the single component (by name) to generate the report for.
-     *
-     * @param componentName name of the component to generate the report for
-     */
-    public void setComponent(String componentName) {
-        this.components = Lists.newArrayList(componentName);
     }
 
     @Inject

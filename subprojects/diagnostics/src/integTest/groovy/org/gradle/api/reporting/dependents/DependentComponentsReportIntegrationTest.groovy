@@ -30,7 +30,7 @@ class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains("Displays the dependent components of root project 'test'. [incubating]")
-        output.contains("--component     The component to generate the report for.")
+        output.contains("--component     Component to generate the report for, repeatable.")
     }
 
     def "displays empty dependents report for an empty project"() {
