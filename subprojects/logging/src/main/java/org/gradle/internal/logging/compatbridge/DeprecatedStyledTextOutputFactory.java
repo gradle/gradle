@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.compatbridge;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 
@@ -31,4 +32,18 @@ public class DeprecatedStyledTextOutputFactory implements StyledTextOutputFactor
         return new DeprecatedStyledTextOutput(delegate.create(logCategory));
     }
 
+    @Override
+    public StyledTextOutput create(Class logCategory, LogLevel logLevel) {
+        return new DeprecatedStyledTextOutput(delegate.create(logCategory, logLevel));
+    }
+
+    @Override
+    public StyledTextOutput create(String logCategory) {
+        return new DeprecatedStyledTextOutput(delegate.create(logCategory));
+    }
+
+    @Override
+    public StyledTextOutput create(String logCategory, LogLevel logLevel) {
+        return new DeprecatedStyledTextOutput(delegate.create(logCategory, logLevel));
+    }
 }

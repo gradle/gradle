@@ -19,8 +19,6 @@ package org.gradle.logging;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.api.logging.configuration.ConsoleOutput;
-import org.gradle.internal.logging.events.OutputEventListener;
 
 import java.io.OutputStream;
 
@@ -32,7 +30,7 @@ import java.io.OutputStream;
 public interface LoggingManagerInternal extends LoggingManager, StandardOutputCapture {
     LogLevel getLevel();
 
-    LoggingManager setLevel(LogLevel logLevel);
+    LoggingManagerInternal setLevel(LogLevel logLevel);
 
     LoggingManagerInternal start();
 
@@ -44,15 +42,9 @@ public interface LoggingManagerInternal extends LoggingManager, StandardOutputCa
 
     LoggingManagerInternal captureStandardError(LogLevel level);
 
-    LoggingManagerInternal setLevelInternal(LogLevel logLevel);
-
     LogLevel getStandardErrorCaptureLevel();
 
     LogLevel getStandardOutputCaptureLevel();
-
-    void addOutputEventListener(OutputEventListener listener);
-
-    void removeOutputEventListener(OutputEventListener listener);
 
     void addStandardOutputListener(OutputStream outputStream);
 
@@ -67,8 +59,6 @@ public interface LoggingManagerInternal extends LoggingManager, StandardOutputCa
     void removeStandardErrorListener(StandardOutputListener listener);
 
     void attachAnsiConsole(OutputStream outputStream);
-
-    void attachProcessConsole(ConsoleOutput consoleOutput);
 
     void attachSystemOutAndErr();
 }

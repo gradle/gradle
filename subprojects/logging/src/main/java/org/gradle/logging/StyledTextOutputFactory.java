@@ -16,16 +16,18 @@
 
 package org.gradle.logging;
 
+import org.gradle.api.logging.LogLevel;
+
 /**
  * This type was accidentally leaked into the public API, please do not refer to it.
  */
 @Deprecated
 public interface StyledTextOutputFactory {
-    /**
-     * Creates a {@code StyledTextOutput} with the given category and the standard output log level.
-     *
-     * @param logCategory The log category.
-     * @return the output
-     */
     StyledTextOutput create(Class logCategory);
+
+    StyledTextOutput create(String logCategory);
+
+    StyledTextOutput create(Class logCategory, LogLevel logLevel);
+
+    StyledTextOutput create(String logCategory, LogLevel logLevel);
 }

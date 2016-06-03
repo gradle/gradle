@@ -20,7 +20,7 @@ package org.gradle.logging;
  * This type was accidentally leaked into the public API, please do not refer to it.
  */
 @Deprecated
-public interface StyledTextOutput {
+public interface StyledTextOutput extends Appendable {
     enum Style {
         Normal,
         Header,

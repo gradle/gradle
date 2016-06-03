@@ -17,11 +17,8 @@
 package org.gradle.internal.logging.compatbridge;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.events.OutputEventListener;
 
 import java.io.OutputStream;
 
@@ -68,12 +65,6 @@ public class LoggingManagerInternalCompatibilityBridge implements org.gradle.log
     }
 
     @Override
-    public org.gradle.logging.LoggingManagerInternal setLevelInternal(LogLevel logLevel) {
-        delegate.setLevelInternal(logLevel);
-        return this;
-    }
-
-    @Override
     public LogLevel getStandardOutputCaptureLevel() {
         return delegate.getStandardOutputCaptureLevel();
     }
@@ -89,9 +80,9 @@ public class LoggingManagerInternalCompatibilityBridge implements org.gradle.log
     }
 
     @Override
-    @Deprecated
-    public LoggingManager setLevel(LogLevel logLevel) {
-        return delegate.setLevel(logLevel);
+    public org.gradle.logging.LoggingManagerInternal setLevel(LogLevel logLevel) {
+        delegate.setLevel(logLevel);
+        return this;
     }
 
     @Override
@@ -120,11 +111,6 @@ public class LoggingManagerInternalCompatibilityBridge implements org.gradle.log
     }
 
     @Override
-    public void attachProcessConsole(ConsoleOutput consoleOutput) {
-        delegate.attachProcessConsole(consoleOutput);
-    }
-
-    @Override
     public void attachAnsiConsole(OutputStream outputStream) {
         delegate.attachAnsiConsole(outputStream);
     }
@@ -137,15 +123,5 @@ public class LoggingManagerInternalCompatibilityBridge implements org.gradle.log
     @Override
     public void addStandardErrorListener(OutputStream outputStream) {
         delegate.addStandardErrorListener(outputStream);
-    }
-
-    @Override
-    public void addOutputEventListener(OutputEventListener listener) {
-        delegate.addOutputEventListener(listener);
-    }
-
-    @Override
-    public void removeOutputEventListener(OutputEventListener listener) {
-        delegate.removeOutputEventListener(listener);
     }
 }
