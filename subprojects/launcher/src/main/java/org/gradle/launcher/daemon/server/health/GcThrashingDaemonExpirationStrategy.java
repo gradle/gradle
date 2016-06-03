@@ -27,7 +27,7 @@ public class GcThrashingDaemonExpirationStrategy implements DaemonExpirationStra
     private final DaemonMemoryStatus status;
     private static final Logger LOG = Logging.getLogger(GcThrashingDaemonExpirationStrategy.class);
 
-    public static final String EXPIRATION_REASON = "after running JVM memory";
+    public static final String EXPIRATION_REASON = "after running out of JVM memory";
 
     public GcThrashingDaemonExpirationStrategy(DaemonMemoryStatus status) {
         this.status = status;
