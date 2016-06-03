@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.classloader;
 
-import org.gradle.internal.Transformers;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
