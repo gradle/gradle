@@ -71,32 +71,33 @@ import java.util.Map;
  *     Task properties must be annotated with one of:
  * </p>
  *
- * <p><b>Properties taken into account during up-to-date checks:</b></p>
- *
  * <ul>
  *     <li>
- *         {@literal @}{@link org.gradle.api.tasks.Input},
- *         {@literal @}{@link org.gradle.api.tasks.Nested},
- *         {@literal @}{@link org.gradle.api.tasks.InputFile},
- *         {@literal @}{@link org.gradle.api.tasks.InputDirectory},
- *         {@literal @}{@link org.gradle.api.tasks.InputFiles}
- *         to mark it as an input to the task.
+ *         <b>Properties taken into account during up-to-date checks:</b>
+ *         <ul>
+*              <li>
+ *                 {@literal @}{@link org.gradle.api.tasks.Input},
+ *                 {@literal @}{@link org.gradle.api.tasks.Nested},
+ *                 {@literal @}{@link org.gradle.api.tasks.InputFile},
+ *                 {@literal @}{@link org.gradle.api.tasks.InputDirectory},
+ *                 {@literal @}{@link org.gradle.api.tasks.InputFiles}
+ *                 to mark it as an input to the task.
+ *             </li>
+ *             <li>
+ *                 {@literal @}{@link org.gradle.api.tasks.OutputFile},
+ *                 {@literal @}{@link org.gradle.api.tasks.OutputDirectory}
+ *                 to mark it as an output of the task.
+ *             </li>
+ *         </ul>
+ *    </li>
+ *    <li>
+ *         <b>Properties ignored during up-to-date checks:</b>
+ *         <ul>
+ *             <li>{@literal @}{@link javax.inject.Inject} marks a Gradle service used by the task.</li>
+ *             <li>{@literal @}{@link org.gradle.api.tasks.Console Console} marks a property that only influences the console output of the task.</li>
+ *             <li>{@literal @}{@link org.gradle.api.tasks.Internal Internal} mark an internal property of the task.</li>
+ *         </ul>
  *     </li>
- *     <li>
- *         {@literal @}{@link org.gradle.api.tasks.OutputFile},
- *         {@literal @}{@link org.gradle.api.tasks.OutputDirectory},
- *         {@literal @}{@link org.gradle.api.tasks.OutputFiles},
- *         {@literal @}{@link org.gradle.api.tasks.OutputDirectories}
- *         to mark it as an output of the task.
- *     </li>
- * </ul>
- *
- * <p><b>Properties ignored during up-to-date checks:</b></p>
- *
- * <ul>
- *     <li>{@literal @}{@link javax.inject.Inject} marks a Gradle service used by the task.</li>
- *     <li>{@literal @}{@link org.gradle.api.tasks.Console Console} marks a property that only influences the console output of the task.</li>
- *     <li>{@literal @}{@link org.gradle.api.tasks.Internal Internal} mark an internal property of the task.</li>
  * </ul>
  */
 @Incubating
