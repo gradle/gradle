@@ -229,7 +229,7 @@ public class EclipseWtpComponent {
     }
 
     /**
-     * The configurations whose files are to be excluded from dependent-module elements.
+     * The configurations whose files are to be excluded from wtp deployment.
      * <p>
      * For examples see docs for {@link EclipseWtp}
      */
