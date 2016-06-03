@@ -27,7 +27,6 @@ import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
 import org.gradle.launcher.daemon.server.health.GcThrashingDaemonExpirationStrategy
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.junit.Ignore
 import org.junit.experimental.categories.Category
 
 import static org.junit.Assume.assumeTrue
@@ -52,25 +51,6 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
             "org.gradle.java.home": jdk.javaHome.absolutePath,
             "org.gradle.jvmargs": jvmArgs + " " + version.gc.jvmArgs
         )
-    }
-
-    @Ignore("This is very difficult to make consistent on all JVMs")
-    def "when build leaks quickly daemon is expired eagerly"() {
-        assumeTrue(version.vendor != JdkVendor.IBM)
-
-        when:
-        setupBuildScript = tenuredHeapLeak
-        maxBuilds = builds
-        heapSize = heap
-        leakRate = rate
-
-        then:
-        daemonIsExpiredEagerly()
-
-        where:
-        builds | heap    | rate
-        10     | "200m"  | 2500
-        10     | "1024m" | 13000
     }
 
     def "when build leaks slowly daemon is eventually expired"() {
