@@ -78,9 +78,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
 
         execSpec.setMain("worker." + GradleWorkerMain.class.getName());
 
-        // This check is not quite right. Should instead probe the version of the requested executable and use options file if it is Java 9 or later, regardless of
-        // the version of this JVM
-        boolean useOptionsFile = Jvm.current().getJavaVersion().isJava9Compatible() && execSpec.getExecutable().equals(Jvm.current().getJavaExecutable().getPath());
+        boolean useOptionsFile = shouldUseOptionsFile(execSpec);
         if (useOptionsFile) {
             // Use an options file to pass across application classpath
             File optionsFile = temporaryFileProvider.createTemporaryFile("gradle-worker-classpath", "txt");
@@ -135,6 +133,12 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         }
         byte[] encodedConfig = bytes.toByteArray();
         execSpec.setStandardInput(new ByteArrayInputStream(encodedConfig));
+    }
+
+    private boolean shouldUseOptionsFile(JavaExecHandleBuilder execSpec) {
+        // This check is not quite right. Should instead probe the version of the requested executable and use options file if it is Java 9 or later, regardless of
+        // the version of this JVM
+        return Jvm.current().getJavaVersion().isJava9Compatible() && execSpec.getExecutable().equals(Jvm.current().getJavaExecutable().getPath());
     }
 
     private List<String> writeOptionsFile(Collection<File> workerMainClassPath, Collection<File> applicationClasspath, File optionsFile) {
