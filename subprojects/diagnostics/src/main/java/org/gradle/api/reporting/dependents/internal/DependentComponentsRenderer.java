@@ -87,7 +87,7 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
         public void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered) {
             output.text(node.getName());
             if (node instanceof DependentComponentsRenderableDependency) {
-                DependentComponentsRenderableDependency dep = Cast.uncheckedCast(node);
+                DependentComponentsRenderableDependency dep = (DependentComponentsRenderableDependency) node;
                 if (!dep.isBuildable()) {
                     output.withStyle(Info).text(" NOT BUILDABLE");
                 }
