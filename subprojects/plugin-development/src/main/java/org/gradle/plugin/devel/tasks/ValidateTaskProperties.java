@@ -34,7 +34,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskPropertyValidationAccess;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
@@ -50,7 +49,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.reflect.Instantiator;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -103,6 +101,7 @@ import java.util.Map;
  */
 @Incubating
 @ParallelizableTask
+@SuppressWarnings("WeakerAccess")
 public class ValidateTaskProperties extends DefaultTask implements VerificationTask {
     private File classesDir;
     private FileCollection classpath;
@@ -311,22 +310,13 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
      *
      * @param failOnWarning {@code true} to break the build on warning, {@code false} to ignore warnings. The default is {@code false}.
      */
+    @SuppressWarnings("unused")
     public void setFailOnWarning(boolean failOnWarning) {
         this.failOnWarning = failOnWarning;
     }
 
     @Inject
-    protected TaskClassInfoStore getTaskClassInfoStore() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
     protected ClassLoaderFactory getClassLoaderFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected Instantiator getInstantiator() {
         throw new UnsupportedOperationException();
     }
 
