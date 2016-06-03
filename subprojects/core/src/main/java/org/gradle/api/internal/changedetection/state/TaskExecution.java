@@ -29,8 +29,6 @@ public abstract class TaskExecution {
     private HashCode taskActionsClassLoaderHash;
     private Map<String, Object> inputProperties;
     private Set<String> outputFiles;
-    private Integer outputFilesHash;
-    private Integer inputFilesHash;
 
     public Set<String> getOutputFiles() {
         return outputFiles;
@@ -89,20 +87,4 @@ public abstract class TaskExecution {
     public abstract FileCollectionSnapshot getDiscoveredInputFilesSnapshot();
 
     public abstract void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
-
-    public Integer getOutputFilesHash() {
-        return outputFilesHash;
-    }
-
-    public void setOutputFilesHash(Integer outputFilesHash) {
-        this.outputFilesHash = outputFilesHash;
-    }
-
-    public Integer getInputFilesHash() {
-        return inputFilesHash;
-    }
-
-    public void setInputFilesHash(Integer inputFilesHash) {
-        this.inputFilesHash = inputFilesHash;
-    }
 }

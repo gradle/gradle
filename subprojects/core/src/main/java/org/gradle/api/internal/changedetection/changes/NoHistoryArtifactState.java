@@ -45,7 +45,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     public void afterTask() {
     }
 
-    public void finished(boolean wasUpToDate) {
+    public void finished() {
     }
 
     public FileCollection getOutputFiles() {
