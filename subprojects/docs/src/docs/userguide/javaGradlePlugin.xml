@@ -53,6 +53,7 @@
             <listitem>There is a plugin descriptor defined for the plugin.</listitem>
             <listitem>The plugin descriptor contains an <literal>implementation-class</literal> property.</listitem>
             <listitem>The <literal>implementation-class</literal> property references a valid class file in the jar.</listitem>
+            <listitem>Each property getter or the corresponding field must be annotated with a property annotation like <literal>@InputFile</literal> and <literal>@OutputDirectory</literal>. Properties that don't participate in up-to-date checks should be annotated with <literal>@Internal</literal>.</listitem>
         </itemizedlist>
         <para>
             Any failed validations will result in a warning message.
