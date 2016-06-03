@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.classloader;
 
+import org.gradle.internal.Transformers;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
@@ -51,7 +52,7 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         // 4. JAXP attempts to load the provider using the context ClassLoader. which is our isolated ClassLoader. This is fine if the classname came from step 1 or 3. It blows up if the
         //    classname came from step 2.
         //
-        // So, as a workaround, locate and include the JAXP provider jar in the classpath for our isolated ClassLoader.
+        // So, as a workaround, locate and make visible XML parser classes from the system classloader in our isolated ClassLoader.
         //
         // Note that in practise, this is only triggered when running in our tests
 

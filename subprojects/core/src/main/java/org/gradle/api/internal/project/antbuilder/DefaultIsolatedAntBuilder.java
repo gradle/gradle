@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.antbuilder;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
@@ -74,6 +75,14 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             antClasspath.add(toolsJar);
         }
 
+        /**
+         * Mix in an XML parser implementation when running on Java 6 and another XML parser is present on the system ClassLoader, to work around a bug in older implementations of JAXP
+         * @see org.gradle.internal.classloader.DefaultClassLoaderFactory#createFilteringClassLoader(ClassLoader)
+         */
+        if (needJaxpHackery()) {
+            antClasspath.addAll(moduleRegistry.getExternalModule("xercesImpl").getImplementationClasspath().getAsFiles());
+        }
+
         antLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(antClasspath));
         FilteringClassLoader.Spec loggingLoaderSpec = new FilteringClassLoader.Spec();
         loggingLoaderSpec.allowPackage("org.slf4j");
@@ -96,6 +105,10 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
 
         gradleApiGroovyLoader = groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());
         antAdapterGroovyLoader = groovySystemLoaderFactory.forClassLoader(antAdapterLoader);
+    }
+
+    private boolean needJaxpHackery() {
+        return !JavaVersion.current().isJava7Compatible() && ClassLoader.getSystemResource("META-INF/services/javax.xml.parsers.SAXParserFactory") != null;
     }
 
     protected DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> libClasspath) {

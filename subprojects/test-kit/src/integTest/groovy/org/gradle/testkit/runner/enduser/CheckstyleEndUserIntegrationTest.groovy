@@ -16,7 +16,6 @@
 
 package org.gradle.testkit.runner.enduser
 
-import groovy.transform.NotYetImplemented
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 
@@ -106,7 +105,6 @@ public class Hello {
 """
     }
 
-    @NotYetImplemented
     def "build passes"() {
         expect:
         succeeds("test")

@@ -17,12 +17,16 @@
 package org.gradle.integtests.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
+import org.gradle.util.ports.ReleasingPortAllocator
+import org.junit.Rule
 
 class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         executer.requireGradleDistribution()
     }
+
+    @Rule
+    final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     def 'shadow plugin'() {
         when:
@@ -104,54 +108,167 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
         succeeds 'build'
     }
 
-    def 'nebula recommender plugin'() {
-        when:
+    def 'asciidoctor plugin'() {
+        given:
         buildScript """
-            plugins {
-              id "nebula.dependency-recommender" version "3.3.0"
+            buildscript {
+                repositories {
+                    jcenter()
+                }
+
+                dependencies {
+                    classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
+                }
+            }
+
+            apply plugin: 'org.asciidoctor.convert'
+            """.stripIndent()
+
+        file('src/docs/asciidoc/test.adoc') << """
+            = Line Break Doc Title
+            :hardbreaks:
+
+            Rubies are red,
+            Topazes are blue.
+            """
+
+        // Does not close output file, which remains locked on windows. Run the build in a forked process
+        executer.requireGradleHome()
+
+        expect:
+        succeeds 'asciidoc'
+        file('build/asciidoc').isDirectory()
+    }
+
+    def 'docker plugin'() {
+        given:
+        buildScript """
+            buildscript {
+                repositories {
+                    jcenter()
+                }
+
+                dependencies {
+                    classpath 'com.bmuschko:gradle-docker-plugin:2.6.8'
+                }
             }
 
             apply plugin: 'java'
+            apply plugin: 'application'
+            apply plugin: 'com.bmuschko.docker-java-application'
 
-            repositories {
-               jcenter()
+            mainClassName = 'org.gradle.JettyMain'
+
+            docker {
+                javaApplication {
+                    baseImage = 'dockerfile/java:openjdk-7-jre'
+                    port = 9090
+                    tag = 'jettyapp:1.115'
+                }
+            }
+            """.stripIndent()
+
+        expect:
+        succeeds 'dockerCopyDistResources'
+    }
+
+    def 'spring dependency management plugin'() {
+        given:
+        buildScript """
+            plugins {
+                id "io.spring.dependency-management" version "0.5.6.RELEASE"
             }
 
-            dependencyRecommendations {
-               mavenBom module: 'netflix:platform:latest.release'
+            apply plugin: 'java'
+            apply plugin: "io.spring.dependency-management"
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencyManagement {
+                dependencies {
+                    dependency 'org.springframework:spring-core:4.0.3.RELEASE'
+                    dependency group: 'commons-logging', name: 'commons-logging', version: '1.1.2'
+                }
             }
 
             dependencies {
-               compile 'com.google.guava:guava' // no version, version is recommended
-               compile 'commons-lang:commons-lang:2.6' // I know what I want, don't recommend
+                 compile 'org.springframework:spring-core'
             }
-            """
+            """.stripIndent()
 
-        then:
-        succeeds 'build'
+        expect:
+        succeeds "dependencies", "--configuration", "compile"
     }
 
-    @Ignore("uses internal types")
-    def 'Nebula plugin plugin'() {
-        when:
-        buildFile << """
-            plugins {
-               id 'nebula.plugin-plugin' version '4.15.0'
+    def 'tomcat plugin'() {
+        given:
+        def httpPort = portAllocator.assignPort()
+        def httpsPort = portAllocator.assignPort()
+        def stopPort = portAllocator.assignPort()
+        buildScript """
+            buildscript {
+                repositories {
+                    jcenter()
+                }
+
+                dependencies {
+                    classpath 'com.bmuschko:gradle-tomcat-plugin:2.2.4'
+                }
             }
-        """
 
-        file("src/main/groovy/pkg/Thing.java") << """
-            package pkg;
+            apply plugin: 'com.bmuschko.tomcat'
 
-            import java.util.ArrayList;
-            import java.util.List;
-
-            public class Thing {
-                   private List<String> firstOrderDepsWithoutVersions = new ArrayList<>();
+            repositories {
+                mavenCentral()
             }
-        """
 
-        then:
-        succeeds 'groovydoc'
+            dependencies {
+                def tomcatVersion = '7.0.59'
+                tomcat "org.apache.tomcat.embed:tomcat-embed-core:\${tomcatVersion}",
+                       "org.apache.tomcat.embed:tomcat-embed-logging-juli:\${tomcatVersion}",
+                       "org.apache.tomcat.embed:tomcat-embed-jasper:\${tomcatVersion}"
+            }
+
+            ext {
+                tomcatStopPort = ${stopPort}
+                tomcatStopKey = 'stopKey'
+            }
+
+            tomcat {
+                httpPort = ${httpPort}
+                httpsPort = ${httpsPort}
+            }
+
+            task integrationTomcatRun(type: com.bmuschko.gradle.tomcat.tasks.TomcatRun) {
+                stopPort = tomcatStopPort
+                stopKey = tomcatStopKey
+                daemon = true
+            }
+
+            task integrationTomcatStop(type: com.bmuschko.gradle.tomcat.tasks.TomcatStop) {
+                stopPort = tomcatStopPort
+                stopKey = tomcatStopKey
+            }
+
+            task integrationTest(type: Test) {
+                include '**/*IntegrationTest.*'
+                dependsOn integrationTomcatRun
+                finalizedBy integrationTomcatStop
+            }
+
+            test {
+                exclude '**/*IntegrationTest.*'
+            }
+            """.stripIndent()
+
+        // Tomcat plugin doesn't work in embedded mode
+        if (JavaVersion.current() == JavaVersion.VERSION_1_6) {
+            executer.requireGradleHome()
+        }
+
+        expect:
+        succeeds 'integrationTest'
     }
 }
