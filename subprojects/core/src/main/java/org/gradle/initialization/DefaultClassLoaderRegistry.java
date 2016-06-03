@@ -18,24 +18,25 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.internal.classloader.CachingClassLoader;
-import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.HashingClassLoaderFactory;
+import org.gradle.internal.classloader.HashingClassLoaderFactory.CustomClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private final ClassLoader apiOnlyClassLoader;
     private final ClassLoader apiAndPluginsClassLoader;
     private final ClassLoader extensionsClassLoader;
-    private final ClassLoaderFactory classLoaderFactory;
+    private final HashingClassLoaderFactory classLoaderFactory;
 
-    public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
+    public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, HashingClassLoaderFactory classLoaderFactory) {
         this.classLoaderFactory = classLoaderFactory;
         ClassLoader runtimeClassLoader = getClass().getClassLoader();
 
         apiOnlyClassLoader = restrictToGradleApi(runtimeClassLoader);
 
         ClassPath pluginsClassPath = classPathRegistry.getClassPath("GRADLE_EXTENSIONS");
-        extensionsClassLoader = classLoaderFactory.createClassLoader(runtimeClassLoader, pluginsClassPath, new ClassLoaderFactory.ClassLoaderCreator() {
+        extensionsClassLoader = classLoaderFactory.createCustomClassLoader(runtimeClassLoader, pluginsClassPath, new CustomClassLoaderFactory() {
             @Override
             public ClassLoader create(ClassLoader parent, ClassPath classPath) {
                 return new MixInLegacyTypesClassLoader(parent, classPath);

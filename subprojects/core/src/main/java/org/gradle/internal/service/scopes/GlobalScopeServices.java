@@ -78,6 +78,7 @@ import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderHasher;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.classloader.ClassPathSnapshotter;
+import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -197,7 +198,7 @@ public class GlobalScopeServices {
         return new DefaultCacheFactory(fileLockManager);
     }
 
-    ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
+    ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, HashingClassLoaderFactory classLoaderFactory) {
         if (GradleRuntimeShadedJarDetector.isLoadedFrom(getClass())) {
             return new FlatClassLoaderRegistry(getClass().getClassLoader());
         }
@@ -224,7 +225,7 @@ public class GlobalScopeServices {
     }
 
     HashingClassLoaderFactory createClassLoaderFactory(ClassPathSnapshotter snapshotter) {
-        return new HashingClassLoaderFactory(snapshotter);
+        return new DefaultHashingClassLoaderFactory(snapshotter);
     }
 
     MessagingServices createMessagingServices() {
