@@ -43,7 +43,6 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeTooling
         buildA = singleProjectBuild("buildA") {
                     buildFile << """
         apply plugin: 'java'
-        apply plugin: 'idea'
         dependencies {
             compile "org.test:buildB:1.0"
         }
@@ -55,7 +54,6 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeTooling
         buildB = singleProjectBuild("buildB") {
                     buildFile << """
         apply plugin: 'java'
-        apply plugin: 'idea'
 """
 }
         builds << buildA << buildB
