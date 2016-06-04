@@ -94,8 +94,17 @@ public class PomReader implements PomParent {
             throw UncheckedException.throwAsUncheckedException(e);
         }
         M2_ENTITIES_RESOURCE = bytes;
-        DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
-        DOCUMENT_BUILDER_FACTORY.setValidating(false);
+
+        // Set the context classloader the bootstrap classloader, to work around the way that JAXP locates implementation classes
+        // This should ensure that the JAXP classes provided by the JVM are used, rather than some other implementation
+        ClassLoader original = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader().getParent());
+        try {
+            DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
+            DOCUMENT_BUILDER_FACTORY.setValidating(false);
+        } finally {
+            Thread.currentThread().setContextClassLoader(original);
+        }
     }
 
     private static final EntityResolver M2_ENTITY_RESOLVER = new EntityResolver() {
