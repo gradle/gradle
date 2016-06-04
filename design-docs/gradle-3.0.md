@@ -27,11 +27,6 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 - Internal `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter` (Done)
 - Constructor on `DefaultSourceDirectorySet` (Done)
 
-## Simplify definition of public API
-
-- Ensure all internal packages have `internal` in their name
-- Remove `org.gradle.util` from default imports.
-
 ## Change minimum version for running Gradle to Java 7
 
 No longer support running Gradle, the wrapper or the Tooling api client on Java 6. Instead, we'd support Java source compilation and test execution on Java 6 and later, as we do for Java 1.5 now.
@@ -138,16 +133,24 @@ The current defaults for the outputs of tasks of type `Test` conflict with each 
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
+## Simplify definition of public API
+
+- Ensure all internal packages have `internal` in their name
+- Remove `org.gradle.util` from default imports.
+
+Do this by deprecate-replace for those types that are reachable from the public API, for example via `DefaultTask`.  Also for types in `org.gradle.util`
+
 ## Remove support for using the project build script classloader before it has been configured
 
 Would have to tackle implicit usage, eg `evaluationDependsOn(child-of-some-project)`, which implicitly queries the classloader of `some-project`. Similar problems when using configure on demand.
 
-## Address issues in ordering of dynamic method lookup
+## Address issues in dynamic method invocation
 
 Currently, we look first for a method and if not found, look for a property with the given name and if the value is a closure, treat it as a method.
 
 - Methods inherited from an ancestor project can silently shadow these properties.
 - Method matching is inconsistent with how methods are matched on POJO/POGO objects, where a method is selected only when the args can be coerced to those accepted by the method, and if not, searching continues with the next object. Should do something similar for property-as-a-method matching.
+- Type conversion is not applied to the parameters to a closure, or to static methods
 
 ## Remove Gradle GUI
 
