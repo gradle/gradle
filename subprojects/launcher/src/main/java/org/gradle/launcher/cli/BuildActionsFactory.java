@@ -17,7 +17,6 @@
 package org.gradle.launcher.cli;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
@@ -42,7 +41,6 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.process.internal.DefaultExecActionFactory;
 
 import java.lang.management.ManagementFactory;
 import java.util.UUID;
@@ -50,10 +48,12 @@ import java.util.UUID;
 class BuildActionsFactory implements CommandLineAction {
     private final CommandLineConverter<Parameters> parametersConverter;
     private final ServiceRegistry loggingServices;
+    private final JvmVersionDetector jvmVersionDetector;
 
-    BuildActionsFactory(ServiceRegistry loggingServices, CommandLineConverter<Parameters> parametersConverter) {
+    BuildActionsFactory(ServiceRegistry loggingServices, CommandLineConverter<Parameters> parametersConverter, JvmVersionDetector jvmVersionDetector) {
         this.loggingServices = loggingServices;
         this.parametersConverter = parametersConverter;
+        this.jvmVersionDetector = jvmVersionDetector;
     }
 
     public void configureCommandLineParser(CommandLineParser parser) {
@@ -62,7 +62,7 @@ class BuildActionsFactory implements CommandLineAction {
 
     public Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
         Parameters parameters = parametersConverter.convert(commandLine, new Parameters());
-        parameters.getDaemonParameters().applyDefaultsFor(new JvmVersionDetector(new DefaultExecActionFactory(new IdentityFileResolver())).getJavaVersion(parameters.getDaemonParameters().getEffectiveJvm()));
+        parameters.getDaemonParameters().applyDefaultsFor(jvmVersionDetector.getJavaVersion(parameters.getDaemonParameters().getEffectiveJvm()));
 
         if (parameters.getDaemonParameters().isStop()) {
             return stopAllDaemons(parameters.getDaemonParameters(), loggingServices);
