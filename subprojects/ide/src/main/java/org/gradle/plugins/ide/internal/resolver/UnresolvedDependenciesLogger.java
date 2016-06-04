@@ -29,6 +29,7 @@ public class UnresolvedDependenciesLogger {
     public void log(Collection<UnresolvedIdeRepoFileDependency> deps) {
         for (UnresolvedIdeRepoFileDependency dep : deps) {
             logger.warn("Could not resolve: " + dep.getDisplayName());
+            logger.debug("Could not resolve: " + dep.getDisplayName(), dep.getProblem());
         }
     }
 }
