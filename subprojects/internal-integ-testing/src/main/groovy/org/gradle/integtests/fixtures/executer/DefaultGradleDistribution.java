@@ -62,14 +62,33 @@ public class DefaultGradleDistribution implements GradleDistribution {
         if (jvm.isIbmJvm() && isVersion("1.0-milestone-4")) {
             return false;
         }
+
+        JavaVersion javaVersion = jvm.getJavaVersion();
+        if (javaVersion == null) {
+            throw new IllegalArgumentException();
+        }
+
+        return worksWith(javaVersion);
+    }
+
+    private boolean worksWith(JavaVersion javaVersion) {
         // 0.9-rc-1 was broken for Java 5
-        if (isVersion("0.9-rc-1")) {
-            return jvm.getJavaVersion().isJava6Compatible();
+        if (isVersion("0.9-rc-1") && javaVersion == JavaVersion.VERSION_1_5) {
+            return false;
         }
+
+        // 1.x works on Java 5 - 8
         if (isSameOrOlder("1.12")) {
-            return jvm.getJavaVersion().isJava5Compatible();
+            return javaVersion.compareTo(JavaVersion.VERSION_1_5) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
         }
-        return jvm.getJavaVersion().isJava6Compatible();
+
+        // 2.x works on Java 6 - 8
+        if (isSameOrOlder("2.14")) {
+            return javaVersion.compareTo(JavaVersion.VERSION_1_6) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
+        }
+
+        // 3.x works on Java 7 - 9
+        return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_9) <= 0;
     }
 
     public boolean worksWith(OperatingSystem os) {
@@ -96,23 +115,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
 
     @Override
     public boolean isToolingApiTargetJvmSupported(JavaVersion javaVersion) {
-        if (isSameOrNewer("2.10")) {
-            // Java 1.6 or later
-            return javaVersion.compareTo(JavaVersion.VERSION_1_6) >= 0;
-        }
-
-        // Gradle versions older than 2.10 did not fully support Java 1.9 as the target JVM
-        if (javaVersion.compareTo(JavaVersion.VERSION_1_9) >= 0) {
-            return false;
-        }
-
-        // Use Java 1.6 or later for Gradle 2.0 and later
-        if (isSameOrNewer("2.0")) {
-            return javaVersion.compareTo(JavaVersion.VERSION_1_6) >= 0;
-        }
-
-        // Use Java 1.5 or later for earlier Gradle versions
-        return javaVersion.compareTo(JavaVersion.VERSION_1_5) >= 0;
+        return worksWith(javaVersion);
     }
 
     public boolean isToolingApiNonAsciiOutputSupported() {
