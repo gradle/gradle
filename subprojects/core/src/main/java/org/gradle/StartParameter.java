@@ -87,6 +87,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     private boolean configureOnDemand;
     private int maxWorkerCount;
     private boolean continuous;
+    private List<File> participantBuilds = new ArrayList<File>();
 
     /**
      * {@inheritDoc}
@@ -195,6 +196,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
         p.gradleHomeDir = gradleHomeDir;
         p.initScripts = new ArrayList<File>(initScripts);
+        p.participantBuilds = new ArrayList<File>(participantBuilds);
         p.dryRun = dryRun;
         p.projectCacheDir = projectCacheDir;
         return p;
@@ -729,6 +731,21 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     @Incubating
     public void setContinuous(boolean enabled) {
         this.continuous = enabled;
+    }
+
+    @Incubating
+    public void addParticipant(File participant) {
+        participantBuilds.add(participant);
+    }
+
+    @Incubating
+    public void setParticipantBuilds(List<File> participantBuilds) {
+        this.participantBuilds = participantBuilds;
+    }
+
+    @Incubating
+    public List<File> getParticipantBuilds() {
+        return Collections.unmodifiableList(participantBuilds);
     }
 
 }

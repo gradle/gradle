@@ -16,13 +16,19 @@
 
 package org.gradle.launcher.cli;
 
+import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
+import org.gradle.api.Transformer;
 import org.gradle.cli.CommandLineConverter;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.composite.CompositeParameters;
+import org.gradle.internal.composite.DefaultGradleParticipantBuild;
+import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -33,8 +39,8 @@ import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
-import org.gradle.launcher.daemon.client.ReportDaemonStatusClient;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
+import org.gradle.launcher.daemon.client.ReportDaemonStatusClient;
 import org.gradle.launcher.daemon.configuration.BuildProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
@@ -42,8 +48,14 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.launcher.exec.DefaultCompositeBuildActionParameters;
+import org.gradle.util.CollectionUtils;
+import org.gradle.util.GUtil;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.util.List;
 import java.util.UUID;
 
 class BuildActionsFactory implements CommandLineAction {
@@ -152,13 +164,57 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private Runnable runBuild(StartParameter startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters> executer, ServiceRegistry sharedServices) {
-        BuildActionParameters parameters = new DefaultBuildActionParameters(
+        BuildActionParameters parameters = createBuildActionParameters(startParameter, daemonParameters);
+        return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters, sharedServices);
+    }
+
+    private BuildActionParameters createBuildActionParameters(StartParameter startParameter, DaemonParameters daemonParameters) {
+        if (startParameter.getParticipantBuilds().isEmpty()) {
+            return defaultBuildActionParameters(startParameter, daemonParameters);
+        }
+
+        List<GradleParticipantBuild> participants = determineCompositeParticipants(startParameter);
+        return compositeBuildActionParameters(startParameter, daemonParameters, participants);
+    }
+
+    private BuildActionParameters defaultBuildActionParameters(StartParameter startParameter, DaemonParameters daemonParameters) {
+        return new DefaultBuildActionParameters(
                 daemonParameters.getEffectiveSystemProperties(),
                 System.getenv(),
                 SystemProperties.getInstance().getCurrentDir(),
                 startParameter.getLogLevel(),
                 daemonParameters.isEnabled(), startParameter.isContinuous(), daemonParameters.isInteractive(), ClassPath.EMPTY);
-        return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters, sharedServices);
+    }
+
+    private BuildActionParameters compositeBuildActionParameters(StartParameter startParameter, DaemonParameters daemonParameters, List<GradleParticipantBuild> participants) {
+        CompositeParameters compositeParameters = new CompositeParameters(participants);
+        return new DefaultCompositeBuildActionParameters(
+            daemonParameters.getEffectiveSystemProperties(),
+            System.getenv(),
+            SystemProperties.getInstance().getCurrentDir(),
+            startParameter.getLogLevel(),
+            daemonParameters.isEnabled(), startParameter.isContinuous(),
+            daemonParameters.isInteractive(), ClassPath.EMPTY, compositeParameters);
+    }
+
+    private List<GradleParticipantBuild> determineCompositeParticipants(final StartParameter startParameter) {
+        File projectDir = GUtil.elvis(startParameter.getProjectDir(), startParameter.getCurrentDir());
+        List<File> participantPaths = Lists.newArrayList();
+        try {
+            participantPaths.add(projectDir.getCanonicalFile());
+            for (File file : startParameter.getParticipantBuilds()) {
+                participantPaths.add(file.getCanonicalFile());
+            }
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+
+        return CollectionUtils.collect(participantPaths, new Transformer<GradleParticipantBuild, File>() {
+            @Override
+            public GradleParticipantBuild transform(File participantPath) {
+                return new DefaultGradleParticipantBuild(participantPath, null, null, null);
+            }
+        });
     }
 
     private long getBuildStartTime() {
