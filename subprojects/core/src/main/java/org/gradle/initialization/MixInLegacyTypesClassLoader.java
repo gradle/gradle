@@ -97,7 +97,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             return null;
         }
         ClassWriter visitor = new ClassWriter(0);
-        visitor.visit(Opcodes.V1_7, Opcodes.ACC_PUBLIC, name.replace('.', '/'), null, OBJECT_TYPE.getInternalName(), null);
+        visitor.visit(Opcodes.V1_7, Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC | Opcodes.ACC_INTERFACE | Opcodes.ACC_ABSTRACT, name.replace('.', '/'), null, OBJECT_TYPE.getInternalName(), null);
         visitor.visitEnd();
         return visitor.toByteArray();
     }
